@@ -46,6 +46,39 @@ $TicketsFileJsonCanonical = Join-Path $CanonicalDateDir "combined_slate_tickets_
 $TicketsFileJson = Join-Path $DateDir "combined_slate_tickets_$Date.json"
 $TicketsFileJsonUiData = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
 $TicketsFile = if (Test-Path $TicketsFileFrozenCanonical) { $TicketsFileFrozenCanonical } elseif (Test-Path $TicketsFileFrozen) { $TicketsFileFrozen } elseif (Test-Path $TicketsFileXlsxCanonical) { $TicketsFileXlsxCanonical } elseif (Test-Path $TicketsFileXlsx) { $TicketsFileXlsx } elseif (Test-Path $TicketsFileJsonUiData) { $TicketsFileJsonUiData } elseif (Test-Path $TicketsFileJsonCanonical) { $TicketsFileJsonCanonical } elseif (Test-Path $TicketsFileJson) { $TicketsFileJson } else { $TicketsFileXlsx }
+
+function Resolve-TennisMatchDateFromPayload {
+    param([string]$BundleDate)
+    $jsonCandidates = @(
+        (Join-Path $Root "ui_runner\data\combined_slate_tickets_$BundleDate.json"),
+        (Join-Path $DateDir "combined_slate_tickets_$BundleDate.json"),
+        (Join-Path $CanonicalDateDir "combined_slate_tickets_$BundleDate.json")
+    )
+    foreach ($jp in $jsonCandidates) {
+        if (-not (Test-Path -LiteralPath $jp)) { continue }
+        try {
+            $payload = Get-Content -LiteralPath $jp -Raw -Encoding UTF8 | ConvertFrom-Json
+            $td = [string]$payload.tennis_date
+            if ($td -match '^\d{4}-\d{2}-\d{2}$') {
+                return $td
+            }
+        } catch { }
+    }
+    try {
+        $pd = [datetime]::ParseExact($BundleDate, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
+        return $pd.AddDays(1).ToString("yyyy-MM-dd")
+    } catch {
+        return $BundleDate
+    }
+}
+
+# ESPN match day for tennis (payload tennis_date, else bundle + 1). Step8 still lives under bundle folder.
+$TennisSlateDate = Resolve-TennisMatchDateFromPayload -BundleDate $Date
+$TennisGradeOutDir = Join-Path $Root "outputs\$TennisSlateDate"
+if ($TennisSlateDate -ne $Date) {
+    Write-Host "Tennis match day: $TennisSlateDate (from payload or bundle+1; grader -Date $Date)" -ForegroundColor DarkGray
+}
+
 $NBAActuals  = Join-Path $DateDir "actuals_nba_$Date.csv"
 $NBA1HActuals = Join-Path $DateDir "actuals_nba1h_$Date.csv"
 $NBA2HActuals = Join-Path $DateDir "actuals_nba2h_$Date.csv"
@@ -58,7 +91,7 @@ $CBBActuals  = Join-Path $DateDir "actuals_cbb_$Date.csv"
 $WCBBActuals = Join-Path $DateDir "actuals_wcbb_$Date.csv"
 $NHLActuals  = Join-Path $DateDir "actuals_nhl_$Date.csv"
 $SoccerActuals  = Join-Path $DateDir "actuals_soccer_$Date.csv"
-$TennisActuals  = Join-Path $DateDir "actuals_tennis_$TennisSlateDate.csv"
+$TennisActuals  = Join-Path $TennisGradeOutDir "actuals_tennis_$TennisSlateDate.csv"
 $MlbActuals    = Join-Path $DateDir "actuals_mlb_$Date.csv"
 $FetchActualsScript = Join-Path $Root "scripts\fetch_actuals.py"
 $FetchTennisActualsScript = Join-Path $Root "scripts\fetch_tennis_actuals.py"
@@ -89,7 +122,7 @@ $SoccerGradedFile = Join-Path $DateDir "graded_soccer_$Date.xlsx"
 $NBA1HGradedFile = Join-Path $DateDir "graded_nba1h_$Date.xlsx"
 $NBA1QGradedFile = Join-Path $DateDir "graded_nba1q_$Date.xlsx"
 $WCBBGradedFile = Join-Path $DateDir "graded_wcbb_$Date.xlsx"
-$TennisGradedFile = Join-Path $DateDir "graded_tennis_$TennisSlateDate.xlsx"
+$TennisGradedFile = Join-Path $TennisGradeOutDir "graded_tennis_$TennisSlateDate.xlsx"
 $WNBAActuals = Join-Path $DateDir "actuals_wnba_$Date.csv"
 $WNBAGradedFile = Join-Path $DateDir "graded_wnba_$Date.xlsx"
 $NFLActuals = Join-Path $DateDir "actuals_nfl_$Date.csv"
@@ -421,7 +454,9 @@ if (Test-Path $FetchActualsScript) {
             Run-Py "Tennis Grader" $Root $TennisGraderScript @(
                 "--date", $TennisMatchDate,
                 "--slate", $TennisSlateFile,
-                "--output", $TennisGradedFile
+                "--output", $TennisGradedFile,
+                "--days-back", "2",
+                "--days-forward", "1"
             ) -PreferPy314
         }
     }
@@ -1152,14 +1187,15 @@ else {
 # Build Ticket Eval HTML for Grades tab
 # =============================
 if (Test-Path $TicketEvalBuilderScript) {
-    $GradedCombined = Join-Path $DateDir "combined_tickets_graded_$Date.xlsx"
+    $HasGradedSportSheets = $false
+    if (Test-Path -LiteralPath $DateDir) {
+        $HasGradedSportSheets = @(
+            Get-ChildItem -LiteralPath $DateDir -Filter "graded_*.xlsx" -File -ErrorAction SilentlyContinue
+        ).Count -gt 0
+    }
     $TicketEvalOut = Join-Path $TemplatesDir "ticket_eval_$Date.html"
-    if (Test-Path $GradedCombined) {
-        $TeArgs = @(
-            "--date", $Date,
-            "--graded", $GradedCombined,
-            "--out", $TicketEvalOut
-        )
+    if ($HasGradedSportSheets) {
+        $TeArgs = @("--date", $Date)
         # Optional: extra graded folders (comma-separated YYYY-MM-DD). Leg game_time dates are
         # auto-detected inside build_ticket_eval.py; use this when tickets lack game_time (e.g. old xlsx).
         if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
@@ -1170,7 +1206,7 @@ if (Test-Path $TicketEvalBuilderScript) {
                 }
             }
         }
-        Run-Py "Build Ticket Eval HTML" $Root $TicketEvalBuilderScript $TeArgs
+        Run-Py "Build Ticket Eval HTML (graded_main)" $Root $TicketEvalBuilderScript $TeArgs
         if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TicketEvalOut)) {
             Copy-Item -LiteralPath $TicketEvalOut -Destination (Join-Path $MobileWwwDir "ticket_eval_$Date.html") -Force -ErrorAction SilentlyContinue
             Write-Host "[GRADER] Mobile copy: ticket_eval_$Date.html -> mobile\www\" -ForegroundColor DarkGray
@@ -1178,7 +1214,28 @@ if (Test-Path $TicketEvalBuilderScript) {
         Write-Host "[GRADER] Ticket eval merges graded_* for slate date and each leg game_time date (see build_ticket_eval log)." -ForegroundColor DarkGray
     }
     else {
-        Write-Host "Skipping ticket eval build (graded workbook missing: $GradedCombined)." -ForegroundColor Yellow
+        Write-Host "Skipping main ticket eval (no graded_*.xlsx under outputs\$Date)." -ForegroundColor Yellow
+    }
+
+    # High-leg-HR panel — fresh HTML whenever sport graded workbooks exist.
+    $HighLegJson = Join-Path $Root "ui_runner\data\combined_slate_tickets_high_leg_$Date.json"
+    $WinrateXlsx = Join-Path $DateDir "winrate_tickets_$Date.xlsx"
+    if ($HasGradedSportSheets -and ((Test-Path $HighLegJson) -or (Test-Path $WinrateXlsx))) {
+        $TeHighOut = Join-Path $TemplatesDir "ticket_eval_high_leg_$Date.html"
+        $TeHighArgs = @("--date", $Date, "--track", "high_leg_hr")
+        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
+            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
+                $t = $gd.Trim()
+                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
+                    $TeHighArgs += @("--game-date", $t)
+                }
+            }
+        }
+        Run-Py "Build High Leg HR Ticket Eval HTML" $Root $TicketEvalBuilderScript $TeHighArgs
+        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeHighOut)) {
+            Copy-Item -LiteralPath $TeHighOut -Destination (Join-Path $MobileWwwDir "ticket_eval_high_leg_$Date.html") -Force -ErrorAction SilentlyContinue
+            Write-Host "[GRADER] Mobile copy: ticket_eval_high_leg_$Date.html -> mobile\www\" -ForegroundColor DarkGray
+        }
     }
 
     # Long parlays (5-6 leg): separate grader + eval — does not mix into main 2-4 leg KPIs.
@@ -1261,28 +1318,6 @@ if (Test-Path $TicketEvalBuilderScript) {
     }
     elseif ($HighLegTicketsArg) {
         Write-Host "Skipping high-leg-HR grader (grader or NBA actuals missing)." -ForegroundColor Yellow
-    }
-    if ($HighLegTicketsArg) {
-        $TeHighOut = Join-Path $TemplatesDir "ticket_eval_high_leg_$Date.html"
-        $TeHighArgs = @(
-            "--date", $Date,
-            "--track", "high_leg_hr",
-            "--tickets", $HighLegTicketsArg,
-            "--out", $TeHighOut
-        )
-        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
-            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
-                $t = $gd.Trim()
-                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
-                    $TeHighArgs += @("--game-date", $t)
-                }
-            }
-        }
-        Run-Py "Build High Leg HR Ticket Eval HTML" $Root $TicketEvalBuilderScript $TeHighArgs
-        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeHighOut)) {
-            Copy-Item -LiteralPath $TeHighOut -Destination (Join-Path $MobileWwwDir "ticket_eval_high_leg_$Date.html") -Force -ErrorAction SilentlyContinue
-            Write-Host "[GRADER] Mobile copy: ticket_eval_high_leg_$Date.html -> mobile\www\" -ForegroundColor DarkGray
-        }
     }
 
     # Win-rate Goblin opt3 shadow (Tier A only) — separate validation track, not production main.

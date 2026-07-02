@@ -118,6 +118,30 @@ def _norm_soccer_prop(p: str) -> str:
     return " ".join(str(p or "").lower().strip().split())
 
 
+def _combo_player_parts(player: str) -> list[str]:
+    """Split PrizePicks combo labels (``A + B``) into individual player names."""
+    raw = str(player or "").strip()
+    if "+" not in raw:
+        return [raw] if raw else []
+    return [p.strip() for p in raw.split("+") if p.strip()]
+
+
+def _combo_team_parts(team: str, n_players: int) -> list[str]:
+    """Align team tokens with combo arms (``BEL/USA`` → one team per player)."""
+    if n_players <= 1:
+        return [str(team or "").strip().upper()]
+    raw = str(team or "").strip()
+    if raw in ("", "—", "-", "nan", "None", "NONE"):
+        return [""] * n_players
+    if "/" in raw:
+        parts = [p.strip().upper() for p in raw.split("/") if p.strip()]
+        if len(parts) >= n_players:
+            return parts[:n_players]
+        if len(parts) == 1:
+            return parts * n_players
+    return [raw.upper()] * n_players
+
+
 def normalize_soccer_slate_columns(slate: pd.DataFrame) -> pd.DataFrame:
     """
     step8_soccer_direction_clean.xlsx uses Title Case headers (Player, Prop, …).
@@ -294,7 +318,7 @@ def lookup_soccer_actual(
 ) -> float:
     pl = _norm_soccer_player(player)
     raw = str(prop_type or "")
-    pr = _norm_soccer_prop(raw.replace("(combo)", "").strip())
+    pr = _norm_soccer_prop(re.sub(r"\(combo\)", "", raw, flags=re.I).strip())
     tm = str(team or "").strip().upper()
     if not pl or not pr:
         return np.nan
@@ -326,6 +350,46 @@ def lookup_soccer_minutes(
     if (pl, tm) in minutes_lut:
         return minutes_lut[(pl, tm)]
     return minutes_lut.get((pl, ""), None)
+
+
+def lookup_soccer_actual_combo(
+    lut: dict[tuple[str, str, str], float],
+    player: str,
+    prop_type: str,
+    team: str = "",
+) -> float:
+    """Resolve solo or combo player labels; combo actuals = sum of each arm's stat."""
+    parts = _combo_player_parts(player)
+    if len(parts) <= 1:
+        return lookup_soccer_actual(lut, player, prop_type, team)
+    teams = _combo_team_parts(team, len(parts))
+    vals: list[float] = []
+    for pname, tm in zip(parts, teams):
+        v = lookup_soccer_actual(lut, pname, prop_type, tm)
+        if pd.isna(v):
+            return np.nan
+        vals.append(float(v))
+    return float(sum(vals))
+
+
+def lookup_soccer_minutes_combo(
+    minutes_lut: dict[tuple[str, str], float | None],
+    player: str,
+    team: str = "",
+) -> float | None:
+    """Combo DNP: void when any arm has explicit 0 minutes played."""
+    parts = _combo_player_parts(player)
+    if len(parts) <= 1:
+        return lookup_soccer_minutes(minutes_lut, player, team)
+    teams = _combo_team_parts(team, len(parts))
+    found: list[float] = []
+    for pname, tm in zip(parts, teams):
+        m = lookup_soccer_minutes(minutes_lut, pname, tm)
+        if m is not None:
+            found.append(float(m))
+    if not found:
+        return None
+    return min(found)
 
 
 PROP_PRIORS = {
@@ -711,8 +775,8 @@ def main() -> None:
         pick_type = slate_row.get("pick_type", slate_row.get("Pick Type", ""))
         deviation_level = slate_row.get("deviation_level", slate_row.get("Deviation Level", ""))
 
-        actual = lookup_soccer_actual(actuals_lut, player, prop_type, team)
-        minutes_played = lookup_soccer_minutes(minutes_lut, player, team)
+        actual = lookup_soccer_actual_combo(actuals_lut, player, prop_type, team)
+        minutes_played = lookup_soccer_minutes_combo(minutes_lut, player, team)
         
         # Grade
         grader = SoccerGrader(league=league, position=position)

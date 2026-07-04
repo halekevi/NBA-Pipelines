@@ -249,6 +249,47 @@ def iter_scoreboard_matches(tour: str) -> Iterator[dict[str, Any]]:
                     }
 
 
+def build_player_stats_index(
+    target: str,
+    *,
+    days_back: int = 2,
+    days_forward: int = 1,
+) -> dict[str, dict[str, Any]]:
+    """
+    Map normalized player_key -> match stat dict for ESPN scoreboard finals
+    on ``target`` ± day window (used by fetch_tennis_actuals / grader helpers).
+    """
+    from datetime import date as _date, timedelta as _td
+
+    anchor = _date.fromisoformat(str(target).strip()[:10])
+    valid_dates = {
+        (anchor + _td(days=offset)).isoformat()
+        for offset in range(-max(0, int(days_back)), max(0, int(days_forward)) + 1)
+    }
+    by_player: dict[str, dict[str, Any]] = {}
+    for tour in ("ATP", "WTA"):
+        for m in iter_scoreboard_matches(tour):
+            dt = str(m.get("match_date_utc") or "")[:10]
+            if dt not in valid_dates:
+                continue
+            pk = norm_key(str(m.get("player") or ""))
+            if not pk:
+                continue
+            prev = by_player.get(pk)
+            if prev and str(prev.get("match_date_utc") or "")[:10] >= dt:
+                continue
+            by_player[pk] = {
+                "player": str(m.get("player") or pk),
+                "match_date_utc": dt,
+                "games_won": float(m.get("games_won") or 0),
+                "match_total_games": float(m.get("match_total_games") or 0),
+                "aces": float(m.get("aces") or 0),
+                "double_faults": float(m.get("double_faults") or 0),
+                "sets_won": float(m.get("sets_won") or 0),
+            }
+    return by_player
+
+
 def refresh_match_games_cache(cache_path: Path, tours: tuple[str, ...] = ("ATP", "WTA")) -> dict[str, list[dict[str, Any]]]:
     """Map espn_athlete_id -> list of recent match dicts (newest first)."""
     by_id: dict[str, list[dict[str, Any]]] = {}

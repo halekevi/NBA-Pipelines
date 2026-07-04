@@ -409,8 +409,29 @@ def main() -> None:
     args = ap.parse_args()
 
     print("[Tennis step8] Starting...")
-    print(f"Loading: {args.input} (sheet={args.sheet})")
-    df  = pd.read_excel(args.input, sheet_name=args.sheet, dtype=str).fillna("")
+    input_path = Path(args.input)
+    if not input_path.is_file():
+        repo = Path(__file__).resolve().parents[3]
+        fallbacks: list[Path] = []
+        if input_path.parent.name == "tennis":
+            out_root = input_path.parent.parent
+            for p in sorted(out_root.glob("*/tennis/step7_tennis_ranked.xlsx"), reverse=True):
+                fallbacks.append(p)
+        fallbacks.extend([
+            repo / "Sports" / "Tennis" / "outputs" / "step7_tennis_ranked.xlsx",
+            repo / "Tennis" / "outputs" / "step7_tennis_ranked.xlsx",
+        ])
+        for fb in fallbacks:
+            if fb.is_file():
+                print(f"[Tennis step8] WARN: --input missing; using fallback {fb}")
+                input_path = fb
+                break
+        if not input_path.is_file():
+            print(f"ERROR [Tennis-S8] Input not found: {args.input}")
+            sys.exit(1)
+
+    print(f"Loading: {input_path} (sheet={args.sheet})")
+    df  = pd.read_excel(input_path, sheet_name=args.sheet, dtype=str).fillna("")
 
     if df.empty:
         print("ERROR [Tennis-S8] Empty input from S7 — aborting.")

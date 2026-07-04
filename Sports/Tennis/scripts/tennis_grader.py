@@ -17,7 +17,7 @@ import pandas as pd
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
 # Sports/Tennis/scripts -> monorepo root.
-_REPO_ROOT = _SCRIPT_DIR.parents[3]
+_REPO_ROOT = _SCRIPT_DIR.parents[2]
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 if str(_REPO_ROOT) not in sys.path:
@@ -177,15 +177,26 @@ def _slate_field(row: pd.Series, *keys: str) -> str:
     return ""
 
 
+def _match_dates_window(target: str, days_back: int, days_forward: int) -> set[str]:
+    anchor = date.fromisoformat(str(target).strip()[:10])
+    return {
+        (anchor + timedelta(days=offset)).isoformat()
+        for offset in range(-max(0, days_back), max(0, days_forward) + 1)
+    }
+
+
 def main() -> None:
     print("[Tennis grader] Starting...")
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", required=True, help="Slate date YYYY-MM-DD (UTC date on ESPN match)")
     ap.add_argument("--output", default="", help="Output graded .xlsx path")
     ap.add_argument("--slate", default="", help="step8 CSV or XLSX (default: Tennis outputs)")
+    ap.add_argument("--days-back", type=int, default=0, help="Include ESPN matches up to N days before --date")
+    ap.add_argument("--days-forward", type=int, default=0, help="Include ESPN matches up to N days after --date")
     args = ap.parse_args()
 
     target = str(args.date).strip()[:10]
+    match_dates = _match_dates_window(target, int(args.days_back), int(args.days_forward))
     out = Path(args.output) if str(args.output).strip() else _REPO_ROOT / "outputs" / target / f"graded_tennis_{target}.xlsx"
     if not out.is_absolute():
         out = _REPO_ROOT / out
@@ -258,7 +269,7 @@ def main() -> None:
     for tour in ("ATP", "WTA"):
         for m in iter_scoreboard_matches(tour):
             dt = str(m.get("match_date_utc") or "")[:10]
-            if dt != target:
+            if dt not in match_dates:
                 continue
             pk = norm_key(str(m.get("player") or ""))
             if not pk:

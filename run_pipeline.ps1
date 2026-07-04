@@ -795,11 +795,31 @@ function Copy-DatedSlateOutput {
 }
 
 # -- MLB: mirror step8 to sport root + publish slate_sport_mlb.json (Railway / Slate Explorer) --
+function Test-ValidXlsx {
+    param([string]$Path)
+    if (-not (Test-Path -LiteralPath $Path)) { return $false }
+    try {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
+        $zip = [System.IO.Compression.ZipFile]::OpenRead($Path)
+        try {
+            return ($zip.Entries | Where-Object { $_.FullName -like 'xl/*' }).Count -gt 0
+        } finally {
+            $zip.Dispose()
+        }
+    } catch {
+        return $false
+    }
+}
+
 function Publish-MlbStep8Artifacts {
     param([string]$Reason = "")
     $step8Clean = Join-Path $MLBRunOutDir "step8_mlb_direction_clean.xlsx"
     if (-not (Test-Path -LiteralPath $step8Clean)) {
         Write-Host "  [MLB publish] skip — no step8_mlb_direction_clean.xlsx" -ForegroundColor DarkGray
+        return
+    }
+    if (-not (Test-ValidXlsx -Path $step8Clean)) {
+        Write-Host "  [MLB publish] skip — corrupt step8 xlsx (partial write / timeout)" -ForegroundColor Yellow
         return
     }
     $sportRoot = Join-Path $MLBDir "step8_mlb_direction_clean.xlsx"
@@ -3091,7 +3111,7 @@ Write-Host ""
 
 $waitStart = Get-Date
 $lastHeartbeat = $waitStart
-$maxParallelMinutes = 75
+$maxParallelMinutes = 120
 
 while (($allJobs | Where-Object { $_.State -eq 'Running' }).Count -gt 0) {
     foreach ($job in $allJobs) {

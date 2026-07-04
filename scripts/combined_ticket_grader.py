@@ -1825,6 +1825,7 @@ def main():
     nhl_lp = nhl_lpt = None
     soccer_lp = soccer_lpt = None
     soccer_act = pd.DataFrame()
+    tennis_act = pd.DataFrame()
     tennis_lp = tennis_lpt = None
     mlb_lp = mlb_lpt = None
     wnba_lp = wnba_lpt = None

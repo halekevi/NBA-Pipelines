@@ -71,6 +71,7 @@ import os
 import re
 import sys
 import unicodedata
+import zipfile
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -9562,8 +9563,9 @@ def load_wcbb(path: str) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename="step8_wcbb_direction_clean.xlsx")
 
     xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = "Soccer" if "Soccer" in xl.sheet_names else (
-        "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
+    sheet = "WCBB" if "WCBB" in xl.sheet_names else (
+        "CBB" if "CBB" in xl.sheet_names else (
+            "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0]))
     df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
 
     df = df.rename(columns={
@@ -9652,7 +9654,7 @@ def load_wcbb(path: str) -> pd.DataFrame:
     else:
         df["tier"] = "C"
 
-    if "hit_rate" not in df.columns:
+    if "hit_rate" not in df.columns or not isinstance(df["hit_rate"], pd.Series):
         df["hit_rate"] = np.nan
 
     for col in ["rank_score", "hit_rate", "line", "_soccer_hit10"]:
@@ -9660,7 +9662,7 @@ def load_wcbb(path: str) -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # Prefer L5 hit rate, then L10, when either is present.
-    if "_soccer_hit10" in df.columns:
+    if "_soccer_hit10" in df.columns and isinstance(df["hit_rate"], pd.Series):
         df["hit_rate"] = df["hit_rate"].combine_first(df["_soccer_hit10"])
         df.drop(columns=["_soccer_hit10"], inplace=True)
 
@@ -9742,8 +9744,45 @@ def load_wcbb(path: str) -> pd.DataFrame:
     return df
 
 
+def _is_valid_xlsx(path: str) -> bool:
+    try:
+        with zipfile.ZipFile(path, "r") as zf:
+            return any(n.startswith("xl/") for n in zf.namelist())
+    except (OSError, zipfile.BadZipFile):
+        return False
+
+
+def _resolve_readable_mlb_step8(path: str) -> str:
+    """Return first readable MLB step8 xlsx among path and known fallbacks."""
+    primary = resolve_input_path(path, fallback_filename="step8_mlb_direction_clean.xlsx")
+    candidates: list[str] = [primary]
+    parent = os.path.dirname(primary)
+    base = os.path.basename(primary)
+    if parent:
+        for name in sorted(os.listdir(parent), reverse=True):
+            if not name.lower().endswith(".xlsx"):
+                continue
+            if "step8_mlb_direction_clean" in name.lower() and name != base:
+                candidates.append(os.path.join(parent, name))
+    sport_root = os.path.join(REPO_ROOT, "Sports", "MLB", "step8_mlb_direction_clean.xlsx")
+    candidates.append(sport_root)
+    legacy = os.path.join(REPO_ROOT, "MLB", "step8_mlb_direction_clean.xlsx")
+    candidates.append(legacy)
+    seen: set[str] = set()
+    for cand in candidates:
+        c = os.path.abspath(cand)
+        if c in seen or not os.path.isfile(c):
+            continue
+        seen.add(c)
+        if _is_valid_xlsx(c):
+            if c != primary:
+                print(f"  [load_mlb] using fallback step8: {c}")
+            return c
+    raise zipfile.BadZipFile(f"File is not a zip file: {primary}")
+
+
 def load_mlb(path: str) -> pd.DataFrame:
-    path = resolve_input_path(path, fallback_filename="step8_mlb_direction_clean.xlsx")
+    path = _resolve_readable_mlb_step8(path)
 
     xl = pd.ExcelFile(path, engine="openpyxl")
     sheet = "MLB" if "MLB" in xl.sheet_names else (

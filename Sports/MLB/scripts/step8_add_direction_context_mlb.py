@@ -17,6 +17,7 @@ and step8_mlb_direction_clean.xlsx (tickets/UI — Direction only). Fade audit: 
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -452,7 +453,9 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         if len(pitchers): write_sheet(wb, "Pitchers", pitchers, PITCHER_TAB_COLOR)
         if len(hitters):  write_sheet(wb, "Hitters",  hitters,  HITTER_TAB_COLOR)
 
-    wb.save(xlsx_path)
+    tmp_path = str(Path(xlsx_path).with_suffix(".tmp.xlsx"))
+    wb.save(tmp_path)
+    os.replace(tmp_path, xlsx_path)
     print(f"Clean XLSX saved -> {xlsx_path}")
 
 

@@ -4,12 +4,21 @@ from __future__ import annotations
 
 import json
 import sys
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import combined_slate_tickets as cst  # noqa: E402
+
+
+def _is_valid_xlsx(path: Path) -> bool:
+    try:
+        with zipfile.ZipFile(path, "r") as zf:
+            return any(n.startswith("xl/") for n in zf.namelist())
+    except (OSError, zipfile.BadZipFile):
+        return False
 
 
 def main() -> int:
@@ -19,9 +28,9 @@ def main() -> int:
         REPO / "outputs" / date / f"step8_mlb_direction_clean_{date}.xlsx",
         REPO / "Sports" / "MLB" / "step8_mlb_direction_clean.xlsx",
     ]
-    mlb_path = next((p for p in candidates if p.is_file()), None)
+    mlb_path = next((p for p in candidates if p.is_file() and _is_valid_xlsx(p)), None)
     if mlb_path is None:
-        print(f"Missing MLB step8 for {date} (tried {[str(p) for p in candidates]})")
+        print(f"Missing readable MLB step8 for {date} (tried {[str(p) for p in candidates]})")
         return 1
 
     mlb = cst.load_mlb(str(mlb_path))

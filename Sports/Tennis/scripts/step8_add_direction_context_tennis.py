@@ -505,7 +505,9 @@ def main() -> None:
     edge     = pd.to_numeric(out["edge"], errors="coerce")
     abs_edge = pd.to_numeric(out["abs_edge"], errors="coerce")
 
-    pick_type = out.get("pick_type", "Standard").astype(str).apply(_norm_pick_type)
+    if "pick_type" not in out.columns:
+        out["pick_type"] = "Standard"
+    pick_type = out["pick_type"].astype(str).fillna("Standard").apply(_norm_pick_type)
 
     # BUG FIX: edge >= 0 is False for NaN, which wrongly assigns UNDER to rows
     # with no projection. Use explicit NaN check.
@@ -528,9 +530,9 @@ def main() -> None:
     std_mask = pick_type.eq("Standard")
     tie_mask = std_mask & has_edge & (abs_edge < 0.03)
     if tie_mask.any():
-        l5_over = pd.to_numeric(out.get("last5_over", np.nan), errors="coerce")
-        l5_under = pd.to_numeric(out.get("last5_under", np.nan), errors="coerce")
-        hr5 = pd.to_numeric(out.get("line_hit_rate_over_ou_5", np.nan), errors="coerce")
+        l5_over = pd.to_numeric(out["last5_over"], errors="coerce") if "last5_over" in out.columns else pd.Series(np.nan, index=out.index)
+        l5_under = pd.to_numeric(out["last5_under"], errors="coerce") if "last5_under" in out.columns else pd.Series(np.nan, index=out.index)
+        hr5 = pd.to_numeric(out["line_hit_rate_over_ou_5"], errors="coerce") if "line_hit_rate_over_ou_5" in out.columns else pd.Series(np.nan, index=out.index)
 
         under_from_l5 = tie_mask & l5_under.notna() & l5_over.notna() & (l5_under > l5_over)
         over_from_l5 = tie_mask & l5_under.notna() & l5_over.notna() & (l5_over > l5_under)
@@ -553,8 +555,8 @@ def main() -> None:
     # flip to UNDER even if the edge model is near-zero.
     # (Helps cases where passes-attempted last5 stats exist but edge still ~0.)
     std_force = std_mask.copy()
-    last5_avg = pd.to_numeric(out.get("stat_last5_avg", np.nan), errors="coerce")
-    linev = pd.to_numeric(out.get("line", np.nan), errors="coerce")
+    last5_avg = pd.to_numeric(out["stat_last5_avg"], errors="coerce") if "stat_last5_avg" in out.columns else pd.Series(np.nan, index=out.index)
+    linev = pd.to_numeric(out["line"], errors="coerce") if "line" in out.columns else pd.Series(np.nan, index=out.index)
     last5_known = last5_avg.notna() & linev.notna()
     force_under = std_force & last5_known & (last5_avg < (linev - 1e-9))
     force_over  = std_force & last5_known & (last5_avg > (linev + 1e-9))
@@ -578,12 +580,16 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[3]
     out = _attach_unified_ml_prob(out, repo_root)
 
-    hr5b = pd.to_numeric(out.get("line_hit_rate_over_ou_5", np.nan), errors="coerce")
-    hr10b = pd.to_numeric(out.get("line_hit_rate_over_ou_10", np.nan), errors="coerce")
+    hr5b = pd.to_numeric(out["line_hit_rate_over_ou_5"], errors="coerce") if "line_hit_rate_over_ou_5" in out.columns else pd.Series(np.nan, index=out.index)
+    hr10b = pd.to_numeric(out["line_hit_rate_over_ou_10"], errors="coerce") if "line_hit_rate_over_ou_10" in out.columns else pd.Series(np.nan, index=out.index)
     hr10b = hr10b.fillna(hr5b)
     comp_hr = (0.5 * hr5b.fillna(0.5) + 0.5 * hr10b.fillna(0.5)).clip(0.0, 1.0)
     out["composite_hit_rate"] = comp_hr
-    mpb = pd.to_numeric(out.get("ml_prob", np.nan), errors="coerce").fillna(0.5)
+    mpb = (
+        pd.to_numeric(out["ml_prob"], errors="coerce").fillna(0.5)
+        if "ml_prob" in out.columns
+        else pd.Series(0.5, index=out.index)
+    )
     out["blended_score"] = (0.3 * mpb + 0.7 * comp_hr).round(4)
 
     out = _attach_distribution_std(out)

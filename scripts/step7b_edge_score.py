@@ -52,7 +52,7 @@ def _is_zip_xlsx(path: Path) -> bool:
         return False
 
 
-def resolve_step7_path(root: Path, sport: str) -> Path | None:
+def resolve_step7_path(root: Path, sport: str, pipeline_date: str = "") -> Path | None:
     sp = _norm_sport(sport)
     raw_sp = str(sport or "").strip().upper()
     sl = sp.lower()
@@ -114,16 +114,21 @@ def resolve_step7_path(root: Path, sport: str) -> Path | None:
             root / "Soccer" / "step7_soccer_ranked.xlsx",
         ]
     elif sp == "TENNIS":
+        candidates: list[Path] = []
+        pd_str = str(pipeline_date or "").strip()[:10]
+        if pd_str:
+            candidates.append(root / "outputs" / pd_str / "tennis" / "step7_tennis_ranked.xlsx")
         out_glob = sorted(
             (root / "outputs").glob("*/tennis/step7_tennis_ranked.xlsx"),
             key=lambda p: p.stat().st_mtime,
             reverse=True,
         )
-        candidates = list(out_glob) + [
+        candidates.extend(out_glob)
+        candidates.extend([
             Sr / "Tennis" / "outputs" / "step7_tennis_ranked.xlsx",
             Sr / "Tennis" / "step7_tennis_ranked.xlsx",
             root / "Tennis" / "outputs" / "step7_tennis_ranked.xlsx",
-        ]
+        ])
     elif sp == "CFB":
         out_glob = sorted(
             (root / "outputs").glob("*/cfb/step6_ranked_cfb.xlsx"),
@@ -179,6 +184,11 @@ def main() -> None:
         help="Optional full path to step7 workbook (overrides default location; e.g. NBA1H/1Q file).",
     )
     ap.add_argument("--repo-root", type=Path, default=None)
+    ap.add_argument(
+        "--pipeline-date",
+        default="",
+        help="Bundle folder date (YYYY-MM-DD) for outputs/<date>/ sport paths; use pipeline -Date, not tennis slate day.",
+    )
     args = ap.parse_args()
     root = Path(args.repo_root).resolve() if args.repo_root else _repo_root()
     sp = _norm_sport(args.sport)
@@ -198,17 +208,20 @@ def main() -> None:
         return
 
     xlsx: Path | None = None
-    if str(args.step7_xlsx or "").strip():
-        p = Path(str(args.step7_xlsx).strip())
+    explicit_step7 = str(args.step7_xlsx or "").strip()
+    if explicit_step7:
+        p = Path(explicit_step7)
         if not p.is_absolute():
             p = (root / p).resolve()
-        xlsx = p if p.is_file() else None
-        if xlsx is None:
-            print(f"[WARN] --step7-xlsx not found: {p}")
+        if p.is_file():
+            xlsx = p
+        else:
+            print(f"[WARN] --step7-xlsx not found: {p} — skip (no stale fallback)")
+            return
     if xlsx is None:
         # Pass raw sport label so NBA1Q / NBA1H resolve to the correct step7 workbook
         # (_norm_sport maps those to NBA for feature geometry only).
-        xlsx = resolve_step7_path(root, str(args.sport).strip().upper())
+        xlsx = resolve_step7_path(root, str(args.sport).strip().upper(), str(args.pipeline_date or "").strip())
     if xlsx is None:
         print(f"[WARN] No step7 workbook found for sport={sp} — skip.")
         return

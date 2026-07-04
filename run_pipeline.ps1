@@ -920,7 +920,11 @@ function Invoke-NHLStep4b {
 
 # -- step7b edge model scoring (non-fatal if model missing or script errors) ---
 function Invoke-PropOracleStep7b {
-    param([string]$SportLabel, [string]$Step7Xlsx = "")
+    param(
+        [string]$SportLabel,
+        [string]$Step7Xlsx = "",
+        [string]$PipelineDate = ""
+    )
     Push-Location $Root
     try {
         $sp = Join-Path $Root "scripts\step7b_edge_score.py"
@@ -928,8 +932,9 @@ function Invoke-PropOracleStep7b {
             Write-Host "  [$SportLabel] step7b: WARN (missing scripts\step7b_edge_score.py)" -ForegroundColor Yellow
             return
         }
-        $cmd = "py -3.14 `"$sp`" --sport `"$SportLabel`""
+        $cmd = "py -3.14 `"$sp`" --sport `"$SportLabel`" --repo-root `"$Root`""
         if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+        if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
         Write-Host "  --> step7b ($SportLabel)" -ForegroundColor Yellow
         Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
         $output = Invoke-Expression $cmd 2>&1
@@ -1756,7 +1761,14 @@ if ($TennisOnly) {
     if ($ok) { $ok = Run-Step "Tennis Step 5 - Hit Rates" $TennisDir ".\scripts\step5_compute_hitrates_tennis.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --compute10" }
     if ($ok) { $ok = Run-Step "Tennis Step 6 - Context" $TennisDir ".\scripts\step6_add_context_tennis.py" "--input `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --output `"$TennisRunOutDir\step6_tennis_role_context.csv`"" }
     if ($ok) { $ok = Run-Step "Tennis Step 7 - Rank Props" $TennisDir ".\scripts\step7_rank_props_tennis.py" "--input `"$TennisRunOutDir\step6_tennis_role_context.csv`" --output `"$TennisRunOutDir\step7_tennis_ranked.xlsx`"" }
-    if ($ok) { Invoke-PropOracleStep7b "Tennis" "$TennisRunOutDir\step7_tennis_ranked.xlsx" }
+    if ($ok) {
+        $tennisStep7 = Join-Path $TennisRunOutDir "step7_tennis_ranked.xlsx"
+        if (-not (Test-Path $tennisStep7)) {
+            Write-Host "  [Tennis] WARN: step7 output missing at $tennisStep7 — skipping step7b" -ForegroundColor Yellow
+        } else {
+            Invoke-PropOracleStep7b "Tennis" $tennisStep7 $Date
+        }
+    }
     if ($ok) { $ok = Run-Step "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $SportsRoot "Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
     if ($ok) {
         Copy-DatedSlateOutput `
@@ -2128,7 +2140,7 @@ $NBAJob = Start-Job -ScriptBlock {
         }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -2136,8 +2148,9 @@ $NBAJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
@@ -2247,7 +2260,7 @@ $CBBJob = Start-Job -ScriptBlock {
         } finally { Pop-Location }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -2255,8 +2268,9 @@ $CBBJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
@@ -2365,7 +2379,7 @@ $NHLJob = Start-Job -ScriptBlock {
         } finally { Pop-Location }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -2373,8 +2387,9 @@ $NHLJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
@@ -2529,7 +2544,7 @@ $SoccerJob = Start-Job -ScriptBlock {
         } finally { Pop-Location }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -2537,8 +2552,9 @@ $SoccerJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
@@ -2606,7 +2622,7 @@ $SoccerJob = Start-Job -ScriptBlock {
 
 # -- Tennis Job ---------------------------------------------------------------
 $TennisJob = Start-Job -ScriptBlock {
-    param($TennisDir, $TennisDate, $SkipFetch, $RepoRoot, $TennisRunOutDir)
+    param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
@@ -2623,7 +2639,7 @@ $TennisJob = Start-Job -ScriptBlock {
         } finally { Pop-Location }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -2631,8 +2647,9 @@ $TennisJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
@@ -2651,10 +2668,17 @@ $TennisJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "Tennis Step 5 - Hit Rates" $TennisDir ".\scripts\step5_compute_hitrates_tennis.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --compute10" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 6 - Context" $TennisDir ".\scripts\step6_add_context_tennis.py" "--input `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --output `"$TennisRunOutDir\step6_tennis_role_context.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 7 - Rank Props" $TennisDir ".\scripts\step7_rank_props_tennis.py" "--input `"$TennisRunOutDir\step6_tennis_role_context.csv`" --output `"$TennisRunOutDir\step7_tennis_ranked.xlsx`"" }
-    if ($ok) { Invoke-Step7b-Job "Tennis" $RepoRoot "$TennisRunOutDir\step7_tennis_ranked.xlsx" }
+    if ($ok) {
+        $tennisStep7 = Join-Path $TennisRunOutDir "step7_tennis_ranked.xlsx"
+        if (-not (Test-Path $tennisStep7)) {
+            Write-Output "[TENNIS] WARN: step7 output missing at $tennisStep7 — skipping step7b"
+        } else {
+            Invoke-Step7b-Job "Tennis" $RepoRoot $tennisStep7 $PipelineDate
+        }
+    }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $RepoRoot "Sports\Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
     return $ok
-} -ArgumentList $TennisDir, $TennisDate, $SkipFetch, $Root, $TennisRunOutDir
+} -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir
 
 # -- Golf Job (PGA — step1 → step2 → step4 → step5 → step7 → step8) -----------
 $GolfJob = Start-Job -ScriptBlock {
@@ -2873,7 +2897,7 @@ $MLBJob = Start-Job -ScriptBlock {
         }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -2881,8 +2905,9 @@ $MLBJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
@@ -3060,7 +3085,7 @@ $NFLJob = Start-Job -ScriptBlock {
         } finally { Pop-Location }
     }
     function Invoke-Step7b-Job {
-        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "")
+        param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
         Push-Location $R
         try {
             $p = Join-Path $R "scripts\step7b_edge_score.py"
@@ -3068,8 +3093,9 @@ $NFLJob = Start-Job -ScriptBlock {
                 Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
                 return
             }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
+            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
             if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
+            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
             Write-Output "  --> step7b ($SportLabel)"
             Write-Output "        CMD: $cmd"
             $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE

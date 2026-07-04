@@ -1671,7 +1671,15 @@ def run_ml_profit_layers(
     full["prop_bucket"] = full["prop_norm"].where(full["prop_norm"].isin(top_props), "other")
     X_full = pd.get_dummies(full[feat_cols].fillna(""), drop_first=False)
     X_full = X_full.reindex(columns=X.columns, fill_value=0)
-    full["ml_p_hit"] = rf.predict_proba(X_full.values)[:, 1]
+    proba = rf.predict_proba(X_full.values)
+    if proba.shape[1] < 2:
+        scores = np.full(
+            len(X_full),
+            0.5 if proba.shape[1] == 0 else float(proba[0, 0]),
+        )
+    else:
+        scores = proba[:, 1]
+    full["ml_p_hit"] = scores
 
     ticket_strength = full.groupby("ticket_id", as_index=False).agg(
         ml_avg_leg_hit_prob=("ml_p_hit", "mean"),

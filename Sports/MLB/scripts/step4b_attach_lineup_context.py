@@ -38,6 +38,7 @@ _DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 _ID_CACHE = _DATA_DIR / "mlb_player_id_cache.json"
 _SPLITS_CACHE = _DATA_DIR / "mlb_pitcher_splits_cache.json"
 _PARK_CSV = _DATA_DIR / "park_factors.csv"
+_STAFF_JSON = _DATA_DIR / "mlb_pitching_staff.json"
 _LINE_DB = _PROPORACLE_ROOT / "data" / "line_history.db"
 
 MLB_API = "https://statsapi.mlb.com/api/v1"
@@ -51,6 +52,8 @@ SLEEP_S = 0.3
 log = logging.getLogger("mlb.step4b")
 
 TEAM_ABBREV_ALIAS = {"AZ": "ARI", "OAK": "ATH", "WSN": "WSH", "WAS": "WSH", "SDP": "SD", "SFG": "SF"}
+API_TO_PP = {"ARI": "AZ", "ATH": "OAK", "WSH": "WSN", "SD": "SDP", "SF": "SFG"}
+PP_TO_API = {v: k for k, v in TEAM_ABBREV_ALIAS.items()}
 
 TEAM_ABBREV_FROM_NAME = {
     "ANGELS": "LAA", "ORIOLES": "BAL", "RED SOX": "BOS", "WHITE SOX": "CWS",
@@ -107,6 +110,21 @@ def _norm_team(v: object) -> str:
         if key in s:
             return abbr
     return s
+
+
+def _pp_team_key(v: object) -> str:
+    """PrizePicks-style abbrev for pitching staff JSON keys (e.g. ARI -> AZ)."""
+    s = str(v or "").strip().upper()
+    if not s:
+        return ""
+    return API_TO_PP.get(s, s)
+
+
+def _park_lookup_key(v: object) -> str:
+    s = _norm_team(v)
+    if s in TEAM_ABBREV_ALIAS.values():
+        return s
+    return TEAM_ABBREV_ALIAS.get(s, s)
 
 
 def _player_name(row: pd.Series) -> str:
@@ -367,7 +385,82 @@ def load_park_factors() -> pd.DataFrame:
     if not _PARK_CSV.exists():
         log.warning("park_factors.csv missing at %s", _PARK_CSV)
         return pd.DataFrame()
-    return pd.read_csv(_PARK_CSV, encoding="utf-8-sig")
+    parks = pd.read_csv(_PARK_CSV, encoding="utf-8-sig")
+    if "pf_hr" in parks.columns:
+        parks = parks.copy()
+        parks["park_hr_rank"] = (
+            parks["pf_hr"].rank(method="min", ascending=False).astype("Int64")
+        )
+        parks["park_hr_tier"] = parks["pf_hr"].apply(_park_hr_tier)
+    return parks
+
+
+def _park_hr_tier(pf_hr: object) -> str:
+    try:
+        v = float(pf_hr)
+    except (TypeError, ValueError):
+        return ""
+    if v >= 105:
+        return "hitter_hr"
+    if v >= 98:
+        return "neutral_hr"
+    return "pitcher_hr"
+
+
+def load_pitching_staff() -> dict:
+    if not _STAFF_JSON.exists():
+        log.warning("mlb_pitching_staff.json missing at %s", _STAFF_JSON)
+        return {}
+    try:
+        with _STAFF_JSON.open(encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception as exc:
+        log.warning("mlb_pitching_staff.json read failed: %s", exc)
+        return {}
+
+
+def _staff_lookup_keys(v: object) -> list[str]:
+    s = str(v or "").strip().upper()
+    if not s:
+        return []
+    keys = [s]
+    if s in TEAM_ABBREV_ALIAS:
+        keys.append(TEAM_ABBREV_ALIAS[s])
+    if s in API_TO_PP:
+        keys.append(API_TO_PP[s])
+    for pp, api in PP_TO_API.items():
+        if s == api and pp not in keys:
+            keys.append(pp)
+    return keys
+
+
+def _staff_team_block(staff: dict, team: object) -> dict:
+    teams = staff.get("teams") or {}
+    for key in _staff_lookup_keys(team):
+        if key in teams:
+            return teams[key]
+    return {}
+
+
+def _pitcher_from_staff(staff_block: dict, pitcher_id: Optional[int], pitcher_name: str) -> dict:
+    if pitcher_id:
+        for bucket in ("rotation",):
+            for p in staff_block.get(bucket) or []:
+                if p.get("id") == pitcher_id:
+                    return p
+        closer = staff_block.get("closer") or {}
+        if closer.get("id") == pitcher_id:
+            return closer
+    name_key = str(pitcher_name or "").strip().lower()
+    if name_key:
+        for p in (staff_block.get("rotation") or []):
+            if str(p.get("name", "")).strip().lower() == name_key:
+                return p
+        closer = staff_block.get("closer") or {}
+        if str(closer.get("name", "")).strip().lower() == name_key:
+            return closer
+    return {}
 
 
 def _home_team_abbrev(row: pd.Series) -> str:
@@ -460,17 +553,26 @@ def main() -> None:
     parks = load_park_factors()
     park_by_abbrev = {}
     if not parks.empty and "team_abbrev" in parks.columns:
-        park_by_abbrev = {
-            str(r["team_abbrev"]).upper(): r
-            for _, r in parks.iterrows()
-        }
+        for _, r in parks.iterrows():
+            ab = str(r["team_abbrev"]).upper()
+            park_by_abbrev[ab] = r
+            pp = API_TO_PP.get(ab)
+            if pp:
+                park_by_abbrev[pp] = r
+
+    staff_data = load_pitching_staff()
 
     new_cols = [
         "batting_order_pos", "opp_starter_name", "opp_starter_hand", "lineup_confirmed",
         "top_of_order", "bottom_of_order",
         "opp_pitcher_era_vs_batter_hand", "opp_pitcher_k9_vs_batter_hand", "opp_pitcher_whip_vs_batter_hand",
         "pitcher_advantage",
+        "opp_starter_era", "opp_starter_whip",
+        "opp_closer_name", "opp_closer_hand", "opp_closer_era", "opp_closer_saves",
+        "opp_sp1_name", "opp_sp1_hand", "opp_sp2_name", "opp_sp2_hand", "opp_sp3_name", "opp_sp3_hand",
+        "opp_staff_lhp", "opp_staff_rhp",
         "park_factor_overall", "park_factor_hr", "park_factor_so", "park_tier",
+        "park_hr_rank", "park_hr_tier",
         "line_moved_up", "line_moved_down", "line_move_delta", "game_home_team",
     ]
     for c in new_cols:
@@ -478,7 +580,10 @@ def main() -> None:
             df[c] = np.nan
     _str_cols = (
         "game_home_team", "opp_starter_name", "opp_starter_hand",
-        "pitcher_advantage", "park_tier",
+        "pitcher_advantage", "park_tier", "park_hr_tier",
+        "opp_closer_name", "opp_closer_hand",
+        "opp_sp1_name", "opp_sp1_hand", "opp_sp2_name", "opp_sp2_hand",
+        "opp_sp3_name", "opp_sp3_hand",
     )
     for c in _str_cols:
         if c in df.columns:
@@ -527,6 +632,31 @@ def main() -> None:
         df.at[idx, "opp_starter_hand"] = opp_starter.get("hand", "")
         df.at[idx, "lineup_confirmed"] = ctx.get("lineup_confirmed", False)
 
+        opp_staff = _staff_team_block(staff_data, opp)
+        if opp_staff:
+            closer = opp_staff.get("closer") or {}
+            if closer.get("name"):
+                df.at[idx, "opp_closer_name"] = closer.get("name", "")
+                df.at[idx, "opp_closer_hand"] = closer.get("hand", "")
+                df.at[idx, "opp_closer_era"] = closer.get("era")
+                df.at[idx, "opp_closer_saves"] = closer.get("saves")
+            df.at[idx, "opp_staff_lhp"] = opp_staff.get("staff_lhp")
+            df.at[idx, "opp_staff_rhp"] = opp_staff.get("staff_rhp")
+            rot = opp_staff.get("rotation") or []
+            for slot, prefix in enumerate(("opp_sp1", "opp_sp2", "opp_sp3"), start=0):
+                if slot < len(rot):
+                    sp = rot[slot]
+                    df.at[idx, f"{prefix}_name"] = sp.get("name", "")
+                    df.at[idx, f"{prefix}_hand"] = sp.get("hand", "")
+            sp_rec = _pitcher_from_staff(
+                opp_staff,
+                int(opp_starter["id"]) if opp_starter.get("id") else None,
+                str(opp_starter.get("name", "")),
+            )
+            if sp_rec:
+                df.at[idx, "opp_starter_era"] = sp_rec.get("era")
+                df.at[idx, "opp_starter_whip"] = sp_rec.get("whip")
+
         season = args.season or (gdate[:4] if len(gdate) >= 4 else "2026")
         ptype = str(row.get("player_type", "")).lower()
         if ptype != "pitcher" and opp_starter.get("id"):
@@ -544,11 +674,16 @@ def main() -> None:
             df.at[idx, "pitcher_advantage"] = _pitcher_advantage(era)
 
         home_abbr = str(ctx.get("home_abbr") or _home_team_abbrev(row))
-        pr = park_by_abbrev.get(home_abbr)
+        park_key = _park_lookup_key(home_abbr)
+        pr = park_by_abbrev.get(park_key)
+        if pr is None:
+            pr = park_by_abbrev.get(home_abbr)
         if pr is not None:
             df.at[idx, "park_factor_overall"] = pr.get("pf_overall")
             df.at[idx, "park_factor_hr"] = pr.get("pf_hr")
             df.at[idx, "park_factor_so"] = pr.get("pf_so")
+            df.at[idx, "park_hr_rank"] = pr.get("park_hr_rank")
+            df.at[idx, "park_hr_tier"] = pr.get("park_hr_tier", _park_hr_tier(pr.get("pf_hr")))
             pf = float(pr.get("pf_overall") or 100)
             if pf >= 105:
                 df.at[idx, "park_tier"] = "hitter"

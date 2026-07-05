@@ -31,6 +31,13 @@ OPT3_BASELINE_PCT = 23.3
 MIN_N_BAR = 30
 BACKTEST_DIVERGENCE_PP = 15.0
 
+# Pinned live-only baseline (update when cumulative changes materially).
+# Do not cite pre-trust cumulative (e.g. 23/96) — that mixed backfill exports.
+STRONG_BASELINE_NOTE = (
+    "Official baseline: live-only via combined_export_trust; "
+    "not a live gate/decision input (demoted validation track)."
+)
+
 
 def _is_likely_backfill_export(path: Path, date_str: str) -> bool:
     trust, _ = classify_combined_export_file(path, date_str)
@@ -224,15 +231,27 @@ def main() -> int:
     cn = int(builder.get("cumulative_decided") or 0)
     cp = builder.get("cumulative_win_pct")
     if cn:
-        print(f"  Cumulative: {cw}/{cn} = {cp:.1f}%  (target {STRONG_TARGET_PCT:.0f}%)")
+        as_of = ld or "—"
+        print(
+            f"  Cumulative: {cw}/{cn} = {cp:.1f}%  "
+            f"(live-only as of {as_of}; target {STRONG_TARGET_PCT:.0f}%)"
+        )
+        print(f"  Baseline pin: {cw}/{cn} = {cp:.1f}%, n={cn}, live-only as of {as_of}")
     else:
         print("  Cumulative: —")
     if cn >= MIN_N_BAR:
-        print(f"  FLAG:   n>={MIN_N_BAR} — builder validation bar reached")
+        print(
+            f"  FLAG:   n>={MIN_N_BAR} — demoted validation track "
+            f"(log only, not live gate/decision input)"
+        )
     else:
         print(f"  FLAG:   n<{MIN_N_BAR} — keep accumulating ({max(0, MIN_N_BAR - cn)} to go)")
     print("  Source: grade_strong_builder_tickets.py on ui_runner/data/combined_slate_tickets_*.json")
-    print("  Note: excludes 06-23/24/25 backfill exports")
+    print(f"  Trust: combined_export_trust live exports only. {STRONG_BASELINE_NOTE}")
+    print(
+        "  Root-cause rule: apply combined_export_trust before any cumulative "
+        "diagnose→scope→fix on exports."
+    )
     print()
 
     # STRONG played (manual — actual bets only)

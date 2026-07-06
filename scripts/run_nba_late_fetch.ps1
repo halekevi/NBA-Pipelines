@@ -3,7 +3,8 @@
 .SYNOPSIS
   Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with -SkipFetch.
 .NOTES
-  Task Scheduler entry PropORACLE_NBA_LateFetch points here; filename kept for existing registrations.
+  Scheduled via PropOracle - Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
+  Legacy PropORACLE_NBA_LateFetch task should be removed (duplicate of Refresh 11AM).
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>
@@ -18,6 +19,9 @@ Set-Location $Root
 
 $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
+if (-not "$($env:PROPORACLE_CURL_IMPERSONATE)".Trim()) {
+    $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
+}
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 
 function Resolve-PipelineSlateDate {

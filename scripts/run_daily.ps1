@@ -313,6 +313,9 @@ function Get-MissingTodaySlateOutputs {
 # Python / UTF-8
 $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
+if (-not "$($env:PROPORACLE_CURL_IMPERSONATE)".Trim()) {
+    $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
+}
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 
 Write-Log "======== Daily run start (Today=$Today, Yesterday=$Yesterday) ========"

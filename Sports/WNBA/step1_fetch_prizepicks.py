@@ -28,6 +28,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Set
+
+_QUIET_403 = False
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -295,6 +297,40 @@ def _align_cdp_context_for_datadome(context: Any) -> None:
         pass
 
 
+def _pick_cdp_warmed_page(context: Any, league_id: str) -> Any | None:
+    try:
+        pages = list(context.pages)
+    except Exception:
+        return None
+    league_needle = f"league_id={league_id}"
+    scored: list[tuple[int, Any]] = []
+    for pg in pages:
+        try:
+            url = (pg.url or "").lower()
+        except Exception:
+            continue
+        if "prizepicks.com" not in url:
+            continue
+        score = 10 if "app.prizepicks.com" in url else 0
+        if "/board" in url:
+            score += 20
+        if league_needle in url:
+            score += 50
+        scored.append((score, pg))
+    if not scored:
+        return None
+    scored.sort(key=lambda x: -x[0])
+    return scored[0][1]
+
+
+def _cdp_board_ready(page: Any, league_id: str) -> bool:
+    try:
+        url = (page.url or "").lower()
+        return "prizepicks.com" in url and f"league_id={league_id}" in url
+    except Exception:
+        return False
+
+
 def _safe_get(d: dict, path: List[str], default=""):
     cur: Any = d
     for p in path:
@@ -377,25 +413,31 @@ def _fetch_one_page(
         if r.status_code == 403:
             forbidden_retries += 1
             if forbidden_retries > max_403_retries:
-                print(f"🛑 403 persists on page {page}. Stopping early.")
+                if not _QUIET_403:
+                    print(f"🛑 403 persists on page {page}. Stopping early.")
                 return False, True, cooldowns_used, forbidden_retries, [], []
             try:
                 session.cookies.clear()
             except Exception:
                 pass
-            if forbidden_retries >= 2:
-                print(
-                    f"⏸️ 403 retry {forbidden_retries}/{max_403_retries} (page {page}): "
-                    "rotating TLS-matched browser profile…"
-                )
-                _rotate_session_headers(session)
+            if not _QUIET_403:
+                if forbidden_retries >= 2:
+                    print(
+                        f"⏸️ 403 retry {forbidden_retries}/{max_403_retries} (page {page}): "
+                        "rotating TLS-matched browser profile…"
+                    )
+                    _rotate_session_headers(session)
+                else:
+                    print(
+                        f"⏸️ 403 retry {forbidden_retries}/{max_403_retries} (page {page}): "
+                        "same client fingerprint; cookies cleared only"
+                    )
+                backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
+                print(f"⏸️ sleeping {backoff:.1f}s...")
             else:
-                print(
-                    f"⏸️ 403 retry {forbidden_retries}/{max_403_retries} (page {page}): "
-                    "same client fingerprint; cookies cleared only"
-                )
-            backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
-            print(f"⏸️ sleeping {backoff:.1f}s...")
+                if forbidden_retries >= 2:
+                    _rotate_session_headers(session)
+                backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
             time.sleep(backoff)
             _warm_session(session)
             continue
@@ -578,6 +620,8 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
     with sync_playwright() as p:
         context = None
         browser = None
+        cdp_opened_new_page = False
+        page = None
         cdp = (cdp_url or "").strip()
         if cdp:
             print(f"🌐 Connecting to existing Chrome via CDP: {cdp}")
@@ -586,9 +630,15 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                 raise RuntimeError("CDP browser has no contexts; start Chrome with --remote-debugging-port.")
             context = browser.contexts[0]
             print("  Using browser context[0] (existing session / cookies).")
-            # aligned with MLB step1 DataDome bypass — do not override UA; grant Atlanta geo on attached context.
             _align_cdp_context_for_datadome(context)
-            page = context.new_page()
+            warmed = _pick_cdp_warmed_page(context, league_id)
+            if warmed is not None:
+                page = warmed
+                print(f"  Reusing warmed PP tab: {page.url}")
+            else:
+                page = context.new_page()
+                cdp_opened_new_page = True
+                print("  No warmed PP tab found — opened new page (solve DataDome in Chrome if 403).")
         else:
             try:
                 context = p.chromium.launch_persistent_context(
@@ -606,18 +656,39 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                     **CTX_KWARGS,
                 )
             page = context.new_page()
-        if _apply_stealth_fn is not None:
+        if page is None:
+            page = context.new_page()
+        if _apply_stealth_fn is not None and (cdp_opened_new_page or not cdp):
             _apply_stealth_fn(page)
 
         page.set_default_timeout(max(30000, int(timeout_s) * 1000))
-        page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(4000)
-        page.goto(f"https://app.prizepicks.com/board?league_id={league_id}", wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(5000)
+        board_url = f"https://app.prizepicks.com/board?league_id={league_id}"
+        if not (cdp and _cdp_board_ready(page, league_id)):
+            page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30000)
+            page.wait_for_timeout(4000)
+            page.goto(board_url, wait_until="domcontentloaded", timeout=30000)
+            page.wait_for_timeout(5000)
+        else:
+            print("  [CDP] Reusing warmed board tab (skip cold navigation)")
+            try:
+                page.bring_to_front()
+            except Exception:
+                pass
+            page.wait_for_timeout(2000)
 
         leagues = page.evaluate(
             """async () => {
-                const r = await fetch("https://api.prizepicks.com/leagues", { credentials: "include" });
+                const hdrs = () => ({
+                    "accept": "application/json, text/plain, */*",
+                    "accept-language": (navigator.languages && navigator.languages.length)
+                        ? navigator.languages.join(",") : "en-US,en;q=0.9",
+                    "referer": window.location.href,
+                    "x-requested-with": "XMLHttpRequest",
+                });
+                const r = await fetch(
+                    "https://api.prizepicks.com/leagues?state_code=&game_mode=pickem",
+                    { credentials: "include", headers: hdrs(), mode: "cors" }
+                );
                 if (!r.ok) return { data: [], status: r.status };
                 return await r.json();
             }"""
@@ -625,8 +696,15 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
 
         payload = page.evaluate(
             """async ({ leagueId }) => {
+                const hdrs = () => ({
+                    "accept": "application/json, text/plain, */*",
+                    "accept-language": (navigator.languages && navigator.languages.length)
+                        ? navigator.languages.join(",") : "en-US,en;q=0.9",
+                    "referer": window.location.href,
+                    "x-requested-with": "XMLHttpRequest",
+                });
                 const url = `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true`;
-                const r = await fetch(url, { credentials: "include" });
+                const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
                 if (!r.ok) return { data: [], included: [], status: r.status };
                 const j = await r.json();
                 return {
@@ -638,7 +716,8 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
             {"leagueId": str(league_id)},
         )
         if cdp:
-            page.close()
+            if cdp_opened_new_page:
+                page.close()
             browser.close()
         else:
             context.close()
@@ -720,7 +799,12 @@ def main():
     ap.add_argument("--cooldown_seconds", type=float, default=60.0)
     ap.add_argument("--max_cooldowns",    type=int,   default=3)
     ap.add_argument("--jitter_seconds",   type=float, default=10.0)
-    ap.add_argument("--max_403_retries",  type=int,   default=5)
+    ap.add_argument("--max_403_retries", "--max-retries", type=int, default=5)
+    ap.add_argument(
+        "--quiet-403",
+        action="store_true",
+        help="Suppress per-403 retry log lines (late-fetch afternoon fallback uses one PS line).",
+    )
     ap.add_argument(
         "--first-page-waves",
         type=int,
@@ -745,6 +829,8 @@ def main():
     ap.add_argument("--timeout",          type=int,   default=90)
     ap.add_argument("--print-leagues",    action="store_true")
     args = ap.parse_args()
+    global _QUIET_403
+    _QUIET_403 = bool(args.quiet_403)
     out_path = Path(args.output)
     if not out_path.is_absolute():
         out_path = Path(__file__).resolve().parent / out_path

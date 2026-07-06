@@ -9,7 +9,8 @@
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>
 param(
-    [switch]$NoOverwrite
+    [switch]$NoOverwrite,
+    [string]$RunLabel = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -100,6 +101,44 @@ function Get-CsvDataRowCount([string]$CsvPath) {
     }
 }
 
+function Resolve-LateFetchMaxRetries {
+    param([string]$Label)
+    $lbl = "$Label".Trim()
+    if ($lbl -match '^(MANUAL_1800|MANUAL_1[3-9]|1PM|2PM|3PM)') { return 2 }
+    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM)') { return 3 }
+    return 5
+}
+
+function Resolve-Step1MorningFallback {
+    param(
+        [string]$Sport,
+        [string]$Step1Path,
+        [int]$MaxRetries,
+        [bool]$FetchFailed
+    )
+    $rows = Get-CsvDataRowCount -CsvPath $Step1Path
+    if (-not $FetchFailed) {
+        return ($rows -gt 0)
+    }
+    if ($rows -gt 0) {
+        Write-Host "[LATE_FETCH] ${Sport}: 403 after $MaxRetries retries — using morning step1 ($rows rows)"
+        return $true
+    }
+    if (Test-Path -LiteralPath $Step1Path) {
+        Write-Host "[LATE_FETCH] ${Sport}: 403 + empty step1 — skipping sport" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "[LATE_FETCH] ${Sport}: 403 + no morning step1 — skipping sport" -ForegroundColor Yellow
+    }
+    return $false
+}
+
+$MaxRetries = Resolve-LateFetchMaxRetries -Label $RunLabel
+$Quiet403 = ($MaxRetries -le 2)
+if ($RunLabel) {
+    Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403" -ForegroundColor DarkGray
+}
+
 # NBA — append; dated output + legacy mirror
 Write-Host "[LATE_FETCH] Fetching NBA props (append)..."
 $NBADir = Join-Path $SportsRoot "NBA"
@@ -111,7 +150,7 @@ $nbaArgs = @(
     "--game_mode", "pickem",
     "--per_page", "250",
     "--max_pages", "3",
-    "--retries", "6",
+    "--retries", "$MaxRetries",
     "--sleep", "2.0",
     "--cooldown_seconds", "180",
     "--max_cooldowns", "4",
@@ -129,19 +168,26 @@ finally {
     Pop-Location
 }
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[LATE_FETCH] NBA step1 failed — continuing other sports" -ForegroundColor Yellow
+    [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
 }
 elseif ((Get-CsvDataRowCount -CsvPath $nbaStep1) -gt 0) {
     Copy-Step1Mirror -Source $nbaStep1 -MirrorPath $nbaLegacy
+}
+else {
+    [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
 }
 
 # WNBA — full step1 fetch into dated folder (pipeline -SkipFetch reads this path)
 Write-Host "[LATE_FETCH] Fetching WNBA props..."
 $wnbaPs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
+$wnbaStep1 = Join-Path (Ensure-RunOutDir -SportTag "wnba") "step1_wnba_props.csv"
 if (Test-Path -LiteralPath $wnbaPs1) {
-    & pwsh -NoProfile -File $wnbaPs1 -Date $PipeDate -Step1Only
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[LATE_FETCH] WNBA step1 failed — continuing" -ForegroundColor Yellow
+    $wnbaArgs = @("-Date", $PipeDate, "-Step1Only", "-Max403Retries", $MaxRetries)
+    if ($Quiet403) { $wnbaArgs += "-Quiet403" }
+    & pwsh -NoProfile -File $wnbaPs1 @wnbaArgs
+    $wnbaFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
+    if ($wnbaFailed) {
+        [void](Resolve-Step1MorningFallback -Sport "WNBA" -Step1Path $wnbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
     }
 }
 else {
@@ -155,13 +201,14 @@ $nhlRunOut = Ensure-RunOutDir -SportTag "nhl"
 $nhlStep1 = Join-Path $nhlRunOut "step1_nhl_props.csv"
 Push-Location $NHLDir
 try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--date" "$PipeDate" "--output" $nhlStep1
+    & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--date" "$PipeDate" "--output" $nhlStep1 "--max-retries" "$MaxRetries"
 }
 finally {
     Pop-Location
 }
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[LATE_FETCH] NHL step1 failed — continuing" -ForegroundColor Yellow
+$nhlFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nhlStep1) -eq 0)
+if ($nhlFailed) {
+    [void](Resolve-Step1MorningFallback -Sport "NHL" -Step1Path $nhlStep1 -MaxRetries $MaxRetries -FetchFailed $true)
 }
 elseif ((Get-CsvDataRowCount -CsvPath $nhlStep1) -gt 0) {
     Copy-Step1Mirror -Source $nhlStep1 -MirrorPath (Join-Path $NHLDir "outputs\step1_nhl_props.csv")
@@ -174,13 +221,14 @@ $soccerRunOut = Ensure-RunOutDir -SportTag "soccer"
 $soccerStep1 = Join-Path $soccerRunOut "step1_soccer_props.csv"
 Push-Location $SoccerDir
 try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--date" "$PipeDate" "--output" $soccerStep1
+    & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--date" "$PipeDate" "--output" $soccerStep1 "--max-retries" "$MaxRetries"
 }
 finally {
     Pop-Location
 }
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[LATE_FETCH] Soccer step1 failed — continuing" -ForegroundColor Yellow
+$soccerFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $soccerStep1) -eq 0)
+if ($soccerFailed) {
+    [void](Resolve-Step1MorningFallback -Sport "Soccer" -Step1Path $soccerStep1 -MaxRetries $MaxRetries -FetchFailed $true)
 }
 elseif ((Get-CsvDataRowCount -CsvPath $soccerStep1) -gt 0) {
     Copy-Step1Mirror -Source $soccerStep1 -MirrorPath (Join-Path $SoccerDir "outputs\step1_soccer_props.csv")
@@ -197,9 +245,9 @@ $mlbHttpArgs = @(
     "--output", $mlbStep1,
     "--per-page", "250",
     "--max-pages", "10",
-    "--api-retries", "5",
+    "--max-retries", "$MaxRetries",
     "--api-session-waves", "3",
-    "--api-403-cooldown-after", "5",
+    "--api-403-cooldown-after", "$([Math]::Max(2, $MaxRetries + 1))",
     "--api-403-cooldown-seconds", "90",
     "--api-403-cooldown-jitter-min", "12",
     "--api-403-cooldown-jitter-max", "40",
@@ -251,10 +299,7 @@ finally {
 }
 if ($LASTEXITCODE -ne 0) {
     $mlbRows = Get-CsvDataRowCount -CsvPath $mlbStep1
-    if ($mlbRows -gt 0) {
-        Write-Host "[LATE_FETCH] MLB step1 failed but fallback rows are present ($mlbRows) - continuing" -ForegroundColor Yellow
-    }
-    else {
+    if (-not (Resolve-Step1MorningFallback -Sport "MLB" -Step1Path $mlbStep1 -MaxRetries $MaxRetries -FetchFailed $true)) {
         Write-Host "[LATE_FETCH][HIGH] MLB step1 failed and no fallback rows are available. Continuing pipeline for other sports." -ForegroundColor Red
     }
 }

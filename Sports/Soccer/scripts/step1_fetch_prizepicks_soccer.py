@@ -108,7 +108,7 @@ def _fetch_board_urllib(league_id: str, league_name: str, per_page: int = 250) -
     return all_data, all_included
 
 
-def fetch_board(league_id: str, league_name: str, per_page: int = 250) -> tuple[list, list]:
+def fetch_board(league_id: str, league_name: str, per_page: int = 250, retries: int = 5) -> tuple[list, list]:
     """Fetch props for a board — HTTP (curl_cffi) first, urllib fallback."""
     all_data: list = []
     all_included: list = []
@@ -132,6 +132,7 @@ def fetch_board(league_id: str, league_name: str, per_page: int = 250) -> tuple[
             str(league_id),
             per_page=per_page,
             max_pages=10,
+            retries=retries,
         )
         if data:
             n = _extend(data, included)
@@ -294,6 +295,14 @@ def main():
         action="store_true",
         help="Skip same-day date filter (keep full API board; explicit opt-in only).",
     )
+    ap.add_argument(
+        "--max-retries",
+        "--api-retries",
+        type=int,
+        default=5,
+        dest="max_retries",
+        help="HTTP retries per board fetch (default 5).",
+    )
     args = ap.parse_args()
     out_path = Path(args.output)
 
@@ -328,7 +337,7 @@ def main():
 
     for lid, lname in boards_to_fetch:
         print(f"\n  → {lname} (league_id={lid})")
-        data, included = fetch_board(lid, lname)
+        data, included = fetch_board(lid, lname, retries=int(args.max_retries))
         if data:
             rows = build_rows(data, included, lname)
             all_rows.extend(rows)

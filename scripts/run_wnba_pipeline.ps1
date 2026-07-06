@@ -33,7 +33,9 @@ param(
     [switch]$HttpOnly,
     [switch]$StatsFrom2025End,
     [switch]$NoStatsFrom2025End,
-    [switch]$Step1Only
+    [switch]$Step1Only,
+    [int]$Max403Retries = 0,
+    [switch]$Quiet403
 )
 
 $ErrorActionPreference = "Continue"
@@ -123,8 +125,12 @@ function Invoke-WnbaStep1Browser {
 }
 
 function Get-WnbaStep1HttpArgs {
-    param([string]$OutCsv, [string]$SlateDate)
-    return @(
+    param(
+        [string]$OutCsv,
+        [string]$SlateDate,
+        [int]$Max403Retries = 5
+    )
+    $argsList = @(
         "--league_id", "3",
         "--game_mode", "pickem",
         "--per_page", "250",
@@ -133,11 +139,13 @@ function Get-WnbaStep1HttpArgs {
         "--cooldown_seconds", "90",
         "--max_cooldowns", "3",
         "--jitter_seconds", "10.0",
-        "--max_403_retries", "5",
+        "--max_403_retries", "$Max403Retries",
         "--first-page-waves", "3",
         "--output", $OutCsv,
         "--date", $SlateDate
-    ) -join " "
+    )
+    if ($Quiet403) { $argsList += "--quiet-403" }
+    return ($argsList -join " ")
 }
 
 function Invoke-WnbaStep1Http {
@@ -153,7 +161,8 @@ function Invoke-WnbaStep1Http {
         $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
     }
     try {
-        $httpArgs = Get-WnbaStep1HttpArgs -OutCsv $outCsv -SlateDate $Date
+        $max403 = if ($Max403Retries -gt 0) { $Max403Retries } else { 5 }
+        $httpArgs = Get-WnbaStep1HttpArgs -OutCsv $outCsv -SlateDate $Date -Max403Retries $max403
         return (Run-Step $Label $WNBADir ".\step1_fetch_prizepicks.py" $httpArgs)
     } finally {
         if ($Impersonate) {

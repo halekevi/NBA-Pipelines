@@ -31,7 +31,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[REFRESH $RunLabel] PRE snapshot logging failed (continuing)" -ForegroundColor Yellow
 }
 
-& pwsh -NoProfile -File $LateFetch -NoOverwrite
+& pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
 $refreshExit = $LASTEXITCODE
 
 & pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState

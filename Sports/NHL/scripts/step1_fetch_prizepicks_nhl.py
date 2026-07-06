@@ -1,9 +1,9 @@
 """
 Step 1 — Fetch PrizePicks NHL Board
-Tries prizepools mode first (no browser needed, same as CBB).
-Falls back to Playwright interception if blocked.
+HTTP first (curl_cffi chrome131 via shared NBA API module), then plain requests,
+then Playwright interception if blocked.
 
-First-time setup (only needed if prizepools fails):
+First-time setup (only needed if HTTP fails):
     pip install playwright --break-system-packages
     playwright install chromium
 
@@ -27,6 +27,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from utils.prizepicks_http import fetch_pp_projections
 from utils.step1_slate_date_filter import (
     apply_game_date_filter,
     no_props_log_line,
@@ -259,6 +260,38 @@ def _merge_projection_boards(primary: list, secondary: list) -> list:
         extra = f" (pickem-only ids: {n_add})" if primary and secondary and n_add else ""
         print(f"  [merge] {' + '.join(parts)} → unique projections={len(out)}{extra}")
     return out
+
+
+def fetch_via_direct_api(
+    *,
+    per_page: int = PER_PAGE,
+    max_pages: int = MAX_PAGES,
+    retries: int = 5,
+    first_page_waves: int = 3,
+) -> list:
+    """curl_cffi HTTP fetch (league_id=8) — same stack as WNBA/MLB."""
+    print(
+        f"  [NHL] HTTP fetch | league_id={NHL_LEAGUE_ID} | "
+        f"per_page={per_page} max_pages={max_pages} retries={retries} waves={first_page_waves}"
+    )
+    try:
+        data, included = fetch_pp_projections(
+            str(NHL_LEAGUE_ID),
+            per_page=per_page,
+            max_pages=max_pages,
+            retries=retries,
+            first_page_waves=first_page_waves,
+        )
+    except Exception as e:
+        print(f"  ✗ HTTP fetch failed: {type(e).__name__}: {e}")
+        return []
+    rows = parse_rows(data, included)
+    if rows and not is_nhl_data(rows):
+        print("  ✗ HTTP returned non-NHL data — discarding")
+        return []
+    if rows:
+        print(f"  ✓ HTTP: {len(rows)} NHL props")
+    return rows
 
 
 def fetch_via_requests(game_mode: str) -> list:
@@ -507,16 +540,33 @@ def main():
         action="store_true",
         help="Skip same-day date filter (keep full API board; explicit opt-in only).",
     )
+    parser.add_argument("--per-page", type=int, default=PER_PAGE, help="HTTP: per_page (default 250).")
+    parser.add_argument("--max-pages", type=int, default=10, help="HTTP: max pagination pages (default 10).")
+    parser.add_argument("--api-retries", "--max-retries", type=int, default=5, help="HTTP: retries per GET (default 5).")
+    parser.add_argument(
+        "--api-session-waves",
+        type=int,
+        default=3,
+        help="HTTP: fresh session waves after page-1 failure (default 3).",
+    )
     args = parser.parse_args()
     out_path = Path(args.output)
 
-    print(f"📡 Fetching PrizePicks NHL | league_id={NHL_LEAGUE_ID}")
+    print(f"📡 Fetching PrizePicks NHL | league_id={NHL_LEAGUE_ID} (HTTP first)")
 
-    # Pull both game modes and merge — boards can differ; using only the first hit
-    # used to drop pickem-only projections (common symptom: "missing players/props").
-    rows_pp = fetch_via_requests("prizepools")
-    rows_pk = fetch_via_requests("pickem")
-    rows = _merge_projection_boards(rows_pp or [], rows_pk or [])
+    rows = fetch_via_direct_api(
+        per_page=int(args.per_page),
+        max_pages=int(args.max_pages),
+        retries=int(args.api_retries),
+        first_page_waves=int(args.api_session_waves),
+    )
+
+    # Legacy requests fallback (prizepools + pickem merge)
+    if not rows:
+        print("  [NHL] HTTP empty — trying plain requests (prizepools + pickem)...")
+        rows_pp = fetch_via_requests("prizepools")
+        rows_pk = fetch_via_requests("pickem")
+        rows = _merge_projection_boards(rows_pp or [], rows_pk or [])
 
     # Finally Playwright
     if not rows:

@@ -482,14 +482,96 @@ def _align_cdp_context_for_datadome(context: Any) -> None:
         pass
 
 
-def _fetch_via_cdp_inpage(page: Any, league_id: str) -> Tuple[List[dict], List[dict]]:
-    """In-page fetch() from an attached Chrome tab (WNBA pattern — works when intercept misses XHR)."""
-    page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
-    page.wait_for_timeout(4000)
-    page.goto(BOARD_URL, wait_until="domcontentloaded", timeout=30_000)
-    page.wait_for_timeout(5000)
+def _pick_cdp_warmed_page(context: Any, league_id: str) -> Any | None:
+    """Prefer a human-opened PrizePicks tab over a cold Playwright new_page() (DataDome trust)."""
+    try:
+        pages = list(context.pages)
+    except Exception:
+        return None
+    league_needle = f"league_id={league_id}"
+    scored: list[tuple[int, Any]] = []
+    for pg in pages:
+        try:
+            url = (pg.url or "").lower()
+        except Exception:
+            continue
+        if "prizepicks.com" not in url:
+            continue
+        score = 0
+        if "app.prizepicks.com" in url:
+            score += 10
+        if "/board" in url:
+            score += 20
+        if league_needle in url:
+            score += 50
+        scored.append((score, pg))
+    if not scored:
+        return None
+    scored.sort(key=lambda x: -x[0])
+    return scored[0][1]
+
+
+def _cdp_board_ready(page: Any, league_id: str) -> bool:
+    try:
+        url = (page.url or "").lower()
+        return "prizepicks.com" in url and f"league_id={league_id}" in url
+    except Exception:
+        return False
+
+
+def _fetch_via_cdp_inpage(
+    page: Any, league_id: str, *, reuse_warmed_tab: bool = False
+) -> Tuple[List[dict], List[dict]]:
+    """In-page fetch() from an attached Chrome tab (inherits warmed session + client hints)."""
+    if not reuse_warmed_tab or not _cdp_board_ready(page, league_id):
+        page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
+        page.wait_for_timeout(4000)
+        page.goto(BOARD_URL, wait_until="domcontentloaded", timeout=30_000)
+        page.wait_for_timeout(5000)
+    else:
+        print(f"  [CDP] Reusing warmed board tab (skip cold navigation)")
+        try:
+            page.bring_to_front()
+        except Exception:
+            pass
+        page.wait_for_timeout(2000)
+
+    leagues = page.evaluate(
+        """async () => {
+            const hdrs = () => ({
+                "accept": "application/json, text/plain, */*",
+                "accept-language": (navigator.languages && navigator.languages.length)
+                    ? navigator.languages.join(",") : "en-US,en;q=0.9",
+                "referer": window.location.href,
+                "x-requested-with": "XMLHttpRequest",
+            });
+            const r = await fetch(
+                "https://api.prizepicks.com/leagues?state_code=&game_mode=pickem",
+                { credentials: "include", headers: hdrs(), mode: "cors" }
+            );
+            if (!r.ok) return { data: [], status: r.status };
+            const j = await r.json();
+            return { data: Array.isArray(j?.data) ? j.data : [], status: r.status };
+        }"""
+    )
+    league_rows = list((leagues or {}).get("data") or [])
+    leagues_status = int((leagues or {}).get("status") or 0)
+    print(f"  [CDP in-page] leagues_status={leagues_status} rows={len(league_rows)}")
+    if leagues_status == 403:
+        print(
+            "  [CDP] leagues 403 — solve DataDome in the visible Chrome window "
+            "(board must load) then re-run."
+        )
+
     payload = page.evaluate(
         """async ({ leagueId }) => {
+            const hdrs = () => ({
+                "accept": "application/json, text/plain, */*",
+                "accept-language": (navigator.languages && navigator.languages.length)
+                    ? navigator.languages.join(",") : "en-US,en;q=0.9",
+                "referer": window.location.href,
+                "x-requested-with": "XMLHttpRequest",
+            });
             let pageNum = 1;
             const allData = [];
             const allIncluded = [];
@@ -497,7 +579,7 @@ def _fetch_via_cdp_inpage(page: Any, league_id: str) -> Tuple[List[dict], List[d
             while (pageNum <= 12) {
                 const url = `https://api.prizepicks.com/projections?league_id=${leagueId}`
                     + `&per_page=250&single_stat=true&page=${pageNum}`;
-                const r = await fetch(url, { credentials: "include" });
+                const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
                 lastStatus = r.status;
                 if (!r.ok) break;
                 const j = await r.json();
@@ -627,6 +709,8 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
 
     with sync_playwright() as p:
         browser = None
+        cdp_opened_new_page = False
+        page = None
         if use_cdp:
             print(f"🌐 Connecting to existing Chrome via CDP: {cdp}")
             browser = p.chromium.connect_over_cdp(cdp)
@@ -635,17 +719,27 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
             context = browser.contexts[0]
             print(f"  Using browser context[0] (existing session / cookies).")
             _align_cdp_context_for_datadome(context)
-            page = context.new_page()
-            if _apply_stealth_fn is not None:
+            warmed = _pick_cdp_warmed_page(context, MLB_LEAGUE_ID)
+            if warmed is not None:
+                page = warmed
+                print(f"  Reusing warmed PP tab: {page.url}")
+            else:
+                page = context.new_page()
+                cdp_opened_new_page = True
+                print("  No warmed PP tab found — opened new page (solve DataDome in Chrome if 403).")
+            if _apply_stealth_fn is not None and cdp_opened_new_page:
                 _apply_stealth_fn(page)
             try:
-                data, included = _fetch_via_cdp_inpage(page, MLB_LEAGUE_ID)
+                data, included = _fetch_via_cdp_inpage(
+                    page, MLB_LEAGUE_ID, reuse_warmed_tab=not cdp_opened_new_page
+                )
                 if data:
                     print(f"  ✅ CDP in-page capture: {len(data)} projections")
-                    try:
-                        page.close()
-                    except Exception:
-                        pass
+                    if cdp_opened_new_page:
+                        try:
+                            page.close()
+                        except Exception:
+                            pass
                     try:
                         browser.close()
                     except Exception:
@@ -654,10 +748,6 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
                 print("  ⚠️  CDP in-page fetch returned 0 rows — falling back to network intercept...")
             except Exception as exc:
                 print(f"  ⚠️  CDP in-page fetch failed ({exc}) — falling back to network intercept...")
-            try:
-                page.close()
-            except Exception:
-                pass
         elif use_profile:
             print(f"🌐 Launching Chromium with saved profile: {PROFILE_DIR}")
             try:
@@ -679,9 +769,10 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
             browser  = p.chromium.launch(headless=False, args=LAUNCH_ARGS)
             context  = browser.new_context(viewport={"width": 1920, "height": 1080}, **CTX_KWARGS)
 
-        page = context.new_page()
+        if page is None:
+            page = context.new_page()
 
-        if _apply_stealth_fn is not None:
+        if _apply_stealth_fn is not None and not use_cdp:
             _apply_stealth_fn(page)
 
         page.on("response", handle_response)
@@ -697,9 +788,10 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
 
         print(f"  Loading {BOARD_URL}")
         try:
-            page.goto(BOARD_URL, timeout=30_000, wait_until="domcontentloaded")
+            if not (use_cdp and _cdp_board_ready(page, MLB_LEAGUE_ID)):
+                page.goto(BOARD_URL, timeout=30_000, wait_until="domcontentloaded")
             # Let DataDome / board JS settle before scroll nudges (cold sessions need longer).
-            time.sleep(12)
+            time.sleep(12 if cold_context else 6)
         except Exception as e:
             print(f"  ⚠️  Page load warning (continuing): {e}")
 
@@ -750,10 +842,11 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
                 print("       Profile may need refreshing: py -3.14 setup_prizepicks_profile.py")
 
         if use_cdp:
-            try:
-                page.close()
-            except Exception:
-                pass
+            if cdp_opened_new_page:
+                try:
+                    page.close()
+                except Exception:
+                    pass
             try:
                 browser.close()
             except Exception:
@@ -808,7 +901,7 @@ def main():
     )
     ap.add_argument("--per-page", type=int, default=250, help="Direct API: per_page (default 250).")
     ap.add_argument("--max-pages", type=int, default=8, help="Direct API: max pagination pages (default 8).")
-    ap.add_argument("--api-retries", type=int, default=4, help="Direct API: retries per GET inside each session wave (default 4).")
+    ap.add_argument("--api-retries", "--max-retries", type=int, default=4, help="Direct API: retries per GET inside each session wave (default 4).")
     ap.add_argument(
         "--api-session-waves",
         type=int,

@@ -2,7 +2,7 @@
   "sport": "tennis",
   "display_name": "Tennis",
   "matchup_mode": "player",
-  "generated_at": "2026-07-06T11:06:08.899218+00:00",
+  "generated_at": "2026-07-06T13:50:27.184014+00:00",
   "slate_note": "Tennis match day 2026-07-07 ET (rows after date filter; source=step8_tennis_direction_clean_2026-07-07.xlsx)",
   "tennis_match_date": "2026-07-07",
   "n_teams": 300,

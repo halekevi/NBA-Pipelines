@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-06T09:43:10.321800+00:00",
+  "generated_at": "2026-07-06T12:16:10.921094+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -32,10 +32,10 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -58,10 +58,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -84,10 +84,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -110,10 +110,10 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -136,10 +136,10 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -162,10 +162,10 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -188,10 +188,10 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -224,10 +224,10 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -260,10 +260,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -296,10 +296,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -332,10 +332,10 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -368,10 +368,10 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -404,10 +404,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -440,10 +440,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -476,10 +476,10 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -512,10 +512,10 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -532,14 +532,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -558,10 +558,10 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -578,14 +578,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -604,10 +604,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -624,14 +624,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -650,10 +650,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -670,14 +670,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -696,10 +696,10 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -716,14 +716,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -742,10 +742,10 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -762,14 +762,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -788,10 +788,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -834,10 +834,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -880,10 +880,10 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -900,14 +900,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Naomi Osaka",
@@ -926,10 +926,10 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -946,14 +946,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -982,10 +982,10 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1002,14 +1002,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1038,10 +1038,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1058,14 +1058,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1094,10 +1094,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1114,14 +1114,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1150,10 +1150,10 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1170,14 +1170,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1206,10 +1206,10 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1226,14 +1226,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1262,10 +1262,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1282,14 +1282,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -1318,10 +1318,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1338,14 +1338,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Coco Gauff",
@@ -1374,10 +1374,10 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1394,14 +1394,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1430,10 +1430,10 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1450,14 +1450,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1470,14 +1470,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Coco Gauff",
@@ -1496,10 +1496,10 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1516,14 +1516,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1536,14 +1536,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Coco Gauff",
@@ -1562,10 +1562,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1582,14 +1582,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1602,14 +1602,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Coco Gauff",
@@ -1628,10 +1628,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1648,14 +1648,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1668,14 +1668,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Coco Gauff",
@@ -1694,10 +1694,10 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1714,14 +1714,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1734,14 +1734,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Coco Gauff",
@@ -1760,10 +1760,10 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1780,14 +1780,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1800,14 +1800,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Coco Gauff",
@@ -1826,10 +1826,10 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1846,14 +1846,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1892,10 +1892,10 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1912,14 +1912,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1958,10 +1958,10 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cristiano Ronaldo + Lamine Yamal",
-          "prop_type": "Shots (Combo)",
-          "line": 6.0,
-          "standard_line": 6.0,
+          "player": "Cristiano Ronaldo",
+          "prop_type": "Shots",
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
@@ -1978,14 +1978,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Kevin De Bruyne",
-          "prop_type": "Shots",
-          "line": 2.5,
-          "standard_line": 2.5,
+          "player": "Cristiano Ronaldo + Lamine Yamal",
+          "prop_type": "Shots (Combo)",
+          "line": 6.0,
+          "standard_line": 6.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.8285714285714286
+          "hit_rate": 1.0
         },
         {
           "player": "Kayla McBride + Brittney Griner",
@@ -1998,14 +1998,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Malik Tillman",
+          "player": "Kevin De Bruyne",
           "prop_type": "Shots",
-          "line": 2.0,
-          "standard_line": 2.0,
+          "line": 2.5,
+          "standard_line": 2.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.9444444444444444
+          "hit_rate": 0.8285714285714286
         },
         {
           "player": "Naomi Osaka",

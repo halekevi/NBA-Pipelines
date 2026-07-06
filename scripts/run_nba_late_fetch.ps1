@@ -184,6 +184,7 @@ $wnbaStep1 = Join-Path (Ensure-RunOutDir -SportTag "wnba") "step1_wnba_props.csv
 if (Test-Path -LiteralPath $wnbaPs1) {
     $wnbaArgs = @("-Date", $PipeDate, "-Step1Only", "-Max403Retries", $MaxRetries)
     if ($Quiet403) { $wnbaArgs += "-Quiet403" }
+    if ($RunLabel -match '^MANUAL_CDP') { $wnbaArgs += "-CdpWhenListening" }
     & pwsh -NoProfile -File $wnbaPs1 @wnbaArgs
     $wnbaFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
     if ($wnbaFailed) {

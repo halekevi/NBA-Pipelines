@@ -200,7 +200,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
   <a href="/income" class="">📈 Income</a>
   <a href="/payout" class="">💰 Payouts</a>
 </div>
-<div class="grade-eval-summary grade-eval-summary-empty"><div>Date: 2026-07-06 · Graded Main Slate (2-leg, win-rate) · No fully graded tickets for payout summary (ungraded, all-void, or none).</div></div>
+<div class="grade-eval-summary"><div class="grade-eval-summary-line1">Date: 2026-07-06 · Graded Main Slate (2-leg, win-rate) · 5 tickets graded</div><div class="grade-eval-summary-line2"><span>✅ Wins: 0</span><span>🛡️ Guarantees: 0</span><span>❌ Losses: 5 <span class="grade-eval-subnote">(incl. 2 void-loss)</span></span></div><div class="grade-eval-summary-line3">Win rate (W+🛡️): 0% · Avg EV at entry: 0.77</div><div class="grade-eval-summary-line4">Total: −$50.00 net on $50 staked ($10/ticket flat) — loss</div></div>
 <div class="stats-bar">
 <div class="sum-row">
 <div class="sum-item"><div class="sum-val">0.0%</div><div class="sum-lab">TICKET HIT RATE</div></div>
@@ -212,25 +212,25 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">CFB TKT WIN RATE</div></div>
 <div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">NFL TKT WIN RATE</div></div>
 <div class="sum-item sum-item-pending-sport" title="39 ticket slips still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">WNBA TKT WIN RATE<span class="sum-lab-badge">39 pending</span></div></div>
-<div class="sum-item sum-item-pending-sport" title="33 ticket slips still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">MLB TKT WIN RATE<span class="sum-lab-badge">33 pending</span></div></div>
+<div class="sum-item"><div class="sum-val">0.0%</div><div class="sum-lab">MLB TKT WIN RATE</div></div>
 <div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">NHL TKT WIN RATE</div></div>
-<div class="sum-item sum-item-pending-sport" title="45 ticket slips still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">SOCCER TKT WIN RATE<span class="sum-lab-badge">45 pending</span></div></div>
+<div class="sum-item"><div class="sum-val">0.0%</div><div class="sum-lab">SOCCER TKT WIN RATE</div></div>
 <div class="sum-item sum-item-pending-sport" title="23 ticket slips still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">TENNIS TKT WIN RATE<span class="sum-lab-badge">23 pending</span></div></div>
 <div class="sum-item"><div class="sum-val">0.0%</div><div class="sum-lab">ALL GENERATED WIN RATE</div></div>
-<div class="sum-item"><div class="sum-val green">0</div><div class="sum-lab">HITS</div></div>
-<div class="sum-item"><div class="sum-val red">0</div><div class="sum-lab">MISSES</div></div>
-<div class="sum-item"><div class="sum-val void">48</div><div class="sum-lab">VOID/PUSH</div></div>
-<div class="sum-item"><div class="sum-val pend">434</div><div class="sum-lab">UNGRADED</div></div>
+<div class="sum-item"><div class="sum-val green">22</div><div class="sum-lab">HITS</div></div>
+<div class="sum-item"><div class="sum-val red">35</div><div class="sum-lab">MISSES</div></div>
+<div class="sum-item"><div class="sum-val void">49</div><div class="sum-lab">VOID/PUSH</div></div>
+<div class="sum-item"><div class="sum-val pend">376</div><div class="sum-lab">UNGRADED</div></div>
 <div class="sum-item"><div class="sum-val">0</div><div class="sum-lab">PERFECT TICKETS</div></div>
 <div class="sum-item"><div class="sum-val green">0</div><div class="sum-lab">PAID TIX</div></div>
-<div class="sum-item"><div class="sum-val red">0</div><div class="sum-lab">NO PAYOUT</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">NET @ $10/TKT</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">ROI (FLAT $10)</div></div>
+<div class="sum-item"><div class="sum-val red">5</div><div class="sum-lab">NO PAYOUT</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">-50.00</div><div class="sum-lab">NET @ $10/TKT</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">-100.0%</div><div class="sum-lab">ROI (FLAT $10)</div></div>
 <div class="sum-item"><div class="sum-val sum-val-sm">482</div><div class="sum-lab">TOTAL LEGS</div></div>
 </div></div>
 <div class="wrap ticket-eval-main">
 <p class="slate-kicker">SLATE DATE · 2026-07-06</p>
-<p class="meta-muted" style="margin:4px 0 8px;line-height:1.5">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-07-06/graded_*.xlsx</code>. <strong>Ticket hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (434 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-07-06/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-07-06/</code> before rebuilding this page. </p>
+<p class="meta-muted" style="margin:4px 0 8px;line-height:1.5">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-07-06/graded_*.xlsx</code>. <strong>Ticket hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (376 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-07-06/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-07-06/</code> before rebuilding this page. </p>
 <div class="ticket-sections-wrap">
 <details class="ticket-bucket sb-wnba">
 <summary><span>WNBA</span><span class="ticket-bucket-meta">39 sections · 39 tickets</span></summary>
@@ -2021,20 +2021,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 2-Leg #1</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cristopher Sánchez</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
-<div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">6.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristopher Sánchez</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
+<div class="leg-extra miss-leg-cell">94.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">83</div>
+<div class="leg-extra miss-leg-cell">6.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -2062,7 +2062,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Walker Buehler</div>
+<div class="pl-void">Walker Buehler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">SD vs AZ</div></div>
 <div class="leg-extra">88.5 <span class="dir-under">UNDER</span></div>
@@ -2105,7 +2105,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -2138,7 +2138,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">91.5 <span class="dir-over">OVER</span></div>
@@ -2194,7 +2194,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Shane Drohan</div>
+<div class="pl-void">Shane Drohan<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">MIL vs STL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2215,36 +2215,37 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Standard 2-Leg #7</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 2-Leg #7</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Reynaldo López</div>
+<div class="pl-void">Reynaldo López<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">ATL vs NYM</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>35.9%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.08 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Standard 2-Leg #8</h2>
@@ -2252,20 +2253,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 2-Leg #8</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -2369,7 +2370,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Kevin Gausman</div>
+<div class="pl-void">Kevin Gausman<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">TOR vs SF</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2393,7 +2394,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cam Schlittler</div>
+<div class="pl-void">Cam Schlittler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYY vs TB</div></div>
 <div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
@@ -2403,7 +2404,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Dustin May</div>
+<div class="pl-void">Dustin May<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">STL vs MIL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2418,33 +2419,33 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 2-Leg #13</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 0✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="tg grade-ticket-result void-loss">RESULT: ⚠ VOID / NO ACTION <span class="grade-ticket-result-label">(no cash)</span></span>
 <span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Kevin Gausman</div>
+<div class="pl-void">Kevin Gausman<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">TOR vs SF</div></div>
 <div class="leg-extra">95.5 <span class="dir-over">OVER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">0.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Noah Cameron</div>
+<div class="pl-hit">Noah Cameron</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">KC vs PHI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">15</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 2 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void_loss">⚠ VOID / NO ACTION</div><div class="grade-result-sub">Voided legs prevented payout (1 hit, 0 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>27.4%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.18 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Standard 3-Leg #1</h2>
@@ -2452,20 +2453,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 3-Leg #1</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cristopher Sánchez</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
-<div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">6.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristopher Sánchez</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
+<div class="leg-extra miss-leg-cell">94.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">83</div>
+<div class="leg-extra miss-leg-cell">6.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -2480,7 +2481,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Walker Buehler</div>
+<div class="pl-void">Walker Buehler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">SD vs AZ</div></div>
 <div class="leg-extra">88.5 <span class="dir-under">UNDER</span></div>
@@ -2523,7 +2524,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -2556,7 +2557,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">91.5 <span class="dir-over">OVER</span></div>
@@ -2599,7 +2600,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Shane Drohan</div>
+<div class="pl-void">Shane Drohan<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">MIL vs STL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2624,25 +2625,25 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 3-Leg #5</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Reynaldo López</div>
+<div class="pl-void">Reynaldo López<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">ATL vs NYM</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2667,20 +2668,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 3-Leg #6</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -2762,7 +2763,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Kevin Gausman</div>
+<div class="pl-void">Kevin Gausman<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">TOR vs SF</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2772,7 +2773,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cam Schlittler</div>
+<div class="pl-void">Cam Schlittler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYY vs TB</div></div>
 <div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
@@ -2782,7 +2783,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Dustin May</div>
+<div class="pl-void">Dustin May<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">STL vs MIL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2797,20 +2798,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 4-Leg #1</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">0✓ 1✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cristopher Sánchez</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
-<div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">6.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristopher Sánchez</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
+<div class="leg-extra miss-leg-cell">94.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">83</div>
+<div class="leg-extra miss-leg-cell">6.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -2825,7 +2826,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Walker Buehler</div>
+<div class="pl-void">Walker Buehler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">SD vs AZ</div></div>
 <div class="leg-extra">88.5 <span class="dir-under">UNDER</span></div>
@@ -2868,7 +2869,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -2911,7 +2912,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">91.5 <span class="dir-over">OVER</span></div>
@@ -2931,7 +2932,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Shane Drohan</div>
+<div class="pl-void">Shane Drohan<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">MIL vs STL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -2956,25 +2957,25 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 4-Leg #4</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">0✓ 1✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Reynaldo López</div>
+<div class="pl-void">Reynaldo López<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">ATL vs NYM</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3009,20 +3010,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 4-Leg #5</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">0✓ 1✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -3080,7 +3081,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Kevin Gausman</div>
+<div class="pl-void">Kevin Gausman<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">TOR vs SF</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3090,7 +3091,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cam Schlittler</div>
+<div class="pl-void">Cam Schlittler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYY vs TB</div></div>
 <div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
@@ -3100,7 +3101,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Dustin May</div>
+<div class="pl-void">Dustin May<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">STL vs MIL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3115,20 +3116,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 5-Leg #1</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cristopher Sánchez</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
-<div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">6.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristopher Sánchez</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
+<div class="leg-extra miss-leg-cell">94.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">83</div>
+<div class="leg-extra miss-leg-cell">6.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -3143,7 +3144,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Walker Buehler</div>
+<div class="pl-void">Walker Buehler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">SD vs AZ</div></div>
 <div class="leg-extra">88.5 <span class="dir-under">UNDER</span></div>
@@ -3186,7 +3187,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -3226,7 +3227,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Shane Drohan</div>
+<div class="pl-void">Shane Drohan<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">MIL vs STL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3241,7 +3242,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 5-Leg #3</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3249,7 +3250,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">91.5 <span class="dir-over">OVER</span></div>
@@ -3266,20 +3267,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Reynaldo López</div>
+<div class="pl-void">Reynaldo López<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">ATL vs NYM</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3304,20 +3305,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 5-Leg #4</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -3367,7 +3368,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 5-Leg #5</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">1✓ 0✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3385,7 +3386,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Kevin Gausman</div>
+<div class="pl-void">Kevin Gausman<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">TOR vs SF</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3395,7 +3396,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cam Schlittler</div>
+<div class="pl-void">Cam Schlittler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYY vs TB</div></div>
 <div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
@@ -3405,21 +3406,21 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Dustin May</div>
+<div class="pl-void">Dustin May<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">STL vs MIL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-0.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Noah Cameron</div>
+<div class="pl-hit">Noah Cameron</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">KC vs PHI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">15</div>
 <div class="leg-extra">-0.7</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -3430,20 +3431,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 6-Leg #1</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">0✓ 1✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cristopher Sánchez</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
-<div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">6.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristopher Sánchez</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Pitches Thrown</div><div class="meta-muted">PHI vs KC</div></div>
+<div class="leg-extra miss-leg-cell">94.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">83</div>
+<div class="leg-extra miss-leg-cell">6.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -3458,7 +3459,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Walker Buehler</div>
+<div class="pl-void">Walker Buehler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">SD vs AZ</div></div>
 <div class="leg-extra">88.5 <span class="dir-under">UNDER</span></div>
@@ -3488,7 +3489,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitching Outs</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -3521,7 +3522,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Freddy Peralta</div>
+<div class="pl-void">Freddy Peralta<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYM vs ATL</div></div>
 <div class="leg-extra">91.5 <span class="dir-over">OVER</span></div>
@@ -3551,7 +3552,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Shane Drohan</div>
+<div class="pl-void">Shane Drohan<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">MIL vs STL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3576,25 +3577,25 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 6-Leg #3</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">0✓ 1✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Reynaldo López</div>
+<div class="pl-void">Reynaldo López<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">ATL vs NYM</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3649,20 +3650,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Standard 6-Leg #4</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">0✓ 1✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-pend">Luke Maile</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Luke Maile</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits</div><div class="meta-muted">KC vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -3687,7 +3688,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Kevin Gausman</div>
+<div class="pl-void">Kevin Gausman<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">TOR vs SF</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3697,7 +3698,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Cam Schlittler</div>
+<div class="pl-void">Cam Schlittler<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Pitches Thrown</div><div class="meta-muted">NYY vs TB</div></div>
 <div class="leg-extra">94.5 <span class="dir-over">OVER</span></div>
@@ -3707,7 +3708,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Dustin May</div>
+<div class="pl-void">Dustin May<span class="warning-chip" title="NO_ACTUAL">NO_ACTUAL</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Walks Allowed</div><div class="meta-muted">STL vs MIL</div></div>
 <div class="leg-extra">1.5 <span class="dir-under">UNDER</span></div>
@@ -3722,36 +3723,37 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <summary><span>SOCCER</span><span class="ticket-bucket-meta">45 sections · 45 tickets</span></summary>
 <div class="ticket-bucket-body">
 <section class="sec"><h2 class="sec-head bebas">SOCCER Standard 2-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #1</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-2.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-2.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
+<div class="pl-void">Cristiano Ronaldo + Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
 <div class="leg-extra">6 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">6</div>
 <div class="leg-extra">-2.6</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>98.0%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.94 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Standard 2-Leg #2</h2>
@@ -3854,36 +3856,37 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Standard 2-Leg #5</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #5</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 2✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">1 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">1 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
-<div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1.6</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo + Lamine Yamal</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">3 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-1.6</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>98.0%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.94 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Standard 2-Leg #6</h2>
@@ -3891,7 +3894,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #6</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 0✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3906,14 +3909,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Mikel Oyarzabal</div>
+<div class="pl-hit">Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">2</div>
 <div class="leg-extra">-1.4</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -3957,7 +3960,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #8</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3972,15 +3975,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Pedri</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Pedri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.3</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
 </article>
@@ -4023,7 +4026,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #10</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 0✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4038,14 +4041,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.8</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-hit">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">6.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">5</div>
 <div class="leg-extra">-1.5</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -4122,7 +4125,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #13</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 0✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4137,14 +4140,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Nico Williams</div>
+<div class="pl-hit">Nico Williams</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-1</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -4188,32 +4191,33 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 2-Leg #15</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 0✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-loss">RESULT: ⚠ VOID / NO ACTION <span class="grade-ticket-result-label">(no cash)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-void">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">3</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal</div>
+<div class="pl-hit">Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-0.1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void_loss">⚠ VOID / NO ACTION</div><div class="grade-result-sub">Voided legs prevented payout (1 hit, 0 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>35.8%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.07 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Standard 2-Leg #16</h2>
@@ -4254,29 +4258,29 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #1</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-2.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-2.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
+<div class="pl-void">Cristiano Ronaldo + Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
 <div class="leg-extra">6 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">6</div>
 <div class="leg-extra">-2.6</div>
 </div>
 <div class="legrow leg-pend">
@@ -4340,7 +4344,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #3</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4365,15 +4369,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">1 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">1 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-1</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
 </article>
@@ -4383,20 +4387,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #4</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
-<div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1.6</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo + Lamine Yamal</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">3 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-1.6</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -4408,14 +4412,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Mikel Oyarzabal</div>
+<div class="pl-hit">Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">2</div>
 <div class="leg-extra">-1.4</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -4469,20 +4473,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #6</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Pedri</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Pedri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -4512,7 +4516,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #7</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 0✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4527,14 +4531,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.8</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-hit">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">6.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">5</div>
 <div class="leg-extra">-1.5</div>
 </div>
 <div class="legrow leg-pend">
@@ -4598,7 +4602,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #9</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 0✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4613,14 +4617,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Nico Williams</div>
+<div class="pl-hit">Nico Williams</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-1</div>
 </div>
 <div class="legrow leg-pend">
@@ -4641,7 +4645,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 3-Leg #10</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 0✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4656,24 +4660,24 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-void">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">3</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal</div>
+<div class="pl-hit">Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-0.1</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -4684,29 +4688,29 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 4-Leg #1</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">0✓ 1✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-2.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-2.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
+<div class="pl-void">Cristiano Ronaldo + Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
 <div class="leg-extra">6 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">6</div>
 <div class="leg-extra">-2.6</div>
 </div>
 <div class="legrow leg-pend">
@@ -4790,30 +4794,30 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 4-Leg #3</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">1✓ 2✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">1 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">1 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
-<div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1.6</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo + Lamine Yamal</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">3 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-1.6</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -4825,14 +4829,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Mikel Oyarzabal</div>
+<div class="pl-hit">Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">2</div>
 <div class="leg-extra">-1.4</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -4843,7 +4847,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 4-Leg #4</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">0✓ 1✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -4878,15 +4882,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Pedri</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Pedri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.3</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
 </article>
@@ -4949,19 +4953,19 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 4-Leg #6</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">1✓ 0✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-hit">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">6.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">5</div>
 <div class="leg-extra">-1.5</div>
 </div>
 <div class="legrow leg-pend">
@@ -5002,7 +5006,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 4-Leg #7</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">1✓ 0✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5017,14 +5021,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Nico Williams</div>
+<div class="pl-hit">Nico Williams</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-1</div>
 </div>
 <div class="legrow leg-pend">
@@ -5055,29 +5059,29 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 4-Leg #8</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">1✓ 0✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-void">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">3</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal</div>
+<div class="pl-hit">Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-0.1</div>
 </div>
 <div class="legrow leg-pend">
@@ -5108,29 +5112,29 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #1</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-2.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-2.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
+<div class="pl-void">Cristiano Ronaldo + Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
 <div class="leg-extra">6 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">6</div>
 <div class="leg-extra">-2.6</div>
 </div>
 <div class="legrow leg-pend">
@@ -5171,7 +5175,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #2</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 2✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5206,25 +5210,25 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">1 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">1 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
-<div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1.6</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo + Lamine Yamal</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">3 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-1.6</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
 </article>
@@ -5234,7 +5238,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #3</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">1✓ 0✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5249,14 +5253,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Mikel Oyarzabal</div>
+<div class="pl-hit">Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">2</div>
 <div class="leg-extra">-1.4</div>
 </div>
 <div class="legrow leg-pend">
@@ -5297,20 +5301,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #4</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Pedri</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Pedri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -5360,19 +5364,19 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #5</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">2✓ 0✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-hit">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">6.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">5</div>
 <div class="leg-extra">-1.5</div>
 </div>
 <div class="legrow leg-pend">
@@ -5405,14 +5409,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Nico Williams</div>
+<div class="pl-hit">Nico Williams</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-1</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -5423,7 +5427,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #6</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">1✓ 0✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5458,14 +5462,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal</div>
+<div class="pl-hit">Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-0.1</div>
 </div>
 <div class="legrow leg-pend">
@@ -5486,29 +5490,29 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 6-Leg #1</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">0✓ 1✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-2.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-2.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
+<div class="pl-void">Cristiano Ronaldo + Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
 <div class="leg-extra">6 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">6</div>
 <div class="leg-extra">-2.6</div>
 </div>
 <div class="legrow leg-pend">
@@ -5559,7 +5563,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 6-Leg #2</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">1✓ 2✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5584,25 +5588,25 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
-<div class="leg-extra">1 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">PORTUGAL vs SPAIN</div></div>
+<div class="leg-extra miss-leg-cell">1 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">3</div>
+<div class="leg-extra miss-leg-cell">-1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Cristiano Ronaldo + Lamine Yamal</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
-<div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-1.6</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Cristiano Ronaldo + Lamine Yamal</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots On Target (Combo)</div><div class="meta-muted">PORTUGAL/SPAIN vs SPAIN/PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">3 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">4</div>
+<div class="leg-extra miss-leg-cell">-1.6</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -5614,14 +5618,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Mikel Oyarzabal</div>
+<div class="pl-hit">Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">2</div>
 <div class="leg-extra">-1.4</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -5632,7 +5636,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 6-Leg #3</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">0✓ 1✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5667,15 +5671,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.6</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Pedri</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.3</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Pedri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">1</div>
+<div class="leg-extra miss-leg-cell">-0.3</div>
 </div>
 <div class="legrow leg-pend">
 <div class="badge pend">·</div>
@@ -5705,7 +5709,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 6-Leg #4</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">1✓ 0✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5720,14 +5724,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.8</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal + Mikel Oyarzabal</div>
+<div class="pl-hit">Lamine Yamal + Mikel Oyarzabal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots (Combo)</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">6.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">5</div>
 <div class="leg-extra">-1.5</div>
 </div>
 <div class="legrow leg-pend">
@@ -5778,7 +5782,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 6-Leg #5</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">2✓ 0✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -5793,14 +5797,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Nico Williams</div>
+<div class="pl-hit">Nico Williams</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-1</div>
 </div>
 <div class="legrow leg-pend">
@@ -5823,14 +5827,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.7</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Lamine Yamal</div>
+<div class="pl-hit">Lamine Yamal</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">SPAIN vs PORTUGAL</div></div>
 <div class="leg-extra">3.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-0.1</div>
 </div>
 <div class="legrow leg-pend">

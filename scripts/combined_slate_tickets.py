@@ -7081,10 +7081,7 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
     os.makedirs(outdir, exist_ok=True)
     out_path = os.path.join(outdir, "slate_latest.json")
     payload = _sanitize_for_json(payload)
-    with open(out_path, "w", encoding="utf-8") as f:
-        import json as _json
-
-        _json.dump(payload, f, ensure_ascii=False, default=str, allow_nan=False)
+    _write_json_file(out_path, payload)
     print(f"  slate_latest.json -> {out_path}  ({sum(len(v) for v in payload['sports'].values())} props)")
 
     # Static replacements for /api/slate-sport/<sport> and /api/slate-sport/combined.
@@ -7106,14 +7103,10 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
                 stamped.append(rr)
             safe_rows = stamped
         sport_path = os.path.join(outdir, f"slate_sport_{sport_key}.json")
-        with open(sport_path, "w", encoding="utf-8") as sf:
-            _json.dump(
-                {"ok": True, "sport": sport_key, "rows": safe_rows},
-                sf,
-                ensure_ascii=False,
-                default=str,
-                allow_nan=False,
-            )
+        _write_json_file(
+            sport_path,
+            {"ok": True, "sport": sport_key, "rows": safe_rows},
+        )
         for r in safe_rows:
             rr = dict(r) if isinstance(r, dict) else {"value": r}
             if isinstance(rr, dict) and not str(rr.get("sport") or "").strip():
@@ -7121,14 +7114,10 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
             combined_rows.append(rr)
 
     combined_path = os.path.join(outdir, "slate_sport_combined.json")
-    with open(combined_path, "w", encoding="utf-8") as cf:
-        _json.dump(
-            {"ok": True, "sport": "combined", "rows": combined_rows},
-            cf,
-            ensure_ascii=False,
-            default=str,
-            allow_nan=False,
-        )
+    _write_json_file(
+        combined_path,
+        {"ok": True, "sport": "combined", "rows": combined_rows},
+    )
     print(f"  slate_sport_combined.json -> {combined_path}  ({len(combined_rows)} rows)")
 
 
@@ -14935,7 +14924,13 @@ def main():
     nba = attach_standard_refs(nba)
     cbb = attach_standard_refs(cbb)
 
-    def drop_stale_rows(df, target_date, sport_label):
+    def drop_stale_rows(
+        df,
+        target_date,
+        sport_label,
+        *,
+        allow_cross_date_fallback: bool = False,
+    ):
         if df is None or df.empty:
             return df
         td = str(target_date).strip()[:10]
@@ -14958,12 +14953,19 @@ def main():
                 return df
             future = [d for d in avail if d >= td]
             chosen = min(future) if future else max(avail)
-            stale = dated & (gd_str != chosen)
-            if chosen != td:
+            if chosen != td and not allow_cross_date_fallback:
+                stale = dated
                 print(
-                    f"  [{sport_label}] date fallback: no props on {td}, "
-                    f"using nearest date {chosen} ({int((~stale).sum())} rows)"
+                    f"  [{sport_label}] strict date: no props on {td}, "
+                    f"dropping {int(stale.sum())} off-slate rows (nearest {chosen})"
                 )
+            else:
+                stale = dated & (gd_str != chosen)
+                if chosen != td:
+                    print(
+                        f"  [{sport_label}] date fallback: no props on {td}, "
+                        f"using nearest date {chosen} ({int((~stale).sum())} rows)"
+                    )
         # Tennis: boards may not carry the pipeline calendar day (late refresh / ET drift).
         # If a strict "drop everything before td" would empty the slate, keep the nearest available
         # slate date (same idea as NBA), otherwise PP-only runs lose Tennis entirely.
@@ -14975,12 +14977,19 @@ def main():
                 if avail:
                     future = [d for d in avail if d >= td]
                     chosen = min(future) if future else max(avail)
-                    stale = dated & (gd_str != chosen)
-                    if chosen != td:
+                    if chosen != td and not allow_cross_date_fallback:
+                        stale = dated
                         print(
-                            f"  [{sport_label}] date fallback: no rows on {td}, "
-                            f"using nearest slate date {chosen} ({int((~stale).sum())} rows)"
+                            f"  [{sport_label}] strict date: no rows on {td}, "
+                            f"dropping {int(stale.sum())} off-slate rows (nearest {chosen})"
                         )
+                    else:
+                        stale = dated & (gd_str != chosen)
+                        if chosen != td:
+                            print(
+                                f"  [{sport_label}] date fallback: no rows on {td}, "
+                                f"using nearest slate date {chosen} ({int((~stale).sum())} rows)"
+                            )
                 else:
                     stale = stale_strict
             else:
@@ -14997,19 +15006,20 @@ def main():
             print(f"  [date-filter] {sport_label}: dropped {n_stale} stale-dated rows (target slate {td})")
         return df[~stale].copy()
 
-    nba = drop_stale_rows(nba, args.date, "NBA")
-    cbb = drop_stale_rows(cbb, args.date, "CBB")
-    nhl = drop_stale_rows(nhl, args.date, "NHL")
-    soccer = drop_stale_rows(soccer, args.date, "Soccer")
-    tennis = drop_stale_rows(tennis, args.date, "Tennis")
-    golf = drop_stale_rows(golf, args.date, "Golf")
-    wnba = drop_stale_rows(wnba, args.date, "WNBA")
-    wcbb = drop_stale_rows(wcbb, args.date, "WCBB")
-    mlb = drop_stale_rows(mlb, args.date, "MLB")
-    nba1q = drop_stale_rows(nba1q, args.date, "NBA1Q")
-    nba1h = drop_stale_rows(nba1h, args.date, "NBA1H")
-    nfl = drop_stale_rows(nfl, args.date, "NFL")
-    cfb = drop_stale_rows(cfb, args.date, "CFB")
+    _date_fb = bool(args.allow_cross_date_fallback)
+    nba = drop_stale_rows(nba, args.date, "NBA", allow_cross_date_fallback=_date_fb)
+    cbb = drop_stale_rows(cbb, args.date, "CBB", allow_cross_date_fallback=_date_fb)
+    nhl = drop_stale_rows(nhl, args.date, "NHL", allow_cross_date_fallback=_date_fb)
+    soccer = drop_stale_rows(soccer, args.date, "Soccer", allow_cross_date_fallback=_date_fb)
+    tennis = drop_stale_rows(tennis, args.date, "Tennis", allow_cross_date_fallback=_date_fb)
+    golf = drop_stale_rows(golf, args.date, "Golf", allow_cross_date_fallback=_date_fb)
+    wnba = drop_stale_rows(wnba, args.date, "WNBA", allow_cross_date_fallback=_date_fb)
+    wcbb = drop_stale_rows(wcbb, args.date, "WCBB", allow_cross_date_fallback=_date_fb)
+    mlb = drop_stale_rows(mlb, args.date, "MLB", allow_cross_date_fallback=_date_fb)
+    nba1q = drop_stale_rows(nba1q, args.date, "NBA1Q", allow_cross_date_fallback=_date_fb)
+    nba1h = drop_stale_rows(nba1h, args.date, "NBA1H", allow_cross_date_fallback=_date_fb)
+    nfl = drop_stale_rows(nfl, args.date, "NFL", allow_cross_date_fallback=_date_fb)
+    cfb = drop_stale_rows(cfb, args.date, "CFB", allow_cross_date_fallback=_date_fb)
 
     # Apply teammate-absence usage redistribution before ticket eligibility filtering.
     nba = apply_usage_redistribution(nba, "NBA", args.date, REPO_ROOT)
@@ -15089,7 +15099,7 @@ def main():
     )
     combined = add_cross_platform_best_lines(combined)
 
-    combined = drop_stale_rows(combined, args.date, "Combined")
+    combined = drop_stale_rows(combined, args.date, "Combined", allow_cross_date_fallback=_date_fb)
     combined = enrich_read_fields_dataframe(combined)
 
     # Per-sport Excel sheets use SLATE_COLS — propagate UD/DK lines from combined onto each.

@@ -459,6 +459,20 @@ PROP_RELIABILITY_LATEST_PATH = os.path.join(REPO_ROOT, "data", "reports", "prop_
 PROP_STRAT_BOARD_LATEST_PATH = os.path.join(REPO_ROOT, "ui_runner", "data", "prop_stratification_board_latest.json")
 
 
+def _scalar_blank(val: Any) -> bool:
+    """True if scalar is missing/empty, including pandas NA (safe before ``==`` comparisons)."""
+    if val is None:
+        return True
+    try:
+        if pd.isna(val):
+            return True
+    except (TypeError, ValueError):
+        pass
+    if val == "":
+        return True
+    return False
+
+
 def _sanitize_for_json(obj: Any) -> Any:
     """Replace float nan/inf with None so json.dump emits strict JSON null (JavaScript-safe)."""
     if isinstance(obj, dict):
@@ -1801,7 +1815,7 @@ def print_positive_ev_gate_report(gated_preview: dict) -> None:
 
 def _norm_line_for_leg_fp(val: Any) -> str:
     """Normalize line for stable dedupe keys."""
-    if val is None or val == "":
+    if _scalar_blank(val):
         return ""
     try:
         x = float(val)
@@ -3593,7 +3607,7 @@ def pct_cell(ws, r, c, val):
 def _signal_float(v):
     """Parse numeric for bet-signal / context scoring (shared HTML + Excel)."""
     try:
-        if v is None or v == "":
+        if _scalar_blank(v):
             return None
         if isinstance(v, float) and np.isnan(v):
             return None
@@ -5699,7 +5713,7 @@ def attach_standard_refs(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 def _safe_int_cross_books(v) -> Optional[int]:
-    if v is None or v == "":
+    if _scalar_blank(v):
         return None
     try:
         if isinstance(v, float) and math.isnan(v):
@@ -6668,16 +6682,16 @@ def ticket_groups_to_payload(
                 # Preserve per-game history so UI can render true actual-vs-line charts.
                 for _i in range(1, 11):
                     _gv = gv(f"G{_i}")
-                    if _gv is None or _gv == "":
+                    if _scalar_blank(_gv):
                         _gv = gv(f"g{_i}")
-                    if _gv is None or _gv == "":
+                    if _scalar_blank(_gv):
                         _gv = gv(f"stat_g{_i}")
                     _hist_v = _safe_float(_gv)
                     if _hist_v is not None:
                         leg[f"g{_i}"] = _hist_v
                         leg[f"stat_g{_i}"] = _hist_v
                     _lv = gv(f"line_g{_i}")
-                    if _lv is None or _lv == "":
+                    if _scalar_blank(_lv):
                         _lv = gv(f"prop_line_g{_i}")
                     _line_hist_v = _safe_float(_lv)
                     if _line_hist_v is not None:

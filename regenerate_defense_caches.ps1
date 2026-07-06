@@ -82,6 +82,11 @@ try {
         ".\scripts\mlb_defense_report.py" `
         "--out mlb_defense_summary.csv"
 
+    Invoke-DefenseStep "MLB pitching staff + rotation (MLB Stats API)" `
+        (Join-Path $SportsRoot "MLB") `
+        ".\scripts\build_mlb_pitching_context.py" `
+        "--rotation-days 14"
+
     Invoke-DefenseStep "NHL nhl_defense_summary (NHL API)" `
         (Join-Path $SportsRoot "NHL") `
         ".\scripts\nhl_defense_report.py" `

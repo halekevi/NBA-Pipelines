@@ -114,14 +114,23 @@ def pull_team_pitching(season: int, game_type: str = "R") -> pd.DataFrame:
         era = parse_stat_float(st.get("era"))
         whip = parse_stat_float(st.get("whip"))
         obp = parse_stat_float(st.get("obp"))
+        hits = parse_stat_float(st.get("hits"))
+        runs = parse_stat_float(st.get("runs"))
+        hr = parse_stat_float(st.get("homeRuns"))
+        gp = parse_stat_float(st.get("gamesPlayed"))
         rows.append(
             {
                 "TEAM_ABBREVIATION": abbr,
                 "SP_ERA": era,
                 "WHIP": whip,
                 "OBP_ALLOWED": obp,
+                "HITS_ALLOWED": hits,
+                "RUNS_ALLOWED": runs,
+                "HR_ALLOWED": hr,
+                "HITS_PER_GAME": (hits / gp) if gp and gp > 0 and not math.isnan(hits) else float("nan"),
+                "RUNS_PER_GAME": (runs / gp) if gp and gp > 0 and not math.isnan(runs) else float("nan"),
                 "inningsPitched": parse_stat_float(st.get("inningsPitched")),
-                "gamesPlayed": parse_stat_float(st.get("gamesPlayed")),
+                "gamesPlayed": gp,
             }
         )
     return pd.DataFrame(rows)
@@ -136,6 +145,14 @@ def add_ranks_and_tiers(df: pd.DataFrame) -> pd.DataFrame:
         df["WHIP_RANK"] = rank_series(df["WHIP"], ascending=True)
     if "OBP_ALLOWED" in df.columns:
         df["OBP_ALLOWED_RANK"] = rank_series(df["OBP_ALLOWED"], ascending=True)
+    if "HITS_PER_GAME" in df.columns:
+        df["HITS_ALLOWED_RANK"] = rank_series(df["HITS_PER_GAME"], ascending=False)
+    if "RUNS_PER_GAME" in df.columns:
+        df["RUNS_ALLOWED_RANK"] = rank_series(df["RUNS_PER_GAME"], ascending=False)
+    if "HR_ALLOWED" in df.columns and "gamesPlayed" in df.columns:
+        hr_pg = df["HR_ALLOWED"] / df["gamesPlayed"].replace(0, np.nan)
+        df["HR_PER_GAME"] = hr_pg
+        df["HR_ALLOWED_RANK"] = rank_series(df["HR_PER_GAME"], ascending=False)
 
     rank_cols = [c for c in ["ERA_RANK", "WHIP_RANK", "OBP_ALLOWED_RANK"] if c in df.columns]
     if rank_cols:
@@ -174,6 +191,9 @@ def print_leaders(df: pd.DataFrame, topn: int) -> None:
     show("LOWEST ERA — SP_ERA", "SP_ERA", asc=True)
     show("LOWEST WHIP", "WHIP", asc=True)
     show("LOWEST OPPONENT AVG/OBP AGAINST — OBP_ALLOWED", "OBP_ALLOWED", asc=True)
+    show("MOST HITS ALLOWED PER GAME — HITS_PER_GAME", "HITS_PER_GAME", asc=False)
+    show("MOST RUNS ALLOWED PER GAME — RUNS_PER_GAME", "RUNS_PER_GAME", asc=False)
+    show("MOST HR ALLOWED PER GAME — HR_PER_GAME", "HR_PER_GAME", asc=False)
 
 
 def main() -> None:
@@ -197,9 +217,18 @@ def main() -> None:
         "SP_ERA",
         "WHIP",
         "OBP_ALLOWED",
+        "HITS_ALLOWED",
+        "RUNS_ALLOWED",
+        "HR_ALLOWED",
+        "HITS_PER_GAME",
+        "RUNS_PER_GAME",
+        "HR_PER_GAME",
         "ERA_RANK",
         "WHIP_RANK",
         "OBP_ALLOWED_RANK",
+        "HITS_ALLOWED_RANK",
+        "RUNS_ALLOWED_RANK",
+        "HR_ALLOWED_RANK",
         "OVERALL_DEF_SCORE",
         "OVERALL_DEF_RANK",
         "DEF_TIER",

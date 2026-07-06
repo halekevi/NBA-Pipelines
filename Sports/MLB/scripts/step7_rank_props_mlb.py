@@ -375,10 +375,146 @@ def _minutes_certainty(row: pd.Series) -> float:
 
 
 def _def_adjustment(row: pd.Series, n_teams: int = 30) -> float:
-    rank = _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
-    if np.isnan(rank): return 0.0
+    rank = _prop_def_rank(row)
+    if np.isnan(rank):
+        rank = _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
+    if np.isnan(rank):
+        return 0.0
     mid = (n_teams + 1) / 2.0
     return float((rank - mid) / mid * 0.06)
+
+
+CONTEXT_PROJ_CAP = 0.08
+CONTEXT_HR_BLEND = 0.20
+
+_OFFENSE_HIT_PROPS = frozenset({
+    "hits", "total_bases", "home_runs", "rbi", "runs", "hits_runs_rbi",
+    "singles", "doubles", "walks", "fantasy_score",
+})
+_PITCHER_ALLOW_PROPS = frozenset({
+    "hits_allowed", "earned_runs", "walks_allowed",
+})
+ELITE_STARTER_ERA_FADE_MAX = 3.0
+ELITE_HITS_ALLOWED_RANK_MAX = 8
+SOFT_STARTER_ERA_MIN = 4.5
+ELITE_STARTER_OVER_PENALTY = 0.55
+
+
+def _prop_def_rank(row: pd.Series) -> float:
+    """Prop-specific opponent permissiveness rank (higher = more hitter-friendly)."""
+    prop = str(row.get("prop_norm", "")).lower().strip()
+    if prop == "home_runs":
+        return _safe_float(row.get("HR_ALLOWED_RANK", np.nan))
+    if prop in {"hits", "total_bases", "singles", "doubles", "hits_runs_rbi"}:
+        return _safe_float(row.get("HITS_ALLOWED_RANK", np.nan))
+    if prop in {"runs", "rbi"}:
+        return _safe_float(row.get("RUNS_ALLOWED_RANK", np.nan))
+    if prop in _PITCHER_ALLOW_PROPS:
+        return _safe_float(row.get("HITS_ALLOWED_RANK", row.get("RUNS_ALLOWED_RANK", np.nan)))
+    return _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
+
+
+def _context_projection_bump(row: pd.Series, *, n_teams: int = 30) -> float:
+    """
+    Signed projection bump (fraction) from park, prop-specific defense, and starter quality.
+    Applied after bet_direction is known.
+    """
+    prop = str(row.get("prop_norm", "")).lower().strip()
+    direction = str(row.get("bet_direction", "OVER")).upper().strip()
+    is_pitcher = str(row.get("player_type", "")).lower() == "pitcher" or prop in _PITCHER_ALLOW_PROPS
+    bump = 0.0
+
+    rank = _prop_def_rank(row)
+    if not np.isnan(rank):
+        mid = (n_teams + 1) / 2.0
+        rel = float((rank - mid) / mid)
+        weight = 0.045 if prop in _OFFENSE_HIT_PROPS or prop in _PITCHER_ALLOW_PROPS else 0.03
+        bump += rel * weight if direction == "OVER" else -rel * weight
+
+    if prop == "home_runs":
+        pf_hr = _safe_float(row.get("park_factor_hr"))
+        if not np.isnan(pf_hr):
+            park_bump = float(np.clip((pf_hr - 100.0) / 14.0 * 0.04, -0.04, 0.04))
+            bump += park_bump if direction == "OVER" else -park_bump
+        tier = str(row.get("park_hr_tier", "")).lower()
+        if tier == "hitter_hr":
+            bump += 0.02 if direction == "OVER" else -0.02
+        elif tier == "pitcher_hr":
+            bump += -0.02 if direction == "OVER" else 0.02
+
+    if prop == "hitter_strikeouts":
+        pf_so = _safe_float(row.get("park_factor_so"))
+        if not np.isnan(pf_so):
+            k_bump = float(np.clip((pf_so - 100.0) / 10.0 * 0.03, -0.03, 0.03))
+            bump += k_bump if direction == "OVER" else -k_bump
+
+    starter_era = _safe_float(row.get("opp_starter_era"))
+    if not np.isnan(starter_era) and not is_pitcher and prop in _OFFENSE_HIT_PROPS:
+        if starter_era >= SOFT_STARTER_ERA_MIN:
+            bump += 0.025 if direction == "OVER" else -0.025
+        elif starter_era <= ELITE_STARTER_ERA_FADE_MAX:
+            bump += -0.025 if direction == "OVER" else 0.025
+
+    if not is_pitcher and prop in _OFFENSE_HIT_PROPS:
+        adv = str(row.get("pitcher_advantage", "") or "").strip().lower()
+        if adv == "favor_batter":
+            bump += 0.015 if direction == "OVER" else -0.015
+        elif adv == "favor_pitcher":
+            bump += -0.015 if direction == "OVER" else 0.015
+
+    return float(np.clip(bump, -CONTEXT_PROJ_CAP, CONTEXT_PROJ_CAP))
+
+
+def _context_hit_rate_prior(row: pd.Series, *, n_teams: int = 30) -> float:
+    """Context prior for blending into composite_hit_rate (0–1)."""
+    prop = str(row.get("prop_norm", "")).lower().strip()
+    direction = str(row.get("bet_direction", "OVER")).upper().strip()
+    base = _prop_hit_rate_prior(prop, direction)
+
+    rank = _prop_def_rank(row)
+    if not np.isnan(rank):
+        mid = (n_teams + 1) / 2.0
+        rel = float((rank - mid) / mid)
+        base += rel * 0.06 if direction == "OVER" else -rel * 0.06
+
+    if prop == "home_runs":
+        pf_hr = _safe_float(row.get("park_factor_hr"))
+        if not np.isnan(pf_hr):
+            adj = float(np.clip((pf_hr - 100.0) / 20.0 * 0.08, -0.08, 0.08))
+            base += adj if direction == "OVER" else -adj
+
+    starter_era = _safe_float(row.get("opp_starter_era"))
+    if not np.isnan(starter_era) and prop in _OFFENSE_HIT_PROPS:
+        if starter_era >= SOFT_STARTER_ERA_MIN:
+            base += 0.04 if direction == "OVER" else -0.04
+        elif starter_era <= ELITE_STARTER_ERA_FADE_MAX:
+            base += -0.04 if direction == "OVER" else 0.04
+
+    return float(np.clip(base, 0.05, 0.95))
+
+
+def _elite_starter_fade_mask(df: pd.DataFrame) -> pd.Series:
+    """
+    Hitter offense props vs elite starter + tough team defense -> prefer UNDER on Standard.
+
+    Requires BOTH:
+      - opp_starter_era <= 3.0
+      - DEF_TIER in (Elite, Above Avg) OR HITS_ALLOWED_RANK <= 8
+    """
+    props = _hitter_top3_prop_mask(df) | df["prop_norm"].astype(str).str.lower().eq("home_runs")
+    era = pd.to_numeric(
+        df.get("opp_starter_era", pd.Series(np.nan, index=df.index)),
+        errors="coerce",
+    )
+    era_ok = era.le(ELITE_STARTER_ERA_FADE_MAX)
+    tier_col = df.get("DEF_TIER", df.get("def_tier", pd.Series("", index=df.index)))
+    tier_ok = tier_col.astype(str).str.strip().isin(TOUGH_DEF_TIERS)
+    hits_rank = pd.to_numeric(
+        df.get("HITS_ALLOWED_RANK", pd.Series(np.nan, index=df.index)),
+        errors="coerce",
+    )
+    def_ok = tier_ok | hits_rank.le(ELITE_HITS_ALLOWED_RANK_MAX).fillna(False)
+    return props.fillna(False) & era_ok.fillna(False) & def_ok
 
 
 HITTER_TOP3_PROPS: frozenset[str] = frozenset({"hits", "total_bases", "home_runs", "rbi"})
@@ -553,7 +689,8 @@ def _attach_top3_def_context(df: pd.DataFrame, repo_root: Path) -> pd.DataFrame:
     )
     merged["top3_def_context"] = np.where(top3_boost, 1, 0).astype(int)
     merged["top3_under_context"] = np.where(top3_under | bottom3_under, 1, 0).astype(int)
-    merged["bottom3_tough_fade"] = _bottom3_tough_fade_mask(merged).astype(int)
+    if "bottom3_tough_fade" not in merged.columns:
+        merged["bottom3_tough_fade"] = _bottom3_tough_fade_mask(merged).astype(int)
     merged.drop(columns=["team_top3_rank_t3", "team_bottom3_rank_b3"], inplace=True, errors="ignore")
     return merged
 
@@ -643,7 +780,10 @@ def main() -> None:
     out["forced_over_only"] = forced
 
     fade = _bottom3_tough_fade_mask(out, n_teams=args.n_teams)
-    out["bottom3_tough_fade"] = fade.astype(int)
+    starter_fade = _elite_starter_fade_mask(out)
+    fade = fade | starter_fade
+    out["bottom3_tough_fade"] = (_bottom3_tough_fade_mask(out, n_teams=args.n_teams)).astype(int)
+    out["elite_starter_fade"] = starter_fade.astype(int)
     # Standard: align direction with fade (UNDER). Goblin/Demon stay OVER but are penalized in rank_score.
     bet_dir = np.where(
         forced.eq(1),
@@ -653,15 +793,21 @@ def main() -> None:
     out["bet_direction"] = bet_dir
     out["direction_override"] = np.where(
         fade & forced.eq(0) & pd.Series(bet_dir).eq("UNDER"),
-        "BOTTOM3_TOUGH_UNDER",
+        np.where(
+            starter_fade & ~_bottom3_tough_fade_mask(out, n_teams=args.n_teams),
+            "ELITE_STARTER_UNDER",
+            "BOTTOM3_TOUGH_UNDER",
+        ),
         "",
     )
     n_fade = int(fade.sum())
     n_flip = int((fade & forced.eq(0)).sum())
+    n_starter = int(starter_fade.sum())
     if n_fade:
         print(
-            f"[MLB step7] bottom×tough fade: {n_fade:,} rows "
-            f"({n_flip:,} Standard→UNDER, {(fade & forced.eq(1)).sum():,} forced-OVER penalized)"
+            f"[MLB step7] context fade: {n_fade:,} rows "
+            f"({n_flip:,} Standard→UNDER, {(fade & forced.eq(1)).sum():,} forced-OVER penalized; "
+            f"elite_starter={n_starter:,})"
         )
 
     eligible    = pd.Series(True, index=out.index)
@@ -723,7 +869,16 @@ def main() -> None:
 
     _lho = out.apply(_line_hit_over_only_row, axis=1)
     _bu = out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER")
-    out["composite_hit_rate"] = np.where(_bu, 1.0 - _lho, _lho)
+    out["context_hr_prior"] = out.apply(lambda r: _context_hit_rate_prior(r, n_teams=args.n_teams), axis=1)
+    out["composite_hit_rate"] = np.where(
+        _bu,
+        1.0 - _lho,
+        _lho,
+    )
+    out["composite_hit_rate"] = (
+        (1.0 - CONTEXT_HR_BLEND) * pd.to_numeric(out["composite_hit_rate"], errors="coerce")
+        + CONTEXT_HR_BLEND * pd.to_numeric(out["context_hr_prior"], errors="coerce")
+    )
     out["minutes_certainty"] = out.apply(_minutes_certainty, axis=1)
     out["prop_weight"]       = out["prop_norm"].astype(str).apply(_prop_weight)
     out["reliability_mult"]  = out["pick_type"].astype(str).apply(_reliability_mult)
@@ -751,8 +906,12 @@ def main() -> None:
     out["min_z"]       = zcol(out["minutes_certainty"])
 
     def_adj = out.apply(lambda r: _def_adjustment(r, args.n_teams), axis=1)
-    out["def_adj"]        = def_adj
-    out["projection_adj"] = pd.to_numeric(out["projection"], errors="coerce") * (1.0 + def_adj.astype(float))
+    ctx_adj = out.apply(lambda r: _context_projection_bump(r, n_teams=args.n_teams), axis=1)
+    out["def_adj"] = def_adj
+    out["context_proj_adj"] = ctx_adj
+    out["prop_def_rank_used"] = out.apply(_prop_def_rank, axis=1)
+    total_adj = def_adj.astype(float) + ctx_adj.astype(float)
+    out["projection_adj"] = pd.to_numeric(out["projection"], errors="coerce") * (1.0 + total_adj)
     out["edge_adj"]       = out["projection_adj"] - line_num
 
     def _edge_adj_dr(i):
@@ -765,11 +924,20 @@ def main() -> None:
     out["edge_adj_dr"] = pd.Series([_edge_adj_dr(i) for i in range(len(out))], index=out.index)
 
     def _def_rank_signal(row: pd.Series) -> float:
-        rank      = _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
+        rank = _prop_def_rank(row)
+        if np.isnan(rank):
+            rank = _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
         direction = str(row.get("bet_direction", "OVER")).upper()
-        if np.isnan(rank): return 0.0
+        if np.isnan(rank):
+            return 0.0
         signal = (rank - 1.0) / (args.n_teams - 1.0) * 2.0 - 1.0
-        return float(signal if direction == "OVER" else -signal)
+        sig = float(signal if direction == "OVER" else -signal)
+        if str(row.get("prop_norm", "")).lower() == "home_runs":
+            pf_hr = _safe_float(row.get("park_factor_hr"))
+            if not np.isnan(pf_hr):
+                park_sig = float(np.clip((pf_hr - 100.0) / 14.0, -1.0, 1.0))
+                sig += (park_sig if direction == "OVER" else -park_sig) * 0.35
+        return float(np.clip(sig, -1.5, 1.5))
 
     def_signal = out.apply(_def_rank_signal, axis=1)
     out["def_rank_signal"] = def_signal
@@ -836,6 +1004,12 @@ def main() -> None:
         _hits_over,
         BOTTOM3_TOUGH_HITS_OVER_PENALTY,
         np.where(_fade_over, BOTTOM3_TOUGH_OVER_PENALTY, 1.0),
+    )
+    _starter_fade_over = out.get("elite_starter_fade", pd.Series(0, index=out.index)).astype(int).eq(1) & out["bet_direction"].astype(str).str.upper().eq("OVER")
+    _fade_pen = np.where(
+        _starter_fade_over,
+        np.minimum(_fade_pen, ELITE_STARTER_OVER_PENALTY),
+        _fade_pen,
     )
     score = score * _fade_pen
     # Direction-aware edge gate (matches NBA step7). Standard UNDER has no edge gate.

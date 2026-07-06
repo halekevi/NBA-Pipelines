@@ -1509,6 +1509,19 @@ if ($MLBOnly) {
     if ($ok) { $ok = Run-Step "MLB Step 4 - Player Stats"       $MLBDir ".\scripts\step4_attach_player_stats_mlb.py"    "--input `"$MLBRunOutDir\step3_mlb_with_defense.csv`" --cache mlb_stats_cache.csv --output `"$MLBRunOutDir\step4_mlb_with_stats.csv`" --season $MLBSeasonYear" -TimeoutSeconds 1200 }
     # Step 4b — Lineup context (batting order, confirmed starters); non-fatal
     if ($ok) {
+        Write-Host "  --> MLB Step 4a - Pitching staff cache" -ForegroundColor Cyan
+        $MlbPitchCtx = Join-Path $MLBDir "scripts\build_mlb_pitching_context.py"
+        Push-Location $MLBDir
+        try {
+            & py -3.14 $MlbPitchCtx --date $Date --rotation-days 14
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "[MLB] pitching context cache failed — step4b will run with stale/missing staff data"
+            }
+        } finally {
+            Pop-Location
+        }
+    }
+    if ($ok) {
         Write-Host "  --> MLB Step 4b - Lineup Context" -ForegroundColor Cyan
         $MlbStep4b = Join-Path $MLBDir "scripts\step4b_attach_lineup_context.py"
         Push-Location $Root
@@ -2980,6 +2993,17 @@ $MLBJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "MLB Step 2 - Attach Pick Types"  $MLBDir ".\scripts\step2_attach_picktypes_mlb.py"       "--input `"$MLBRunOutDir\step1_mlb_props.csv`" --output `"$MLBRunOutDir\step2_mlb_picktypes.csv`" --id_lookup_timeout_s 6 --id_lookup_retries 2 --id_lookup_budget_s 180" }
     if ($ok) { $ok = Run-Step-Job "MLB Step 3 - Attach Defense"     $MLBDir ".\scripts\step3_attach_defense_mlb.py"         "--input `"$MLBRunOutDir\step2_mlb_picktypes.csv`" --defense mlb_defense_summary.csv --output `"$MLBRunOutDir\step3_mlb_with_defense.csv`"" }
     if ($ok) { $ok = Run-Step-Job "MLB Step 4 - Player Stats"       $MLBDir ".\scripts\step4_attach_player_stats_mlb.py"    "--input `"$MLBRunOutDir\step3_mlb_with_defense.csv`" --cache mlb_stats_cache.csv --output `"$MLBRunOutDir\step4_mlb_with_stats.csv`" --season $MlbSeasonYear" }
+    if ($ok) {
+        Write-Output "[MLB] Step 4a - Pitching staff cache"
+        $MlbPitchCtx = Join-Path $MLBDir "scripts\build_mlb_pitching_context.py"
+        Push-Location $MLBDir
+        try {
+            & py -3.14 $MlbPitchCtx --date $Date --rotation-days 14
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output "[MLB] pitching context cache WARN (exit $LASTEXITCODE) — continuing"
+            }
+        } finally { Pop-Location }
+    }
     if ($ok) {
         Write-Output "[MLB] Step 4b - Lineup Context"
         $MlbStep4b = Join-Path $MLBDir "scripts\step4b_attach_lineup_context.py"

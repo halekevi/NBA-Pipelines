@@ -11,6 +11,9 @@ Baseline is the production main track:
 Validation bar: n>=30 decided shadow tickets on **live** exports only, and clean
 shadow ticket HR must beat clean baseline on the same window (ready_to_ship).
 Backfill/rebuild exports never count toward the bar (generated_at vs slate date).
+
+Set ``hold_ready_to_ship: true`` in the track JSON to block auto-promotion until
+``hold_ready_to_ship`` is explicitly cleared (manual re-eval).
 """
 
 from __future__ import annotations
@@ -132,6 +135,40 @@ def _ready_to_ship_reason(clean_sd: int, clean_shr: float | None, clean_bhr: flo
     return "clean sample bar met and shadow beats baseline"
 
 
+def _hold_active(existing: dict) -> bool:
+    """True when manual hold blocks auto ready_to_ship until explicitly cleared."""
+    raw = existing.get("hold_ready_to_ship")
+    if raw is None:
+        return False
+    if isinstance(raw, bool):
+        return raw
+    return str(raw).strip().lower() in ("1", "true", "yes", "t")
+
+
+def _hold_reason_text(existing: dict) -> str:
+    return str(existing.get("hold_reason") or "").strip()
+
+
+def _apply_ready_to_ship_hold(
+    existing: dict,
+    *,
+    ready: bool,
+    math_reason: str,
+) -> tuple[bool, str, bool, str]:
+    """
+    Return (ready_to_ship, ready_to_ship_reason, hold_ready_to_ship, hold_reason).
+
+    When hold is active, ready_to_ship stays false and reason is prefixed with held:.
+    Hold fields persist until hold_ready_to_ship is explicitly set false.
+    """
+    hold = _hold_active(existing)
+    hold_reason = _hold_reason_text(existing)
+    if hold:
+        held_msg = f"held: {hold_reason}" if hold_reason else "held: manual hold active"
+        return False, held_msg, True, hold_reason
+    return ready, math_reason, False, hold_reason
+
+
 def _update_track_record(day_rows: list[dict]) -> dict:
     existing: dict = {}
     if _TRACK_PATH.is_file():
@@ -160,7 +197,10 @@ def _update_track_record(day_rows: list[dict]) -> dict:
         and clean_bhr is not None
         and clean_shr > clean_bhr
     )
-    reason = _ready_to_ship_reason(clean_sd, clean_shr, clean_bhr)
+    math_reason = _ready_to_ship_reason(clean_sd, clean_shr, clean_bhr)
+    ready, reason, hold, hold_reason = _apply_ready_to_ship_hold(
+        existing, ready=ready, math_reason=math_reason
+    )
 
     out = {
         "policy": "opt3_goblin_tier_a_shadow",
@@ -178,6 +218,8 @@ def _update_track_record(day_rows: list[dict]) -> dict:
         "all_days_baseline_decided_total": all_bd,
         "all_days_baseline_paid_total": all_bp,
         "all_days_baseline_ticket_hit_rate": (all_bp / all_bd) if all_bd else None,
+        "hold_ready_to_ship": hold,
+        "hold_reason": hold_reason,
         "ready_to_ship": ready,
         "ready_to_ship_reason": reason,
         "days": days,
@@ -282,6 +324,8 @@ def main() -> int:
             f"{100*asp/all_sd:.1f}% — excluded from ship bar)"
         )
     print(f"\n  Live shadow decided: {sd}/{_MIN_DECIDED} toward sample bar")
+    if track.get("hold_ready_to_ship"):
+        print(f"  HOLD:   hold_ready_to_ship=true — {track.get('hold_reason') or '(no reason)'}")
     if track["ready_to_ship"]:
         print("  STATUS: ready_to_ship=true — live n>=30 and shadow beats baseline.")
     else:

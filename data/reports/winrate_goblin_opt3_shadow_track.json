@@ -14,8 +14,10 @@
   "all_days_baseline_decided_total": 2992,
   "all_days_baseline_paid_total": 609,
   "all_days_baseline_ticket_hit_rate": 0.2035427807486631,
+  "hold_ready_to_ship": true,
+  "hold_reason": "two-regime variance (18.3% pre-outage vs 43.2% post-outage); wait for 07-06+ clean pipeline days",
   "ready_to_ship": false,
-  "ready_to_ship_reason": "live-only +2.2pp masked by two-regime split (18.3% pre-outage vs 43.2% post-outage); post-outage window has 2 near-zero days in 6 -- not a stable streak; wait for 07-06+ clean pipeline days",
+  "ready_to_ship_reason": "held: two-regime variance (18.3% pre-outage vs 43.2% post-outage); wait for 07-06+ clean pipeline days",
   "days": [
     {
       "date": "2026-06-06",

@@ -11899,6 +11899,96 @@ STRONG_BUILDER_MLB_PROPS_NORM: frozenset[str] = frozenset(
         "pitchingouts",
     )
 )
+STRONG_ROLLING_HR_PATH = os.path.join(REPO_ROOT, "data", "reports", "strong_player_rolling_hr.json")
+STRONG_ROLLING_HR_MIN_N = 20
+STRONG_ROLLING_HR_EXCLUDE_BELOW = 0.25
+STRONG_COSTACK_WEAK_THRESHOLD = 0.35
+STRONG_MAX_PLAYER_APPEARANCES_PER_SLATE = max(
+    1, int(os.getenv("PROPORACLE_STRONG_MAX_PLAYER_APPS", "2"))
+)
+
+
+def _load_strong_player_rolling_hr() -> dict[str, dict]:
+    path = os.getenv("PROPORACLE_STRONG_ROLLING_HR_PATH", STRONG_ROLLING_HR_PATH)
+    if not path or not os.path.isfile(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            raw = json.load(fh)
+        return raw if isinstance(raw, dict) else {}
+    except (OSError, json.JSONDecodeError, TypeError):
+        return {}
+
+
+def _strong_player_rolling_hr(player: object, rolling: dict[str, dict]) -> float:
+    row = rolling.get(str(player or "").strip(), {}) or {}
+    try:
+        return float(row.get("hr", 1.0))
+    except (TypeError, ValueError):
+        return 1.0
+
+
+def _strong_player_rolling_n(player: object, rolling: dict[str, dict]) -> int:
+    row = rolling.get(str(player or "").strip(), {}) or {}
+    try:
+        return int(row.get("n") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _strong_rolling_hr_excludes_player(player: object, rolling: dict[str, dict]) -> bool:
+    n = _strong_player_rolling_n(player, rolling)
+    if n < STRONG_ROLLING_HR_MIN_N:
+        return False
+    return _strong_player_rolling_hr(player, rolling) < STRONG_ROLLING_HR_EXCLUDE_BELOW
+
+
+def _apply_strong_rolling_hr_gate(df: pd.DataFrame, rolling: dict[str, dict]) -> pd.DataFrame:
+    if df is None or df.empty or not rolling:
+        return df
+    keep = []
+    for idx, row in df.iterrows():
+        player = row.get("player")
+        if _strong_rolling_hr_excludes_player(player, rolling):
+            hr = _strong_player_rolling_hr(player, rolling)
+            n = _strong_player_rolling_n(player, rolling)
+            print(f"[strong-gate] excluded {player} (rolling HR {hr:.0%} on {n} legs)")
+            continue
+        keep.append(idx)
+    return df.loc[keep].copy() if keep else df.iloc[0:0].copy()
+
+
+def _apply_strong_per_slate_player_cap(rows: list[dict], max_per_player: int | None = None) -> list[dict]:
+    cap = int(max_per_player if max_per_player is not None else STRONG_MAX_PLAYER_APPEARANCES_PER_SLATE)
+    player_counts: Counter[str] = Counter()
+    filtered: list[dict] = []
+    for row in rows:
+        player = str(row.get("player") or "").strip()
+        if not player:
+            continue
+        if player_counts[player] >= cap:
+            continue
+        filtered.append(row)
+        player_counts[player] += 1
+    return filtered
+
+
+def _ok_strong_pair(leg_a: dict, leg_b: dict, rolling: dict[str, dict]) -> bool:
+    hr_a = _strong_player_rolling_hr(leg_a.get("player"), rolling)
+    hr_b = _strong_player_rolling_hr(leg_b.get("player"), rolling)
+    if hr_a < STRONG_COSTACK_WEAK_THRESHOLD and hr_b < STRONG_COSTACK_WEAK_THRESHOLD:
+        return False
+    return True
+
+
+def _strong_combo_players_ok(rows: list[dict], rolling: dict[str, dict]) -> bool:
+    if not rolling:
+        return True
+    for i in range(len(rows)):
+        for j in range(i + 1, len(rows)):
+            if not _ok_strong_pair(rows[i], rows[j], rolling):
+                return False
+    return True
 
 
 def _strong_builder_prop_norm(v: object) -> str:
@@ -11994,6 +12084,8 @@ def build_strong_tickets(
     """
     prepared = _prepare_strong_builder_pool(df)
     candidates = _strong_candidate_legs(prepared)
+    rolling_hr = _load_strong_player_rolling_hr()
+    candidates = _apply_strong_rolling_hr_gate(candidates, rolling_hr)
     n_candidates = len(candidates)
     cap = int(max_tickets if max_tickets is not None else STRONG_BUILDER_MAX_TICKETS)
     floor_2 = float(min_p_win_2leg if min_p_win_2leg is not None else STRONG_MIN_P_WIN_2LEG)
@@ -12005,8 +12097,11 @@ def build_strong_tickets(
     if "prop_quality_score" not in candidates.columns:
         candidates = add_prop_quality_score(candidates)
     candidates = candidates.sort_values("prop_quality_score", ascending=False).reset_index(drop=True)
-    top_k = min(len(candidates), STRONG_BUILDER_TOP_K)
-    top_rows = [candidates.iloc[i].to_dict() for i in range(top_k)]
+    capped_rows = _apply_strong_per_slate_player_cap(
+        [candidates.iloc[i].to_dict() for i in range(len(candidates))]
+    )
+    top_k = min(len(capped_rows), STRONG_BUILDER_TOP_K)
+    top_rows = capped_rows[:top_k]
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
@@ -12039,6 +12134,8 @@ def build_strong_tickets(
             if key in seen_keys:
                 continue
             if not _ticket_cap_can_add(rows, player_ticket_counts):
+                continue
+            if not _strong_combo_players_ok(rows, rolling_hr):
                 continue
 
             leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]

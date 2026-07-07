@@ -1699,7 +1699,11 @@ def filter_web_tickets_for_ui(
     # when they still have generated candidates in the payload.
     ensure_cov_raw = os.getenv("PROPORACLE_WEB_ENSURE_SPORT_COVERAGE", "1").strip().lower()
     ensure_sport_coverage = ensure_cov_raw not in {"0", "false", "no", "off"}
-    if ensure_sport_coverage and sport_candidates:
+    if (
+        ensure_sport_coverage
+        and sport_candidates
+        and str(payload.get("pool_mode") or "") != MAIN_POOL_MODE
+    ):
         present_sports: set[str] = set()
         existing_group_names: set[str] = set()
         for g in out_groups:
@@ -4446,6 +4450,7 @@ def _row_win_rate_eligible(
     min_composite_hr: float,
     graded_ctx: dict[str, Any] | None = None,
     goblin_tier_a_only: bool = False,
+    goblin_only: bool = False,
 ) -> bool:
     if isinstance(row, pd.Series):
         row_d = row.to_dict()
@@ -4455,7 +4460,12 @@ def _row_win_rate_eligible(
         return False
     pt = str(row_d.get("pick_type") or "").strip().lower()
     tier = str(row_d.get("tier") or "").strip().upper()
-    if pt == "goblin":
+    if goblin_only:
+        if pt != "goblin":
+            return False
+        if goblin_tier_a_only and tier != "A":
+            return False
+    elif pt == "goblin":
         if goblin_tier_a_only and tier != "A":
             return False
     elif pt == "standard" and tier == "A":
@@ -4552,6 +4562,7 @@ def _filter_win_rate_pool(
     min_composite_hr: float,
     graded_ctx: dict[str, Any] | None = None,
     goblin_tier_a_only: bool = False,
+    goblin_only: bool = False,
 ) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
@@ -4563,11 +4574,55 @@ def _filter_win_rate_pool(
             min_composite_hr=min_composite_hr,
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
+            goblin_only=goblin_only,
         ):
             out_rows.append(r.to_dict())
     if not out_rows:
         return pd.DataFrame()
     return pd.DataFrame(out_rows)
+
+
+def _row_main_four_leg_eligible(row: pd.Series | dict) -> bool:
+    """4-leg MAIN slips: every leg Tier A + HOT + ml_prob >= MAIN_FOUR_LEG_MIN_ML_PROB."""
+    row_d = row.to_dict() if isinstance(row, pd.Series) else dict(row)
+    if str(row_d.get("tier") or "").strip().upper() != "A":
+        return False
+    if not _row_hot_l10_streak(row_d):
+        return False
+    mlp = pd.to_numeric(row_d.get("ml_prob"), errors="coerce")
+    if pd.isna(mlp) or float(mlp) < float(MAIN_FOUR_LEG_MIN_ML_PROB):
+        return False
+    return True
+
+
+def _ticket_passes_main_four_leg_gate(rows: list[dict]) -> bool:
+    if len(rows) != 4:
+        return True
+    return all(_row_main_four_leg_eligible(r) for r in rows)
+
+
+def _count_win_rate_eligible_legs(
+    sport_frames: list[tuple[str, pd.DataFrame]],
+    *,
+    min_leg_prob: float,
+    min_composite_hr: float,
+    graded_ctx: dict[str, Any],
+    goblin_tier_a_only: bool,
+    goblin_only: bool,
+) -> int:
+    total = 0
+    for _, raw_df in sport_frames:
+        wr_df = _filter_win_rate_pool(
+            raw_df,
+            min_leg_prob=min_leg_prob,
+            min_composite_hr=min_composite_hr,
+            graded_ctx=graded_ctx,
+            goblin_tier_a_only=goblin_tier_a_only,
+            goblin_only=goblin_only,
+        )
+        if wr_df is not None and not wr_df.empty:
+            total += len(wr_df)
+    return total
 
 
 def build_win_rate_ticket_groups(
@@ -4579,10 +4634,17 @@ def build_win_rate_ticket_groups(
     max_tickets: int,
     graded_analysis: dict | None = None,
     goblin_tier_a_only: bool = False,
+    goblin_only: bool = False,
+    goblin_only_3leg: bool = False,
 ) -> list[tuple[str, list, None]]:
-    """Build up to max_tickets win-rate slips (2–max_legs legs), sorted by p_win."""
+    """Build win-rate slips sorted by p_win (Goblin-only 3-leg primary when enabled)."""
     max_legs = max(2, min(4, int(max_legs)))
     graded_ctx = _graded_analysis_context(graded_analysis)
+    goblin_only_3leg = bool(goblin_only_3leg)
+    if goblin_only_3leg:
+        goblin_only = True
+        max_legs = min(max_legs, MAIN_GRADED_MAX_LEGS)
+
     frames_by_sport: dict[str, pd.DataFrame] = {}
     for label, raw_df in sport_frames:
         if raw_df is not None and not raw_df.empty:
@@ -4592,11 +4654,29 @@ def build_win_rate_ticket_groups(
                 for sp, g in raw_df.groupby(raw_df["sport"].astype(str).str.upper()):
                     frames_by_sport[str(sp).strip().upper()] = g
 
+    eligible_total = _count_win_rate_eligible_legs(
+        sport_frames,
+        min_leg_prob=min_leg_prob,
+        min_composite_hr=min_composite_hr,
+        graded_ctx=graded_ctx,
+        goblin_tier_a_only=goblin_tier_a_only,
+        goblin_only=goblin_only,
+    )
+    thin_pool = eligible_total < int(MAIN_THIN_POOL_MIN_LEGS)
+    if goblin_only_3leg:
+        build_leg_counts = [MAIN_DEFAULT_LEGS]
+        if not thin_pool:
+            build_leg_counts.append(4)
+        if thin_pool:
+            build_leg_counts.append(MAIN_GRADED_MIN_LEGS)
+    else:
+        build_leg_counts = list(range(MAIN_GRADED_MIN_LEGS, max_legs + 1))
+
     candidates: list[dict] = []
     anchor = None
     # opt3 shadow (goblin_tier_a_only) intentionally skips the NBA1Q/NBA HOT anchor —
     # anchor legs include Goblin B and a fixed 3-leg template; shadow track is Tier-A-only.
-    if not goblin_tier_a_only:
+    if not goblin_tier_a_only and not goblin_only_3leg:
         anchor = build_win_rate_anchor_ticket(
             frames_by_sport,
             min_leg_prob=min_leg_prob,
@@ -4616,10 +4696,11 @@ def build_win_rate_ticket_groups(
             min_composite_hr=min_composite_hr,
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
+            goblin_only=goblin_only,
         )
         if wr_df is None or len(wr_df) < 2:
             continue
-        for n in range(2, max_legs + 1):
+        for n in build_leg_counts:
             if len(wr_df) < n:
                 continue
             built = build_tickets(
@@ -4631,6 +4712,8 @@ def build_win_rate_ticket_groups(
             )
             for t in built:
                 rows = list(t.get("rows") or [])
+                if goblin_only_3leg and not _ticket_passes_main_four_leg_gate(rows):
+                    continue
                 p_win = _compute_p_win_from_rows(rows)
                 pay_mult = float(t.get("payout_multiplier") or 1.0)
                 t = dict(t)
@@ -4640,8 +4723,21 @@ def build_win_rate_ticket_groups(
                 t["_sport_label"] = label
                 candidates.append(t)
 
+    def _leg_count_pref(ticket: dict) -> int:
+        n = len(ticket.get("rows") or [])
+        if goblin_only_3leg:
+            if n == MAIN_DEFAULT_LEGS:
+                return 0
+            if n == 4:
+                return 1
+            if n == MAIN_GRADED_MIN_LEGS:
+                return 2
+            return 9
+        return 0
+
     candidates.sort(
         key=lambda x: (
+            _leg_count_pref(x),
             -_winrate_ticket_win_prob(x),
             -_winrate_ticket_rank_score(x),
             -float(x.get("win_rate_score") or 0.0),
@@ -4650,7 +4746,28 @@ def build_win_rate_ticket_groups(
     seen: set[frozenset] = set()
     picked: list[dict] = []
     # Ensure longer-leg coverage in win-rate output when valid candidates exist.
-    if max_legs >= 3:
+    if goblin_only_3leg:
+        pick_order = (MAIN_DEFAULT_LEGS, 4, MAIN_GRADED_MIN_LEGS) if thin_pool else (MAIN_DEFAULT_LEGS, 4)
+        for target_n in pick_order:
+            for t in candidates:
+                rows = [dict(r) for r in (t.get("rows") or [])]
+                if len(rows) != target_n:
+                    continue
+                if not thin_pool and target_n == MAIN_GRADED_MIN_LEGS:
+                    continue
+                if _winrate_ticket_same_game_bench_stack(t):
+                    continue
+                if any(_leg_dnp_risk(r) for r in rows):
+                    continue
+                key = _ticket_row_dedup_key(rows)
+                if key in seen:
+                    continue
+                seen.add(key)
+                picked.append(t)
+                break
+            if len(picked) >= int(max_tickets):
+                break
+    elif max_legs >= 3:
         for target_n in (3, 4):
             if target_n > max_legs:
                 continue
@@ -4671,9 +4788,13 @@ def build_win_rate_ticket_groups(
             if len(picked) >= int(max_tickets):
                 break
     for t in candidates:
+        if goblin_only_3leg and not thin_pool and len(t.get("rows") or []) == MAIN_GRADED_MIN_LEGS:
+            continue
         if _winrate_ticket_same_game_bench_stack(t):
             continue
         rows = [dict(r) for r in (t.get("rows") or [])]
+        if goblin_only_3leg and not _ticket_passes_main_four_leg_gate(rows):
+            continue
         if any(_leg_dnp_risk(r) for r in rows):
             continue
         key = _ticket_row_dedup_key(rows)
@@ -5884,10 +6005,13 @@ def _finalize_payload_l10_streaks(payload: dict) -> None:
     payload["cold_legs"] = sum(int(g.get("cold_legs") or 0) for g in (payload.get("groups") or []) if isinstance(g, dict))
 
 
-# Graded KPI split: main = 2-leg NBA-family win-rate slips; long_parlay = 5–6 (tracked separately).
+# Graded KPI split: main = win-rate slips (Goblin-only, 3-leg primary); long_parlay = 5–6.
 MAIN_GRADED_MIN_LEGS = 2
-# Main graded track now supports 2-4 legs; long-parlay track remains 5-6 legs.
 MAIN_GRADED_MAX_LEGS = 4
+MAIN_DEFAULT_LEGS = 3
+MAIN_THIN_POOL_MIN_LEGS = 6
+MAIN_FOUR_LEG_MIN_ML_PROB = 0.65
+MAIN_POOL_MODE = "goblin_only_3leg"
 LONG_PARLAY_MIN_LEGS = 5
 LONG_PARLAY_MAX_LEGS = 6
 
@@ -6087,15 +6211,17 @@ def build_graded_main_win_rate_payload(
     max_legs: int | None = None,
     max_tickets: int | None = None,
     goblin_tier_a_only: bool = False,
+    goblin_only_3leg: bool = True,
     ticket_track: str = "graded_main",
     payload_mode: str | None = None,
     policy_tag: str | None = None,
 ) -> dict:
-    """Build main graded track from win-rate ticket groups (NBA-family, 2-4 leg power slips)."""
+    """Build main graded track from win-rate builder (Goblin-only, 3-leg primary)."""
     # Main graded leg cap is independent of --max-ticket-legs (workbook/EV builder knob).
-    wr_max_legs = max(MAIN_GRADED_MIN_LEGS, int(MAIN_GRADED_MAX_LEGS))
+    wr_max_legs = max(MAIN_GRADED_MIN_LEGS, int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS))
     wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
     wr_max_tickets = int(max_tickets or MAIN_MAX_SLIPS)
+    use_goblin_only_3leg = bool(goblin_only_3leg) and not goblin_tier_a_only
     wr_groups = build_win_rate_ticket_groups(
         sport_frames,
         min_leg_prob=wr_min_prob,
@@ -6104,12 +6230,18 @@ def build_graded_main_win_rate_payload(
         max_tickets=wr_max_tickets,
         graded_analysis=graded_analysis,
         goblin_tier_a_only=goblin_tier_a_only,
+        goblin_only=use_goblin_only_3leg,
+        goblin_only_3leg=use_goblin_only_3leg,
     )
     filters_out = dict(thresholds or {})
     filters_out["max_ticket_legs"] = wr_max_legs
     filters_out["main_min_leg_prob"] = wr_min_prob
     if goblin_tier_a_only:
         filters_out["goblin_tier_a_only"] = True
+    if use_goblin_only_3leg:
+        filters_out["goblin_only"] = True
+        filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
+        filters_out["pool_mode"] = MAIN_POOL_MODE
     payload = ticket_groups_to_payload(
         wr_groups,
         date_str,
@@ -6130,6 +6262,11 @@ def build_graded_main_win_rate_payload(
     if goblin_tier_a_only:
         payload["goblin_tier_a_only"] = True
         payload["shadow_track"] = True
+    if use_goblin_only_3leg:
+        payload["goblin_only"] = True
+        payload["pool_mode"] = MAIN_POOL_MODE
+        payload["main_default_legs"] = MAIN_DEFAULT_LEGS
+        payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
     for g in payload.get("groups") or []:
         for slip in g.get("tickets") or []:
             _enrich_slip_p_win_fields(slip, mode="win_rate")
@@ -6220,10 +6357,15 @@ def resolve_graded_main_and_long_payloads(
     )
     n_main = sum(len(g.get("tickets") or []) for g in main.get("groups") or [])
     if n_main > 0:
+        pool_note = (
+            f"pool_mode={MAIN_POOL_MODE}, default={MAIN_DEFAULT_LEGS}-leg"
+            if main.get("pool_mode") == MAIN_POOL_MODE
+            else f"{MAIN_GRADED_MIN_LEGS}-{MAIN_GRADED_MAX_LEGS} leg"
+        )
         print(
             f"  [main-track] win-rate main pool: {n_main} slips "
-            f"({MAIN_GRADED_MIN_LEGS}-{MAIN_GRADED_MAX_LEGS} leg, "
-            f"min_leg_prob={MAIN_MIN_LEG_PROB:.2f}, sports={','.join(sorted(MAIN_ALLOWED_SPORTS))})"
+            f"({pool_note}, min_leg_prob={MAIN_MIN_LEG_PROB:.2f}, "
+            f"sports={','.join(sorted(MAIN_ALLOWED_SPORTS))})"
         )
     else:
         print("  [main-track] win-rate builder empty — falling back to curated EV split")
@@ -6309,6 +6451,40 @@ def _extract_strong_builder_slips(payload: Mapping[str, Any]) -> list[dict]:
         for t in g.get("tickets") or []:
             if isinstance(t, dict) and t.get("strong_builder"):
                 out.append(t)
+    return out
+
+
+def filter_main_goblin_only_3leg_payload(payload: dict) -> dict:
+    """Keep only Goblin 2–4 leg slips on MAIN when pool_mode=goblin_only_3leg."""
+    if str(payload.get("pool_mode") or "") != MAIN_POOL_MODE:
+        return payload
+    out = dict(payload)
+    new_groups: list[dict] = []
+    for g in out.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        kept: list[dict] = []
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            legs = [leg for leg in (t.get("legs") or []) if isinstance(leg, dict)]
+            n = len(legs)
+            if n < MAIN_GRADED_MIN_LEGS or n > MAIN_GRADED_MAX_LEGS:
+                continue
+            picks = {str(leg.get("pick_type") or "").strip().lower() for leg in legs}
+            picks.discard("")
+            if not picks or not all("goblin" in p for p in picks):
+                continue
+            if n == 4 and not _ticket_passes_main_four_leg_gate(legs):
+                continue
+            kept.append(t)
+        if not kept:
+            continue
+        ng = dict(g)
+        ng["tickets"] = kept
+        ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(kept[0], ng))
+        new_groups.append(ng)
+    out["groups"] = new_groups
     return out
 
 
@@ -6456,7 +6632,7 @@ def append_in_season_web_supplement_groups(
 
 
 def write_full_ticket_export_snapshot(payload: dict, date_str: str) -> None:
-    """Persist the full multi-group ticket export for backtests and dated ML snapshots."""
+    """Persist curated MAIN ticket JSON for graders, slice review, and dated ML snapshots."""
     path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
     _write_json_file(path, payload)
     n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
@@ -16957,15 +17133,22 @@ def main():
                 graded_analysis=_load_graded_analysis(),
             )
             payload = inject_strong_builder_tickets(full_payload, payload)
-            payload = inject_probability_ladder_groups(
-                full_payload,
-                payload,
-                cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
-            )
-            payload = append_in_season_web_supplement_groups(
-                payload, full_payload, str(args.date)
-            )
-            write_full_ticket_export_snapshot(full_payload, str(args.date))
+            if payload.get("pool_mode") != MAIN_POOL_MODE:
+                payload = inject_probability_ladder_groups(
+                    full_payload,
+                    payload,
+                    cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
+                )
+            else:
+                print("  [main-track] skipping probability ladder groups (goblin_only_3leg)")
+            if payload.get("pool_mode") != MAIN_POOL_MODE:
+                payload = append_in_season_web_supplement_groups(
+                    payload, full_payload, str(args.date)
+                )
+            else:
+                print("  [main-track] skipping web supplement groups (goblin_only_3leg)")
+            payload = filter_main_goblin_only_3leg_payload(payload)
+            write_full_ticket_export_snapshot(payload, str(args.date))
             n_groups = len(payload["groups"])
             n_slips = sum(len(g["tickets"]) for g in payload["groups"])
             n_long = sum(len(g.get("tickets") or []) for g in long_payload.get("groups") or [])
@@ -17055,15 +17238,22 @@ def main():
                 graded_analysis=_load_graded_analysis(),
             )
             payload = inject_strong_builder_tickets(full_payload, payload)
-            payload = inject_probability_ladder_groups(
-                full_payload,
-                payload,
-                cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
-            )
-            payload = append_in_season_web_supplement_groups(
-                payload, full_payload, str(args.date)
-            )
-            write_full_ticket_export_snapshot(full_payload, str(args.date))
+            if payload.get("pool_mode") != MAIN_POOL_MODE:
+                payload = inject_probability_ladder_groups(
+                    full_payload,
+                    payload,
+                    cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
+                )
+            else:
+                print("  [main-track] skipping probability ladder groups (goblin_only_3leg)")
+            if payload.get("pool_mode") != MAIN_POOL_MODE:
+                payload = append_in_season_web_supplement_groups(
+                    payload, full_payload, str(args.date)
+                )
+            else:
+                print("  [main-track] skipping web supplement groups (goblin_only_3leg)")
+            payload = filter_main_goblin_only_3leg_payload(payload)
+            write_full_ticket_export_snapshot(payload, str(args.date))
             n_groups = len(payload["groups"])
             n_slips = sum(len(g["tickets"]) for g in payload["groups"])
             n_long = sum(len(g.get("tickets") or []) for g in long_payload.get("groups") or [])

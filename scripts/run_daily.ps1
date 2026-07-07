@@ -769,6 +769,29 @@ else {
 }
 
 # =============================================================================
+# STEP B1 — STRONG builder rolling leg HR (after grader; before combined slate)
+# =============================================================================
+$strongHrScript = Join-Path $Root "scripts\update_strong_player_rolling_hr.py"
+if (Test-Path $strongHrScript) {
+    try {
+        Write-Log "STEP B1 - STRONG rolling HR: START"
+        & py -3.14 -X utf8 $strongHrScript
+        if ($LASTEXITCODE -eq 0) {
+            Write-Log "STEP B1 - STRONG rolling HR: OK"
+        }
+        else {
+            Write-Log "STEP B1 - STRONG rolling HR: WARN (exit $LASTEXITCODE)"
+        }
+    }
+    catch {
+        Write-Log "STEP B1 - STRONG rolling HR: WARN ($($_.Exception.Message))"
+    }
+}
+else {
+    Write-Log "STEP B1 - STRONG rolling HR: SKIP (script missing)"
+}
+
+# =============================================================================
 # STEP C — Full pipeline for today
 # =============================================================================
 if (-not $SkipPipeline) {

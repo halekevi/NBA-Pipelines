@@ -1,10 +1,13 @@
 """Tests for STRONG-eligible Goblin+HOT ticket builder."""
 from __future__ import annotations
 
+import json
 import sys
+import tempfile
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -12,7 +15,11 @@ if str(ROOT) not in sys.path:
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from combined_slate_tickets import (  # noqa: E402
+    _apply_strong_per_slate_player_cap,
+    _apply_strong_rolling_hr_gate,
+    _ok_strong_pair,
     _strong_candidate_legs,
+    _strong_combo_players_ok,
     build_strong_tickets,
 )
 from utils.ticket_ev_tiers import apply_slate_ev_tier_recommendations  # noqa: E402
@@ -105,13 +112,21 @@ def test_strong_candidate_legs_filters_goblin_hot_ab():
     assert players == {"Alpha One", "Beta Two"}
 
 
-def test_strong_candidate_legs_excludes_mlb_and_non_core_props():
+def test_strong_candidate_legs_excludes_non_core_props():
     df = pd.DataFrame(
         [
             {
                 "sport": "MLB",
                 "player": "Hitter One",
                 "prop_type": "Hits",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "l10_streak": "HOT",
+            },
+            {
+                "sport": "MLB",
+                "player": "Pitcher One",
+                "prop_type": "Home Runs",
                 "pick_type": "Goblin",
                 "tier": "A",
                 "l10_streak": "HOT",
@@ -135,8 +150,9 @@ def test_strong_candidate_legs_excludes_mlb_and_non_core_props():
         ]
     )
     out = _strong_candidate_legs(df)
-    assert len(out) == 1
-    assert str(out.iloc[0]["player"]) == "Scorer One"
+    assert len(out) == 2
+    players = set(out["player"].astype(str))
+    assert players == {"Hitter One", "Scorer One"}
 
 
 def test_build_strong_tickets_produces_labeled_slips():
@@ -187,3 +203,100 @@ def test_strong_builder_slips_keep_strong_recommendation():
     apply_slate_ev_tier_recommendations(payload, log=False)
     rec = payload["groups"][0]["tickets"][0]["payout"]["recommendation"]
     assert rec == "STRONG"
+
+
+def test_strong_rolling_hr_gate_excludes_low_hr_player():
+    df = pd.DataFrame(
+        [
+            {
+                "sport": "WNBA",
+                "player": "Leonie Fiebich",
+                "prop_type": "Points",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.9,
+            },
+            {
+                "sport": "WNBA",
+                "player": "Rhyne Howard",
+                "prop_type": "Points",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.8,
+            },
+        ]
+    )
+    rolling = {"Leonie Fiebich": {"hr": 0.03, "n": 35, "last_updated": "2026-07-07"}}
+    out = _apply_strong_rolling_hr_gate(df, rolling)
+    assert list(out["player"]) == ["Rhyne Howard"]
+
+
+def test_strong_per_slate_player_cap_limits_appearances():
+    rows = [
+        {"player": "Natasha Cloud", "prop_quality_score": 0.9},
+        {"player": "Natasha Cloud", "prop_quality_score": 0.8},
+        {"player": "Natasha Cloud", "prop_quality_score": 0.7},
+        {"player": "Other Player", "prop_quality_score": 0.6},
+    ]
+    capped = _apply_strong_per_slate_player_cap(rows, max_per_player=2)
+    assert len(capped) == 3
+    assert sum(1 for r in capped if r["player"] == "Natasha Cloud") == 2
+
+
+def test_strong_costack_guard_blocks_two_weak_anchors():
+    rolling = {
+        "Weak A": {"hr": 0.10, "n": 25},
+        "Weak B": {"hr": 0.15, "n": 22},
+        "Strong": {"hr": 0.90, "n": 30},
+    }
+    assert not _ok_strong_pair({"player": "Weak A"}, {"player": "Weak B"}, rolling)
+    assert _ok_strong_pair({"player": "Weak A"}, {"player": "Strong"}, rolling)
+    assert _strong_combo_players_ok(
+        [{"player": "Weak A"}, {"player": "Strong"}],
+        rolling,
+    )
+
+
+def test_build_strong_tickets_respects_rolling_hr_file(monkeypatch):
+    base = _sample_df()
+    fiebich = pd.DataFrame(
+        [
+            {
+                "sport": "NBA",
+                "player": "Leonie Fiebich",
+                "team": "NYL",
+                "opp": "IND",
+                "prop_type": "Points",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 10.5,
+                "hit_rate": 0.8,
+                "rank_score": 95,
+                "ml_prob": 0.75,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.99,
+            }
+        ]
+    )
+    df = pd.concat([fiebich, base], ignore_index=True)
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as fh:
+        json.dump(
+            {
+                "Leonie Fiebich": {"hr": 0.03, "n": 35, "last_updated": "2026-07-07"},
+                "Alpha One": {"hr": 0.94, "n": 33, "last_updated": "2026-07-07"},
+                "Beta Two": {"hr": 0.47, "n": 36, "last_updated": "2026-07-07"},
+                "Gamma Three": {"hr": 0.50, "n": 25, "last_updated": "2026-07-07"},
+            },
+            fh,
+        )
+        hr_path = fh.name
+    monkeypatch.setenv("PROPORACLE_STRONG_ROLLING_HR_PATH", hr_path)
+    tickets = build_strong_tickets(df, max_tickets=5, date_str="2026-07-07")
+    players = {r.get("player") for t in tickets for r in t.get("rows", [])}
+    assert "Leonie Fiebich" not in players
+    assert tickets

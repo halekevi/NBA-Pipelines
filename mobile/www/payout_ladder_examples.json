@@ -1,4 +1,1037 @@
 {
-  "generated_at": "2026-07-07T21:10:55.818069+00:00",
-  "examples": []
+  "generated_at": "2026-07-08T13:25:48.610970+00:00",
+  "examples": [
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": 8.0,
+          "pick_type": "Demon",
+          "delta": 3.5,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Aliyah Boston",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": 8.0,
+          "pick_type": "Demon",
+          "delta": 3.5,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": 8.0,
+          "pick_type": "Demon",
+          "delta": 3.5,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Aliyah Boston",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": 8.0,
+          "pick_type": "Demon",
+          "delta": 3.5,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": 8.0,
+          "pick_type": "Demon",
+          "delta": 3.5,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Aliyah Boston",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7
+        },
+        {
+          "player": "Marina Mabrey",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": 8.0,
+          "pick_type": "Demon",
+          "delta": 3.5,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    }
+  ]
 }

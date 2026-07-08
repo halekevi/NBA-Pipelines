@@ -13,6 +13,9 @@ $ErrorActionPreference = "Continue"
 $Root = Split-Path $PSScriptRoot -Parent
 $LateFetch = Join-Path $Root "scripts\run_nba_late_fetch.ps1"
 $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"
+$LockDir = Join-Path $Root "data\cache"
+$LockFile = Join-Path $LockDir "refresh.lock"
+$LockTTLHours = 4
 
 if (-not (Test-Path $LateFetch)) {
     Write-Error "Missing late fetch script: $LateFetch"
@@ -23,26 +26,63 @@ if (-not (Test-Path $Snapshot)) {
     exit 1
 }
 
-Set-Location $Root
-Write-Host "[REFRESH $RunLabel] Starting $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
-
-& pwsh -NoProfile -File $Snapshot -Label "$RunLabel PRE" -WriteState
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[REFRESH $RunLabel] PRE snapshot logging failed (continuing)" -ForegroundColor Yellow
+if (-not (Test-Path -LiteralPath $LockDir)) {
+    New-Item -ItemType Directory -Path $LockDir -Force | Out-Null
 }
 
-& pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
-$refreshExit = $LASTEXITCODE
-
-& pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[REFRESH $RunLabel] POST snapshot logging failed" -ForegroundColor Yellow
+if (Test-Path -LiteralPath $LockFile) {
+    $lockAge = (Get-Date) - (Get-Item -LiteralPath $LockFile).LastWriteTime
+    if ($lockAge.TotalHours -lt $LockTTLHours) {
+        $lockContent = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+        if (-not $lockContent) { $lockContent = "<unknown owner>" }
+        Write-Host "[REFRESH $RunLabel] SKIP — another refresh is running ($lockContent)" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $($LockTTLHours * 60) min)" -ForegroundColor Yellow
+        exit 0
+    }
+    else {
+        Write-Host "[REFRESH $RunLabel] Stale lock detected ($([int]$lockAge.TotalHours)h old) — clearing" -ForegroundColor Yellow
+        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
+    }
 }
 
-if ($refreshExit -ne 0) {
-    Write-Host "[REFRESH $RunLabel] Refresh failed (exit $refreshExit)" -ForegroundColor Red
-    exit $refreshExit
+$lockContent = "$RunLabel | PID $PID | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Set-Content -LiteralPath $LockFile -Value $lockContent
+Write-Host "[REFRESH $RunLabel] Lock acquired: $lockContent" -ForegroundColor DarkGray
+
+$scriptExit = 0
+try {
+    Set-Location $Root
+    Write-Host "[REFRESH $RunLabel] Starting $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
+
+    & pwsh -NoProfile -File $Snapshot -Label "$RunLabel PRE" -WriteState
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[REFRESH $RunLabel] PRE snapshot logging failed (continuing)" -ForegroundColor Yellow
+    }
+
+    & pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
+    $refreshExit = $LASTEXITCODE
+
+    & pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[REFRESH $RunLabel] POST snapshot logging failed" -ForegroundColor Yellow
+    }
+
+    if ($refreshExit -ne 0) {
+        Write-Host "[REFRESH $RunLabel] Refresh failed (exit $refreshExit)" -ForegroundColor Red
+        $scriptExit = $refreshExit
+    }
+    else {
+        Write-Host "[REFRESH $RunLabel] Complete" -ForegroundColor Green
+    }
+}
+finally {
+    if (Test-Path -LiteralPath $LockFile) {
+        $currentLock = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+        if ("$currentLock" -like "*PID $PID*") {
+            Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
+            Write-Host "[REFRESH $RunLabel] Lock released" -ForegroundColor DarkGray
+        }
+    }
 }
 
-Write-Host "[REFRESH $RunLabel] Complete" -ForegroundColor Green
-exit 0
+exit $scriptExit

@@ -16064,6 +16064,14 @@ def main():
             wb_wr.remove(wb_wr.active)
             for gn, tix, _bg in wr_groups:
                 write_ticket_sheet(wb_wr, tix, _excel_ticket_sheet_title(gn), "FFD54F", label="Win-Rate")
+            visible = [s for s in wb_wr.sheetnames if wb_wr[s].sheet_state == "visible"]
+            if not visible:
+                pool_mode = str(wr_payload.get("pool_mode") or "win_rate")
+                ws = wb_wr.create_sheet("Summary")
+                ws["A1"] = "No win-rate tickets built for this slate"
+                ws["A2"] = f"Date: {args.date}"
+                ws["A3"] = f"Pool mode: {pool_mode}"
+                print("[win-rate] 0 groups built -- saved empty workbook with summary sheet")
             wb_wr.save(args.output)
             print(f"[OK] Win-rate workbook -> {args.output}")
         print("[win-rate] Done (EV ticket generation skipped).")

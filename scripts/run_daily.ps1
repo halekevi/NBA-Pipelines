@@ -1944,9 +1944,29 @@ if ($MonthlyRetrain) {
 # schtasks /Create /TN "PropORACLE_NBA_LateFetch" /TR "powershell.exe -ExecutionPolicy Bypass -NoProfile -File <REPO>\scripts\run_nba_late_fetch.ps1" /SC DAILY /ST 11:00 /F
 # =============================================================================
 $NowHour = (Get-Date).Hour
+$refreshRunning = $false
+try {
+    $refreshRunning = @(Get-ScheduledTask -TaskName "*Refresh*" -ErrorAction Stop |
+        Where-Object { $_.State -eq "Running" }).Count -gt 0
+}
+catch {
+    $refreshRunning = $false
+}
+$refreshSoon = ($NowHour -ge 10)
+
 if ($NowHour -ge 10) {
-    Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
-    Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch)"
+    if ($refreshRunning -or $refreshSoon) {
+        Write-Host "[LATE_FETCH] Skipping inline late-fetch — refresh task will handle it" -ForegroundColor DarkGray
+        if ($refreshRunning) {
+            Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled (a refresh task is currently running)"
+        }
+        else {
+            Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled after 10:00 (scheduled refresh handles late fetch)"
+        }
+    }
+    else {
+        Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
+        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch)"
 
     $NBADir = Join-Path $SportsRoot "NBA"
     $lateNbaOutDir = Join-Path $Root "outputs\$Today\nba"
@@ -2081,20 +2101,21 @@ if ($NowHour -ge 10) {
         }
     }
 
-    $pipeScript = Join-Path $Root "run_pipeline.ps1"
-    if (Test-Path $pipeScript) {
-        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -SkipFetch
-        if ($LASTEXITCODE -eq 0) {
-            Write-Log "[NBA_LATE_FETCH] OK (full pipeline -SkipFetch)"
+        $pipeScript = Join-Path $Root "run_pipeline.ps1"
+        if (Test-Path $pipeScript) {
+            & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -SkipFetch
+            if ($LASTEXITCODE -eq 0) {
+                Write-Log "[NBA_LATE_FETCH] OK (full pipeline -SkipFetch)"
+            }
+            else {
+                Write-Warning "[NBA_LATE_FETCH] pipeline exited $LASTEXITCODE"
+                Write-Log "[NBA_LATE_FETCH] WARN: pipeline exit $LASTEXITCODE"
+            }
         }
         else {
-            Write-Warning "[NBA_LATE_FETCH] pipeline exited $LASTEXITCODE"
-            Write-Log "[NBA_LATE_FETCH] WARN: pipeline exit $LASTEXITCODE"
+            Write-Warning "[NBA_LATE_FETCH] run_pipeline.ps1 missing at $pipeScript"
+            Write-Log "[NBA_LATE_FETCH] WARN: run_pipeline.ps1 missing"
         }
-    }
-    else {
-        Write-Warning "[NBA_LATE_FETCH] run_pipeline.ps1 missing at $pipeScript"
-        Write-Log "[NBA_LATE_FETCH] WARN: run_pipeline.ps1 missing"
     }
 }
 else {

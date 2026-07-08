@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-07-06T11:32:36.812523+00:00",
+  "generated_at": "2026-07-08T08:52:15.145375+00:00",
   "date_range": {
     "min": "2026-02-19",
-    "max": "2026-07-05"
+    "max": "2026-07-07"
   },
-  "total_props": 734397,
-  "overall_hit_rate": 0.3475,
+  "total_props": 747371,
+  "overall_hit_rate": 0.3466,
   "top_slices": [
     {
       "sport": "SOCCER",
@@ -48,6 +48,16 @@
       "priority": 4
     },
     {
+      "sport": "TENNIS",
+      "pick_type": "goblin",
+      "direction": "OVER",
+      "tier": "A",
+      "hit_rate": 0.7653,
+      "n": 98,
+      "mean_edge": -1.258,
+      "priority": 5
+    },
+    {
       "sport": "NBA1Q",
       "pick_type": "goblin",
       "direction": "OVER",
@@ -55,16 +65,6 @@
       "hit_rate": 0.758,
       "n": 1099,
       "mean_edge": 5.004,
-      "priority": 5
-    },
-    {
-      "sport": "TENNIS",
-      "pick_type": "goblin",
-      "direction": "OVER",
-      "tier": "A",
-      "hit_rate": 0.7528,
-      "n": 89,
-      "mean_edge": -1.529,
       "priority": 6
     },
     {
@@ -138,16 +138,6 @@
       "priority": 13
     },
     {
-      "sport": "WNBA",
-      "pick_type": "goblin",
-      "direction": "OVER",
-      "tier": "A",
-      "hit_rate": 0.6937,
-      "n": 4234,
-      "mean_edge": 3.469,
-      "priority": 14
-    },
-    {
       "sport": "NBA1Q",
       "pick_type": "goblin",
       "direction": "OVER",
@@ -155,6 +145,16 @@
       "hit_rate": 0.6922,
       "n": 757,
       "mean_edge": 3.117,
+      "priority": 14
+    },
+    {
+      "sport": "WNBA",
+      "pick_type": "goblin",
+      "direction": "OVER",
+      "tier": "A",
+      "hit_rate": 0.6894,
+      "n": 4450,
+      "mean_edge": 3.498,
       "priority": 15
     },
     {
@@ -172,9 +172,9 @@
       "pick_type": "goblin",
       "direction": "OVER",
       "tier": "C",
-      "hit_rate": 0.6712,
-      "n": 7724,
-      "mean_edge": 1.111,
+      "hit_rate": 0.6723,
+      "n": 7976,
+      "mean_edge": 1.116,
       "priority": 17
     },
     {
@@ -188,6 +188,16 @@
       "priority": 18
     },
     {
+      "sport": "SOCCER",
+      "pick_type": "goblin",
+      "direction": "UNDER",
+      "tier": "D",
+      "hit_rate": 0.6626,
+      "n": 409,
+      "mean_edge": 0.355,
+      "priority": 19
+    },
+    {
       "sport": "NHL",
       "pick_type": "standard",
       "direction": "UNDER",
@@ -195,27 +205,7 @@
       "hit_rate": 0.6615,
       "n": 257,
       "mean_edge": 0.076,
-      "priority": 19
-    },
-    {
-      "sport": "SOCCER",
-      "pick_type": "goblin",
-      "direction": "UNDER",
-      "tier": "D",
-      "hit_rate": 0.6577,
-      "n": 371,
-      "mean_edge": 0.309,
       "priority": 20
-    },
-    {
-      "sport": "TENNIS",
-      "pick_type": "standard",
-      "direction": "UNDER",
-      "tier": "D",
-      "hit_rate": 0.6529,
-      "n": 121,
-      "mean_edge": -6.209,
-      "priority": 21
     },
     {
       "sport": "NBA1Q",
@@ -225,7 +215,7 @@
       "hit_rate": 0.6522,
       "n": 92,
       "mean_edge": 6.317,
-      "priority": 22
+      "priority": 21
     },
     {
       "sport": "NBA",
@@ -235,7 +225,7 @@
       "hit_rate": 0.6512,
       "n": 11658,
       "mean_edge": 3.238,
-      "priority": 23
+      "priority": 22
     },
     {
       "sport": "CBB",
@@ -245,7 +235,7 @@
       "hit_rate": 0.6499,
       "n": 1685,
       "mean_edge": 2.363,
-      "priority": 24
+      "priority": 23
     },
     {
       "sport": "CBB",
@@ -255,6 +245,16 @@
       "hit_rate": 0.6416,
       "n": 1727,
       "mean_edge": 4.216,
+      "priority": 24
+    },
+    {
+      "sport": "NBA1Q",
+      "pick_type": "standard",
+      "direction": "OVER",
+      "tier": "A",
+      "hit_rate": 0.6401,
+      "n": 992,
+      "mean_edge": 2.409,
       "priority": 25
     }
   ],
@@ -264,9 +264,9 @@
       "pick_type": "demon",
       "direction": "OVER",
       "tier": "B",
-      "hit_rate": 0.101,
-      "n": 4465,
-      "mean_edge": -0.99,
+      "hit_rate": 0.1001,
+      "n": 4606,
+      "mean_edge": -0.991,
       "priority": 1
     },
     {
@@ -284,9 +284,9 @@
       "pick_type": "demon",
       "direction": "OVER",
       "tier": "C",
-      "hit_rate": 0.1152,
-      "n": 4245,
-      "mean_edge": -0.818,
+      "hit_rate": 0.1154,
+      "n": 4279,
+      "mean_edge": -0.815,
       "priority": 3
     },
     {
@@ -294,9 +294,9 @@
       "pick_type": "demon",
       "direction": "OVER",
       "tier": "D",
-      "hit_rate": 0.1331,
-      "n": 7850,
-      "mean_edge": -3.024,
+      "hit_rate": 0.132,
+      "n": 7993,
+      "mean_edge": -3.035,
       "priority": 4
     },
     {
@@ -305,9 +305,19 @@
       "direction": "OVER",
       "tier": "D",
       "hit_rate": 0.1424,
-      "n": 22635,
+      "n": 22636,
       "mean_edge": -0.884,
       "priority": 5
+    },
+    {
+      "sport": "TENNIS",
+      "pick_type": "goblin",
+      "direction": "OVER",
+      "tier": "C",
+      "hit_rate": 0.1573,
+      "n": 267,
+      "mean_edge": -1.944,
+      "priority": 6
     },
     {
       "sport": "WNBA",
@@ -317,46 +327,36 @@
       "hit_rate": 0.1612,
       "n": 3834,
       "mean_edge": -5.709,
-      "priority": 6
-    },
-    {
-      "sport": "MLB",
-      "pick_type": "demon",
-      "direction": "OVER",
-      "tier": "B",
-      "hit_rate": 0.1688,
-      "n": 16359,
-      "mean_edge": -2.122,
       "priority": 7
-    },
-    {
-      "sport": "SOCCER",
-      "pick_type": "demon",
-      "direction": "OVER",
-      "tier": "D",
-      "hit_rate": 0.1697,
-      "n": 32263,
-      "mean_edge": -0.891,
-      "priority": 8
     },
     {
       "sport": "MLB",
       "pick_type": "demon",
       "direction": "OVER",
       "tier": "C",
-      "hit_rate": 0.1704,
-      "n": 5997,
-      "mean_edge": -3.341,
-      "priority": 9
+      "hit_rate": 0.1672,
+      "n": 6197,
+      "mean_edge": -3.371,
+      "priority": 8
     },
     {
       "sport": "SOCCER",
-      "pick_type": "standard",
+      "pick_type": "demon",
       "direction": "OVER",
-      "tier": "A",
-      "hit_rate": 0.1711,
-      "n": 4442,
-      "mean_edge": -0.655,
+      "tier": "D",
+      "hit_rate": 0.1679,
+      "n": 33148,
+      "mean_edge": -0.891,
+      "priority": 9
+    },
+    {
+      "sport": "MLB",
+      "pick_type": "demon",
+      "direction": "OVER",
+      "tier": "B",
+      "hit_rate": 0.1691,
+      "n": 16936,
+      "mean_edge": -2.127,
       "priority": 10
     }
   ],
@@ -364,16 +364,16 @@
     {
       "prop_type": "Goals",
       "direction": "UNDER",
-      "hit_rate": 0.7545,
-      "n": 2399,
+      "hit_rate": 0.7544,
+      "n": 2402,
       "mean_edge": 0.479
     },
     {
       "prop_type": "Shots",
       "direction": "UNDER",
-      "hit_rate": 0.675,
-      "n": 797,
-      "mean_edge": 0.356
+      "hit_rate": 0.6766,
+      "n": 835,
+      "mean_edge": 0.373
     },
     {
       "prop_type": "Time On Ice",
@@ -406,16 +406,16 @@
     {
       "prop_type": "Assists",
       "direction": "UNDER",
-      "hit_rate": 0.616,
-      "n": 2112,
-      "mean_edge": -0.601
+      "hit_rate": 0.6156,
+      "n": 2123,
+      "mean_edge": -0.602
     },
     {
       "prop_type": "Steals",
       "direction": "UNDER",
-      "hit_rate": 0.612,
-      "n": 250,
-      "mean_edge": -0.199
+      "hit_rate": 0.6135,
+      "n": 251,
+      "mean_edge": -0.2
     },
     {
       "prop_type": "ra",
@@ -434,9 +434,9 @@
     {
       "prop_type": "Fantasy Score",
       "direction": "OVER",
-      "hit_rate": 0.6063,
-      "n": 5860,
-      "mean_edge": 5.659
+      "hit_rate": 0.6068,
+      "n": 5913,
+      "mean_edge": 5.652
     },
     {
       "prop_type": "fg3m",
@@ -476,9 +476,9 @@
     {
       "prop_type": "Plate Appearances",
       "direction": "UNDER",
-      "hit_rate": 0.5841,
-      "n": 113,
-      "mean_edge": -2.155
+      "hit_rate": 0.5806,
+      "n": 124,
+      "mean_edge": -2.005
     },
     {
       "prop_type": "reb",
@@ -490,9 +490,9 @@
     {
       "prop_type": "Turnovers",
       "direction": "UNDER",
-      "hit_rate": 0.5751,
-      "n": 433,
-      "mean_edge": -0.33
+      "hit_rate": 0.5747,
+      "n": 435,
+      "mean_edge": -0.329
     },
     {
       "prop_type": "tov",
@@ -511,9 +511,9 @@
     {
       "prop_type": "Rebs+Asts",
       "direction": "UNDER",
-      "hit_rate": 0.5547,
-      "n": 950,
-      "mean_edge": -1.072
+      "hit_rate": 0.5551,
+      "n": 953,
+      "mean_edge": -1.079
     },
     {
       "prop_type": "pr",
@@ -523,25 +523,18 @@
       "mean_edge": -1.452
     },
     {
-      "prop_type": "Singles",
-      "direction": "UNDER",
-      "hit_rate": 0.5506,
-      "n": 1175,
-      "mean_edge": -0.225
-    },
-    {
       "prop_type": "Runs",
       "direction": "UNDER",
-      "hit_rate": 0.5493,
-      "n": 1045,
-      "mean_edge": -0.27
+      "hit_rate": 0.5494,
+      "n": 1063,
+      "mean_edge": -0.269
     },
     {
-      "prop_type": "Pitches Thrown",
+      "prop_type": "Singles",
       "direction": "UNDER",
-      "hit_rate": 0.5478,
-      "n": 533,
-      "mean_edge": -6.728
+      "hit_rate": 0.5486,
+      "n": 1214,
+      "mean_edge": -0.225
     },
     {
       "prop_type": "pa",
@@ -551,32 +544,32 @@
       "mean_edge": -1.249
     },
     {
-      "prop_type": "Total Games Won",
+      "prop_type": "Pitches Thrown",
       "direction": "UNDER",
       "hit_rate": 0.5408,
-      "n": 196,
-      "mean_edge": -5.18
-    },
-    {
-      "prop_type": "Pts+Asts",
-      "direction": "OVER",
-      "hit_rate": 0.5375,
-      "n": 12278,
-      "mean_edge": 2.824
+      "n": 551,
+      "mean_edge": -6.716
     },
     {
       "prop_type": "Points",
       "direction": "UNDER",
-      "hit_rate": 0.536,
-      "n": 6589,
+      "hit_rate": 0.5375,
+      "n": 6631,
       "mean_edge": -2.462
     },
     {
-      "prop_type": "Hits",
+      "prop_type": "Total Games Won",
       "direction": "UNDER",
-      "hit_rate": 0.5358,
-      "n": 4265,
-      "mean_edge": -0.665
+      "hit_rate": 0.5369,
+      "n": 203,
+      "mean_edge": -5.06
+    },
+    {
+      "prop_type": "Pts+Asts",
+      "direction": "OVER",
+      "hit_rate": 0.5367,
+      "n": 12334,
+      "mean_edge": 2.829
     },
     {
       "prop_type": "blk",
@@ -588,51 +581,44 @@
     {
       "prop_type": "Blocks",
       "direction": "UNDER",
-      "hit_rate": 0.5356,
-      "n": 618,
+      "hit_rate": 0.5347,
+      "n": 619,
       "mean_edge": 0.205
     },
     {
       "prop_type": "FG Attempted",
       "direction": "UNDER",
-      "hit_rate": 0.5338,
-      "n": 1197,
-      "mean_edge": -1.392
+      "hit_rate": 0.5347,
+      "n": 1210,
+      "mean_edge": -1.403
+    },
+    {
+      "prop_type": "Hits",
+      "direction": "UNDER",
+      "hit_rate": 0.5345,
+      "n": 4354,
+      "mean_edge": -0.662
     },
     {
       "prop_type": "Steals",
       "direction": "OVER",
-      "hit_rate": 0.5331,
-      "n": 4187,
+      "hit_rate": 0.533,
+      "n": 4197,
       "mean_edge": 0.432
-    },
-    {
-      "prop_type": "Total Bases",
-      "direction": "UNDER",
-      "hit_rate": 0.5327,
-      "n": 1130,
-      "mean_edge": -0.294
     },
     {
       "prop_type": "Turnovers",
       "direction": "OVER",
-      "hit_rate": 0.5323,
-      "n": 2566,
+      "hit_rate": 0.5321,
+      "n": 2582,
       "mean_edge": 0.381
     },
     {
       "prop_type": "Strikeouts",
       "direction": "UNDER",
-      "hit_rate": 0.532,
-      "n": 2158,
-      "mean_edge": -0.534
-    },
-    {
-      "prop_type": "Pts+Rebs",
-      "direction": "OVER",
-      "hit_rate": 0.5312,
-      "n": 15360,
-      "mean_edge": 2.647
+      "hit_rate": 0.5318,
+      "n": 2187,
+      "mean_edge": -0.541
     },
     {
       "prop_type": "pra",
@@ -640,6 +626,20 @@
       "hit_rate": 0.5312,
       "n": 849,
       "mean_edge": 2.208
+    },
+    {
+      "prop_type": "Pts+Rebs",
+      "direction": "OVER",
+      "hit_rate": 0.5309,
+      "n": 15427,
+      "mean_edge": 2.653
+    },
+    {
+      "prop_type": "Rebounds",
+      "direction": "UNDER",
+      "hit_rate": 0.5305,
+      "n": 3257,
+      "mean_edge": -2.045
     }
   ],
   "player_rankings": {
@@ -767,10 +767,10 @@
       {
         "player": "Olivia Nelson-Ododa",
         "sport": "WNBA",
-        "hit_rate": 0.8298,
-        "n": 47,
+        "hit_rate": 0.8333,
+        "n": 60,
         "primary_prop_type": "Rebounds",
-        "consistency": 0.624
+        "consistency": 0.627
       },
       {
         "player": "LaMelo Ball",
@@ -887,11 +887,18 @@
     ],
     "bottom_20": [
       {
-        "player": "Odilon Kossounou",
+        "player": "Gavin Brindley",
+        "sport": "NHL",
+        "hit_rate": 0.0,
+        "n": 20,
+        "primary_prop_type": "Goals"
+      },
+      {
+        "player": "Félix Torres",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 36,
-        "primary_prop_type": "Fouls"
+        "n": 23,
+        "primary_prop_type": "Shots"
       },
       {
         "player": "Franco Carboni",
@@ -901,24 +908,24 @@
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Nikola Moro",
+        "player": "Jeremy Arévalo",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 55,
+        "n": 38,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Nikolas Veratschnig",
+        "player": "Mats Wieffer",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 20,
+        "n": 32,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Zakaria El Ouahdi",
+        "player": "Mateo Levy",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 31,
+        "n": 26,
         "primary_prop_type": "Shots"
       },
       {
@@ -929,127 +936,120 @@
         "primary_prop_type": "Fouls Drawn"
       },
       {
-        "player": "Mateo Levy",
-        "sport": "SOCCER",
-        "hit_rate": 0.0,
-        "n": 26,
-        "primary_prop_type": "Shots"
-      },
-      {
-        "player": "Oston Urunov",
-        "sport": "SOCCER",
-        "hit_rate": 0.0,
-        "n": 34,
-        "primary_prop_type": "Shots"
-      },
-      {
-        "player": "Isaac",
-        "sport": "SOCCER",
-        "hit_rate": 0.0,
-        "n": 24,
-        "primary_prop_type": "Shots"
-      },
-      {
-        "player": "Oumar Diakité",
-        "sport": "SOCCER",
-        "hit_rate": 0.0,
-        "n": 33,
-        "primary_prop_type": "Shots"
-      },
-      {
-        "player": "Álex Sala",
-        "sport": "SOCCER",
-        "hit_rate": 0.0,
-        "n": 25,
-        "primary_prop_type": "Shots"
-      },
-      {
-        "player": "Thiago Borbas",
+        "player": "Gaël Kakuta",
         "sport": "SOCCER",
         "hit_rate": 0.0,
         "n": 32,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Jorge Carrascal",
+        "player": "Jeremy Ebobisse",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 33,
+        "n": 36,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Jorge Herrando",
+        "player": "Joaquin Seys",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 23,
+        "n": 24,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Arnaut Danjuma",
+        "player": "Joan Jordán",
         "sport": "SOCCER",
         "hit_rate": 0.0,
-        "n": 20,
+        "n": 24,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Adnan Januzaj",
-        "sport": "SOCCER",
-        "hit_rate": 0.0,
-        "n": 22,
-        "primary_prop_type": "Shots"
-      },
-      {
-        "player": "Trevoh Chalobah",
+        "player": "Joel Waterman",
         "sport": "SOCCER",
         "hit_rate": 0.0,
         "n": 39,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Parfait Guiagon",
+        "player": "Alejandro Bedoya",
+        "sport": "SOCCER",
+        "hit_rate": 0.0,
+        "n": 26,
+        "primary_prop_type": "Shots"
+      },
+      {
+        "player": "Mihailo Ristic",
+        "sport": "SOCCER",
+        "hit_rate": 0.0,
+        "n": 24,
+        "primary_prop_type": "Shots"
+      },
+      {
+        "player": "Alejandro Balde",
         "sport": "SOCCER",
         "hit_rate": 0.0,
         "n": 29,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Pablo Marín",
+        "player": "Alan Minda",
+        "sport": "SOCCER",
+        "hit_rate": 0.0,
+        "n": 36,
+        "primary_prop_type": "Shots"
+      },
+      {
+        "player": "Alessandro Schöpf",
         "sport": "SOCCER",
         "hit_rate": 0.0,
         "n": 28,
         "primary_prop_type": "Shots"
       },
       {
-        "player": "Raúl Asencio",
+        "player": "Nahuel Estévez",
         "sport": "SOCCER",
         "hit_rate": 0.0,
         "n": 20,
-        "primary_prop_type": "Assists"
+        "primary_prop_type": "Shots"
+      },
+      {
+        "player": "Iker Benito",
+        "sport": "SOCCER",
+        "hit_rate": 0.0,
+        "n": 21,
+        "primary_prop_type": "Shots"
+      },
+      {
+        "player": "Nathan Patterson",
+        "sport": "SOCCER",
+        "hit_rate": 0.0,
+        "n": 20,
+        "primary_prop_type": "Shots"
       }
     ]
   },
   "edge_correlations": {
     "per_sport": {
       "CBB": -0.08451462940815117,
-      "MLB": -0.042466783338472265,
+      "MLB": -0.043770478232519935,
       "NBA": 0.10370646201762278,
       "NBA1H": -0.06260353757825698,
       "NBA1Q": -0.07716192232544238,
       "NHL": 0.01765971954496329,
-      "SOCCER": -0.04016933443711245,
-      "TENNIS": 0.01940421502059044,
-      "WNBA": -0.04642982557086641
+      "SOCCER": -0.03952014294614134,
+      "TENNIS": 0.018478446983125313,
+      "WNBA": -0.04529434744097823
     },
     "strongest_sport": "NBA",
     "strongest_r": 0.10370646201762278,
     "monotonic": false,
-    "avg_r": -0.023619515119458354,
+    "avg_r": -0.023668936598419853,
     "verdict": "NO"
   },
   "streak_signals": {
     "verdict": "YES",
-    "hot_hr": 0.6385608472193631,
-    "cold_hr": 0.29156228591897826,
+    "hot_hr": 0.6386344677062126,
+    "cold_hr": 0.2926361270475744,
     "best_streak_signal": "TENNIS UNDER"
   }
 }

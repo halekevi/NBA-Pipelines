@@ -60,6 +60,8 @@ if (Test-Path $envFile) {
 $SportsRoot = Join-Path $Root "Sports"
 # WNBA: must match $WNBA_SEASON_START in repo-root run_pipeline.ps1 (parallel job + dated step8 gate).
 $WNBA_SEASON_START = "2026-05-01"
+# NBA / NBA1H / NBA1Q grading: must match run_pipeline.ps1 $NBA_SEASON_RESUME.
+$NBA_SEASON_RESUME = "2026-10-01"
 
 function Test-PpCdpReachable {
     param([string]$CdpBaseUrl = "http://127.0.0.1:9222")
@@ -394,12 +396,16 @@ $yesterdayHasTickets = (Test-Path $yesterdayCombinedXlsx) -or (Test-Path $yester
 $yesterdayTixGraded = Join-Path $Root "outputs\$Yesterday\combined_tickets_graded_$Yesterday.xlsx"
 if (-not $SkipGrader) {
     $gradedExpected = @(
-        (Join-Path $Root "outputs\$Yesterday\graded_nba_$Yesterday.xlsx"),
         (Join-Path $Root "outputs\$Yesterday\graded_cbb_$Yesterday.xlsx"),
         (Join-Path $Root "outputs\$Yesterday\graded_nhl_$Yesterday.xlsx"),
         (Join-Path $Root "outputs\$Yesterday\graded_soccer_$Yesterday.xlsx"),
         (Join-Path $Root "outputs\$Yesterday\graded_mlb_$Yesterday.xlsx")
     )
+    if ($Yesterday -ge $NBA_SEASON_RESUME) {
+        $gradedExpected = @(
+            (Join-Path $Root "outputs\$Yesterday\graded_nba_$Yesterday.xlsx")
+        ) + @($gradedExpected)
+    }
     # WNBA: run_grader.ps1 fetches actuals + slate_grader, but STEP A must not skip while
     # graded_wnba is still missing if we already have a WNBA step8 for yesterday.
     $yesterdayOutForWnba = Join-Path $Root "outputs\$Yesterday"
@@ -854,7 +860,10 @@ if (-not $SkipPipeline) {
 
     # Rolling 1Q/2Q actuals → nba1q table (PropOracle ref DB). Fills holes if grader was skipped or
     # the machine was offline; skips dates that already have CSVs. Safe with daily grader (idempotent).
-    if (-not $SkipFetch -and -not $SkipPeriodHistorySync -and $PeriodHistoryLookbackDays -gt 0) {
+    if ($Today -lt $NBA_SEASON_RESUME) {
+        Write-Log "STEP C0b - NBA period history sync: SKIP (NBA off-season until $NBA_SEASON_RESUME)"
+    }
+    elseif (-not $SkipFetch -and -not $SkipPeriodHistorySync -and $PeriodHistoryLookbackDays -gt 0) {
         Write-Log "STEP C0b - NBA period history sync (lookback=$PeriodHistoryLookbackDays d): START"
         $fetchPeriod = Join-Path $Root "scripts\fetch_nba_period_actuals.py"
         $buildHist = Join-Path $Root "scripts\build_nba1q_history_db.py"

@@ -186,7 +186,7 @@ OTA bundle update   ──extends───►  Verify deploy / health
 | `docs/diagrams/c4-containers.puml` | C4 Level 2 — Containers (PlantUML) |
 | `docs/diagrams/c4-components-flask.puml` | C4 Level 3 — Flask API components (PlantUML) |
 | `docs/diagrams/proporacle-use-cases.puml` | Full UML use case diagram (PlantUML) |
-| `docs/USE_CASE_DIAGRAM.md` | Use case catalog + render instructions |
+| `docs/architecture/USE_CASE_DIAGRAM.md` | Use case catalog + render instructions |
 | `docs/PROJECT_LAYOUT.md` | Folder contracts |
 | `utils/step8_edge_direction.py` | Canonical edge computation |
 | `utils/train_edge_model.py` | ML model retraining (`--temporal-split`) |

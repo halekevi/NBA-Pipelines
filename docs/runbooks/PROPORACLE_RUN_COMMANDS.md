@@ -145,7 +145,7 @@ py -3.14 -u .\scripts\capture_entries.py
 
 ## Notes
 
-- Folder map and what to edit after moving files: [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md).
+- Folder map and what to edit after moving files: [../PROJECT_LAYOUT.md](../PROJECT_LAYOUT.md).
 - Date format: `yyyy-MM-dd` is safest.
 - `-SkipFetch` assumes prior step1 output files already exist.
 - Full run auto-combines available sport outputs into final tickets.

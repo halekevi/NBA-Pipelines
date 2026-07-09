@@ -1,6 +1,6 @@
 # PropORACLE — project layout and path contracts
 
-Use this when moving folders or wiring scheduled tasks. Commands for daily use live in [PROPORACLE_RUN_COMMANDS.md](PROPORACLE_RUN_COMMANDS.md).
+Use this when moving folders or wiring scheduled tasks. Commands for daily use live in [runbooks/PROPORACLE_RUN_COMMANDS.md](runbooks/PROPORACLE_RUN_COMMANDS.md).
 
 ## Repo root (canonical)
 
@@ -11,10 +11,14 @@ Everything assumes the **repository root** is the working directory for `run_pip
 | `run_pipeline.ps1` | Master multi-sport pipeline (NBA, CBB, NHL, MLB, Soccer, WNBA, combined tickets) |
 | `main.py` | WSGI shim: re-exports `app` from `ui_runner.app` |
 | `scripts\` | Shared Python utilities, graders, ML training, combined slate builder, ticket eval (`scripts\build_ticket_eval.py`), entries harvest (`capture_entries.py`) |
-| `docs\` | `CHANGELOG.md`, `DESIGN_PRINCIPLES.md`, runbooks (`PROPORACLE_RUN_COMMANDS.md`, this file), `docs\guides\` for long-form setup |
+| `docs\` | Doc index (`README.md`); hubs at root (`QUICK_START.md`, this file); grouped under `runbooks\`, `architecture\`, `guides\`, `ml\`, `changelogs\`, `diagrams\` |
 | `config\` | `requirements-pipeline.txt` (ML/grading/pipeline extra deps — not used by Docker/Railway) |
 | `pyproject.toml` | **Local only:** pytest + ruff settings (replaces root `pytest.ini` / `ruff.toml`). Deploy still uses `requirements.txt` + `Dockerfile` |
-| `docs\guides\` | Long-form setup and status docs (e.g. `BROWSER_FETCH_SETUP.md`, `APP_SYSTEM_STATUS.md`) |
+| `docs\runbooks\` | Daily commands (`PROPORACLE_RUN_COMMANDS.md`), canonical pipelines, void sources, sport refresh runbooks |
+| `docs\architecture\` | Ownership matrix, design principles, C4 user-interaction notes, use-case catalog |
+| `docs\guides\` | Long-form setup (browser fetch, Chrome CDP, grader update, payout API) |
+| `docs\ml\` | Model calibration and enrichment retrain checklists |
+| `docs\changelogs\` | Product/changelog notes (`CHANGELOG.md`) |
 | `archive\root-text\` | Ad hoc notes, patch snippets, and log copies moved off the repo root |
 | `archive\web_exports\` | Large standalone HTML exports (e.g. old `player_prop_hitrates.html` copies) |
 | `archive\legacy\` | Older root `_archive` tree (dev notes, sample actuals, zips, one-off scripts) — kept for reference |

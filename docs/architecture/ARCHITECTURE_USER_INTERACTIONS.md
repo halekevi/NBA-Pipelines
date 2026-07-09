@@ -246,6 +246,6 @@ Quick reference for the main nav tabs (see `ui_runner/templates/_site_nav.html`)
 ## Related docs
 
 - [USE_CASE_DIAGRAM.md](USE_CASE_DIAGRAM.md) — **UML use case diagram** (PlantUML + catalog)
-- [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md) — folder contracts
-- [guides/APP_SYSTEM_STATUS.md](guides/APP_SYSTEM_STATUS.md) — pipeline flow (batch-centric)
-- [mobile/README.md](../mobile/README.md) — bundled vs remote Android
+- [../PROJECT_LAYOUT.md](../PROJECT_LAYOUT.md) — folder contracts
+- [../guides/APP_SYSTEM_STATUS.md](../guides/APP_SYSTEM_STATUS.md) — pipeline flow (batch-centric)
+- [../../mobile/README.md](../../mobile/README.md) — bundled vs remote Android

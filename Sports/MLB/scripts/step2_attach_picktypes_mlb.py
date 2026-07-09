@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import sys
 import time
 import random
 import unicodedata
@@ -28,6 +29,11 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 import requests
 from zoneinfo import ZoneInfo
+
+_PROPORACLE_ROOT = Path(__file__).resolve().parents[3]
+if str(_PROPORACLE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROPORACLE_ROOT))
+from utils.fantasy_prop_filter import drop_fantasy_props
 
 COMBO_SEP = "|"
 DEFAULT_TZ = "America/New_York"
@@ -468,6 +474,9 @@ def main() -> None:
 
     df["pick_type"] = df["pick_type"].apply(norm_pick_type)
     df["prop_norm"] = df["prop_type"].apply(norm_prop)
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
     df["player_type"] = df["prop_norm"].apply(player_type)
 
     # Detect combos (player names joined with +)

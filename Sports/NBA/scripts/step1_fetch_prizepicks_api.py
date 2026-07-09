@@ -52,6 +52,7 @@ _PROPORACLE_ROOT = Path(__file__).resolve().parents[3]
 if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
+from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
 
 # PrizePicks sits behind Cloudflare; stdlib TLS (requests) is often JA3-flagged.
@@ -960,6 +961,10 @@ def main() -> None:
         print(f"[WARNING] NBA step1 allow-nearest-future: skipping date filter")
 
     df = filtered_df
+
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
 
     if len(df) == 0:
         print(no_props_log_line("NBA", str(args.date).strip()))

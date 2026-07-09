@@ -97,13 +97,31 @@ ResultFiles/
 grades/
 models/
 
-# Generated html/json artifacts if you don't want tracked
-# Uncomment these if they should stay local only
-# ui_runner/templates/slate_eval_*.html
-# ui_runner/templates/ticket_eval_*.html
-# ui_runner/templates/tickets_latest.json
-# ui_runner/templates/slate_latest.json
-# ui_runner/docs/tickets_latest.json
+# Root cache (line movement, game totals — local only)
+cache/
+
+# Sport runtime caches (paths were wrongly listed as NBA/ at repo root)
+Sports/*/cache/
+Sports/*/schedule_cache_*.csv
+Sports/*/game_context_cache_*.csv
+
+# Mobile dated deploy artifacts (keep shell pages + *_latest.json)
+mobile/www/graded_props_*.json
+mobile/www/slate_eval_*.html
+mobile/www/ticket_eval_*.html
+!mobile/www/*_latest.json
+
+# Daily reports and hot-player snapshots (accumulate endlessly)
+data/reports/void_validator/
+data/reports/miss_attribution/
+data/reports/hot_players/
+data/hot_players/
+
+# ui_runner dated artifacts (keep hand-authored templates + *_latest.json)
+ui_runner/templates/slate_eval_*.html
+ui_runner/templates/ticket_eval_*.html
+ui_runner/templates/graded_props_*.json
+!ui_runner/data/*_latest.json
 
 # Capacitor (mobile/) — install locally; do not commit npm tree
 mobile/node_modules/
@@ -155,18 +173,11 @@ patch_replacement.txt
 # weird temp file
 $null
 
-# NBA cache files
-NBA/archive/schedule_cache_*.csv
-NBA/data/cache/game_context_cache_*.csv
-NBA/data/cache/schedule_cache_*.csv
-NBA/game_context_cache_*.csv
-NBA/schedule_cache_*.csv
-
 # Railway slate files — tracked at sport root so the Railway app gets fresh data on every push
-!NBA/step8_all_direction_clean.xlsx
-!NHL/step8_nhl_direction_clean.xlsx
-!Soccer/step8_soccer_direction_clean.xlsx
-!MLB/step8_mlb_direction_clean.xlsx
+!Sports/NBA/step8_all_direction_clean.xlsx
+!Sports/NHL/step8_nhl_direction_clean.xlsx
+!Sports/Soccer/step8_soccer_direction_clean.xlsx
+!Sports/MLB/step8_mlb_direction_clean.xlsx
 
 # Local run artifacts
 combined_slate_tickets_*.xlsx

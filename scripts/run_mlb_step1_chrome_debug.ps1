@@ -56,7 +56,7 @@ if (-not (Test-CdpEndpoint -BaseUrl $CdpUrl)) {
     Write-Host '      --remote-debugging-port=9222 `'
     Write-Host '      --user-data-dir="$env:USERPROFILE\.pp_browser_profile"'
     Write-Host ""
-    Write-Host "Full walkthrough: docs\chrome_debug_setup.md (MLB step1 over CDP)" -ForegroundColor DarkGray
+    Write-Host "Full walkthrough: docs\guides\chrome_debug_setup.md (MLB step1 over CDP)" -ForegroundColor DarkGray
     exit 1
 }
 

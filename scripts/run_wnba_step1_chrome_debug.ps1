@@ -8,7 +8,7 @@
   2) Complete login + "Press & Hold" in that Chrome window (board must load).
   3) pwsh -File scripts\run_wnba_step1_chrome_debug.ps1 -Date 2026-05-16
 
-  See docs\chrome_debug_setup.md and docs\guides\BROWSER_FETCH_SETUP.md
+  See docs\guides\chrome_debug_setup.md and docs\guides\BROWSER_FETCH_SETUP.md
 #>
 param(
     [string]$CdpUrl = "http://127.0.0.1:9222",

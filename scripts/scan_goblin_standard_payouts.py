@@ -5,7 +5,7 @@ Scan PrizePicks payouts for 2-leg slips: 1 Standard + 1 Goblin (different player
 Uses the same logged-in Chrome + CDP flow as collect_payout_data.py (read-only: never submits).
 
 Prerequisites:
-  1) Chrome with remote debugging, logged in on app.prizepicks.com (see docs/chrome_debug_setup.md)
+  1) Chrome with remote debugging, logged in on app.prizepicks.com (see docs/guides/chrome_debug_setup.md)
   2) Fresh NBA step1 CSV: NBA/data/outputs/step1_pp_props_today.csv
 
 Pairs are built from step1 only (no step8 pipeline changes). Singles-only: no \"Player A + B\"

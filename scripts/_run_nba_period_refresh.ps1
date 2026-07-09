@@ -10,7 +10,7 @@
 #   (one sport per invocation — "nba1h nba1q" is not valid)
 #   py -3 scripts/generate_mobile_bundle.py
 #
-# See docs/NBA_PERIOD_SLATE_REFRESH.md
+# See docs/runbooks/NBA_PERIOD_SLATE_REFRESH.md
 param(
     [string]$Date = (Get-Date -Format "yyyy-MM-dd")
 )

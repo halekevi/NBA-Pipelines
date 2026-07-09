@@ -191,5 +191,5 @@ flowchart LR
 ## Related docs
 
 - [ARCHITECTURE_USER_INTERACTIONS.md](ARCHITECTURE_USER_INTERACTIONS.md) — C4 context, containers, sequences
-- [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md) — repo folders
-- [guides/APP_SYSTEM_STATUS.md](guides/APP_SYSTEM_STATUS.md) — batch pipeline flow
+- [../PROJECT_LAYOUT.md](../PROJECT_LAYOUT.md) — repo folders
+- [../guides/APP_SYSTEM_STATUS.md](../guides/APP_SYSTEM_STATUS.md) — batch pipeline flow

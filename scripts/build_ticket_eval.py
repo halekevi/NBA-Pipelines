@@ -1291,6 +1291,7 @@ def _append_grade_history(record: dict[str, Any]) -> None:
 
 EVAL_TRACK_LABELS: dict[str, str] = {
     "graded_main": "Graded Main Slate (2-leg, win-rate)",
+    "goblin_only_3leg": "Goblin-only 3-leg MAIN (shipped tickets)",
     "long_parlay": "Long Parlays (5-6 leg)",
     "high_leg_hr": "High Leg HR",
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
@@ -2336,15 +2337,62 @@ def find_ticket_json(
     return max(pool2, key=_xlsx_sheet_count_fast)
 
 
+def _payload_pool_mode(hdr: dict[str, Any] | None) -> str:
+    if not isinstance(hdr, dict):
+        return ""
+    pm = str(hdr.get("pool_mode") or "").strip().lower()
+    if pm:
+        return pm
+    filters = hdr.get("filters")
+    if isinstance(filters, dict):
+        return str(filters.get("pool_mode") or "").strip().lower()
+    return ""
+
+
+def _ticket_json_pool_mode(path: Path) -> str:
+    try:
+        with path.open(encoding="utf-8") as f:
+            hdr = json.load(f)
+        return _payload_pool_mode(hdr)
+    except (OSError, json.JSONDecodeError, TypeError):
+        return ""
+
+
+def _ticket_json_matches_date(path: Path, arg_date: str) -> bool:
+    try:
+        with path.open(encoding="utf-8") as f:
+            hdr = json.load(f)
+        return str(hdr.get("date") or "")[:10] == arg_date
+    except (OSError, json.JSONDecodeError, TypeError):
+        return False
+
+
+def find_goblin_only_3leg_ticket_json(arg_date: str) -> Path | None:
+    """Shipped MAIN pool JSON (post goblin_only_3leg policy) — prefer over legacy xlsx tabs."""
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
+        REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
+        TEMPLATES_DIR / "tickets_latest.json",
+    ):
+        if jp.is_file() and _ticket_json_matches_date(jp, arg_date):
+            if _ticket_json_pool_mode(jp) == "goblin_only_3leg":
+                return jp
+    return None
+
+
 def find_ticket_payload_path(
     arg_date: str, override: Path | None = None
 ) -> Path | None:
-    """Resolve combined slate: prefer workbook (.xlsx); else dated JSON or tickets_latest.json."""
-    wb = find_ticket_json(arg_date, override=override)
+    """Resolve combined slate: goblin_only_3leg JSON when present; else workbook; else legacy JSON."""
+    if override is not None:
+        p = override.expanduser().resolve()
+        return p if p.is_file() else None
+    goblin_json = find_goblin_only_3leg_ticket_json(arg_date)
+    if goblin_json is not None:
+        return goblin_json
+    wb = find_ticket_json(arg_date, override=None)
     if wb is not None:
         return wb
-    if override is not None:
-        return None
     for jp in (
         REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
         REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
@@ -2352,14 +2400,8 @@ def find_ticket_payload_path(
         if jp.is_file():
             return jp
     tl = TEMPLATES_DIR / "tickets_latest.json"
-    if tl.is_file():
-        try:
-            with tl.open(encoding="utf-8") as f:
-                hdr = json.load(f)
-            if str(hdr.get("date") or "")[:10] == arg_date:
-                return tl
-        except (OSError, json.JSONDecodeError, TypeError):
-            pass
+    if tl.is_file() and _ticket_json_matches_date(tl, arg_date):
+        return tl
     return None
 
 
@@ -2880,7 +2922,17 @@ def _load_tickets(path: Path, arg_date: str) -> dict[str, Any]:
         return json.load(f)
 
 
-def _group_is_allowed(group_name: str) -> bool:
+def _group_is_goblin_only_3leg_shipped(group_name: str) -> bool:
+    """Shipped MAIN JSON groups (post goblin_only_3leg) — not legacy xlsx tab names."""
+    n = str(group_name or "").strip()
+    if re.match(r"^STRONG Goblin HOT$", n, re.I):
+        return True
+    return bool(re.match(r"^[A-Za-z0-9]+\s+\d+-Leg Goblin$", n, re.I))
+
+
+def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
+    if pool_mode == "goblin_only_3leg" and _group_is_goblin_only_3leg_shipped(group_name):
+        return True
     n = str(group_name or "").strip()
     # combined_slate_tickets workbook tabs often end with " #1", " #2", … after the N-Leg label.
     n = re.sub(r"\s+#\d+\s*$", "", n).strip()
@@ -2921,10 +2973,11 @@ def _leg_drop_reason(group_name: str, leg: dict[str, Any]) -> str | None:
 
 
 def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict[str, Any]:
+    pool_mode = _payload_pool_mode(payload)
     out_groups: list[dict[str, Any]] = []
     for g in payload.get("groups") or []:
         gname = str(g.get("group_name") or "Group")
-        if not _group_is_allowed(gname):
+        if not _group_is_allowed(gname, pool_mode=pool_mode):
             continue
         gl = gname.strip().lower()
         min_legs = 0
@@ -2986,7 +3039,10 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
             filtered_tickets.append(t2)
         if filtered_tickets:
             out_groups.append({"group_name": gname, "tickets": filtered_tickets})
-    return {"date": payload.get("date"), "groups": out_groups}
+    out: dict[str, Any] = {"date": payload.get("date"), "groups": out_groups}
+    if pool_mode:
+        out["pool_mode"] = pool_mode
+    return out
 
 
 def _fmt_num(x: Any) -> str:
@@ -3325,12 +3381,18 @@ def _build_html(
     net_per = total_net_10 / n_pay if n_pay else 0.0
     roi_pct = (100.0 * total_net_10 / (10 * n_pay)) if n_pay else 0.0
 
-    track_label = EVAL_TRACK_LABELS.get(eval_track, eval_track)
+    pool_mode = _payload_pool_mode(payload)
+    display_track = (
+        "goblin_only_3leg"
+        if pool_mode == "goblin_only_3leg" and eval_track == "graded_main"
+        else eval_track
+    )
+    track_label = EVAL_TRACK_LABELS.get(display_track, display_track)
     history_record: dict[str, Any] | None = None
     if n_pay:
         history_record = {
             "date": str(payload.get("date") or arg_date)[:10],
-            "track": eval_track,
+            "track": display_track,
             "n_tickets": n_pay,
             "wins": wins_ct,
             "guarantees": guar_ct,
@@ -3420,10 +3482,11 @@ def _build_html(
     page_title_label = {
         "long_parlay": "Long Parlay Ticket Eval (5-6 leg)",
         "high_leg_hr": "High Leg HR Ticket Eval",
-    }.get(eval_track, "Ticket Eval (2-leg, win-rate)")
+        "goblin_only_3leg": "Goblin-only 3-leg MAIN Ticket Eval",
+    }.get(display_track, "Ticket Eval (2-leg, win-rate)")
     parts: list[str] = [
         "<!DOCTYPE html>",
-        f'<html lang="en" data-theme="dark" data-ticket-track="{esc(eval_track)}">',
+        f'<html lang="en" data-theme="dark" data-ticket-track="{esc(display_track)}">',
         "<head>",
         '<meta charset="UTF-8"/>',
         '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>',

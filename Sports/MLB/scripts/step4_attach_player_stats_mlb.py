@@ -420,6 +420,7 @@ def derive_hitter_stat(game: dict, prop_norm: str) -> float:
 
 def derive_pitcher_stat(game: dict, prop_norm: str) -> float:
     """Extract a stat value from a MLB Stats API game log entry (pitcher)."""
+    prop_norm = PROP_ALIASES.get(prop_norm, prop_norm)
     if prop_norm in ("first_inning_runs_allowed", "first_inning_walks_allowed"):
         game_pk = str((game.get("game") or {}).get("gamePk", "")).strip()
         pid = _pitcher_id_from_split(game)

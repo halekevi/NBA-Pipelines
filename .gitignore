@@ -109,6 +109,10 @@ Sports/*/game_context_cache_*.csv
 mobile/www/graded_props_*.json
 mobile/www/slate_eval_*.html
 mobile/www/ticket_eval_*.html
+mobile/www/ticket_eval_high_leg_*.html
+mobile/www/ticket_eval_long_parlay_*.html
+mobile/www/uniform_tickets_*.json
+mobile/www/winrate_goblin_opt3_*.json
 !mobile/www/*_latest.json
 
 # Daily reports and hot-player snapshots (accumulate endlessly)
@@ -120,8 +124,25 @@ data/hot_players/
 # ui_runner dated artifacts (keep hand-authored templates + *_latest.json)
 ui_runner/templates/slate_eval_*.html
 ui_runner/templates/ticket_eval_*.html
+ui_runner/templates/ticket_eval_high_leg_*.html
+ui_runner/templates/ticket_eval_long_parlay_*.html
 ui_runner/templates/graded_props_*.json
+ui_runner/templates/graded_analysis_tabs_*.xlsx
+ui_runner/templates/winrate_goblin_opt3_shadow_*.json
+ui_runner/data/combined_slate_tickets_*.json
+ui_runner/data/combined_slate_tickets_high_leg_*.json
+ui_runner/data/combined_slate_tickets_long_parlay_*.json
+ui_runner/data/combined_slate_tickets_winrate_*.json
 !ui_runner/data/*_latest.json
+
+# Sports injury/matchup caches (dated JSON/CSV)
+Sports/*/data/*_cache.json
+Sports/*/data/*_cache.csv
+# Exception — keep reference data (defense summaries, team maps)
+!Sports/*/data/soccer_defense_summary.csv
+!Sports/*/data/wnba_top3_vs_defense.csv
+!Sports/*/data/soccer_top3_vs_defense.csv
+!Sports/*/data/nhl_*_line_combos*.csv
 
 # Capacitor (mobile/) — install locally; do not commit npm tree
 mobile/node_modules/

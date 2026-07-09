@@ -4,7 +4,7 @@ Hubs stay at the top of `docs/` so root links stay stable. Everything else is gr
 
 | Folder | What’s here |
 |--------|-------------|
-| **(root)** | [QUICK_START.md](QUICK_START.md) · [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md) |
+| **(root)** | [CURRENT_STATE.md](CURRENT_STATE.md) (living ops snapshot) · [QUICK_START.md](QUICK_START.md) · [PROJECT_LAYOUT.md](PROJECT_LAYOUT.md) |
 | [runbooks/](runbooks/) | Daily commands, canonical pipelines, void sources, NBA period refresh, NST import |
 | [architecture/](architecture/) | Ownership, design principles, user interactions, use-case catalog |
 | [guides/](guides/) | Browser fetch, Chrome CDP, grader update, payout API, system status |

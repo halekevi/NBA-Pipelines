@@ -31,7 +31,15 @@ from utils.slate_fields import (  # noqa: E402
     first_over_under_in_slate_row,
 )
 from utils.group_rank_tier import assign_tier_column  # noqa: E402
+from utils.fantasy_prop_filter import drop_fantasy_props  # noqa: E402
 from scripts.l10_streak_utils import enrich_graded_l10_columns  # noqa: E402
+
+
+def _drop_fantasy_from_slate(df: pd.DataFrame) -> pd.DataFrame:
+    df, n = drop_fantasy_props(df)
+    if n:
+        print(f"  Dropped {n} fantasy prop row(s) from slate")
+    return df
 
 
 def _def_rank_bucket(x):
@@ -540,7 +548,7 @@ def load_nba(path: str, sport_code: str = "NBA") -> pd.DataFrame:
         raise KeyError(f"NBA slate missing 'player' column. Found columns: {list(df.columns)}")
     # Diagnostic key (apply_actuals rebuilds with team/date for resolution).
     df["player_key"] = _slate_player_key_series(df)
-    return df
+    return _drop_fantasy_from_slate(df)
 
 
 def _slate_player_key_series(df: pd.DataFrame) -> pd.Series:
@@ -725,7 +733,7 @@ def load_cbb(path: str) -> pd.DataFrame:
     _coalesce_line_from_projection(df)
 
     df["player_key"] = _slate_player_key_series(df)
-    return df
+    return _drop_fantasy_from_slate(df)
 
 
 def _actuals_row_game_date(arow, file_date: str) -> str:

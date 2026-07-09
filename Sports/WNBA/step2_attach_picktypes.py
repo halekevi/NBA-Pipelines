@@ -24,6 +24,7 @@ import pandas as pd
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.wnba_team_keys import canonical_team_key
 
 
@@ -159,6 +160,9 @@ def main():
 
     df["pick_type"]       = df["pick_type"].apply(norm_pick_type)
     df["prop_norm"]       = df["prop_type"].apply(norm_prop)
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
     df["is_combo_player"] = df["player"].apply(detect_combo).astype(int)
 
     # Use PP player_id directly — no nba_api needed for WNBA

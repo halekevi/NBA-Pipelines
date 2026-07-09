@@ -22,6 +22,7 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
 from tennis_shared import load_or_refresh_rankings, norm_tennis_prop, resolve_athlete_id
+from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.pick_line_standard import attach_standard_line_and_deviation, log_goblin_standard_line_fill
 
 
@@ -62,6 +63,9 @@ def main() -> None:
 
     df["pick_type"] = df.get("pick_type", "Standard").map(norm_pick)
     df["prop_norm"] = df["prop_type"].map(norm_tennis_prop)
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
 
     supported = {
         "aces",

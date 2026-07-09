@@ -19,16 +19,23 @@ import csv
 import json
 import os
 import re
+import sys
 import time
 import urllib.request
 import urllib.parse
 import urllib.error
+from pathlib import Path
 try:
     from tqdm import tqdm as _tqdm
 except ImportError:
     import subprocess, sys
     subprocess.check_call([sys.executable, "-m", "pip", "install", "tqdm", "--break-system-packages", "-q"])
     from tqdm import tqdm as _tqdm
+
+_PROPORACLE_ROOT = Path(__file__).resolve().parents[3]
+if str(_PROPORACLE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROPORACLE_ROOT))
+from utils.fantasy_prop_filter import drop_fantasy_rows
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0",
@@ -279,6 +286,9 @@ def main():
     args = parser.parse_args()
 
     rows = read_csv(args.input)
+    rows, n_fantasy = drop_fantasy_rows(rows)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
     cache = load_cache(args.cache)
 
     # Derive slate date from the first game_start in the data

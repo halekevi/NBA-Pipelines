@@ -106,6 +106,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file_
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
+from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
 from utils.kelly_staking import fractional_kelly, leg_edge_pct_for_kelly
 from utils.prop_signal_score import (
     HOT_L10_BOOST,
@@ -2012,9 +2013,7 @@ def _apply_diversity_filter_to_ticket_groups(
 # Blocked Shots NBA: 41.9% overall, too low for any ticket
 # Combo props: small sample, unreliable
 # NHL OVER props: 21.5% hit rate — never use OVER direction in NHL tickets
-# Fantasy Score is excluded from ticket generation pending data integrity
-# validation. It remains in all grade/ranking outputs so hit rates can be
-# monitored. Remove from this set once validated.
+# Fantasy Score props are excluded from the full pipeline (step1/step2 + tickets + grading).
 TICKET_EXCLUDED_PROPS = {
     "fantasy score", "fantasy_score", "fantasy",
     "fg made",
@@ -2097,16 +2096,6 @@ def _norm_prop_label(v: object) -> str:
     s = s.replace("_", " ")
     s = re.sub(r"\s+", " ", s)
     return s
-
-
-def _fantasy_prop_mask(df: pd.DataFrame) -> pd.Series:
-    """True for rows that should be excluded as fantasy props."""
-    mask = pd.Series([False] * len(df), index=df.index)
-    for col in ("prop_type", "prop", "prop_name"):
-        if col in df.columns:
-            txt = df[col].astype(str).str.lower()
-            mask |= txt.str.contains("fantasy", na=False)
-    return mask
 
 
 def _line_bucket_label(v: object) -> str:

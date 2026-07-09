@@ -28,12 +28,19 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 import unicodedata
+from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from nba_api.stats.static import players
+
+_PROPORACLE_ROOT = Path(__file__).resolve().parents[3]
+if str(_PROPORACLE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROPORACLE_ROOT))
+from utils.fantasy_prop_filter import drop_fantasy_props
 
 COMBO_SEP = "|"
 
@@ -280,6 +287,10 @@ def main() -> None:
     # Normalize pick type + prop norm (vectorized)
     df["pick_type"] = df["pick_type"].astype(str).apply(norm_pick_type)
     df["prop_norm"] = df["prop_type"].astype(str).apply(norm_prop)
+
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
 
     # ── Drop prop types with no stat backing or that are ungradeable ──
     EXCLUDE_PROPS = {

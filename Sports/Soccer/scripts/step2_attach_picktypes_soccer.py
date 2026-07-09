@@ -42,6 +42,7 @@ from pathlib import Path
 _REPO = Path(__file__).resolve().parents[3]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
+from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.soccer_pick_line_offsets import estimate_goblin_standard_line
 
 COMBO_SEP = "|"
@@ -784,6 +785,9 @@ def main() -> None:
 
     df["pick_type"]       = df["pick_type"].apply(norm_pick_type)
     df["prop_norm"]       = df["prop_type"].apply(norm_prop)
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
     df["is_combo_player"] = df["player"].apply(detect_combo).astype(int)
 
     for c in ["player_1", "player_2", "team_1", "team_2"]:

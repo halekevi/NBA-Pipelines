@@ -34,6 +34,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from scripts.db_utils import log_pipeline_health
+from utils.fantasy_prop_filter import drop_fantasy_props
 
 PROP_NORM_MAP = {
     "pass yards": "pass_yds",
@@ -183,6 +184,10 @@ def main():
         df["pick_type"] = df[odds_col].astype(str).apply(norm_pick_type)
     else:
         df["pick_type"] = "Standard"
+
+    df, n_fantasy = drop_fantasy_props(df)
+    if n_fantasy:
+        print(f"  Dropped {n_fantasy} fantasy prop row(s)")
 
     # cfb_player_key
     if "espn_athlete_id" in df.columns:

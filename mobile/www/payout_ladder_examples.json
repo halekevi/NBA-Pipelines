@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-08T13:25:48.610970+00:00",
+  "generated_at": "2026-07-09T10:39:59.639097+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -16,14 +16,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -32,9 +32,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -42,14 +42,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -58,9 +58,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -68,14 +68,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -84,9 +84,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -94,14 +94,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -110,9 +110,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -120,14 +120,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -136,9 +136,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -146,14 +146,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -162,9 +162,9 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -172,14 +172,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Erica Wheeler",
+          "player": "Jordin Canada",
           "prop_type": "Points",
-          "line": 4.5,
-          "standard_line": 8.0,
+          "line": 5.5,
+          "standard_line": 10.5,
           "pick_type": "Demon",
-          "delta": 3.5,
+          "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.6499999999999999
+          "hit_rate": 0.9
         }
       ]
     },
@@ -188,9 +188,9 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -198,24 +198,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 1.0
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -224,9 +224,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -234,24 +234,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 1.0
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -260,9 +260,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -270,24 +270,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 1.0
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -296,9 +296,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -306,24 +306,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 1.0
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -332,9 +332,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -342,24 +342,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 1.0
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -368,9 +368,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -378,24 +378,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 1.0
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -404,9 +404,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -414,24 +414,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         },
         {
-          "player": "Aliyah Boston",
-          "prop_type": "Assists",
+          "player": "Rhyne Howard",
+          "prop_type": "Rebounds",
           "line": 1.5,
-          "standard_line": 3.5,
+          "standard_line": 4.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.7
+          "hit_rate": 0.8500000000000001
         }
       ]
     },
@@ -440,9 +440,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -450,60 +450,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Erica Wheeler",
-          "prop_type": "Points",
-          "line": 4.5,
-          "standard_line": 8.0,
-          "pick_type": "Demon",
-          "delta": 3.5,
-          "direction": "OVER",
-          "hit_rate": 0.6499999999999999
-        }
-      ]
-    },
-    {
-      "composition": "2S+0G+1D",
-      "goblin_delta": null,
-      "legs": [
-        {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
           "hit_rate": 0.95
         },
         {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Erica Wheeler",
+          "player": "Jordin Canada",
           "prop_type": "Points",
-          "line": 4.5,
-          "standard_line": 8.0,
+          "line": 5.5,
+          "standard_line": 10.5,
           "pick_type": "Demon",
-          "delta": 3.5,
+          "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.6499999999999999
+          "hit_rate": 0.9
         }
       ]
     },
@@ -512,14 +476,24 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -532,24 +506,14 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -558,14 +522,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -578,24 +552,14 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -604,14 +568,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -624,24 +598,14 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -650,14 +614,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -670,24 +644,14 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -696,14 +660,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -716,24 +690,14 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -742,14 +706,24 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -762,24 +736,14 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         }
       ]
     },
@@ -788,136 +752,380 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Aliyah Boston",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": 3.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        }
-      ]
-    },
-    {
-      "composition": "2S+1G+1D",
-      "goblin_delta": 1.5,
-      "legs": [
-        {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 1.5,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Erica Wheeler",
-          "prop_type": "Points",
-          "line": 4.5,
-          "standard_line": 8.0,
-          "pick_type": "Demon",
-          "delta": 3.5,
-          "direction": "OVER",
-          "hit_rate": 0.6499999999999999
-        }
-      ]
-    },
-    {
-      "composition": "3S+0G+1D",
-      "goblin_delta": null,
-      "legs": [
-        {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Kelsey Mitchell",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Caitlin Clark",
+          "player": "Kahleah Copper",
           "prop_type": "Rebounds",
           "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7
+          "hit_rate": 0.95
         },
         {
-          "player": "Erica Wheeler",
-          "prop_type": "Points",
-          "line": 4.5,
-          "standard_line": 8.0,
-          "pick_type": "Demon",
-          "delta": 3.5,
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.6499999999999999
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Rhyne Howard",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": 4.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
         }
       ]
     },
@@ -926,14 +1134,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -946,50 +1164,50 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Emily Engstler",
           "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7
-        },
-        {
-          "player": "Marina Mabrey",
-          "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "line": 3.5,
+          "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.75
+          "hit_rate": 0.95
         },
         {
-          "player": "Aliyah Boston",
-          "prop_type": "Assists",
+          "player": "Rhyne Howard",
+          "prop_type": "Rebounds",
           "line": 1.5,
-          "standard_line": 3.5,
+          "standard_line": 4.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.7
+          "hit_rate": 0.8500000000000001
         }
       ]
     },
     {
-      "composition": "3S+1G+1D",
-      "goblin_delta": 1.5,
+      "composition": "5S+1G+0D",
+      "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Natasha Howard",
-          "prop_type": "Assists",
-          "line": 1.5,
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         },
         {
           "player": "Kelsey Mitchell",
@@ -1002,34 +1220,430 @@
           "hit_rate": 0.8
         },
         {
-          "player": "Caitlin Clark",
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "5S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
           "prop_type": "Rebounds",
           "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7
+          "hit_rate": 0.95
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
           "prop_type": "Assists",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 1.5,
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Erica Wheeler",
-          "prop_type": "Points",
-          "line": 4.5,
-          "standard_line": 8.0,
-          "pick_type": "Demon",
-          "delta": 3.5,
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.6499999999999999
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "5S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "5S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "5S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "5S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "4S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Emily Engstler",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Rhyne Howard",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": 4.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
         }
       ]
     }

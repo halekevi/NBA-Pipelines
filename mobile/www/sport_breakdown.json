@@ -24,17 +24,17 @@
     },
     {
       "sport": "WNBA",
-      "decided": 42205,
-      "paid": 18778,
-      "win_rate": 0.44492358725269515,
-      "net_dollars": -46490.0
+      "decided": 42653,
+      "paid": 19007,
+      "win_rate": 0.4456192999320095,
+      "net_dollars": -46390.0
     },
     {
       "sport": "MLB",
-      "decided": 414882,
-      "paid": 124650,
-      "win_rate": 0.30044687405093495,
-      "net_dollars": -1655820.0
+      "decided": 422123,
+      "paid": 126602,
+      "win_rate": 0.29991732267609206,
+      "net_dollars": -1689190.0
     },
     {
       "sport": "SOCCER",
@@ -46,9 +46,9 @@
     {
       "sport": "TENNIS",
       "decided": 16705,
-      "paid": 4314,
-      "win_rate": 0.25824603412152053,
-      "net_dollars": -80770.0
+      "paid": 4313,
+      "win_rate": 0.2581861718048489,
+      "net_dollars": -80790.0
     },
     {
       "sport": "NHL",
@@ -133,10 +133,10 @@
     {
       "sport": "WNBA",
       "month": "2026-07",
-      "decided": 2766,
-      "paid": 1571,
-      "win_rate": 0.5679681851048446,
-      "net_dollars": 3760.0
+      "decided": 3214,
+      "paid": 1800,
+      "win_rate": 0.5600497822028625,
+      "net_dollars": 3860.0
     },
     {
       "sport": "WNBA",
@@ -157,10 +157,10 @@
     {
       "sport": "MLB",
       "month": "2026-07",
-      "decided": 57696,
-      "paid": 17206,
-      "win_rate": 0.29821824736550195,
-      "net_dollars": -232840.0
+      "decided": 64937,
+      "paid": 19158,
+      "win_rate": 0.2950244082726335,
+      "net_dollars": -266210.0
     },
     {
       "sport": "MLB",
@@ -238,9 +238,9 @@
       "sport": "TENNIS",
       "month": "2026-07",
       "decided": 321,
-      "paid": 66,
-      "win_rate": 0.205607476635514,
-      "net_dollars": -1890.0
+      "paid": 65,
+      "win_rate": 0.20249221183800623,
+      "net_dollars": -1910.0
     },
     {
       "sport": "TENNIS",
@@ -300,5 +300,5 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=145:mt=1783514398157695300"
+  "signature": "n=146:mt=1783588174254817900"
 }

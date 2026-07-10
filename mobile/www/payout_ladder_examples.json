@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-07-09T13:27:57.989813+00:00",
+  "generated_at": "2026-07-10T10:39:13.400377+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -16,14 +16,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -32,9 +32,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -42,14 +42,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -58,9 +58,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -68,14 +68,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -84,9 +84,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -94,14 +94,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -110,9 +110,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -120,14 +120,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -136,9 +136,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -146,14 +146,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -162,9 +162,9 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -172,14 +172,14 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
+          "player": "Leila Lacan",
           "prop_type": "Points",
-          "line": 5.5,
-          "standard_line": 10.5,
+          "line": 7.5,
+          "standard_line": 12.5,
           "pick_type": "Demon",
           "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.9
+          "hit_rate": 0.95
         }
       ]
     },
@@ -188,9 +188,9 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -198,24 +198,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -224,9 +224,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -234,24 +234,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -260,9 +260,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -270,24 +270,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -296,9 +296,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -306,24 +306,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -332,9 +332,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -342,24 +342,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -368,9 +368,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -378,24 +378,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -404,9 +404,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -414,24 +414,24 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Rhyne Howard",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": 4.0,
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8500000000000001
+          "hit_rate": 0.95
         }
       ]
     },
@@ -440,9 +440,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -450,24 +450,60 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Jordin Canada",
+          "player": "Leila Lacan",
           "prop_type": "Points",
-          "line": 5.5,
-          "standard_line": 10.5,
+          "line": 7.5,
+          "standard_line": 12.5,
           "pick_type": "Demon",
           "delta": 5.0,
           "direction": "OVER",
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.9
+        },
+        {
+          "player": "Leila Lacan",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 12.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
         }
       ]
     },
@@ -476,9 +512,9 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -486,34 +522,34 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -522,9 +558,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -532,34 +568,34 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -568,9 +604,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -578,34 +614,34 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -614,9 +650,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -624,34 +660,34 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -660,9 +696,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -670,34 +706,34 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -706,9 +742,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -716,34 +752,34 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -752,9 +788,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -762,34 +798,80 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Rhyne Howard",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": 4.0,
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8500000000000001
+          "hit_rate": 0.95
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Isabelle Harrison",
+          "prop_type": "Rebounds",
+          "line": 3.5,
+          "standard_line": 6.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Leila Lacan",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 12.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
         }
       ]
     },
@@ -798,9 +880,9 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -808,29 +890,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -838,14 +920,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -854,9 +936,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -864,29 +946,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -894,14 +976,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -910,9 +992,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -920,29 +1002,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -950,14 +1032,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -966,9 +1048,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -976,29 +1058,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1006,14 +1088,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1022,9 +1104,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1032,29 +1114,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1062,14 +1144,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1078,9 +1160,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1088,29 +1170,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1118,14 +1200,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1134,9 +1216,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1144,44 +1226,44 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Rhyne Howard",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": 4.0,
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8500000000000001
+          "hit_rate": 0.95
         }
       ]
     },
@@ -1190,9 +1272,9 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1200,39 +1282,9 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Jade Melbourne",
-          "prop_type": "Assists",
-          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1240,14 +1292,44 @@
           "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nyara Sabally",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1256,9 +1338,9 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1266,39 +1348,9 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Jade Melbourne",
-          "prop_type": "Assists",
-          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1306,14 +1358,44 @@
           "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nyara Sabally",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1322,9 +1404,9 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1332,39 +1414,9 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Jade Melbourne",
-          "prop_type": "Assists",
-          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1372,14 +1424,44 @@
           "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nyara Sabally",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1388,9 +1470,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1398,39 +1480,9 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Jade Melbourne",
-          "prop_type": "Assists",
-          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1438,14 +1490,44 @@
           "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nyara Sabally",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1454,9 +1536,9 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1464,39 +1546,9 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Jade Melbourne",
-          "prop_type": "Assists",
-          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1504,14 +1556,44 @@
           "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nyara Sabally",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1520,9 +1602,9 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1530,39 +1612,9 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Jade Melbourne",
-          "prop_type": "Assists",
-          "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1570,14 +1622,44 @@
           "hit_rate": 0.9
         },
         {
-          "player": "Emily Engstler",
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nyara Sabally",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         }
       ]
     },
@@ -1586,9 +1668,9 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Kahleah Copper",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Natasha Cloud",
+          "prop_type": "Assists",
+          "line": 3.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1596,29 +1678,29 @@
           "hit_rate": 0.95
         },
         {
-          "player": "Jordin Canada",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        },
-        {
-          "player": "Kelsey Mitchell",
+          "player": "Nneka Ogwumike",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop_type": "Rebounds",
-          "line": 3.5,
+          "player": "Leila Lacan",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1626,24 +1708,24 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Emily Engstler",
+          "player": "Isabelle Harrison",
           "prop_type": "Rebounds",
           "line": 3.5,
           "standard_line": 6.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Rhyne Howard",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": 4.0,
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8500000000000001
+          "hit_rate": 0.95
         }
       ]
     }

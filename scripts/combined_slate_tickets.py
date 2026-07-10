@@ -6431,6 +6431,142 @@ def _write_winrate_goblin_opt3_shadow_snapshot(payload: dict, date_str: str) -> 
     )
 
 
+def emit_standalone_win_rate_outputs(
+    *,
+    nba1q,
+    nba,
+    nba1h,
+    wnba,
+    date_str: str,
+    thresholds: dict,
+    pool_fn,
+    bankroll: float,
+    curve_stake_usd: float,
+    max_legs: int | None,
+    min_leg_prob: float,
+    max_tickets: int,
+    write_web: bool,
+    web_outdir: str,
+    web_filename: str,
+    workbook_path: str | None,
+) -> dict:
+    """
+    High-leg / win-rate panel track (tickets_winrate_latest.json).
+
+    Used by --win-rate-mode (standalone) and --also-win-rate (same process as MAIN)
+    so step8 frames are not reloaded in a second Python process.
+    """
+    print("\n[win-rate] Generating win-rate optimized tickets (separate from EV/MAIN pool)...")
+    wr_max_legs = max(
+        2,
+        min(
+            MAIN_GRADED_MAX_LEGS,
+            int(max_legs) if max_legs is not None else MAIN_GRADED_MAX_LEGS,
+        ),
+    )
+    wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
+    graded_analysis = _load_graded_analysis()
+    if graded_analysis:
+        dr = graded_analysis.get("date_range") or {}
+        print(
+            f"  [win-rate] graded_analysis: {dr.get('min', '?')} → {dr.get('max', '?')} "
+            f"({graded_analysis.get('total_props', 0):,} props)"
+        )
+    else:
+        print(f"  [win-rate] graded_analysis not found ({_GRADED_ANALYSIS_JSON})")
+
+    wr_sport_frames: list[tuple[str, pd.DataFrame]] = []
+    for label, frame in (
+        ("NBA1Q", nba1q),
+        ("NBA", nba),
+        ("NBA1H", nba1h),
+        ("WNBA", wnba),
+    ):
+        if _sport_ticket_gated(label)[0]:
+            print(f"  [win-rate] {label} excluded (model AUC gate)")
+            continue
+        if frame is not None and len(frame) > 0:
+            wr_sport_frames.append((label, pool_fn(frame)))
+
+    wr_groups = build_win_rate_ticket_groups(
+        wr_sport_frames,
+        min_leg_prob=wr_min_prob,
+        min_composite_hr=0.52,
+        max_legs=wr_max_legs,
+        max_tickets=int(max_tickets),
+        graded_analysis=graded_analysis,
+    )
+    print(
+        f"  [win-rate] Built {len(wr_groups)} ticket groups "
+        f"({sum(len(g[1]) for g in wr_groups)} slips)"
+    )
+    wr_payload = ticket_groups_to_payload(
+        wr_groups,
+        date_str,
+        thresholds,
+        bankroll=max(0.0, float(bankroll)),
+        curve_stake_usd=float(curve_stake_usd),
+        ticket_track="high_leg_hr",
+        payload_mode="high_leg_hr",
+    )
+    wr_payload["max_legs"] = wr_max_legs
+    wr_payload["sort"] = "p_win"
+    for g in wr_payload.get("groups") or []:
+        for slip in g.get("tickets") or []:
+            _enrich_slip_p_win_fields(slip, mode="win_rate")
+
+    if write_web:
+        web_name = str(web_filename or "").strip() or "tickets_winrate_latest.json"
+        write_web_outputs(
+            wr_payload,
+            web_outdir,
+            require_positive_ev=False,
+            merge_existing_for_date=False,
+            apply_template_cap=False,
+            json_filename=web_name,
+            skip_ui_filters=True,
+        )
+        # Dated high-leg snapshot (was Copy-Item in run_pipeline after 2nd process).
+        try:
+            latest = os.path.join(web_outdir, web_name)
+            dated = os.path.join(
+                REPO_ROOT,
+                "ui_runner",
+                "data",
+                f"combined_slate_tickets_high_leg_{date_str}.json",
+            )
+            if os.path.isfile(latest):
+                os.makedirs(os.path.dirname(dated), exist_ok=True)
+                import shutil
+
+                shutil.copy2(latest, dated)
+                print(f"  [win-rate] Saved -> {dated}")
+        except Exception as exc:
+            print(f"  [win-rate] WARN: high-leg dated copy skipped ({exc})")
+
+    if workbook_path:
+        wb_wr = Workbook()
+        wb_wr.remove(wb_wr.active)
+        for gn, tix, _bg in wr_groups:
+            write_ticket_sheet(
+                wb_wr, tix, _excel_ticket_sheet_title(gn), "FFD54F", label="Win-Rate"
+            )
+        visible = [s for s in wb_wr.sheetnames if wb_wr[s].sheet_state == "visible"]
+        if not visible:
+            pool_mode = str(wr_payload.get("pool_mode") or "win_rate")
+            ws = wb_wr.create_sheet("Summary")
+            ws["A1"] = "No win-rate tickets built for this slate"
+            ws["A2"] = f"Date: {date_str}"
+            ws["A3"] = f"Pool mode: {pool_mode}"
+            print("[win-rate] 0 groups built -- saved empty workbook with summary sheet")
+        os.makedirs(os.path.dirname(os.path.abspath(workbook_path)) or ".", exist_ok=True)
+        wb_wr.save(workbook_path)
+        print(f"[OK] Win-rate workbook -> {workbook_path}")
+
+    print("[win-rate] Done.")
+    return wr_payload
+
+
 def _extract_strong_builder_slips(payload: Mapping[str, Any]) -> list[dict]:
     """Return strong_builder slips from a full ticket export payload."""
     out: list[dict] = []
@@ -14852,6 +14988,18 @@ def main():
         help="Win-rate ticket pass only: 2-leg goblin / Tier-A standard, sort by p_win, separate JSON output.",
     )
     ap.add_argument(
+        "--also-win-rate",
+        action="store_true",
+        dest="also_win_rate",
+        help="After MAIN/EV web write, also emit tickets_winrate_latest.json in this process (skip 2nd Python launch).",
+    )
+    ap.add_argument(
+        "--win-rate-output",
+        default="",
+        dest="win_rate_output",
+        help="Workbook path for --also-win-rate / --win-rate-mode (default: winrate_tickets_<date>.xlsx beside --output).",
+    )
+    ap.add_argument(
         "--max-legs",
         type=int,
         default=None,
@@ -15984,85 +16132,25 @@ def main():
     print(f"  CBB Goblin rank floor: {CBB_GOBLIN_MIN_RANK} (NBA uses global floor: {args.min_rank})")
 
     if getattr(args, "win_rate_mode", False):
-        print("\n[win-rate] Generating win-rate optimized tickets (separate from EV pool)...")
-        wr_max_legs = max(
-            2,
-            min(
-                MAIN_GRADED_MAX_LEGS,
-                int(args.max_legs) if args.max_legs is not None else MAIN_GRADED_MAX_LEGS,
-            ),
-        )
-        wr_min_prob = float(getattr(args, "min_leg_prob", MAIN_MIN_LEG_PROB) or MAIN_MIN_LEG_PROB)
-        graded_analysis = _load_graded_analysis()
-        if graded_analysis:
-            dr = graded_analysis.get("date_range") or {}
-            print(
-                f"  [win-rate] graded_analysis: {dr.get('min', '?')} → {dr.get('max', '?')} "
-                f"({graded_analysis.get('total_props', 0):,} props)"
-            )
-        else:
-            print(f"  [win-rate] graded_analysis not found ({_GRADED_ANALYSIS_JSON})")
-        wr_sport_frames: list[tuple[str, pd.DataFrame]] = []
-        for label, frame in (
-            ("NBA1Q", nba1q),
-            ("NBA", nba),
-            ("NBA1H", nba1h),
-            ("WNBA", wnba),
-        ):
-            if _sport_ticket_gated(label)[0]:
-                print(f"  [win-rate] {label} excluded (model AUC gate)")
-                continue
-            if frame is not None and len(frame) > 0:
-                wr_sport_frames.append((label, pool(frame)))
-        wr_groups = build_win_rate_ticket_groups(
-            wr_sport_frames,
-            min_leg_prob=wr_min_prob,
-            min_composite_hr=0.52,
-            max_legs=wr_max_legs,
-            max_tickets=int(args.max_tickets),
-            graded_analysis=graded_analysis,
-        )
-        print(f"  [win-rate] Built {len(wr_groups)} ticket groups ({sum(len(g[1]) for g in wr_groups)} slips)")
-        wr_payload = ticket_groups_to_payload(
-            wr_groups,
-            args.date,
-            thresholds,
+        wr_path = str(getattr(args, "win_rate_output", "") or "").strip() or str(args.output or "")
+        emit_standalone_win_rate_outputs(
+            nba1q=nba1q,
+            nba=nba,
+            nba1h=nba1h,
+            wnba=wnba,
+            date_str=str(args.date),
+            thresholds=thresholds,
+            pool_fn=pool,
             bankroll=max(0.0, float(args.bankroll)),
             curve_stake_usd=float(args.curve_stake_usd),
-            ticket_track="high_leg_hr",
-            payload_mode="high_leg_hr",
+            max_legs=args.max_legs,
+            min_leg_prob=float(getattr(args, "min_leg_prob", MAIN_MIN_LEG_PROB) or MAIN_MIN_LEG_PROB),
+            max_tickets=int(args.max_tickets),
+            write_web=bool(args.write_web),
+            web_outdir=str(args.web_outdir),
+            web_filename=str(args.web_filename or "").strip() or "tickets_winrate_latest.json",
+            workbook_path=wr_path or None,
         )
-        wr_payload["max_legs"] = wr_max_legs
-        wr_payload["sort"] = "p_win"
-        for g in wr_payload.get("groups") or []:
-            for slip in g.get("tickets") or []:
-                _enrich_slip_p_win_fields(slip, mode="win_rate")
-        if args.write_web:
-            web_name = str(args.web_filename or "").strip() or "tickets_winrate_latest.json"
-            write_web_outputs(
-                wr_payload,
-                args.web_outdir,
-                require_positive_ev=False,
-                merge_existing_for_date=False,
-                apply_template_cap=False,
-                json_filename=web_name,
-                skip_ui_filters=True,
-            )
-        if args.output:
-            wb_wr = Workbook()
-            wb_wr.remove(wb_wr.active)
-            for gn, tix, _bg in wr_groups:
-                write_ticket_sheet(wb_wr, tix, _excel_ticket_sheet_title(gn), "FFD54F", label="Win-Rate")
-            visible = [s for s in wb_wr.sheetnames if wb_wr[s].sheet_state == "visible"]
-            if not visible:
-                pool_mode = str(wr_payload.get("pool_mode") or "win_rate")
-                ws = wb_wr.create_sheet("Summary")
-                ws["A1"] = "No win-rate tickets built for this slate"
-                ws["A2"] = f"Date: {args.date}"
-                ws["A3"] = f"Pool mode: {pool_mode}"
-                print("[win-rate] 0 groups built -- saved empty workbook with summary sheet")
-            wb_wr.save(args.output)
-            print(f"[OK] Win-rate workbook -> {args.output}")
         print("[win-rate] Done (EV ticket generation skipped).")
         return
 
@@ -17306,6 +17394,38 @@ def main():
             )
         # Avoid Windows console codepage issues with unicode checkmarks.
         print("[OK] Web outputs complete.")
+
+    if getattr(args, "also_win_rate", False) and not getattr(args, "win_rate_mode", False):
+        wr_path = str(getattr(args, "win_rate_output", "") or "").strip()
+        if not wr_path:
+            base = str(args.output or f"combined_slate_tickets_{args.date}.xlsx")
+            wr_path = os.path.join(
+                os.path.dirname(os.path.abspath(base)) or ".",
+                f"winrate_tickets_{args.date}.xlsx",
+            )
+        try:
+            emit_standalone_win_rate_outputs(
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                pool_fn=pool,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                max_legs=args.max_legs if args.max_legs is not None else MAIN_GRADED_MAX_LEGS,
+                min_leg_prob=float(
+                    getattr(args, "min_leg_prob", MAIN_MIN_LEG_PROB) or MAIN_MIN_LEG_PROB
+                ),
+                max_tickets=int(args.max_tickets),
+                write_web=True,
+                web_outdir=str(args.web_outdir),
+                web_filename=str(args.web_filename or "").strip() or "tickets_winrate_latest.json",
+                workbook_path=wr_path,
+            )
+        except Exception as wr_exc:
+            print(f"[win-rate] WARN: also-win-rate pass failed ({wr_exc})")
 
     print("\n[TICKETS] -- SUMMARY -----------------------------------------")
     for sport, tickets in generated_tickets.items():

@@ -202,10 +202,37 @@
       });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initHotPlayers);
-  } else {
+  // Defer until Hot Players <details> opens — avoid competing with slate first paint.
+  let hotStarted = false;
+  function startHotPlayersOnce() {
+    if (hotStarted) return;
+    hotStarted = true;
     initHotPlayers();
+  }
+  function bindHotPlayersLazy() {
+    const cat = document.getElementById('hot-players-cat');
+    if (cat) {
+      if (cat.hasAttribute('open')) {
+        startHotPlayersOnce();
+        return;
+      }
+      cat.addEventListener('toggle', function () {
+        if (cat.open) startHotPlayersOnce();
+      });
+      return;
+    }
+    // Fallback when not wrapped in details: idle warm only.
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(startHotPlayersOnce, { timeout: 6000 });
+    } else {
+      window.setTimeout(startHotPlayersOnce, 3500);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindHotPlayersLazy);
+  } else {
+    bindHotPlayersLazy();
   }
 })();
 </script>

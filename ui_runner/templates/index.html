@@ -4709,8 +4709,7 @@ async function fetchSlateSport(sport, opts = {}) {
   if (!prefetch || openSlatePanel === sport) showSlateSportLoading(sport, 'Loading slate...');
 
   SLATE_SPORT_FETCH_PROMISES[sport] = (async () => {
-    // Warm picks/edges in parallel — do NOT block the slate table on /api/slate (huge/slow on Railway).
-    const slateWarm = loadSlateData().catch((e) => console.warn("loadSlateData (background):", e));
+    // Do not kick multi-MB /api/slate on every sport open — edges warm via idle boot.
     let rows = [];
     let source = "";
     try {
@@ -4733,7 +4732,12 @@ async function fetchSlateSport(sport, opts = {}) {
       }
     }
     if (!rows.length) {
-      await slateWarm;
+      // Ticket fallback needs ALL_SLATE from /api/slate — load only when sport JSON is empty.
+      try {
+        await loadSlateData();
+      } catch (eWarm) {
+        console.warn("loadSlateData (ticket fallback):", eWarm);
+      }
       rows = _fallbackSlateRowsFromTickets(sport);
       if (rows.length) source = "ticket_fallback";
     }
@@ -5201,12 +5205,24 @@ function sortSlateDynamic(sport, key) {
 }
 
 // Keep edge/streak sections populated; warm only the default sport (lazy-load others on tab open).
+// Defer full /api/slate (multi-MB) until idle — sport table uses /api/slate-sport first.
 (function bootHomeSlateUi() {
   try {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
-    loadSlateData();
     fetchSlateSport(getDefaultBootSlateSport());
+    const warmFullSlate = () => {
+      try {
+        loadSlateData().catch((e) => console.warn("deferred loadSlateData:", e));
+      } catch (e2) {
+        console.warn("deferred loadSlateData:", e2);
+      }
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(warmFullSlate, { timeout: 4000 });
+    } else {
+      window.setTimeout(warmFullSlate, 2500);
+    }
   } catch (e) {
     console.error("home slate UI boot:", e);
   }

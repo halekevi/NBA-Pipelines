@@ -3966,22 +3966,18 @@ async function discoverDates(){
 // Prefer a default Grades date that already has decided outcomes, not a still-live slate.
 async function _decidedPropsCountForDate(dateStr) {
   try {
-    const res = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), {
+    // Lightweight summary — avoids downloading full graded_props JSON just to probe.
+    const res = await fetch('/api/graded-props/summary?date=' + encodeURIComponent(dateStr), {
       cache: 'no-store',
       signal: gradesFetchSignal(8000),
     });
     if (!res.ok) return 0;
     const j = await res.json();
-    const props = Array.isArray(j?.props) ? j.props : [];
-    let decided = 0;
-    for (const p of props) {
-      const ru = String((p && p.result) || '').trim().toUpperCase();
-      if (ru === 'HIT' || ru === 'MISS') {
-        decided += 1;
-        if (decided >= 1) break; // one is enough to qualify date as graded
-      }
-    }
-    return decided;
+    if (j && j.missing) return 0;
+    if (typeof j.decided === 'number') return j.decided;
+    // ticket_eval_html fallback has exists but unknown decided — treat as graded.
+    if (j && j.exists && j.source === 'ticket_eval_html') return 1;
+    return 0;
   } catch (_e) {
     return 0;
   }

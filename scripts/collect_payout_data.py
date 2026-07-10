@@ -1574,6 +1574,306 @@ def append_rows_csv(path: Path, rows: list[dict]):
             w.writerow(r)
 
 
+DEFAULT_CAPTURE_FIELDS = (
+    "power_min_x",
+    "power_first_x",
+    "min_guarantee",
+    "flex_min",
+)
+
+
+def _parse_fields_arg(raw: str | None) -> list[str]:
+    if not raw or not str(raw).strip():
+        return list(DEFAULT_CAPTURE_FIELDS)
+    out: list[str] = []
+    for part in str(raw).split(","):
+        key = part.strip().lower()
+        if key and key not in out:
+            out.append(key)
+    return out or list(DEFAULT_CAPTURE_FIELDS)
+
+
+def load_main_strong_tickets(path: Path) -> list[dict]:
+    """Load MAIN + STRONG slips from combined_slate_tickets_*.json."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    slips: list[dict] = []
+    for g in data.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        group_name = str(g.get("group_name") or g.get("name") or "")
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            raw_legs = t.get("legs") or []
+            if len(raw_legs) < 2:
+                continue
+            legs: list[dict] = []
+            for leg in raw_legs:
+                if not isinstance(leg, dict):
+                    continue
+                legs.append(
+                    {
+                        "player": str(leg.get("player") or "").strip(),
+                        "prop_type": str(
+                            leg.get("prop_type") or leg.get("prop") or ""
+                        ).strip(),
+                        "direction": str(
+                            leg.get("direction") or leg.get("dir") or "OVER"
+                        )
+                        .strip()
+                        .upper(),
+                        "line": leg.get("line"),
+                        "pick_type": str(
+                            leg.get("pick_type") or leg.get("pick") or "Goblin"
+                        ).strip(),
+                        "sport": str(leg.get("sport") or "").strip().upper(),
+                    }
+                )
+            if len(legs) < 2:
+                continue
+            is_strong = bool(t.get("strong_builder"))
+            slips.append(
+                {
+                    "ticket_id": str(t.get("ticket_id") or ""),
+                    "group_name": group_name,
+                    "strong_builder": is_strong,
+                    "slip_type": "strong" if is_strong else "main",
+                    "n_legs": len(legs),
+                    "legs": legs,
+                    "date": str(data.get("date") or "")[:10],
+                }
+            )
+    return slips
+
+
+def _project_capture_fields(rec: dict, fields: list[str]) -> dict:
+    """Keep identity + requested payout fields; power_min_x listed first when present."""
+    base_keys = (
+        "ticket_id",
+        "slip_type",
+        "strong_builder",
+        "group_name",
+        "n_legs",
+        "legs",
+        "status",
+        "error",
+        "ticket_type_captured",
+    )
+    out = {k: rec.get(k) for k in base_keys if k in rec}
+    if "power_min_x" in fields:
+        out["power_min_x"] = rec.get("power_min_x")
+    for f in fields:
+        if f == "power_min_x":
+            continue
+        if f in rec:
+            out[f] = rec.get(f)
+    return out
+
+
+def capture_tickets_from_board(
+    *,
+    tickets_path: Path,
+    output_path: Path,
+    fields: list[str],
+    cdp_url: str,
+    entry_amount: float,
+    max_cases: int,
+    delay_sec: float,
+) -> int:
+    """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts."""
+    slips = load_main_strong_tickets(tickets_path)
+    if not slips:
+        print(f"[PAYOUT] No MAIN/STRONG slips in {tickets_path}")
+        payload = {
+            "date": "",
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "tickets_path": str(tickets_path),
+            "fields": fields,
+            "primary_field": "power_min_x",
+            "slips": [],
+            "summary": {"n_ok": 0, "n_failed": 0, "n_partial": 0, "n_total": 0},
+        }
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return 0
+
+    slips_sorted = sorted(
+        slips,
+        key=lambda s: (0 if s.get("strong_builder") else 1, s.get("ticket_id") or ""),
+    )
+    if max_cases > 0:
+        slips_sorted = slips_sorted[:max_cases]
+
+    want_flex = "flex_min" in fields
+    p, browser, context, page = connect_existing_browser(cdp_url)
+    page.wait_for_timeout(500)
+    captured: list[dict] = []
+    n_ok = n_failed = n_partial = 0
+
+    try:
+        frame = find_prizepicks_frame(page)
+        ensure_popular_filter(frame, page)
+        dismiss_modal(frame, page)
+
+        for i, slip in enumerate(slips_sorted, 1):
+            tid = slip.get("ticket_id") or f"slip_{i}"
+            print(
+                f"\n[PAYOUT] ({i}/{len(slips_sorted)}) {slip.get('slip_type')} "
+                f"n={slip.get('n_legs')} id={tid}"
+            )
+            for leg in slip.get("legs") or []:
+                print(
+                    f"  leg: {leg.get('player')} {leg.get('prop_type')} "
+                    f"{leg.get('direction')} {leg.get('line')} ({leg.get('pick_type')})"
+                )
+
+            rec: dict[str, Any] = {
+                "ticket_id": tid,
+                "slip_type": slip.get("slip_type"),
+                "strong_builder": bool(slip.get("strong_builder")),
+                "group_name": slip.get("group_name"),
+                "n_legs": slip.get("n_legs"),
+                "legs": slip.get("legs"),
+                "status": "failed",
+                "error": None,
+                "ticket_type_captured": "power",
+                "power_min_x": None,
+                "power_first_x": None,
+                "min_guarantee": None,
+                "flex_min": None,
+            }
+
+            try:
+                clear_slip(frame)
+                _, frame = verify_slip_empty(frame, page)
+                dismiss_modal(frame, page)
+                set_ticket_type(frame, "power")
+                frame.wait_for_timeout(int(max(0.1, delay_sec) * 1000))
+
+                clicked = 0
+                for leg in slip.get("legs") or []:
+                    if add_leg(frame, page, leg):
+                        clicked += 1
+                    else:
+                        print(f"  [WARN] could not click {leg.get('player')}")
+                    frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
+
+                if clicked < 2:
+                    rec["error"] = f"only_clicked_{clicked}_legs"
+                    n_failed += 1
+                    captured.append(_project_capture_fields(rec, fields))
+                    clear_slip(frame)
+                    continue
+
+                power_slip = read_slip(frame, n_legs=clicked, ticket_type="power")
+                if not power_slip:
+                    rec["error"] = "power_slip_not_detected"
+                    n_failed += 1
+                    captured.append(_project_capture_fields(rec, fields))
+                    clear_slip(frame)
+                    continue
+
+                power_min = power_slip.get("min_guarantee_payout")
+                power_first = power_slip.get("first_place_payout") or power_slip.get(
+                    "displayed_multiplier"
+                )
+                rec["power_min_x"] = power_min
+                rec["power_first_x"] = power_first
+                rec["min_guarantee"] = power_min
+                print(
+                    f"  [POWER] first_x={power_first} min_x={power_min} "
+                    f"(primary=power_min_x)"
+                )
+
+                if want_flex:
+                    try:
+                        set_ticket_type(frame, "flex")
+                        frame.wait_for_timeout(int(max(0.1, delay_sec) * 1000))
+                        flex_slip = read_slip(frame, n_legs=clicked, ticket_type="flex")
+                        if flex_slip:
+                            flex_min = flex_slip.get("min_guarantee_payout")
+                            if flex_min is None:
+                                flex_min = flex_slip.get("flex_miss_1")
+                            rec["flex_min"] = flex_min
+                            print(f"  [FLEX] min={flex_min}")
+                    except Exception as fe:
+                        print(f"  [FLEX] skip: {fe}")
+
+                if rec.get("power_min_x") is None and rec.get("power_first_x") is None:
+                    rec["status"] = "partial"
+                    rec["error"] = "missing_power_multipliers"
+                    n_partial += 1
+                elif rec.get("power_min_x") is None:
+                    rec["status"] = "partial"
+                    rec["error"] = "missing_power_min_x"
+                    n_partial += 1
+                else:
+                    rec["status"] = "ok"
+                    n_ok += 1
+
+                print(
+                    f"  [RECORDED] slip_type={rec['slip_type']} "
+                    f"power_min_x={rec.get('power_min_x')} "
+                    f"power_first_x={rec.get('power_first_x')} "
+                    f"min_guarantee={rec.get('min_guarantee')} "
+                    f"flex_min={rec.get('flex_min')}"
+                )
+                captured.append(_project_capture_fields(rec, fields))
+            except Exception as e:
+                rec["error"] = str(e)
+                n_failed += 1
+                captured.append(_project_capture_fields(rec, fields))
+                print(f"  [ERROR] {e}")
+            finally:
+                try:
+                    clear_slip(frame)
+                    _, frame = verify_slip_empty(frame, page)
+                    dismiss_modal(frame, page)
+                except Exception:
+                    pass
+    finally:
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            p.stop()
+        except Exception:
+            pass
+
+    date_str = (slips[0].get("date") if slips else "") or datetime.utcnow().strftime(
+        "%Y-%m-%d"
+    )
+    payload = {
+        "date": date_str,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "cdp_url": cdp_url,
+        "tickets_path": str(tickets_path),
+        "fields": fields,
+        "primary_field": "power_min_x",
+        "entry_amount": entry_amount,
+        "slips": captured,
+        "summary": {
+            "n_total": len(captured),
+            "n_ok": n_ok,
+            "n_partial": n_partial,
+            "n_failed": n_failed,
+            "n_strong": sum(1 for s in captured if s.get("slip_type") == "strong"),
+            "n_main": sum(1 for s in captured if s.get("slip_type") == "main"),
+        },
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    print(f"[PAYOUT] Saved -> {output_path}")
+    print(
+        f"[PAYOUT] ok={n_ok} partial={n_partial} failed={n_failed} "
+        f"(primary field=power_min_x)"
+    )
+    return 0 if (n_ok + n_partial) > 0 or not captured else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -1584,7 +1884,45 @@ def main():
     ap.add_argument("--entry-amount", type=float, default=1.0)
     ap.add_argument("--max-cases", type=int, default=100)
     ap.add_argument("--delay-sec", type=float, default=0.5)
+    ap.add_argument(
+        "--tickets",
+        default="",
+        help="combined_slate_tickets_YYYY-MM-DD.json — capture MAIN/STRONG slip payouts",
+    )
+    ap.add_argument(
+        "--output",
+        default="",
+        help="JSON output path (ticket-capture mode). Default: data/reports/payout_capture_<date>.json",
+    )
+    ap.add_argument(
+        "--fields",
+        default=",".join(DEFAULT_CAPTURE_FIELDS),
+        help="Comma list: power_min_x,power_first_x,min_guarantee,flex_min",
+    )
     args = ap.parse_args()
+
+    if str(args.tickets or "").strip():
+        tickets_path = Path(str(args.tickets).strip())
+        if not tickets_path.is_file():
+            raise SystemExit(f"[PAYOUT] tickets file not found: {tickets_path}")
+        fields = _parse_fields_arg(args.fields)
+        if str(args.output or "").strip():
+            output_path = Path(str(args.output).strip())
+        else:
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
+            date_tag = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
+            output_path = ROOT / "data" / "reports" / f"payout_capture_{date_tag}.json"
+        raise SystemExit(
+            capture_tickets_from_board(
+                tickets_path=tickets_path,
+                output_path=output_path,
+                fields=fields,
+                cdp_url=args.cdp_url,
+                entry_amount=float(args.entry_amount),
+                max_cases=int(args.max_cases),
+                delay_sec=float(args.delay_sec),
+            )
+        )
 
     legs = load_nba_legs(top_n=40)
     if len(legs) < 5:

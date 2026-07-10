@@ -44,7 +44,9 @@ param(
     [switch]$NoOverwrite,
     [string]$TicketModelMode = "",
     [double]$TicketModelWeight = 0.35,
-    [int]$TicketModelTopN = 10
+    [int]$TicketModelTopN = 10,
+    # When set, run STEP D1 ticket-model dataset/train/eval (default off — use on retrain days).
+    [switch]$RunTicketModels
 )
 
 $ErrorActionPreference = "Continue"
@@ -116,10 +118,20 @@ $TennisDate = if ($TennisDate -and $TennisDate.Trim()) {
 } else {
     (Get-Date $Today).AddDays(1).ToString('yyyy-MM-dd')
 }
-$TicketModelModeEffective = if ($TicketModelMode.Trim()) { $TicketModelMode.Trim().ToLowerInvariant() } elseif ([string]$env:TICKET_MODEL_MODE) { ([string]$env:TICKET_MODEL_MODE).Trim().ToLowerInvariant() } else { "shadow" }
-if (@("off", "shadow", "on") -notcontains $TicketModelModeEffective) {
-    Write-Warning "Invalid TicketModelMode '$TicketModelModeEffective' (expected off|shadow|on); defaulting to shadow"
-    $TicketModelModeEffective = "shadow"
+# Ticket-model train/eval is opt-in via -RunTicketModels (or TICKET_MODEL_MODE when that switch is set).
+$TicketModelModeEffective = "off"
+if ($RunTicketModels) {
+    $TicketModelModeEffective = if ($TicketModelMode.Trim()) {
+        $TicketModelMode.Trim().ToLowerInvariant()
+    } elseif ([string]$env:TICKET_MODEL_MODE) {
+        ([string]$env:TICKET_MODEL_MODE).Trim().ToLowerInvariant()
+    } else {
+        "shadow"
+    }
+    if (@("off", "shadow", "on") -notcontains $TicketModelModeEffective) {
+        Write-Warning "Invalid TicketModelMode '$TicketModelModeEffective' (expected off|shadow|on); defaulting to shadow"
+        $TicketModelModeEffective = "shadow"
+    }
 }
 $PqControlPercent = 10
 if ([string]$env:PROPORACLE_PQ_CONTROL_PERCENT) {
@@ -1091,7 +1103,9 @@ if ($script:PipelineFailed) {
     Push-Location $Root
     try {
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
-        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly
+        # SkipDailyGrader: yesterday already graded in STEP A; avoid a second full run_grader pass.
+        # grading handled by STEP A (run_grader.ps1) — not the post-pipeline grader here
+        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader
         $ce = $LASTEXITCODE
         # Success = combined Excel exists; exit code may be non-zero if only ticket_eval HTML failed (non-fatal)
         if (Test-Path $combinedOut) {
@@ -1130,6 +1144,10 @@ if ($script:PipelineFailed) {
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D1 - Ticket model refresh/eval: SKIPPED (pipeline failed)"
+}
+elseif (-not $RunTicketModels) {
+    Write-Host "  [SKIP] Ticket models -- set -RunTicketModels to run" -ForegroundColor DarkGray
+    Write-Log "STEP D1 - Ticket model refresh/eval: SKIPPED (pass -RunTicketModels on retrain days)"
 }
 else {
     Write-Log "STEP D1 - Ticket model refresh/eval: START (mode=$TicketModelModeEffective)"

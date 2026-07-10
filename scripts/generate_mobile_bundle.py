@@ -4,10 +4,13 @@ import shutil
 import re
 import json
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import combined_slate_tickets
+
+# Dated grade/ticket artifacts kept in mobile/www (plus always-copied *_latest.*).
+MAX_DATED_DAYS = 7
 
 _ROOT_FOR_UTILS = Path(__file__).resolve().parent.parent
 if str(_ROOT_FOR_UTILS) not in sys.path:
@@ -49,6 +52,45 @@ def _first_existing_path(candidates):
         if p is not None and Path(p).exists():
             return Path(p)
     return None
+
+
+def _copy_dated_artifacts_capped(
+    templates_dir: Path,
+    mobile_www: Path,
+    pattern: str,
+    date_re: str,
+    *,
+    max_days: int = MAX_DATED_DAYS,
+) -> tuple[list[str], int]:
+    """Copy dated files matching pattern; keep only the newest max_days dates.
+
+    Also deletes older matching dated files already present under mobile_www.
+    Returns (kept_dates_desc, pruned_count).
+    """
+    dated: list[tuple[str, Path]] = []
+    for src in templates_dir.glob(pattern):
+        m = re.fullmatch(date_re, src.name)
+        if not m:
+            continue
+        dated.append((m.group(1), src))
+    dated.sort(key=lambda x: x[0], reverse=True)
+    keep = {d for d, _ in dated[:max_days]}
+    for d, src in dated:
+        if d in keep:
+            shutil.copy2(src, mobile_www / src.name)
+
+    pruned = 0
+    for existing in mobile_www.glob(pattern):
+        m = re.fullmatch(date_re, existing.name)
+        if not m:
+            continue
+        if m.group(1) not in keep:
+            try:
+                existing.unlink()
+                pruned += 1
+            except OSError:
+                pass
+    return sorted(keep, reverse=True), pruned
 
 
 def _mtime_utc_string(path: Path | None) -> str:
@@ -881,30 +923,35 @@ async function fetch_smart(localPath) {
         else:
             print(f"WARNING: {src_path} not found, skipping...")
 
-    # Copy dated grade report files for offline/mobile date navigation.
-    report_dates = []
-    for report_path in sorted(TEMPLATES_DIR.glob("slate_eval_*.html")):
-        shutil.copy2(report_path, MOBILE_WWW_DIR / report_path.name)
-        # Keep YYYY-MM-DD only.
-        stem = report_path.stem.replace("slate_eval_", "")
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", stem):
-            report_dates.append(stem)
+    # Copy dated grade report files for offline/mobile date navigation (last N days only).
+    pruned_total = 0
+    report_dates, n = _copy_dated_artifacts_capped(
+        TEMPLATES_DIR,
+        MOBILE_WWW_DIR,
+        "slate_eval_*.html",
+        r"slate_eval_(\d{4}-\d{2}-\d{2})\.html",
+    )
+    pruned_total += n
 
-    ticket_eval_dates = []
-    for ticket_path in sorted(TEMPLATES_DIR.glob("ticket_eval_*.html")):
-        shutil.copy2(ticket_path, MOBILE_WWW_DIR / ticket_path.name)
-        stem = ticket_path.stem.replace("ticket_eval_", "")
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", stem):
-            ticket_eval_dates.append(stem)
+    ticket_eval_dates, n = _copy_dated_artifacts_capped(
+        TEMPLATES_DIR,
+        MOBILE_WWW_DIR,
+        "ticket_eval_*.html",
+        r"ticket_eval_(\d{4}-\d{2}-\d{2})\.html",
+    )
+    pruned_total += n
 
-    graded_props_dates = []
+    graded_props_dates, n = _copy_dated_artifacts_capped(
+        TEMPLATES_DIR,
+        MOBILE_WWW_DIR,
+        "graded_props_*.json",
+        r"graded_props_(\d{4}-\d{2}-\d{2})\.json",
+    )
+    pruned_total += n
+
     archive_row_counts = {}
-    for gp in sorted(TEMPLATES_DIR.glob("graded_props_*.json")):
-        shutil.copy2(gp, MOBILE_WWW_DIR / gp.name)
-        stem = gp.stem.replace("graded_props_", "")
-        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", stem):
-            continue
-        graded_props_dates.append(stem)
+    for stem in graded_props_dates:
+        gp = TEMPLATES_DIR / f"graded_props_{stem}.json"
         try:
             j = json.loads(gp.read_text(encoding="utf-8"))
             rows = j.get("props") if isinstance(j, dict) else []
@@ -913,12 +960,28 @@ async function fetch_smart(localPath) {
             archive_row_counts[stem] = 0
 
     # Copy uniform-bucket ticket artifacts (built by build_uniform_tickets_artifacts.py).
-    uniform_ticket_dates = []
-    for ut in sorted(TEMPLATES_DIR.glob("uniform_tickets_*.json")):
-        shutil.copy2(ut, MOBILE_WWW_DIR / ut.name)
-        m = re.fullmatch(r"uniform_tickets_(\d{4}-\d{2}-\d{2})\.json", ut.name)
-        if m:
-            uniform_ticket_dates.append(m.group(1))
+    uniform_ticket_dates, n = _copy_dated_artifacts_capped(
+        TEMPLATES_DIR,
+        MOBILE_WWW_DIR,
+        "uniform_tickets_*.json",
+        r"uniform_tickets_(\d{4}-\d{2}-\d{2})\.json",
+    )
+    pruned_total += n
+    # Always keep non-dated latest/backtest helpers if present in templates.
+    for latest_name in (
+        "uniform_tickets_latest.json",
+        "uniform_tickets_dates.json",
+        "uniform_tickets_backtest.json",
+    ):
+        src_latest = TEMPLATES_DIR / latest_name
+        if src_latest.exists():
+            shutil.copy2(src_latest, MOBILE_WWW_DIR / latest_name)
+
+    if pruned_total:
+        print(f"[mobile] pruned {pruned_total} old dated files (kept last {MAX_DATED_DAYS} days)")
+    else:
+        print(f"[mobile] dated artifacts capped to last {MAX_DATED_DAYS} days (nothing to prune)")
+
     if uniform_ticket_dates and not (MOBILE_WWW_DIR / "uniform_tickets_dates.json").exists():
         (MOBILE_WWW_DIR / "uniform_tickets_dates.json").write_text(
             json.dumps(

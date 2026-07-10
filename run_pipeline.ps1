@@ -1998,31 +1998,41 @@ if ($NBAOnly) {
 # =============================================================================
 #  FULL PARALLEL RUN  (NBA + CBB + NHL + Soccer + MLB + NFL [+ WNBA when in season])
 # =============================================================================
-if ($RefreshCache) {
-    Write-Host "  [Cache] Wiping ESPN cache files..." -ForegroundColor Yellow
-    Remove-Item (Join-Path $NBADir "nba_espn_boxscore_cache.csv") -Force -ErrorAction SilentlyContinue
-    Remove-Item (Join-Path $NBADir "nba_to_espn_id_map.csv")      -Force -ErrorAction SilentlyContinue
-    Write-Host "  [Cache] Done." -ForegroundColor Green
+if ($NBAOffSeason -and $NHLOffSeason) {
+    Write-Host "  [SKIP] NBA/NHL off-season -- skipping DB backfill and cache refresh" -ForegroundColor DarkGray
     Write-Host ""
 } else {
-    Check-AutoRefreshCache
+    if ($RefreshCache -and -not $NBAOffSeason) {
+        Write-Host "  [Cache] Wiping ESPN cache files..." -ForegroundColor Yellow
+        Remove-Item (Join-Path $NBADir "nba_espn_boxscore_cache.csv") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $NBADir "nba_to_espn_id_map.csv")      -Force -ErrorAction SilentlyContinue
+        Write-Host "  [Cache] Done." -ForegroundColor Green
+        Write-Host ""
+    } elseif (-not $NBAOffSeason) {
+        Check-AutoRefreshCache
+    } else {
+        Write-Host "  [SKIP] NBA off-season -- skipping NBA cache refresh" -ForegroundColor DarkGray
+    }
+
+    # -- Backfill boxscore DB for last 3 days (active sports only) ------------
+    Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
+    Write-Host "  Syncing proporacle_ref.db for last 3 days..." -ForegroundColor DarkGray
+    $backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
+    if (Test-Path $backfillScript) {
+        $bfSports = @("soccer")
+        if (-not $NBAOffSeason) { $bfSports = @("nba") + $bfSports }
+        if (-not $NHLOffSeason) { $bfSports = @("nhl") + $bfSports }
+        $bfSportsArg = ($bfSports -join " ")
+        $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports $bfSportsArg" 2>&1
+        foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
+        Write-Host "  DB backfill complete ($bfSportsArg)." -ForegroundColor Green
+    } else {
+        Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
+    }
+    Write-Host ""
 }
 
 if (Test-Path (Join-Path $NBADir "RUN_COMPLETE.flag")) { Remove-Item (Join-Path $NBADir "RUN_COMPLETE.flag") -Force }
-
-# -- Backfill boxscore DB for last 3 days (all sports) ------------------------
-Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
-Write-Host "  Syncing proporacle_ref.db for last 3 days..." -ForegroundColor DarkGray
-$backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
-if (Test-Path $backfillScript) {
-    $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports nba nhl soccer" 2>&1
-    foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
-    Write-Host "  DB backfill complete." -ForegroundColor Green
-} else {
-    Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
-}
-Write-Host ""
-
 $wnbaParallel = ($ForceWNBA.IsPresent -or ($Date -ge $WNBA_SEASON_START))
 if (-not $wnbaParallel) {
     Write-Host "  [WNBA] Parallel job skipped until $WNBA_SEASON_START (use -ForceWNBA to run early)." -ForegroundColor DarkGray

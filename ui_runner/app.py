@@ -2553,6 +2553,110 @@ def _graded_props_json_path_for_date(date_str: str) -> Path | None:
     return None
 
 
+# mtime-keyed caches for /api/graded-props (avoid re-parse + reconcile every hit).
+_graded_props_payload_cache: dict[str, dict[str, Any]] = {}
+_graded_props_summary_cache: dict[str, dict[str, Any]] = {}
+
+
+def _build_graded_props_payload(path: Path, date_q: str) -> dict[str, Any]:
+    """Load + reconcile graded_props JSON (cached by caller via mtime key)."""
+    data = json.loads(path.read_text(encoding="utf-8-sig"))
+    if not isinstance(data, dict):
+        raise ValueError("expected object")
+    props_in = list(data.get("props") or [])
+    props_out: list[dict[str, Any]] = []
+    for p in props_in:
+        if not isinstance(p, dict):
+            continue
+        row = dict(p)
+        if row.get("actual_value") in (None, "") and row.get("actual") not in (None, ""):
+            row["actual_value"] = row.get("actual")
+        if row.get("direction") in (None, "") and row.get("dir") not in (None, ""):
+            row["direction"] = row.get("dir")
+        if row.get("void_reason") in (None, "") and row.get("void_reason_grade") not in (
+            None,
+            "",
+        ):
+            row["void_reason"] = row.get("void_reason_grade")
+        row = reconcile_props_history_dict(row)
+        res_u = str(row.get("result") or "").strip().upper()
+        if res_u in ("HIT", "MISS", "PUSH"):
+            row["void_reason"] = ""
+        props_out.append(row)
+    out = dict(data)
+    out["props"] = props_out
+    out["count"] = len(props_out)
+    out.setdefault("date", date_q)
+    return out
+
+
+def _graded_props_payload_cached(path: Path, date_q: str) -> dict[str, Any]:
+    try:
+        mtime = path.stat().st_mtime
+    except OSError:
+        mtime = 0.0
+    key = f"{path.resolve()}|{mtime}"
+    hit = _graded_props_payload_cache.get(key)
+    if hit is not None:
+        return hit
+    payload = _build_graded_props_payload(path, date_q)
+    # Keep only the latest entry per date path prefix to bound memory.
+    prefix = str(path.resolve()) + "|"
+    for old in list(_graded_props_payload_cache.keys()):
+        if old.startswith(prefix) and old != key:
+            _graded_props_payload_cache.pop(old, None)
+    _graded_props_payload_cache[key] = payload
+    return payload
+
+
+def _graded_props_quick_summary(path: Path, date_q: str) -> dict[str, Any]:
+    """Lightweight summary for date probing — no reconcile loop."""
+    try:
+        mtime = path.stat().st_mtime
+    except OSError:
+        mtime = 0.0
+    key = f"sum|{path.resolve()}|{mtime}"
+    hit = _graded_props_summary_cache.get(key)
+    if hit is not None:
+        return hit
+    data = json.loads(path.read_text(encoding="utf-8-sig"))
+    props = data.get("props") if isinstance(data, dict) else []
+    if not isinstance(props, list):
+        props = []
+    decided = 0
+    hits = misses = voids = 0
+    for p in props:
+        if not isinstance(p, dict):
+            continue
+        r = str(p.get("result") or "").strip().upper()
+        if r == "HIT":
+            hits += 1
+            decided += 1
+        elif r == "MISS":
+            misses += 1
+            decided += 1
+        elif r == "VOID":
+            voids += 1
+    payload = {
+        "date": date_q,
+        "exists": True,
+        "missing": False,
+        "count": len(props),
+        "decided": decided,
+        "hits": hits,
+        "misses": misses,
+        "voids": voids,
+        "mtime": mtime,
+        "path": path.name,
+    }
+    prefix = f"sum|{path.resolve()}|"
+    for old in list(_graded_props_summary_cache.keys()):
+        if old.startswith(prefix) and old != key:
+            _graded_props_summary_cache.pop(old, None)
+    _graded_props_summary_cache[key] = payload
+    return payload
+
+
 GRADES_HTML_INITIAL_ROWS = 500
 
 
@@ -2857,6 +2961,51 @@ def _props_from_ticket_eval_html(date_q: str) -> list[dict[str, str]]:
     return props
 
 
+@app.get("/api/graded-props/summary")
+def api_graded_props_summary():
+    """Lightweight graded-props meta for date probing (no full prop payload)."""
+    date_q = (request.args.get("date") or "").strip()
+    if not date_q or not re.match(r"^\d{4}-\d{2}-\d{2}$", date_q):
+        return jsonify(
+            {"error": "missing_or_invalid_date", "detail": "Use ?date=YYYY-MM-DD"}
+        ), 400
+    path = _graded_props_json_path_for_date(date_q)
+    if path is None:
+        # Ticket-eval HTML fallback: existence only (avoid parsing HTML on every probe).
+        te = TEMPLATES_DIR / f"ticket_eval_{date_q}.html"
+        if te.is_file():
+            r = jsonify(
+                {
+                    "date": date_q,
+                    "exists": True,
+                    "missing": False,
+                    "count": None,
+                    "decided": None,
+                    "source": "ticket_eval_html",
+                }
+            )
+        else:
+            r = jsonify(
+                {
+                    "date": date_q,
+                    "exists": False,
+                    "missing": True,
+                    "count": 0,
+                    "decided": 0,
+                }
+            )
+        r.headers["Cache-Control"] = "public, max-age=30"
+        return r
+    try:
+        payload = _graded_props_quick_summary(path, date_q)
+        r = jsonify(payload)
+        r.headers["Cache-Control"] = "public, max-age=60"
+        r.headers["ETag"] = f'W/"gp-sum-{date_q}-{payload.get("mtime")}"'
+        return r
+    except Exception as exc:
+        return jsonify({"error": "read_failed", "detail": str(exc)}), 500
+
+
 @app.get("/api/graded-props")
 def api_graded_props():
     """JSON list of graded props for a slate date (from graded_props_YYYY-MM-DD.json)."""
@@ -2865,13 +3014,8 @@ def api_graded_props():
         return jsonify(
             {"error": "missing_or_invalid_date", "detail": "Use ?date=YYYY-MM-DD"}
         ), 400
-    fname = f"graded_props_{date_q}.json"
-    path = TEMPLATES_DIR / fname
-    if not path.exists() and ARCHIVE_DIR.exists():
-        alt = ARCHIVE_DIR / fname
-        if alt.exists():
-            path = alt
-    if not path.exists():
+    path = _graded_props_json_path_for_date(date_q)
+    if path is None:
         legs = _props_from_ticket_eval_html(date_q)
         if legs:
             return jsonify(
@@ -2887,37 +3031,19 @@ def api_graded_props():
             {"date": date_q, "count": 0, "props": [], "missing": True}
         )
     try:
-        data = json.loads(path.read_text(encoding="utf-8-sig"))
-        if isinstance(data, dict):
-            # Normalize stale graded_props bundles so Prop Evaluation does not show
-            # VOID_* eligibility flags as active when actual+line reconcile to HIT/MISS.
-            props_in = list(data.get("props") or [])
-            props_out: list[dict[str, Any]] = []
-            for p in props_in:
-                if not isinstance(p, dict):
-                    continue
-                row = dict(p)
-                if row.get("actual_value") in (None, "") and row.get("actual") not in (None, ""):
-                    row["actual_value"] = row.get("actual")
-                if row.get("direction") in (None, "") and row.get("dir") not in (None, ""):
-                    row["direction"] = row.get("dir")
-                if row.get("void_reason") in (None, "") and row.get("void_reason_grade") not in (None, ""):
-                    row["void_reason"] = row.get("void_reason_grade")
-                row = reconcile_props_history_dict(row)
-                res_u = str(row.get("result") or "").strip().upper()
-                if res_u in ("HIT", "MISS", "PUSH"):
-                    # Keep legacy eligibility flags for archives, but don't surface as active voids
-                    # once the row has a reconciled game result.
-                    row["void_reason"] = ""
-                props_out.append(row)
-            out = dict(data)
-            out["props"] = props_out
-            out["count"] = len(props_out)
-            return jsonify(out)
-        return jsonify({"error": "invalid_shape", "detail": "expected object"}), 500
-    except Exception as exc:
-        return jsonify({"error": "read_failed", "detail": str(exc)}), 500
+        mtime = path.stat().st_mtime
+    except OSError:
+        mtime = 0.0
 
+    def _build():
+        return _graded_props_payload_cached(path, date_q)
+
+    # mtime in cache key → file rewrite busts gzip cache; TTL is a safety bound only.
+    return _gz_json_response(
+        f"graded-props:{date_q}:{mtime}",
+        _build,
+        ttl=3600.0,
+    )
 
 def _iter_props_history_db_paths():
     cache = BASE_DIR / "data" / "cache"

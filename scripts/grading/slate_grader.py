@@ -1711,12 +1711,15 @@ def main():
 
     try:
         tpl = _REPO_ROOT / "ui_runner" / "templates"
-        from ticket_leg_index import attach_ticket_ids_to_dataframe  # noqa: WPS433
+        from ticket_leg_index import (  # noqa: WPS433
+            attach_ticket_ids_to_dataframe,
+            resolve_shadow_tickets_path,
+        )
 
         df = attach_ticket_ids_to_dataframe(
             df,
             live_json=tpl / "tickets_latest.json",
-            shadow_json=tpl / "shadow_tickets_latest.json",
+            shadow_json=resolve_shadow_tickets_path(_REPO_ROOT),
         )
     except Exception as exc:
         if "ticket_id" not in df.columns:

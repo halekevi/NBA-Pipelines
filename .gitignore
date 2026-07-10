@@ -129,11 +129,17 @@ ui_runner/templates/ticket_eval_long_parlay_*.html
 ui_runner/templates/graded_props_*.json
 ui_runner/templates/graded_analysis_tabs_*.xlsx
 ui_runner/templates/winrate_goblin_opt3_shadow_*.json
+# Never keep NoOverwrite / pipeline bak snapshots in templates (serve path)
+ui_runner/templates/*.bak_*
+ui_runner/templates/*bak_*
 ui_runner/data/combined_slate_tickets_*.json
 ui_runner/data/combined_slate_tickets_high_leg_*.json
 ui_runner/data/combined_slate_tickets_long_parlay_*.json
 ui_runner/data/combined_slate_tickets_winrate_*.json
 !ui_runner/data/*_latest.json
+# Fat shadow ticket dumps live under data/ (not templates/)
+ui_runner/data/shadow_tickets_latest.json
+ui_runner/templates/shadow_tickets_latest.json
 
 # Sports injury/matchup caches (dated JSON/CSV)
 Sports/*/data/*_cache.json

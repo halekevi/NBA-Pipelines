@@ -37,6 +37,7 @@ def backfill(path: Path) -> tuple[int, int]:
 def main() -> int:
     targets = [
         _REPO / "ui_runner" / "templates" / "tickets_latest.json",
+        _REPO / "ui_runner" / "data" / "shadow_tickets_latest.json",
         _REPO / "ui_runner" / "templates" / "shadow_tickets_latest.json",
         _REPO / "mobile" / "www" / "tickets_latest.json",
     ]

@@ -5,12 +5,18 @@ Flask blueprint: /api/hot-players and /api/player-consistency
 from __future__ import annotations
 
 import json
+import time
 from datetime import date
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
 
 consistency_bp = Blueprint("consistency", __name__)
+
+# Response cache for /api/hot-players (avoid re-parsing multi-MB slate every hit).
+_HOT_PLAYERS_TTL_SEC = 300.0
+_hot_players_resp_cache: dict = {"key": None, "payload": None, "expires": 0.0}
+_slate_pairs_cache: dict = {"mtime": -1.0, "names": set(), "pairs": set()}
 
 def _repo_root() -> Path:
     """Repo root whether loaded as ui_runner.routes or routes (cwd = ui_runner)."""
@@ -166,6 +172,22 @@ def _load_live_today_slate() -> tuple[set[str], set[tuple[str, str]]]:
         return set(), set()
 
 
+def _load_live_today_slate_cached() -> tuple[set[str], set[tuple[str, str]]]:
+    """Cache slate name/pair sets by slate_latest.json mtime."""
+    slate_path = REPO_ROOT / "ui_runner" / "templates" / "slate_latest.json"
+    try:
+        mtime = slate_path.stat().st_mtime if slate_path.is_file() else 0.0
+    except OSError:
+        mtime = 0.0
+    if mtime == _slate_pairs_cache["mtime"] and _slate_pairs_cache["mtime"] >= 0:
+        return _slate_pairs_cache["names"], _slate_pairs_cache["pairs"]
+    names, pairs = _load_live_today_slate()
+    _slate_pairs_cache["mtime"] = mtime
+    _slate_pairs_cache["names"] = names
+    _slate_pairs_cache["pairs"] = pairs
+    return names, pairs
+
+
 def _player_on_live_slate(p: dict, slate_pairs: set[tuple[str, str]]) -> bool:
     if not slate_pairs:
         return False
@@ -179,10 +201,30 @@ def hot_players():
     sport = request.args.get("sport")
     limit = min(int(request.args.get("limit", 5)), 20)
 
-    data = load_consistency_cache(force_reload=True)
+    path = _cache_path()
+    try:
+        cons_mtime = path.stat().st_mtime if path.is_file() else 0.0
+    except OSError:
+        cons_mtime = 0.0
+    slate_path = REPO_ROOT / "ui_runner" / "templates" / "slate_latest.json"
+    try:
+        slate_mtime = slate_path.stat().st_mtime if slate_path.is_file() else 0.0
+    except OSError:
+        slate_mtime = 0.0
+
+    cache_key = (cons_mtime, slate_mtime, sport or "", limit, str(date.today()))
+    now = time.time()
+    if (
+        _hot_players_resp_cache["key"] == cache_key
+        and _hot_players_resp_cache["payload"] is not None
+        and now < float(_hot_players_resp_cache["expires"])
+    ):
+        return jsonify(_hot_players_resp_cache["payload"])
+
+    data = load_consistency_cache(force_reload=False)
     players = data.get("players", [])
 
-    _slate_names, slate_pairs = _load_live_today_slate()
+    _slate_names, slate_pairs = _load_live_today_slate_cached()
     today = [
         p
         for p in players
@@ -200,15 +242,17 @@ def hot_players():
         if len(by_sport[s]) < limit:
             by_sport[s].append(_enrich_hot_player(p))
 
-    return jsonify(
-        {
-            "date": str(date.today()),
-            "generated_at": data.get("generated_at"),
-            "cache_path": str(_cache_path()),
-            "sports": by_sport,
-            "total_featured": sum(len(v) for v in by_sport.values()),
-        }
-    )
+    payload = {
+        "date": str(date.today()),
+        "generated_at": data.get("generated_at"),
+        "cache_path": str(_cache_path()),
+        "sports": by_sport,
+        "total_featured": sum(len(v) for v in by_sport.values()),
+    }
+    _hot_players_resp_cache["key"] = cache_key
+    _hot_players_resp_cache["payload"] = payload
+    _hot_players_resp_cache["expires"] = now + _HOT_PLAYERS_TTL_SEC
+    return jsonify(payload)
 
 
 @consistency_bp.route("/api/hot-players/track-record")

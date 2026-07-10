@@ -6,7 +6,7 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate → (D-payout) optional CDP live payout capture → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
          Tennis: -TennisDate defaults to slate -Date (ET match-day for step8); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
@@ -1139,6 +1139,72 @@ if ($script:PipelineFailed) {
     }
     finally {
         Pop-Location
+    }
+}
+
+# =============================================================================
+# STEP D-payout — Optional live PrizePicks payout capture (CDP Chrome already up)
+# Non-blocking: skip when CDP is down; WARN and continue on capture failure.
+# Captures power_min_x (primary floor) + power_first_x / min_guarantee / flex_min
+# for MAIN + STRONG slips from combined_slate_tickets_<date>.json.
+# =============================================================================
+if ($script:PipelineFailed) {
+    Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
+}
+else {
+    $payoutTickets = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Today.json"
+    if (-not (Test-Path -LiteralPath $payoutTickets)) {
+        $payoutTicketsAlt = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.json"
+        if (Test-Path -LiteralPath $payoutTicketsAlt) {
+            $payoutTickets = $payoutTicketsAlt
+        }
+    }
+    $payoutScript = Join-Path $Root "scripts\collect_payout_data.py"
+    $payoutOut = Join-Path $Root "data\reports\payout_capture_$Today.json"
+    $cdpUp = $false
+    try {
+        $null = Invoke-WebRequest -Uri "http://127.0.0.1:9222/json" -TimeoutSec 2 -ErrorAction Stop
+        $cdpUp = $true
+    }
+    catch { }
+
+    if (-not $cdpUp) {
+        Write-Host "  [PAYOUT] CDP not running -- skipping payout capture" -ForegroundColor DarkGray
+        Write-Log "STEP D-payout - Live payout capture: SKIPPED (CDP not on :9222)"
+    }
+    elseif (-not (Test-Path -LiteralPath $payoutScript)) {
+        Write-Host "  [PAYOUT] WARN: collect_payout_data.py missing" -ForegroundColor Yellow
+        Write-Log "STEP D-payout - Live payout capture: SKIPPED (script missing)"
+    }
+    elseif (-not (Test-Path -LiteralPath $payoutTickets)) {
+        Write-Host "  [PAYOUT] WARN: combined tickets JSON missing -- skip" -ForegroundColor Yellow
+        Write-Log "STEP D-payout - Live payout capture: SKIPPED (no tickets JSON)"
+    }
+    else {
+        Write-Host "  [PAYOUT] CDP Chrome detected -- capturing live payouts" -ForegroundColor Cyan
+        Write-Log "STEP D-payout - Live payout capture: START -> $payoutTickets"
+        Push-Location $Root
+        try {
+            & py -3.14 -X utf8 $payoutScript `
+                --tickets $payoutTickets `
+                --output $payoutOut `
+                --fields "power_min_x,power_first_x,min_guarantee,flex_min"
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "  [PAYOUT] Saved -> data/reports/payout_capture_$Today.json" -ForegroundColor Green
+                Write-Log "STEP D-payout - Live payout capture: OK -> $payoutOut"
+            }
+            else {
+                Write-Host "  [PAYOUT] WARN: payout capture failed (non-blocking)" -ForegroundColor Yellow
+                Write-Log "STEP D-payout - Live payout capture: WARN (exit $LASTEXITCODE)"
+            }
+        }
+        catch {
+            Write-Host "  [PAYOUT] WARN: payout capture error (non-blocking)" -ForegroundColor Yellow
+            Write-Log "STEP D-payout - Live payout capture: WARN ($($_.Exception.Message))"
+        }
+        finally {
+            Pop-Location
+        }
     }
 }
 

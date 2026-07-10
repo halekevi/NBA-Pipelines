@@ -119,6 +119,7 @@ mobile/www/winrate_goblin_opt3_*.json
 data/reports/void_validator/
 data/reports/miss_attribution/
 data/reports/hot_players/
+data/reports/payout_capture_*.json
 data/hot_players/
 
 # ui_runner dated artifacts (keep hand-authored templates + *_latest.json)

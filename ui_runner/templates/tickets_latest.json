@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10 10:38:12 UTC",
+  "generated_at": "2026-07-10 13:26:25 UTC",
   "date": "2026-07-10",
   "tennis_date": "2026-07-11",
   "filters": {
@@ -26,15 +26,11 @@
       "4": 0.79,
       "5": 0.81,
       "6": 0.83
-    },
-    "main_min_leg_prob": 0.62,
-    "goblin_only": true,
-    "main_default_legs": 3,
-    "pool_mode": "goblin_only_3leg"
+    }
   },
   "bankroll": null,
   "ticket_track": "graded_main",
-  "mode": "graded_main",
+  "mode": "main",
   "groups": [
     {
       "group_name": "STRONG Goblin HOT",
@@ -5373,21 +5369,11 @@
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.048906,
           "empirical_recommendation": "SKIP"
-        }
-      ],
-      "hot_legs": 3,
-      "cold_legs": 0
-    },
-    {
-      "group_name": "WNBA 3-Leg Goblin",
-      "n_legs": 3,
-      "power_payout": 0.84,
-      "flex_payout": 0.42,
-      "tickets": [
+        },
         {
           "web_group_name": "WNBA 3-Leg Goblin",
           "ticket_id": "2026-07-10|WNBA 3-Leg Goblin|1",
-          "ticket_no": 1,
+          "ticket_no": 2,
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.7999999999999999,
@@ -6296,21 +6282,11 @@
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.055944,
           "empirical_recommendation": "SKIP"
-        }
-      ],
-      "hot_legs": 3,
-      "cold_legs": 0
-    },
-    {
-      "group_name": "WNBA 3-Leg Goblin",
-      "n_legs": 3,
-      "power_payout": 0.97,
-      "flex_payout": 0.49,
-      "tickets": [
+        },
         {
           "web_group_name": "WNBA 3-Leg Goblin",
           "ticket_id": "2026-07-10|WNBA 3-Leg Goblin|1",
-          "ticket_no": 1,
+          "ticket_no": 2,
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.7833333333333333,
@@ -6757,21 +6733,11 @@
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.055944,
           "empirical_recommendation": "SKIP"
-        }
-      ],
-      "hot_legs": 3,
-      "cold_legs": 0
-    },
-    {
-      "group_name": "WNBA 3-Leg Goblin",
-      "n_legs": 3,
-      "power_payout": 0.97,
-      "flex_payout": 0.49,
-      "tickets": [
+        },
         {
           "web_group_name": "WNBA 3-Leg Goblin",
           "ticket_id": "2026-07-10|WNBA 3-Leg Goblin|1",
-          "ticket_no": 1,
+          "ticket_no": 3,
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.7833333333333333,
@@ -7224,25 +7190,14 @@
       "cold_legs": 0
     }
   ],
-  "hot_legs": 45,
+  "hot_legs": 0,
   "cold_legs": 0,
   "tier_ev_thresholds": {
-    "strong": 0.51895,
-    "ok": 0.35342000000000007,
-    "marginal": 0.224
+    "strong": 1.4,
+    "ok": 1.15,
+    "marginal": 1.0
   },
-  "tier_ev_thresholds_by_legs": {
-    "2": {
-      "strong": 0.5287000000000001,
-      "ok": 0.4328,
-      "marginal": 0.29686999999999997
-    },
-    "3": {
-      "strong": 0.51895,
-      "ok": 0.35342000000000007,
-      "marginal": 0.224
-    }
-  },
+  "tier_ev_thresholds_by_legs": {},
   "tier_ev_percentiles": {
     "strong": 85.0,
     "ok": 60.0,
@@ -7258,25 +7213,21 @@
     "require_hot_streak": true
   },
   "strong_gate_stats": {
-    "legs_checked": 30,
+    "legs_checked": 0,
     "failed_goblin": 0,
     "failed_tier": 0,
     "failed_streak": 0
   },
-  "max_legs": 4,
-  "sort": "p_win",
-  "main_source": "win_rate",
-  "main_allowed_sports": [
-    "NBA",
-    "NBA1H",
-    "NBA1Q",
-    "WNBA"
-  ],
-  "main_min_leg_prob": 0.62,
-  "main_min_ml_prob_leg": 0.58,
-  "goblin_only": true,
-  "pool_mode": "goblin_only_3leg",
-  "main_default_legs": 3,
-  "main_thin_pool_min_legs": 6,
-  "strong_builder_count": 15
+  "main_min_p_win_floor": 0.33,
+  "main_max_slips": 15,
+  "main_exclude_sports": [
+    "CBB",
+    "CFB",
+    "MLB",
+    "NFL",
+    "NHL",
+    "SOCCER",
+    "TENNIS",
+    "WCBB"
+  ]
 }

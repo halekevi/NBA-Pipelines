@@ -10,6 +10,17 @@ from typing import Any
 
 import pandas as pd
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def resolve_shadow_tickets_path(repo_root: Path | None = None) -> Path:
+    """Prefer ui_runner/data/shadow_tickets_latest.json; fall back to templates/."""
+    root = Path(repo_root) if repo_root else _REPO_ROOT
+    data_path = root / "ui_runner" / "data" / "shadow_tickets_latest.json"
+    if data_path.is_file():
+        return data_path
+    return root / "ui_runner" / "templates" / "shadow_tickets_latest.json"
+
 
 def _norm_player(s: object) -> str:
     return re.sub(r"\s+", " ", str(s or "").strip().lower())

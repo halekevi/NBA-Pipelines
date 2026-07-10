@@ -4914,8 +4914,15 @@ function sortSlate(sport, key) {
 }
 
 function filterSlate(sport, val) {
+  if (!SLATE_STATE[sport]) return;
   SLATE_STATE[sport].search = val;
-  scheduleRenderSlateTable(sport);
+  if (!window.__slateFilterDebounce) window.__slateFilterDebounce = {};
+  const timers = window.__slateFilterDebounce;
+  if (timers[sport]) window.clearTimeout(timers[sport]);
+  timers[sport] = window.setTimeout(() => {
+    timers[sport] = null;
+    scheduleRenderSlateTable(sport);
+  }, 300);
 }
 
 function toggleDirFilter(sport, dir, btn) {
@@ -5193,23 +5200,13 @@ function sortSlateDynamic(sport, key) {
   scheduleRenderSlateTable(sport);
 }
 
-// Keep edge/streak sections populated and warm slate panel with NBA first.
+// Keep edge/streak sections populated; warm only the default sport (lazy-load others on tab open).
 (function bootHomeSlateUi() {
   try {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     loadSlateData();
     fetchSlateSport(getDefaultBootSlateSport());
-    window.setTimeout(() => {
-      try {
-        if (!SLATE_SPORT_CACHE.soccer) fetchSlateSport('soccer', {prefetch: true});
-        if (!SLATE_SPORT_CACHE.mlb) fetchSlateSport('mlb', {prefetch: true});
-        if (!SLATE_SPORT_CACHE.tennis) fetchSlateSport('tennis', {prefetch: true});
-        if (!SLATE_SPORT_CACHE.wnba) fetchSlateSport('wnba', {prefetch: true});
-      } catch (e2) {
-        console.warn("prefetch slate sports:", e2);
-      }
-    }, 3000);
   } catch (e) {
     console.error("home slate UI boot:", e);
   }

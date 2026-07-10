@@ -161,6 +161,14 @@ function Write-Log([string]$Message) {
 
 function Get-VersionedPath([string]$Path) {
     $dir = Split-Path -Parent $Path
+    # Never drop *.bak_* next to live templates (Flask/OneDrive thrash).
+    $templatesDir = Join-Path $Root "ui_runner\templates"
+    if ($dir -and ($dir -eq $templatesDir -or $dir.StartsWith(($templatesDir.TrimEnd('\') + '\')))) {
+        $dir = Join-Path $Root "ui_runner\data\backups"
+        if (-not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+    }
     $name = [System.IO.Path]::GetFileNameWithoutExtension($Path)
     $ext = [System.IO.Path]::GetExtension($Path)
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"

@@ -6419,7 +6419,7 @@ def _write_winrate_goblin_opt3_shadow_snapshot(payload: dict, date_str: str) -> 
     latest = os.path.join(
         REPO_ROOT,
         "ui_runner",
-        "templates",
+        "data",
         "winrate_goblin_opt3_shadow_latest.json",
     )
     _write_json_file(dated, payload)

@@ -745,13 +745,15 @@ def export_graded_props_json(
         from ticket_leg_index import (  # noqa: WPS433
             load_leg_key_to_ticket_id,
             load_ticket_leg_keys,
+            resolve_shadow_tickets_path,
         )
 
         tpl = ROOT_DIR / "ui_runner" / "templates"
+        shadow_path = resolve_shadow_tickets_path(ROOT_DIR)
         live_keys = load_ticket_leg_keys(tpl / "tickets_latest.json")
-        shadow_keys = load_ticket_leg_keys(tpl / "shadow_tickets_latest.json")
+        shadow_keys = load_ticket_leg_keys(shadow_path)
         live_id_map = load_leg_key_to_ticket_id(tpl / "tickets_latest.json")
-        shadow_id_map = load_leg_key_to_ticket_id(tpl / "shadow_tickets_latest.json")
+        shadow_id_map = load_leg_key_to_ticket_id(shadow_path)
     except Exception:
         pass
 

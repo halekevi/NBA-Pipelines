@@ -1158,7 +1158,8 @@ function Run-Combined {
     }
 
     # Keep strict date checks for NBA-family slates so /tickets never shows yesterday as today.
-    $CombinedArgs += " --date $Date --tennis-date $TennisDate --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts 64 --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`""
+    # --also-win-rate: emit tickets_winrate_latest.json in the same process (no 2nd Python launch).
+    $CombinedArgs += " --date $Date --tennis-date $TennisDate --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts 64 --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
     if (-not $WebEvOnly) {
         $CombinedArgs += " --no-web-ev-gate"
     }
@@ -1167,35 +1168,22 @@ function Run-Combined {
     $okC = Run-Step "Combined Slate + Tickets" $Root ".\scripts\combined_slate_tickets.py" $CombinedArgs
 
     if ($okC) {
-        Write-Host "  Running win-rate ticket pass..." -ForegroundColor Magenta
-        $WinrateOut = Join-Path $OutDir "winrate_tickets_$Date.xlsx"
-        $WinrateArgs = @(
-            "--date", $Date,
-            "--allow-cross-date-fallback",
-            "--output", "`"$WinrateOut`"",
-            "--max-legs", "4",
-            "--min-leg-prob", "0.62",
-            "--win-rate-mode",
-            "--tiers", "A,B",
-            "--max-tickets", "15",
-            "--write-web",
-            "--web-outdir", "`"$WebOutDir`"",
-            "--web-filename", "tickets_winrate_latest.json"
-        ) -join " "
-        $okWinrate = Run-Step "Win-Rate Tickets" $Root ".\scripts\combined_slate_tickets.py" $WinrateArgs
-        if (-not $okWinrate) {
-            Write-Host "  [win-rate] WARN: win-rate ticket pass failed (EV tickets unchanged)." -ForegroundColor Yellow
-        } else {
-            $WinrateJson = Join-Path $WebOutDir "tickets_winrate_latest.json"
-            $HighLegDatedJson = Join-Path $UiDataDir "combined_slate_tickets_high_leg_$Date.json"
-            if (Test-Path $WinrateJson) {
+        $WinrateJson = Join-Path $WebOutDir "tickets_winrate_latest.json"
+        $HighLegDatedJson = Join-Path $UiDataDir "combined_slate_tickets_high_leg_$Date.json"
+        if (Test-Path $WinrateJson) {
+            if (-not (Test-Path $HighLegDatedJson)) {
                 Copy-Item $WinrateJson $HighLegDatedJson -Force -ErrorAction SilentlyContinue
+            }
+            Write-Host "  [win-rate] OK (same-process) -> $WinrateJson" -ForegroundColor Green
+            if (Test-Path $HighLegDatedJson) {
                 Write-Host "  Saved -> $HighLegDatedJson (win-rate panel; separate from main 2-4 leg + long 5-6 leg tracks)" -ForegroundColor Green
             }
-            $LongParlayDatedJson = Join-Path $UiDataDir "combined_slate_tickets_long_parlay_$Date.json"
-            if (Test-Path $LongParlayDatedJson) {
-                Write-Host "  Long-parlay JSON (5-6 leg): $LongParlayDatedJson" -ForegroundColor Green
-            }
+        } else {
+            Write-Host "  [win-rate] WARN: tickets_winrate_latest.json missing after combined pass." -ForegroundColor Yellow
+        }
+        $LongParlayDatedJson = Join-Path $UiDataDir "combined_slate_tickets_long_parlay_$Date.json"
+        if (Test-Path $LongParlayDatedJson) {
+            Write-Host "  Long-parlay JSON (5-6 leg): $LongParlayDatedJson" -ForegroundColor Green
         }
         # Keep Matchup Edge JSON in lockstep with combined slate/ticket publish.
         # Includes WNBA (slate_sport_wnba.json) — must run after --write-web writes all slate_sport_*.json.

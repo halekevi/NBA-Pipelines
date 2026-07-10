@@ -205,6 +205,13 @@ combined_slate_tickets_*.xlsx
 ui_runner/graded_slate/
 scripts/*-DESKTOP-*
 archive/
+archive/web_exports/
 data/grade_history.json
 data/payout_samples/
 data/retrain_dataset*.csv
+
+# Large regenerable caches / dated exhaustives (stop re-tracking)
+Sports/MLB/mlb_stats_cache*.csv
+Sports/MLB/payload_mlb_api.json
+Sports/NBA/archive/
+data/ml/ticket_builder_exhaustive_*.csv

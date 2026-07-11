@@ -76,7 +76,7 @@
         <div class="ev-metrics">
           <span>EV: <b>${num(t.ev_power,3)}x</b></span>
           <span>Win Prob: <b>${pct(t.est_win_prob)}</b></span>
-          <span>Payout: <b>${num(t.power_payout,1)}x</b></span>
+          <span>Payout: <b>${num((t.payout && t.payout.display_min_x != null) ? t.payout.display_min_x : (t.display_min_x != null ? t.display_min_x : t.power_payout),1)}x</b></span>
           <span>Corr: <b>${t.correlation_flag || '—'}</b></span>
         </div>
         <ol class="ev-legs">${legs}</ol>

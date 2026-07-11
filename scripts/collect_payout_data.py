@@ -1752,6 +1752,173 @@ def _project_capture_fields(rec: dict, fields: list[str]) -> dict:
     return out
 
 
+def _leg_sig_key(legs: list[dict] | None) -> str:
+    parts: list[str] = []
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        parts.append(
+            "|".join(
+                [
+                    _norm(leg.get("player")),
+                    _norm(leg.get("prop_type") or leg.get("prop")),
+                    _norm(leg.get("direction") or leg.get("dir") or "over"),
+                    _line_key(leg.get("line")),
+                ]
+            )
+        )
+    return "||".join(sorted(p for p in parts if p and p != "|||"))
+
+
+def write_payout_patch_and_apply_to_tickets(
+    *,
+    tickets_path: Path,
+    captured: list[dict],
+    date_str: str,
+) -> dict[str, Any]:
+    """
+    Write payout_patch_<date>.json and patch combined_slate_tickets JSON in place.
+
+    Each ok/partial capture with power_min_x sets:
+      payout.power_min_x, payout.display_min_x, payout.payout_source='live_cdp'
+    Uncaptured tickets get mix-grid average floors when composition matches.
+    """
+    date_str = str(date_str or "").strip()[:10]
+    patch: dict[str, Any] = {
+        "date": date_str,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "tickets_path": str(tickets_path),
+        "by_ticket_id": {},
+        "by_leg_sig": {},
+    }
+    for rec in captured:
+        if not isinstance(rec, dict):
+            continue
+        try:
+            min_x = float(rec.get("power_min_x"))
+        except (TypeError, ValueError):
+            continue
+        if not (min_x > 0):
+            continue
+        if str(rec.get("status") or "").lower() not in ("ok", "partial"):
+            continue
+        entry = {
+            "power_min_x": min_x,
+            "power_first_x": rec.get("power_first_x"),
+            "display_min_x": min_x,
+            "payout_source": "live_cdp",
+            "ticket_id": rec.get("ticket_id"),
+            "n_legs": rec.get("n_legs"),
+            "slip_type": rec.get("slip_type"),
+        }
+        tid = str(rec.get("ticket_id") or "").strip()
+        if tid:
+            patch["by_ticket_id"][tid] = entry
+        sig = _leg_sig_key(rec.get("legs") if isinstance(rec.get("legs"), list) else [])
+        if sig:
+            patch["by_leg_sig"][sig] = entry
+
+    reports = ROOT / "data" / "reports"
+    reports.mkdir(parents=True, exist_ok=True)
+    patch_path = reports / f"payout_patch_{date_str or 'unknown'}.json"
+    patch_path.write_text(json.dumps(patch, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"[PAYOUT] patch -> {patch_path} (ids={len(patch['by_ticket_id'])})")
+
+    # Hardcoded mix-grid floors for tickets not captured this run.
+    mix_avg = {
+        (2, 0): 3.0,
+        (2, 1): 2.7,
+        (2, 2): 2.2,
+        (3, 0): 6.0,
+        (3, 1): 4.75,
+        (3, 2): 4.0,
+    }
+
+    def _goblin_n(legs: list) -> int:
+        n = 0
+        for leg in legs or []:
+            if not isinstance(leg, dict):
+                continue
+            if "goblin" in str(leg.get("pick_type") or "").lower():
+                n += 1
+        return n
+
+    n_patched = 0
+    n_fallback = 0
+    if tickets_path.is_file():
+        data = json.loads(tickets_path.read_text(encoding="utf-8"))
+        for g in data.get("groups") or []:
+            if not isinstance(g, dict):
+                continue
+            for t in g.get("tickets") or []:
+                if not isinstance(t, dict):
+                    continue
+                tid = str(t.get("ticket_id") or "").strip()
+                entry = patch["by_ticket_id"].get(tid) if tid else None
+                if entry is None:
+                    entry = patch["by_leg_sig"].get(_leg_sig_key(t.get("legs")))
+                pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+                pay = dict(pay)
+                if pay.get("model_min_payout_x") is None and pay.get("min_payout_x") is not None:
+                    pay["model_min_payout_x"] = pay.get("min_payout_x")
+                if entry:
+                    pay["power_min_x"] = entry["power_min_x"]
+                    pay["display_min_x"] = entry["display_min_x"]
+                    pay["payout_source"] = "live_cdp"
+                    if entry.get("power_first_x") is not None:
+                        pay["power_first_x"] = entry["power_first_x"]
+                    t["payout"] = pay
+                    t["display_min_x"] = entry["display_min_x"]
+                    n_patched += 1
+                    continue
+                # Uncaptured: mix-grid average, else keep model as fallback_estimate
+                legs = t.get("legs") if isinstance(t.get("legs"), list) else []
+                n_legs = len(legs) or int(t.get("n_legs") or 0)
+                avg = mix_avg.get((int(n_legs), int(_goblin_n(legs))))
+                if avg is not None and float(avg) > 0:
+                    pay["display_min_x"] = float(avg)
+                    pay["payout_source"] = "mix_grid_average"
+                    t["payout"] = pay
+                    t["display_min_x"] = float(avg)
+                    n_fallback += 1
+                else:
+                    try:
+                        model = float(pay.get("min_payout_x") or t.get("power_payout") or 0)
+                    except (TypeError, ValueError):
+                        model = 0.0
+                    if model > 0:
+                        pay["display_min_x"] = model
+                        pay["payout_source"] = "fallback_estimate"
+                        t["payout"] = pay
+                        t["display_min_x"] = model
+                        n_fallback += 1
+        tickets_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        # Mirror to templates/tickets_latest.json when patching a dated combined file.
+        latest = ROOT / "ui_runner" / "templates" / "tickets_latest.json"
+        try:
+            if latest.is_file() and tickets_path.resolve() != latest.resolve():
+                latest_data = json.loads(latest.read_text(encoding="utf-8"))
+                if str(latest_data.get("date") or "")[:10] == date_str:
+                    latest.write_text(
+                        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+                    )
+                    print(f"[PAYOUT] mirrored write-back -> {latest}")
+        except Exception as e:
+            print(f"[PAYOUT] WARN: could not mirror tickets_latest.json ({e})")
+        print(
+            f"[PAYOUT] write-back live_cdp={n_patched} fallback={n_fallback} in {tickets_path}"
+        )
+
+    return {
+        "patch_path": str(patch_path),
+        "n_patched": n_patched,
+        "n_fallback": n_fallback,
+        "patch": patch,
+    }
+
+
 def capture_tickets_from_board(
     *,
     tickets_path: Path,
@@ -1761,6 +1928,8 @@ def capture_tickets_from_board(
     entry_amount: float,
     max_cases: int,
     delay_sec: float,
+    write_back: bool = True,
+    date_override: str = "",
 ) -> int:
     """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts."""
     slips = load_main_strong_tickets(tickets_path)
@@ -1923,9 +2092,14 @@ def capture_tickets_from_board(
         except Exception:
             pass
 
-    date_str = (slips[0].get("date") if slips else "") or datetime.utcnow().strftime(
-        "%Y-%m-%d"
+    date_str = (
+        str(date_override or "").strip()[:10]
+        or (slips[0].get("date") if slips else "")
+        or datetime.utcnow().strftime("%Y-%m-%d")
     )
+    if not str(date_str or "").strip():
+        m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
+        date_str = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
     payload = {
         "date": date_str,
         "generated_at": datetime.utcnow().isoformat() + "Z",
@@ -1953,6 +2127,15 @@ def capture_tickets_from_board(
         f"[PAYOUT] ok={n_ok} partial={n_partial} failed={n_failed} "
         f"(primary field=power_min_x)"
     )
+    if write_back and captured:
+        try:
+            write_payout_patch_and_apply_to_tickets(
+                tickets_path=tickets_path,
+                captured=captured,
+                date_str=str(date_str or "")[:10],
+            )
+        except Exception as e:
+            print(f"[PAYOUT] WARN: write-back failed: {e}")
     return 0 if (n_ok + n_partial) > 0 or not captured else 1
 
 
@@ -2506,13 +2689,18 @@ def main():
     ap.add_argument(
         "--date",
         default="",
-        help="Slate date YYYY-MM-DD for --mix-grid output naming (default: today UTC).",
+        help="Slate date YYYY-MM-DD for --mix-grid / --tickets patch naming (default: today UTC).",
     )
     ap.add_argument(
         "--max-slips",
         type=int,
         default=24,
         help="Max synthetic slips for --mix-grid (default 24).",
+    )
+    ap.add_argument(
+        "--no-write-back",
+        action="store_true",
+        help="With --tickets: skip writing payout_patch + updating combined_slate_tickets JSON.",
     )
     args = ap.parse_args()
 
@@ -2546,6 +2734,10 @@ def main():
             m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
             date_tag = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
             output_path = ROOT / "data" / "reports" / f"payout_capture_{date_tag}.json"
+        date_override = str(args.date or "").strip()[:10]
+        if not date_override:
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
+            date_override = m.group(1) if m else ""
         raise SystemExit(
             capture_tickets_from_board(
                 tickets_path=tickets_path,
@@ -2555,6 +2747,8 @@ def main():
                 entry_amount=float(args.entry_amount),
                 max_cases=int(args.max_cases),
                 delay_sec=float(args.delay_sec),
+                write_back=not bool(getattr(args, "no_write_back", False)),
+                date_override=date_override,
             )
         )
 

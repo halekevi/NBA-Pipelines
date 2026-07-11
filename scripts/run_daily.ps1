@@ -1145,8 +1145,8 @@ if ($script:PipelineFailed) {
 # =============================================================================
 # STEP D-payout — Optional live PrizePicks payout capture (CDP Chrome already up)
 # Non-blocking: skip when CDP is down; WARN and continue on capture failure.
-# Captures power_min_x (primary floor) + power_first_x / min_guarantee / flex_min
-# for MAIN + STRONG slips from combined_slate_tickets_<date>.json.
+# 1) Once/day mix-grid calibration (if payout_mix_grid_<date>.json missing)
+# 2) MAIN + STRONG slip floors (power_min_x primary)
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
@@ -1161,6 +1161,8 @@ else {
     }
     $payoutScript = Join-Path $Root "scripts\collect_payout_data.py"
     $payoutOut = Join-Path $Root "data\reports\payout_capture_$Today.json"
+    $mixGridOut = Join-Path $Root "data\reports\payout_mix_grid_$Today.json"
+    $rateCardOut = Join-Path $Root "data\reports\payout_rate_card.json"
     $cdpUp = $false
     try {
         $null = Invoke-WebRequest -Uri "http://127.0.0.1:9222/json" -TimeoutSec 2 -ErrorAction Stop
@@ -1176,26 +1178,61 @@ else {
         Write-Host "  [PAYOUT] WARN: collect_payout_data.py missing" -ForegroundColor Yellow
         Write-Log "STEP D-payout - Live payout capture: SKIPPED (script missing)"
     }
-    elseif (-not (Test-Path -LiteralPath $payoutTickets)) {
-        Write-Host "  [PAYOUT] WARN: combined tickets JSON missing -- skip" -ForegroundColor Yellow
-        Write-Log "STEP D-payout - Live payout capture: SKIPPED (no tickets JSON)"
-    }
     else {
-        Write-Host "  [PAYOUT] CDP Chrome detected -- capturing live payouts" -ForegroundColor Cyan
-        Write-Log "STEP D-payout - Live payout capture: START -> $payoutTickets"
         Push-Location $Root
         try {
-            & py -3.14 -X utf8 $payoutScript `
-                --tickets $payoutTickets `
-                --output $payoutOut `
-                --fields "power_min_x,power_first_x,min_guarantee,flex_min"
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "  [PAYOUT] Saved -> data/reports/payout_capture_$Today.json" -ForegroundColor Green
-                Write-Log "STEP D-payout - Live payout capture: OK -> $payoutOut"
+            # Once per day: mix×deviation calibration grid → payout_rate_card.json
+            if (-not (Test-Path -LiteralPath $mixGridOut)) {
+                Write-Host "  [PAYOUT-GRID] CDP up -- capturing mix-grid calibration" -ForegroundColor Cyan
+                Write-Log "STEP D-payout - Mix-grid: START -> $mixGridOut"
+                try {
+                    & py -3.14 -X utf8 $payoutScript `
+                        --mix-grid `
+                        --date $Today `
+                        --max-slips 24 `
+                        --output $mixGridOut
+                    if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $mixGridOut)) {
+                        $nGrid = 0
+                        try {
+                            $nGrid = (Get-Content -LiteralPath $mixGridOut -Raw | ConvertFrom-Json).slips.Count
+                        } catch { }
+                        Write-Host "  [PAYOUT-GRID] captured $nGrid slip combinations -> rate_card updated" -ForegroundColor Green
+                        Write-Log "STEP D-payout - Mix-grid: OK (n=$nGrid) -> $mixGridOut / $rateCardOut"
+                    }
+                    else {
+                        Write-Host "  [PAYOUT-GRID] WARN: mix-grid failed (non-blocking)" -ForegroundColor Yellow
+                        Write-Log "STEP D-payout - Mix-grid: WARN (exit $LASTEXITCODE)"
+                    }
+                }
+                catch {
+                    Write-Host "  [PAYOUT-GRID] WARN: mix-grid error (non-blocking)" -ForegroundColor Yellow
+                    Write-Log "STEP D-payout - Mix-grid: WARN ($($_.Exception.Message))"
+                }
             }
             else {
-                Write-Host "  [PAYOUT] WARN: payout capture failed (non-blocking)" -ForegroundColor Yellow
-                Write-Log "STEP D-payout - Live payout capture: WARN (exit $LASTEXITCODE)"
+                Write-Host "  [PAYOUT-GRID] already have $mixGridOut -- skip" -ForegroundColor DarkGray
+                Write-Log "STEP D-payout - Mix-grid: SKIPPED (exists)"
+            }
+
+            if (Test-Path -LiteralPath $payoutTickets) {
+                Write-Host "  [PAYOUT] CDP Chrome detected -- capturing MAIN/STRONG payouts" -ForegroundColor Cyan
+                Write-Log "STEP D-payout - Live payout capture: START -> $payoutTickets"
+                & py -3.14 -X utf8 $payoutScript `
+                    --tickets $payoutTickets `
+                    --output $payoutOut `
+                    --fields "power_min_x,power_first_x,min_guarantee,flex_min"
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "  [PAYOUT] Saved -> data/reports/payout_capture_$Today.json" -ForegroundColor Green
+                    Write-Log "STEP D-payout - Live payout capture: OK -> $payoutOut"
+                }
+                else {
+                    Write-Host "  [PAYOUT] WARN: payout capture failed (non-blocking)" -ForegroundColor Yellow
+                    Write-Log "STEP D-payout - Live payout capture: WARN (exit $LASTEXITCODE)"
+                }
+            }
+            else {
+                Write-Host "  [PAYOUT] WARN: combined tickets JSON missing -- skip MAIN capture" -ForegroundColor Yellow
+                Write-Log "STEP D-payout - Live payout capture: SKIPPED (no tickets JSON)"
             }
         }
         catch {

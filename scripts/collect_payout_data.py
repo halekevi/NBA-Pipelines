@@ -1874,6 +1874,435 @@ def capture_tickets_from_board(
     return 0 if (n_ok + n_partial) > 0 or not captured else 1
 
 
+# ── Mix-grid calibration (Goblin/Standard × deviation buckets) ────────────────
+
+MIX_GRID_DEV_BUCKETS = (1.0, 1.5, 2.0)
+MIX_GRID_RECIPES: list[tuple[str, int, int]] = [
+    # (type_label, n_goblin, n_standard)
+    ("2S", 0, 2),
+    ("3S", 0, 3),
+    ("1G+1S", 1, 1),
+    ("1G+2S", 1, 2),
+    ("2G+1S", 2, 1),
+    ("2G+3S", 2, 3),
+    ("2G", 2, 0),
+    ("3G", 3, 0),
+]
+
+
+def _nearest_dev_bucket(dist: float | None, tol: float = 0.45) -> float | None:
+    if dist is None:
+        return None
+    try:
+        d = float(dist)
+    except (TypeError, ValueError):
+        return None
+    best = min(MIX_GRID_DEV_BUCKETS, key=lambda t: abs(d - t))
+    if abs(d - best) <= tol:
+        return float(best)
+    return None
+
+
+def _build_std_map_from_board_cards(cards: list[dict]) -> dict[tuple[str, str], float]:
+    out: dict[tuple[str, str], float] = {}
+    for c in cards:
+        if str(c.get("pick_type") or "").lower() != "standard":
+            continue
+        try:
+            line = float(pd.to_numeric(c.get("line"), errors="coerce"))
+        except Exception:
+            continue
+        if not (line > 0.5):
+            continue
+        key = (_norm(c.get("player")), _norm(c.get("prop_type")))
+        if key[0] and key[1]:
+            out[key] = line
+    return out
+
+
+def _goblins_by_dev_bucket(goblins: list[dict]) -> dict[float, list[dict]]:
+    buckets: dict[float, list[dict]] = {b: [] for b in MIX_GRID_DEV_BUCKETS}
+    for c in goblins:
+        dist = c.get("line_distance")
+        if dist is None and c.get("standard_line") is not None:
+            try:
+                dist = abs(float(c.get("line")) - float(c.get("standard_line")))
+            except Exception:
+                dist = None
+        bucket = _nearest_dev_bucket(dist)
+        if bucket is None:
+            continue
+        c2 = dict(c)
+        c2["dev_bucket"] = bucket
+        c2["line_distance"] = float(dist) if dist is not None else bucket
+        buckets[bucket].append(c2)
+    for b in buckets:
+        buckets[b].sort(
+            key=lambda c: (
+                abs(float(c.get("line_distance") or 0.0) - b),
+                _norm(c.get("player")),
+            )
+        )
+    return buckets
+
+
+def build_mix_grid_plan(
+    standard: list[dict],
+    goblins: list[dict],
+    *,
+    max_slips: int,
+) -> list[dict]:
+    """Plan synthetic slips: recipe × deviation bucket (when Goblins present)."""
+    by_dev = _goblins_by_dev_bucket(goblins)
+    std_pool = sorted(
+        [
+            c
+            for c in standard
+            if float(pd.to_numeric(c.get("line"), errors="coerce") or 0.0) >= 1.0
+        ],
+        key=lambda c: _norm(c.get("player")),
+    )
+    plans: list[dict] = []
+
+    def _pick(pool: list[dict], n: int, used: set[str]) -> list[dict] | None:
+        out: list[dict] = []
+        for c in pool:
+            pk = _norm(c.get("player"))
+            if not pk or pk in used:
+                continue
+            used.add(pk)
+            out.append(c)
+            if len(out) == n:
+                return out
+        return None
+
+    for label, n_g, n_s in MIX_GRID_RECIPES:
+        if n_g <= 0:
+            used: set[str] = set()
+            pick_s = _pick(std_pool, n_s, used)
+            if not pick_s:
+                continue
+            plans.append(
+                {
+                    "type": label,
+                    "n_goblin": 0,
+                    "n_standard": n_s,
+                    "dev_bucket": None,
+                    "target_deviations": [],
+                    "cards": [{"card": c, "direction": "OVER", "role": "standard"} for c in pick_s],
+                }
+            )
+            if len(plans) >= max_slips:
+                return plans
+            continue
+
+        for bucket in MIX_GRID_DEV_BUCKETS:
+            g_pool = by_dev.get(bucket) or []
+            if len(g_pool) < n_g:
+                continue
+            used = set()
+            pick_g = _pick(g_pool, n_g, used)
+            if not pick_g:
+                continue
+            pick_s = _pick(std_pool, n_s, used) if n_s > 0 else []
+            if n_s > 0 and not pick_s:
+                continue
+            deviations = [
+                round(float(c.get("line_distance") or bucket), 2) for c in pick_g
+            ]
+            cards = [{"card": c, "direction": "OVER", "role": "goblin"} for c in pick_g]
+            cards += [{"card": c, "direction": "OVER", "role": "standard"} for c in (pick_s or [])]
+            plans.append(
+                {
+                    "type": label,
+                    "n_goblin": n_g,
+                    "n_standard": n_s,
+                    "dev_bucket": bucket,
+                    "target_deviations": deviations,
+                    "cards": cards,
+                }
+            )
+            if len(plans) >= max_slips:
+                return plans
+
+    return plans
+
+
+def fit_payout_rate_card_from_grid(grid: dict) -> dict:
+    """Fit goblin_discount_per_unit by deviation bucket from power_min_x observations."""
+    slips = [s for s in (grid.get("slips") or []) if isinstance(s, dict)]
+    ok = [s for s in slips if s.get("min_x") is not None and float(s.get("min_x") or 0) > 0]
+    baselines: dict[str, float] = {}
+    for s in ok:
+        if int(s.get("n_goblin") or 0) == 0 and int(s.get("n_standard") or 0) > 0:
+            key = f"{int(s['n_standard'])}S"
+            baselines[key] = float(s["min_x"])
+
+    # Fallback to classic Power all-standard floors if board baselines missing.
+    baselines.setdefault("2S", 3.0)
+    baselines.setdefault("3S", 6.0)
+    baselines.setdefault("4S", 10.0)
+    baselines.setdefault("5S", 20.0)
+
+    by_bucket: dict[str, list[float]] = {f"{b:.1f}": [] for b in MIX_GRID_DEV_BUCKETS}
+    used = 0
+    for s in ok:
+        n_g = int(s.get("n_goblin") or 0)
+        if n_g <= 0:
+            continue
+        n_legs = int(s.get("n_goblin") or 0) + int(s.get("n_standard") or 0)
+        base = baselines.get(f"{n_legs}S")
+        if not base or base <= 0:
+            continue
+        min_x = float(s["min_x"])
+        deviations = [float(x) for x in (s.get("deviations") or []) if x is not None]
+        if not deviations:
+            bucket = s.get("dev_bucket")
+            if bucket is not None:
+                deviations = [float(bucket)] * n_g
+        if not deviations:
+            continue
+        total_dev = sum(deviations)
+        if total_dev <= 0:
+            continue
+        # discount_total = 1 - min_x/base; per unit of line deviation
+        discount_total = max(0.0, 1.0 - (min_x / base))
+        per_unit = discount_total / total_dev
+        # Attribute to primary (mean) bucket
+        mean_dev = sum(deviations) / len(deviations)
+        bucket = _nearest_dev_bucket(mean_dev) or float(MIX_GRID_DEV_BUCKETS[0])
+        by_bucket[f"{bucket:.1f}"].append(per_unit)
+        used += 1
+
+    fitted: dict[str, float] = {}
+    for k, vals in by_bucket.items():
+        if vals:
+            fitted[k] = round(sum(vals) / len(vals), 4)
+
+    return {
+        "schema_version": 1,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "source_date": grid.get("date"),
+        "source_grid": grid.get("path") or "",
+        "n_observations": used,
+        "n_slips_in_grid": len(ok),
+        "baselines_power_min_x": {k: round(v, 4) for k, v in baselines.items()},
+        "goblin_discount_per_unit": fitted,
+        "notes": (
+            "discount_per_unit ≈ (1 - power_min_x / all_standard_baseline) / sum(goblin_line_distances). "
+            "Fitted from live PrizePicks floor multipliers (power_min_x)."
+        ),
+    }
+
+
+def run_mix_grid_capture(
+    *,
+    date_str: str,
+    cdp_url: str,
+    max_slips: int,
+    delay_sec: float,
+    entry_amount: float,
+    output_path: Path | None = None,
+    rate_card_path: Path | None = None,
+) -> int:
+    """Build mix×deviation slips on live PP board; write grid JSON + fitted rate card."""
+    date_str = str(date_str or "").strip()[:10] or datetime.utcnow().strftime("%Y-%m-%d")
+    output_path = output_path or (ROOT / "data" / "reports" / f"payout_mix_grid_{date_str}.json")
+    rate_card_path = rate_card_path or (ROOT / "data" / "reports" / "payout_rate_card.json")
+
+    # Prefer board-derived standard lines; step8 map is a bonus when NBA files exist.
+    std_line_map: dict[tuple[str, str], float] = {}
+    try:
+        legs = load_nba_legs(top_n=60)
+        std_line_map = build_standard_line_map(legs)
+        print(f"[mix-grid] step8 standard-line map: {len(std_line_map)} keys")
+    except Exception as e:
+        print(f"[mix-grid] step8 map skipped ({e}); using board standards")
+
+    p, browser, context, page = connect_existing_browser(cdp_url)
+    page.wait_for_timeout(500)
+    captured: list[dict] = []
+
+    try:
+        frame = find_prizepicks_frame(page)
+        ensure_popular_filter(frame, page)
+        dismiss_modal(frame, page)
+        cards = expand_card_pool(frame, page)
+        if not cards:
+            print("[mix-grid] FATAL: no board cards")
+            return 1
+
+        board_std = _build_std_map_from_board_cards(cards)
+        merged_std = dict(board_std)
+        merged_std.update(std_line_map)
+        cards, floor_filtered = _reclassify_cards_with_std_map(cards, merged_std)
+        print(f"[mix-grid] cards={len(cards)} floor_filtered={floor_filtered}")
+
+        standard = [c for c in cards if c.get("pick_type") == "standard"]
+        goblins = []
+        for c in cards:
+            line_val = float(pd.to_numeric(c.get("line"), errors="coerce") or 0.0)
+            std_line = c.get("standard_line")
+            is_g = c.get("pick_type") == "goblin" or (
+                std_line is not None and std_line > 0 and line_val < float(std_line) * 0.85
+            )
+            if is_g:
+                c2 = dict(c)
+                c2["pick_type"] = "goblin"
+                if c2.get("line_distance") is None and std_line:
+                    c2["line_distance"] = abs(line_val - float(std_line))
+                goblins.append(c2)
+
+        print(f"[mix-grid] standard={len(standard)} goblin={len(goblins)}")
+        plans = build_mix_grid_plan(standard, goblins, max_slips=max(1, int(max_slips)))
+        print(f"[mix-grid] planned slips={len(plans)} (cap={max_slips})")
+
+        for i, plan in enumerate(plans, 1):
+            label = plan["type"]
+            print(
+                f"\n[mix-grid] ({i}/{len(plans)}) {label} "
+                f"dev={plan.get('dev_bucket')} nG={plan['n_goblin']} nS={plan['n_standard']}"
+            )
+            rec: dict[str, Any] = {
+                "type": label,
+                "slip_type": label,
+                "n_goblin": plan["n_goblin"],
+                "n_standard": plan["n_standard"],
+                "dev_bucket": plan.get("dev_bucket"),
+                "deviations": list(plan.get("target_deviations") or []),
+                "avg_deviation": None,
+                "min_x": None,
+                "first_x": None,
+                "power_min_x": None,
+                "power_first_x": None,
+                "status": "failed",
+                "error": None,
+                "legs": [],
+            }
+            if rec["deviations"]:
+                rec["avg_deviation"] = round(
+                    sum(rec["deviations"]) / len(rec["deviations"]), 3
+                )
+
+            try:
+                clear_slip(frame)
+                _, frame = verify_slip_empty(frame, page)
+                dismiss_modal(frame, page)
+                set_ticket_type(frame, "power")
+                frame.wait_for_timeout(int(max(0.1, delay_sec) * 1000))
+
+                clicked = 0
+                leg_meta = []
+                for item in plan["cards"]:
+                    card = item["card"]
+                    direction = str(item.get("direction") or "OVER").upper()
+                    ok = click_leg(frame, card, direction)
+                    if not ok:
+                        # Fallback: search-based add
+                        ok = add_leg(
+                            frame,
+                            page,
+                            {
+                                "player": card.get("player"),
+                                "prop_type": card.get("prop_type"),
+                                "direction": direction,
+                            },
+                        )
+                    if ok:
+                        clicked += 1
+                        leg_meta.append(
+                            {
+                                "player": card.get("player"),
+                                "prop_type": card.get("prop_type"),
+                                "line": card.get("line"),
+                                "role": item.get("role"),
+                                "line_distance": card.get("line_distance"),
+                                "dev_bucket": card.get("dev_bucket"),
+                            }
+                        )
+                    else:
+                        print(f"  [WARN] click failed: {card.get('player')}")
+                    frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
+
+                rec["legs"] = leg_meta
+                need = plan["n_goblin"] + plan["n_standard"]
+                if clicked < need:
+                    rec["error"] = f"clicked_{clicked}_of_{need}"
+                    captured.append(rec)
+                    clear_slip(frame)
+                    continue
+
+                slip = read_slip(frame, n_legs=clicked, ticket_type="power")
+                if not slip:
+                    rec["error"] = "slip_not_detected"
+                    captured.append(rec)
+                    clear_slip(frame)
+                    continue
+
+                min_x = slip.get("min_guarantee_payout")
+                first_x = slip.get("first_place_payout") or slip.get("displayed_multiplier")
+                rec["min_x"] = min_x
+                rec["first_x"] = first_x
+                rec["power_min_x"] = min_x
+                rec["power_first_x"] = first_x
+                if min_x is None:
+                    rec["status"] = "partial"
+                    rec["error"] = "missing_min_x"
+                else:
+                    rec["status"] = "ok"
+                print(f"  [RECORDED] min_x={min_x} first_x={first_x}")
+                captured.append(rec)
+            except Exception as e:
+                rec["error"] = str(e)
+                captured.append(rec)
+                print(f"  [ERROR] {e}")
+            finally:
+                try:
+                    clear_slip(frame)
+                    _, frame = verify_slip_empty(frame, page)
+                    dismiss_modal(frame, page)
+                except Exception:
+                    pass
+    finally:
+        try:
+            browser.close()
+        except Exception:
+            pass
+        try:
+            p.stop()
+        except Exception:
+            pass
+
+    n_ok = sum(1 for s in captured if s.get("status") == "ok")
+    grid = {
+        "date": date_str,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "cdp_url": cdp_url,
+        "entry_amount": entry_amount,
+        "primary_field": "power_min_x",
+        "path": str(output_path),
+        "slips": captured,
+        "summary": {
+            "n_planned": len(captured),
+            "n_ok": n_ok,
+            "n_failed": sum(1 for s in captured if s.get("status") == "failed"),
+        },
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(grid, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"[mix-grid] Saved -> {output_path} (ok={n_ok}/{len(captured)})")
+
+    card = fit_payout_rate_card_from_grid(grid)
+    rate_card_path.parent.mkdir(parents=True, exist_ok=True)
+    rate_card_path.write_text(json.dumps(card, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(
+        f"[payout-grid] fitted rate card from {card.get('n_observations', 0)} "
+        f"slip observations -> {rate_card_path}"
+    )
+    print(f"[payout-grid] goblin_discount_per_unit={card.get('goblin_discount_per_unit')}")
+    return 0 if n_ok > 0 else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -1892,14 +2321,49 @@ def main():
     ap.add_argument(
         "--output",
         default="",
-        help="JSON output path (ticket-capture mode). Default: data/reports/payout_capture_<date>.json",
+        help="JSON output path (ticket-capture / mix-grid mode).",
     )
     ap.add_argument(
         "--fields",
         default=",".join(DEFAULT_CAPTURE_FIELDS),
         help="Comma list: power_min_x,power_first_x,min_guarantee,flex_min",
     )
+    ap.add_argument(
+        "--mix-grid",
+        action="store_true",
+        help="Calibration matrix: mixed G+S / all-Goblin × deviation buckets → payout_mix_grid + rate card",
+    )
+    ap.add_argument(
+        "--date",
+        default="",
+        help="Slate date YYYY-MM-DD for --mix-grid output naming (default: today UTC).",
+    )
+    ap.add_argument(
+        "--max-slips",
+        type=int,
+        default=24,
+        help="Max synthetic slips for --mix-grid (default 24).",
+    )
     args = ap.parse_args()
+
+    if bool(getattr(args, "mix_grid", False)):
+        date_str = str(args.date or "").strip()[:10] or datetime.utcnow().strftime("%Y-%m-%d")
+        out = (
+            Path(str(args.output).strip())
+            if str(args.output or "").strip()
+            else ROOT / "data" / "reports" / f"payout_mix_grid_{date_str}.json"
+        )
+        max_slips = int(args.max_slips) if int(args.max_slips) > 0 else int(args.max_cases)
+        raise SystemExit(
+            run_mix_grid_capture(
+                date_str=date_str,
+                cdp_url=args.cdp_url,
+                max_slips=max_slips,
+                delay_sec=float(args.delay_sec),
+                entry_amount=float(args.entry_amount),
+                output_path=out,
+            )
+        )
 
     if str(args.tickets or "").strip():
         tickets_path = Path(str(args.tickets).strip())

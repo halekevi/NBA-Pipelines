@@ -33,9 +33,20 @@ def main() -> None:
         "ok": True,
         "slate_eval_dates": _dates(_SLATE_RE),
         "ticket_eval_dates": _dates(_TICKET_RE),
+        "ticket_eval_long_parlay_dates": _dates(
+            re.compile(r"^ticket_eval_long_parlay_(\d{4}-\d{2}-\d{2})\.html$")
+        ),
+        "ticket_eval_high_leg_dates": _dates(
+            re.compile(r"^ticket_eval_high_leg_(\d{4}-\d{2}-\d{2})\.html$")
+        ),
     }
     OUT.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
-    print(f"Wrote {OUT} ({len(payload['slate_eval_dates'])} slate, {len(payload['ticket_eval_dates'])} ticket)")
+    print(
+        f"Wrote {OUT} ({len(payload['slate_eval_dates'])} slate, "
+        f"{len(payload['ticket_eval_dates'])} ticket, "
+        f"{len(payload['ticket_eval_long_parlay_dates'])} long, "
+        f"{len(payload['ticket_eval_high_leg_dates'])} high_leg)"
+    )
 
 
 if __name__ == "__main__":

@@ -1824,15 +1824,15 @@ def write_payout_patch_and_apply_to_tickets(
     patch_path.write_text(json.dumps(patch, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"[PAYOUT] patch -> {patch_path} (ids={len(patch['by_ticket_id'])})")
 
-    # Hardcoded mix-grid floors for tickets not captured this run.
-    mix_avg = {
-        (2, 0): 3.0,
-        (2, 1): 2.7,
-        (2, 2): 2.2,
-        (3, 0): 6.0,
-        (3, 1): 4.75,
-        (3, 2): 4.0,
-    }
+    # Mix-grid composition floors (live grid overwrites seeded defaults when present).
+    mix_avg = mix_avg_floors_from_grid(
+        [
+            s
+            for s in captured
+            if isinstance(s, dict) and str(s.get("status") or "").lower() in ("ok", "partial")
+        ]
+        or None
+    )
 
     def _goblin_n(legs: list) -> int:
         n = 0
@@ -2142,17 +2142,22 @@ def capture_tickets_from_board(
 # ── Mix-grid calibration (Goblin/Standard × deviation buckets) ────────────────
 
 MIX_GRID_DEV_BUCKETS = (1.0, 1.5, 2.0)
+# Recipe order = capture priority. Baselines first, then key EV floors (3G / 2G),
+# then mixed 2- and 3-leg. Each Goblin recipe expands × MIX_GRID_DEV_BUCKETS.
 MIX_GRID_RECIPES: list[tuple[str, int, int]] = [
-    # (type_label, n_goblin, n_standard)
-    ("2S", 0, 2),
-    ("3S", 0, 3),
-    ("1G+1S", 1, 1),
-    ("1G+2S", 1, 2),
-    ("2G+1S", 2, 1),
-    ("2G+3S", 2, 3),
-    ("2G", 2, 0),
-    ("3G", 3, 0),
+    # (type_label, n_goblin, n_standard)  → n_legs = n_goblin + n_standard
+    ("2S", 0, 2),  # 2-leg all-Standard baseline (~3x)
+    ("3S", 0, 3),  # 3-leg all-Standard baseline (~6x)
+    ("2G", 2, 0),  # 2-leg all-Goblin floor (known ~2.2x @dev1.0)
+    ("3G", 3, 0),  # KEY: 3-leg all-Goblin floor vs ~5–6x display
+    ("1G+1S", 1, 1),  # 2-leg mixed
+    ("1G+2S", 1, 2),  # 3-leg mixed (1G+2S)
+    ("2G+1S", 2, 1),  # 3-leg mixed (2G+1S)
+    ("2G+3S", 2, 3),  # 5-leg stretch (optional)
 ]
+
+# Critical EV cells — retry once on n_selected mismatch / click shortfall.
+MIX_GRID_PRIORITY_TYPES = frozenset({"3G", "3S", "2G", "2G+1S", "1G+2S", "2S", "1G+1S"})
 
 
 def _nearest_dev_bucket(dist: float | None, tol: float = 0.75) -> float | None:
@@ -2254,11 +2259,13 @@ def build_mix_grid_plan(
             pick_s = _pick(std_pool, n_s, used)
             if not pick_s:
                 continue
+            n_legs = int(n_s)
             plans.append(
                 {
                     "type": label,
                     "n_goblin": 0,
                     "n_standard": n_s,
+                    "n_legs": n_legs,
                     "dev_bucket": None,
                     "target_deviations": [],
                     "cards": [{"card": c, "direction": "OVER", "role": "standard"} for c in pick_s],
@@ -2284,11 +2291,13 @@ def build_mix_grid_plan(
             ]
             cards = [{"card": c, "direction": "OVER", "role": "goblin"} for c in pick_g]
             cards += [{"card": c, "direction": "OVER", "role": "standard"} for c in (pick_s or [])]
+            n_legs = int(n_g) + int(n_s)
             plans.append(
                 {
                     "type": label,
                     "n_goblin": n_g,
                     "n_standard": n_s,
+                    "n_legs": n_legs,
                     "dev_bucket": bucket,
                     "target_deviations": deviations,
                     "cards": cards,
@@ -2298,6 +2307,80 @@ def build_mix_grid_plan(
                 return plans
 
     return plans
+
+
+def summarize_mix_grid_floors(slips: list[dict]) -> dict[str, Any]:
+    """Aggregate live floors by composition: n_legs × n_goblin (and slip type)."""
+    by_comp: dict[str, list[float]] = {}
+    by_type: dict[str, list[float]] = {}
+    for s in slips:
+        if not isinstance(s, dict):
+            continue
+        try:
+            min_x = float(s.get("min_x") if s.get("min_x") is not None else s.get("power_min_x"))
+        except (TypeError, ValueError):
+            continue
+        if not (min_x > 0) or str(s.get("status") or "").lower() not in ("ok", "partial"):
+            continue
+        n_g = int(s.get("n_goblin") or 0)
+        n_s = int(s.get("n_standard") or 0)
+        n_legs = int(s.get("n_legs") or (n_g + n_s) or 0)
+        if n_legs <= 0:
+            continue
+        comp = f"{n_legs}L_{n_g}G"
+        by_comp.setdefault(comp, []).append(min_x)
+        label = str(s.get("type") or s.get("slip_type") or "").strip() or comp
+        bucket = s.get("dev_bucket")
+        type_key = f"{label}@dev{bucket}" if bucket is not None else label
+        by_type.setdefault(type_key, []).append(min_x)
+
+    def _avg(vals: list[float]) -> float:
+        return round(sum(vals) / len(vals), 4)
+
+    return {
+        "by_composition": {k: {"n": len(v), "avg_min_x": _avg(v), "min_x_vals": v} for k, v in sorted(by_comp.items())},
+        "by_type_bucket": {k: {"n": len(v), "avg_min_x": _avg(v), "min_x_vals": v} for k, v in sorted(by_type.items())},
+    }
+
+
+def mix_avg_floors_from_grid(slips: list[dict] | None = None) -> dict[tuple[int, int], float]:
+    """
+    Map (n_legs, n_goblin) -> avg power_min_x from mix-grid slips.
+    Falls back to seeded defaults when a cell has no live obs.
+    """
+    # Seeded defaults (display-ish / prior captures). Live grid overwrites when present.
+    seeded: dict[tuple[int, int], float] = {
+        (2, 0): 3.0,  # 2S
+        (2, 1): 2.7,  # 1G+1S
+        (2, 2): 2.2,  # 2G
+        (3, 0): 6.0,  # 3S
+        (3, 1): 4.75,  # 1G+2S (Jul 11 live)
+        (3, 2): 4.0,  # 2G+1S (Jul 11 live)
+        # (3, 3) 3G — unknown until live capture succeeds
+    }
+    if slips is None:
+        return dict(seeded)
+    live: dict[tuple[int, int], list[float]] = {}
+    for s in slips:
+        if not isinstance(s, dict):
+            continue
+        try:
+            min_x = float(s.get("min_x") if s.get("min_x") is not None else s.get("power_min_x"))
+        except (TypeError, ValueError):
+            continue
+        if not (min_x > 0) or str(s.get("status") or "").lower() not in ("ok", "partial"):
+            continue
+        n_g = int(s.get("n_goblin") or 0)
+        n_s = int(s.get("n_standard") or 0)
+        n_legs = int(s.get("n_legs") or (n_g + n_s) or 0)
+        if n_legs <= 0:
+            continue
+        live.setdefault((n_legs, n_g), []).append(min_x)
+    out = dict(seeded)
+    for key, vals in live.items():
+        if vals:
+            out[key] = round(sum(vals) / len(vals), 4)
+    return out
 
 
 def fit_payout_rate_card_from_grid(grid: dict) -> dict:
@@ -2396,7 +2479,10 @@ def run_mix_grid_capture(
     captured: list[dict] = []
 
     try:
-        # Prefer boards that usually expose Goblin + Standard alts (MLB, then WNBA).
+        # Prefer boards with enough Goblins for 3G and Standards for 3S baselines.
+        best_cards: list[dict] | None = None
+        best_score = -1
+        cards: list[dict] = []
         for league_id, label in ((2, "MLB"), (3, "WNBA"), (7, "NBA")):
             try:
                 url = f"https://app.prizepicks.com/board?league_id={league_id}"
@@ -2412,11 +2498,16 @@ def run_mix_grid_capture(
             n_g = sum(1 for c in cards if str(c.get("pick_type") or "").lower() == "goblin")
             n_s = sum(1 for c in cards if str(c.get("pick_type") or "").lower() == "standard")
             print(f"[mix-grid] {label} cards={len(cards)} standard={n_s} goblin={n_g}")
-            if len(cards) >= 4 and (n_g >= 2 or n_s >= 2):
+            # Score: prefer boards that can build 3G + 3S (need ≥3 of each).
+            score = min(n_g, 3) * 10 + min(n_s, 3) * 3 + min(len(cards), 20)
+            if score > best_score and len(cards) >= 4:
+                best_score = score
+                best_cards = list(cards)
+            if n_g >= 3 and n_s >= 3 and len(cards) >= 6:
+                best_cards = list(cards)
                 break
-        else:
-            frame = find_prizepicks_frame(page)
-            cards = expand_card_pool(frame, page)
+        cards = best_cards or cards or []
+        frame = find_prizepicks_frame(page)
 
         if not cards:
             print("[mix-grid] FATAL: no board cards")
@@ -2449,13 +2540,16 @@ def run_mix_grid_capture(
 
         for i, plan in enumerate(plans, 1):
             label = plan["type"]
+            n_legs = int(plan.get("n_legs") or (plan["n_goblin"] + plan["n_standard"]))
             print(
                 f"\n[mix-grid] ({i}/{len(plans)}) {label} "
-                f"dev={plan.get('dev_bucket')} nG={plan['n_goblin']} nS={plan['n_standard']}"
+                f"legs={n_legs} dev={plan.get('dev_bucket')} "
+                f"nG={plan['n_goblin']} nS={plan['n_standard']}"
             )
             rec: dict[str, Any] = {
                 "type": label,
                 "slip_type": label,
+                "n_legs": n_legs,
                 "n_goblin": plan["n_goblin"],
                 "n_standard": plan["n_standard"],
                 "dev_bucket": plan.get("dev_bucket"),
@@ -2474,148 +2568,165 @@ def run_mix_grid_capture(
                     sum(rec["deviations"]) / len(rec["deviations"]), 3
                 )
 
-            try:
-                clear_slip(frame)
-                _, frame = verify_slip_empty(frame, page)
-                dismiss_modal(frame, page)
-                set_ticket_type(frame, "power")
-                frame.wait_for_timeout(int(max(0.1, delay_sec) * 1000))
-
-                clicked = 0
-                leg_meta = []
-                current_tab = None
-                for item in plan["cards"]:
-                    card = item["card"]
-                    direction = str(item.get("direction") or "OVER").upper()
-                    tab = str(card.get("source_filter") or "Popular")
-                    ok = False
-                    try:
-                        if tab != current_tab:
-                            dismiss_modal(frame, page)
-                            tloc = frame.get_by_text(tab, exact=True).first
-                            if tloc.count() == 0:
-                                tloc = frame.get_by_text(tab, exact=False).first
-                            tloc.click(force=True, timeout=2000)
-                            frame.wait_for_timeout(900)
-                            _scroll_board_for_lazy_load(page)
-                            current_tab = tab
-                        dismiss_modal(frame, page)
-                        fresh = get_all_cards(frame)
-                        resolved = resolve_leg_card(card, fresh)
-                        if resolved is None:
-                            print(
-                                f"  [WARN] unresolved {card.get('player')} "
-                                f"{card.get('line')} {card.get('prop_type')} "
-                                f"({card.get('pick_type')}) on tab={tab}"
-                            )
-                        else:
-                            ok = click_leg(frame, resolved, direction)
-                            if ok:
-                                card = resolved
-                    except Exception as e:
-                        print(f"  [WARN] resolve/click failed: {e}")
-                    if not ok:
-                        ok = add_leg(
-                            frame,
-                            page,
-                            {
-                                "player": card.get("player"),
-                                "prop_type": card.get("prop_type"),
-                                "direction": direction,
-                            },
-                        )
-                    if ok:
-                        clicked += 1
-                        leg_meta.append(
-                            {
-                                "player": card.get("player"),
-                                "prop_type": card.get("prop_type"),
-                                "line": card.get("line"),
-                                "role": item.get("role"),
-                                "pick_type": card.get("pick_type"),
-                                "source_filter": card.get("source_filter"),
-                                "line_distance": card.get("line_distance"),
-                                "dev_bucket": card.get("dev_bucket"),
-                            }
-                        )
-                    else:
-                        print(f"  [WARN] click failed: {card.get('player')}")
-                    frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
-
-                # Soft verify lineup mentions intended surnames (stale-click guard).
-                # Do not hard-fail: PP truncates slip text and name punctuation varies.
-                try:
-                    slip_probe = read_slip(frame, n_legs=clicked, ticket_type="power") or {}
-                    slip_txt = _norm(
-                        slip_probe.get("raw_slip_section")
-                        or slip_probe.get("raw_text")
-                        or ""
-                    )
-                    if slip_txt:
-                        soft_miss = []
-                        for m in leg_meta:
-                            name = str(m.get("player") or "").strip()
-                            if not name:
-                                continue
-                            parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
-                            surname = parts[-1] if parts else name
-                            if _norm(surname) not in slip_txt:
-                                soft_miss.append(name)
-                        if soft_miss:
-                            print(f"  [WARN] surname soft-miss: {', '.join(soft_miss[:3])}")
-                        n_sel = slip_probe.get("n_selected")
-                        if n_sel is not None and int(n_sel) != int(clicked):
-                            rec["error"] = f"n_selected_{n_sel}_clicked_{clicked}"
-                            print(f"  [WARN] {rec['error']}")
-                            captured.append(rec)
-                            clear_slip(frame)
-                            continue
-                        # Reuse the slip we already read below
-                        rec["_slip_probe"] = slip_probe
-                except Exception:
-                    pass
-
-                rec["legs"] = leg_meta
-                need = plan["n_goblin"] + plan["n_standard"]
-                if clicked < need:
-                    rec["error"] = f"clicked_{clicked}_of_{need}"
-                    captured.append(rec)
-                    clear_slip(frame)
-                    continue
-
-                slip = rec.pop("_slip_probe", None) or read_slip(
-                    frame, n_legs=clicked, ticket_type="power"
-                )
-                if not slip:
-                    rec["error"] = "slip_not_detected"
-                    captured.append(rec)
-                    clear_slip(frame)
-                    continue
-
-                min_x = slip.get("min_guarantee_payout")
-                first_x = slip.get("first_place_payout") or slip.get("displayed_multiplier")
-                rec["min_x"] = min_x
-                rec["first_x"] = first_x
-                rec["power_min_x"] = min_x
-                rec["power_first_x"] = first_x
-                if min_x is None:
-                    rec["status"] = "partial"
-                    rec["error"] = "missing_min_x"
-                else:
-                    rec["status"] = "ok"
-                print(f"  [RECORDED] min_x={min_x} first_x={first_x}")
-                captured.append(rec)
-            except Exception as e:
-                rec["error"] = str(e)
-                captured.append(rec)
-                print(f"  [ERROR] {e}")
-            finally:
+            max_attempts = 2 if label in MIX_GRID_PRIORITY_TYPES else 1
+            for attempt in range(1, max_attempts + 1):
                 try:
                     clear_slip(frame)
                     _, frame = verify_slip_empty(frame, page)
                     dismiss_modal(frame, page)
-                except Exception:
-                    pass
+                    set_ticket_type(frame, "power")
+                    frame.wait_for_timeout(int(max(0.1, delay_sec) * 1000))
+
+                    clicked = 0
+                    leg_meta: list[dict] = []
+                    current_tab = None
+                    for item in plan["cards"]:
+                        card = item["card"]
+                        direction = str(item.get("direction") or "OVER").upper()
+                        tab = str(card.get("source_filter") or "Popular")
+                        ok = False
+                        try:
+                            if tab != current_tab:
+                                dismiss_modal(frame, page)
+                                tloc = frame.get_by_text(tab, exact=True).first
+                                if tloc.count() == 0:
+                                    tloc = frame.get_by_text(tab, exact=False).first
+                                tloc.click(force=True, timeout=2000)
+                                frame.wait_for_timeout(900)
+                                _scroll_board_for_lazy_load(page)
+                                current_tab = tab
+                            dismiss_modal(frame, page)
+                            fresh = get_all_cards(frame)
+                            resolved = resolve_leg_card(card, fresh)
+                            if resolved is None:
+                                print(
+                                    f"  [WARN] unresolved {card.get('player')} "
+                                    f"{card.get('line')} {card.get('prop_type')} "
+                                    f"({card.get('pick_type')}) on tab={tab}"
+                                )
+                            else:
+                                ok = click_leg(frame, resolved, direction)
+                                if ok:
+                                    card = resolved
+                        except Exception as e:
+                            print(f"  [WARN] resolve/click failed: {e}")
+                        if not ok:
+                            ok = add_leg(
+                                frame,
+                                page,
+                                {
+                                    "player": card.get("player"),
+                                    "prop_type": card.get("prop_type"),
+                                    "direction": direction,
+                                },
+                            )
+                        if ok:
+                            clicked += 1
+                            leg_meta.append(
+                                {
+                                    "player": card.get("player"),
+                                    "prop_type": card.get("prop_type"),
+                                    "line": card.get("line"),
+                                    "role": item.get("role"),
+                                    "pick_type": card.get("pick_type"),
+                                    "source_filter": card.get("source_filter"),
+                                    "line_distance": card.get("line_distance"),
+                                    "dev_bucket": card.get("dev_bucket"),
+                                }
+                            )
+                        else:
+                            print(f"  [WARN] click failed: {card.get('player')}")
+                        frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
+
+                    slip_probe = None
+                    try:
+                        slip_probe = read_slip(frame, n_legs=clicked, ticket_type="power") or {}
+                        slip_txt = _norm(
+                            slip_probe.get("raw_slip_section")
+                            or slip_probe.get("raw_text")
+                            or ""
+                        )
+                        if slip_txt:
+                            soft_miss = []
+                            for m in leg_meta:
+                                name = str(m.get("player") or "").strip()
+                                if not name:
+                                    continue
+                                parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
+                                surname = parts[-1] if parts else name
+                                if _norm(surname) not in slip_txt:
+                                    soft_miss.append(name)
+                            if soft_miss:
+                                print(f"  [WARN] surname soft-miss: {', '.join(soft_miss[:3])}")
+                        n_sel = slip_probe.get("n_selected")
+                        if n_sel is not None and int(n_sel) != int(clicked):
+                            err = f"n_selected_{n_sel}_clicked_{clicked}"
+                            print(f"  [WARN] attempt {attempt}/{max_attempts}: {err}")
+                            if attempt < max_attempts:
+                                clear_slip(frame)
+                                frame.wait_for_timeout(900)
+                                continue
+                            if int(n_sel) != int(n_legs):
+                                rec["error"] = err
+                                rec["legs"] = leg_meta
+                                break
+                    except Exception:
+                        pass
+
+                    rec["legs"] = leg_meta
+                    if clicked < n_legs:
+                        err = f"clicked_{clicked}_of_{n_legs}"
+                        print(f"  [WARN] attempt {attempt}/{max_attempts}: {err}")
+                        if attempt < max_attempts:
+                            clear_slip(frame)
+                            frame.wait_for_timeout(800)
+                            continue
+                        rec["error"] = err
+                        break
+
+                    slip = slip_probe or read_slip(frame, n_legs=clicked, ticket_type="power")
+                    if not slip:
+                        err = "slip_not_detected"
+                        if attempt < max_attempts:
+                            clear_slip(frame)
+                            continue
+                        rec["error"] = err
+                        break
+
+                    min_x = slip.get("min_guarantee_payout")
+                    first_x = slip.get("first_place_payout") or slip.get("displayed_multiplier")
+                    rec["min_x"] = min_x
+                    rec["first_x"] = first_x
+                    rec["power_min_x"] = min_x
+                    rec["power_first_x"] = first_x
+                    rec["n_legs"] = n_legs
+                    if min_x is None:
+                        rec["status"] = "partial"
+                        rec["error"] = "missing_min_x"
+                    else:
+                        rec["status"] = "ok"
+                        rec["error"] = None
+                    print(
+                        f"  [RECORDED] legs={n_legs} nG={rec['n_goblin']} "
+                        f"avg_dev={rec.get('avg_deviation')} min_x={min_x} first_x={first_x}"
+                    )
+                    break
+                except Exception as e:
+                    print(f"  [ERROR] attempt {attempt}/{max_attempts}: {e}")
+                    rec["error"] = str(e)
+                    if attempt < max_attempts:
+                        try:
+                            clear_slip(frame)
+                        except Exception:
+                            pass
+                        continue
+            captured.append(rec)
+            try:
+                clear_slip(frame)
+                _, frame = verify_slip_empty(frame, page)
+                dismiss_modal(frame, page)
+            except Exception:
+                pass
     finally:
         try:
             browser.close()
@@ -2627,6 +2738,7 @@ def run_mix_grid_capture(
             pass
 
     n_ok = sum(1 for s in captured if s.get("status") == "ok")
+    floors = summarize_mix_grid_floors(captured)
     grid = {
         "date": date_str,
         "generated_at": datetime.utcnow().isoformat() + "Z",
@@ -2634,16 +2746,26 @@ def run_mix_grid_capture(
         "entry_amount": entry_amount,
         "primary_field": "power_min_x",
         "path": str(output_path),
+        "recipes": [
+            {"type": t, "n_goblin": g, "n_standard": s, "n_legs": g + s}
+            for t, g, s in MIX_GRID_RECIPES
+        ],
         "slips": captured,
+        "floors": floors,
         "summary": {
             "n_planned": len(captured),
             "n_ok": n_ok,
             "n_failed": sum(1 for s in captured if s.get("status") == "failed"),
+            "composition_avg_min_x": {
+                k: v.get("avg_min_x") for k, v in (floors.get("by_composition") or {}).items()
+            },
         },
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(grid, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"[mix-grid] Saved -> {output_path} (ok={n_ok}/{len(captured)})")
+    for comp, meta in (floors.get("by_composition") or {}).items():
+        print(f"  [floor] {comp}: avg_min_x={meta.get('avg_min_x')} n={meta.get('n')}")
 
     card = fit_payout_rate_card_from_grid(grid)
     rate_card_path.parent.mkdir(parents=True, exist_ok=True)
@@ -2654,6 +2776,7 @@ def run_mix_grid_capture(
     )
     print(f"[payout-grid] goblin_discount_per_unit={card.get('goblin_discount_per_unit')}")
     return 0 if n_ok > 0 else 1
+
 
 
 def main():
@@ -2684,7 +2807,10 @@ def main():
     ap.add_argument(
         "--mix-grid",
         action="store_true",
-        help="Calibration matrix: mixed G+S / all-Goblin × deviation buckets → payout_mix_grid + rate card",
+        help=(
+            "Calibration matrix: 2/3-leg Standard baselines + 2G/3G + mixed "
+            "(1G+1S, 1G+2S, 2G+1S) × deviation buckets → payout_mix_grid + rate card"
+        ),
     )
     ap.add_argument(
         "--date",
@@ -2694,8 +2820,8 @@ def main():
     ap.add_argument(
         "--max-slips",
         type=int,
-        default=24,
-        help="Max synthetic slips for --mix-grid (default 24).",
+        default=36,
+        help="Max synthetic slips for --mix-grid (default 36; covers 3-leg cells × buckets).",
     )
     ap.add_argument(
         "--no-write-back",

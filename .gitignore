@@ -120,6 +120,8 @@ data/reports/void_validator/
 data/reports/miss_attribution/
 data/reports/hot_players/
 data/reports/payout_capture_*.json
+data/reports/payout_mix_grid_*.json
+data/reports/payout_rate_card.json
 data/hot_players/
 
 # ui_runner dated artifacts (keep hand-authored templates + *_latest.json)

@@ -1088,6 +1088,233 @@ def _compute_power_min_guarantee(legs: list, n_legs: int) -> tuple[float, int]:
     return mg, g_count
 
 
+# Live PP floors for UI when CDP / rate card unavailable (from mix-grid 2026-07-11).
+MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
+    # (n_legs, n_goblin) -> power_min_x
+    (2, 0): 3.0,   # 2S
+    (2, 1): 2.7,   # 1G+1S
+    (2, 2): 2.2,   # 2G
+    (3, 0): 6.0,   # 3S
+    (3, 1): 4.75,  # 1G+2S
+    (3, 2): 4.0,   # 2G+1S
+}
+
+
+def _ticket_legs_for_display_payout(ticket: dict) -> list[dict[str, Any]]:
+    legs_out: list[dict[str, Any]] = []
+    for leg in ticket.get("legs") or []:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or "standard").strip().lower()
+        if "goblin" in pt:
+            pt = "goblin"
+        elif "demon" in pt:
+            pt = "demon"
+        else:
+            pt = "standard"
+        try:
+            dist = float(leg.get("line_distance") or 0.0)
+            if not math.isfinite(dist):
+                dist = 0.0
+        except (TypeError, ValueError):
+            dist = 0.0
+        legs_out.append({"pick_type": pt, "line_distance": abs(dist), "hit_prob": 0.65})
+    return legs_out
+
+
+def _count_goblin_legs(legs: list[dict[str, Any]]) -> int:
+    return sum(
+        1 for leg in (legs or []) if str(leg.get("pick_type") or "").strip().lower() == "goblin"
+    )
+
+
+def _safe_positive_float(v: Any) -> float | None:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(f) or f <= 0:
+        return None
+    return f
+
+
+def attach_display_min_x(ticket: dict) -> dict:
+    """
+    Set payout.display_min_x + payout.payout_source with fallback hierarchy:
+      1. live_cdp (power_min_x from --tickets capture)
+      2. rate_card (payout_rate_card.json + line_distance)
+      3. mix_grid_average (hardcoded 2G/1G+1S/2S floors)
+      4. fallback_estimate (model min_payout_x / power_payout)
+    """
+    if not isinstance(ticket, dict):
+        return ticket
+    pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
+    pay = dict(pay)
+    if pay.get("model_min_payout_x") is None:
+        model_keep = _safe_positive_float(pay.get("min_payout_x"))
+        if model_keep is None:
+            model_keep = _safe_positive_float(ticket.get("power_payout"))
+        if model_keep is not None:
+            pay["model_min_payout_x"] = round(model_keep, 4)
+
+    # 1) Already live from write-back / patch
+    src_now = str(pay.get("payout_source") or "").strip().lower()
+    live_v = _safe_positive_float(pay.get("power_min_x"))
+    if src_now == "live_cdp" and live_v is not None:
+        pay["display_min_x"] = round(live_v, 4)
+        pay["payout_source"] = "live_cdp"
+        ticket["payout"] = pay
+        ticket["display_min_x"] = pay["display_min_x"]
+        return ticket
+    if live_v is not None and src_now in ("", "live_cdp"):
+        # power_min_x present from capture even if source blank
+        disp = _safe_positive_float(pay.get("display_min_x")) or live_v
+        pay["display_min_x"] = round(float(disp), 4)
+        pay["power_min_x"] = round(live_v, 4)
+        pay["payout_source"] = "live_cdp"
+        ticket["payout"] = pay
+        ticket["display_min_x"] = pay["display_min_x"]
+        return ticket
+
+    legs = _ticket_legs_for_display_payout(ticket)
+    n = len(legs) or int(ticket.get("n_legs") or ticket.get("size") or 0)
+    g_count = _count_goblin_legs(legs)
+
+    # 2) Live rate card
+    fitted = _load_live_payout_rate_card()
+    if fitted and n >= 2 and legs:
+        try:
+            mg, _ = _compute_power_min_guarantee(legs, n)
+            mg_f = _safe_positive_float(mg)
+        except Exception:
+            mg_f = None
+        if mg_f is not None:
+            pay["display_min_x"] = round(mg_f, 4)
+            pay["payout_source"] = "rate_card"
+            pay["rate_card_min_x"] = pay["display_min_x"]
+            ticket["payout"] = pay
+            ticket["display_min_x"] = pay["display_min_x"]
+            return ticket
+
+    # 3) Mix-grid average floors
+    avg = MIX_GRID_AVERAGE_FLOORS.get((int(n), int(g_count)))
+    avg_f = _safe_positive_float(avg)
+    if avg_f is not None:
+        pay["display_min_x"] = round(avg_f, 4)
+        pay["payout_source"] = "mix_grid_average"
+        ticket["payout"] = pay
+        ticket["display_min_x"] = pay["display_min_x"]
+        return ticket
+
+    # 4) Model estimate last resort
+    model = _safe_positive_float(pay.get("model_min_payout_x"))
+    if model is None:
+        model = _safe_positive_float(pay.get("min_payout_x"))
+    if model is None:
+        model = _safe_positive_float(ticket.get("power_payout"))
+    if model is None:
+        model = _safe_positive_float(ticket.get("base_power_payout"))
+    if model is not None:
+        pay["display_min_x"] = round(model, 4)
+        pay["payout_source"] = "fallback_estimate"
+        ticket["payout"] = pay
+        ticket["display_min_x"] = pay["display_min_x"]
+        return ticket
+
+    ticket["payout"] = pay
+    return ticket
+
+
+def _leg_sig_key_for_payout_patch(legs: list | None) -> str:
+    parts: list[str] = []
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        player = re.sub(r"\s+", " ", str(leg.get("player") or "").strip().lower())
+        prop = re.sub(
+            r"\s+",
+            " ",
+            str(leg.get("prop_type") or leg.get("prop") or "").strip().lower(),
+        )
+        direction = re.sub(
+            r"\s+",
+            " ",
+            str(leg.get("direction") or leg.get("dir") or "over").strip().lower(),
+        )
+        try:
+            line = f"{float(leg.get('line')):.3f}"
+        except (TypeError, ValueError):
+            line = ""
+        parts.append(f"{player}|{prop}|{direction}|{line}")
+    return "||".join(sorted(p for p in parts if p and p != "|||"))
+
+
+def apply_payout_patch_to_payload(payload: dict) -> int:
+    """Apply data/reports/payout_patch_<date>.json live floors onto ticket payout blocks."""
+    if not isinstance(payload, dict):
+        return 0
+    date_str = str(payload.get("date") or "").strip()[:10]
+    if not date_str:
+        return 0
+    path = os.path.join(REPO_ROOT, "data", "reports", f"payout_patch_{date_str}.json")
+    if not os.path.isfile(path):
+        return 0
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            patch = json.load(f)
+    except Exception:
+        return 0
+    if not isinstance(patch, dict):
+        return 0
+    by_id = patch.get("by_ticket_id") if isinstance(patch.get("by_ticket_id"), dict) else {}
+    by_sig = patch.get("by_leg_sig") if isinstance(patch.get("by_leg_sig"), dict) else {}
+    n = 0
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            tid = str(t.get("ticket_id") or "").strip()
+            entry = by_id.get(tid) if tid else None
+            if entry is None:
+                entry = by_sig.get(_leg_sig_key_for_payout_patch(t.get("legs")))
+            if not isinstance(entry, dict):
+                continue
+            min_x = _safe_positive_float(entry.get("power_min_x") or entry.get("display_min_x"))
+            if min_x is None:
+                continue
+            pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+            pay = dict(pay)
+            if pay.get("model_min_payout_x") is None and pay.get("min_payout_x") is not None:
+                pay["model_min_payout_x"] = pay.get("min_payout_x")
+            pay["power_min_x"] = round(min_x, 4)
+            pay["display_min_x"] = round(min_x, 4)
+            pay["payout_source"] = "live_cdp"
+            if entry.get("power_first_x") is not None:
+                pay["power_first_x"] = entry.get("power_first_x")
+            t["payout"] = pay
+            t["display_min_x"] = pay["display_min_x"]
+            n += 1
+    return n
+
+
+def finalize_payload_display_payouts(payload: dict) -> dict:
+    """Apply live patch (if any) then resolve display_min_x for every ticket."""
+    if not isinstance(payload, dict):
+        return payload
+    n_patch = apply_payout_patch_to_payload(payload)
+    if n_patch:
+        print(f"  [payout] applied live_cdp patch to {n_patch} tickets")
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict):
+                attach_display_min_x(t)
+    return payload
+
+
 def _all_goblin_power_legs(legs: list, n: int) -> bool:
     """True when this is an n-leg Power slip with every leg marked Goblin (no Std/Demon)."""
     if n < 1:
@@ -7140,6 +7367,7 @@ def ticket_groups_to_payload(
                 slip["payout"] = build_ticket_payout_json(str(group_name), rows)
             except Exception:
                 slip["payout"] = None
+            attach_display_min_x(slip)
 
             _enrich_slip_p_win_fields(slip, mode=str(t.get("mode") or "ev"))
 
@@ -7156,6 +7384,7 @@ def ticket_groups_to_payload(
     payload["hot_legs"] = _payload_hot
     payload["cold_legs"] = _payload_cold
     apply_slate_ev_tier_recommendations(payload)
+    finalize_payload_display_payouts(payload)
     return payload
 
 
@@ -8340,6 +8569,7 @@ def write_web_outputs(
     if skip_ui_filters:
         _finalize_payload_l10_streaks(payload)
         apply_slate_ev_tier_recommendations(payload)
+        finalize_payload_display_payouts(payload)
         payload = _sanitize_for_json(payload)
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
@@ -8372,6 +8602,7 @@ def write_web_outputs(
                 print("  [web-merge] skipped: existing tickets_latest.json has a different slate date")
         except Exception as exc:
             print(f"  [web-merge] WARN: could not merge existing tickets_latest.json ({exc})")
+    finalize_payload_display_payouts(payload)
     payload = _sanitize_for_json(payload)
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
@@ -17812,10 +18043,17 @@ def _payout_rec_prefix(rec: str) -> str:
 
 def _payout_source_badge_html(source: str) -> str:
     src = str(source or "calibrated").strip().lower()
-    if src == "exact":
-        dot, label = "●", "Exact"
-    elif src == "fallback":
+    if src == "live_cdp":
+        dot, label = "●", "Live"
+    elif src == "rate_card":
+        dot, label = "●", "Rate"
+    elif src == "mix_grid_average":
+        dot, label = "●", "Mix"
+    elif src in ("fallback_estimate", "fallback"):
+        src = "fallback_estimate"
         dot, label = "●", "~"
+    elif src == "exact":
+        dot, label = "●", "Exact"
     else:
         src = "calibrated"
         dot, label = "●", "Est"
@@ -18871,12 +19109,18 @@ def render_tickets_body_html(
             kpi_source = "calibrated"
             if payout_ok and isinstance(payout, dict):
                 kpi_source = str(payout.get("payout_source") or "calibrated")
-                kpi_payout = payout.get("min_payout_x")
+                kpi_payout = payout.get("display_min_x")
+                if kpi_payout is None:
+                    kpi_payout = payout.get("power_min_x")
+                if kpi_payout is None:
+                    kpi_payout = payout.get("min_payout_x")
                 kpi_sweep = payout.get("sweep_payout_x")
                 if kpi_payout is None:
                     kpi_payout = payout.get("min_guarantee")
                 if kpi_sweep is None:
                     kpi_sweep = payout.get("sweep_payout")
+            if kpi_payout is None:
+                kpi_payout = ticket.get("display_min_x")
             if kpi_payout is None:
                 kpi_payout = t_power_pay
             if kpi_sweep is None:
@@ -19094,7 +19338,11 @@ def render_tickets_body_html(
                 tt_pay = str(payout.get("ticket_type") or "").lower()
                 if tt_pay == "power":
                     try:
-                        power_min_mult = float(payout.get("min_payout_x", 1.0))
+                        power_min_mult = float(
+                            payout.get("display_min_x")
+                            or payout.get("power_min_x")
+                            or payout.get("min_payout_x", 1.0)
+                        )
                     except (TypeError, ValueError):
                         power_min_mult = 1.0
                     e10g = round(10 * power_min_mult, 2)

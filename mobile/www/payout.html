@@ -357,6 +357,52 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .paste-msg{font-size:11px;line-height:1.6;margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);}
 .paste-msg.err{border-color:rgba(255,127,159,.35);background:rgba(255,127,159,.06);color:var(--red);}
 .paste-msg.ok{border-color:rgba(159,216,167,.35);background:rgba(159,216,167,.06);color:var(--green);}
+
+/* Compact Slip Builder toolbar + dense legs */
+.builder-toolbar{display:grid;grid-template-columns:minmax(120px,0.9fr) minmax(160px,1.1fr) minmax(220px,1.6fr) auto;gap:10px 12px;align-items:end;margin-bottom:12px;}
+.builder-toolbar .field{margin:0;}
+.builder-toolbar .field label{margin-bottom:5px;}
+.builder-toolbar-slate{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.builder-toolbar-slate-row{display:flex;gap:8px;align-items:stretch;min-width:0;}
+.builder-toolbar-slate-row select{flex:1;min-width:0;min-height:38px;}
+.builder-toolbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:1px;}
+.builder-slate-msg{font-size:10px;color:var(--muted);letter-spacing:0.4px;line-height:1.35;min-height:14px;}
+.import-details{border:1px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(255,255,255,0.03);margin-bottom:12px;overflow:hidden;}
+.import-details>summary{list-style:none;cursor:pointer;padding:10px 14px;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.import-details>summary::-webkit-details-marker{display:none;}
+.import-details>summary::after{content:'▾';font-size:11px;opacity:.7;transition:transform .15s;}
+.import-details[open]>summary::after{transform:rotate(180deg);}
+.import-details>summary:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.import-details-body{padding:0 14px 14px;border-top:1px solid rgba(255,255,255,0.06);}
+.import-details-body p{font-size:10px;color:var(--muted);margin:8px 0 0;letter-spacing:0.3px;line-height:1.5;}
+.pt-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px;}
+.pt-seg-btn{border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);padding:7px 6px;cursor:pointer;transition:all .15s;text-align:center;user-select:none;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--muted);}
+.pt-seg-btn:hover{border-color:rgba(255,255,255,0.18);color:var(--text);}
+.pt-seg-btn.sel-std{border-color:var(--std)!important;background:rgba(127,199,217,.1)!important;color:var(--std)!important;}
+.pt-seg-btn.sel-gob{border-color:var(--goblin)!important;background:rgba(125,255,203,.1)!important;color:var(--goblin)!important;}
+.pt-seg-btn.sel-dem{border-color:var(--demon)!important;background:rgba(255,127,159,.1)!important;color:var(--demon)!important;}
+.leg-body{padding:0 12px 12px;}
+.line-compare{gap:8px;margin-bottom:10px;}
+.line-box{padding:8px 10px;border-radius:10px;}
+.line-box-lbl{margin-bottom:4px;}
+.big-input{font-size:26px;}
+.big-input::placeholder{font-size:22px;}
+.prob-wrap{margin-bottom:4px;}
+.prob-head{margin-bottom:4px;}
+.prob-val{font-size:18px;}
+.hint.hint-compact{margin-bottom:12px;padding:8px 12px;}
+.calc-action-bar{position:sticky;bottom:12px;z-index:40;margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(212,175,55,0.22);background:rgba(12,12,18,0.92);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);box-shadow:0 8px 28px rgba(0,0,0,0.45);}
+.calc-action-bar .form-grid{margin-bottom:0;}
+.calc-action-bar .btn-row{margin-top:10px;}
+.calc-action-bar .section-divider{margin:0 0 10px;}
+@media (max-width:900px){
+  .builder-toolbar{grid-template-columns:1fr 1fr;}
+  .builder-toolbar-slate{grid-column:1/-1;}
+  .builder-toolbar-actions{grid-column:1/-1;}
+}
+@media (max-width:560px){
+  .builder-toolbar{grid-template-columns:1fr;}
+}
 .modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(5,5,15,0.72);backdrop-filter:blur(12px) saturate(150%);display:flex;align-items:center;justify-content:center;padding:20px;}
 .modal-card{max-width:520px;width:100%;max-height:85vh;overflow:auto;background:rgba(22,22,30,0.92);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.06);}
 .modal-card h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:12px;color:var(--accent);}
@@ -552,6 +598,8 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 [data-theme="light"] .pp-cell,
 [data-theme="light"] .log-table-wrap,
 [data-theme="light"] .import-panel,
+[data-theme="light"] .import-details,
+[data-theme="light"] .calc-action-bar,
 [data-theme="light"] .modal-card,
 [data-theme="light"] .expand-stat,
 [data-theme="light"] .streak-card,
@@ -977,34 +1025,42 @@ body::before{
 <div id="tab-calc" class="tab-panel active">
   <div class="card accent">
     <div class="card-title">💰 Slip Builder + EV</div>
-    <p class="hint">Build leg by leg. Choose a pick type, enter the <strong>Standard Line</strong> and the <strong>Goblin / Demon line</strong>, set estimated hit probability. EV calculated against the actual multiplier PrizePicks shows you.</p>
-    <div class="import-panel" id="import-panel">
-      <div class="import-panel-title">IMPORT FROM SCREENSHOT</div>
-      <div class="import-actions">
-        <button type="button" class="btn-glass-sm" id="btn-screenshot" onclick="_screenshotImportTarget='calc';document.getElementById('screenshot-file').click()">UPLOAD SCREENSHOT</button>
-        <span style="font-size:10px;color:var(--muted);letter-spacing:1px">Or paste an image with Ctrl+V on this tab (Gemini vision)</span>
-      </div>
-      <p style="font-size:10px;color:var(--muted);margin:8px 0 0;letter-spacing:0.3px">If the slip shows the payout multiplier (and Flex min guarantee when visible), vision can pre-fill those after you confirm the import.</p>
-      <input type="file" id="screenshot-file" class="hidden-file" accept="image/*" onchange="onScreenshotFile(this.files)"/>
-    </div>
-    <div class="form-grid" style="margin-bottom:16px">
+    <p class="hint hint-compact">Add legs, set lines + hit %, enter the multiplier PrizePicks shows, then Calculate EV.</p>
+
+    <div class="builder-toolbar">
       <div class="field"><label>PLATFORM</label>
         <select id="calc-platform"><option value="prizepicks">PrizePicks</option><option value="underdog">Underdog Fantasy</option></select>
       </div>
       <div class="field"><label>SLIP TYPE</label>
         <select id="calc-slip-type"><option value="power">Power Play (all must hit)</option><option value="flex">Flex Play (can miss 1-2)</option></select>
       </div>
-    </div>
-    <div class="import-actions" style="margin-bottom:10px;align-items:flex-end;gap:10px;flex-wrap:wrap">
-      <div style="display:flex;flex-direction:column;gap:6px;min-width:320px;flex:1">
-        <label style="font-size:10px;color:var(--muted);letter-spacing:1.5px;">LOAD TICKET FROM TODAY'S SLATE</label>
-        <select id="calc-slate-ticket-select" class="leg-input" onchange="applySelectedSlateTicketToCalc()" style="min-height:38px">
-          <option value="">Select a ticket group...</option>
-        </select>
+      <div class="builder-toolbar-slate">
+        <label style="font-size:10px;color:var(--muted);letter-spacing:1.5px;">LOAD FROM SLATE</label>
+        <div class="builder-toolbar-slate-row">
+          <select id="calc-slate-ticket-select" class="leg-input" onchange="applySelectedSlateTicketToCalc()">
+            <option value="">Select a ticket group...</option>
+          </select>
+          <button type="button" class="btn-glass-sm secondary" onclick="loadSlateTicketOptions()" title="Refresh slate">↻</button>
+        </div>
+        <div id="calc-slate-msg" class="builder-slate-msg"></div>
       </div>
-      <button type="button" class="btn-glass-sm" onclick="loadSlateTicketOptions()">📋 Refresh slate</button>
-      <span id="calc-slate-msg" style="font-size:10px;color:var(--muted);letter-spacing:0.5px"></span>
+      <div class="builder-toolbar-actions">
+        <button type="button" class="btn-glass-sm" onclick="document.getElementById('calc-import-details').open=true;_screenshotImportTarget='calc';document.getElementById('screenshot-file').click()">📷 Import</button>
+      </div>
     </div>
+
+    <details class="import-details" id="calc-import-details">
+      <summary>Screenshot import · paste with Ctrl+V</summary>
+      <div class="import-details-body">
+        <div class="import-actions">
+          <button type="button" class="btn-glass-sm" id="btn-screenshot" onclick="_screenshotImportTarget='calc';document.getElementById('screenshot-file').click()">UPLOAD SCREENSHOT</button>
+          <span style="font-size:10px;color:var(--muted);letter-spacing:1px">Or paste an image on this tab (Gemini vision)</span>
+        </div>
+        <p>If the slip shows a payout multiplier (and Flex min when visible), vision can pre-fill those after you confirm.</p>
+        <input type="file" id="screenshot-file" class="hidden-file" accept="image/*" onchange="onScreenshotFile(this.files)"/>
+      </div>
+    </details>
+
     <div class="section-divider">LEGS &nbsp;<span id="leg-badge" style="color:var(--muted);font-size:10px;letter-spacing:1px"></span></div>
     <div id="calc-leg-list" style="margin-bottom:14px">
       <div style="font-size:11px;color:var(--muted);padding:14px;text-align:center;border:1px dashed var(--border);border-radius:10px">No legs added yet — use the buttons below</div>
@@ -1014,14 +1070,17 @@ body::before{
       <button class="add-leg-btn goblin"   onclick="addCalcLeg('goblin')">🎃 + Goblin</button>
       <button class="add-leg-btn demon"    onclick="addCalcLeg('demon')">😈 + Demon</button>
     </div>
-    <div class="section-divider" style="margin-top:20px">ACTUAL PAYOUT</div>
-    <div class="form-grid">
-      <div class="field"><label>PAYOUT MULTIPLIER SHOWN (×)</label><input id="calc-mult" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 8.5 — enter what PrizePicks shows"/></div>
-      <div class="field"><label>STAKE ($)</label><input id="calc-stake" type="text" inputmode="decimal" autocomplete="off" value="10"/></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-accent" onclick="runCalc()">▶ Calculate EV</button>
-      <button class="btn btn-ghost" onclick="clearCalcLegs()">✕ Clear</button>
+
+    <div class="calc-action-bar">
+      <div class="section-divider">ACTUAL PAYOUT</div>
+      <div class="form-grid">
+        <div class="field"><label>PAYOUT MULTIPLIER SHOWN (×)</label><input id="calc-mult" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 2.7 — what PrizePicks shows"/></div>
+        <div class="field"><label>STAKE ($)</label><input id="calc-stake" type="text" inputmode="decimal" autocomplete="off" value="10"/></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-accent" onclick="runCalc()">▶ Calculate EV</button>
+        <button class="btn btn-ghost" onclick="clearCalcLegs()">✕ Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1073,29 +1132,33 @@ body::before{
 <div id="tab-log" class="tab-panel">
   <div class="card accent">
     <div class="card-title">🎟 Log a Full Ticket</div>
-    <p class="hint">Log every leg with its <strong>standard line</strong> and <strong>played line</strong>. Type auto-classifies from the delta. The delta% per leg (played ÷ standard) is the key variable. For <strong>Flex</strong>, log the <strong>sweep</strong> multiplier and optionally the <strong>min guarantee</strong> (one miss) rate the app shows. Your draft is saved automatically in this browser.</p>
-    <div class="import-panel" id="import-panel-log">
-      <div class="import-panel-title">IMPORT FROM SCREENSHOT</div>
-      <div class="import-actions">
-        <button type="button" class="btn-glass-sm" onclick="_screenshotImportTarget='log';document.getElementById('screenshot-file').click()">UPLOAD SCREENSHOT</button>
-        <span style="font-size:10px;color:var(--muted);letter-spacing:1px">Or paste an image with Ctrl+V on this tab (Gemini vision)</span>
-      </div>
-      <p style="font-size:10px;color:var(--muted);margin:8px 0 0;letter-spacing:0.3px">Screenshots can fill legs plus, when visible on screen, the sweep multiplier and Flex one-miss rate — then enable server CSV on log if you want a curve row.</p>
-      <div class="import-actions" style="margin-top:10px">
-        <button type="button" class="btn-glass-sm" onclick="importTodayTicketsFromSlate()">📥 Import from slate JSON</button>
-        <span style="font-size:10px;color:var(--muted);letter-spacing:1px">Loads tickets_latest.json (same as /tickets). Enter actual PP multiplier, then Log.</span>
-      </div>
-      <div class="import-actions" style="margin-top:12px;align-items:flex-end;gap:10px;flex-wrap:wrap">
-        <div style="display:flex;flex-direction:column;gap:6px;min-width:320px;flex:1">
-          <label style="font-size:10px;color:var(--muted);letter-spacing:1.5px;">LOAD TICKET FROM TODAY'S SLATE</label>
-          <select id="log-slate-ticket-select" class="leg-input" onchange="applySelectedSlateTicketToLog()" style="min-height:38px">
-            <option value="">Select a ticket group...</option>
-          </select>
+    <p class="hint hint-compact">Log standard vs played lines; type auto-classifies from delta. Flex: log sweep + optional min guarantee.</p>
+    <details class="import-details" id="import-panel-log">
+      <summary>Import · screenshot / slate</summary>
+      <div class="import-details-body">
+        <div class="import-actions">
+          <button type="button" class="btn-glass-sm" onclick="_screenshotImportTarget='log';document.getElementById('screenshot-file').click()">UPLOAD SCREENSHOT</button>
+          <span style="font-size:10px;color:var(--muted);letter-spacing:1px">Or paste with Ctrl+V on this tab</span>
         </div>
-        <button type="button" class="btn-glass-sm" onclick="loadSlateTicketOptions()">📋 Refresh slate</button>
-        <span id="log-slate-msg" style="font-size:10px;color:var(--muted);letter-spacing:0.5px"></span>
+        <p>Screenshots can fill legs plus sweep / Flex one-miss when visible. Enable server CSV on log for curve rows.</p>
+        <div class="import-actions" style="margin-top:10px">
+          <button type="button" class="btn-glass-sm" onclick="importTodayTicketsFromSlate()">📥 Import from slate JSON</button>
+          <span style="font-size:10px;color:var(--muted);letter-spacing:1px">tickets_latest.json — then enter actual PP multiplier</span>
+        </div>
+        <div class="builder-toolbar" style="margin-top:12px;margin-bottom:0">
+          <div class="builder-toolbar-slate" style="grid-column:1 / -2">
+            <label style="font-size:10px;color:var(--muted);letter-spacing:1.5px;">LOAD FROM SLATE</label>
+            <div class="builder-toolbar-slate-row">
+              <select id="log-slate-ticket-select" class="leg-input" onchange="applySelectedSlateTicketToLog()">
+                <option value="">Select a ticket group...</option>
+              </select>
+              <button type="button" class="btn-glass-sm secondary" onclick="loadSlateTicketOptions()" title="Refresh slate">↻</button>
+            </div>
+            <div id="log-slate-msg" class="builder-slate-msg"></div>
+          </div>
+        </div>
       </div>
-    </div>
+    </details>
     <div class="form-grid-3" style="margin-bottom:10px">
       <div class="field"><label>PLATFORM</label><select id="log-platform" onchange="scheduleLogDraftSave()"><option>PrizePicks</option><option>Underdog Fantasy</option><option>Sleeper</option></select></div>
       <div class="field"><label>SLIP TYPE</label><select id="log-slip-type" onchange="onLogSlipTypeChange();scheduleLogDraftSave()"><option>Power Play</option><option>Flex Play</option></select></div>
@@ -1558,9 +1621,11 @@ async function loadSlateTicketOptions(){
     populateSlateTicketSelect(document.getElementById('calc-slate-ticket-select'));
     populateSlateTicketSelect(document.getElementById('log-slate-ticket-select'));
     const stamp=j.built_at?(' · '+j.built_at):'';
-    const msg='Loaded '+list.length+' tickets'+stamp;
-    setCalcSlateMsg(msg,false);
-    setLogSlateMsg(msg,false);
+    const msg=list.length
+      ?('Loaded '+list.length+' tickets'+stamp)
+      :('0 tickets for this date — MAIN may be empty'+stamp);
+    setCalcSlateMsg(msg,!list.length);
+    setLogSlateMsg(msg,!list.length);
   }catch(e){
     setCalcSlateMsg('Could not load slate tickets',true);
     setLogSlateMsg('Could not load slate tickets',true);
@@ -1594,7 +1659,7 @@ function applySelectedSlateTicketToCalc(){
       stdLine:std,
       playedLine:typ==='standard'?std:played,
       hitProb:pctFromLegProb(leg),
-      open:payoutLegCardsOpenByDefault(),
+      open:false,
     });
   });
   renderCalcLegs();
@@ -1725,12 +1790,9 @@ function renderCalcLegs(){
   const n=calcLegs.length;
   document.getElementById('leg-badge').textContent=n?`(${n} leg${n>1?'s':''})`:'';
   if(!n){c.innerHTML='<div class="calc-leg-empty">No legs added yet — use the buttons below</div>';return;}
-  const so=SPORT_OPTS.map(s=>`<option>${s}</option>`).join('');
-  const po=PROP_OPTS.map(p=>`<option>${p}</option>`).join('');
   c.innerHTML=calcLegs.map((leg,i)=>{
     const isG=leg.type==='goblin',isD=leg.type==='demon',isS=leg.type==='standard';
     const ac=isG?'var(--goblin)':isD?'var(--demon)':'var(--std)';
-    const bl=isG?'rgba(125,255,203,.35)':isD?'rgba(255,127,159,.35)':'rgba(127,199,217,.25)';
     const icon=isG?'🎃':isD?'😈':'⭐';
     const badge=isG?'goblin':isD?'demon':'standard';
     const meta=`${leg.sport} · ${leg.prop}${legPostedLineDescription(leg)} · Hit:${leg.hitProb}%`;
@@ -1747,35 +1809,32 @@ function renderCalcLegs(){
         <button class="leg-remove" onclick="event.stopPropagation();removeCalcLeg(${leg.id})">✕</button>
       </div>
       <div class="leg-body">
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px">
-          <div><span class="sub-lbl">PLAYER NAME</span><input class="leg-input" type="text" placeholder="e.g. Tyrese Haliburton" value="${leg.player}" oninput="patchCF(${leg.id},'player',this.value)" onblur="blurCFPlayer(${leg.id})"/></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <div><span class="sub-lbl">PLAYER</span><input class="leg-input" type="text" placeholder="e.g. Tyrese Haliburton" value="${leg.player}" oninput="patchCF(${leg.id},'player',this.value)" onblur="blurCFPlayer(${leg.id})"/></div>
           <div><span class="sub-lbl">SPORT</span><select class="leg-input" onchange="updateCF(${leg.id},'sport',this.value)">${sportSel}</select></div>
           <div><span class="sub-lbl">PROP</span><select class="leg-input" onchange="updateCF(${leg.id},'prop',this.value)">${propSel}</select></div>
         </div>
         <span class="sub-lbl">PICK TYPE</span>
-        <div class="pt-grid" style="margin-top:6px">
-          <div class="pt-opt ${isS?'sel-std':''}" onclick="changeType(${leg.id},'standard')"><div class="pt-icon">⭐</div><div class="pt-label" style="color:var(--std)">Standard</div><div class="pt-desc">Market line · full multiplier</div></div>
-          <div class="pt-opt ${isG?'sel-gob':''}" onclick="changeType(${leg.id},'goblin')"><div class="pt-icon">🎃</div><div class="pt-label" style="color:var(--goblin)">Goblin</div><div class="pt-desc">Line in your favor · reduces payout</div></div>
-          <div class="pt-opt ${isD?'sel-dem':''}" onclick="changeType(${leg.id},'demon')"><div class="pt-icon">😈</div><div class="pt-label" style="color:var(--demon)">Demon</div><div class="pt-desc">Line against you · boosts payout</div></div>
+        <div class="pt-seg" style="margin-top:4px">
+          <button type="button" class="pt-seg-btn ${isS?'sel-std':''}" onclick="changeType(${leg.id},'standard')">⭐ Std</button>
+          <button type="button" class="pt-seg-btn ${isG?'sel-gob':''}" onclick="changeType(${leg.id},'goblin')">🎃 Goblin</button>
+          <button type="button" class="pt-seg-btn ${isD?'sel-dem':''}" onclick="changeType(${leg.id},'demon')">😈 Demon</button>
         </div>
-        <span class="sub-lbl" style="margin-top:14px">LINES</span>
-        <div class="line-compare" style="margin-top:6px">
+        <span class="sub-lbl">LINES</span>
+        <div class="line-compare" style="margin-top:4px">
           <div class="line-box lb-std">
-            <div class="line-box-lbl"><div class="line-dot ld-std"></div>Standard Line</div>
+            <div class="line-box-lbl"><div class="line-dot ld-std"></div>Standard</div>
             <input class="big-input" type="text" inputmode="decimal" autocomplete="off" placeholder="20.5" value="${leg.stdLine}" oninput="patchCF(${leg.id},'stdLine',this.value)" onblur="blurCalcLine(${leg.id},'stdLine',this)"/>
-            <div style="font-size:9px;color:var(--muted);margin-top:4px">Market line from PrizePicks</div>
           </div>
           <div class="line-box ${isS?'lb-dim':isG?'lb-gob':'lb-dem'}">
-            <div class="line-box-lbl"><div class="line-dot ${isG?'ld-gob':'ld-dem'}"></div>${isG?'Goblin Line':isD?'Demon Line':'Played Line'}</div>
-            <input class="big-input" type="text" inputmode="decimal" autocomplete="off" placeholder="${isG?'16.5 (lower)':isD?'26.5 (higher)':'N/A'}" value="${leg.playedLine}" ${isS?'disabled':''} oninput="patchCF(${leg.id},'playedLine',this.value)" onblur="blurCalcLine(${leg.id},'playedLine',this)"/>
-            <div style="margin-top:4px">${deltaPill||`<span style="font-size:9px;color:var(--muted)">${isS?'Same as standard':isG?'Move line down':'Move line up'}</span>`}</div>
+            <div class="line-box-lbl"><div class="line-dot ${isG?'ld-gob':'ld-dem'}"></div>${isG?'Goblin':isD?'Demon':'Played'}</div>
+            <input class="big-input" type="text" inputmode="decimal" autocomplete="off" placeholder="${isG?'16.5':isD?'26.5':'—'}" value="${leg.playedLine}" ${isS?'disabled':''} oninput="patchCF(${leg.id},'playedLine',this.value)" onblur="blurCalcLine(${leg.id},'playedLine',this)"/>
+            ${deltaPill?`<div style="margin-top:2px">${deltaPill}</div>`:''}
           </div>
         </div>
-        <span class="sub-lbl">ESTIMATED HIT PROBABILITY</span>
-        <div class="prob-wrap" style="margin-top:6px">
-          <div class="prob-head"><span class="prob-lbl">HOW LIKELY IS THIS LEG TO HIT?</span><span class="prob-val" id="pv-${leg.id}">${leg.hitProb}%</span></div>
+        <div class="prob-wrap" style="margin-top:4px">
+          <div class="prob-head"><span class="prob-lbl">HIT PROB</span><span class="prob-val" id="pv-${leg.id}">${leg.hitProb}%</span></div>
           <input class="prob-slider t-${badge}" type="range" min="5" max="99" value="${leg.hitProb}" oninput="updateCF(${leg.id},'hitProb',this.value)"/>
-          <div class="prob-ticks"><span>5% (longshot)</span><span>50% (coin flip)</span><span>99% (lock)</span></div>
         </div>
       </div>
     </div>`;

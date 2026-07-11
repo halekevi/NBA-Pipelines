@@ -1817,6 +1817,33 @@ else {
         git -C $Root add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/"
         git -C $Root add -- "ui_runner/templates/*_matchup_edge.json"
         git -C $Root add -- "mobile/www/data/*_matchup_edge.json"
+
+        # Grade HTML is gitignored by default; force-add yesterday + today so Railway /grades can serve them.
+        $syncDatesScript = Join-Path $Root "scripts\sync_grades_report_dates.py"
+        if (Test-Path -LiteralPath $syncDatesScript) {
+            & py -3.14 $syncDatesScript
+            if ($LASTEXITCODE -eq 0) {
+                Write-Log "STEP E - sync_grades_report_dates: OK"
+            }
+            else {
+                Write-Log "STEP E - sync_grades_report_dates: WARN (exit $LASTEXITCODE)"
+            }
+        }
+        foreach ($gd in @($Yesterday, $Today)) {
+            foreach ($pat in @(
+                "ui_runner/templates/slate_eval_$gd.html",
+                "ui_runner/templates/ticket_eval_$gd.html",
+                "ui_runner/templates/ticket_eval_long_parlay_$gd.html",
+                "ui_runner/templates/ticket_eval_high_leg_$gd.html",
+                "ui_runner/templates/graded_props_$gd.json"
+            )) {
+                $full = Join-Path $Root $pat
+                if (Test-Path -LiteralPath $full) {
+                    git -C $Root add -f -- $pat
+                }
+            }
+        }
+        git -C $Root add -- "ui_runner/templates/grades_report_dates.json"
         $optionalAdds = @(
             "Sports\NBA\step8_all_direction_clean.xlsx",
             "Sports\NBA\step8_nba1h_direction_clean.xlsx",

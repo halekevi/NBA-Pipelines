@@ -2,6 +2,8 @@
 
 Repo must be at `3ce77ec5` or later (`git pull`).
 
+**Aug 14 (~2026-08-14) pre-work** (pick_type-stratified holdout, WNBA `usage_pct`, live-slate scoring gate, Goblin `ml_prob` corr target > 0.15): see `docs/CURRENT_STATE.md` → **Aug 14 retrain pre-work**.
+
 ## 1. Smoke test
 
 ```powershell

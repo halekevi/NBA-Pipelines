@@ -5484,9 +5484,11 @@ def _load_grade_history_rows() -> list[dict[str, Any]]:
         if n_tickets > 0 and abs(roi_pct) < 1e-9 and abs(net_dollars) > 1e-9:
             roi_pct = (net_dollars / (n_tickets * 10.0)) * 100.0
         day_win_rate = (paid / decided) if decided > 0 else None
+        track = str(r.get("track") or "").strip() or "legacy"
         rows.append(
             {
                 "date": d,
+                "track": track,
                 "tickets": n_tickets,
                 "wins": wins,
                 "losses": losses,

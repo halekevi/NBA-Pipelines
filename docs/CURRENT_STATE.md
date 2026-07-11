@@ -2,7 +2,7 @@
 
 Living one-pager for after a break. Update when something big ships (model promote, pool-mode change, sport season flip, experiment ship/kill). Not a C4 diagram.
 
-**As of:** 2026-07-09
+**As of:** 2026-07-11
 
 ---
 
@@ -16,7 +16,24 @@ Living one-pager for after a break. Update when something big ships (model promo
 | **Active MAIN pool mode** | `goblin_only_3leg` | `MAIN_POOL_MODE` in `scripts/combined_slate_tickets.py` (from ~Jul 10 policy). |
 | **STRONG gate** | Rolling HR + player appearance cap | Exclude players with rolling HR &lt; 0.25 when n ≥ 20; max appearances per slate (env `PROPORACLE_STRONG_MAX_PLAYER_APPS`, default 2). |
 | **Ticket model** | `models/ticket_model*.pkl` | Registry refreshed 2026-07-09; combined AUC test ~0.67 (cash label). Secondary to edge model for day-to-day. |
-| **Next edge retrain** | **~2026-08-14** | ~2 months after Jun-13 promote; run enrichment checklist in `docs/ml/` when ready. |
+| **Next edge retrain** | **~2026-08-14** | ~2 months after Jun-13 promote; see **Aug 14 retrain pre-work** below. |
+| **Live payout rate card** | `data/reports/payout_rate_card.json` | Mix-grid fit 2026-07-11: `goblin_discount_per_unit` bucket **1.0 = 0.1521** (n=4). Fill **1.5 / 2.0** buckets before treating curve as final. |
+
+---
+
+## Aug 14 retrain pre-work
+
+Do **not** retrain or retune Goblin score weights before this date. Gates already encode ticket-pattern evidence (Goblin-only MAIN, STRONG, tier-def). Hold 3-leg conclusions until **n≈20**; opt3 until clean **n≈30**.
+
+1. Stratify temporal test by `pick_type` (Demon / Goblin / Standard balanced)
+2. Wire WNBA `usage_pct` into `scripts/build_retrain_dataset.py`
+3. Add live-slate scoring check to retrain gate
+4. **Check Goblin `ml_prob` calibration post-retrain**
+   - Baseline (2026-07-11, mobile graded Jul 4–10): Goblin ticket legs n=812, actual HR **0.643**, mean `ml_prob` **0.578**, corr **0.060** (flat; mass in 0.5–0.6)
+   - Target: correlation **> 0.15** on Goblin ticket legs
+   - If still flat after retrain → Goblin needs its own calibration pass
+
+Until then: Goblin selection stays on **tier + HOT + hit rate** (not `ml_prob`).
 
 ---
 

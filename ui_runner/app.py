@@ -1452,56 +1452,6 @@ def _sport_slate_status(
 # ──────────────────────────────────────────────────────────────────────────────
 # Pages
 # ──────────────────────────────────────────────────────────────────────────────
-def _home_board_meta() -> dict[str, Any]:
-    """Lightweight board status for home empty-state + skip heavy /api/slate warm."""
-    tickets: dict[str, Any] = {}
-    try:
-        if _template_json_available("tickets_latest.json"):
-            raw = read_json_cached(TEMPLATES_DIR / "tickets_latest.json")
-            if isinstance(raw, dict):
-                tickets = raw
-    except Exception:
-        tickets = {}
-    groups = list(tickets.get("groups") or [])
-    n_slips = sum(len(g.get("tickets") or []) for g in groups if isinstance(g, dict))
-    date_s = str(tickets.get("date") or "").strip()[:10]
-    exclude = sorted(
-        {
-            str(s).strip().upper()
-            for s in (tickets.get("main_exclude_sports") or [])
-            if str(s).strip()
-        }
-    )
-    populated: list[str] = []
-    try:
-        if _template_json_available("slate_latest.json"):
-            slate = read_json_cached(TEMPLATES_DIR / "slate_latest.json")
-            if isinstance(slate, dict):
-                if not date_s:
-                    date_s = str(slate.get("date") or "").strip()[:10]
-                sports = slate.get("sports") or {}
-                if isinstance(sports, dict):
-                    for k, v in sports.items():
-                        if isinstance(v, list) and v:
-                            populated.append(str(k).strip().upper())
-    except Exception:
-        pass
-    populated = sorted(set(populated))
-    excl_set = set(exclude)
-    eligible_populated = [s for s in populated if s not in excl_set]
-    tickets_empty = n_slips == 0
-    return {
-        "date": date_s,
-        "tickets_empty": tickets_empty,
-        "n_groups": len(groups),
-        "n_slips": n_slips,
-        "main_exclude_sports": exclude,
-        "populated_sports": populated,
-        "eligible_populated": eligible_populated,
-        "generated_at": str(tickets.get("generated_at") or "").strip(),
-    }
-
-
 @app.get("/")
 def home():
     _pipe_cfg = load_config()
@@ -1511,7 +1461,6 @@ def home():
             config=_pipe_cfg,
             ui_build_id=_UI_BUILD_ID,
             deploy_git_sha=(os.environ.get("RAILWAY_GIT_COMMIT_SHA") or os.environ.get("GIT_COMMIT") or "")[:40],
-            home_board_meta=_home_board_meta(),
         )
     )
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"

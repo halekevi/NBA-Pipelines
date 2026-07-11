@@ -775,6 +775,50 @@ select option,
 [data-theme="light"] .load-overlay { background:rgba(218,234,248,0.92) !important; }
 [data-theme="light"] .empty-state { background:rgba(218,234,248,0.65) !important; }
 
+/* Soft honesty banner — never hides home cats */
+.home-skew-banner{
+  display:none;
+  margin:0 0 14px;
+  padding:12px 16px;
+  border-radius:12px;
+  border:1px solid rgba(200,154,74,0.35);
+  background:rgba(200,154,74,0.08);
+  color:var(--muted2);
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  letter-spacing:0.02em;
+}
+.home-skew-banner[data-show="1"]{display:block;}
+.home-skew-banner strong{
+  font-family:'Bebas Neue',sans-serif;
+  font-weight:400;
+  letter-spacing:0.06em;
+  color:var(--amber);
+  margin-right:8px;
+}
+.home-cat-empty-state{
+  text-align:center;
+  padding:28px 20px;
+  color:rgba(255,255,255,0.28);
+  font-size:12px;
+  font-family:'Inter',sans-serif;
+}
+.home-cat-empty-state .hec-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;
+  letter-spacing:0.06em;
+  color:rgba(255,255,255,0.4);
+  margin-bottom:6px;
+}
+[data-theme="light"] .home-skew-banner{
+  background:rgba(200,154,74,0.12);
+  border-color:rgba(180,130,40,0.35);
+  color:rgba(60,50,30,0.75);
+}
+[data-theme="light"] .home-cat-empty-state{color:rgba(0,0,0,0.35);}
+[data-theme="light"] .home-cat-empty-state .hec-title{color:rgba(0,0,0,0.5);}
+
 /* Brand wordmark: PropOracle casing must survive theme/injected CSS */
 a.snav-brand .brand-wordmark .wb-first,
 a.snav-brand .brand-wordmark .oracle-word {
@@ -1050,6 +1094,8 @@ body > nav.snav.glass-card {
         <span class="ht2">Oracle</span>
       </h1>
     </div>
+
+  <div id="home-skew-banner" class="home-skew-banner" role="status" aria-live="polite"></div>
     
   <!-- SLATE STATUS CARDS -->
   <details class="home-cat" open id="slate-explorer">
@@ -3155,19 +3201,8 @@ async function loadHomeCardsFromFullSlate() {
     if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
       fetchOpts.signal = AbortSignal.timeout(120000);
     }
-    const r = await fetch("/api/slate-excel", fetchOpts);
-    if (r.ok) {
-      const d = await r.json();
-      const sh = d.sheets && d.sheets.combined;
-      if (sh && sh.columns && sh.rows && sh.rows.length) {
-        SLATE_DEBUG_META = {
-          source: "combined_excel",
-          generated_at: "",
-          date: String(d.date || ""),
-        };
-        if (syncCardsFromCombinedSheet(sh.columns, sh.rows)) return;
-      }
-    }
+    // Prefer slim JSON for Edges/L5/L10 first paint; excel only as fallback
+    // (Combined explorer tab still loads excel on demand).
     const r2 = await fetch("/api/slate-sport/combined", fetchOpts);
     if (r2.ok) {
       const d2 = await r2.json();
@@ -3192,6 +3227,19 @@ async function loadHomeCardsFromFullSlate() {
           date: String(d3.date || ""),
         };
         if (syncCardsFromCombinedRows(rows)) return;
+      }
+    }
+    const r = await fetch("/api/slate-excel", fetchOpts);
+    if (r.ok) {
+      const d = await r.json();
+      const sh = d.sheets && d.sheets.combined;
+      if (sh && sh.columns && sh.rows && sh.rows.length) {
+        SLATE_DEBUG_META = {
+          source: "combined_excel",
+          generated_at: "",
+          date: String(d.date || ""),
+        };
+        if (syncCardsFromCombinedSheet(sh.columns, sh.rows)) return;
       }
     }
   } catch (e) {
@@ -3566,21 +3614,14 @@ async function refreshStatus() {
     applyOffseasonSportCards();
     return;
   }
-  const strictGameDay = {};
-  const gameDayCheckSports = [...SLATE_STRICT_GAME_DAY_SPORTS, "tennis"];
-  await Promise.all(
-    gameDayCheckSports.map(async (sid) => {
-      const target = sid === "tennis" ? tennisMatchDayEt() : ymdInEastern(new Date());
-      const v = await sportSlateHasGamesOnDay(sid, target);
-      if (v !== null) strictGameDay[sid] = v;
-    })
-  );
+  // Prefer server-side game_day flags (avoids N× /api/slate-sport fan-out every minute).
+  const gameDay = (d.game_day && typeof d.game_day === "object") ? d.game_day : {};
   const statusOpts = (sid) => {
     if (sid === "tennis") {
-      return { requireTodayGames: true, hasTodayGames: strictGameDay.tennis };
+      return { requireTodayGames: true, hasTodayGames: gameDay.tennis };
     }
     if (SLATE_STRICT_GAME_DAY_SPORTS.has(sid)) {
-      return { requireTodayGames: true, hasTodayGames: strictGameDay[sid] };
+      return { requireTodayGames: true, hasTodayGames: gameDay[sid] };
     }
     return null;
   };
@@ -3595,14 +3636,59 @@ async function refreshStatus() {
   applyStatusCard("nfl",      d.nfl?.slate,      "NFL Slate", statusOpts("nfl"));
   applyStatusCard("tennis",   d.tennis?.slate,   "Tennis Slate", statusOpts("tennis"));
   const tennisVal = document.getElementById("sc-tennis-val");
-  const tennisMd = tennisMatchDayEt();
+  const tennisMd = d.tennis_match_day || tennisMatchDayEt();
   if (tennisVal && tennisMd) tennisVal.textContent = tennisMd;
   applyStatusCard("wnba",     d.wnba?.slate,     "WNBA Slate", statusOpts("wnba"));
   applyStatusCard("combined", d.combined?.slate, "Combined Tickets");
   applyOffseasonSportCards();
+  if (typeof window.applyHomeSkewBanner === "function") {
+    window.applyHomeSkewBanner(d);
+  }
 }
 setInterval(refreshStatus, 60000);
 refreshStatus();
+
+(function initHomeSkewBanner() {
+  function fmtChip(ymd) {
+    if (!ymd || String(ymd).length < 10) return "";
+    const parts = String(ymd).slice(0, 10).split("-").map(Number);
+    const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  function applyHomeSkewBanner(meta) {
+    const el = document.getElementById("home-skew-banner");
+    if (!el || !meta) return;
+    const ticketsEmpty = Boolean(meta.tickets_empty);
+    const skew = Boolean(meta.skew) || (
+      meta.tickets_date && meta.slate_date && meta.tickets_date !== meta.slate_date
+    );
+    if (!ticketsEmpty && !skew) {
+      el.removeAttribute("data-show");
+      el.textContent = "";
+      return;
+    }
+    const slateChip = fmtChip(meta.slate_date || meta.date || meta.tickets_date);
+    const populated = Array.isArray(meta.populated_sports) ? meta.populated_sports : [];
+    let detail = "showing pipeline props";
+    if (ticketsEmpty && populated.length) {
+      detail = "tickets empty · " + populated.join("/") + " on slate";
+    } else if (ticketsEmpty) {
+      detail = "tickets empty · showing pipeline props";
+    } else if (skew) {
+      detail = "tickets " + fmtChip(meta.tickets_date) + " · slate " + fmtChip(meta.slate_date);
+    }
+    el.innerHTML = "<strong>BOARD</strong>" +
+      (slateChip ? ("Slate " + slateChip + " · ") : "") + detail;
+    el.setAttribute("data-show", "1");
+  }
+  window.applyHomeSkewBanner = applyHomeSkewBanner;
+  (async function bootBanner() {
+    try {
+      const res = await fetch("/api/slate-display-date", { cache: "no-store" });
+      if (res.ok) applyHomeSkewBanner(await res.json());
+    } catch (e) {}
+  })();
+})();
 
 // ── SVG chart (full) — premium area chart ──────────────────
 function makeSVG(data, bookLine, isOver, W=260, H=100, bookLineSeries=null, extraScale=null) {
@@ -4040,6 +4126,31 @@ function renderEdges() {
   appendAll(gobO, og);
   if (us) appendUnderRows(underRows, us);
   wireEdgeCardExpandHandlers();
+  const emptyHost = document.getElementById("top-edges-empty");
+  const anyCards = (stdO.length + gobO.length + underRows.length) > 0;
+  if (!anyCards) {
+    let el = emptyHost;
+    if (!el) {
+      const body = document.querySelector("#top-edges .home-cat-body .home-cat-flat") ||
+        document.querySelector("#top-edges .home-cat-body");
+      if (body) {
+        el = document.createElement("div");
+        el.id = "top-edges-empty";
+        el.className = "home-cat-empty-state";
+        body.appendChild(el);
+      }
+    }
+    if (el) {
+      el.hidden = false;
+      el.innerHTML = '<div class="hec-title">No Top Edges yet</div>' +
+        (ALL_SLATE.length
+          ? '<div>No legs cleared the L5 quality gate on this slate</div>'
+          : '<div>Waiting for pipeline props — open Slate Explorer or check back after the daily run</div>');
+    }
+  } else if (emptyHost) {
+    emptyHost.hidden = true;
+    emptyHost.innerHTML = "";
+  }
 }
 
 function wireEdgeCardExpandHandlers() {
@@ -4221,12 +4332,12 @@ function renderStreaks() {
   const l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
   const l10U = underStreakRows(10, 8);
 
-  const none = msg => `<div style="padding:14px 0;font-size:11px;color:var(--muted2);letter-spacing:1px;">${msg}</div>`;
+  const none = msg => `<div class="home-cat-empty-state" style="padding:14px 0;"><div class="hec-title" style="font-size:18px;margin-bottom:4px;">${msg}</div></div>`;
 
-  document.getElementById("l5-over-grid").innerHTML   = l5O.length  ? l5O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 over data on today's slate");
-  document.getElementById("l5-under-grid").innerHTML  = l5U.length  ? l5U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 under data on today's slate (need l5_under or l5_over on legs)");
-  document.getElementById("l10-over-grid").innerHTML  = l10O.length ? l10O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 over streaks (8+/10) on today's slate");
-  document.getElementById("l10-under-grid").innerHTML = l10U.length ? l10U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 under streaks (8+/10) on this slate — legs here may skew over-heavy, or lack L10 totals");
+  document.getElementById("l5-over-grid").innerHTML   = l5O.length  ? l5O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 over streaks");
+  document.getElementById("l5-under-grid").innerHTML  = l5U.length  ? l5U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 under streaks");
+  document.getElementById("l10-over-grid").innerHTML  = l10O.length ? l10O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 over streaks");
+  document.getElementById("l10-under-grid").innerHTML = l10U.length ? l10U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 under streaks");
   ["l5-over-grid", "l5-under-grid", "l10-over-grid", "l10-under-grid"].forEach(wireStreakGridClicks);
 }
 

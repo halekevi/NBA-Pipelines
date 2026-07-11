@@ -3492,6 +3492,16 @@ def api_pipeline_status():
             "size_kb": approx_kb,
         }
 
+    et_today = _eastern_today_ymd()
+    tennis_match_day = tennis_override_date or et_today
+    # Strict game-day sports (matches index.html SLATE_STRICT_GAME_DAY_SPORTS + tennis).
+    _game_day_sports = ("nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba", "tennis")
+    game_day: dict[str, bool | None] = {}
+    for sid in _game_day_sports:
+        target = tennis_match_day if sid == "tennis" else et_today
+        game_day[sid] = _sport_rows_have_game_on_ymd(slate_payload, sid, target)
+    board_meta = _home_board_display_meta(tickets_payload, slate_payload)
+
     return jsonify({
         "nba": {
             "run_complete_flag": NBA_FLAG.exists(),
@@ -3544,6 +3554,13 @@ def api_pipeline_status():
         "pipeline_outputs_date": days[0] if days else None,
         "upstream_data_quality": _file_info(udq_p),
         "as_of": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "et_today": et_today,
+        "tennis_match_day": tennis_match_day,
+        "game_day": game_day,
+        "tickets_date": board_meta.get("tickets_date"),
+        "slate_date": board_meta.get("slate_date"),
+        "tickets_empty": board_meta.get("tickets_empty"),
+        "populated_sports": board_meta.get("populated_sports"),
         "slate_json_source": "remote" if bool(_DATA_FILE_URL_MAP.get("slate_latest.json")) else "disk",
         "ticket_eval_slate_source": "remote"
         if bool(_DATA_FILE_URL_MAP.get("ticket_eval_slate_latest.json"))
@@ -4475,6 +4492,96 @@ def _eastern_today_ymd() -> str:
     return datetime.now(ZoneInfo("America/New_York")).date().strftime("%Y-%m-%d")
 
 
+def _ymd10(raw: object) -> str | None:
+    ds = str(raw or "").strip()[:10]
+    if len(ds) == 10 and ds[4] == "-" and ds[7] == "-":
+        return ds
+    return None
+
+
+def _tickets_groups_nonempty(tickets_payload: dict | None) -> bool:
+    if not isinstance(tickets_payload, dict):
+        return False
+    groups = tickets_payload.get("groups") or []
+    if not isinstance(groups, list):
+        return False
+    for g in groups:
+        if isinstance(g, dict) and (g.get("tickets") or []):
+            return True
+    return False
+
+
+def _sport_rows_have_game_on_ymd(
+    slate_payload: dict | None, sport_key: str, target_ymd: str | None
+) -> bool | None:
+    """True if any explorer row for sport has game_date == target_ymd. None if unknown."""
+    if not target_ymd or not isinstance(slate_payload, dict):
+        return None
+    sports = slate_payload.get("sports") or {}
+    if not isinstance(sports, dict):
+        return None
+    key = str(sport_key or "").strip().lower()
+    rows = sports.get(key) or sports.get(key.upper()) or []
+    if not isinstance(rows, list):
+        return None
+    if not rows:
+        return False
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        gd = _ymd10(
+            r.get("game_date")
+            or r.get("Game Date")
+            or r.get("gameDate")
+            or r.get("date")
+        )
+        if gd == target_ymd:
+            return True
+    return False
+
+
+def _home_board_display_meta(
+    tickets_payload: dict | None = None,
+    slate_payload: dict | None = None,
+) -> dict[str, Any]:
+    """Shared tickets/slate date honesty fields for nav + home banner."""
+    if tickets_payload is None:
+        try:
+            if _template_json_available("tickets_latest.json"):
+                raw = read_json_cached(TEMPLATES_DIR / "tickets_latest.json")
+                tickets_payload = raw if isinstance(raw, dict) else None
+        except Exception:
+            tickets_payload = None
+    if slate_payload is None:
+        try:
+            if _template_json_available("slate_latest.json"):
+                raw = read_json_cached(TEMPLATES_DIR / "slate_latest.json")
+                slate_payload = raw if isinstance(raw, dict) else None
+        except Exception:
+            slate_payload = None
+
+    tickets_date = _ymd10((tickets_payload or {}).get("date"))
+    slate_date = _ymd10((slate_payload or {}).get("date"))
+    tickets_empty = not _tickets_groups_nonempty(tickets_payload)
+    populated: list[str] = []
+    sports = (slate_payload or {}).get("sports") if isinstance(slate_payload, dict) else None
+    if isinstance(sports, dict):
+        for k, v in sports.items():
+            if isinstance(v, list) and v:
+                populated.append(str(k).strip().upper())
+    populated = sorted(set(populated))
+    return {
+        "tickets_date": tickets_date,
+        "slate_date": slate_date,
+        "tickets_empty": tickets_empty,
+        "populated_sports": populated,
+        "skew": bool(
+            tickets_date and slate_date and tickets_date != slate_date
+        )
+        or tickets_empty,
+    }
+
+
 @app.get("/api/slate-display-date")
 def api_slate_display_date():
     """
@@ -4489,23 +4596,34 @@ def api_slate_display_date():
     """
     candidates: list[str] = []
     tickets_date: str | None = None
+    slate_date: str | None = None
+    tickets_payload: dict | None = None
+    slate_payload: dict | None = None
     for name in ("tickets_latest.json", "slate_latest.json", "ticket_eval_slate_latest.json"):
         if not _template_json_available(name):
             continue
         try:
             data = read_json_cached(TEMPLATES_DIR / name)
-            ds = str((data or {}).get("date") or "").strip()[:10]
-            if len(ds) == 10 and ds[4] == "-" and ds[7] == "-":
+            if not isinstance(data, dict):
+                continue
+            ds = _ymd10(data.get("date"))
+            if ds:
                 candidates.append(ds)
                 if name == "tickets_latest.json":
                     tickets_date = ds
+                    tickets_payload = data
+                elif name == "slate_latest.json":
+                    slate_date = ds
+                    slate_payload = data
         except Exception:
             continue
     try:
         sp = _selected_slate_sport_payload()
-        ds = str((sp or {}).get("date") or "").strip()[:10]
-        if len(ds) == 10:
+        ds = _ymd10((sp or {}).get("date"))
+        if ds:
             candidates.append(ds)
+            if not slate_date:
+                slate_date = ds
     except Exception:
         pass
 
@@ -4515,7 +4633,12 @@ def api_slate_display_date():
     else:
         not_future = [c for c in candidates if c <= et_today]
         best = max(not_future) if not_future else (max(candidates) if candidates else None)
-    r = jsonify({"date": best})
+    meta = _home_board_display_meta(tickets_payload, slate_payload)
+    if not meta.get("slate_date") and slate_date:
+        meta["slate_date"] = slate_date
+    if not meta.get("tickets_date") and tickets_date:
+        meta["tickets_date"] = tickets_date
+    r = jsonify({"date": best, "et_today": et_today, **meta})
     r.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     r.headers["Pragma"] = "no-cache"
     return r

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 import time
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
@@ -17,6 +17,15 @@ consistency_bp = Blueprint("consistency", __name__)
 _HOT_PLAYERS_TTL_SEC = 300.0
 _hot_players_resp_cache: dict = {"key": None, "payload": None, "expires": 0.0}
 _slate_pairs_cache: dict = {"mtime": -1.0, "names": set(), "pairs": set()}
+
+
+def _eastern_today_ymd() -> str:
+    try:
+        from zoneinfo import ZoneInfo
+
+        return datetime.now(ZoneInfo("America/New_York")).date().strftime("%Y-%m-%d")
+    except Exception:
+        return str(date.today())
 
 def _repo_root() -> Path:
     """Repo root whether loaded as ui_runner.routes or routes (cwd = ui_runner)."""
@@ -212,7 +221,7 @@ def hot_players():
     except OSError:
         slate_mtime = 0.0
 
-    cache_key = (cons_mtime, slate_mtime, sport or "", limit, str(date.today()))
+    cache_key = (cons_mtime, slate_mtime, sport or "", limit, _eastern_today_ymd())
     now = time.time()
     if (
         _hot_players_resp_cache["key"] == cache_key
@@ -243,7 +252,7 @@ def hot_players():
             by_sport[s].append(_enrich_hot_player(p))
 
     payload = {
-        "date": str(date.today()),
+        "date": _eastern_today_ymd(),
         "generated_at": data.get("generated_at"),
         "cache_path": str(_cache_path()),
         "sports": by_sport,

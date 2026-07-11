@@ -19,13 +19,20 @@
   padding-left: 14px;
   margin-left: 2px;
 }
-.nav-slate-date {
+.nav-slate-date-note {
   font-family: "Inter", ui-sans-serif, sans-serif;
-  font-size: clamp(14px, 1.25vw, 17px);
+  font-size: clamp(10px, 1vw, 12px);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-  letter-spacing: 0.02em;
+  color: rgba(200, 154, 74, 0.95);
+  letter-spacing: 0.03em;
   line-height: 1.25;
+  max-width: min(78vw, 420px);
+}
+.nav-slate-date-note[hidden] {
+  display: none !important;
+}
+[data-theme="light"] .nav-slate-date-note {
+  color: rgba(150, 100, 30, 0.9);
 }
 .nav-sync-line {
   font-size: clamp(12px, 1.1vw, 14px);

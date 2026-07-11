@@ -18907,8 +18907,49 @@ def render_tickets_body_html(
 </div>''')
 
     if not groups:
-        parts.append('<div class="filter-pill">No tickets generated for this date.</div>')
-        parts.append('</div>')
+        exclude = [
+            str(s).strip().upper()
+            for s in (payload.get("main_exclude_sports") or [])
+            if str(s).strip()
+        ]
+        legs_checked = 0
+        try:
+            legs_checked = int((payload.get("strong_gate_stats") or {}).get("legs_checked") or 0)
+        except (TypeError, ValueError):
+            legs_checked = 0
+        excl_note = ""
+        if exclude:
+            short = ", ".join(exclude[:6])
+            if len(exclude) > 6:
+                short += "…"
+            excl_note = f" Main track excludes {short}."
+        if legs_checked == 0:
+            reason = (
+                f"No tickets generated for {_h(date_str)} — no eligible main-slate legs "
+                f"(WNBA/NBA empty or board only had excluded sports).{excl_note}"
+            )
+        else:
+            reason = (
+                f"No tickets generated for {_h(date_str)} "
+                f"({legs_checked} legs checked; none formed slips).{excl_note}"
+            )
+        parts.append(
+            '<div class="tickets-empty-board" role="status" '
+            'style="margin:8px 0 24px;padding:22px 20px;border-radius:14px;'
+            "border:1px solid rgba(212,175,55,0.22);background:rgba(20,20,20,0.55);"
+            'text-align:center;max-width:640px;">'
+            f'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:0.06em;'
+            f'color:var(--text);margin-bottom:8px;">No tickets for {_h(date_str)}</div>'
+            f'<p style="font-family:Inter,sans-serif;font-size:13px;line-height:1.45;'
+            f'color:var(--muted);margin:0 0 14px;">{reason}</p>'
+            '<a href="/" style="display:inline-flex;align-items:center;gap:6px;'
+            "padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;"
+            "letter-spacing:0.04em;text-decoration:none;color:var(--accent);"
+            'border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);">'
+            "← Back to home</a>"
+            "</div>"
+        )
+        parts.append("</div>")
         return "".join(parts), page_title
 
     parts.append(_winrate_best_panel_html(winrate_payload))

@@ -775,6 +775,65 @@ select option,
 [data-theme="light"] .load-overlay { background:rgba(218,234,248,0.92) !important; }
 [data-theme="light"] .empty-state { background:rgba(218,234,248,0.65) !important; }
 
+/* Board-empty hero (tickets_latest groups=[] / no eligible main sports) */
+.home-board-empty{
+  display:none;
+  margin:0 0 18px;
+  padding:clamp(28px,5vw,48px) clamp(18px,4vw,36px);
+  border-radius:18px;
+  border:1px solid var(--glass-border);
+  background:var(--glass-bg);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  box-shadow:var(--glass-shadow);
+  text-align:center;
+  max-width:720px;
+  margin-left:auto;
+  margin-right:auto;
+}
+body.home-board-is-empty .home-board-empty{display:block;}
+body.home-board-is-empty #slate-explorer,
+body.home-board-is-empty #top-edges,
+body.home-board-is-empty #hot-players-cat,
+body.home-board-is-empty details.home-cat:not(.home-board-empty-keep){
+  display:none !important;
+}
+.home-board-empty-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(28px,5vw,42px);
+  letter-spacing:0.06em;
+  color:var(--text);
+  margin:0 0 10px;
+}
+.home-board-empty-title span{color:var(--accent);}
+.home-board-empty-sub{
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  color:var(--muted2);
+  margin:0 auto 18px;
+  max-width:520px;
+}
+.home-board-empty-actions{
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:center;
+}
+.home-board-empty-actions a{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 16px;border-radius:10px;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:0.04em;text-decoration:none;
+  border:1px solid var(--glass-border-hi);
+  background:rgba(255,255,255,0.04);color:var(--text);
+}
+.home-board-empty-actions a.primary{
+  border-color:rgba(212,175,55,0.45);
+  background:rgba(212,175,55,0.12);color:var(--accent);
+}
+[data-theme="light"] .home-board-empty{
+  background:rgba(228,241,252,0.9);
+  border-color:rgba(180,210,235,0.5);
+}
+
 /* Brand wordmark: PropOracle casing must survive theme/injected CSS */
 a.snav-brand .brand-wordmark .wb-first,
 a.snav-brand .brand-wordmark .oracle-word {
@@ -1020,7 +1079,7 @@ body > nav.snav.glass-card {
 <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="/static/mobile-content-width.css?v=20260525shell98"/>
 <link rel="stylesheet" href="/static/matchup-edge.css?v=20260528"/>
-<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260408"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260711empty"/>
 <link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
 </head>
 <body>
@@ -1050,6 +1109,15 @@ body > nav.snav.glass-card {
         <span class="ht2">Oracle</span>
       </h1>
     </div>
+
+  <div id="home-board-empty" class="home-board-empty" role="status" aria-live="polite" hidden>
+    <h2 class="home-board-empty-title">No main-slate <span>tickets</span></h2>
+    <p class="home-board-empty-sub" id="home-board-empty-sub">Today&rsquo;s board has no eligible slips yet.</p>
+    <div class="home-board-empty-actions">
+      <a class="primary" href="/tickets">View tickets</a>
+      <a href="/grades">Open grades</a>
+    </div>
+  </div>
     
   <!-- SLATE STATUS CARDS -->
   <details class="home-cat" open id="slate-explorer">
@@ -2246,7 +2314,47 @@ body > nav.snav.glass-card {
   </div>
 </div>
 
-<script src="/static/site-nav-chrome.js?v=20260412" defer></script>
+<script>
+window.__HOME_BOARD__ = {{ (home_board_meta or {})|tojson }};
+(function applyHomeBoardEmptyState() {
+  var meta = window.__HOME_BOARD__ || {};
+  if (!meta.tickets_empty) return;
+  document.body.classList.add("home-board-is-empty");
+  var panel = document.getElementById("home-board-empty");
+  var sub = document.getElementById("home-board-empty-sub");
+  if (panel) panel.hidden = false;
+  var dateLabel = meta.date || "today";
+  var populated = Array.isArray(meta.populated_sports) ? meta.populated_sports : [];
+  var eligible = Array.isArray(meta.eligible_populated) ? meta.eligible_populated : [];
+  var exclude = Array.isArray(meta.main_exclude_sports) ? meta.main_exclude_sports : [];
+  var reason;
+  if (eligible.length === 0 && populated.length) {
+    reason = "No main-slate tickets for " + dateLabel + " — " +
+      populated.join("/") + " on board but excluded from main" +
+      (exclude.length ? " (" + exclude.slice(0, 6).join(", ") + (exclude.length > 6 ? "…" : "") + ")" : "") +
+      ". WNBA/NBA empty.";
+  } else if (eligible.length === 0) {
+    reason = "No main-slate tickets for " + dateLabel +
+      " — WNBA/NBA (and other eligible sports) are empty. Check back after the daily pipeline.";
+  } else {
+    reason = "No tickets generated for " + dateLabel +
+      " despite eligible sports (" + eligible.join(", ") + "). Pipeline may still be running.";
+  }
+  if (sub) sub.textContent = reason;
+  window.__HOME_BOARD_EMPTY_REASON__ = reason;
+  function syncNote() {
+    var note = document.getElementById("slate-date-note");
+    if (!note) return;
+    note.hidden = false;
+    note.textContent = populated.length
+      ? ("tickets empty · " + populated.join("/") + " only")
+      : "tickets empty";
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncNote);
+  else syncNote();
+})();
+</script>
+<script src="/static/site-nav-chrome.js?v=20260711empty" defer></script>
 <script src="/static/matchup-edge.js?v=20260604c" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
@@ -3601,8 +3709,10 @@ async function refreshStatus() {
   applyStatusCard("combined", d.combined?.slate, "Combined Tickets");
   applyOffseasonSportCards();
 }
-setInterval(refreshStatus, 60000);
-refreshStatus();
+if (!(window.__HOME_BOARD__ && window.__HOME_BOARD__.tickets_empty)) {
+  setInterval(refreshStatus, 60000);
+  refreshStatus();
+}
 
 // ── SVG chart (full) — premium area chart ──────────────────
 function makeSVG(data, bookLine, isOver, W=260, H=100, bookLineSeries=null, extraScale=null) {
@@ -5206,8 +5316,14 @@ function sortSlateDynamic(sport, key) {
 
 // Keep edge/streak sections populated; warm only the default sport (lazy-load others on tab open).
 // Defer full /api/slate (multi-MB) until idle — sport table uses /api/slate-sport first.
+// Skip heavy warm when tickets_latest has no groups (empty board day).
 (function bootHomeSlateUi() {
   try {
+    var board = window.__HOME_BOARD__ || {};
+    if (board.tickets_empty) {
+      // Empty main board: do not fetch multi-MB /api/slate or excel cascades.
+      return;
+    }
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     fetchSlateSport(getDefaultBootSlateSport());

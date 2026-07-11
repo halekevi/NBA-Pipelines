@@ -366,10 +366,20 @@ def _players_from_slate_json(
     return players, pairs
 
 
+def _eastern_today_ymd() -> str:
+    """US Eastern calendar date for slate day gates (matches home Slate Explorer)."""
+    try:
+        from zoneinfo import ZoneInfo
+
+        return datetime.now(ZoneInfo("America/New_York")).date().strftime("%Y-%m-%d")
+    except Exception:
+        return str(date.today())
+
+
 def load_today_slate() -> tuple[set[str], set[tuple[str, str]]]:
     players: set[str] = set()
     pairs: set[tuple[str, str]] = set()
-    today_str = str(date.today())
+    today_str = _eastern_today_ymd()
 
     for path in SLATE_PATHS:
         if not path.is_file():

@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT_PATH = ROOT / "data" / "payout_rate_cards.json"
 COEFF_PATH = ROOT / "data" / "payout_formula_coefficients.json"
+LIVE_RATE_CARD_PATH = ROOT / "data" / "reports" / "payout_rate_card.json"
 
 # Align with scripts/fit_payout_formula.py and ui_runner/components/payout_calculator.jsx
 POWER_FIRST_STANDARD = {2: 3.0, 3: 6.0, 4: 10.0, 5: 20.0, 6: 37.5}
@@ -40,6 +41,27 @@ def _flex_json() -> dict[str, dict[str, float]]:
 
 
 def load_fitted() -> dict | None:
+    # Prefer live mix-grid rate card when it has real observations.
+    if LIVE_RATE_CARD_PATH.is_file():
+        try:
+            live = json.loads(LIVE_RATE_CARD_PATH.read_text(encoding="utf-8"))
+            dpu = live.get("goblin_discount_per_unit") or {}
+            n_obs = int(live.get("n_observations") or 0)
+            if isinstance(dpu, dict) and dpu and n_obs > 0:
+                mean_dpu = sum(float(v) for v in dpu.values()) / max(1, len(dpu))
+                return {
+                    "model_type": "live_mix_grid_power_min_x",
+                    "fitted_from": "payout_rate_card.json",
+                    "fitted_at": live.get("generated_at") or live.get("source_date"),
+                    "n_observations": n_obs,
+                    "goblin_discount_per_unit": mean_dpu,
+                    "goblin_discount_per_unit_by_bucket": dpu,
+                    "baselines_power_min_x": live.get("baselines_power_min_x") or {},
+                    "notes": live.get("notes")
+                    or "Fitted from live PrizePicks power_min_x mix-grid captures.",
+                }
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            pass
     if not COEFF_PATH.is_file():
         return None
     try:
@@ -112,7 +134,29 @@ def build_cards(fitted: dict | None) -> list[dict]:
 
     if fitted:
         fitted_at = str(fitted.get("fitted_at", "") or "")
-        if fitted.get("model_type") == "multiplicative_per_leg_power_law_demon":
+        if fitted.get("model_type") == "live_mix_grid_power_min_x":
+            buckets = fitted.get("goblin_discount_per_unit_by_bucket") or {}
+            bucket_bits = (
+                [f"dev {k}: {v}" for k, v in sorted(buckets.items(), key=lambda kv: float(kv[0]))]
+                if isinstance(buckets, dict)
+                else []
+            )
+            cards.append(
+                {
+                    "id": "fitted-coefficients",
+                    "category": "fitted",
+                    "title": "Live mix-grid rate card (power_min_x)",
+                    "subtitle": str(LIVE_RATE_CARD_PATH.name),
+                    "bullets": [
+                        f"fitted_at: {fitted_at}",
+                        f"n_observations: {fitted.get('n_observations', '')}",
+                        f"goblin_discount_per_unit (mean): {fitted.get('goblin_discount_per_unit')}",
+                        *bucket_bits,
+                        str(fitted.get("notes") or ""),
+                    ],
+                }
+            )
+        elif fitted.get("model_type") == "multiplicative_per_leg_power_law_demon":
             cards.append(
                 {
                     "id": "fitted-coefficients",

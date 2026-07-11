@@ -42,7 +42,36 @@ VALID_PROP_KEYWORDS = [
     "FG Attempted",
     "Free Throws Made",
     "Minutes",
+    # MLB
+    "Hits",
+    "Total Bases",
+    "Runs",
+    "RBIs",
+    "Stolen Bases",
+    "Strikeouts",
+    "Pitcher Strikeouts",
+    "Hits Allowed",
+    "Walks",
+    "Earned Runs",
+    "Outs",
+    # Soccer / World Cup / tennis-ish board text
+    "Shots",
+    "SOT",
+    "Shots On Target",
+    "Goalie Saves",
+    "Goals",
+    "Goals Allowed",
+    "Goal",
+    "Aces",
+    "Double Faults",
+    "Games Won",
+    "Break Points Won",
 ]
+_TEAM_POS_RE = re.compile(
+    r"(?i).+\s[-–]\s*(attacker|midfielder|defender|goalkeeper|forward|guard|center|"
+    r"pitcher|catcher|infielder|outfielder|shortstop|baseman|designated hitter|"
+    r"sp|rp|c|1b|2b|3b|ss|lf|cf|rf|dh|g|f|c)\b"
+)
 _LOOKUP_DIAG_PRINTED = False
 _POPULAR_READY = False
 
@@ -56,33 +85,40 @@ def parse_card_lines(lines: list[str]) -> tuple[str | None, float | None, str | 
         line = raw.strip()
         if not line:
             continue
-        if re.match(r"^\d+\.?\d*[Kk]$", line):
+        if re.match(r"^\d+\.?\d*[KkMm]$", line):
             continue
         if re.match(r"^[A-Z]{2,3}\s*[-–]\s*[A-Z]", line):
+            continue
+        if _TEAM_POS_RE.match(line):
             continue
         if line.startswith("vs ") or line.startswith("@ "):
             continue
         if line in ["More", "Less", "More\nLess"]:
             continue
+        if "+" in line and re.search(r"[A-Za-z].*\+.*[A-Za-z]", line) and line_value is None:
+            # Combo player cards — skip for calibration pool
+            return None, None, None
 
-        if player_name is None and not re.match(r"^\d", line) and len(line) > 3:
+        if player_name is None and not re.match(r"^\d", line) and len(line) > 2:
             player_name = line
             continue
 
-        if line_value is None and re.match(r"^\d+\.?\d*$", line):
+        # Line number only after we have a player (avoids heat counts like "208")
+        if player_name is not None and line_value is None and re.match(r"^\d+\.?\d*$", line):
             try:
                 line_value = float(line)
             except Exception:
                 pass
             continue
 
-        if (
-            line_value is not None
-            and prop_type is None
-            and any(vp.lower() in line.lower() for vp in VALID_PROP_KEYWORDS)
-        ):
-            prop_type = line
-            continue
+        if player_name is not None and line_value is not None and prop_type is None:
+            if any(vp.lower() in line.lower() for vp in VALID_PROP_KEYWORDS):
+                prop_type = line
+                continue
+            # Fallback: any non-junk label after the line number (multi-sport boards)
+            if re.search(r"[A-Za-z]", line) and len(line) >= 2:
+                prop_type = line
+                continue
 
     return player_name, line_value, prop_type
 
@@ -409,9 +445,43 @@ def get_all_cards(frame) -> list[dict]:
                         }
                       }
                       if (!best) return null;
+                      const html = (best.innerHTML || '');
+                      const text = best.innerText || '';
+                      // Prefer explicit badge image alts — cards also contain a shared
+                      // "Demons and Goblins" help button that would false-positive a blob search.
+                      const badgeImgs = Array.from(best.querySelectorAll('img[alt]'));
+                      let pickType = 'standard';
+                      for (const img of badgeImgs) {
+                        const alt = (img.getAttribute('alt') || '').trim().toLowerCase();
+                        if (alt === 'goblin') { pickType = 'goblin'; break; }
+                        if (alt === 'demon') { pickType = 'demon'; break; }
+                      }
+                      if (pickType === 'standard') {
+                        for (const img of badgeImgs) {
+                          const src = (img.getAttribute('src') || '').toLowerCase();
+                          const alt = (img.getAttribute('alt') || '').toLowerCase();
+                          if (alt.includes('goblin') && !alt.includes('demon')) {
+                            pickType = 'goblin'; break;
+                          }
+                          if (alt.includes('demon') && !alt.includes('goblin')) {
+                            pickType = 'demon'; break;
+                          }
+                          if (/goblin/.test(src) && !/demon/.test(src)) {
+                            pickType = 'goblin'; break;
+                          }
+                          if (/demon/.test(src) && !/goblin/.test(src)) {
+                            pickType = 'demon'; break;
+                          }
+                        }
+                      }
                       return {
-                        text: best.innerText || '',
-                        html: (best.innerHTML || '').slice(0, 1200)
+                        text: text,
+                        html: html.slice(0, 2500),
+                        pickType: pickType,
+                        badges: badgeImgs.slice(0, 6).map(img => ({
+                          alt: img.getAttribute('alt'),
+                          src: (img.getAttribute('src') || '').slice(0, 80),
+                        })),
                       };
                     }
                     """
@@ -423,12 +493,9 @@ def get_all_cards(frame) -> list[dict]:
                 if len(lines) < 3:
                     continue
                 player_name, line_value, prop_type = parse_card_lines(lines)
-                html = str(card_info.get("html", ""))
-                pick_type = "standard"
-                if "goblin" in html.lower() or "goblin" in text.lower():
-                    pick_type = "goblin"
-                elif "demon" in html.lower() or "demon" in text.lower():
-                    pick_type = "demon"
+                pick_type = str(card_info.get("pickType") or "standard").lower()
+                if pick_type not in ("goblin", "demon", "standard"):
+                    pick_type = "standard"
                 has_alt_lines = any(sym in text for sym in ("↔", "⇄", "⟷", "⇆", "↕"))
                 if player_name and line_value is not None and prop_type:
                     cards.append(
@@ -440,6 +507,7 @@ def get_all_cards(frame) -> list[dict]:
                             "has_alt_lines": has_alt_lines,
                             "more_btn": btn,
                             "raw_text": text[:200],
+                            "badges": card_info.get("badges") or [],
                         }
                     )
                 elif debug_unparsed < 5:
@@ -715,7 +783,21 @@ def expand_card_pool(frame, page) -> list[dict]:
     for _ in range(3):
         dismiss_modal(frame, page)
         frame.wait_for_timeout(150)
-    filters = ["Points", "Assists", "Rebounds", "3-PT Made", "Pts+Asts", "Pts+Reb+Ast"]
+    filters = [
+        "Popular",
+        "Hits",
+        "Total Bases",
+        "Home Runs",
+        "Pitcher Strikeouts",
+        "Hitter Fantasy Score",
+        "Hits-Runs-RBIs",
+        "Points",
+        "Assists",
+        "Rebounds",
+        "3-PT Made",
+        "Pts+Asts",
+        "Pts+Reb+Ast",
+    ]
     for filter_name in filters:
         try:
             dismiss_modal(frame, page)
@@ -1255,10 +1337,10 @@ def read_slip(
             slip_start = text.find("Players Selected")
         if slip_start == -1:
             slip_start = text.find("Power Play")
-        slip_section = text[slip_start : slip_start + 600] if slip_start >= 0 else ""
+        slip_section = text[slip_start : slip_start + 1800] if slip_start >= 0 else ""
         if slip_start >= 0:
             print("[SLIP RAW] Slip section:")
-            print(slip_section)
+            print(slip_section[:1200])
             print("---")
 
         multipliers: list[str] = []
@@ -1397,7 +1479,7 @@ def read_slip(
             "entry_amount": entry_num,
             "computed_multiplier": computed_mult,
             "has_slip": slip_start >= 0,
-            "raw_slip_section": slip_section[:400],
+            "raw_slip_section": slip_section[:1200],
         }
         if slip["has_slip"]:
             print(
@@ -1890,12 +1972,14 @@ MIX_GRID_RECIPES: list[tuple[str, int, int]] = [
 ]
 
 
-def _nearest_dev_bucket(dist: float | None, tol: float = 0.45) -> float | None:
+def _nearest_dev_bucket(dist: float | None, tol: float = 0.75) -> float | None:
     if dist is None:
         return None
     try:
         d = float(dist)
     except (TypeError, ValueError):
+        return None
+    if d <= 0:
         return None
     best = min(MIX_GRID_DEV_BUCKETS, key=lambda t: abs(d - t))
     if abs(d - best) <= tol:
@@ -1912,11 +1996,14 @@ def _build_std_map_from_board_cards(cards: list[dict]) -> dict[tuple[str, str], 
             line = float(pd.to_numeric(c.get("line"), errors="coerce"))
         except Exception:
             continue
-        if not (line > 0.5):
+        if not (line >= 0.5):
             continue
         key = (_norm(c.get("player")), _norm(c.get("prop_type")))
         if key[0] and key[1]:
-            out[key] = line
+            # Prefer higher standard line when duplicates exist
+            prev = out.get(key)
+            if prev is None or line > prev:
+                out[key] = line
     return out
 
 
@@ -1931,7 +2018,9 @@ def _goblins_by_dev_bucket(goblins: list[dict]) -> dict[float, list[dict]]:
                 dist = None
         bucket = _nearest_dev_bucket(dist)
         if bucket is None:
-            continue
+            # Still calibrate unknown-distance goblins into the +1.0 bucket
+            bucket = float(MIX_GRID_DEV_BUCKETS[0])
+            dist = float(dist) if dist is not None else bucket
         c2 = dict(c)
         c2["dev_bucket"] = bucket
         c2["line_distance"] = float(dist) if dist is not None else bucket
@@ -2124,10 +2213,28 @@ def run_mix_grid_capture(
     captured: list[dict] = []
 
     try:
-        frame = find_prizepicks_frame(page)
-        ensure_popular_filter(frame, page)
-        dismiss_modal(frame, page)
-        cards = expand_card_pool(frame, page)
+        # Prefer boards that usually expose Goblin + Standard alts (MLB, then WNBA).
+        for league_id, label in ((2, "MLB"), (3, "WNBA"), (7, "NBA")):
+            try:
+                url = f"https://app.prizepicks.com/board?league_id={league_id}"
+                print(f"[mix-grid] navigate {label} -> {url}")
+                page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+                page.wait_for_timeout(2500)
+            except Exception as e:
+                print(f"[mix-grid] navigate {label} skipped: {e}")
+            frame = find_prizepicks_frame(page)
+            ensure_popular_filter(frame, page)
+            dismiss_modal(frame, page)
+            cards = expand_card_pool(frame, page)
+            n_g = sum(1 for c in cards if str(c.get("pick_type") or "").lower() == "goblin")
+            n_s = sum(1 for c in cards if str(c.get("pick_type") or "").lower() == "standard")
+            print(f"[mix-grid] {label} cards={len(cards)} standard={n_s} goblin={n_g}")
+            if len(cards) >= 4 and (n_g >= 2 or n_s >= 2):
+                break
+        else:
+            frame = find_prizepicks_frame(page)
+            cards = expand_card_pool(frame, page)
+
         if not cards:
             print("[mix-grid] FATAL: no board cards")
             return 1
@@ -2193,12 +2300,38 @@ def run_mix_grid_capture(
 
                 clicked = 0
                 leg_meta = []
+                current_tab = None
                 for item in plan["cards"]:
                     card = item["card"]
                     direction = str(item.get("direction") or "OVER").upper()
-                    ok = click_leg(frame, card, direction)
+                    tab = str(card.get("source_filter") or "Popular")
+                    ok = False
+                    try:
+                        if tab != current_tab:
+                            dismiss_modal(frame, page)
+                            tloc = frame.get_by_text(tab, exact=True).first
+                            if tloc.count() == 0:
+                                tloc = frame.get_by_text(tab, exact=False).first
+                            tloc.click(force=True, timeout=2000)
+                            frame.wait_for_timeout(900)
+                            _scroll_board_for_lazy_load(page)
+                            current_tab = tab
+                        dismiss_modal(frame, page)
+                        fresh = get_all_cards(frame)
+                        resolved = resolve_leg_card(card, fresh)
+                        if resolved is None:
+                            print(
+                                f"  [WARN] unresolved {card.get('player')} "
+                                f"{card.get('line')} {card.get('prop_type')} "
+                                f"({card.get('pick_type')}) on tab={tab}"
+                            )
+                        else:
+                            ok = click_leg(frame, resolved, direction)
+                            if ok:
+                                card = resolved
+                    except Exception as e:
+                        print(f"  [WARN] resolve/click failed: {e}")
                     if not ok:
-                        # Fallback: search-based add
                         ok = add_leg(
                             frame,
                             page,
@@ -2216,6 +2349,8 @@ def run_mix_grid_capture(
                                 "prop_type": card.get("prop_type"),
                                 "line": card.get("line"),
                                 "role": item.get("role"),
+                                "pick_type": card.get("pick_type"),
+                                "source_filter": card.get("source_filter"),
                                 "line_distance": card.get("line_distance"),
                                 "dev_bucket": card.get("dev_bucket"),
                             }
@@ -2223,6 +2358,39 @@ def run_mix_grid_capture(
                     else:
                         print(f"  [WARN] click failed: {card.get('player')}")
                     frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
+
+                # Soft verify lineup mentions intended surnames (stale-click guard).
+                # Do not hard-fail: PP truncates slip text and name punctuation varies.
+                try:
+                    slip_probe = read_slip(frame, n_legs=clicked, ticket_type="power") or {}
+                    slip_txt = _norm(
+                        slip_probe.get("raw_slip_section")
+                        or slip_probe.get("raw_text")
+                        or ""
+                    )
+                    if slip_txt:
+                        soft_miss = []
+                        for m in leg_meta:
+                            name = str(m.get("player") or "").strip()
+                            if not name:
+                                continue
+                            parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
+                            surname = parts[-1] if parts else name
+                            if _norm(surname) not in slip_txt:
+                                soft_miss.append(name)
+                        if soft_miss:
+                            print(f"  [WARN] surname soft-miss: {', '.join(soft_miss[:3])}")
+                        n_sel = slip_probe.get("n_selected")
+                        if n_sel is not None and int(n_sel) != int(clicked):
+                            rec["error"] = f"n_selected_{n_sel}_clicked_{clicked}"
+                            print(f"  [WARN] {rec['error']}")
+                            captured.append(rec)
+                            clear_slip(frame)
+                            continue
+                        # Reuse the slip we already read below
+                        rec["_slip_probe"] = slip_probe
+                except Exception:
+                    pass
 
                 rec["legs"] = leg_meta
                 need = plan["n_goblin"] + plan["n_standard"]
@@ -2232,7 +2400,9 @@ def run_mix_grid_capture(
                     clear_slip(frame)
                     continue
 
-                slip = read_slip(frame, n_legs=clicked, ticket_type="power")
+                slip = rec.pop("_slip_probe", None) or read_slip(
+                    frame, n_legs=clicked, ticket_type="power"
+                )
                 if not slip:
                     rec["error"] = "slip_not_detected"
                     captured.append(rec)

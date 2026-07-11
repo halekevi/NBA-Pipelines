@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-30T14:12:00+00:00",
+  "generated_at": "2026-07-11T16:20:12.901466+00:00",
   "reference": {
     "power_first_standard": {
       "2": 3.0,
       "3": 6.0,
       "4": 10.0,
       "5": 20.0,
-      "6": 40.0
+      "6": 37.5
     },
     "flex_first_standard": {
       "2": {
@@ -63,42 +63,21 @@
     }
   },
   "fitted_file": {
-    "goblin_discount_per_unit": 0.11,
-    "demon_power_coeff": 0.1782,
-    "demon_power_exp": 1.287,
-    "model_type": "multiplicative_per_leg_power_law_demon",
-    "fitted_from": "manual_observations",
-    "n_observations": 13,
-    "fitted_at": "2026-04-10",
-    "goblin_r_squared": 0.94,
-    "demon_r_squared": 0.98,
-    "standard_lines_observed": {
-      "Jrue Holiday Points": 17.5,
-      "Darius Garland Points": 19.5,
-      "Scoot Henderson Points": 14.5
+    "model_type": "live_mix_grid_power_min_x",
+    "fitted_from": "payout_rate_card.json",
+    "fitted_at": "2026-07-11T16:18:13.030642Z",
+    "n_observations": 4,
+    "goblin_discount_per_unit": 0.1521,
+    "goblin_discount_per_unit_by_bucket": {
+      "1.0": 0.1521
     },
-    "base_power_payouts": {
-      "2": 3.0,
-      "3": 6.0,
-      "4": 10.0,
-      "5": 20.0,
-      "6": 40.0
+    "baselines_power_min_x": {
+      "2S": 3.0,
+      "3S": 6.0,
+      "4S": 10.0,
+      "5S": 20.0
     },
-    "base_flex_first": {
-      "2": 3.0,
-      "3": 3.0,
-      "4": 5.0,
-      "5": 10.0,
-      "6": 25.0
-    },
-    "base_flex_min": {
-      "2": 1.5,
-      "3": 1.25,
-      "4": 1.5,
-      "5": 2.0,
-      "6": 2.0
-    },
-    "notes": "Goblin linear fit R2=0.94. Demon power law fit R2=0.98. Both multiplicative per leg. Expand with more prop types and distances."
+    "notes": "discount_per_unit \u2248 (1 - power_min_x / all_standard_baseline) / sum(goblin_line_distances). Fitted from live PrizePicks floor multipliers (power_min_x)."
   },
   "cards": [
     {
@@ -157,9 +136,9 @@
       "id": "power-6",
       "category": "power",
       "title": "6-leg Power (all Standard)",
-      "subtitle": "First-place multiplier 40.0\u00d7",
+      "subtitle": "First-place multiplier 37.5\u00d7",
       "bullets": [
-        "All 6 legs correct \u2192 40.0\u00d7 stake (before Goblin/Demon adjustments).",
+        "All 6 legs correct \u2192 37.5\u00d7 stake (before Goblin/Demon adjustments).",
         "Breakeven implied win rate \u2248 1 \u00f7 multiplier if legs were independent and fair (illustrative only)."
       ]
     },
@@ -266,14 +245,14 @@
     {
       "id": "fitted-coefficients",
       "category": "fitted",
-      "title": "Empirical coefficients (manual observations)",
-      "subtitle": "payout_formula_coefficients.json",
+      "title": "Live mix-grid rate card (power_min_x)",
+      "subtitle": "payout_rate_card.json",
       "bullets": [
-        "fitted_at: 2026-04-10",
-        "n_observations: 13",
-        "goblin_discount_per_unit: 0.11 (R\u00b2=0.94)",
-        "demon: coeff=0.1782 exp=1.287 (R\u00b2=0.98)",
-        "Goblin linear fit R2=0.94. Demon power law fit R2=0.98. Both multiplicative per leg. Expand with more prop types and distances."
+        "fitted_at: 2026-07-11T16:18:13.030642Z",
+        "n_observations: 4",
+        "goblin_discount_per_unit (mean): 0.1521",
+        "dev 1.0: 0.1521",
+        "discount_per_unit \u2248 (1 - power_min_x / all_standard_baseline) / sum(goblin_line_distances). Fitted from live PrizePicks floor multipliers (power_min_x)."
       ]
     }
   ]

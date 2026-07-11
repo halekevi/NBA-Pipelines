@@ -650,6 +650,7 @@ def power_flex_payout_for_n(n_legs: int) -> tuple[float, float]:
 # ── Empirical Goblin/Demon payout (manual PrizePicks observations, April 2026) ─
 # Multiplicative per leg; line_distance = |standard_line - played_line|.
 # Goblin: linear distance fit from obs_A–obs_D (see data/payout_formula_coefficients.json).
+# Live override: data/reports/payout_rate_card.json from --mix-grid (power_min_x floors).
 GOBLIN_FACTOR_INTERCEPT = 0.838
 GOBLIN_FACTOR_SLOPE = 0.031
 GOBLIN_FACTOR_MIN = 0.40
@@ -659,14 +660,96 @@ SWEEP_PAYOUT = {2: 3.0, 3: 6.0, 4: 10.0, 5: 20.0, 6: 40.0}
 # Power-style min guarantees (all-standard baseline) and goblin distance factors.
 POWER_MIN_GUARANTEE_STANDARD: dict[int, float] = {
     2: 3.0,
-    3: 1.6,
-    4: 2.5,
-    5: 8.5,
+    3: 6.0,
+    4: 10.0,
+    5: 20.0,
     6: 40.0,
 }
 GOBLIN_MIN_FACTOR_INTERCEPT = 1.0
 GOBLIN_MIN_FACTOR_SLOPE = 0.074
 GOBLIN_MIN_FACTOR_FLOOR = 0.30
+# Live mix-grid rate card: goblin_discount_per_unit by deviation bucket ("1.0","1.5","2.0")
+PAYOUT_RATE_CARD_PATH = os.path.join(REPO_ROOT, "data", "reports", "payout_rate_card.json")
+_LIVE_GOBLIN_DISCOUNT_PER_UNIT: dict[float, float] | None = None
+_LIVE_RATE_CARD_META: dict[str, Any] = {}
+
+
+def _load_live_payout_rate_card(force: bool = False) -> dict[float, float] | None:
+    """Load mix-grid fitted goblin_discount_per_unit; None if missing/invalid."""
+    global _LIVE_GOBLIN_DISCOUNT_PER_UNIT, _LIVE_RATE_CARD_META, POWER_MIN_GUARANTEE_STANDARD
+    global GOBLIN_MIN_FACTOR_SLOPE
+    if _LIVE_GOBLIN_DISCOUNT_PER_UNIT is not None and not force:
+        return _LIVE_GOBLIN_DISCOUNT_PER_UNIT
+    path = PAYOUT_RATE_CARD_PATH
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            card = json.load(f)
+    except Exception:
+        _LIVE_GOBLIN_DISCOUNT_PER_UNIT = {}
+        return None
+    if not isinstance(card, dict):
+        _LIVE_GOBLIN_DISCOUNT_PER_UNIT = {}
+        return None
+    raw = card.get("goblin_discount_per_unit") or {}
+    fitted: dict[float, float] = {}
+    if isinstance(raw, dict):
+        for k, v in raw.items():
+            try:
+                bk = float(k)
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if fv >= 0 and math.isfinite(fv):
+                fitted[bk] = fv
+    n_obs = int(card.get("n_observations") or 0)
+    if not fitted or n_obs <= 0:
+        _LIVE_GOBLIN_DISCOUNT_PER_UNIT = {}
+        _LIVE_RATE_CARD_META = {"loaded": False, "path": path, "n_observations": n_obs}
+        return None
+    baselines = card.get("baselines_power_min_x") or {}
+    if isinstance(baselines, dict):
+        for k, v in baselines.items():
+            try:
+                # keys like "2S" / "3S"
+                ks = str(k).upper().replace("S", "").strip()
+                n = int(ks)
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if n >= 2 and fv > 0:
+                POWER_MIN_GUARANTEE_STANDARD[n] = fv
+    # Prefer live slope for legacy per-leg path (mean of fitted buckets).
+    mean_dpu = sum(fitted.values()) / max(1, len(fitted))
+    if mean_dpu > 0:
+        GOBLIN_MIN_FACTOR_SLOPE = float(mean_dpu)
+    _LIVE_GOBLIN_DISCOUNT_PER_UNIT = fitted
+    _LIVE_RATE_CARD_META = {
+        "loaded": True,
+        "path": path,
+        "n_observations": n_obs,
+        "source_date": card.get("source_date"),
+        "goblin_discount_per_unit": {f"{k:.1f}": v for k, v in sorted(fitted.items())},
+    }
+    return fitted
+
+
+def _goblin_discount_per_unit_for_distance(dist: float) -> float | None:
+    fitted = _load_live_payout_rate_card()
+    if not fitted:
+        return None
+    try:
+        d = abs(float(dist or 0.0))
+    except (TypeError, ValueError):
+        d = 0.0
+    if d <= 0:
+        # Unknown distance — use nearest/smallest bucket mean
+        return float(sum(fitted.values()) / len(fitted))
+    best_k = min(fitted.keys(), key=lambda k: abs(k - d))
+    return float(fitted[best_k])
+
+
+# Eager load once at import (no-op if file missing).
+_load_live_payout_rate_card()
 # Runtime toggle wired from CLI (--debug-payout).
 PAYOUT_DEBUG: bool = False
 PAYOUT_LADDER_STANDARD_PATH = os.path.join(REPO_ROOT, "data", "payout_ladder.json")
@@ -937,10 +1020,10 @@ def goblin_min_factor(dist: float) -> float:
 
 def _compute_power_min_guarantee(legs: list, n_legs: int) -> tuple[float, int]:
     """
-    Power-play min guarantee by all-standard base × per-leg Goblin/Demon distance factors.
-    (Sweep for mixed tickets is handled separately in compute_ticket_ev; all-Goblin Power uses
-    a dedicated scaled path so we do not show Standard-tier jackpots on Goblin-only slips.)
+    Power-play min guarantee by all-standard base × Goblin/Demon distance factors.
+    Prefer live mix-grid rate card (additive discount_per_unit × distance) when present.
     """
+    _load_live_payout_rate_card()
     n = int(n_legs)
     base = float(POWER_MIN_GUARANTEE_STANDARD.get(n, 1.6))
     g_count = sum(
@@ -948,6 +1031,36 @@ def _compute_power_min_guarantee(legs: list, n_legs: int) -> tuple[float, int]:
         for leg in (legs or [])
         if str(leg.get("pick_type", "standard")).strip().lower() == "goblin"
     )
+    live = _LIVE_GOBLIN_DISCOUNT_PER_UNIT or {}
+    if live:
+        discount_sum = 0.0
+        demon_adj = 1.0
+        for leg in legs or []:
+            pt = str(leg.get("pick_type", "") or "").strip().lower()
+            try:
+                dist = abs(float(leg.get("line_distance", 0.0) or 0.0))
+                if not math.isfinite(dist):
+                    dist = 0.0
+            except (TypeError, ValueError):
+                dist = 0.0
+            if pt == "goblin":
+                dpu = _goblin_discount_per_unit_for_distance(dist) or 0.0
+                # If distance unknown, treat as one unit of nearest bucket
+                use_dist = dist if dist > 0 else 1.0
+                discount_sum += float(dpu) * float(use_dist)
+                if PAYOUT_DEBUG:
+                    print(f"[PAYOUT] live goblin dist={use_dist:.1f} dpu={dpu:.4f}")
+            elif pt == "demon":
+                raw = DEMON_POWER_COEFF * (dist ** DEMON_POWER_EXP)
+                f = min(3.0, max(1.0, raw))
+                demon_adj *= f
+        adj = max(float(GOBLIN_MIN_FACTOR_FLOOR), 1.0 - discount_sum) * demon_adj
+        mg = round(float(base * adj), 2)
+        if PAYOUT_DEBUG:
+            print(f"[PAYOUT] live_discount_sum={discount_sum:.3f} total_adj={adj:.3f}")
+            print(f"[PAYOUT] min_guarantee={mg:.2f}")
+        return mg, g_count
+
     adj = 1.0
     for leg in legs or []:
         pt = str(leg.get("pick_type", "") or "").strip().lower()

@@ -246,14 +246,14 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
       <div class="sport-header">
         <div class="sport-label">🌐 ALL SPORTS</div>
         <div class="sport-header-line"></div>
-        <div class="sport-meta-count">2,955 TOTAL PROPS</div>
+        <div class="sport-meta-count">2,083 TOTAL PROPS</div>
       </div>
     </summary>
     <div class="sport-section-body">
       <details class="matrix-collapsible">
       <summary>Performance Matrix — Pick Type × Tier × Direction</summary>
       <div class="matrix-body">
-        <div class="matrix-summary">Full grid: Standard A–D (OVER/UNDER), Goblin & Demon A–D (OVER). 9 of 16 cells have ≥ 10 decided; others still listed with counts. Note: Standard Tier B may show no decided props when ml_prob is compressed below tier thresholds (e.g., B cut ≥ 0.65) — “—” cells are expected until calibration / a retrain restores spread.</div>
+        <div class="matrix-summary">Full grid: Standard A–D (OVER/UNDER), Goblin & Demon A–D (OVER). 8 of 16 cells have ≥ 10 decided; others still listed with counts. Note: Standard Tier B may show no decided props when ml_prob is compressed below tier thresholds (e.g., B cut ≥ 0.65) — “—” cells are expected until calibration / a retrain restores spread.</div>
         <div class="table-wrap"><table class="table-sortable">
           <thead><tr>
             <th data-sort-key="pick" title="Sort">PICK TYPE</th>
@@ -265,45 +265,9 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
             <th data-sort-key="rate" title="Sort">HIT RATE</th>
             <th data-sort-key="bar" title="Sort">BAR</th>
           </tr></thead>
-          <tbody><tr class="matrix-warn">
+          <tbody><tr class="matrix-hit matrix-sparse">
           <td><span class="chip chip-std">⭐ Standard</span></td>
           <td><span class="chip chip-a">TIER A</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">20</td>
-          <td class="right mono pos">10</td>
-          <td class="right mono neg">10</td>
-          <td class="mono right">50.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-a">TIER A</span></td>
-          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">7</td>
-          <td class="right mono pos">4</td>
-          <td class="right mono neg">3</td>
-          <td class="mono right">57.1%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:57.1%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:42.9%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-b">TIER B</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">1</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">1</td>
-          <td class="mono right">0.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-hit matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-b">TIER B</span></td>
-          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">5</td>
-          <td class="right mono pos">3</td>
-          <td class="right mono neg">2</td>
-          <td class="mono right">60.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:60.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:40.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-hit matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-c">TIER C</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
           <td class="right mono">1</td>
           <td class="right mono pos">1</td>
@@ -312,15 +276,96 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
           <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div></td>
         </tr><tr class="matrix-hit matrix-sparse">
           <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-a">TIER A</span></td>
+          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
+          <td class="right mono">2</td>
+          <td class="right mono pos">2</td>
+          <td class="right mono neg">0</td>
+          <td class="mono right">100.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div></td>
+        </tr><tr class="matrix-warn">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-b">TIER B</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono">58</td>
+          <td class="right mono pos">29</td>
+          <td class="right mono neg">29</td>
+          <td class="mono right">50.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-empty">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-b">TIER B</span></td>
+          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
+        </tr><tr class="matrix-empty">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-c">TIER C</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
+        </tr><tr class="matrix-hit">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
           <td><span class="chip chip-c">TIER C</span></td>
           <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">7</td>
-          <td class="right mono pos">5</td>
-          <td class="right mono neg">2</td>
-          <td class="mono right">71.4%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:71.4%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:28.6%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss matrix-sparse">
+          <td class="right mono">17</td>
+          <td class="right mono pos">11</td>
+          <td class="right mono neg">6</td>
+          <td class="mono right">64.7%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:64.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:35.3%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-empty">
           <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-d">TIER D</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
+        </tr><tr class="matrix-hit">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-d">TIER D</span></td>
+          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
+          <td class="right mono">26</td>
+          <td class="right mono pos">18</td>
+          <td class="right mono neg">8</td>
+          <td class="mono right">69.2%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:69.2%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:30.8%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-miss matrix-sparse">
+          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
+          <td><span class="chip chip-a">TIER A</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono">6</td>
+          <td class="right mono pos">2</td>
+          <td class="right mono neg">4</td>
+          <td class="mono right">33.3%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:33.3%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:66.7%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-warn">
+          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
+          <td><span class="chip chip-b">TIER B</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono">254</td>
+          <td class="right mono pos">130</td>
+          <td class="right mono neg">124</td>
+          <td class="mono right">51.2%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:51.2%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:48.8%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-hit">
+          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
+          <td><span class="chip chip-c">TIER C</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono">13</td>
+          <td class="right mono pos">10</td>
+          <td class="right mono neg">3</td>
+          <td class="mono right">76.9%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:76.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:23.1%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-miss matrix-sparse">
+          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
           <td><span class="chip chip-d">TIER D</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
           <td class="right mono">1</td>
@@ -328,87 +373,42 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
           <td class="right mono neg">1</td>
           <td class="mono right">0.0%</td>
           <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-d">TIER D</span></td>
-          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">6</td>
-          <td class="right mono pos">3</td>
-          <td class="right mono neg">3</td>
-          <td class="mono right">50.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn">
-          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
+        </tr><tr class="matrix-miss">
+          <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-a">TIER A</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">141</td>
-          <td class="right mono pos">76</td>
-          <td class="right mono neg">65</td>
-          <td class="mono right">53.9%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:53.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:46.1%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn">
-          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
-          <td><span class="chip chip-b">TIER B</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">14</td>
+          <td class="right mono">34</td>
           <td class="right mono pos">7</td>
-          <td class="right mono neg">7</td>
-          <td class="mono right">50.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss">
-          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
-          <td><span class="chip chip-c">TIER C</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">25</td>
-          <td class="right mono pos">12</td>
-          <td class="right mono neg">13</td>
-          <td class="mono right">48.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:48.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:52.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-hit">
-          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
-          <td><span class="chip chip-d">TIER D</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">113</td>
-          <td class="right mono pos">70</td>
-          <td class="right mono neg">43</td>
-          <td class="mono right">61.9%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:61.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:38.1%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss">
-          <td><span class="chip chip-demon">😈 Demon</span></td>
-          <td><span class="chip chip-a">TIER A</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">14</td>
-          <td class="right mono pos">5</td>
-          <td class="right mono neg">9</td>
-          <td class="mono right">35.7%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:35.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:64.3%;background:var(--red)"></div></div></td>
+          <td class="right mono neg">27</td>
+          <td class="mono right">20.6%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:20.6%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:79.4%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-miss">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-b">TIER B</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">15</td>
-          <td class="right mono pos">3</td>
-          <td class="right mono neg">12</td>
-          <td class="mono right">20.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:20.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:80.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss">
+          <td class="right mono">41</td>
+          <td class="right mono pos">7</td>
+          <td class="right mono neg">34</td>
+          <td class="mono right">17.1%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:17.1%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:82.9%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-miss matrix-sparse">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-c">TIER C</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">10</td>
-          <td class="right mono pos">3</td>
-          <td class="right mono neg">7</td>
-          <td class="mono right">30.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:30.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:70.0%;background:var(--red)"></div></div></td>
+          <td class="right mono">8</td>
+          <td class="right mono pos">2</td>
+          <td class="right mono neg">6</td>
+          <td class="mono right">25.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:25.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:75.0%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-miss">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-d">TIER D</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">1,269</td>
-          <td class="right mono pos">259</td>
-          <td class="right mono neg">1,010</td>
-          <td class="mono right">20.4%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:20.4%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:79.6%;background:var(--red)"></div></div></td>
+          <td class="right mono">990</td>
+          <td class="right mono pos">235</td>
+          <td class="right mono neg">755</td>
+          <td class="mono right">23.7%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:23.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:76.3%;background:var(--red)"></div></div></td>
         </tr></tbody>
         </table></div>
       </div>
@@ -429,7 +429,7 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
     </tr>
   </thead>
   <tbody>
-    <tr class="def-subgrid-data-row"><td class="def-subgrid-label" style="padding:6px 8px;text-align:left;border-left:none">Above Avg</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">19%</span><span class="def-subgrid-n">(16)</span></td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td></tr><tr class="def-subgrid-total-row"><td class="def-subgrid-label def-subgrid-label-total" style="padding:6px 8px;text-align:left;border-left:none">Total</td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-mid">54%</span><span class="def-subgrid-n">(141)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">50%</span><span class="def-subgrid-n">(14)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">48%</span><span class="def-subgrid-n">(25)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">62%</span><span class="def-subgrid-n">(113)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-miss">36%</span><span class="def-subgrid-n">(14)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">20%</span><span class="def-subgrid-n">(15)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">30%</span><span class="def-subgrid-n">(10)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">20%</span><span class="def-subgrid-n">(1,269)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-mid">50%</span><span class="def-subgrid-n">(20)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">0%</span><span class="def-subgrid-n">(1)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-hit">100%</span><span class="def-subgrid-n">(1)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">0%</span><span class="def-subgrid-n">(1)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-mid">57%</span><span class="def-subgrid-n">(7)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">60%</span><span class="def-subgrid-n">(5)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-hit">71%</span><span class="def-subgrid-n">(7)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">50%</span><span class="def-subgrid-n">(6)</span></td></tr>
+    <tr class="def-subgrid-data-row"><td class="def-subgrid-label" style="padding:6px 8px;text-align:left;border-left:none">Above Avg</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">19%</span><span class="def-subgrid-n">(16)</span></td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td></tr><tr class="def-subgrid-total-row"><td class="def-subgrid-label def-subgrid-label-total" style="padding:6px 8px;text-align:left;border-left:none">Total</td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-miss">33%</span><span class="def-subgrid-n">(6)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">51%</span><span class="def-subgrid-n">(254)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-hit">77%</span><span class="def-subgrid-n">(13)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">0%</span><span class="def-subgrid-n">(1)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-miss">21%</span><span class="def-subgrid-n">(34)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">17%</span><span class="def-subgrid-n">(41)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">25%</span><span class="def-subgrid-n">(8)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-miss">24%</span><span class="def-subgrid-n">(990)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-hit">100%</span><span class="def-subgrid-n">(1)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">50%</span><span class="def-subgrid-n">(58)</span></td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:1.5px solid var(--color-border-secondary, rgba(255,255,255,0.18))"><span class="def-subgrid-pct def-pct-hit">100%</span><span class="def-subgrid-n">(2)</span></td><td class="def-subgrid-cell def-subgrid-empty" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))">—</td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-mid">65%</span><span class="def-subgrid-n">(17)</span></td><td class="def-subgrid-cell" style="padding:6px 8px;text-align:center;font-size:12px;vertical-align:middle;border-left:0.5px solid var(--color-border-tertiary, rgba(255,255,255,0.10))"><span class="def-subgrid-pct def-pct-hit">69%</span><span class="def-subgrid-n">(26)</span></td></tr>
   </tbody>
 </table>
 </div>
@@ -439,7 +439,7 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
       <summary>PROP TYPE BREAKDOWNS</summary>
       <div class="matrix-body">
         <div class="matrix-summary">Interactive Best/Worst and heatmap views across pick type, tier, and prop type. Filters apply to both tabs.</div>
-        <div class="pbw-root" data-prop-breakdown-rows='[{&quot;prop&quot;: &quot;Goal + Assist&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots On Target&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots On Target&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Goal + Assist&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Assists&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;above_avg&quot;, &quot;decided&quot;: 13, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Fouls&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goalie Saves&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;above_avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;above_avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 79, &quot;hits&quot;: 42}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 53, &quot;hits&quot;: 28}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 8, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 6, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 9, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 12, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 7}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 6, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 62, &quot;hits&quot;: 41}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 495, &quot;hits&quot;: 113}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 37, &quot;hits&quot;: 24}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 195, &quot;hits&quot;: 51}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 150, &quot;hits&quot;: 30}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 168, &quot;hits&quot;: 33}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Stolen Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 71, &quot;hits&quot;: 7}, {&quot;prop&quot;: &quot;Home Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 137, &quot;hits&quot;: 18}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 0}]'></div>
+        <div class="pbw-root" data-prop-breakdown-rows='[{&quot;prop&quot;: &quot;Goal + Assist&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots On Target&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots On Target&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Goal + Assist&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Assists&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goals&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;above_avg&quot;, &quot;decided&quot;: 13, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Fouls&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Goalie Saves&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;above_avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Shots&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;above_avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 6, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 5, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 43, &quot;hits&quot;: 23}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 73, &quot;hits&quot;: 40}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 68, &quot;hits&quot;: 34}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 15, &quot;hits&quot;: 8}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 13, &quot;hits&quot;: 7}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 61, &quot;hits&quot;: 27}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 9, &quot;hits&quot;: 6}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 7, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 12, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Plate Appearances&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 22, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Plate Appearances&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 9}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 5, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 136, &quot;hits&quot;: 43}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 78, &quot;hits&quot;: 19}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 140, &quot;hits&quot;: 33}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 7, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 150, &quot;hits&quot;: 36}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 140, &quot;hits&quot;: 37}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 21, &quot;hits&quot;: 8}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 72, &quot;hits&quot;: 15}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Home Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 119, &quot;hits&quot;: 19}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Plate Appearances&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 6}, {&quot;prop&quot;: &quot;Doubles&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 31, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Stolen Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 30, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 30, &quot;hits&quot;: 8}, {&quot;prop&quot;: &quot;Triples&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}]'></div>
       </div>
     </details>
       <div class="two-col">
@@ -448,69 +448,69 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
         <div class="table-wrap"><table>
       <thead><tr><th>PLAYER</th><th>TEAM</th><th>PROPS</th><th class="right">DEC</th><th class="right">H</th><th class="right">M</th><th>RATE</th></tr></thead>
       <tbody><tr>
-          <td><strong>Junior Caminero</strong></td>
-          <td class="mono muted">TB</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">10</td>
-          <td class="right mono pos">10</td>
+          <td><strong>Wyatt Langford</strong></td>
+          <td class="mono muted">TEX</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">7</td>
           <td class="right mono neg">0</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div><div class="rate-num" style="color:var(--green)">100.0%</div></div></td>
         </tr><tr>
-          <td><strong>Wilyer Abreu</strong></td>
-          <td class="mono muted">BOS</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">11</td>
-          <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:91.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:8.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">91.7%</div></div></td>
+          <td><strong>Spencer Torkelson</strong></td>
+          <td class="mono muted">DET</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">7</td>
+          <td class="right mono neg">0</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div><div class="rate-num" style="color:var(--green)">100.0%</div></div></td>
         </tr><tr>
-          <td><strong>Miguel Vargas</strong></td>
-          <td class="mono muted">CWS</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td><strong>Samuel Basallo</strong></td>
+          <td class="mono muted">BAL</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr><tr>
-          <td><strong>Trevor Larnach</strong></td>
-          <td class="mono muted">MIN</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td><strong>Joc Pederson</strong></td>
+          <td class="mono muted">TEX</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr><tr>
-          <td><strong>Brett Baty</strong></td>
-          <td class="mono muted">NYM</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td><strong>Elly De La Cruz</strong></td>
+          <td class="mono muted">CIN</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
+        </tr><tr>
+          <td><strong>Yainer Diaz</strong></td>
+          <td class="mono muted">HOU</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
+          <td class="right mono neg">1</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
+        </tr><tr>
+          <td><strong>JJ Bleday</strong></td>
+          <td class="mono muted">CIN</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
+          <td class="right mono neg">1</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr><tr>
           <td><strong>Jac Caglianone</strong></td>
           <td class="mono muted">KC</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
-        </tr><tr>
-          <td><strong>Tristan Peters</strong></td>
-          <td class="mono muted">CWS</td>
-          <td class="mono muted">4 props</td>
-          <td class="right mono">8</td>
-          <td class="right mono pos">7</td>
-          <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:87.5%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:12.5%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">87.5%</div></div></td>
-        </tr><tr>
-          <td><strong>James Wood</strong></td>
-          <td class="mono muted">WSH</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">10</td>
-          <td class="right mono neg">2</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:83.3%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:16.7%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">83.3%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr></tbody>
     </table></div>
       </div>
@@ -519,60 +519,28 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
         <div class="table-wrap"><table>
       <thead><tr><th>PLAYER</th><th>TEAM</th><th>PROPS</th><th class="right">DEC</th><th class="right">H</th><th class="right">M</th><th>RATE</th></tr></thead>
       <tbody><tr>
-          <td><strong>Michael Busch</strong></td>
-          <td class="mono muted">CHC</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">14</td>
+          <td><strong>Nathan Lukes</strong></td>
+          <td class="mono muted">TOR</td>
+          <td class="mono muted">12 props</td>
+          <td class="right mono">26</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">14</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
-        </tr><tr>
-          <td><strong>Pete Crow-Armstrong</strong></td>
-          <td class="mono muted">CHC</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">14</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">14</td>
+          <td class="right mono neg">26</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
           <td><strong>Daulton Varsho</strong></td>
           <td class="mono muted">TOR</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
+          <td class="mono muted">11 props</td>
+          <td class="right mono">24</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
+          <td class="right mono neg">24</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
-          <td><strong>Nico Hoerner</strong></td>
-          <td class="mono muted">CHC</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
+          <td><strong>Andrés Giménez</strong></td>
+          <td class="mono muted">TOR</td>
+          <td class="mono muted">11 props</td>
+          <td class="right mono">23</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
-        </tr><tr>
-          <td><strong>Yandy Díaz</strong></td>
-          <td class="mono muted">TB</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
-        </tr><tr>
-          <td><strong>Kyle Schwarber</strong></td>
-          <td class="mono muted">PHI</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
-        </tr><tr>
-          <td><strong>Kody Clemens</strong></td>
-          <td class="mono muted">MIN</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
+          <td class="right mono neg">23</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
           <td><strong>Harry Kane</strong></td>
@@ -581,6 +549,38 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
           <td class="right mono">11</td>
           <td class="right mono pos">0</td>
           <td class="right mono neg">11</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
+        </tr><tr>
+          <td><strong>Carter Jensen</strong></td>
+          <td class="mono muted">KC</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">0</td>
+          <td class="right mono neg">7</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
+        </tr><tr>
+          <td><strong>Vinnie Pasquantino</strong></td>
+          <td class="mono muted">KC</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">0</td>
+          <td class="right mono neg">7</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
+        </tr><tr>
+          <td><strong>Matt Olson</strong></td>
+          <td class="mono muted">ATL</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">0</td>
+          <td class="right mono neg">7</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
+        </tr><tr>
+          <td><strong>Drake Baldwin</strong></td>
+          <td class="mono muted">ATL</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">0</td>
+          <td class="right mono neg">7</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr></tbody>
     </table></div>
@@ -858,7 +858,7 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
       <div class="sport-header">
         <div class="sport-label">⚾ MLB</div>
         <div class="sport-header-line"></div>
-        <div class="sport-meta-count">2,504 TOTAL PROPS</div>
+        <div class="sport-meta-count">1,632 TOTAL PROPS</div>
       </div>
     </summary>
     <div class="sport-section-body">
@@ -877,45 +877,9 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
             <th data-sort-key="rate" title="Sort">HIT RATE</th>
             <th data-sort-key="bar" title="Sort">BAR</th>
           </tr></thead>
-          <tbody><tr class="matrix-warn">
+          <tbody><tr class="matrix-hit matrix-sparse">
           <td><span class="chip chip-std">⭐ Standard</span></td>
           <td><span class="chip chip-a">TIER A</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">20</td>
-          <td class="right mono pos">10</td>
-          <td class="right mono neg">10</td>
-          <td class="mono right">50.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-a">TIER A</span></td>
-          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">7</td>
-          <td class="right mono pos">4</td>
-          <td class="right mono neg">3</td>
-          <td class="mono right">57.1%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:57.1%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:42.9%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-b">TIER B</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">1</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">1</td>
-          <td class="mono right">0.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-hit matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-b">TIER B</span></td>
-          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">5</td>
-          <td class="right mono pos">3</td>
-          <td class="right mono neg">2</td>
-          <td class="mono right">60.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:60.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:40.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-hit matrix-sparse">
-          <td><span class="chip chip-std">⭐ Standard</span></td>
-          <td><span class="chip chip-c">TIER C</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
           <td class="right mono">1</td>
           <td class="right mono pos">1</td>
@@ -924,103 +888,139 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
           <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div></td>
         </tr><tr class="matrix-hit matrix-sparse">
           <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-a">TIER A</span></td>
+          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
+          <td class="right mono">2</td>
+          <td class="right mono pos">2</td>
+          <td class="right mono neg">0</td>
+          <td class="mono right">100.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div></td>
+        </tr><tr class="matrix-warn">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-b">TIER B</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono">58</td>
+          <td class="right mono pos">29</td>
+          <td class="right mono neg">29</td>
+          <td class="mono right">50.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-empty">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-b">TIER B</span></td>
+          <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
+        </tr><tr class="matrix-empty">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
+          <td><span class="chip chip-c">TIER C</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
+        </tr><tr class="matrix-hit">
+          <td><span class="chip chip-std">⭐ Standard</span></td>
           <td><span class="chip chip-c">TIER C</span></td>
           <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">7</td>
-          <td class="right mono pos">5</td>
-          <td class="right mono neg">2</td>
-          <td class="mono right">71.4%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:71.4%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:28.6%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss matrix-sparse">
+          <td class="right mono">17</td>
+          <td class="right mono pos">11</td>
+          <td class="right mono neg">6</td>
+          <td class="mono right">64.7%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:64.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:35.3%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-empty">
           <td><span class="chip chip-std">⭐ Standard</span></td>
           <td><span class="chip chip-d">TIER D</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">1</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">1</td>
-          <td class="mono right">0.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn matrix-sparse">
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
+        </tr><tr class="matrix-hit">
           <td><span class="chip chip-std">⭐ Standard</span></td>
           <td><span class="chip chip-d">TIER D</span></td>
           <td><span style="color:var(--cyan);font-size:13px">▼ UNDER</span></td>
-          <td class="right mono">6</td>
-          <td class="right mono pos">3</td>
-          <td class="right mono neg">3</td>
-          <td class="mono right">50.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-warn">
+          <td class="right mono">26</td>
+          <td class="right mono pos">18</td>
+          <td class="right mono neg">8</td>
+          <td class="mono right">69.2%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:69.2%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:30.8%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-warn matrix-sparse">
           <td><span class="chip chip-goblin">🎃 Goblin</span></td>
           <td><span class="chip chip-a">TIER A</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">139</td>
-          <td class="right mono pos">76</td>
-          <td class="right mono neg">63</td>
-          <td class="mono right">54.7%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:54.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:45.3%;background:var(--red)"></div></div></td>
+          <td class="right mono">4</td>
+          <td class="right mono pos">2</td>
+          <td class="right mono neg">2</td>
+          <td class="mono right">50.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-warn">
           <td><span class="chip chip-goblin">🎃 Goblin</span></td>
           <td><span class="chip chip-b">TIER B</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">6</td>
-          <td class="right mono neg">6</td>
-          <td class="mono right">50.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:50.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:50.0%;background:var(--red)"></div></div></td>
-        </tr><tr class="matrix-miss">
-          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
-          <td><span class="chip chip-c">TIER C</span></td>
-          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">25</td>
-          <td class="right mono pos">12</td>
-          <td class="right mono neg">13</td>
-          <td class="mono right">48.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:48.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:52.0%;background:var(--red)"></div></div></td>
+          <td class="right mono">252</td>
+          <td class="right mono pos">129</td>
+          <td class="right mono neg">123</td>
+          <td class="mono right">51.2%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:51.2%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:48.8%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-hit">
           <td><span class="chip chip-goblin">🎃 Goblin</span></td>
+          <td><span class="chip chip-c">TIER C</span></td>
+          <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
+          <td class="right mono">13</td>
+          <td class="right mono pos">10</td>
+          <td class="right mono neg">3</td>
+          <td class="mono right">76.9%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:76.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:23.1%;background:var(--red)"></div></div></td>
+        </tr><tr class="matrix-empty">
+          <td><span class="chip chip-goblin">🎃 Goblin</span></td>
           <td><span class="chip chip-d">TIER D</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">112</td>
-          <td class="right mono pos">70</td>
-          <td class="right mono neg">42</td>
-          <td class="mono right">62.5%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:62.5%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:37.5%;background:var(--red)"></div></div></td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="right mono muted">—</td>
+          <td class="mono right muted">—</td>
+          <td><span class="muted">—</span></td>
         </tr><tr class="matrix-miss">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-a">TIER A</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">13</td>
-          <td class="right mono pos">5</td>
-          <td class="right mono neg">8</td>
-          <td class="mono right">38.5%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:38.5%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:61.5%;background:var(--red)"></div></div></td>
+          <td class="right mono">33</td>
+          <td class="right mono pos">7</td>
+          <td class="right mono neg">26</td>
+          <td class="mono right">21.2%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:21.2%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:78.8%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-miss">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-b">TIER B</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">10</td>
-          <td class="right mono pos">2</td>
-          <td class="right mono neg">8</td>
-          <td class="mono right">20.0%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:20.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:80.0%;background:var(--red)"></div></div></td>
+          <td class="right mono">36</td>
+          <td class="right mono pos">6</td>
+          <td class="right mono neg">30</td>
+          <td class="mono right">16.7%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:16.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:83.3%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-miss matrix-sparse">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-c">TIER C</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">2</td>
-          <td class="right mono neg">7</td>
-          <td class="mono right">22.2%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:22.2%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:77.8%;background:var(--red)"></div></div></td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">1</td>
+          <td class="right mono neg">6</td>
+          <td class="mono right">14.3%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:14.3%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:85.7%;background:var(--red)"></div></div></td>
         </tr><tr class="matrix-miss">
           <td><span class="chip chip-demon">😈 Demon</span></td>
           <td><span class="chip chip-d">TIER D</span></td>
           <td><span style="color:var(--green);font-size:13px">▲ OVER</span></td>
-          <td class="right mono">1,242</td>
-          <td class="right mono pos">255</td>
-          <td class="right mono neg">987</td>
-          <td class="mono right">20.5%</td>
-          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:20.5%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:79.5%;background:var(--red)"></div></div></td>
+          <td class="right mono">963</td>
+          <td class="right mono pos">231</td>
+          <td class="right mono neg">732</td>
+          <td class="mono right">24.0%</td>
+          <td><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:24.0%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:76.0%;background:var(--red)"></div></div></td>
         </tr></tbody>
         </table></div>
       </div>
@@ -1030,7 +1030,7 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
       <summary>PROP TYPE BREAKDOWNS</summary>
       <div class="matrix-body">
         <div class="matrix-summary">Interactive Best/Worst and heatmap views across pick type, tier, and prop type. Filters apply to both tabs.</div>
-        <div class="pbw-root" data-prop-breakdown-rows='[{&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 79, &quot;hits&quot;: 42}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 53, &quot;hits&quot;: 28}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 8, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 6, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 9, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 12, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 7}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 6, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 62, &quot;hits&quot;: 41}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 495, &quot;hits&quot;: 113}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 37, &quot;hits&quot;: 24}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 195, &quot;hits&quot;: 51}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 150, &quot;hits&quot;: 30}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 168, &quot;hits&quot;: 33}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Stolen Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 71, &quot;hits&quot;: 7}, {&quot;prop&quot;: &quot;Home Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 137, &quot;hits&quot;: 18}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks Allowed&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 0}]'></div>
+        <div class="pbw-root" data-prop-breakdown-rows='[{&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 6, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 5, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 43, &quot;hits&quot;: 23}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 73, &quot;hits&quot;: 40}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 68, &quot;hits&quot;: 34}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 15, &quot;hits&quot;: 8}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 13, &quot;hits&quot;: 7}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 61, &quot;hits&quot;: 27}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 9, &quot;hits&quot;: 6}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 7, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 12, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Pitcher Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Pitching Outs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Plate Appearances&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 22, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 10, &quot;hits&quot;: 3}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Standard Over&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Plate Appearances&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;B&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Goblin&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 9}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 2, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 5, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}, {&quot;prop&quot;: &quot;Hits+Runs+RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 136, &quot;hits&quot;: 43}, {&quot;prop&quot;: &quot;Hits&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 78, &quot;hits&quot;: 19}, {&quot;prop&quot;: &quot;Total Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 140, &quot;hits&quot;: 33}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;C&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 7, &quot;hits&quot;: 5}, {&quot;prop&quot;: &quot;RBIs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 150, &quot;hits&quot;: 36}, {&quot;prop&quot;: &quot;Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 140, &quot;hits&quot;: 37}, {&quot;prop&quot;: &quot;Singles&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 21, &quot;hits&quot;: 8}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 3, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 72, &quot;hits&quot;: 15}, {&quot;prop&quot;: &quot;Hitter Strikeouts&quot;, &quot;pt&quot;: &quot;Standard Under&quot;, &quot;tier&quot;: &quot;A&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Home Runs&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 119, &quot;hits&quot;: 19}, {&quot;prop&quot;: &quot;Hits Allowed&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 4, &quot;hits&quot;: 1}, {&quot;prop&quot;: &quot;Plate Appearances&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 11, &quot;hits&quot;: 6}, {&quot;prop&quot;: &quot;Doubles&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 31, &quot;hits&quot;: 4}, {&quot;prop&quot;: &quot;Stolen Bases&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 30, &quot;hits&quot;: 2}, {&quot;prop&quot;: &quot;Walks&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 30, &quot;hits&quot;: 8}, {&quot;prop&quot;: &quot;Triples&quot;, &quot;pt&quot;: &quot;Demon&quot;, &quot;tier&quot;: &quot;D&quot;, &quot;def&quot;: &quot;avg&quot;, &quot;decided&quot;: 1, &quot;hits&quot;: 0}]'></div>
       </div>
     </details>
       <div class="two-col">
@@ -1039,69 +1039,69 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
         <div class="table-wrap"><table>
       <thead><tr><th>PLAYER</th><th>TEAM</th><th>PROPS</th><th class="right">DEC</th><th class="right">H</th><th class="right">M</th><th>RATE</th></tr></thead>
       <tbody><tr>
-          <td><strong>Junior Caminero</strong></td>
-          <td class="mono muted">TB</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">10</td>
-          <td class="right mono pos">10</td>
+          <td><strong>Wyatt Langford</strong></td>
+          <td class="mono muted">TEX</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">7</td>
           <td class="right mono neg">0</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div><div class="rate-num" style="color:var(--green)">100.0%</div></div></td>
         </tr><tr>
-          <td><strong>Wilyer Abreu</strong></td>
-          <td class="mono muted">BOS</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">11</td>
-          <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:91.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:8.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">91.7%</div></div></td>
+          <td><strong>Spencer Torkelson</strong></td>
+          <td class="mono muted">DET</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">7</td>
+          <td class="right mono neg">0</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:100.0%;background:var(--green)"></div></div><div class="rate-num" style="color:var(--green)">100.0%</div></div></td>
         </tr><tr>
-          <td><strong>Miguel Vargas</strong></td>
-          <td class="mono muted">CWS</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td><strong>Samuel Basallo</strong></td>
+          <td class="mono muted">BAL</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr><tr>
-          <td><strong>Trevor Larnach</strong></td>
-          <td class="mono muted">MIN</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td><strong>Joc Pederson</strong></td>
+          <td class="mono muted">TEX</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr><tr>
-          <td><strong>Brett Baty</strong></td>
-          <td class="mono muted">NYM</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td><strong>Elly De La Cruz</strong></td>
+          <td class="mono muted">CIN</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
+        </tr><tr>
+          <td><strong>Yainer Diaz</strong></td>
+          <td class="mono muted">HOU</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
+          <td class="right mono neg">1</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
+        </tr><tr>
+          <td><strong>JJ Bleday</strong></td>
+          <td class="mono muted">CIN</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
+          <td class="right mono neg">1</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr><tr>
           <td><strong>Jac Caglianone</strong></td>
           <td class="mono muted">KC</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">9</td>
-          <td class="right mono pos">8</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">6</td>
           <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:88.9%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:11.1%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">88.9%</div></div></td>
-        </tr><tr>
-          <td><strong>Tristan Peters</strong></td>
-          <td class="mono muted">CWS</td>
-          <td class="mono muted">4 props</td>
-          <td class="right mono">8</td>
-          <td class="right mono pos">7</td>
-          <td class="right mono neg">1</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:87.5%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:12.5%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">87.5%</div></div></td>
-        </tr><tr>
-          <td><strong>James Wood</strong></td>
-          <td class="mono muted">WSH</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">10</td>
-          <td class="right mono neg">2</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:83.3%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:16.7%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">83.3%</div></div></td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--hit" style="width:85.7%;background:var(--green)"></div><div class="rate-bar-fill rate-bar-fill--miss" style="width:14.3%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--green)">85.7%</div></div></td>
         </tr></tbody>
     </table></div>
       </div>
@@ -1110,68 +1110,68 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
         <div class="table-wrap"><table>
       <thead><tr><th>PLAYER</th><th>TEAM</th><th>PROPS</th><th class="right">DEC</th><th class="right">H</th><th class="right">M</th><th>RATE</th></tr></thead>
       <tbody><tr>
-          <td><strong>Michael Busch</strong></td>
-          <td class="mono muted">CHC</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">14</td>
+          <td><strong>Nathan Lukes</strong></td>
+          <td class="mono muted">TOR</td>
+          <td class="mono muted">12 props</td>
+          <td class="right mono">26</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">14</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
-        </tr><tr>
-          <td><strong>Pete Crow-Armstrong</strong></td>
-          <td class="mono muted">CHC</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">14</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">14</td>
+          <td class="right mono neg">26</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
           <td><strong>Daulton Varsho</strong></td>
           <td class="mono muted">TOR</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
+          <td class="mono muted">11 props</td>
+          <td class="right mono">24</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
+          <td class="right mono neg">24</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
-          <td><strong>Nico Hoerner</strong></td>
-          <td class="mono muted">CHC</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
+          <td><strong>Andrés Giménez</strong></td>
+          <td class="mono muted">TOR</td>
+          <td class="mono muted">11 props</td>
+          <td class="right mono">23</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
+          <td class="right mono neg">23</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
-          <td><strong>Yandy Díaz</strong></td>
-          <td class="mono muted">TB</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">12</td>
+          <td><strong>Carter Jensen</strong></td>
+          <td class="mono muted">KC</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
+          <td class="right mono neg">7</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
-          <td><strong>Kyle Schwarber</strong></td>
-          <td class="mono muted">PHI</td>
-          <td class="mono muted">5 props</td>
-          <td class="right mono">12</td>
+          <td><strong>Vinnie Pasquantino</strong></td>
+          <td class="mono muted">KC</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
+          <td class="right mono neg">7</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr><tr>
-          <td><strong>Kody Clemens</strong></td>
-          <td class="mono muted">MIN</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">12</td>
-          <td class="right mono pos">0</td>
-          <td class="right mono neg">12</td>
-          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
-        </tr><tr>
-          <td><strong>Michael Harris II</strong></td>
+          <td><strong>Matt Olson</strong></td>
           <td class="mono muted">ATL</td>
-          <td class="mono muted">6 props</td>
-          <td class="right mono">11</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
           <td class="right mono pos">0</td>
-          <td class="right mono neg">11</td>
+          <td class="right mono neg">7</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
+        </tr><tr>
+          <td><strong>Drake Baldwin</strong></td>
+          <td class="mono muted">ATL</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">0</td>
+          <td class="right mono neg">7</td>
+          <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
+        </tr><tr>
+          <td><strong>Taylor Trammell</strong></td>
+          <td class="mono muted">HOU</td>
+          <td class="mono muted">7 props</td>
+          <td class="right mono">7</td>
+          <td class="right mono pos">0</td>
+          <td class="right mono neg">7</td>
           <td><div class="rate-cell"><div class="rate-bar-bg"><div class="rate-bar-fill rate-bar-fill--miss" style="width:100.0%;background:var(--red)"></div></div><div class="rate-num" style="color:var(--red)">0.0%</div></div></td>
         </tr></tbody>
     </table></div>
@@ -1183,26 +1183,26 @@ th.sort-active.sort-desc::after{content:'\25BC';font-size:0.55em;opacity:0.9;pos
       <div class="sport-label">📋 TAKEAWAYS</div>
       <div class="sport-header-line"></div>
     </div>
-    <div class="alert alert-red"><div class="alert-title">🚨 Demon lines (all sports) — 20.6% on 1,308 decided</div>Demon hit rate is well below breakeven. Exclude from slips until further notice.</div>
+    <div class="alert alert-red"><div class="alert-title">🚨 Demon lines (all sports) — 23.4% on 1,073 decided</div>Demon hit rate is well below breakeven. Exclude from slips until further notice.</div>
     <div class="insight-grid"><div class="insight-card">
       <div class="insight-icon">📋</div>
       <div class="insight-title">Overall Slate Summary (all sports)</div>
-      <div class="insight-body">Combined: <strong>28.0%</strong> on 1,649 decided props.<br/><span style="opacity:0.92"><strong>Soccer</strong>: 17.9% (39 dec) · <strong>MLB</strong>: 28.2% (1,610 dec)</span></div>
+      <div class="insight-body">Combined: <strong>31.3%</strong> on 1,451 decided props.<br/><span style="opacity:0.92"><strong>Soccer</strong>: 17.9% (39 dec) · <strong>MLB</strong>: 31.7% (1,412 dec)</span></div>
     </div>
 <div class="insight-card">
       <div class="insight-icon">⚠️</div>
       <div class="insight-title">Tier A &amp; Goblin (all sports)</div>
-      <div class="insight-body">Tier A: <strong>52.2%</strong> (182 dec).  Goblin: <strong>56.3%</strong> (293 dec).</div>
+      <div class="insight-body">Tier A: <strong>27.9%</strong> (43 dec).  Goblin: <strong>51.8%</strong> (274 dec).</div>
     </div>
 <div class="insight-card">
       <div class="insight-icon">🚨</div>
       <div class="insight-title">Demon Line Performance (all sports)</div>
-      <div class="insight-body">Demons (all sports): <strong>20.6%</strong> on 1,308 decided. Demon hit rate is well below breakeven — monitor before including in slips.</div>
+      <div class="insight-body">Demons (all sports): <strong>23.4%</strong> on 1,073 decided. Demon hit rate is well below breakeven — monitor before including in slips.</div>
     </div>
 <div class="insight-card">
       <div class="insight-icon">📈</div>
       <div class="insight-title">Over vs Under (all sports)</div>
-      <div class="insight-body">OVERs: <strong>27.5%</strong> (1,624 dec). UNDERs: <strong>60.0%</strong> (25 dec).</div>
+      <div class="insight-body">OVERs: <strong>30.1%</strong> (1,406 dec). UNDERs: <strong>68.9%</strong> (45 dec).</div>
     </div></div>
   </div>
 </div>

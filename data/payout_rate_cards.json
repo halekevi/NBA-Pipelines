@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-12T23:04:28.212654+00:00",
+  "generated_at": "2026-07-12T23:10:19.182160+00:00",
   "reference": {
     "power_first_standard": {
       "2": 3.0,
@@ -65,7 +65,7 @@
   "fitted_file": {
     "model_type": "live_mix_grid_power_min_x",
     "fitted_from": "payout_rate_card.json",
-    "fitted_at": "2026-07-12T23:04:27.726018Z",
+    "fitted_at": "2026-07-12T23:10:18.901643Z",
     "n_observations": 0,
     "n_slips_in_capture": 20,
     "goblin_discount_per_unit": null,
@@ -99,7 +99,7 @@
         ],
         "source": "data\\reports\\payout_capture_2026-07-12.json",
         "source_date": "2026-07-12",
-        "updated_at": "2026-07-12T23:04:27.725738Z"
+        "updated_at": "2026-07-12T23:10:18.901396Z"
       },
       "3L_3G": {
         "n": 5,
@@ -113,7 +113,7 @@
         ],
         "source": "data\\reports\\payout_capture_2026-07-12.json",
         "source_date": "2026-07-12",
-        "updated_at": "2026-07-12T23:04:27.725771Z"
+        "updated_at": "2026-07-12T23:10:18.901426Z"
       }
     },
     "composition_summary": {
@@ -301,7 +301,7 @@
       "title": "Live rate card (power_min_x)",
       "subtitle": "payout_rate_card.json",
       "bullets": [
-        "fitted_at: 2026-07-12T23:04:27.726018Z",
+        "fitted_at: 2026-07-12T23:10:18.901643Z",
         "n_observations (dev-bucket): 0",
         "n_slips_in_capture: 20",
         "composition: 2L_2G: 2.5667\u00d7",

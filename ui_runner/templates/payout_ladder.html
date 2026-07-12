@@ -25,8 +25,8 @@
   <main class="wrap">
     <section class="card">
       <h1>Payout Ladder Coverage</h1>
-      <p class="muted">Grouped by leg count and composition. Rows with fewer than 5 samples are highlighted as incomplete coverage.</p>
-      <p class="muted">Total logged rows: <strong>{{ total_rows }}</strong></p>
+      <p class="muted">Grouped by leg count and composition (Standard / Goblin / Demon). Rows with fewer than 5 samples are highlighted as incomplete coverage.</p>
+      <p class="muted">Total rows: <strong>{{ total_rows }}</strong>{% if live_cdp_rows %} · live CDP: <strong>{{ live_cdp_rows }}</strong>{% endif %}</p>
     </section>
     <section class="card">
       <table aria-label="Payout ladder summary">
@@ -35,6 +35,7 @@
             <th>Legs</th>
             <th>Composition</th>
             <th>Samples</th>
+            <th>Live</th>
             <th>Min X</th>
             <th>Max X</th>
             <th>Avg X</th>
@@ -46,6 +47,7 @@
             <td>{{ r.n_legs }}</td>
             <td>{{ r.leg_composition }}</td>
             <td>{{ r.samples }}</td>
+            <td>{{ r.live_cdp_samples or 0 }}</td>
             <td>{{ '%.3f'|format(r.min_payout_x) }}</td>
             <td>{{ '%.3f'|format(r.max_payout_x) }}</td>
             <td>{{ '%.3f'|format(r.avg_payout_x) }}</td>

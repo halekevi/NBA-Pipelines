@@ -25,6 +25,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLES_DIR = ROOT / "data" / "payout_samples"
+PAYOUT_LADDER_LIVE_CDP_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
 DEBUG_DIR = ROOT / "data" / "debug"
 
 VALID_PROP_KEYWORDS = [
@@ -2261,7 +2262,7 @@ def write_payout_patch_and_apply_to_tickets(
             f"fallback={n_fallback} in {tickets_path}"
         )
 
-    # Feed /payout Rate cards + ticket fallbacks with live Goblin composition floors.
+    # Feed /payout Rate cards + ladder table with live Goblin composition floors.
     if captured:
         try:
             merge_live_floors_into_rate_card(
@@ -2269,6 +2270,7 @@ def write_payout_patch_and_apply_to_tickets(
                 date_str=date_str,
                 source="ticket_capture",
             )
+            sync_captures_to_payout_ladder_live(captured, date_str=date_str)
             rebuild_payout_rate_cards_deck()
         except Exception as e:
             print(f"[PAYOUT] WARN: rate-card / ladder merge failed: {e}")
@@ -3013,6 +3015,132 @@ def rebuild_payout_rate_cards_deck() -> None:
         print(f"[PAYOUT] WARN: rate-cards rebuild failed: {exc.stderr or exc}")
 
 
+def _composition_label_from_legs(legs: list[dict]) -> str:
+    s = g = d = 0
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or "Standard").strip().lower()
+        if "goblin" in pt:
+            g += 1
+        elif "demon" in pt:
+            d += 1
+        else:
+            s += 1
+    return f"{s}S+{g}G+{d}D"
+
+
+def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
+    """Map one ok CDP capture slip to a payout ladder log row."""
+    if not isinstance(rec, dict):
+        return None
+    if str(rec.get("status") or "").lower() not in ("ok", "partial"):
+        return None
+    min_x = _slip_power_min_x(rec)
+    if min_x is None:
+        return None
+    legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+    n_legs = len(legs) or int(rec.get("n_legs") or 0)
+    if n_legs < 2:
+        return None
+    goblin_deltas: list[str] = []
+    demon_deltas: list[str] = []
+    for leg in legs:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or "").strip().lower()
+        try:
+            dist = float(leg.get("line_distance") or 0.0)
+        except (TypeError, ValueError):
+            dist = 0.0
+        if dist <= 0:
+            continue
+        val = str(round(dist, 2))
+        if "goblin" in pt:
+            goblin_deltas.append(val)
+        elif "demon" in pt:
+            demon_deltas.append(val)
+    tid = str(rec.get("ticket_id") or "").strip()
+    sports = sorted(
+        {
+            str(leg.get("sport") or "").strip().upper()
+            for leg in legs
+            if isinstance(leg, dict) and str(leg.get("sport") or "").strip()
+        }
+    )
+    sport_note = ",".join(sports) if sports else "unknown"
+    return {
+        "date": date_str,
+        "n_legs": str(n_legs),
+        "leg_composition": _composition_label_from_legs(legs),
+        "goblin_deltas": ",".join(goblin_deltas),
+        "demon_deltas": ",".join(demon_deltas),
+        "power_payout_x": str(round(min_x, 4)),
+        "flex_payout_x": "",
+        "source": "live_cdp",
+        "notes": f"ticket_id={tid}; sports={sport_note}; CDP power_min_x Min Guarantee",
+        "ticket_id": tid,
+    }
+
+
+def sync_captures_to_payout_ladder_live(
+    captured: list[dict],
+    *,
+    date_str: str,
+    output_path: Path | None = None,
+) -> dict[str, Any]:
+    """
+    Upsert live CDP captures into ui_runner/data/payout_ladder_live_cdp.json.
+
+    Merged at read time with payout_ladder_log.csv for /payout/ladder table.
+    """
+    date_str = str(date_str or "").strip()[:10]
+    output_path = output_path or PAYOUT_LADDER_LIVE_CDP_PATH
+    prior: dict[str, Any] = {"schema_version": 1, "date": date_str, "rows": []}
+    if output_path.is_file():
+        try:
+            loaded = json.loads(output_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                prior = loaded
+        except Exception:
+            pass
+    rows_by_id: dict[str, dict[str, Any]] = {}
+    for row in prior.get("rows") or []:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("date") or "")[:10] == date_str:
+            continue  # replace this slate date on each sync
+        key = str(row.get("_dedupe_key") or row.get("ticket_id") or "").strip()
+        if key:
+            rows_by_id[key] = row
+    n_new = 0
+    for rec in captured or []:
+        row = _capture_to_ladder_row(rec, date_str)
+        if not row:
+            continue
+        legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+        sig = _leg_sig_key(legs)
+        min_x = row.get("power_payout_x") or ""
+        key = f"{date_str}|{sig}|{min_x}"
+        row["_dedupe_key"] = key
+        if key not in rows_by_id:
+            n_new += 1
+        rows_by_id[key] = row
+    out = {
+        "schema_version": 1,
+        "date": date_str,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "rows": sorted(rows_by_id.values(), key=lambda r: (r.get("leg_composition") or "", r.get("ticket_id") or "")),
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(
+        f"[PAYOUT] ladder live -> {output_path} "
+        f"(rows={len(out['rows'])} new={n_new})"
+    )
+    return out
+
+
 def fit_payout_rate_card_from_grid(grid: dict) -> dict:
     """Fit goblin_discount_per_unit by deviation bucket from power_min_x observations."""
     slips = [s for s in (grid.get("slips") or []) if isinstance(s, dict)]
@@ -3519,6 +3647,7 @@ def main():
             date_str=date_override,
             source=str(capture_path),
         )
+        sync_captures_to_payout_ladder_live(slips, date_str=date_override)
         rebuild_payout_rate_cards_deck()
         raise SystemExit(0)
 

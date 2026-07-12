@@ -18052,25 +18052,88 @@ def _payout_rec_prefix(rec: str) -> str:
     return "•"
 
 
-def _payout_source_badge_html(source: str) -> str:
-    src = str(source or "calibrated").strip().lower()
+def _normalize_payout_source(source: str | None) -> str:
+    src = str(source or "").strip().lower()
     if src == "live_cdp":
-        dot, label = "●", "Live"
-    elif src == "rate_card":
-        dot, label = "●", "Rate"
-    elif src == "mix_grid_average":
-        dot, label = "●", "Mix"
-    elif src in ("fallback_estimate", "fallback"):
-        src = "fallback_estimate"
-        dot, label = "●", "~"
-    elif src == "exact":
-        dot, label = "●", "Exact"
-    else:
-        src = "calibrated"
-        dot, label = "●", "Est"
+        return "live_cdp"
+    if src == "rate_card":
+        return "rate_card"
+    if src == "mix_grid_average":
+        return "mix_grid_average"
+    if src in ("fallback_estimate", "fallback"):
+        return "fallback_estimate"
+    if src == "exact":
+        return "exact"
+    return src or "calibrated"
+
+
+def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = None) -> float | None:
+    """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x."""
+    pay = payout if isinstance(payout, dict) else {}
+    ticket = ticket if isinstance(ticket, dict) else {}
+    for raw in (
+        pay.get("display_min_x"),
+        ticket.get("display_min_x"),
+        pay.get("power_min_x"),
+        ticket.get("power_payout"),
+        ticket.get("base_power_payout"),
+    ):
+        v = _safe_positive_float(raw)
+        if v is not None:
+            return v
+    return None
+
+
+def _board_payout_label(display_x: float | None, source: str | None) -> tuple[str, str, str]:
+    """
+    Option A board payout copy: (mult_text, source_badge, title).
+    live_cdp → "2.2x" + "✓ live"; estimates use a leading ~.
+    """
+    src = _normalize_payout_source(source)
+    if display_x is None:
+        return "—", "est", "Board payout unavailable"
+    mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
+    if src == "live_cdp":
+        return f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
+    if src == "rate_card":
+        return f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
+    if src == "mix_grid_average":
+        return f"~{mult}x", "board avg", f"Mix-grid board average ~{mult}x"
+    if src == "fallback_estimate":
+        return f"~{mult}x", "model est", f"Model estimate ~{mult}x"
+    if src == "exact":
+        return f"{mult}x", "exact", f"Exact payout {mult}x"
+    return f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
+
+
+def _payout_source_badge_html(source: str, *, badge_label: str | None = None) -> str:
+    src = _normalize_payout_source(source)
+    if badge_label is None:
+        if src == "live_cdp":
+            badge_label = "✓ live"
+        elif src == "rate_card":
+            badge_label = "est"
+        elif src == "mix_grid_average":
+            badge_label = "board avg"
+        elif src == "fallback_estimate":
+            badge_label = "model est"
+        elif src == "exact":
+            badge_label = "exact"
+        else:
+            badge_label = "est"
     return (
         f'<span class="payout-source-badge payout-source-{_h(src)}" title="Payout source: {_h(src)}">'
-        f"{dot} {_h(label)}</span>"
+        f"{_h(badge_label)}</span>"
+    )
+
+
+def _board_payout_badge_html(display_x: float | None, source: str | None) -> str:
+    """Single header/footer payout chip: ~2.2x + board-avg/live badge."""
+    mult_text, badge_label, title = _board_payout_label(display_x, source)
+    src = _normalize_payout_source(source)
+    return (
+        f'<span class="payout-x-badge" title="{_h(title)}">[{_h(mult_text)}]</span>'
+        f"{_payout_source_badge_html(src, badge_label=badge_label)}"
     )
 
 
@@ -19122,33 +19185,23 @@ def render_tickets_body_html(
             display_ev = ev_emp_f if payout_ok else ev_f
             if display_ev is None:
                 display_ev = 0.0
+            board_pay_x = _resolve_ticket_display_min_x(
+                payout if isinstance(payout, dict) else None, ticket
+            )
+            board_pay_src = "calibrated"
+            if isinstance(payout, dict):
+                board_pay_src = str(payout.get("payout_source") or "calibrated")
+            board_mult_text, board_badge_label, board_title = _board_payout_label(
+                board_pay_x, board_pay_src
+            )
             if payout_ok:
                 rec_s = str(payout.get("recommendation") or "")
                 ev_cls = _payout_ev_class(rec_s)
                 pre = _payout_rec_prefix(rec_s)
-                pay_x = payout.get("min_payout_x")
-                sweep_x = payout.get("sweep_payout_x")
-                psrc = str(payout.get("payout_source") or "calibrated")
-                if pay_x is None:
-                    pay_x = payout.get("min_guarantee")
-                if sweep_x is None:
-                    sweep_x = payout.get("sweep_payout")
-                if sweep_x is None:
-                    sweep_x = _slip_display_payout_multiplier(payout, ticket, group)
-                if pay_x is None:
-                    pay_x = sweep_x
-                pay_tt = str(payout.get("ticket_type") or "").lower()
-                payout_badge_label = f"Min {_fmt(pay_x, 2)}x · Sweep {_fmt(sweep_x, 2)}x"
-                payout_badge_title = (
-                    f' title="Min guarantee {_fmt(pay_x, 2)}x · Sweep {_fmt(sweep_x, 2)}x"'
-                    if pay_tt == "power"
-                    else ""
-                )
                 hdr_brackets = f'''
         <span class="ticket-hdr-bracket">[{_h(group_name)}]</span>
         <span class="payout-rec-badge {ev_cls}">[{_h(pre)} {_h(rec_s)} — EV {_fmt(ev_emp_f, 2)}]</span>
-        <span class="payout-x-badge"{payout_badge_title}>[{_h(payout_badge_label)}]</span>
-        {_payout_source_badge_html(psrc)}
+        {_board_payout_badge_html(board_pay_x, board_pay_src)}
         <span class="{sig_cls}" title="Empirical EV tier (fallback to modeled EV when payout block is missing)">{sig_lbl}</span>'''
             if not hdr_brackets:
                 hdr_brackets = (
@@ -19156,27 +19209,13 @@ def render_tickets_body_html(
                     f'<span class="{sig_cls}">{sig_lbl}</span>'
                 )
 
-            kpi_payout = None
-            kpi_sweep = None
-            kpi_source = "calibrated"
-            if payout_ok and isinstance(payout, dict):
-                kpi_source = str(payout.get("payout_source") or "calibrated")
-                kpi_payout = payout.get("display_min_x")
-                if kpi_payout is None:
-                    kpi_payout = payout.get("power_min_x")
-                if kpi_payout is None:
-                    kpi_payout = payout.get("min_payout_x")
-                kpi_sweep = payout.get("sweep_payout_x")
-                if kpi_payout is None:
-                    kpi_payout = payout.get("min_guarantee")
-                if kpi_sweep is None:
-                    kpi_sweep = payout.get("sweep_payout")
-            if kpi_payout is None:
-                kpi_payout = ticket.get("display_min_x")
+            kpi_payout = board_pay_x
+            kpi_source = board_pay_src
             if kpi_payout is None:
                 kpi_payout = t_power_pay
-            if kpi_sweep is None:
-                kpi_sweep = _slip_display_payout_multiplier(payout, ticket, group)
+                board_mult_text, board_badge_label, board_title = _board_payout_label(
+                    _safe_positive_float(kpi_payout), kpi_source
+                )
 
             warn_html = ('<span style="font-size:10px;color:var(--amber);margin-left:auto;">⚠ data warning</span>'
                          if has_warn else "")
@@ -19217,9 +19256,9 @@ def render_tickets_body_html(
           <div class="kpi-val" style="color:var(--accent);" title="{_h(str((payout or {}).get('ev_formula') or 'EV = P(all)*sweep + P(miss-1)*min - 1.0'))}">{_fmt(display_ev, 2)}×</div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">MIN PAYOUT</div>
-          <div class="kpi-val">{_fmt(kpi_payout, 2)}×</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Sweep {_fmt(kpi_sweep, 2)}x {_payout_source_badge_html(kpi_source)}</div>
+          <div class="kpi-label">PAYOUT</div>
+          <div class="kpi-val" title="{_h(board_title)}">{_h(board_mult_text)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">{_payout_source_badge_html(kpi_source, badge_label=board_badge_label)}</div>
         </div>{l10_kpi_html}
       </div>
       <div class="ticket-legs-table-wrapper">
@@ -19363,47 +19402,27 @@ def render_tickets_body_html(
                     ev_disp = float(payout["ev"])
                 except (TypeError, ValueError):
                     ev_disp = 0.0
-                pay_mult = payout.get("min_payout_x")
-                if pay_mult is None:
-                    pay_mult = payout.get("min_guarantee")
-                if pay_mult is None:
-                    pay_mult = payout.get("payout")
-                sweep_mult = payout.get("sweep_payout_x")
-                if sweep_mult is None:
-                    sweep_mult = payout.get("sweep_payout")
-                if sweep_mult is None:
-                    sweep_mult = _slip_display_payout_multiplier(payout, ticket, group)
-                psrc2 = str(payout.get("payout_source") or "calibrated")
-                e10g = payout.get("entry_10_to_win_guarantee")
-                if e10g is None and pay_mult is not None:
-                    try:
-                        e10g = round(10 * float(pay_mult), 2)
-                    except (TypeError, ValueError):
-                        e10g = None
-                e10s = payout.get("entry_10_to_win_sweep")
-                if e10s is None and sweep_mult is not None:
-                    try:
-                        e10s = round(10 * float(sweep_mult), 2)
-                    except (TypeError, ValueError):
-                        e10s = None
+                psrc2 = str(payout.get("payout_source") or board_pay_src or "calibrated")
+                board_x = _resolve_ticket_display_min_x(payout, ticket)
+                if board_x is None:
+                    board_x = _safe_positive_float(kpi_payout)
+                mult_text, badge_label, title = _board_payout_label(board_x, psrc2)
+                try:
+                    e10 = round(10.0 * float(board_x), 2) if board_x is not None else None
+                except (TypeError, ValueError):
+                    e10 = None
                 pre_ev = _payout_rec_prefix(rec_s2)
-                tt_pay = str(payout.get("ticket_type") or "").lower()
-                if tt_pay == "power":
-                    try:
-                        power_min_mult = float(
-                            payout.get("display_min_x")
-                            or payout.get("power_min_x")
-                            or payout.get("min_payout_x", 1.0)
-                        )
-                    except (TypeError, ValueError):
-                        power_min_mult = 1.0
-                    e10g = round(10 * power_min_mult, 2)
-                    payout_section = f'''
+                dollar_html = (
+                    f"$10 &rarr; ${_fmt(e10, 2)}"
+                    if e10 is not None
+                    else "$10 &rarr; —"
+                )
+                payout_section = f'''
       <div class="ticket-payout">
         <div class="payout-row">
-          <span class="payout-label" title="Sweep payout (all correct): {_fmt(sweep_mult, 2)}x">Payout</span>
-          <span class="payout-value" title="Sweep payout (all correct): {_fmt(sweep_mult, 2)}x">{_fmt(power_min_mult, 2)}x</span>
-          {_payout_source_badge_html(psrc2)}
+          <span class="payout-label" title="{_h(title)}">Payout</span>
+          <span class="payout-value" title="{_h(title)}">{_h(mult_text)}</span>
+          {_payout_source_badge_html(psrc2, badge_label=badge_label)}
         </div>
         <div class="payout-row">
           <span class="payout-label">P(Win)</span>
@@ -19414,31 +19433,7 @@ def render_tickets_body_html(
           <span class="payout-value {ev_cls_row}">{_fmt(ev_disp, 2)} &mdash; {_h(pre_ev)} {_h(rec_s2)}</span>
         </div>
         <div class="payout-entry-guide">
-          <span title="Sweep: $10 &rarr; ${_fmt(e10s, 2)}">$10 &rarr; ${_fmt(e10g, 2)} (min guarantee)</span>
-        </div>
-      </div>'''
-                else:
-                    payout_section = f'''
-      <div class="ticket-payout">
-        <div class="payout-row">
-          <span class="payout-label">Sweep (all correct)</span>
-          <span class="payout-value">{_fmt(sweep_mult, 2)}x</span>
-        </div>
-        <div class="payout-row">
-          <span class="payout-label">Partial ({int(n_legs) - 1} correct)</span>
-          <span class="payout-value">{_fmt(pay_mult, 2)}x</span>
-          {_payout_source_badge_html(psrc2)}
-        </div>
-        <div class="payout-row">
-          <span class="payout-label">P(Win)</span>
-          <span class="payout-value">{_fmt(p_all * 100, 1)}%</span>
-        </div>
-        <div class="payout-row">
-          <span class="payout-label">EV</span>
-          <span class="payout-value {ev_cls_row}">{_fmt(ev_disp, 2)} &mdash; {_h(pre_ev)} {_h(rec_s2)}</span>
-        </div>
-        <div class="payout-entry-guide">
-          $10 &rarr; ${_fmt(e10s, 2)} (sweep) / ${_fmt(e10g, 2)} (n&minus;1)
+          <span title="{_h(title)}">{dollar_html}</span>
         </div>
       </div>'''
 

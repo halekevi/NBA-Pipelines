@@ -432,8 +432,14 @@ def _resolve_ticket_leg_card(
     line: Any,
     pick_type: str,
     cards: list[dict],
+    *,
+    strict: bool = False,
 ) -> dict | None:
-    """Pick the best live board card for a generated MAIN/STRONG leg."""
+    """Pick the best live board card for a generated MAIN/STRONG leg.
+
+    strict=True: require exact line (when known) AND pick_type; never fall back
+    to a moved/standard proxy card (those payouts are not the ticket's).
+    """
     nt = _norm(player)
     np = _norm(prop)
     pt = str(pick_type or "standard").strip().lower()
@@ -458,22 +464,34 @@ def _resolve_ticket_leg_card(
         ]
         if prop_pool:
             pool = prop_pool
+        elif strict:
+            print(f"[LOOKUP] STRICT miss prop={prop} for {player}")
+            return None
 
-    # Prefer exact line when ticket specifies one (board may have moved).
+    # Exact line when ticket specifies one (board may have moved).
     if nl is not None:
         line_pool = [c for c in pool if _line_key(c.get("line")) == nl]
         if line_pool:
             pool = line_pool
         else:
             print(
-                f"[LOOKUP] WARN no exact line {nl} for {player} {prop}; "
+                f"[LOOKUP] {'STRICT' if strict else 'WARN'} no exact line {nl} "
+                f"for {player} {prop}; "
                 f"candidates={[(c.get('line'), c.get('pick_type')) for c in pool[:6]]}"
             )
+            if strict:
+                return None
 
     # Prefer requested pick_type (goblin/demon/standard).
     typed = [c for c in pool if str(c.get("pick_type") or "").lower() == pt]
     if typed:
         pool = typed
+    elif strict:
+        print(
+            f"[LOOKUP] STRICT miss pick_type={pt} for {player} {prop} line={nl}; "
+            f"candidates={[(c.get('line'), c.get('pick_type')) for c in pool[:6]]}"
+        )
+        return None
 
     ranked: list[tuple[int, dict]] = []
     for c in pool:
@@ -1291,7 +1309,7 @@ def set_ticket_type(frame, ticket_type: str):
             continue
 
 
-def add_leg(frame, page, leg: dict) -> bool:
+def add_leg(frame, page, leg: dict, *, strict_lines: bool = False) -> bool:
     global _LOOKUP_DIAG_PRINTED
     player = leg["player"]
     prop = leg["prop_type"]
@@ -1320,11 +1338,13 @@ def add_leg(frame, page, leg: dict) -> bool:
 
         print(
             f"[LOOKUP] Target player={player} prop={prop} line={line} "
-            f"pick={pick_type} dir={direction} tab={tab}"
+            f"pick={pick_type} dir={direction} tab={tab} strict={strict_lines}"
         )
 
         cards = get_all_cards(frame)
-        target = _resolve_ticket_leg_card(player, prop, line, pick_type, cards)
+        target = _resolve_ticket_leg_card(
+            player, prop, line, pick_type, cards, strict=strict_lines
+        )
         if target is None:
             # Hidden Search input often exists but does not filter; still try force-fill.
             for sel in [
@@ -1350,9 +1370,12 @@ def add_leg(frame, page, leg: dict) -> bool:
                     continue
             _scroll_board_for_lazy_load(page)
             cards = get_all_cards(frame)
-            target = _resolve_ticket_leg_card(player, prop, line, pick_type, cards)
+            target = _resolve_ticket_leg_card(
+                player, prop, line, pick_type, cards, strict=strict_lines
+            )
 
-        if target is None and visible_players:
+        # Fuzzy name click skips line/pick checks — never use in strict mode.
+        if target is None and visible_players and not strict_lines:
             match = get_close_matches(player, visible_players, n=1, cutoff=0.7)
             if match:
                 print(f"[LOOKUP] Fuzzy matched '{player}' -> '{match[0]}'")
@@ -1368,39 +1391,40 @@ def add_leg(frame, page, leg: dict) -> bool:
             if click_leg(frame, target, direction):
                 return True
 
-        # Last resort: scroll player name into view and click More on that card.
-        try:
-            ploc = frame.get_by_text(str(player), exact=False).first
-            if ploc.count() > 0:
-                ploc.scroll_into_view_if_needed(timeout=1500)
-                ok = ploc.evaluate(
-                    """
-                    (el, direction) => {
-                      let p = el;
-                      for (let i = 0; i < 12; i++) {
-                        p = p ? p.parentElement : null;
-                        if (!p) break;
-                        const t = (p.innerText || '');
-                        if (!/\\bMore\\b/.test(t)) continue;
-                        const btns = p.querySelectorAll('button, [role="button"], div, span');
-                        const want = (direction || 'OVER').toUpperCase() === 'UNDER' ? 'Less' : 'More';
-                        for (const b of btns) {
-                          if ((b.innerText || '').trim() === want) {
-                            b.click();
-                            return true;
+        # Last resort name-click also skips line checks — skip when strict.
+        if not strict_lines:
+            try:
+                ploc = frame.get_by_text(str(player), exact=False).first
+                if ploc.count() > 0:
+                    ploc.scroll_into_view_if_needed(timeout=1500)
+                    ok = ploc.evaluate(
+                        """
+                        (el, direction) => {
+                          let p = el;
+                          for (let i = 0; i < 12; i++) {
+                            p = p ? p.parentElement : null;
+                            if (!p) break;
+                            const t = (p.innerText || '');
+                            if (!/\\bMore\\b/.test(t)) continue;
+                            const btns = p.querySelectorAll('button, [role="button"], div, span');
+                            const want = (direction || 'OVER').toUpperCase() === 'UNDER' ? 'Less' : 'More';
+                            for (const b of btns) {
+                              if ((b.innerText || '').trim() === want) {
+                                b.click();
+                                return true;
+                              }
+                            }
                           }
+                          return false;
                         }
-                      }
-                      return false;
-                    }
-                    """,
-                    direction,
-                )
-                if ok:
-                    frame.wait_for_timeout(400)
-                    return True
-        except Exception as e:
-            print(f"[LOOKUP] name-click fallback failed: {e}")
+                        """,
+                        direction,
+                    )
+                    if ok:
+                        frame.wait_for_timeout(400)
+                        return True
+            except Exception as e:
+                print(f"[LOOKUP] name-click fallback failed: {e}")
 
         print(f"[PAYOUT] SKIP: {player} not found on board")
         try:
@@ -1513,7 +1537,9 @@ def read_to_win_amount(frame) -> float | None:
 
 
 # Primary payout multipliers on PrizePicks are within this band; filters bad DOM parses.
-_SLIP_MULT_MIN = 2.0
+# Goblin 2-legs routinely print Min Guarantee in the 1.3–1.9x band near tip;
+# do not treat those as parse noise.
+_SLIP_MULT_MIN = 1.0
 _SLIP_MULT_MAX = 40.0
 # Power Play standard payouts (pick multipliers near these when in Power mode).
 _SLIP_BASE_BY_LEGS = {2: 3.0, 3: 6.0, 4: 10.0, 5: 20.0, 6: 37.5}
@@ -2176,8 +2202,13 @@ def capture_tickets_from_board(
     delay_sec: float,
     write_back: bool = True,
     date_override: str = "",
+    strict_lines: bool = True,
 ) -> int:
-    """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts."""
+    """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts.
+
+    strict_lines (default True): only click exact line + pick_type matches so
+    captured floors match the ticketed props (no moved-line proxies).
+    """
     slips = load_main_strong_tickets(tickets_path)
     if not slips:
         print(f"[PAYOUT] No MAIN/STRONG slips in {tickets_path}")
@@ -2208,7 +2239,8 @@ def capture_tickets_from_board(
     sports_in_run = sorted({_slip_primary_sport(s) for s in slips_sorted if _slip_primary_sport(s)})
     print(
         f"[PAYOUT] scraping {len(slips_sorted)} generated MAIN/STRONG slips only "
-        f"(sports={','.join(sports_in_run) or 'unknown'})"
+        f"(sports={','.join(sports_in_run) or 'unknown'}; "
+        f"strict_lines={'on' if strict_lines else 'off'})"
     )
 
     want_flex = "flex_min" in fields
@@ -2272,14 +2304,15 @@ def capture_tickets_from_board(
 
                 clicked = 0
                 for leg in slip.get("legs") or []:
-                    if add_leg(frame, page, leg):
+                    if add_leg(frame, page, leg, strict_lines=strict_lines):
                         clicked += 1
                     else:
                         print(f"  [WARN] could not click {leg.get('player')}")
                     frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
 
-                if clicked < 2:
-                    rec["error"] = f"only_clicked_{clicked}_legs"
+                n_need = int(slip.get("n_legs") or len(slip.get("legs") or []) or 2)
+                if clicked < n_need:
+                    rec["error"] = f"only_clicked_{clicked}_of_{n_need}_legs"
                     n_failed += 1
                     captured.append(_project_capture_fields(rec, fields))
                     clear_slip(frame)
@@ -3097,6 +3130,17 @@ def main():
         action="store_true",
         help="With --tickets: skip writing payout_patch + updating combined_slate_tickets JSON.",
     )
+    ap.add_argument(
+        "--strict-lines",
+        action="store_true",
+        default=True,
+        help="With --tickets: require exact line+pick_type (default on).",
+    )
+    ap.add_argument(
+        "--allow-line-fallback",
+        action="store_true",
+        help="With --tickets: allow nearest-line proxies when exact Goblin/line left the board.",
+    )
     args = ap.parse_args()
 
     if bool(getattr(args, "mix_grid", False)):
@@ -3144,6 +3188,7 @@ def main():
                 delay_sec=float(args.delay_sec),
                 write_back=not bool(getattr(args, "no_write_back", False)),
                 date_override=date_override,
+                strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
             )
         )
 

@@ -28,7 +28,9 @@ param(
     [switch]$IncludeMixGrid,
     [switch]$SkipMixGrid,
     [switch]$NoWriteBack,
-    [switch]$Force
+    [switch]$Force,
+    # Default: exact line+Goblin only. Pass -AllowLineFallback to price moved proxies.
+    [switch]$AllowLineFallback
 )
 
 $ErrorActionPreference = "Continue"
@@ -138,6 +140,7 @@ try {
         "--fields", "power_min_x,power_first_x,min_guarantee,flex_min"
     )
     if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
+    if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
     & py @ticketArgs
     $capExit = $LASTEXITCODE
 

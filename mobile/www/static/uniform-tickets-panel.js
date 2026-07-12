@@ -215,11 +215,20 @@
     ]);
   }
 
+  function ticketDisplayMinX(t) {
+    const pay = t && t.payout && typeof t.payout === 'object' ? t.payout : null;
+    if (pay && pay.display_min_x != null) return pay.display_min_x;
+    if (t && t.display_min_x != null) return t.display_min_x;
+    if (pay && pay.power_min_x != null) return pay.power_min_x;
+    if (pay && pay.min_payout_x != null) return pay.min_payout_x;
+    return t ? t.power_payout : null;
+  }
+
   function renderTicket(t) {
     const bucket = String(t.bucket || '').toLowerCase();
     const size = t.size || (t.legs ? t.legs.length : 0);
     const joint = t.joint_p_hit;
-    const payout = t.power_payout;
+    const payout = ticketDisplayMinX(t);
     const ev = t['expected_profit_per_$1'];
     const allHit = (t.legs || []).every((l) => String(l.result || '').toUpperCase() === 'HIT');
     const allDecided = (t.legs || []).every((l) => ['HIT', 'MISS'].includes(String(l.result || '').toUpperCase()));

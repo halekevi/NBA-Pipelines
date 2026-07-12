@@ -1624,8 +1624,11 @@ select option,
   <div class="empty-state" id="empty-state" hidden>
     <div class="empty-icon">📊</div>
     <div class="empty-title">No Report Found</div>
-    <div class="empty-sub">No grade report exists for this date on the server. Locally run <code>scripts/run_grader.ps1 -Date YYYY-MM-DD</code> (or <code>scripts/grading/build_grades_html.py --date … --out ui_runner/templates</code>), then <strong>commit and push</strong> <code>ui_runner/templates/slate_eval_YYYY-MM-DD.html</code> and redeploy Railway. Use date pills or <strong>Jump to date</strong> for a day listed by <code>/api/grades/report_dates</code>.</div>
-    <div class="empty-hint">Expected: slate_eval_<span id="empty-date"></span>.html</div>
+    <div class="empty-sub">No slate evaluation is available for <strong><span id="empty-date-label"></span></strong>. Pick another date from the pills, or open the latest report that is on the server.</div>
+    <div class="empty-actions" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+      <button type="button" class="date-go-btn" id="empty-open-latest" onclick="openLatestAvailableSlateReport()">Open latest report</button>
+    </div>
+    <div class="empty-hint">Looking for slate_eval_<span id="empty-date"></span>.html</div>
   </div>
   <div class="empty-state" id="ticket-empty-state" hidden>
     <div class="empty-icon">🎟</div>
@@ -4091,10 +4094,53 @@ function syncEmptyStateDateHints(dateStr) {
         gradesEl('date-jump')?.value ||
         easternYesterdayStr();
   const ed = document.querySelector('.grades-page #empty-date');
+  const edl = document.querySelector('.grades-page #empty-date-label');
   const ted = document.querySelector('.grades-page #ticket-empty-date-label');
   if (ed) ed.textContent = d;
+  if (edl) edl.textContent = formatLabel(d) + ', ' + d.slice(0, 4);
   if (ted) ted.textContent = formatLabel(d) + ', ' + d.slice(0, 4);
 }
+
+/** Probe newest candidate dates until one exists; used by empty-state CTA + init recovery. */
+async function findLatestReachableSlateDate(capYmd) {
+  const cap = capYmd && /^\d{4}-\d{2}-\d{2}$/.test(capYmd) ? capYmd : easternYesterdayStr();
+  const pool = (gradeReportMeta.slate.length ? gradeReportMeta.slate : availableDates)
+    .filter(function (ds) { return /^\d{4}-\d{2}-\d{2}$/.test(ds) && ds <= cap; })
+    .slice()
+    .sort()
+    .reverse()
+    .slice(0, 24);
+  for (let i = 0; i < pool.length; i++) {
+    // eslint-disable-next-line no-await-in-loop
+    if (await probeDate(pool[i])) return pool[i];
+  }
+  return null;
+}
+
+async function openLatestAvailableSlateReport() {
+  const btn = document.getElementById('empty-open-latest');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Searching…';
+  }
+  try {
+    const hit = await findLatestReachableSlateDate(easternYesterdayStr());
+    if (hit) {
+      loadDate(hit);
+      return;
+    }
+    if (btn) btn.textContent = 'No reports online';
+  } catch (_e) {
+    if (btn) btn.textContent = 'Search failed';
+  } finally {
+    setTimeout(function () {
+      if (!btn) return;
+      btn.disabled = false;
+      btn.textContent = 'Open latest report';
+    }, 1600);
+  }
+}
+window.openLatestAvailableSlateReport = openLatestAvailableSlateReport;
 /** Newest ticket_eval date known to the server that is <= cap (defaults to ET yesterday). */
 function latestTicketReportDateOnOrBefore(capYmd) {
   const cap = capYmd && /^\d{4}-\d{2}-\d{2}$/.test(capYmd) ? capYmd : easternYesterdayStr();
@@ -4774,9 +4820,15 @@ function loadDate(dateStr){
   };
 
   // Use a short timeout to detect 404s via probe
-  probeDate(dateStr).then(exists => {
+  probeDate(dateStr).then(async exists => {
     if(!exists){
-      const slateFb = latestSlateReportDateOnOrBefore(dateStr);
+      // Prefer a report that actually exists (meta lists can be stale / HTML gitignored).
+      let slateFb = null;
+      try {
+        slateFb = await findLatestReachableSlateDate(dateStr);
+      } catch (_eProbe) {
+        slateFb = latestSlateReportDateOnOrBefore(dateStr);
+      }
       if (slateFb && slateFb !== dateStr) {
         loadDate(slateFb);
         return;

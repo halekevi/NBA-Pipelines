@@ -1,4 +1,1037 @@
 {
-  "generated_at": "2026-07-11T12:42:12.826555+00:00",
-  "examples": []
+  "generated_at": "2026-07-12T09:53:14.783962+00:00",
+  "examples": [
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Awa Fam",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "1S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Michaela Onyenwere",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Awa Fam",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Awa Fam",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        }
+      ]
+    },
+    {
+      "composition": "2S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Michaela Onyenwere",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Awa Fam",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Awa Fam",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Michaela Onyenwere",
+          "prop_type": "Rebounds",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8500000000000001
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "line": 2.5,
+          "standard_line": 5.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Awa Fam",
+          "prop_type": "Points",
+          "line": 7.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    }
+  ]
 }

@@ -390,13 +390,18 @@ def prune_live_tickets_from_capture(
     after = counts["kept"]
     latest.write_text(json.dumps(pruned, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    # Mobile mirror when present.
-    mobile = ROOT / "mobile" / "www" / "tickets_latest.json"
-    if mobile.parent.is_dir():
-        try:
-            mobile.write_text(json.dumps(pruned, indent=2, ensure_ascii=False), encoding="utf-8")
-        except OSError:
-            pass
+    # Keep docs + mobile mirrors in sync (static/GitHub Pages often reads docs/).
+    for mirror in (
+        ROOT / "ui_runner" / "docs" / "tickets_latest.json",
+        ROOT / "mobile" / "www" / "tickets_latest.json",
+    ):
+        if mirror.parent.is_dir():
+            try:
+                mirror.write_text(
+                    json.dumps(pruned, indent=2, ensure_ascii=False), encoding="utf-8"
+                )
+            except OSError:
+                pass
 
     print(
         f"  [ticket-run] live prune: before={before} after={after} "

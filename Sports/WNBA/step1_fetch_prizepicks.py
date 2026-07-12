@@ -360,12 +360,20 @@ def _page_params(
     per_page: int,
     page: int,
 ) -> Dict[str, Any]:
+    # Prefer in_game=true first — evening boards often have live-only projections.
+    in_game = os.environ.get("PROPORACLE_WNBA_IN_GAME", "true").strip().lower()
+    if in_game not in ("true", "false", "0", "1"):
+        in_game = "true"
+    if in_game in ("0", "false"):
+        in_game = "false"
+    else:
+        in_game = "true"
     return {
         "league_id": str(league_id),
         "game_mode": str(game_mode),
         "per_page": int(per_page),
         "single_stat": "true",
-        "in_game": "false",
+        "in_game": in_game,
         "page": int(page),
         "page[number]": int(page),
         "page[size]": int(per_page),
@@ -694,6 +702,7 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
             }"""
         )
 
+        # Live boards often only populate with in_game=true (pregame query returns 0).
         payload = page.evaluate(
             """async ({ leagueId }) => {
                 const hdrs = () => ({
@@ -703,15 +712,30 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                     "referer": window.location.href,
                     "x-requested-with": "XMLHttpRequest",
                 });
-                const url = `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true`;
-                const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
-                if (!r.ok) return { data: [], included: [], status: r.status };
-                const j = await r.json();
-                return {
-                    data: Array.isArray(j?.data) ? j.data : [],
-                    included: Array.isArray(j?.included) ? j.included : [],
-                    status: r.status,
-                };
+                const urls = [
+                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true&in_game=true`,
+                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true&in_game=false`,
+                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true`,
+                ];
+                let best = { data: [], included: [], status: 0, url: '' };
+                for (const url of urls) {
+                    try {
+                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
+                        if (!r.ok) {
+                            if (!best.status) best = { data: [], included: [], status: r.status, url };
+                            continue;
+                        }
+                        const j = await r.json();
+                        const data = Array.isArray(j?.data) ? j.data : [];
+                        const included = Array.isArray(j?.included) ? j.included : [];
+                        const cand = { data, included, status: r.status, url };
+                        if (data.length > (best.data || []).length) best = cand;
+                        if (data.length > 0) return cand;
+                    } catch (e) {
+                        if (!best.status) best = { data: [], included: [], status: 0, url, error: String(e) };
+                    }
+                }
+                return best;
             }""",
             {"leagueId": str(league_id)},
         )
@@ -724,7 +748,11 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
 
     league_rows = list((leagues or {}).get("data") or [])
     print(f"  [playwright] leagues_status={(leagues or {}).get('status', 200)} rows={len(league_rows)}")
-    print(f"  [playwright] projections_status={(payload or {}).get('status', 200)} rows={len((payload or {}).get('data') or [])}")
+    print(
+        f"  [playwright] projections_status={(payload or {}).get('status', 200)} "
+        f"rows={len((payload or {}).get('data') or [])} "
+        f"url={(payload or {}).get('url', '')}"
+    )
     return (
         list((payload or {}).get("data") or []),
         list((payload or {}).get("included") or []),

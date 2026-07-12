@@ -87,10 +87,21 @@ def slate_calendar_date_ymd() -> str:
 
 
 def default_tennis_match_date(bundle_date: str | None = None) -> str:
-    """Tennis board is always the next ET calendar day vs the pipeline bundle date."""
-    raw = str(bundle_date or slate_calendar_date_ymd()).strip()[:10]
+    """Tennis match day = next Eastern morning (early-AM board).
+
+    Live ops: Eastern *today* + 1, even when pipeline ``-Date`` is already tomorrow
+    (e.g. WNBA board for Jul 12 run on Jul 11 night → tennis still Jul 12, not Jul 13).
+
+    Historical backfills (bundle_date more than 1 day before ET today): bundle_date + 1.
+    """
+    et_today_s = slate_calendar_date_ymd()
+    raw = str(bundle_date or et_today_s).strip()[:10]
     try:
-        return (datetime.strptime(raw, "%Y-%m-%d").date() + timedelta(days=1)).strftime("%Y-%m-%d")
+        bundle = datetime.strptime(raw, "%Y-%m-%d").date()
+        et_today = datetime.strptime(et_today_s, "%Y-%m-%d").date()
+        if (et_today - bundle).days > 1:
+            return (bundle + timedelta(days=1)).strftime("%Y-%m-%d")
+        return (et_today + timedelta(days=1)).strftime("%Y-%m-%d")
     except ValueError:
         return raw
 

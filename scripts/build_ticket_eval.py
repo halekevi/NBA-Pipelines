@@ -1743,7 +1743,9 @@ def _resolve_tennis_match_date_from_payload(
     slate_date: str,
     payload: dict[str, Any],
 ) -> str | None:
-    """Tennis board is bundle date + 1 unless payload carries an explicit tennis_date."""
+    """Tennis match day = payload tennis_date, else Eastern-tomorrow vs live calendar
+    (or slate_date+1 for historical tickets). Early-AM board is always day-ahead.
+    """
     if not _payload_has_tennis_legs(payload):
         return None
     td = str(payload.get("tennis_date") or "").strip()[:10]

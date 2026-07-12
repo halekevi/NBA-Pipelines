@@ -7129,6 +7129,82 @@ def _count_l10_streak_legs(legs: list) -> tuple[int, int]:
     return hot, cold
 
 
+def _leg_l10_side_hits(leg: dict) -> tuple[float | None, float | None]:
+    """Return (side_hits, games) for the bet direction; None if missing."""
+    if not isinstance(leg, dict):
+        return None, None
+    direction = str(leg.get("direction") or leg.get("dir") or "OVER").strip().upper()
+    if direction == "LOWER":
+        direction = "UNDER"
+    try:
+        games = float(leg.get("l10_games_played"))
+    except (TypeError, ValueError):
+        games = None
+    if games is None or not math.isfinite(games) or games <= 0:
+        games = 10.0
+    try:
+        if direction == "UNDER":
+            hits = float(leg.get("l10_under"))
+        else:
+            hits = float(leg.get("l10_over"))
+    except (TypeError, ValueError):
+        return None, None
+    if not math.isfinite(hits) or hits < 0:
+        return None, None
+    return hits, games
+
+
+def _ticket_avg_l10_hits(legs: list) -> float | None:
+    """Mean L10 side hits (scaled to /10) across legs with usable L10 data."""
+    vals: list[float] = []
+    for leg in legs or []:
+        hits, games = _leg_l10_side_hits(leg if isinstance(leg, dict) else {})
+        if hits is None or games is None or games <= 0:
+            continue
+        vals.append(10.0 * (hits / games))
+    if not vals:
+        return None
+    return sum(vals) / len(vals)
+
+
+def _ticket_l10_kpi_html(ticket: dict, legs: list) -> str:
+    """
+    STRONG: avg L10 hits (HOT/COLD count is tautological).
+    Non-STRONG: HOT/COLD leg counts.
+    Hide KPI when no L10 data.
+    """
+    is_strong = bool(ticket.get("strong_builder"))
+    if is_strong:
+        avg = _ticket_avg_l10_hits(legs)
+        if avg is None:
+            return ""
+        avg_txt = f"{avg:.1f}" if abs(avg - round(avg)) > 1e-9 else f"{avg:.0f}"
+        return f'''
+        <div class="kpi">
+          <div class="kpi-label">L10</div>
+          <div class="kpi-val" style="font-size:clamp(18px,2vw,24px);" title="Average L10 hits on bet side across legs">
+            <span class="l10-hot-count">🔥 {avg_txt}/10</span>
+            <span style="color:var(--muted);font-size:12px;font-weight:600;"> avg</span>
+          </div>
+        </div>'''
+    hot_legs_n = int(ticket.get("hot_legs") or 0)
+    cold_legs_n = int(ticket.get("cold_legs") or 0)
+    if not (hot_legs_n or cold_legs_n):
+        # Fall back to counting from legs if ticket fields unset.
+        hot_legs_n, cold_legs_n = _count_l10_streak_legs(legs)
+    if not (hot_legs_n or cold_legs_n):
+        return ""
+    return f'''
+        <div class="kpi">
+          <div class="kpi-label">L10 Streak</div>
+          <div class="kpi-val" style="font-size:clamp(18px,2vw,24px);">
+            <span class="l10-hot-count" title="Legs labeled HOT (bet-side L10)">🔥 {hot_legs_n}</span>
+            <span style="color:var(--muted);font-size:14px;"> / </span>
+            <span class="l10-cold-count" title="Legs labeled COLD (against pick)">❄️ {cold_legs_n}</span>
+          </div>
+        </div>'''
+
+
 def ticket_groups_to_payload(
     all_ticket_groups,
     date_str,
@@ -19220,19 +19296,7 @@ def render_tickets_body_html(
             warn_html = ('<span style="font-size:10px;color:var(--amber);margin-left:auto;">⚠ data warning</span>'
                          if has_warn else "")
 
-            hot_legs_n = int(ticket.get("hot_legs") or 0)
-            cold_legs_n = int(ticket.get("cold_legs") or 0)
-            l10_kpi_html = ""
-            if hot_legs_n or cold_legs_n:
-                l10_kpi_html = f'''
-        <div class="kpi">
-          <div class="kpi-label">L10 Streak</div>
-          <div class="kpi-val" style="font-size:clamp(18px,2vw,24px);">
-            <span class="l10-hot-count" title="Legs hitting in bet direction (L10)">🔥 {hot_legs_n}</span>
-            <span style="color:var(--muted);font-size:14px;"> / </span>
-            <span class="l10-cold-count" title="Legs with opposite side hitting (L10)">❄️ {cold_legs_n}</span>
-          </div>
-        </div>'''
+            l10_kpi_html = _ticket_l10_kpi_html(ticket, legs)
 
             parts.append(f'''
 <div class="ticket" style="border-left:4px solid {accent};">

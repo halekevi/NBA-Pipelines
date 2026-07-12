@@ -14,7 +14,7 @@
 #    .\run_wnba_pipeline.ps1 -StatsFrom2025End           # Force step4 rolling stats through 2025-10-20 (overrides prior-season merge)
 #    .\run_wnba_pipeline.ps1 -NoStatsFrom2025End         # Step4: current season only (no 2025 merge in cache)
 #  Default step1: Sports\WNBA\step1_fetch_prizepicks.py (HTTP: warmup + chrome131 + session waves); NBA API script is fallback (chrome120).
-#  Env (optional): PROPORACLE_PP_CDP or PRIZEPICKS_CDP — same as -Cdp when -Cdp omitted.
+#  Env (optional): PROPORACLE_PP_CDP or PRIZEPICKS_CDP - same as -Cdp when -Cdp omitted.
 #
 #  Combined / game_date contract (2026-05): step1 anchors full-board game_date to --date;
 #  step8 must not overwrite with start_time ET (see step8_add_direction_context.py). After step8,
@@ -269,7 +269,7 @@ function Run-Step {
 function Publish-WnbaStep8CleanArtifacts {
     $step8Clean = Join-Path $WnbaRunOutDir "step8_wnba_direction_clean.xlsx"
     if (-not (Test-Path -LiteralPath $step8Clean)) {
-        Write-Host "  [WNBA publish] skip — no step8_wnba_direction_clean.xlsx" -ForegroundColor DarkGray
+        Write-Host "  [WNBA publish] skip - no step8_wnba_direction_clean.xlsx" -ForegroundColor DarkGray
         return
     }
     $step8Dst = Join-Path $DateDir ("step8_wnba_direction_clean_" + $Date + ".xlsx")
@@ -304,11 +304,11 @@ Write-Host ""
 
 $ok = $true
 
-# Step 1 — PrizePicks: HTTP API (curl_cffi) when it works; CDP browser when DataDome blocks (Press & Hold).
+# Step 1 - PrizePicks: HTTP API (curl_cffi) when it works; CDP browser when DataDome blocks (Press and Hold).
 # WNBA league_id=3 on board (NBA is 7). Do not close CDP Chrome between solve-challenge and fetch.
 $step1Csv = Join-Path $WnbaRunOutDir "step1_wnba_props.csv"
 if ($SkipFetch -and (Get-CsvDataRowCount -CsvPath $step1Csv) -eq 0) {
-    Write-Host "  [WNBA step1] Existing step1 is empty — forcing fresh fetch" -ForegroundColor Yellow
+    Write-Host "  [WNBA step1] Existing step1 is empty - forcing fresh fetch" -ForegroundColor Yellow
     $SkipFetch = $false
 }
 
@@ -320,29 +320,31 @@ if (-not $SkipFetch) {
 
     if ($useBrowserFirst) {
         if (-not $cdpReachable -and -not $UsePlaywright) {
-            Write-Host "  [WNBA step1] WARN: CDP not reachable at $cdpDefault — launch Chrome:" -ForegroundColor Yellow
+            Write-Host "  [WNBA step1] WARN: CDP not reachable at $cdpDefault - launch Chrome:" -ForegroundColor Yellow
             Write-Host "    pwsh -File scripts\launch_prizepicks_chrome_cdp.ps1 -OpenBoard -LeagueId 3" -ForegroundColor Cyan
         }
         if ($ok) {
-            $ok = Invoke-WnbaStep1Browser -CdpUrl $(if ($Cdp) { $Cdp } elseif ($cdpReachable) { $cdpDefault } else { "" }) `
-                -Label "WNBA Step 1 - Fetch PrizePicks (browser/CDP)"
+            $browserCdp = ""
+            if ($Cdp) { $browserCdp = $Cdp }
+            elseif ($cdpReachable) { $browserCdp = $cdpDefault }
+            $ok = Invoke-WnbaStep1Browser -CdpUrl $browserCdp -Label "WNBA Step 1 - Fetch PrizePicks (browser/CDP)"
         }
     } else {
         if ($ok) {
             $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP, chrome131)"
         }
         if (-not $ok) {
-            Write-Host "  [WNBA step1] HTTP (chrome131) failed — retrying NBA API path (chrome120)..." -ForegroundColor Yellow
+            Write-Host "  [WNBA step1] HTTP (chrome131) failed - retrying NBA API path (chrome120)..." -ForegroundColor Yellow
             $ok = Invoke-WnbaStep1HttpNbaFallback
         }
         if (-not $ok -and -not $HttpOnly -and -not $NoCdpFallback) {
             if ($cdpReachable) {
-                Write-Host "  [WNBA step1] HTTP blocked — retrying via Chrome CDP ($cdpDefault)..." -ForegroundColor Yellow
+                Write-Host "  [WNBA step1] HTTP blocked - retrying via Chrome CDP ($cdpDefault)..." -ForegroundColor Yellow
                 $ok = Invoke-WnbaStep1Browser -CdpUrl $cdpDefault -Label "WNBA Step 1 - Fetch PrizePicks (CDP fallback)"
             } else {
                 Write-Host "  [WNBA step1] HTTP failed and CDP not running. DataDome bypass:" -ForegroundColor Red
                 Write-Host "    1) pwsh -File scripts\launch_prizepicks_chrome_cdp.ps1 -OpenBoard -LeagueId 3" -ForegroundColor Cyan
-                Write-Host "    2) Complete Press & Hold until WNBA board loads" -ForegroundColor Cyan
+                Write-Host "    2) Complete Press and Hold until WNBA board loads" -ForegroundColor Cyan
                 Write-Host "    3) pwsh -File scripts\run_wnba_pipeline.ps1 -Cdp $cdpDefault -Date $Date" -ForegroundColor Cyan
             }
         }
@@ -388,7 +390,7 @@ if ($ok) { $ok = Run-Step "WNBA Step 4 - Player Stats (ESPN)" $WNBADir ".\step4_
 if ($ok) { $ok = Run-Step "WNBA Step 4b - Usage/Pace/Star Context" $WNBADir ".\scripts\step4b_attach_wnba_context.py" `
     "--input `"$WnbaRunOutDir\step4_wnba_stats.csv`" --output `"$WnbaRunOutDir\step4_wnba_stats.csv`" --season 2025" -TimeoutSeconds 600 }
 
-# Step 4d — Injury context (team_star_out, usage_vacuum, boost flags); non-fatal
+# Step 4d - Injury context (team_star_out, usage_vacuum, boost flags); non-fatal
 if ($ok) {
     Write-Host "  --> WNBA Step 4d - Injury Context" -ForegroundColor Cyan
     $Step4d = Join-Path $WNBADir "scripts\step4d_attach_injury_context.py"
@@ -400,7 +402,7 @@ if ($ok) {
             --date   $Date `
             --refresh
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning "[WNBA] step4d injury context failed — continuing without flags"
+            Write-Warning "[WNBA] step4d injury context failed - continuing without flags"
         }
     } finally {
         Pop-Location
@@ -422,7 +424,7 @@ if ($ok) {
         try {
             & py -3.14 $Top3Script
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "      top3-vs-defense WARN (exit $LASTEXITCODE) — continuing" -ForegroundColor Yellow
+                Write-Host "      top3-vs-defense WARN (exit $LASTEXITCODE) - continuing" -ForegroundColor Yellow
             } else {
                 Write-Host "      OK" -ForegroundColor Green
             }
@@ -439,7 +441,7 @@ if ($ok) {
     try {
         & py -3.14 (Join-Path $Root "scripts\espn_injuries.py") --sport WNBA --date $Date --output $InjOut
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "      injuries WARN (exit $LASTEXITCODE) — continuing" -ForegroundColor Yellow
+            Write-Host "      injuries WARN (exit $LASTEXITCODE) - continuing" -ForegroundColor Yellow
         }
     } finally { Pop-Location }
 }
@@ -447,7 +449,7 @@ if ($ok) {
 if ($ok) { $ok = Run-Step "WNBA Step 7 - Rank Props" $WNBADir ".\step7_rank_props.py" `
     "--input `"$WnbaRunOutDir\step6_wnba_context.csv`" --output `"$WnbaRunOutDir\step7_wnba_ranked.xlsx`" --date $Date" }
 
-# Step 7b — same unified edge overlay as NBA/NHL/Soccer (non-fatal on failure)
+# Step 7b - same unified edge overlay as NBA/NHL/Soccer (non-fatal on failure)
 if ($ok) {
     $Step7bScript = Join-Path $Root "scripts\step7b_edge_score.py"
     if (Test-Path $Step7bScript) {
@@ -456,7 +458,7 @@ if ($ok) {
         try {
             & py -3.14 $Step7bScript --sport WNBA --step7-xlsx "$WnbaRunOutDir\step7_wnba_ranked.xlsx" --repo-root $Root
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "      step7b WARN (exit $LASTEXITCODE) — continuing" -ForegroundColor Yellow
+                Write-Host "      step7b WARN (exit $LASTEXITCODE) - continuing" -ForegroundColor Yellow
             } else {
                 Write-Host "      OK" -ForegroundColor Green
             }
@@ -482,7 +484,7 @@ if ($ok) {
         try {
             & py -3.14 $Top3Script --slate $Step8Csv
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "      top3-vs-defense slate WARN (exit $LASTEXITCODE) — continuing" -ForegroundColor Yellow
+                Write-Host "      top3-vs-defense slate WARN (exit $LASTEXITCODE) - continuing" -ForegroundColor Yellow
             }
         } finally { Pop-Location }
     }
@@ -493,7 +495,7 @@ if ($ok) { $ok = Run-Step "WNBA Step 9 - Build Tickets" $WNBADir ".\step9_build_
 
 # Web: merge WNBA rows into slate_latest.json + slate_sport_wnba.json (templates + mobile/www)
 if ($ok) {
-    Write-Host "  --> WNBA — Publish slate to UI JSON" -ForegroundColor Yellow
+    Write-Host "  --> WNBA - Publish slate to UI JSON" -ForegroundColor Yellow
     Push-Location $Root
     try {
         & py -3.14 (Join-Path $Root "scripts\publish_wnba_slate_to_ui.py") --date $Date
@@ -507,12 +509,12 @@ if ($ok) {
     }
 }
 
-# Matchup edge JSON — dedicated WNBA builder (top/bottom-5, UNDER edges). Must run after slate publish.
+# Matchup edge JSON - dedicated WNBA builder (top/bottom-5, UNDER edges). Must run after slate publish.
 if ($ok) {
     $MeScript = Join-Path $WNBADir "scripts\build_wnba_matchup_edge_json.py"
     $SlateJson = Join-Path $Root "ui_runner\templates\slate_sport_wnba.json"
     if (Test-Path -LiteralPath $MeScript) {
-        Write-Host "  --> WNBA — Rebuild matchup edge JSON (dedicated builder, post-slate)" -ForegroundColor Yellow
+        Write-Host "  --> WNBA - Rebuild matchup edge JSON (dedicated builder, post-slate)" -ForegroundColor Yellow
         Push-Location $Root
         try {
             $meArgs = @($MeScript)
@@ -521,7 +523,7 @@ if ($ok) {
             }
             & py -3.14 @meArgs
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "      matchup-edge WARN (exit $LASTEXITCODE) — continuing" -ForegroundColor Yellow
+                Write-Host "      matchup-edge WARN (exit $LASTEXITCODE) - continuing" -ForegroundColor Yellow
             } else {
                 Write-Host "      OK" -ForegroundColor Green
             }

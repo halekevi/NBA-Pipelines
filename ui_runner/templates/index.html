@@ -3475,6 +3475,18 @@ function getDefaultBootSlateSport() {
   }
   return "wnba";
 }
+
+/** Open the default in-season sport panel so fetched props are visible without an extra click. */
+function autoOpenBootSlatePanel() {
+  const sport = getDefaultBootSlateSport();
+  const panel = document.getElementById(`sp-${sport}`);
+  if (!panel || panel.classList.contains("open")) return;
+  try {
+    toggleSlatePanel(sport);
+  } catch (e) {
+    console.warn("autoOpenBootSlatePanel:", e);
+  }
+}
 function applyOffseasonSportCards() {
   const today = ymdInEastern(new Date());
   ["cbb", "cfb", "nfl", "wcbb"].forEach((id) => {
@@ -4056,15 +4068,25 @@ function renderEdges() {
     const dir = String(p.dir || "").trim().toUpperCase();
     if (dir === "OVER" && !isFantasyScoreEdgePick(p)) overRows.push(p);
   }
-  // Top Edges quality gate: keep only rows with strong last-5 directionality
-  // (>=4/5, i.e. >=80%) so cards reflect high-confidence short-window form.
+  // Top Edges quality gate: prefer strong L5 (>=4/5). If nothing clears it,
+  // fall back to best available slate rows so homepage still shows fetched props.
   const passesEdgeL5Gate = (p, dir) => {
     const pct = topEdgeL5HitPct(p, dir);
     return Number.isFinite(pct) && pct >= 80;
   };
-  const overPrimary = pickPrimaryLineRows(overRows)
+  let overPrimary = pickPrimaryLineRows(overRows)
     .filter((p) => passesEdgeL5Gate(p, "OVER"))
     .filter((p) => passesTopEdgeEmpiricalSanity(p, "OVER"));
+  if (!overPrimary.length) {
+    overPrimary = pickPrimaryLineRows(overRows)
+      .slice()
+      .sort((a, b) => {
+        const ha = topEdgeL5HitPct(a, "OVER") || 0;
+        const hb = topEdgeL5HitPct(b, "OVER") || 0;
+        if (hb !== ha) return hb - ha;
+        return num(b.edge) - num(a.edge);
+      });
+  }
   const stdO = overPrimary.filter((p) => !isGoblinPick(p));
   const gobO = overPrimary.filter((p) => isGoblinPick(p));
   const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
@@ -4084,7 +4106,7 @@ function renderEdges() {
     ].join("|");
     if (!underByKey.has(k)) underByKey.set(k, row);
   }
-  const underRows = pickPrimaryLineRows(underSourceRows.map((x) => x.disp))
+  let underRows = pickPrimaryLineRows(underSourceRows.map((x) => x.disp))
     .filter((disp) => passesEdgeL5Gate(disp, "UNDER"))
     .filter((disp) => passesTopEdgeEmpiricalSanity(disp, "UNDER"))
     .map((disp) => {
@@ -4098,6 +4120,25 @@ function renderEdges() {
       return underByKey.get(k) || { baseIdx: 0, disp };
     })
     .sort((a, b) => num(b.disp.edge) - num(a.disp.edge));
+  if (!underRows.length) {
+    underRows = pickPrimaryLineRows(underSourceRows.map((x) => x.disp))
+      .map((disp) => {
+        const k = [
+          String(disp.sport || "").trim().toUpperCase(),
+          String(disp.player || "").trim().toLowerCase(),
+          String(disp.prop || "").trim().toLowerCase(),
+          String(disp.pick || "").trim().toLowerCase(),
+          String(disp.dir || "").trim().toUpperCase(),
+        ].join("|");
+        return underByKey.get(k) || { baseIdx: 0, disp };
+      })
+      .sort((a, b) => {
+        const ha = topEdgeL5HitPct(a.disp, "UNDER") || 0;
+        const hb = topEdgeL5HitPct(b.disp, "UNDER") || 0;
+        if (hb !== ha) return hb - ha;
+        return num(b.disp.edge) - num(a.disp.edge);
+      });
+  }
   const EDGE_CARD_LIMIT = 10;
 
   const appendAll = (arr, el) => {
@@ -4320,8 +4361,17 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 4)
     .sort((a, b) => b.h - a.h);
 
-  const l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
-  const l5U = underStreakRows(5, 4);
+  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5U = underStreakRows(5, 4);
+  if (!l5O.length && !l5U.length) {
+    const soft = [...ALL_SLATE]
+      .filter((p) => !isFantasyScoreEdgePick(p))
+      .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
+      .filter(p => p.h !== null && p.h >= 1)
+      .sort((a, b) => b.h - a.h);
+    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5U = underStreakRows(5, 1);
+  }
 
   const l10all = [...ALL_SLATE]
     .filter((p) => !isFantasyScoreEdgePick(p))
@@ -4329,8 +4379,17 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 8)
     .sort((a, b) => b.h - a.h);
 
-  const l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
-  const l10U = underStreakRows(10, 8);
+  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10U = underStreakRows(10, 8);
+  if (!l10O.length && !l10U.length) {
+    const soft = [...ALL_SLATE]
+      .filter((p) => !isFantasyScoreEdgePick(p))
+      .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
+      .filter(p => p.h !== null && p.h >= 1)
+      .sort((a, b) => b.h - a.h);
+    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10U = underStreakRows(10, 1);
+  }
 
   const none = msg => `<div class="home-cat-empty-state" style="padding:14px 0;"><div class="hec-title" style="font-size:18px;margin-bottom:4px;">${msg}</div></div>`;
 
@@ -5322,6 +5381,7 @@ function sortSlateDynamic(sport, key) {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     fetchSlateSport(getDefaultBootSlateSport());
+    autoOpenBootSlatePanel();
     const warmFullSlate = () => {
       try {
         loadSlateData().catch((e) => console.warn("deferred loadSlateData:", e));

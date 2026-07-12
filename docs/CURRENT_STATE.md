@@ -2,7 +2,7 @@
 
 Living one-pager for after a break. Update when something big ships (model promote, pool-mode change, sport season flip, experiment ship/kill). Not a C4 diagram.
 
-**As of:** 2026-07-11
+**As of:** 2026-07-12
 
 ---
 
@@ -18,6 +18,7 @@ Living one-pager for after a break. Update when something big ships (model promo
 | **Ticket model** | `models/ticket_model*.pkl` | Registry refreshed 2026-07-09; combined AUC test ~0.67 (cash label). Secondary to edge model for day-to-day. |
 | **Next edge retrain** | **~2026-08-14** | ~2 months after Jun-13 promote; see **Aug 14 retrain pre-work** below. |
 | **Live payout rate card** | `data/reports/payout_rate_card.json` | Mix-grid fit 2026-07-11: `goblin_discount_per_unit` bucket **1.0 = 0.1521** (n=4). Fill **1.5 / 2.0** buckets before treating curve as final. |
+| **Post-ticket payout scrape** | `scripts/run_live_payout_capture.ps1` | Runs after combined tickets (`Run-Combined` + `run_daily` STEP D-payout). CDP → `power_min_x` → `payout_source=live_cdp` on slips; else board-avg. Skip: `-SkipLivePayoutCapture` / `PROPORACLE_SKIP_LIVE_PAYOUT=1`. |
 
 ---
 

@@ -22,6 +22,7 @@
 #    .\run_pipeline.ps1 -ForceWNBA           # Include WNBA in full parallel run before season start (QA)
 #    .\run_pipeline.ps1 -CombinedOnly          # Re-run combined + web tickets (multi-sport /tickets JSON)
 #    .\run_pipeline.ps1 -CombinedOnly -WebEvOnly   # Stricter /tickets: positive-EV gate only (+ Tennis bypass)
+#    After tickets: live PP payout scrape via CDP (scripts\run_live_payout_capture.ps1) unless -SkipLivePayoutCapture
 #    .\run_pipeline.ps1 -SkipFetch             # Skip step1 fetch for whatever sport(s) run
 #    .\run_pipeline.ps1 -NBAOnly -SkipFetch    # NBA steps 2-8 + Combined
 #    .\run_pipeline.ps1 -NHLOnly -SkipFetch    # NHL steps 2-8 + Combined
@@ -73,6 +74,8 @@ param(
     [switch]$ForceAll,
     [switch]$SkipDailyGrader,
     [switch]$RunPayoutEngine,
+    # After combined tickets: CDP scrape MAIN/STRONG power_min_x onto tickets_latest (default on when CDP up).
+    [switch]$SkipLivePayoutCapture,
     # Skip Soccer defense refresh network fetch (use cached cache\soccer_defense_summary.csv).
     [switch]$SkipDefenseRefresh,
     # Used by scripts/run_daily.ps1 to execute sport pipelines in STEP C
@@ -1288,6 +1291,22 @@ function Run-Combined {
         Write-Host "  Saved -> $toGradeTomorrowPath" -ForegroundColor Green
         Write-Host "  Saved -> $canonicalCombinedPath" -ForegroundColor Green
         Write-Host "  Saved -> $canonicalFrozenPath" -ForegroundColor Green
+        # Post-ticket: scrape live PP payout floors onto MAIN/STRONG slips (display_min_x / live_cdp).
+        $skipLivePay = $SkipLivePayoutCapture -or ($env:PROPORACLE_SKIP_LIVE_PAYOUT -eq "1")
+        if ($skipLivePay) {
+            Write-Host "  [PAYOUT] Skipping live CDP capture (-SkipLivePayoutCapture / PROPORACLE_SKIP_LIVE_PAYOUT=1)" -ForegroundColor DarkGray
+        } else {
+            $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
+            if (Test-Path -LiteralPath $livePayScript) {
+                try {
+                    & $livePayScript -Date $Date -Root $Root -TicketsPath $DatedTicketsJson
+                } catch {
+                    Write-Host "  [PAYOUT] WARN: live payout capture error (non-blocking): $_" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
+            }
+        }
         if ($RunPayoutEngine) {
             Write-Host "[PAYOUT ENGINE] Fetching exact multipliers from PrizePicks..." -ForegroundColor Magenta
             try {

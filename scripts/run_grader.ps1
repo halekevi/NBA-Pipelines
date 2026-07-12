@@ -8,7 +8,9 @@ $Root = Split-Path $PSScriptRoot -Parent
 $SportsRoot = Join-Path $Root "Sports"
 $DateDir = Join-Path $Root "outputs\$Date"
 $CanonicalDateDir = Join-Path $DateDir "canonical"
-# Tennis: -Date is ESPN match day; step8 props live in outputs/(Date - 1) (pipeline tomorrow-fetch).
+# Tennis: early-AM board fetched the prior evening (Eastern tomorrow at fetch time).
+# -Date is the main sports grade day; tennis match day = payload tennis_date or Date+1.
+# Step8 may live under outputs/<match_day>/ or outputs/<match_day-1>/ (see Get-TennisStep8Candidates).
 $TennisSlateDate = $Date
 $TennisStep8BundleDate = $Date
 try {
@@ -29,11 +31,54 @@ function Get-TennisStep8SearchPaths {
         (Join-Path $tennisDir "step8_tennis_direction_clean.xlsx"),
         (Join-Path $tennisDir "step8_tennis_direction.csv"),
         (Join-Path $BundleDir "step8_tennis_direction_clean_$MatchDate.xlsx"),
-        (Join-Path $BundleDir "step8_tennis_direction_clean_$BundleDate.xlsx")
+        (Join-Path $BundleDir "step8_tennis_direction_clean_$BundleDate.xlsx"),
+        (Join-Path $tennisDir "step8_tennis_direction_clean_$MatchDate.xlsx")
     )
     if (Test-Path $tennisDir) {
         $paths += @(Get-ChildItem -LiteralPath $tennisDir -Filter "step8_*.csv" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
         $paths += @(Get-ChildItem -LiteralPath $tennisDir -Filter "step8_*.xlsx" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+    }
+    return $paths
+}
+
+function Get-TennisStep8Candidates {
+    param(
+        [string]$MatchDate,
+        [string]$GradeDate,
+        [string]$OffsetBundleDate
+    )
+    # Tennis is fetched the evening before early-AM matches. Step8 may live under:
+    #   outputs/<match_day>/tennis/     (pipeline -Date already tomorrow for WNBA)
+    #   outputs/<match_day-1>/tennis/   (classic tonight-fetch / tomorrow-play)
+    #   outputs/<grade_date>/tennis/    (fallback)
+    $dirs = @(
+        (Join-Path $Root "outputs\$MatchDate"),
+        (Join-Path $Root "outputs\$OffsetBundleDate"),
+        (Join-Path $Root "outputs\$GradeDate")
+    )
+    try {
+        $md = [datetime]::ParseExact($MatchDate, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
+        $dirs += (Join-Path $Root ("outputs\" + $md.AddDays(-1).ToString("yyyy-MM-dd")))
+    } catch { }
+    $paths = @()
+    foreach ($d in ($dirs | Select-Object -Unique)) {
+        if (-not $d) { continue }
+        $paths += Get-TennisStep8SearchPaths -BundleDir $d -MatchDate $MatchDate -BundleDate $GradeDate
+        $paths += (Join-Path $d "step8_tennis_direction_clean_$MatchDate.xlsx")
+    }
+    $paths += @(
+        (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction_clean.xlsx"),
+        (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction.csv"),
+        (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction_clean_$MatchDate.xlsx")
+    )
+    # Dated leaf anywhere under recent outputs/
+    $outRoot = Join-Path $Root "outputs"
+    if (Test-Path $outRoot) {
+        $paths += @(
+            Get-ChildItem -LiteralPath $outRoot -Recurse -Filter "step8_tennis_direction_clean_$MatchDate.xlsx" -File -ErrorAction SilentlyContinue |
+                Select-Object -First 8 |
+                ForEach-Object { $_.FullName }
+        )
     }
     return $paths
 }
@@ -411,27 +456,17 @@ if (Test-Path $FetchActualsScript) {
 
     if (Test-Path $FetchTennisActualsScript) {
         $TennisFetchDate = $TennisSlateDate
-        $TennisFetchOutDir = $DateDir
-        # When grading bundle day $Date but step8 lives in outputs/(Date-1), tennis matches are on Date+1.
-        $TennisStep8Probe = @()
-        $TennisStep8Probe += Get-TennisStep8SearchPaths -BundleDir $TennisOffsetBundleDir -MatchDate $TennisSlateDate -BundleDate $TennisStep8BundleDate
-        $TennisStep8Probe += Get-TennisStep8SearchPaths -BundleDir $TennisGradeBundleDir -MatchDate $TennisSlateDate -BundleDate $Date
-        $TennisStep8Probe += @(
-            (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction_clean.xlsx"),
-            (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction.csv")
-        )
+        $TennisFetchOutDir = Join-Path $Root "outputs\$TennisFetchDate"
+        New-Item -ItemType Directory -Force -Path $TennisFetchOutDir | Out-Null
+        $TennisStep8Probe = Get-TennisStep8Candidates `
+            -MatchDate $TennisSlateDate `
+            -GradeDate $Date `
+            -OffsetBundleDate $TennisStep8BundleDate
         $TennisProbeFile = Resolve-FirstExisting $TennisStep8Probe
         if ($TennisProbeFile) {
-            $offsetNormProbe = ($TennisOffsetBundleDir -replace '\\', '/').TrimEnd('/')
-            $probeNorm = ($TennisProbeFile -replace '\\', '/')
-            if ($probeNorm -like "*$offsetNormProbe*") {
-                try {
-                    $TennisFetchDate = $parsedGradeDate.AddDays(1).ToString("yyyy-MM-dd")
-                    $TennisFetchOutDir = Join-Path $Root "outputs\$TennisFetchDate"
-                    New-Item -ItemType Directory -Force -Path $TennisFetchOutDir | Out-Null
-                    Write-Host "Tennis actuals: match day $TennisFetchDate (step8 from bundle $TennisStep8BundleDate)" -ForegroundColor DarkGray
-                } catch { }
-            }
+            Write-Host "Tennis actuals: match day $TennisFetchDate (step8: $TennisProbeFile)" -ForegroundColor DarkGray
+        } else {
+            Write-Host "Tennis actuals: match day $TennisFetchDate (no step8 probe yet; fetching ESPN anyway)" -ForegroundColor DarkGray
         }
         $TennisActuals = Join-Path $TennisFetchOutDir "actuals_tennis_$TennisFetchDate.csv"
         Run-Py "Fetch Tennis Actuals" $Root $FetchTennisActualsScript @(
@@ -441,35 +476,19 @@ if (Test-Path $FetchActualsScript) {
     }
 
     if (Test-Path $TennisGraderScript) {
-        $TennisStep8Search = @()
-        $TennisStep8Search += Get-TennisStep8SearchPaths -BundleDir $TennisOffsetBundleDir -MatchDate $TennisSlateDate -BundleDate $TennisStep8BundleDate
-        $TennisStep8Search += Get-TennisStep8SearchPaths -BundleDir $TennisGradeBundleDir -MatchDate $TennisSlateDate -BundleDate $Date
-        $TennisStep8Static = Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction_clean.xlsx"
-        $TennisStep8StaticCsv = Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction.csv"
-        $TennisSlateFile = Resolve-FirstExisting @(
-            $TennisStep8Search +
-            @($TennisStep8Static, $TennisStep8StaticCsv)
-        )
+        $TennisStep8Search = Get-TennisStep8Candidates `
+            -MatchDate $TennisSlateDate `
+            -GradeDate $Date `
+            -OffsetBundleDate $TennisStep8BundleDate
+        $TennisSlateFile = Resolve-FirstExisting $TennisStep8Search
         if (-not $TennisSlateFile) {
-            Write-Host "Skipping Tennis grader (no step8 tennis slate; build Tennis pipeline or place step8 under outputs\$TennisStep8BundleDate\tennis or outputs\$Date)." -ForegroundColor Yellow
+            Write-Host "Skipping Tennis grader (no step8 tennis slate for match day $TennisSlateDate; build Tennis pipeline or place step8 under outputs\<match_day>\tennis or outputs\<match_day-1>\tennis)." -ForegroundColor Yellow
         }
         else {
-            $offsetNorm = ($TennisOffsetBundleDir -replace '\\', '/').TrimEnd('/')
-            $slateNorm = ($TennisSlateFile -replace '\\', '/')
             $TennisMatchDate = $TennisSlateDate
-            $TennisGradeOutDir = $DateDir
-            if ($slateNorm -like "*$offsetNorm*") {
-                Write-Host "Tennis: using step8 from $TennisStep8BundleDate (tomorrow-fetch offset)" -ForegroundColor DarkGray
-                try {
-                    $TennisMatchDate = $parsedGradeDate.AddDays(1).ToString("yyyy-MM-dd")
-                    $TennisGradeOutDir = Join-Path $Root "outputs\$TennisMatchDate"
-                    New-Item -ItemType Directory -Force -Path $TennisGradeOutDir | Out-Null
-                    Write-Host "Tennis: graded export -> outputs\$TennisMatchDate (ESPN match day)" -ForegroundColor DarkGray
-                } catch { }
-            }
-            elseif ($slateNorm -like "*$(($DateDir -replace '\\', '/'))*") {
-                Write-Host "Tennis: no X-1 step8 found, falling back to grade date ($Date)" -ForegroundColor DarkGray
-            }
+            $TennisGradeOutDir = Join-Path $Root "outputs\$TennisMatchDate"
+            New-Item -ItemType Directory -Force -Path $TennisGradeOutDir | Out-Null
+            Write-Host "Tennis: grading match day $TennisMatchDate (step8: $TennisSlateFile)" -ForegroundColor DarkGray
             $TennisGradedFile = Join-Path $TennisGradeOutDir "graded_tennis_$TennisMatchDate.xlsx"
             Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $TennisSlateFile -GradeDate $TennisMatchDate -SportLabel "Tennis"
             Run-Py "Tennis Grader" $Root $TennisGraderScript @(

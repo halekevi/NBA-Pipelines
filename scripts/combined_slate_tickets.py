@@ -7108,12 +7108,39 @@ def append_in_season_web_supplement_groups(
 
 
 def write_full_ticket_export_snapshot(payload: dict, date_str: str) -> None:
-    """Persist curated MAIN ticket JSON for graders, slice review, and dated ML snapshots."""
-    path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
-    _write_json_file(path, payload)
-    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
-    n_strong = len(_extract_strong_builder_slips(payload))
-    print(f"  [OK] Full ticket export -> {path} ({n_slips} slips, {n_strong} STRONG-builder)")
+    """
+    Persist curated MAIN tickets for graders + immutable per-run archive.
+
+    - ``ui_runner/data/ticket_runs/{date}/{run_id}/tickets.json`` — immutable run
+    - ``ui_runner/data/combined_slate_tickets_{date}.json`` — grade pool (union of runs)
+    Live site JSON (``tickets_latest.json``) is written separately and may be pruned.
+    """
+    try:
+        from ticket_run_archive import archive_and_merge_grade_pool, new_run_id
+
+        rid = str(payload.get("run_id") or new_run_id())
+        payload["run_id"] = rid
+        meta = archive_and_merge_grade_pool(
+            payload,
+            date_str=date_str,
+            run_id=rid,
+            source="combined_slate_tickets",
+        )
+        path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
+        n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+        n_strong = len(_extract_strong_builder_slips(payload))
+        print(
+            f"  [OK] Full ticket export + run archive -> {path} "
+            f"(this_run={n_slips} slips / {n_strong} STRONG; run_id={meta.get('run_id')})"
+        )
+    except Exception as exc:
+        # Fall back to legacy overwrite so a missing helper never blocks ticket emit.
+        path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
+        _write_json_file(path, payload)
+        n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+        n_strong = len(_extract_strong_builder_slips(payload))
+        print(f"  [OK] Full ticket export -> {path} ({n_slips} slips, {n_strong} STRONG)")
+        print(f"  [WARN] ticket run archive skipped: {exc}")
 
 
 def _count_l10_streak_legs(legs: list) -> tuple[int, int]:
@@ -8691,9 +8718,19 @@ def write_web_outputs(
             print(f"  [web-merge] WARN: could not merge existing tickets_latest.json ({exc})")
     finalize_payload_display_payouts(payload)
     payload = _sanitize_for_json(payload)
+    # Stamp run_id on live JSON when the full export already assigned one.
+    if not payload.get("run_id"):
+        try:
+            from ticket_run_archive import new_run_id
+
+            payload["run_id"] = new_run_id()
+        except Exception:
+            pass
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
     print(f"[OK] Web JSON  -> {json_path}")
+    if payload.get("run_id"):
+        print(f"  [web] run_id={payload.get('run_id')}")
     # Keep docs JSON in sync for static/GitHub Pages views that read ui_runner/docs.
     try:
         outdir_p = Path(outdir).resolve()

@@ -1229,7 +1229,8 @@ function Run-Combined {
         $canonicalFrozenPath = Join-Path $CanonicalOutDir "combined_slate_tickets_${Date}_to_grade_tomorrow.xlsx"
         Copy-Item $CombinedOut $canonicalCombinedPath -Force -ErrorAction SilentlyContinue
         Copy-Item $CombinedOut $canonicalFrozenPath -Force -ErrorAction SilentlyContinue
-        # Snapshot today's tickets_latest.json into ui_runner/data as dated JSON source.
+        # Grade pool is owned by ticket_run_archive (union of runs). Do NOT overwrite it
+        # with pruned live tickets_latest.json — that would erase historical slips needed to grade.
         $TicketsLatestJson = Join-Path $WebOutDir "tickets_latest.json"
         $DatedTicketsJson  = Join-Path $UiDataDir "combined_slate_tickets_$Date.json"
         if (Test-Path $TicketsLatestJson) {
@@ -1237,11 +1238,21 @@ function Run-Combined {
                 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
                 $backupPath = Join-Path $UiDataBackupsDir "combined_slate_tickets_${Date}.bak_$stamp.json"
                 Copy-Item $DatedTicketsJson $backupPath -Force -ErrorAction SilentlyContinue
+                Write-Host "  [ticket-run] kept grade pool $DatedTicketsJson (backup -> $backupPath)" -ForegroundColor DarkGray
+            } else {
+                # First emit of the day: seed grade pool from live if archive helper missed it.
+                Copy-Item $TicketsLatestJson $DatedTicketsJson -Force -ErrorAction SilentlyContinue
+                Write-Host "  Saved grade pool seed -> $DatedTicketsJson" -ForegroundColor Green
             }
-            Copy-Item $TicketsLatestJson $DatedTicketsJson -Force -ErrorAction SilentlyContinue
-            Write-Host "  Saved -> $DatedTicketsJson" -ForegroundColor Green
+            # Always archive the live emit as its own run (idempotent merge into grade pool).
+            try {
+                py -3.14 -X utf8 (Join-Path $Root "scripts\ticket_run_archive.py") `
+                    --archive $TicketsLatestJson --date $Date --source "pipeline_live_snapshot" | Out-Host
+            } catch {
+                Write-Host "  [ticket-run] WARN: archive from tickets_latest failed: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
         } else {
-            Write-Host "  [warn] Missing tickets_latest.json; skipped dated JSON snapshot for ML backfill." -ForegroundColor Yellow
+            Write-Host "  [warn] Missing tickets_latest.json; skipped ticket-run archive." -ForegroundColor Yellow
         }
         # Canonical platform UI snapshots (templates consumed by web app).
         foreach ($uiName in @(

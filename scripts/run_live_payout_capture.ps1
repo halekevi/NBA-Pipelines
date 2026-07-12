@@ -168,6 +168,18 @@ try {
     } else {
         Write-Host "  [PAYOUT] WARN: capture exit $capExit (non-blocking)" -ForegroundColor Yellow
     }
+
+    # Remove slips that can no longer be built on PP from the LIVE site/app only.
+    # Grade pool + per-run archives keep every historical slip for grading/compare.
+    if ($capExit -eq 0 -and (Test-Path -LiteralPath $payoutOut)) {
+        try {
+            Write-Host "  [PAYOUT] Pruning unplayable slips from live tickets_latest..." -ForegroundColor Cyan
+            py -3.14 -X utf8 (Join-Path $Root "scripts\ticket_run_archive.py") `
+                --prune-live --date $Date --capture $payoutOut | Out-Host
+        } catch {
+            Write-Host "  [PAYOUT] WARN: live prune failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
 } catch {
     Write-Host "  [PAYOUT] WARN: $($_.Exception.Message)" -ForegroundColor Yellow
 } finally {

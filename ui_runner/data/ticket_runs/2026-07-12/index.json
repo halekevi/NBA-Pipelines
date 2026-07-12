@@ -1,0 +1,34 @@
+{
+  "date": "2026-07-12",
+  "runs": [
+    {
+      "run_id": "20260712_182212",
+      "generated_at": "2026-07-12 17:47:49 UTC",
+      "archived_at": "2026-07-12T18:22:12.479629+00:00",
+      "source": "bootstrap_existing_live",
+      "n_slips": 20,
+      "n_strong": 15,
+      "path": "ui_runner/data/ticket_runs/2026-07-12/20260712_182212/tickets.json"
+    },
+    {
+      "run_id": "20260712_182241",
+      "generated_at": "2026-07-12 16:26:08 UTC",
+      "archived_at": "2026-07-12T18:22:41.828647+00:00",
+      "source": "backup_tickets_latest.pre_strict_rebuild_20260712_133917",
+      "n_slips": 20,
+      "n_strong": 15,
+      "path": "ui_runner/data/ticket_runs/2026-07-12/20260712_182241/tickets.json"
+    },
+    {
+      "run_id": "20260712_182320_995426",
+      "generated_at": "2026-07-12 12:44:25 UTC",
+      "archived_at": "2026-07-12T18:23:20.997473+00:00",
+      "source": "backup_pre_rebuild_121734",
+      "n_slips": 20,
+      "n_strong": 15,
+      "path": "ui_runner/data/ticket_runs/2026-07-12/20260712_182320_995426/tickets.json"
+    }
+  ],
+  "latest_run_id": "20260712_182320_995426",
+  "updated_at": "2026-07-12T18:23:21.004085+00:00"
+}

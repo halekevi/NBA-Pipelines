@@ -1168,18 +1168,24 @@ def attach_display_min_x(ticket: dict) -> dict:
         if model_keep is not None:
             pay["model_min_payout_x"] = round(model_keep, 4)
 
-    # 1) Already live from write-back / patch
+    # 1) Already live from write-back / patch — never downgrade to board avg.
     src_now = str(pay.get("payout_source") or "").strip().lower()
     live_v = _safe_positive_float(pay.get("power_min_x"))
-    if src_now == "live_cdp" and live_v is not None:
-        pay["display_min_x"] = round(live_v, 4)
-        pay["payout_source"] = "live_cdp"
-        ticket["payout"] = pay
-        ticket["display_min_x"] = pay["display_min_x"]
-        return ticket
+    disp_v = _safe_positive_float(pay.get("display_min_x"))
+    if disp_v is None:
+        disp_v = _safe_positive_float(ticket.get("display_min_x"))
+    if src_now == "live_cdp":
+        keep = live_v if live_v is not None else disp_v
+        if keep is not None:
+            pay["display_min_x"] = round(keep, 4)
+            pay["power_min_x"] = round(live_v if live_v is not None else keep, 4)
+            pay["payout_source"] = "live_cdp"
+            ticket["payout"] = pay
+            ticket["display_min_x"] = pay["display_min_x"]
+            return ticket
     if live_v is not None and src_now in ("", "live_cdp"):
         # power_min_x present from capture even if source blank
-        disp = _safe_positive_float(pay.get("display_min_x")) or live_v
+        disp = disp_v if disp_v is not None else live_v
         pay["display_min_x"] = round(float(disp), 4)
         pay["power_min_x"] = round(live_v, 4)
         pay["payout_source"] = "live_cdp"
@@ -1260,6 +1266,137 @@ def _leg_sig_key_for_payout_patch(legs: list | None) -> str:
     return "||".join(sorted(p for p in parts if p and p != "|||"))
 
 
+def harvest_live_cdp_entries(payload: dict) -> tuple[dict, dict]:
+    """Extract live_cdp floors from a tickets payload → (by_ticket_id, by_leg_sig)."""
+    by_id: dict = {}
+    by_sig: dict = {}
+    if not isinstance(payload, dict):
+        return by_id, by_sig
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+            src = str(pay.get("payout_source") or "").strip().lower()
+            min_x = _safe_positive_float(pay.get("power_min_x"))
+            if min_x is None:
+                min_x = _safe_positive_float(pay.get("display_min_x"))
+            if min_x is None:
+                min_x = _safe_positive_float(t.get("display_min_x"))
+            if min_x is None:
+                continue
+            if src and src != "live_cdp":
+                continue
+            if not src and _safe_positive_float(pay.get("power_min_x")) is None:
+                continue
+            entry = {
+                "power_min_x": float(min_x),
+                "display_min_x": float(min_x),
+                "payout_source": "live_cdp",
+                "ticket_id": t.get("ticket_id"),
+                "n_legs": t.get("n_legs") or len(t.get("legs") or []),
+            }
+            if pay.get("power_first_x") is not None:
+                entry["power_first_x"] = pay.get("power_first_x")
+            tid = str(t.get("ticket_id") or "").strip()
+            if tid:
+                by_id[tid] = entry
+            sig = _leg_sig_key_for_payout_patch(t.get("legs"))
+            if sig:
+                by_sig[sig] = entry
+    return by_id, by_sig
+
+
+def preserve_live_cdp_onto_payload(payload: dict, source_payload: dict) -> int:
+    """Copy live_cdp floors from source onto matching tickets in payload (id or leg sig)."""
+    if not isinstance(payload, dict) or not isinstance(source_payload, dict):
+        return 0
+    by_id, by_sig = harvest_live_cdp_entries(source_payload)
+    if not by_id and not by_sig:
+        return 0
+    n = 0
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+            if str(pay.get("payout_source") or "").strip().lower() == "live_cdp":
+                if _safe_positive_float(pay.get("power_min_x") or pay.get("display_min_x")):
+                    continue
+            tid = str(t.get("ticket_id") or "").strip()
+            entry = by_id.get(tid) if tid else None
+            if entry is None:
+                entry = by_sig.get(_leg_sig_key_for_payout_patch(t.get("legs")))
+            if not isinstance(entry, dict):
+                continue
+            min_x = _safe_positive_float(entry.get("power_min_x") or entry.get("display_min_x"))
+            if min_x is None:
+                continue
+            pay = dict(pay)
+            if pay.get("model_min_payout_x") is None and pay.get("min_payout_x") is not None:
+                pay["model_min_payout_x"] = pay.get("min_payout_x")
+            pay["power_min_x"] = round(min_x, 4)
+            pay["display_min_x"] = round(min_x, 4)
+            pay["payout_source"] = "live_cdp"
+            if entry.get("power_first_x") is not None:
+                pay["power_first_x"] = entry.get("power_first_x")
+            t["payout"] = pay
+            t["display_min_x"] = pay["display_min_x"]
+            n += 1
+    return n
+
+
+def upsert_payout_patch_from_payload(payload: dict) -> int:
+    """
+    Merge live_cdp floors from payload into data/reports/payout_patch_<date>.json.
+    Never shrinks an existing patch (empty harvest is a no-op).
+    """
+    if not isinstance(payload, dict):
+        return 0
+    date_str = str(payload.get("date") or "").strip()[:10]
+    if not date_str:
+        return 0
+    by_id, by_sig = harvest_live_cdp_entries(payload)
+    if not by_id and not by_sig:
+        return 0
+    path = os.path.join(REPO_ROOT, "data", "reports", f"payout_patch_{date_str}.json")
+    prior: dict = {}
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                prior = json.load(f)
+        except Exception:
+            prior = {}
+    if not isinstance(prior, dict):
+        prior = {}
+    prior_id = prior.get("by_ticket_id") if isinstance(prior.get("by_ticket_id"), dict) else {}
+    prior_sig = prior.get("by_leg_sig") if isinstance(prior.get("by_leg_sig"), dict) else {}
+    merged_id = dict(prior_id)
+    merged_sig = dict(prior_sig)
+    n_new = 0
+    for k, v in by_id.items():
+        if k not in merged_id:
+            n_new += 1
+        merged_id[k] = v
+    for k, v in by_sig.items():
+        merged_sig[k] = v
+    out = {
+        "date": date_str,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "tickets_path": prior.get("tickets_path") or "",
+        "by_ticket_id": merged_id,
+        "by_leg_sig": merged_sig,
+    }
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=2, ensure_ascii=False)
+    return len(merged_id)
+
+
 def apply_payout_patch_to_payload(payload: dict) -> int:
     """Apply data/reports/payout_patch_<date>.json live floors onto ticket payout blocks."""
     if not isinstance(payload, dict):
@@ -1323,6 +1460,13 @@ def finalize_payload_display_payouts(payload: dict) -> dict:
         for t in g.get("tickets") or []:
             if isinstance(t, dict):
                 attach_display_min_x(t)
+    # Persist any live floors back into the durable patch (heals empty patch files).
+    try:
+        n_ids = upsert_payout_patch_from_payload(payload)
+        if n_ids:
+            print(f"  [payout] upserted live_cdp patch ({n_ids} ticket ids)")
+    except Exception as exc:
+        print(f"  [payout] WARN: patch upsert skipped ({exc})")
     return payload
 
 
@@ -8666,6 +8810,41 @@ def merge_web_payloads_by_group(new_payload: dict[str, Any], old_payload: dict[s
     return merged
 
 
+def _preserve_live_cdp_from_existing_web_json(payload: dict, json_path: str) -> int:
+    """Before overwrite, carry live_cdp floors from same-date tickets_latest onto the new payload."""
+    if not isinstance(payload, dict) or not os.path.isfile(json_path):
+        return 0
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+    except Exception:
+        return 0
+    if not isinstance(existing, dict):
+        return 0
+    if str(existing.get("date") or "")[:10] != str(payload.get("date") or "")[:10]:
+        return 0
+    n = preserve_live_cdp_onto_payload(payload, existing)
+    if n:
+        print(f"  [payout] preserved live_cdp from existing web JSON on {n} tickets")
+    return n
+
+
+def _sync_tickets_latest_mirrors(payload: dict, outdir: str) -> None:
+    """Keep docs + mobile tickets_latest.json aligned with templates."""
+    try:
+        outdir_p = Path(outdir).resolve()
+        for docs_json in (
+            outdir_p.parent / "docs" / "tickets_latest.json",
+            Path(REPO_ROOT) / "mobile" / "www" / "tickets_latest.json",
+        ):
+            docs_json.parent.mkdir(parents=True, exist_ok=True)
+            with open(docs_json, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
+            print(f"[OK] Tickets mirror -> {docs_json}")
+    except Exception as exc:
+        print(f"[WARN] Tickets mirror sync skipped: {exc}")
+
+
 def write_web_outputs(
     payload,
     outdir: str,
@@ -8683,11 +8862,13 @@ def write_web_outputs(
     if skip_ui_filters:
         _finalize_payload_l10_streaks(payload)
         apply_slate_ev_tier_recommendations(payload)
+        _preserve_live_cdp_from_existing_web_json(payload, json_path)
         finalize_payload_display_payouts(payload)
         payload = _sanitize_for_json(payload)
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
         print(f"[OK] Web JSON  -> {json_path}")
+        _sync_tickets_latest_mirrors(payload, outdir)
         return
     _finalize_payload_l10_streaks(payload)
     apply_slate_ev_tier_recommendations(payload)
@@ -8716,6 +8897,8 @@ def write_web_outputs(
                 print("  [web-merge] skipped: existing tickets_latest.json has a different slate date")
         except Exception as exc:
             print(f"  [web-merge] WARN: could not merge existing tickets_latest.json ({exc})")
+    # Always harvest live floors from the file we are about to overwrite (same date).
+    _preserve_live_cdp_from_existing_web_json(payload, json_path)
     finalize_payload_display_payouts(payload)
     payload = _sanitize_for_json(payload)
     # Stamp run_id on live JSON when the full export already assigned one.
@@ -8731,16 +8914,7 @@ def write_web_outputs(
     print(f"[OK] Web JSON  -> {json_path}")
     if payload.get("run_id"):
         print(f"  [web] run_id={payload.get('run_id')}")
-    # Keep docs JSON in sync for static/GitHub Pages views that read ui_runner/docs.
-    try:
-        outdir_p = Path(outdir).resolve()
-        docs_json = outdir_p.parent / "docs" / "tickets_latest.json"
-        docs_json.parent.mkdir(parents=True, exist_ok=True)
-        with open(docs_json, "w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
-        print(f"[OK] Docs JSON -> {docs_json}")
-    except Exception as exc:
-        print(f"[WARN] Docs JSON sync skipped: {exc}")
+    _sync_tickets_latest_mirrors(payload, outdir)
     print("  (Graded eval HTML) Run: py -3.14 scripts/build_ticket_eval.py --date <YYYY-MM-DD>")
 
 

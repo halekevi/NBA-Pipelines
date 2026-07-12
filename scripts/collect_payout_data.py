@@ -328,17 +328,21 @@ def ensure_popular_filter(frame, page):
 
 
 def _extract_cards_data_js(page) -> list[dict]:
+    # PP cards use newline-prefixed matchups ("\\n@ WAS", "\\nvs SEA"), not " @ "/" vs ".
     return page.evaluate(
         """
         () => {
           const allElements = document.querySelectorAll('*');
           const cards = [];
+          const hasMatchup = (text) =>
+            /(^|\\n|\\s)@\\s/.test(text) || /(^|\\n|\\s)vs\\s/i.test(text)
+            || text.includes(' vs ') || text.includes(' @ ');
           for (const el of allElements) {
             const text = (el.innerText || '').trim();
             if (!text) continue;
-            if ((text.includes(' vs ') || text.includes(' @ '))
+            if (hasMatchup(text)
                 && /\\d+\\.?\\d*/.test(text)
-                && text.length < 200
+                && text.length < 400
                 && text.length > 20) {
               const r = el.getBoundingClientRect();
               cards.push({
@@ -361,9 +365,129 @@ def _extract_cards_data_js(page) -> list[dict]:
 
 def _player_name_from_card_text(text: str) -> str | None:
     lines = [l.strip() for l in str(text or "").split("\n") if l.strip()]
-    if len(lines) > 1:
-        return lines[1]
-    return None
+    player, _line, _prop = parse_card_lines(lines)
+    return player
+
+
+def prop_type_to_board_filter(prop: str) -> str:
+    """Map ticket prop labels onto PrizePicks board filter chip text."""
+    raw = str(prop or "").strip()
+    key = re.sub(r"\s+", "", raw.lower()).replace("–", "-").replace("—", "-")
+    mapping = {
+        "points": "Points",
+        "assists": "Assists",
+        "rebounds": "Rebounds",
+        "steals": "Steals",
+        "blocks": "Blocks",
+        "blockedshots": "Blocks",
+        "turnovers": "Turnovers",
+        "3-ptmade": "3-PT Made",
+        "3ptmade": "3-PT Made",
+        "threes": "3-PT Made",
+        "pts+rebs": "Pts+Rebs",
+        "points+rebounds": "Pts+Rebs",
+        "pts+asts": "Pts+Asts",
+        "points+assists": "Pts+Asts",
+        "rebs+asts": "Reb+Asts",
+        "rebounds+assists": "Reb+Asts",
+        "pts+reb+ast": "Pts+Reb+Ast",
+        "pts+reb+asts": "Pts+Reb+Ast",
+        "pra": "Pts+Reb+Ast",
+        "points+rebounds+assists": "Pts+Reb+Ast",
+        "fantasyscore": "Fantasy Score",
+        "fgmade": "FG Made",
+        "fgattempted": "FG Attempted",
+        "freethrowsmade": "Free Throws Made",
+    }
+    if key in mapping:
+        return mapping[key]
+    # Already looks like a chip label (Pts+Rebs, 3-PT Made, …).
+    if raw:
+        return raw
+    return "Points"
+
+
+def _switch_board_filter(frame, page, tab: str) -> bool:
+    tab = str(tab or "").strip()
+    if not tab:
+        return False
+    try:
+        dismiss_modal(frame, page)
+        tloc = frame.get_by_text(tab, exact=True).first
+        if tloc.count() == 0:
+            tloc = frame.get_by_text(tab, exact=False).first
+        tloc.click(force=True, timeout=2000)
+        frame.wait_for_timeout(900)
+        _scroll_board_for_lazy_load(page)
+        print(f"[FILTER] switched to {tab}")
+        return True
+    except Exception as e:
+        print(f"[FILTER] could not switch to {tab}: {e}")
+        return False
+
+
+def _resolve_ticket_leg_card(
+    player: str,
+    prop: str,
+    line: Any,
+    pick_type: str,
+    cards: list[dict],
+) -> dict | None:
+    """Pick the best live board card for a generated MAIN/STRONG leg."""
+    nt = _norm(player)
+    np = _norm(prop)
+    pt = str(pick_type or "standard").strip().lower()
+    if pt not in ("goblin", "demon", "standard"):
+        pt = "standard"
+    nl = _line_key(line) if line is not None and str(line).strip() != "" else None
+
+    def _name_hit(c: dict) -> bool:
+        cn = _norm(c.get("player"))
+        return bool(cn) and (nt in cn or cn in nt or nt == cn)
+
+    pool = [c for c in cards if _name_hit(c)]
+    if not pool:
+        return None
+
+    # Require prop match when we know it.
+    if np:
+        prop_pool = [
+            c
+            for c in pool
+            if (cp := _norm(c.get("prop_type"))) and (np == cp or np in cp or cp in np)
+        ]
+        if prop_pool:
+            pool = prop_pool
+
+    # Prefer exact line when ticket specifies one (board may have moved).
+    if nl is not None:
+        line_pool = [c for c in pool if _line_key(c.get("line")) == nl]
+        if line_pool:
+            pool = line_pool
+        else:
+            print(
+                f"[LOOKUP] WARN no exact line {nl} for {player} {prop}; "
+                f"candidates={[(c.get('line'), c.get('pick_type')) for c in pool[:6]]}"
+            )
+
+    # Prefer requested pick_type (goblin/demon/standard).
+    typed = [c for c in pool if str(c.get("pick_type") or "").lower() == pt]
+    if typed:
+        pool = typed
+
+    ranked: list[tuple[int, dict]] = []
+    for c in pool:
+        score = 0
+        cp = _norm(c.get("prop_type"))
+        if np and (np == cp or np in cp or cp in np):
+            score += 5
+        if str(c.get("pick_type") or "").lower() == pt:
+            score += 4
+        if nl is not None and _line_key(c.get("line")) == nl:
+            score += 3
+        ranked.append((score, c))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    return ranked[0][1] if ranked else None
 
 
 def _collect_visible_players(frame) -> tuple[list[str], str | None, dict[str, int]]:
@@ -796,8 +920,14 @@ def expand_card_pool(frame, page) -> list[dict]:
         "Assists",
         "Rebounds",
         "3-PT Made",
+        "Pts+Rebs",
         "Pts+Asts",
+        "Reb+Asts",
         "Pts+Reb+Ast",
+        "Steals",
+        "Blocks",
+        "Turnovers",
+        "Fantasy Score",
     ]
     for filter_name in filters:
         try:
@@ -1166,9 +1296,17 @@ def add_leg(frame, page, leg: dict) -> bool:
     player = leg["player"]
     prop = leg["prop_type"]
     direction = str(leg["direction"]).upper()
+    pick_type = str(leg.get("pick_type") or "standard").strip().lower()
+    if pick_type not in ("goblin", "demon", "standard"):
+        pick_type = "standard"
+    line = leg.get("line")
     try:
         ensure_popular_filter(frame, page)
+        tab = prop_type_to_board_filter(prop)
+        _switch_board_filter(frame, page, tab)
+        dismiss_modal(frame, page)
         _scroll_board_for_lazy_load(page)
+
         visible_players, best_sel, sel_counts = _collect_visible_players(frame)
         if not _LOOKUP_DIAG_PRINTED:
             print("[LOOKUP] Card selector counts:")
@@ -1180,31 +1318,89 @@ def add_leg(frame, page, leg: dict) -> bool:
                 print(f"  - {nm}")
             _LOOKUP_DIAG_PRINTED = True
 
-        print(f"[LOOKUP] Target player text: {player}")
-        print(f"[LOOKUP] Target prop text: {prop}")
-        print(f"[LOOKUP] Target direction text: {direction}")
+        print(
+            f"[LOOKUP] Target player={player} prop={prop} line={line} "
+            f"pick={pick_type} dir={direction} tab={tab}"
+        )
 
-        # Search player first when search exists.
-        for sel in ["input[placeholder*='Search']", "input[type='search']", "input[aria-label*='Search']"]:
-            box = frame.locator(sel).first
-            if box.count() > 0:
+        cards = get_all_cards(frame)
+        target = _resolve_ticket_leg_card(player, prop, line, pick_type, cards)
+        if target is None:
+            # Hidden Search input often exists but does not filter; still try force-fill.
+            for sel in [
+                "input[placeholder*='Search']",
+                "input[type='search']",
+                "input[aria-label*='Search']",
+                "input[aria-label='search']",
+            ]:
+                box = frame.locator(sel).first
+                if box.count() == 0:
+                    continue
                 try:
                     print(f"[LOOKUP] Using search selector: {sel}")
-                    box.click(timeout=500)
-                    box.fill(player, timeout=1200)
-                    page.wait_for_timeout(250)
+                    box.click(force=True, timeout=800)
+                    box.fill(player, force=True, timeout=1200)
+                    try:
+                        box.press("Enter", timeout=500)
+                    except Exception:
+                        pass
+                    page.wait_for_timeout(400)
                     break
                 except Exception:
                     continue
-        _scroll_board_for_lazy_load(page)
-        visible_players2, _, _ = _collect_visible_players(frame)
-        visible_pool = visible_players2 or visible_players
-        match = get_close_matches(player, visible_pool, n=1, cutoff=0.7)
-        matched_name = match[0] if match else None
-        if matched_name:
-            print(f"[LOOKUP] Fuzzy matched '{player}' -> '{matched_name}'")
-            if _click_player_direction(frame, matched_name, direction, prop):
+            _scroll_board_for_lazy_load(page)
+            cards = get_all_cards(frame)
+            target = _resolve_ticket_leg_card(player, prop, line, pick_type, cards)
+
+        if target is None and visible_players:
+            match = get_close_matches(player, visible_players, n=1, cutoff=0.7)
+            if match:
+                print(f"[LOOKUP] Fuzzy matched '{player}' -> '{match[0]}'")
+                if _click_player_direction(frame, match[0], direction, prop):
+                    return True
+
+        if target is not None:
+            print(
+                f"[LOOKUP] Resolved {target.get('player')} "
+                f"{target.get('prop_type')} {target.get('line')} "
+                f"({target.get('pick_type')})"
+            )
+            if click_leg(frame, target, direction):
                 return True
+
+        # Last resort: scroll player name into view and click More on that card.
+        try:
+            ploc = frame.get_by_text(str(player), exact=False).first
+            if ploc.count() > 0:
+                ploc.scroll_into_view_if_needed(timeout=1500)
+                ok = ploc.evaluate(
+                    """
+                    (el, direction) => {
+                      let p = el;
+                      for (let i = 0; i < 12; i++) {
+                        p = p ? p.parentElement : null;
+                        if (!p) break;
+                        const t = (p.innerText || '');
+                        if (!/\\bMore\\b/.test(t)) continue;
+                        const btns = p.querySelectorAll('button, [role="button"], div, span');
+                        const want = (direction || 'OVER').toUpperCase() === 'UNDER' ? 'Less' : 'More';
+                        for (const b of btns) {
+                          if ((b.innerText || '').trim() === want) {
+                            b.click();
+                            return true;
+                          }
+                        }
+                      }
+                      return false;
+                    }
+                    """,
+                    direction,
+                )
+                if ok:
+                    frame.wait_for_timeout(400)
+                    return True
+        except Exception as e:
+            print(f"[LOOKUP] name-click fallback failed: {e}")
 
         print(f"[PAYOUT] SKIP: {player} not found on board")
         try:
@@ -1216,8 +1412,8 @@ def add_leg(frame, page, leg: dict) -> bool:
         except Exception as se:
             print(f"[LOOKUP] Screenshot failed: {se}")
         return False
-    except Exception:
-        print(f"[PAYOUT] SKIP: {player} not found on board")
+    except Exception as e:
+        print(f"[PAYOUT] SKIP: {player} not found on board ({e})")
         try:
             DEBUG_DIR.mkdir(parents=True, exist_ok=True)
             ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")

@@ -1,0 +1,704 @@
+{
+  "date": "2026-07-12",
+  "generated_at": "2026-07-12T17:09:15.213824Z",
+  "cdp_url": "http://127.0.0.1:9222",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\combined_slate_tickets_2026-07-12.json",
+  "fields": [
+    "power_min_x",
+    "power_first_x",
+    "min_guarantee",
+    "flex_min"
+  ],
+  "primary_field": "power_min_x",
+  "entry_amount": 1.0,
+  "slips": [
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|1",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.1,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.1,
+      "flex_min": 2.1
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|10",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Sonia Citron",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 2.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.6,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.6,
+      "flex_min": 2.6
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|11",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Azzi Fudd",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.1,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.1,
+      "flex_min": 2.1
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|12",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.6,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.6,
+      "flex_min": 2.6
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|13",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Pts+Rebs",
+          "direction": "OVER",
+          "line": 24.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8,
+      "flex_min": 2.8
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|14",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Monique Billings",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 2.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8,
+      "flex_min": 2.8
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|15",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.2,
+      "flex_min": 2.2
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|2",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 2.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8,
+      "flex_min": 2.8
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|3",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.6,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.6,
+      "flex_min": 2.6
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|4",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Julie Allemand",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8,
+      "flex_min": 2.8
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|5",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 2.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.6,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.6,
+      "flex_min": 2.6
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|6",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Jonquel Jones",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.5,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.5,
+      "flex_min": 2.5
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|7",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Isabelle Harrison",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 4.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8,
+      "flex_min": 2.8
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|8",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Michaela Onyenwere",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.4,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.4,
+      "flex_min": 2.4
+    },
+    {
+      "ticket_id": "2026-07-12|STRONG Goblin HOT|9",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "STRONG Goblin HOT",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natasha Cloud",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8,
+      "flex_min": 2.8
+    },
+    {
+      "ticket_id": "2026-07-12|WNBA 3-Leg Goblin|1",
+      "slip_type": "main",
+      "strong_builder": false,
+      "group_name": "WNBA 3-Leg Goblin",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jonquel Jones",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 6.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Pts+Rebs",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 12.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.9,
+      "flex_min": 2.9
+    },
+    {
+      "ticket_id": "2026-07-12|WNBA 3-Leg Goblin|1",
+      "slip_type": "main",
+      "strong_builder": false,
+      "group_name": "WNBA 3-Leg Goblin",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 4.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Pts+Rebs",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 12.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.9,
+      "flex_min": 2.9
+    },
+    {
+      "ticket_id": "2026-07-12|WNBA 3-Leg Goblin|1",
+      "slip_type": "main",
+      "strong_builder": false,
+      "group_name": "WNBA 3-Leg Goblin",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Pts+Rebs",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 12.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 5.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 3.0,
+      "flex_min": 3.0
+    },
+    {
+      "ticket_id": "2026-07-12|WNBA 3-Leg Goblin|1",
+      "slip_type": "main",
+      "strong_builder": false,
+      "group_name": "WNBA 3-Leg Goblin",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 4.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Pts+Rebs",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 5.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 6.0,
+      "flex_min": 6.0
+    },
+    {
+      "ticket_id": "2026-07-12|WNBA 3-Leg Goblin|1",
+      "slip_type": "main",
+      "strong_builder": false,
+      "group_name": "WNBA 3-Leg Goblin",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 4.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natisha Hiedeman",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 12.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dominique Malonga",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 5.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 3.0,
+      "flex_min": 3.0
+    }
+  ],
+  "summary": {
+    "n_total": 20,
+    "n_ok": 20,
+    "n_partial": 0,
+    "n_failed": 0,
+    "n_strong": 15,
+    "n_main": 5
+  }
+}

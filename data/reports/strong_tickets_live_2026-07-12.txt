@@ -1,0 +1,42 @@
+2026-07-12 STRONG (live tracking — Path A)
+
+Board timing: FULL PREGAME (next-day fetch) — 310 PP props → 265 slate → 15 STRONG.
+Contrast 2026-07-11: THIN LIVE evening board — 36 props → 27 slate → 20 voided →
+  2 Goblin A/B OVER → 0 STRONG, 1 MAIN slip. Correct behavior; not a gate failure.
+  Log-or-no-log: 0 STRONG on thin live ≠ 0 STRONG on full pregame (gate quality signal).
+
+Board: 15 strong_builder slips, all 2-leg Goblin HOT, p_win ~0.37–0.38.
+Sonia Citron on 14/15 — one-player risk, not 15 independent bets.
+
+Path A recommendation / played:
+T5: Flau'jae Johnson AST (Goblin) O1.5 / Michaela Onyenwere REB (Goblin) O1.5
+    — only non-Sonia slip, genuine independence
+    — Goblin 2-leg — p_win 0.38 — PENDING
+    — Game: SEA @ WAS, 3:00 PM ET 2026-07-12
+    (Path A note labeled this T6; builder index is T5)
+
+If also playing Sonia: ONE pairing max (e.g. T1 or T2), not multiple.
+  T1: Sonia REB O1.5 / Flau'jae REB O2.5 — not logged as played
+  T2: Sonia REB O1.5 / Flau'jae AST O1.5 — not logged as played
+
+Path B note:
+  All 15 strong_builder slips count toward post-gate accumulation
+  (n=0 → 15 decided after SEA@WAS final), but Sonia correlation means
+  the batch will move together. Do not over-read the result either way.
+
+Grade rule: Goblin OVER — both legs must clear line for WIN (Power 3x).
+
+Results:
+T5: PENDING
+
+Running tally (Path A played only):
+  STRONG played: 1
+  STRONG W: 0
+  STRONG L: 0
+  PENDING: 1
+  Cash rate: — (n=0 decided)
+
+Source: ui_runner/data/combined_slate_tickets_2026-07-12.json
+Last checked: 2026-07-12 ~12:35 AM ET — tennis slate refreshed (57 Jul-12 rows);
+  STRONG still 15 (tennis excluded from MAIN). SEA@WAS still scheduled.
+Check back after SEA @ WAS final (3 PM ET tip) with T5 results.

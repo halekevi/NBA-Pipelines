@@ -224,3 +224,22 @@ Sports/MLB/mlb_stats_cache*.csv
 Sports/MLB/payload_mlb_api.json
 Sports/NBA/archive/
 data/ml/ticket_builder_exhaustive_*.csv
+
+# Local one-off diagnostics / machine scripts (quarantine)
+scripts/_local_scratch/
+
+# Probe / scratch logs (underscore-prefixed noise)
+logs/_*.txt
+logs/_*.json
+logs/_*.csv
+
+# Bulk backtest / diversity dumps (local analysis; not deploy)
+data/reports/probability_ladder_backtest*
+data/reports/ticket_diversity/
+data/reports/pp_line_move_*.csv
+data/reports/backtest_june_tickets.csv
+data/reports/hit_miss_drivers/
+data/reports/slip_slice_*.csv
+data/reports/slip_void_*.csv
+data/reports/supplement_sports_slices.csv
+data/reports/winrate_goblin_policy_backtest.json

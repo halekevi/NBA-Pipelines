@@ -349,15 +349,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.43,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.1,
+            "power_min_x": 2.1,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.1,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -671,15 +677,21 @@
             "sweep_payout_x": 1.9119,
             "entry_10_to_win_sweep": 19.12,
             "payout_confidence_score": 1.2905,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.91 - 1.0",
             "model_min_payout_x": 1.9119,
-            "display_min_x": 2.2
+            "display_min_x": 2.8,
+            "power_min_x": 2.8,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.8,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -990,15 +1002,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.295,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.6,
+            "power_min_x": 2.6,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.6,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -1309,15 +1327,21 @@
             "sweep_payout_x": 1.9119,
             "entry_10_to_win_sweep": 19.12,
             "payout_confidence_score": 1.5486,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.91 - 1.0",
             "model_min_payout_x": 1.9119,
-            "display_min_x": 2.2
+            "display_min_x": 2.8,
+            "power_min_x": 2.8,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.8,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -1628,15 +1652,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.43,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.6,
+            "power_min_x": 2.6,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.6,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -1946,15 +1976,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.565,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.90 - 1.0",
             "model_min_payout_x": 1.9,
-            "display_min_x": 2.2
+            "display_min_x": 2.5,
+            "power_min_x": 2.5,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -2265,15 +2301,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.565,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.8,
+            "power_min_x": 2.8,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.8,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -2587,15 +2629,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.295,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.4,
+            "power_min_x": 2.4,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.4,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -2909,15 +2957,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.16,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.8,
+            "power_min_x": 2.8,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.8,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -3227,15 +3281,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.43,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.90 - 1.0",
             "model_min_payout_x": 1.9,
-            "display_min_x": 2.2
+            "display_min_x": 2.6,
+            "power_min_x": 2.6,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.6,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -3545,15 +3605,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.295,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.90 - 1.0",
             "model_min_payout_x": 1.9,
-            "display_min_x": 2.2
+            "display_min_x": 2.1,
+            "power_min_x": 2.1,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.1,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -3866,15 +3932,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.025,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.90 - 1.0",
             "model_min_payout_x": 1.9,
-            "display_min_x": 2.2
+            "display_min_x": 2.6,
+            "power_min_x": 2.6,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.6,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -4188,15 +4260,21 @@
             "sweep_payout_x": 1.795,
             "entry_10_to_win_sweep": 17.95,
             "payout_confidence_score": 1.0501,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.79 - 1.0",
             "model_min_payout_x": 1.795,
-            "display_min_x": 2.2
+            "display_min_x": 2.8,
+            "power_min_x": 2.8,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.8,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -4511,15 +4589,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.16,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.8,
+            "power_min_x": 2.8,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.8,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -4834,15 +4918,21 @@
             "sweep_payout_x": 3.0,
             "entry_10_to_win_sweep": 30.0,
             "payout_confidence_score": 2.295,
-            "payout_source": "mix_grid_average",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.2,
+            "power_min_x": 2.2,
+            "power_first_x": 3.0
           },
           "display_min_x": 2.2,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG"
+          "empirical_recommendation": "STRONG",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         }
       ],
       "hot_legs": 30,
@@ -5289,16 +5379,22 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 5.1444,
-            "payout_source": "fallback_estimate",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*2.50 - 1.0",
             "model_min_payout_x": 2.5,
-            "display_min_x": 2.5
+            "display_min_x": 3.0,
+            "power_min_x": 3.0,
+            "power_first_x": 3.0
           },
-          "display_min_x": 2.5,
+          "display_min_x": 3.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.064394,
-          "empirical_recommendation": "OK"
+          "empirical_recommendation": "OK",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         }
       ],
       "hot_legs": 3,
@@ -5745,16 +5841,22 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 4.8732,
-            "payout_source": "fallback_estimate",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.0,
+            "power_min_x": 3.0,
+            "power_first_x": 3.0
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.086765,
-          "empirical_recommendation": "OK"
+          "empirical_recommendation": "OK",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         }
       ],
       "hot_legs": 3,
@@ -6204,16 +6306,22 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 4.332,
-            "payout_source": "fallback_estimate",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.0,
+            "power_min_x": 3.0,
+            "power_first_x": 3.0
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.075747,
-          "empirical_recommendation": "MARGINAL"
+          "empirical_recommendation": "MARGINAL",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         }
       ],
       "hot_legs": 3,
@@ -6662,16 +6770,22 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 4.104,
-            "payout_source": "fallback_estimate",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.0,
+            "power_min_x": 3.0,
+            "power_first_x": 3.0
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.075747,
-          "empirical_recommendation": "MARGINAL"
+          "empirical_recommendation": "MARGINAL",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         }
       ],
       "hot_legs": 3,
@@ -7120,16 +7234,22 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 4.104,
-            "payout_source": "fallback_estimate",
+            "payout_source": "live_cdp",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.0,
+            "power_min_x": 3.0,
+            "power_first_x": 3.0
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.075747,
-          "empirical_recommendation": "MARGINAL"
+          "empirical_recommendation": "MARGINAL",
+          "run_id": "20260712_182241",
+          "first_seen_run_id": "20260712_182241",
+          "run_archived_at": "2026-07-12T18:22:41.828647+00:00",
+          "playable": true
         }
       ],
       "hot_legs": 3,
@@ -7190,5 +7310,8 @@
   "pool_mode": "goblin_only_3leg",
   "main_default_legs": 3,
   "main_thin_pool_min_legs": 6,
-  "strong_builder_count": 15
+  "strong_builder_count": 15,
+  "run_id": "20260712_182241",
+  "run_source": "backup_tickets_latest.pre_strict_rebuild_20260712_133917",
+  "run_archived_at": "2026-07-12T18:22:41.828647+00:00"
 }

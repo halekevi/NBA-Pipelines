@@ -163,6 +163,12 @@ try {
             Write-Host "  [PAYOUT] mirrored -> mobile/www/tickets_latest.json" -ForegroundColor Green
         }
         Write-Host "  [PAYOUT] Live floors applied (payout_source=live_cdp on patched slips)" -ForegroundColor Green
+        # Refresh /payout Rate cards deck from merged live composition floors.
+        $rateCardsScript = Join-Path $Root "scripts\build_payout_rate_cards.py"
+        if (Test-Path -LiteralPath $rateCardsScript) {
+            & py -3.14 -X utf8 $rateCardsScript | Out-Host
+            Write-Host "  [PAYOUT] rate-cards deck rebuilt -> data/payout_rate_cards.json" -ForegroundColor Green
+        }
     } elseif ($capExit -eq 0) {
         Write-Host "  [PAYOUT] WARN: capture finished but 0 live floors (board avg remains)" -ForegroundColor Yellow
     } else {

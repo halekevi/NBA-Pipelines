@@ -41,24 +41,32 @@ def _flex_json() -> dict[str, dict[str, float]]:
 
 
 def load_fitted() -> dict | None:
-    # Prefer live mix-grid rate card when it has real observations.
+    # Prefer live rate card (composition floors + dev-bucket fit).
     if LIVE_RATE_CARD_PATH.is_file():
         try:
             live = json.loads(LIVE_RATE_CARD_PATH.read_text(encoding="utf-8"))
             dpu = live.get("goblin_discount_per_unit") or {}
             n_obs = int(live.get("n_observations") or 0)
-            if isinstance(dpu, dict) and dpu and n_obs > 0:
-                mean_dpu = sum(float(v) for v in dpu.values()) / max(1, len(dpu))
+            comp = live.get("composition_floors") if isinstance(live.get("composition_floors"), dict) else {}
+            if comp or (isinstance(dpu, dict) and dpu and n_obs > 0):
+                mean_dpu = (
+                    sum(float(v) for v in dpu.values()) / max(1, len(dpu))
+                    if isinstance(dpu, dict) and dpu
+                    else None
+                )
                 return {
                     "model_type": "live_mix_grid_power_min_x",
                     "fitted_from": "payout_rate_card.json",
                     "fitted_at": live.get("generated_at") or live.get("source_date"),
                     "n_observations": n_obs,
+                    "n_slips_in_capture": int(live.get("n_slips_in_capture") or 0),
                     "goblin_discount_per_unit": mean_dpu,
-                    "goblin_discount_per_unit_by_bucket": dpu,
+                    "goblin_discount_per_unit_by_bucket": dpu if isinstance(dpu, dict) else {},
                     "baselines_power_min_x": live.get("baselines_power_min_x") or {},
+                    "composition_floors": comp,
+                    "composition_summary": live.get("composition_summary") or {},
                     "notes": live.get("notes")
-                    or "Fitted from live PrizePicks power_min_x mix-grid captures.",
+                    or "Live PrizePicks power_min_x from ticket + mix-grid captures.",
                 }
         except (json.JSONDecodeError, OSError, TypeError, ValueError):
             pass
@@ -132,6 +140,32 @@ def build_cards(fitted: dict | None) -> list[dict]:
     cards.append(mod_card("mod-demon-power", "Demon — Power multiplier factor", DEMON_POWER))
     cards.append(mod_card("mod-demon-flex", "Demon — Flex multiplier factor", DEMON_FLEX))
 
+    comp_floors = {}
+    if fitted and isinstance(fitted.get("composition_floors"), dict):
+        comp_floors = fitted["composition_floors"]
+    elif LIVE_RATE_CARD_PATH.is_file():
+        try:
+            live = json.loads(LIVE_RATE_CARD_PATH.read_text(encoding="utf-8"))
+            if isinstance(live.get("composition_floors"), dict):
+                comp_floors = live["composition_floors"]
+        except (json.JSONDecodeError, OSError):
+            comp_floors = {}
+
+    if comp_floors:
+        cards.append(
+            {
+                "id": "live-goblin-floors",
+                "category": "live",
+                "title": "Live Goblin Min Guarantee floors (PrizePicks CDP)",
+                "subtitle": "power_min_x by leg count × Goblin count — from ticket + mix-grid captures",
+                "bullets": [
+                    f"{comp_key}: avg {meta.get('avg_min_x')}× (n={meta.get('n')}, updated {str(meta.get('source_date') or '')[:10]})"
+                    for comp_key, meta in sorted(comp_floors.items())
+                    if isinstance(meta, dict) and meta.get("avg_min_x") is not None
+                ],
+            }
+        )
+
     if fitted:
         fitted_at = str(fitted.get("fitted_at", "") or "")
         if fitted.get("model_type") == "live_mix_grid_power_min_x":
@@ -141,17 +175,26 @@ def build_cards(fitted: dict | None) -> list[dict]:
                 if isinstance(buckets, dict)
                 else []
             )
+            comp_bits = []
+            if isinstance(fitted.get("composition_summary"), dict):
+                comp_bits = [
+                    f"{k}: {v}×"
+                    for k, v in sorted(fitted["composition_summary"].items())
+                    if v is not None
+                ]
             cards.append(
                 {
                     "id": "fitted-coefficients",
                     "category": "fitted",
-                    "title": "Live mix-grid rate card (power_min_x)",
+                    "title": "Live rate card (power_min_x)",
                     "subtitle": str(LIVE_RATE_CARD_PATH.name),
                     "bullets": [
                         f"fitted_at: {fitted_at}",
-                        f"n_observations: {fitted.get('n_observations', '')}",
-                        f"goblin_discount_per_unit (mean): {fitted.get('goblin_discount_per_unit')}",
+                        f"n_observations (dev-bucket): {fitted.get('n_observations', '')}",
+                        f"n_slips_in_capture: {fitted.get('n_slips_in_capture', '')}",
+                        *([f"goblin_discount_per_unit (mean): {fitted.get('goblin_discount_per_unit')}"] if fitted.get("goblin_discount_per_unit") else []),
                         *bucket_bits,
+                        *([f"composition: {x}" for x in comp_bits] if comp_bits else []),
                         str(fitted.get("notes") or ""),
                     ],
                 }

@@ -10,7 +10,9 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import re
+import sys
 import time
 from collections import Counter
 from difflib import get_close_matches
@@ -2259,6 +2261,18 @@ def write_payout_patch_and_apply_to_tickets(
             f"fallback={n_fallback} in {tickets_path}"
         )
 
+    # Feed /payout Rate cards + ticket fallbacks with live Goblin composition floors.
+    if captured:
+        try:
+            merge_live_floors_into_rate_card(
+                captured=captured,
+                date_str=date_str,
+                source="ticket_capture",
+            )
+            rebuild_payout_rate_cards_deck()
+        except Exception as e:
+            print(f"[PAYOUT] WARN: rate-card / ladder merge failed: {e}")
+
     return {
         "patch_path": str(patch_path),
         "n_patched": n_patched,
@@ -2799,10 +2813,216 @@ def mix_avg_floors_from_grid(slips: list[dict] | None = None) -> dict[tuple[int,
     return out
 
 
+def _slip_power_min_x(rec: dict) -> float | None:
+    """Read power_min_x / min_x from a capture or ticket slip record."""
+    if not isinstance(rec, dict):
+        return None
+    for key in ("power_min_x", "min_x", "display_min_x"):
+        try:
+            v = float(rec.get(key))
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(v) and v > 0:
+            return v
+    pay = rec.get("payout")
+    if isinstance(pay, dict):
+        for key in ("power_min_x", "display_min_x", "min_payout_x"):
+            try:
+                v = float(pay.get(key))
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(v) and v > 0:
+                return v
+    return None
+
+
+def _normalize_slips_for_floor_summary(slips: list[dict]) -> list[dict]:
+    """Normalize ticket-capture or mix-grid slips for summarize_mix_grid_floors."""
+    out: list[dict] = []
+    for rec in slips or []:
+        if not isinstance(rec, dict):
+            continue
+        if str(rec.get("status") or "").lower() not in ("ok", "partial"):
+            continue
+        min_x = _slip_power_min_x(rec)
+        if min_x is None:
+            continue
+        legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+        n_g = int(rec.get("n_goblin") or 0)
+        n_s = int(rec.get("n_standard") or 0)
+        if legs and (n_g + n_s) <= 0:
+            n_g = sum(
+                1
+                for leg in legs
+                if isinstance(leg, dict)
+                and "goblin" in str(leg.get("pick_type") or "").lower()
+            )
+            n_s = max(0, len(legs) - n_g)
+        n_legs = int(rec.get("n_legs") or (n_g + n_s) or len(legs) or 0)
+        if n_legs <= 0:
+            continue
+        deviations: list[float] = []
+        for leg in legs:
+            if not isinstance(leg, dict):
+                continue
+            if "goblin" not in str(leg.get("pick_type") or "").lower():
+                continue
+            try:
+                dist = float(leg.get("line_distance") or 0.0)
+            except (TypeError, ValueError):
+                dist = 0.0
+            if dist > 0:
+                deviations.append(dist)
+        row = dict(rec)
+        row["min_x"] = min_x
+        row["power_min_x"] = min_x
+        row["n_goblin"] = n_g
+        row["n_standard"] = n_s
+        row["n_legs"] = n_legs
+        row["deviations"] = deviations or list(rec.get("deviations") or [])
+        if row.get("dev_bucket") is None and deviations:
+            mean_dev = sum(deviations) / len(deviations)
+            bucket = _nearest_dev_bucket(mean_dev)
+            if bucket is not None:
+                row["dev_bucket"] = bucket
+        out.append(row)
+    return out
+
+
+def merge_live_floors_into_rate_card(
+    *,
+    captured: list[dict],
+    date_str: str,
+    source: str = "ticket_capture",
+    rate_card_path: Path | None = None,
+) -> dict[str, Any]:
+    """
+    Merge live power_min_x observations into data/reports/payout_rate_card.json.
+
+    Updates composition_floors (2G, 3G, 1G+1S, …) for /payout Rate cards + ticket fallbacks.
+    Preserves prior goblin_discount_per_unit when a new dev-bucket fit has 0 observations.
+    """
+    date_str = str(date_str or "").strip()[:10]
+    rate_card_path = rate_card_path or (ROOT / "data" / "reports" / "payout_rate_card.json")
+    prior: dict[str, Any] = {}
+    if rate_card_path.is_file():
+        try:
+            prior = json.loads(rate_card_path.read_text(encoding="utf-8"))
+        except Exception:
+            prior = {}
+    if not isinstance(prior, dict):
+        prior = {}
+
+    norm = _normalize_slips_for_floor_summary(captured)
+    floors = summarize_mix_grid_floors(norm)
+    by_comp = floors.get("by_composition") if isinstance(floors.get("by_composition"), dict) else {}
+
+    comp_prior = (
+        prior.get("composition_floors")
+        if isinstance(prior.get("composition_floors"), dict)
+        else {}
+    )
+    merged_comp: dict[str, Any] = dict(comp_prior)
+    for comp_key, meta in by_comp.items():
+        if not isinstance(meta, dict):
+            continue
+        merged_comp[comp_key] = {
+            **meta,
+            "source": source,
+            "source_date": date_str,
+            "updated_at": datetime.utcnow().isoformat() + "Z",
+        }
+
+    # Dev-bucket fit when line_distance is present on Goblin legs.
+    grid = {"date": date_str, "path": source, "slips": norm}
+    fitted = fit_payout_rate_card_from_grid(grid)
+
+    out: dict[str, Any] = dict(prior)
+    out["schema_version"] = 1
+    out["generated_at"] = datetime.utcnow().isoformat() + "Z"
+    out["source_date"] = date_str
+    out["composition_floors"] = merged_comp
+    out["composition_summary"] = {
+        k: v.get("avg_min_x")
+        for k, v in merged_comp.items()
+        if isinstance(v, dict) and v.get("avg_min_x") is not None
+    }
+    out["n_slips_in_capture"] = len(norm)
+
+    new_obs = int(fitted.get("n_observations") or 0)
+    prior_obs = int(prior.get("n_observations") or 0)
+    prior_dpu = prior.get("goblin_discount_per_unit") if isinstance(prior.get("goblin_discount_per_unit"), dict) else {}
+    new_dpu = fitted.get("goblin_discount_per_unit") if isinstance(fitted.get("goblin_discount_per_unit"), dict) else {}
+
+    if new_obs > 0:
+        out["goblin_discount_per_unit"] = new_dpu
+        out["n_observations"] = new_obs
+        out["source_grid"] = fitted.get("source_grid") or source
+        baselines = fitted.get("baselines_power_min_x")
+        if isinstance(baselines, dict) and baselines:
+            out["baselines_power_min_x"] = baselines
+    elif prior_dpu:
+        out["goblin_discount_per_unit"] = prior_dpu
+        out["n_observations"] = prior_obs
+    else:
+        out["goblin_discount_per_unit"] = new_dpu or {}
+        out["n_observations"] = new_obs
+
+    if not out.get("baselines_power_min_x"):
+        out["baselines_power_min_x"] = {
+            "2S": 3.0,
+            "3S": 6.0,
+            "4S": 10.0,
+            "5S": 20.0,
+        }
+
+    out["notes"] = (
+        "composition_floors: live PrizePicks power_min_x by n_legs × n_goblin (ticket + mix-grid). "
+        "goblin_discount_per_unit: dev-bucket fit when line_distance available."
+    )
+    rate_card_path.parent.mkdir(parents=True, exist_ok=True)
+    rate_card_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(
+        f"[PAYOUT] rate card merged ({source}) -> {rate_card_path} "
+        f"comps={len(merged_comp)} new_slips={len(norm)} dpu_obs={out.get('n_observations')}"
+    )
+    for comp, meta in sorted(merged_comp.items()):
+        if isinstance(meta, dict) and meta.get("avg_min_x") is not None:
+            print(f"  [floor] {comp}: avg_min_x={meta.get('avg_min_x')} n={meta.get('n')}")
+    return out
+
+
+def rebuild_payout_rate_cards_deck() -> None:
+    """Regenerate data/payout_rate_cards.json for /payout Rate cards tab."""
+    script = ROOT / "scripts" / "build_payout_rate_cards.py"
+    if not script.is_file():
+        print(f"[PAYOUT] WARN: {script} missing — skip rate-cards deck rebuild")
+        return
+    import subprocess
+
+    try:
+        subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(ROOT),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        print(f"[PAYOUT] rebuilt -> {ROOT / 'data' / 'payout_rate_cards.json'}")
+    except subprocess.CalledProcessError as exc:
+        print(f"[PAYOUT] WARN: rate-cards rebuild failed: {exc.stderr or exc}")
+
+
 def fit_payout_rate_card_from_grid(grid: dict) -> dict:
     """Fit goblin_discount_per_unit by deviation bucket from power_min_x observations."""
     slips = [s for s in (grid.get("slips") or []) if isinstance(s, dict)]
-    ok = [s for s in slips if s.get("min_x") is not None and float(s.get("min_x") or 0) > 0]
+    ok: list[dict] = []
+    for s in slips:
+        min_x = _slip_power_min_x(s)
+        if min_x is not None:
+            row = dict(s)
+            row["min_x"] = min_x
+            ok.append(row)
     baselines: dict[str, float] = {}
     for s in ok:
         if int(s.get("n_goblin") or 0) == 0 and int(s.get("n_standard") or 0) > 0:
@@ -3185,12 +3405,23 @@ def run_mix_grid_capture(
 
     card = fit_payout_rate_card_from_grid(grid)
     rate_card_path.parent.mkdir(parents=True, exist_ok=True)
-    rate_card_path.write_text(json.dumps(card, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(
-        f"[payout-grid] fitted rate card from {card.get('n_observations', 0)} "
-        f"slip observations -> {rate_card_path}"
+    merged = merge_live_floors_into_rate_card(
+        captured=captured,
+        date_str=date_str,
+        source=str(output_path),
+        rate_card_path=rate_card_path,
     )
-    print(f"[payout-grid] goblin_discount_per_unit={card.get('goblin_discount_per_unit')}")
+    # merge_live_floors already wrote the card; keep fitted dpu from grid when present.
+    if int(card.get("n_observations") or 0) > int(merged.get("n_observations") or 0):
+        merged["goblin_discount_per_unit"] = card.get("goblin_discount_per_unit") or {}
+        merged["n_observations"] = card.get("n_observations")
+        rate_card_path.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+    rebuild_payout_rate_cards_deck()
+    print(
+        f"[payout-grid] fitted rate card from {merged.get('n_observations', 0)} "
+        f"dev-bucket observations -> {rate_card_path}"
+    )
+    print(f"[payout-grid] goblin_discount_per_unit={merged.get('goblin_discount_per_unit')}")
     return 0 if n_ok > 0 else 1
 
 
@@ -3263,7 +3494,33 @@ def main():
             "the tickets JSON, write-back + mirror templates/docs/mobile."
         ),
     )
+    ap.add_argument(
+        "--merge-capture-into-rate-card",
+        default="",
+        help=(
+            "No CDP: merge payout_capture_<date>.json slips into payout_rate_card.json "
+            "+ rebuild data/payout_rate_cards.json for /payout Rate cards."
+        ),
+    )
     args = ap.parse_args()
+
+    if str(getattr(args, "merge_capture_into_rate_card", "") or "").strip():
+        capture_path = Path(str(args.merge_capture_into_rate_card).strip())
+        if not capture_path.is_file():
+            raise SystemExit(f"[PAYOUT] capture file not found: {capture_path}")
+        payload = json.loads(capture_path.read_text(encoding="utf-8"))
+        date_override = str(args.date or payload.get("date") or "")[:10]
+        if not date_override:
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", capture_path.name)
+            date_override = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
+        slips = payload.get("slips") if isinstance(payload.get("slips"), list) else []
+        merge_live_floors_into_rate_card(
+            captured=slips,
+            date_str=date_override,
+            source=str(capture_path),
+        )
+        rebuild_payout_rate_cards_deck()
+        raise SystemExit(0)
 
     if str(getattr(args, "rebuild_patch_from_tickets", "") or "").strip():
         tickets_path = Path(str(args.rebuild_patch_from_tickets).strip())

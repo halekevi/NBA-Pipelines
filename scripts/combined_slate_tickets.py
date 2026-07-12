@@ -1111,6 +1111,38 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
 }
 
 
+def _load_live_composition_floors() -> dict[tuple[int, int], float]:
+    """Override MIX_GRID_AVERAGE_FLOORS from payout_rate_card composition_floors."""
+    out: dict[tuple[int, int], float] = dict(MIX_GRID_AVERAGE_FLOORS)
+    try:
+        with open(PAYOUT_RATE_CARD_PATH, "r", encoding="utf-8") as f:
+            card = json.load(f)
+    except Exception:
+        return out
+    comp = card.get("composition_floors") if isinstance(card, dict) else None
+    if not isinstance(comp, dict):
+        return out
+    for comp_key, meta in comp.items():
+        if not isinstance(meta, dict):
+            continue
+        try:
+            avg = float(meta.get("avg_min_x"))
+        except (TypeError, ValueError):
+            continue
+        if not (avg > 0):
+            continue
+        m = re.match(r"^(\d+)L_(\d+)G$", str(comp_key).strip())
+        if not m:
+            continue
+        n_legs, n_g = int(m.group(1)), int(m.group(2))
+        if n_legs >= 2:
+            out[(n_legs, n_g)] = round(avg, 4)
+    return out
+
+
+_LIVE_COMPOSITION_FLOORS: dict[tuple[int, int], float] = _load_live_composition_floors()
+
+
 def _ticket_legs_for_display_payout(ticket: dict) -> list[dict[str, Any]]:
     legs_out: list[dict[str, Any]] = []
     for leg in ticket.get("legs") or []:
@@ -1213,8 +1245,10 @@ def attach_display_min_x(ticket: dict) -> dict:
             ticket["display_min_x"] = pay["display_min_x"]
             return ticket
 
-    # 3) Mix-grid average floors
-    avg = MIX_GRID_AVERAGE_FLOORS.get((int(n), int(g_count)))
+    # 3) Mix-grid average floors (live composition overrides seeded defaults)
+    avg = _LIVE_COMPOSITION_FLOORS.get((int(n), int(g_count)))
+    if avg is None:
+        avg = MIX_GRID_AVERAGE_FLOORS.get((int(n), int(g_count)))
     avg_f = _safe_positive_float(avg)
     if avg_f is not None:
         pay["display_min_x"] = round(avg_f, 4)

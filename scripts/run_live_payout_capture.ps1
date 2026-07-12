@@ -3,14 +3,16 @@
 #  Live PrizePicks payout capture (post-ticket step)
 #
 #  Runs after combined_slate_tickets writes MAIN/STRONG slips:
-#    1) Optional once/day mix-grid → payout_rate_card.json (if missing)
-#    2) CDP scrape of each MAIN/STRONG slip → power_min_x
-#    3) Write payout_patch_<date>.json + write-back display_min_x
+#    1) CDP scrape of EACH generated MAIN/STRONG slip only → power_min_x
+#       (navigates to that slip's sport board; does not crawl unrelated leagues)
+#    2) Write payout_patch_<date>.json + write-back display_min_x
 #       (payout_source=live_cdp) onto combined + tickets_latest.json
+#    Optional: -IncludeMixGrid for once/day rate-card calibration (separate from tickets)
 #
 #  Usage:
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12
-#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -SkipMixGrid
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -Force
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -IncludeMixGrid
 #
 #  Exit codes:
 #    0  = capture attempted (ok or soft-fail / CDP skip)
@@ -22,6 +24,8 @@ param(
     [string]$Root = "",
     [string]$TicketsPath = "",
     [string]$CdpUrl = "http://127.0.0.1:9222",
+    # Post-ticket default: scrape ONLY generated MAIN/STRONG slips (no mix-grid board crawl).
+    [switch]$IncludeMixGrid,
     [switch]$SkipMixGrid,
     [switch]$NoWriteBack,
     [switch]$Force
@@ -86,7 +90,8 @@ if (-not $cdpUp) {
 
 Push-Location $Root
 try {
-    if (-not $SkipMixGrid -and -not (Test-Path -LiteralPath $mixGridOut)) {
+    $doMixGrid = $IncludeMixGrid -and -not $SkipMixGrid
+    if ($doMixGrid -and -not (Test-Path -LiteralPath $mixGridOut)) {
         Write-Host "  [PAYOUT-GRID] Capturing mix-grid calibration -> $mixGridOut" -ForegroundColor Cyan
         & py -3.14 -X utf8 $payoutScript `
             --mix-grid `
@@ -99,8 +104,10 @@ try {
         } else {
             Write-Host "  [PAYOUT-GRID] WARN: mix-grid failed (non-blocking)" -ForegroundColor Yellow
         }
-    } elseif (Test-Path -LiteralPath $mixGridOut) {
+    } elseif ($doMixGrid -and (Test-Path -LiteralPath $mixGridOut)) {
         Write-Host "  [PAYOUT-GRID] already have $mixGridOut -- skip" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  [PAYOUT] ticket-only mode (generated MAIN/STRONG slips) — mix-grid skipped" -ForegroundColor DarkGray
     }
 
     if (-not (Test-Path -LiteralPath $TicketsPath)) {

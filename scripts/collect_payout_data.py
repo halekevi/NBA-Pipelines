@@ -12,6 +12,7 @@ import csv
 import json
 import re
 import time
+from collections import Counter
 from difflib import get_close_matches
 from datetime import datetime
 from pathlib import Path
@@ -1663,6 +1664,55 @@ DEFAULT_CAPTURE_FIELDS = (
     "flex_min",
 )
 
+# PrizePicks board league_id for ticket-sport navigation (ticket scrape only).
+PP_BOARD_LEAGUE_IDS: dict[str, int] = {
+    "MLB": 2,
+    "WNBA": 3,
+    "NBA": 7,
+    "NBA1H": 7,
+    "NBA1Q": 7,
+    "NFL": 9,
+    "CFB": 15,
+    "CBB": 20,
+    "NHL": 8,
+    "SOCCER": 82,
+    "SOC": 82,
+    "TENNIS": 5,
+    "GOLF": 6,
+}
+
+
+def _slip_primary_sport(slip: dict) -> str:
+    """Dominant sport on a generated slip (from leg.sport)."""
+    counts: Counter[str] = Counter()
+    for leg in slip.get("legs") or []:
+        if not isinstance(leg, dict):
+            continue
+        sp = str(leg.get("sport") or "").strip().upper()
+        if sp:
+            counts[sp] += 1
+    if not counts:
+        return ""
+    return counts.most_common(1)[0][0]
+
+
+def navigate_board_for_sport(page, sport: str, *, settle_ms: int = 2500) -> bool:
+    """Open PrizePicks board for the sport of our generated tickets."""
+    sp = str(sport or "").strip().upper()
+    league_id = PP_BOARD_LEAGUE_IDS.get(sp)
+    if league_id is None:
+        print(f"[PAYOUT] no board league_id for sport={sp!r} — staying on current board")
+        return False
+    url = f"https://app.prizepicks.com/board?league_id={league_id}"
+    print(f"[PAYOUT] navigate {sp} board -> {url}")
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+        page.wait_for_timeout(int(settle_ms))
+        return True
+    except Exception as e:
+        print(f"[PAYOUT] WARN: navigate {sp} failed: {e}")
+        return False
+
 
 def _parse_fields_arg(raw: str | None) -> list[str]:
     if not raw or not str(raw).strip():
@@ -1950,27 +2000,50 @@ def capture_tickets_from_board(
 
     slips_sorted = sorted(
         slips,
-        key=lambda s: (0 if s.get("strong_builder") else 1, s.get("ticket_id") or ""),
+        key=lambda s: (
+            _slip_primary_sport(s) or "ZZZ",
+            0 if s.get("strong_builder") else 1,
+            s.get("ticket_id") or "",
+        ),
     )
     if max_cases > 0:
         slips_sorted = slips_sorted[:max_cases]
+
+    sports_in_run = sorted({_slip_primary_sport(s) for s in slips_sorted if _slip_primary_sport(s)})
+    print(
+        f"[PAYOUT] scraping {len(slips_sorted)} generated MAIN/STRONG slips only "
+        f"(sports={','.join(sports_in_run) or 'unknown'})"
+    )
 
     want_flex = "flex_min" in fields
     p, browser, context, page = connect_existing_browser(cdp_url)
     page.wait_for_timeout(500)
     captured: list[dict] = []
     n_ok = n_failed = n_partial = 0
+    active_sport = ""
 
     try:
+        # Open the board for the first ticket sport (do not scrape unrelated leagues).
+        first_sport = _slip_primary_sport(slips_sorted[0]) if slips_sorted else ""
+        if first_sport:
+            navigate_board_for_sport(page, first_sport)
+            active_sport = first_sport
         frame = find_prizepicks_frame(page)
         ensure_popular_filter(frame, page)
         dismiss_modal(frame, page)
 
         for i, slip in enumerate(slips_sorted, 1):
             tid = slip.get("ticket_id") or f"slip_{i}"
+            slip_sport = _slip_primary_sport(slip)
+            if slip_sport and slip_sport != active_sport:
+                navigate_board_for_sport(page, slip_sport)
+                active_sport = slip_sport
+                frame = find_prizepicks_frame(page)
+                ensure_popular_filter(frame, page)
+                dismiss_modal(frame, page)
             print(
                 f"\n[PAYOUT] ({i}/{len(slips_sorted)}) {slip.get('slip_type')} "
-                f"n={slip.get('n_legs')} id={tid}"
+                f"n={slip.get('n_legs')} sport={slip_sport or '?'} id={tid}"
             )
             for leg in slip.get("legs") or []:
                 print(

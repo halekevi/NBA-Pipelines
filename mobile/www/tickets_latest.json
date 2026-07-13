@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-13 12:44:49 UTC",
+  "generated_at": "2026-07-13 14:03:15 UTC",
   "date": "2026-07-13",
   "tennis_date": "2026-07-14",
   "filters": {
@@ -124,7 +124,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -247,7 +247,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_b0f602ff717a8bec4532",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -353,16 +353,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.77 - 1.0",
             "model_min_payout_x": 1.7704,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -448,7 +444,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -571,7 +567,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_d85ec5a872dc21d94fe8",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -676,16 +672,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -771,7 +763,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -894,7 +886,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_55cc561d1bec931b1867",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1000,16 +992,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -1095,7 +1083,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1218,7 +1206,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_3165525ae725d8695036",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1324,16 +1312,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -1419,7 +1403,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1542,7 +1526,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_9584dff77ccd4a658128",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1648,16 +1632,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -1743,7 +1723,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1866,7 +1846,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_bf529cb50f2688d5bb95",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -1975,16 +1955,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.77 - 1.0",
             "model_min_payout_x": 1.7704,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -2070,7 +2046,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -2193,7 +2169,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_b5f5f9ddc489e4e486c1",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -2302,16 +2278,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -2397,7 +2369,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -2520,7 +2492,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_b992cca42321d6b50b7f",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "MED",
               "shot_role": "HIGH_VOL",
               "usage_role": "PRIMARY",
@@ -2629,16 +2601,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.77 - 1.0",
             "model_min_payout_x": 1.7704,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -2724,7 +2692,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -2847,7 +2815,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a28dffa418d51a56f9cc",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "MID_VOL",
               "usage_role": "SECONDARY",
@@ -2956,16 +2924,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -3052,7 +3016,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -3175,7 +3139,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_384a709a139ebcc3532c",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -3281,16 +3245,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.88 - 1.0",
             "model_min_payout_x": 1.8787,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -3377,7 +3337,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -3500,7 +3460,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_d9e13df15f9423f26bac",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -3608,16 +3568,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.30 - 1.0",
             "model_min_payout_x": 1.3,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.3844,
           "expected_wins_per_100": 38.4,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -3703,7 +3659,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -3826,7 +3782,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_16e1bf6990dffb26c0c2",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "MID_VOL",
               "usage_role": "SECONDARY",
@@ -3935,16 +3891,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.66 - 1.0",
             "model_min_payout_x": 1.6622,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -4030,7 +3982,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -4153,7 +4105,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_bf716492112d56409f0e",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "MED",
               "shot_role": "HIGH_VOL",
               "usage_role": "PRIMARY",
@@ -4262,16 +4214,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.59 - 1.0",
             "model_min_payout_x": 1.59,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -4358,7 +4306,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -4481,7 +4429,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_eb38e644ca865d1ea83b",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -4590,16 +4538,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         },
         {
           "web_group_name": "STRONG Goblin HOT",
@@ -4686,7 +4630,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_a9f1aafb38166a542c03",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "LOW",
               "shot_role": "LOW_VOL",
               "usage_role": "SUPPORT",
@@ -4809,7 +4753,7 @@
               "lineage_version": "v1",
               "canonical_leg_id": "leg_73d1863ce3155b61cdb5",
               "nba_player_id": "",
-              "espn_player_id": "",
+              "espn_player_id": null,
               "min_tier": "MED",
               "shot_role": "HIGH_VOL",
               "usage_role": "PRIMARY",
@@ -4918,16 +4862,12 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.81 - 1.0",
             "model_min_payout_x": 1.8065,
-            "display_min_x": 2.2
+            "display_min_x": 2.5667
           },
-          "display_min_x": 2.2,
+          "display_min_x": 2.5667,
           "p_win": 0.372,
           "expected_wins_per_100": 37.2,
-          "empirical_recommendation": "STRONG",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "STRONG"
         }
       ],
       "hot_legs": 30,
@@ -4946,11 +4886,11 @@
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.85,
-          "avg_rank_score": 5.3620926666666655,
+          "avg_rank_score": 5.368759333333333,
           "est_win_prob": 0.31313640959999994,
           "ticket_objective_score": null,
-          "ticket_live_score": 0.838068,
-          "ticket_model_p_cash": 0.479334,
+          "ticket_live_score": 0.838204,
+          "ticket_model_p_cash": 0.48024,
           "est_flex_cash_prob": null,
           "power_payout": 1.76,
           "flex_payout": 0.88,
@@ -5137,7 +5077,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 5.232767999999999,
+              "rank_score": 5.242768,
               "tier": "C",
               "opponent_def_rank": 15.0,
               "game_time": "7:00 PM",
@@ -5260,7 +5200,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 4.769659999999999,
+              "rank_score": 4.77966,
               "tier": "C",
               "opponent_def_rank": 8.0,
               "game_time": "9:00 PM",
@@ -5374,20 +5314,16 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 3.6846,
-            "payout_source": "fallback_estimate",
+            "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.56
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.56,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.095998,
-          "empirical_recommendation": "SKIP",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "SKIP"
         }
       ],
       "hot_legs": 3,
@@ -5406,11 +5342,11 @@
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.85,
-          "avg_rank_score": 5.253565999999999,
+          "avg_rank_score": 5.256899333333333,
           "est_win_prob": 0.31313640959999994,
           "ticket_objective_score": null,
-          "ticket_live_score": 0.743241,
-          "ticket_model_p_cash": 0.485743,
+          "ticket_live_score": 0.743312,
+          "ticket_model_p_cash": 0.48622,
           "est_flex_cash_prob": null,
           "power_payout": 1.54,
           "flex_payout": 0.77,
@@ -5597,7 +5533,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 5.232767999999999,
+              "rank_score": 5.242768,
               "tier": "C",
               "opponent_def_rank": 15.0,
               "game_time": "7:00 PM",
@@ -5834,20 +5770,16 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 3.6846,
-            "payout_source": "fallback_estimate",
+            "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.56
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.56,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.085283,
-          "empirical_recommendation": "SKIP",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "SKIP"
         }
       ],
       "hot_legs": 3,
@@ -5866,7 +5798,7 @@
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.85,
-          "avg_rank_score": 4.815502666666666,
+          "avg_rank_score": 4.822169333333333,
           "est_win_prob": 0.29822515199999994,
           "ticket_objective_score": null,
           "ticket_live_score": 0.912758,
@@ -5933,7 +5865,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 5.232767999999999,
+              "rank_score": 5.242768,
               "tier": "C",
               "opponent_def_rank": 15.0,
               "game_time": "7:00 PM",
@@ -6056,7 +5988,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 4.769659999999999,
+              "rank_score": 4.77966,
               "tier": "C",
               "opponent_def_rank": 8.0,
               "game_time": "9:00 PM",
@@ -6293,20 +6225,16 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 3.6846,
-            "payout_source": "fallback_estimate",
+            "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.56
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.56,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.109712,
-          "empirical_recommendation": "SKIP",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "SKIP"
         }
       ],
       "hot_legs": 3,
@@ -6325,11 +6253,11 @@
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.9,
-          "avg_rank_score": 5.626609333333332,
+          "avg_rank_score": 5.6332759999999995,
           "est_win_prob": 0.29822515199999994,
           "ticket_objective_score": null,
-          "ticket_live_score": 0.806874,
-          "ticket_model_p_cash": 0.514205,
+          "ticket_live_score": 0.80701,
+          "ticket_model_p_cash": 0.515111,
           "est_flex_cash_prob": null,
           "power_payout": 1.76,
           "flex_payout": 0.88,
@@ -6515,7 +6443,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 5.232767999999999,
+              "rank_score": 5.242768,
               "tier": "C",
               "opponent_def_rank": 15.0,
               "game_time": "7:00 PM",
@@ -6638,7 +6566,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 4.769659999999999,
+              "rank_score": 4.77966,
               "tier": "C",
               "opponent_def_rank": 8.0,
               "game_time": "9:00 PM",
@@ -6745,27 +6673,23 @@
             "p_all_win": 0.7153,
             "p_miss_1": 0.2597,
             "ev": 0.1444,
-            "recommendation": "SKIP",
+            "recommendation": "MARGINAL",
             "entry_10_to_win_guarantee": 16.0,
             "entry_20_to_win_guarantee": 32.0,
             "sweep_payout": 6.0,
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 4.2918,
-            "payout_source": "fallback_estimate",
+            "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.56
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.56,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.095998,
-          "empirical_recommendation": "SKIP",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "MARGINAL"
         }
       ],
       "hot_legs": 3,
@@ -6784,11 +6708,11 @@
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.85,
-          "avg_rank_score": 5.415228666666667,
+          "avg_rank_score": 5.421895333333333,
           "est_win_prob": 0.29822515199999994,
           "ticket_objective_score": null,
-          "ticket_live_score": 0.804767,
-          "ticket_model_p_cash": 0.500158,
+          "ticket_live_score": 0.804903,
+          "ticket_model_p_cash": 0.501064,
           "est_flex_cash_prob": null,
           "power_payout": 1.76,
           "flex_payout": 0.88,
@@ -6974,7 +6898,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 5.232767999999999,
+              "rank_score": 5.242768,
               "tier": "C",
               "opponent_def_rank": 15.0,
               "game_time": "7:00 PM",
@@ -7097,7 +7021,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.7989,
-              "rank_score": 4.769659999999999,
+              "rank_score": 4.77966,
               "tier": "C",
               "opponent_def_rank": 8.0,
               "game_time": "9:00 PM",
@@ -7211,38 +7135,39 @@
             "sweep_payout_x": 6.0,
             "entry_10_to_win_sweep": 60.0,
             "payout_confidence_score": 3.6846,
-            "payout_source": "fallback_estimate",
+            "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*1.60 - 1.0",
             "model_min_payout_x": 1.6,
-            "display_min_x": 1.6
+            "display_min_x": 3.56
           },
-          "display_min_x": 1.6,
+          "display_min_x": 3.56,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.095998,
-          "empirical_recommendation": "SKIP",
-          "run_id": "20260713_100105_828381",
-          "first_seen_run_id": "20260713_100105_828381",
-          "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-          "playable": true
+          "empirical_recommendation": "SKIP"
         }
       ],
       "hot_legs": 3,
       "cold_legs": 0
     }
   ],
-  "hot_legs": 15,
+  "hot_legs": 45,
   "cold_legs": 0,
   "tier_ev_thresholds": {
-    "strong": 1.4,
-    "ok": 1.15,
-    "marginal": 1.0
+    "strong": 0.5336099999999999,
+    "ok": 0.19826000000000005,
+    "marginal": 0.142615
   },
   "tier_ev_thresholds_by_legs": {
+    "2": {
+      "strong": 0.6006600000000001,
+      "ok": 0.3120200000000001,
+      "marginal": 0.16208
+    },
     "3": {
-      "strong": 1.4,
-      "ok": 1.15,
-      "marginal": 1.0
+      "strong": 0.5336099999999999,
+      "ok": 0.19826000000000005,
+      "marginal": 0.142615
     }
   },
   "tier_ev_percentiles": {
@@ -7260,7 +7185,7 @@
     "require_hot_streak": true
   },
   "strong_gate_stats": {
-    "legs_checked": 0,
+    "legs_checked": 30,
     "failed_goblin": 0,
     "failed_tier": 0,
     "failed_streak": 0
@@ -7281,13 +7206,5 @@
   "main_default_legs": 3,
   "main_thin_pool_min_legs": 6,
   "strong_builder_count": 15,
-  "run_id": "20260713_100105_828381",
-  "run_source": "grade_pool_merge",
-  "run_archived_at": "2026-07-13T10:01:05.837186+00:00",
-  "grade_pool": true,
-  "run_ids": [
-    "20260713_100105_828381",
-    "20260713_124449_347918"
-  ],
-  "latest_run_id": "20260713_124449_347918"
+  "run_id": "20260713_140315_555382"
 }

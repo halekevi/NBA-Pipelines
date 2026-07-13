@@ -2,7 +2,7 @@
   "sport": "soccer",
   "display_name": "Soccer",
   "matchup_mode": "team",
-  "generated_at": "2026-07-13T12:46:27.849248+00:00",
+  "generated_at": "2026-07-13T14:04:43.408729+00:00",
   "slate_note": "",
   "n_teams": 422,
   "elite_rank_cut": 5,
@@ -63,62 +63,6 @@
     }
   ],
   "matchups": {
-    "IND. DEL VALLE": {
-      "opponent_slate": "UCV",
-      "opponent_name": "UCV",
-      "opponent_def_rank": "",
-      "opponent_def_tier": "",
-      "team_def_rank": null,
-      "team_def_tier": ""
-    },
-    "BOCA": {
-      "opponent_slate": "BARCELONA",
-      "opponent_name": "Barcelona",
-      "opponent_def_rank": 17,
-      "opponent_def_tier": "Avg",
-      "team_def_rank": null,
-      "team_def_tier": ""
-    },
-    "UCV": {
-      "opponent_slate": "IND. DEL VALLE",
-      "opponent_name": "IND. DEL VALLE",
-      "opponent_def_rank": "",
-      "opponent_def_tier": "",
-      "team_def_rank": null,
-      "team_def_tier": ""
-    },
-    "ALWAYS READY": {
-      "opponent_slate": "LAN\u00daS",
-      "opponent_name": "Lan\u00fas",
-      "opponent_def_rank": 11,
-      "opponent_def_tier": "Above Avg",
-      "team_def_rank": null,
-      "team_def_tier": ""
-    },
-    "CRISTAL": {
-      "opponent_slate": "PALMEIRAS",
-      "opponent_name": "Palmeiras",
-      "opponent_def_rank": 1,
-      "opponent_def_tier": "Elite",
-      "team_def_rank": null,
-      "team_def_tier": ""
-    },
-    "LAN\u00daS": {
-      "opponent_slate": "ALWAYS READY",
-      "opponent_name": "ALWAYS READY",
-      "opponent_def_rank": "",
-      "opponent_def_tier": "",
-      "team_def_rank": 11,
-      "team_def_tier": "Above Avg"
-    },
-    "ROSARIO": {
-      "opponent_slate": "LIBERTAD",
-      "opponent_name": "LIBERTAD",
-      "opponent_def_rank": "",
-      "opponent_def_tier": "",
-      "team_def_rank": 17,
-      "team_def_tier": "Avg"
-    },
     "BARCELONA": {
       "opponent_slate": "BOCA",
       "opponent_name": "BOCA",
@@ -135,6 +79,38 @@
       "team_def_rank": 1,
       "team_def_tier": "Elite"
     },
+    "BOCA": {
+      "opponent_slate": "BARCELONA",
+      "opponent_name": "Barcelona",
+      "opponent_def_rank": 17,
+      "opponent_def_tier": "Avg",
+      "team_def_rank": null,
+      "team_def_tier": ""
+    },
+    "IND. DEL VALLE": {
+      "opponent_slate": "UCV",
+      "opponent_name": "UCV",
+      "opponent_def_rank": "",
+      "opponent_def_tier": "",
+      "team_def_rank": null,
+      "team_def_tier": ""
+    },
+    "CRISTAL": {
+      "opponent_slate": "PALMEIRAS",
+      "opponent_name": "Palmeiras",
+      "opponent_def_rank": 1,
+      "opponent_def_tier": "Elite",
+      "team_def_rank": null,
+      "team_def_tier": ""
+    },
+    "ROSARIO": {
+      "opponent_slate": "LIBERTAD",
+      "opponent_name": "LIBERTAD",
+      "opponent_def_rank": "",
+      "opponent_def_tier": "",
+      "team_def_rank": 17,
+      "team_def_tier": "Avg"
+    },
     "LIBERTAD": {
       "opponent_slate": "ROSARIO",
       "opponent_name": "Rosario Central",
@@ -142,116 +118,53 @@
       "opponent_def_tier": "Avg",
       "team_def_rank": null,
       "team_def_tier": ""
+    },
+    "UCV": {
+      "opponent_slate": "IND. DEL VALLE",
+      "opponent_name": "IND. DEL VALLE",
+      "opponent_def_rank": "",
+      "opponent_def_tier": "",
+      "team_def_rank": null,
+      "team_def_tier": ""
+    },
+    "LAN\u00daS": {
+      "opponent_slate": "ALWAYS READY",
+      "opponent_name": "ALWAYS READY",
+      "opponent_def_rank": "",
+      "opponent_def_tier": "",
+      "team_def_rank": 11,
+      "team_def_tier": "Above Avg"
+    },
+    "ALWAYS READY": {
+      "opponent_slate": "LAN\u00daS",
+      "opponent_name": "Lan\u00fas",
+      "opponent_def_rank": 11,
+      "opponent_def_tier": "Above Avg",
+      "team_def_rank": null,
+      "team_def_tier": ""
     }
   },
   "players_by_team_cat": {
-    "ROSARIO|goals": {
-      "team_slate": "ROSARIO",
+    "IND. DEL VALLE|goals": {
+      "team_slate": "IND. DEL VALLE",
       "category": "goals",
       "category_label": "Goals",
       "threshold": 0.4,
       "opponent": {
-        "slate_abbr": "LIBERTAD",
-        "name": "LIBERTAD",
+        "slate_abbr": "UCV",
+        "name": "UCV",
         "def_rank": "",
         "def_tier": ""
       },
       "players": [
         {
-          "player": "Jerem\u00edas Ledesma",
-          "player_norm": "jeremias ledesma",
+          "player": "Aldair Quintana",
+          "player_norm": "aldair quintana",
           "pos": "GOA",
-          "season_avg": 1.43,
-          "game_score": 1.4,
-          "pp_line": 2.0,
-          "pp_edge": 1.2,
-          "rank_on_team": 1,
-          "leader_slice": "top",
-          "edge": "OK_EDGE",
-          "notes": "PP edge +1.2 on board tonight.",
-          "overperform_vs_weak": false,
-          "def_boost": null
-        }
-      ]
-    },
-    "BARCELONA|goals": {
-      "team_slate": "BARCELONA",
-      "category": "goals",
-      "category_label": "Goals",
-      "threshold": 0.4,
-      "opponent": {
-        "slate_abbr": "BOCA",
-        "name": "BOCA",
-        "def_rank": "",
-        "def_tier": ""
-      },
-      "players": [
-        {
-          "player": "Jos\u00e9 Contreras",
-          "player_norm": "jose contreras",
-          "pos": "GOA",
-          "season_avg": 4.0,
-          "game_score": 4.0,
-          "pp_line": 4.0,
-          "pp_edge": 0.0,
-          "rank_on_team": 1,
-          "leader_slice": "top",
-          "edge": "NEUTRAL",
-          "notes": "No strong matchup edge either way.",
-          "overperform_vs_weak": false,
-          "def_boost": null
-        }
-      ]
-    },
-    "UCV|goals": {
-      "team_slate": "UCV",
-      "category": "goals",
-      "category_label": "Goals",
-      "threshold": 0.4,
-      "opponent": {
-        "slate_abbr": "IND. DEL VALLE",
-        "name": "IND. DEL VALLE",
-        "def_rank": "",
-        "def_tier": ""
-      },
-      "players": [
-        {
-          "player": "Giancarlo Schiavone",
-          "player_norm": "giancarlo schiavone",
-          "pos": "GOA",
-          "season_avg": 3.5,
-          "game_score": 3.5,
-          "pp_line": 3.5,
-          "pp_edge": 0.0,
-          "rank_on_team": 1,
-          "leader_slice": "top",
-          "edge": "NEUTRAL",
-          "notes": "No strong matchup edge either way.",
-          "overperform_vs_weak": false,
-          "def_boost": null
-        }
-      ]
-    },
-    "LAN\u00daS|goals": {
-      "team_slate": "LAN\u00daS",
-      "category": "goals",
-      "category_label": "Goals",
-      "threshold": 0.4,
-      "opponent": {
-        "slate_abbr": "ALWAYS READY",
-        "name": "ALWAYS READY",
-        "def_rank": "",
-        "def_tier": ""
-      },
-      "players": [
-        {
-          "player": "Nahuel Losada",
-          "player_norm": "nahuel losada",
-          "pos": "GOA",
-          "season_avg": 2.57,
-          "game_score": 2.6,
+          "season_avg": 3.0,
+          "game_score": 3.0,
           "pp_line": 3.0,
-          "pp_edge": 0.2,
+          "pp_edge": 0.0,
           "rank_on_team": 1,
           "leader_slice": "top",
           "edge": "NEUTRAL",
@@ -290,6 +203,35 @@
         }
       ]
     },
+    "ALWAYS READY|goals": {
+      "team_slate": "ALWAYS READY",
+      "category": "goals",
+      "category_label": "Goals",
+      "threshold": 0.4,
+      "opponent": {
+        "slate_abbr": "LAN\u00daS",
+        "name": "Lan\u00fas",
+        "def_rank": 11,
+        "def_tier": "Above Avg"
+      },
+      "players": [
+        {
+          "player": "Alain Baroja",
+          "player_norm": "alain baroja",
+          "pos": "GOA",
+          "season_avg": 2.5,
+          "game_score": 2.5,
+          "pp_line": 2.5,
+          "pp_edge": 0.0,
+          "rank_on_team": 1,
+          "leader_slice": "top",
+          "edge": "NEUTRAL",
+          "notes": "No strong matchup edge either way.",
+          "overperform_vs_weak": false,
+          "def_boost": null
+        }
+      ]
+    },
     "PALMEIRAS|goals": {
       "team_slate": "PALMEIRAS",
       "category": "goals",
@@ -319,25 +261,54 @@
         }
       ]
     },
-    "IND. DEL VALLE|goals": {
-      "team_slate": "IND. DEL VALLE",
+    "LAN\u00daS|goals": {
+      "team_slate": "LAN\u00daS",
       "category": "goals",
       "category_label": "Goals",
       "threshold": 0.4,
       "opponent": {
-        "slate_abbr": "UCV",
-        "name": "UCV",
+        "slate_abbr": "ALWAYS READY",
+        "name": "ALWAYS READY",
         "def_rank": "",
         "def_tier": ""
       },
       "players": [
         {
-          "player": "Aldair Quintana",
-          "player_norm": "aldair quintana",
+          "player": "Nahuel Losada",
+          "player_norm": "nahuel losada",
           "pos": "GOA",
-          "season_avg": 3.0,
-          "game_score": 3.0,
+          "season_avg": 2.57,
+          "game_score": 2.6,
           "pp_line": 3.0,
+          "pp_edge": 0.2,
+          "rank_on_team": 1,
+          "leader_slice": "top",
+          "edge": "NEUTRAL",
+          "notes": "No strong matchup edge either way.",
+          "overperform_vs_weak": false,
+          "def_boost": null
+        }
+      ]
+    },
+    "UCV|goals": {
+      "team_slate": "UCV",
+      "category": "goals",
+      "category_label": "Goals",
+      "threshold": 0.4,
+      "opponent": {
+        "slate_abbr": "IND. DEL VALLE",
+        "name": "IND. DEL VALLE",
+        "def_rank": "",
+        "def_tier": ""
+      },
+      "players": [
+        {
+          "player": "Giancarlo Schiavone",
+          "player_norm": "giancarlo schiavone",
+          "pos": "GOA",
+          "season_avg": 3.5,
+          "game_score": 3.5,
+          "pp_line": 3.5,
           "pp_edge": 0.0,
           "rank_on_team": 1,
           "leader_slice": "top",
@@ -348,21 +319,21 @@
         }
       ]
     },
-    "LIBERTAD|goals": {
-      "team_slate": "LIBERTAD",
+    "BARCELONA|goals": {
+      "team_slate": "BARCELONA",
       "category": "goals",
       "category_label": "Goals",
       "threshold": 0.4,
       "opponent": {
-        "slate_abbr": "ROSARIO",
-        "name": "Rosario Central",
-        "def_rank": 17,
-        "def_tier": "Avg"
+        "slate_abbr": "BOCA",
+        "name": "BOCA",
+        "def_rank": "",
+        "def_tier": ""
       },
       "players": [
         {
-          "player": "Rodrigo Mor\u00ednigo",
-          "player_norm": "rodrigo morinigo",
+          "player": "Jos\u00e9 Contreras",
+          "player_norm": "jose contreras",
           "pos": "GOA",
           "season_avg": 4.0,
           "game_score": 4.0,
@@ -406,30 +377,59 @@
         }
       ]
     },
-    "ALWAYS READY|goals": {
-      "team_slate": "ALWAYS READY",
+    "LIBERTAD|goals": {
+      "team_slate": "LIBERTAD",
       "category": "goals",
       "category_label": "Goals",
       "threshold": 0.4,
       "opponent": {
-        "slate_abbr": "LAN\u00daS",
-        "name": "Lan\u00fas",
-        "def_rank": 11,
-        "def_tier": "Above Avg"
+        "slate_abbr": "ROSARIO",
+        "name": "Rosario Central",
+        "def_rank": 17,
+        "def_tier": "Avg"
       },
       "players": [
         {
-          "player": "Alain Baroja",
-          "player_norm": "alain baroja",
+          "player": "Rodrigo Mor\u00ednigo",
+          "player_norm": "rodrigo morinigo",
           "pos": "GOA",
-          "season_avg": 2.5,
-          "game_score": 2.5,
-          "pp_line": 2.5,
+          "season_avg": 4.0,
+          "game_score": 4.0,
+          "pp_line": 4.0,
           "pp_edge": 0.0,
           "rank_on_team": 1,
           "leader_slice": "top",
           "edge": "NEUTRAL",
           "notes": "No strong matchup edge either way.",
+          "overperform_vs_weak": false,
+          "def_boost": null
+        }
+      ]
+    },
+    "ROSARIO|goals": {
+      "team_slate": "ROSARIO",
+      "category": "goals",
+      "category_label": "Goals",
+      "threshold": 0.4,
+      "opponent": {
+        "slate_abbr": "LIBERTAD",
+        "name": "LIBERTAD",
+        "def_rank": "",
+        "def_tier": ""
+      },
+      "players": [
+        {
+          "player": "Jerem\u00edas Ledesma",
+          "player_norm": "jeremias ledesma",
+          "pos": "GOA",
+          "season_avg": 1.43,
+          "game_score": 1.4,
+          "pp_line": 2.0,
+          "pp_edge": 1.2,
+          "rank_on_team": 1,
+          "leader_slice": "top",
+          "edge": "OK_EDGE",
+          "notes": "PP edge +1.2 on board tonight.",
           "overperform_vs_weak": false,
           "def_boost": null
         }

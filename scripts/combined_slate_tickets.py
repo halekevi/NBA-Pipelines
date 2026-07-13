@@ -105,6 +105,15 @@ def default_tennis_match_date(bundle_date: str | None = None) -> str:
     except ValueError:
         return raw
 
+
+def default_soccer_match_date(bundle_date: str | None = None) -> str:
+    """Soccer often posts the next calendar day's NWSL / tournament board.
+
+    Same default as tennis (ET today + 1 / historical bundle + 1). Override with
+    ``--soccer-date`` when the live board is same-day.
+    """
+    return default_tennis_match_date(bundle_date)
+
 import numpy as np
 import pandas as pd
 from openpyxl import Workbook
@@ -6209,11 +6218,16 @@ def enforce_target_date(
     total = len(out)
 
     # Keep cross-date fallback limited to sparse/overnight boards.
-    # NBA/MLB period boards and Soccer should not silently roll dates.
+    # NBA/MLB period boards should not silently roll dates. Soccer/Tennis use
+    # explicit --soccer-date / --tennis-date match days instead.
     sport_u = str(sport).upper()
     fallback_sports = {"TENNIS"}
-    if sport_u in {"NBA", "NBA1Q", "NBA1H", "MLB", "SOCCER", "SOC", "WNBA", "NFL", "NHL"}:
+    if sport_u in {"NBA", "NBA1Q", "NBA1H", "MLB", "WNBA", "NFL", "NHL"}:
         use_date_fallback = False
+    elif sport_u in {"SOCCER", "SOC"}:
+        # Match-day filter is already the soccer target; allow nearest >= target
+        # only when explicitly requested via --allow-cross-date-fallback.
+        use_date_fallback = bool(allow_cross_date_fallback)
     else:
         use_date_fallback = allow_cross_date_fallback or (sport_u in fallback_sports)
     if kept == 0 and use_date_fallback:
@@ -7996,7 +8010,7 @@ def publish_wnba_slate_merge_into_web(
 
 def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
                      wcbb=None, mlb=None, nba1q=None, nba1h=None, tennis=None, golf=None, nfl=None, wnba=None, cfb=None,
-                     tennis_date=None):
+                     tennis_date=None, soccer_date=None):
     """Write full per-sport ranked slate to slate_latest.json for the web UI.
 
     Sport keys in ``sports`` are lowercase (nba, nfl, …) so /api/slate-sport and the
@@ -8027,6 +8041,22 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
         tennis_match_ymd = str(tennis_date or default_tennis_match_date(date_str)).strip()[:10]
         payload["tennis_date"] = tennis_match_ymd
 
+    soccer_rows = payload["sports"].get("soccer") or []
+    soccer_match_ymd = ""
+    if isinstance(soccer_rows, list) and len(soccer_rows) > 0:
+        soccer_match_ymd = str(soccer_date or default_soccer_match_date(date_str)).strip()[:10]
+        payload["soccer_date"] = soccer_match_ymd
+        stamped_soccer: list[dict] = []
+        for r in soccer_rows:
+            if not isinstance(r, dict):
+                stamped_soccer.append(r)
+                continue
+            rr = dict(r)
+            rr["game_date"] = soccer_match_ymd
+            stamped_soccer.append(rr)
+        payload["sports"]["soccer"] = stamped_soccer
+        soccer_rows = stamped_soccer
+
     os.makedirs(outdir, exist_ok=True)
     out_path = os.path.join(outdir, "slate_latest.json")
     payload = _sanitize_for_json(payload)
@@ -8051,6 +8081,8 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
                 rr["game_date"] = tennis_match_ymd
                 stamped.append(rr)
             safe_rows = stamped
+        if sport_key == "soccer" and soccer_match_ymd:
+            safe_rows = soccer_rows if isinstance(soccer_rows, list) else safe_rows
         sport_path = os.path.join(outdir, f"slate_sport_{sport_key}.json")
         _write_json_file(
             sport_path,
@@ -15348,6 +15380,12 @@ def main():
         default=None,
         help="Override date for Tennis step8 path + ET match-day filter (default: --date + 1 day ET).",
     )
+    ap.add_argument(
+        "--soccer-date",
+        dest="soccer_date",
+        default=None,
+        help="Override date for Soccer match-day filter (default: --date + 1 day ET, like tennis).",
+    )
     ap.add_argument("--tiers", default="A,B,C", help="Comma-separated tiers e.g. A,B")
     ap.add_argument(
         "--high-conviction",
@@ -15716,6 +15754,12 @@ def main():
         # Perpetual next-day board: bundle dated today, match-day filter tomorrow (ET).
         args.tennis_date = default_tennis_match_date(str(args.date).strip()[:10])
 
+    soccer_ds = str(getattr(args, "soccer_date", None) or "").strip()[:10]
+    if soccer_ds:
+        args.soccer_date = soccer_ds
+    else:
+        args.soccer_date = default_soccer_match_date(str(args.date).strip()[:10])
+
     args.max_ticket_legs = max(2, min(6, int(args.max_ticket_legs)))
     if getattr(args, "win_rate_mode", False):
         cap = int(args.max_legs) if args.max_legs is not None else MAIN_GRADED_MAX_LEGS
@@ -15872,11 +15916,15 @@ def main():
     if str(args.soccer).strip():
         try:
             soccer = load_soccer(args.soccer)
+            soccer_match_day = str(getattr(args, "soccer_date", None) or args.date).strip()[:10]
             soccer = enforce_target_date(
-                soccer, "Soccer", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
+                soccer,
+                "Soccer",
+                soccer_match_day,
+                allow_cross_date_fallback=args.allow_cross_date_fallback,
             )
             soccer = attach_standard_refs(soccer)
-            print(f"  {len(soccer)} Soccer props loaded")
+            print(f"  {len(soccer)} Soccer props loaded (match day {soccer_match_day})")
             _load_audit_row("Soccer", args.soccer, soccer)
         except Exception as e:
             print(f"  WARNING: Could not load Soccer file: {e}")
@@ -16107,11 +16155,13 @@ def main():
         return df[~stale].copy()
 
     _date_fb = bool(args.allow_cross_date_fallback)
+    _soccer_day = str(getattr(args, "soccer_date", None) or args.date).strip()[:10]
+    _tennis_day = str(getattr(args, "tennis_date", None) or args.date).strip()[:10]
     nba = drop_stale_rows(nba, args.date, "NBA", allow_cross_date_fallback=_date_fb)
     cbb = drop_stale_rows(cbb, args.date, "CBB", allow_cross_date_fallback=_date_fb)
     nhl = drop_stale_rows(nhl, args.date, "NHL", allow_cross_date_fallback=_date_fb)
-    soccer = drop_stale_rows(soccer, args.date, "Soccer", allow_cross_date_fallback=_date_fb)
-    tennis = drop_stale_rows(tennis, args.date, "Tennis", allow_cross_date_fallback=_date_fb)
+    soccer = drop_stale_rows(soccer, _soccer_day, "Soccer", allow_cross_date_fallback=_date_fb)
+    tennis = drop_stale_rows(tennis, _tennis_day, "Tennis", allow_cross_date_fallback=_date_fb)
     golf = drop_stale_rows(golf, args.date, "Golf", allow_cross_date_fallback=_date_fb)
     wnba = drop_stale_rows(wnba, args.date, "WNBA", allow_cross_date_fallback=_date_fb)
     wcbb = drop_stale_rows(wcbb, args.date, "WCBB", allow_cross_date_fallback=_date_fb)
@@ -16167,6 +16217,7 @@ def main():
             wnba=wnba,
             cfb=cfb,
             tennis_date=getattr(args, "tennis_date", None),
+            soccer_date=getattr(args, "soccer_date", None),
         )
         print("[OK] Slate web JSON only (skipped workbook + tickets).")
         return
@@ -17669,13 +17720,14 @@ def main():
                 continue
             dated = sdf["game_date"].notna()
             gd = sdf["game_date"].astype(str).str[:10]
-            if label == "Tennis":
+            if label in ("Tennis", "Soccer"):
+                # Match-day sports (tennis_date / soccer_date) may be ET tomorrow vs bundle --date.
                 bad = sdf[dated & (gd < td)]
             elif label in ("NBA", "NBA1Q", "NBA1H"):
                 bad = sdf[dated & (gd < td)]
             elif label == "Combined" and "sport" in sdf.columns:
                 su = sdf["sport"].astype(str).str.upper()
-                is_roll = su.isin(["TENNIS", "NBA", "NFL"])
+                is_roll = su.isin(["TENNIS", "SOCCER", "SOC", "NBA", "NFL"])
                 bad = sdf[dated & ((gd < td) | (~is_roll & (gd != td)))]
             else:
                 bad = sdf[dated & (gd != td)]
@@ -18053,7 +18105,8 @@ def main():
         write_slate_json(nba, cbb, nhl, soccer, args.date, args.web_outdir,
                          wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h, tennis=tennis, golf=golf,
                          nfl=nfl, wnba=wnba, cfb=cfb,
-                         tennis_date=getattr(args, "tennis_date", None))
+                         tennis_date=getattr(args, "tennis_date", None),
+                         soccer_date=getattr(args, "soccer_date", None))
         try:
             ex_out = os.path.join(REPO_ROOT, "ui_runner", "data", "payout_ladder_examples.json")
             generate_payout_ladder_examples(payload, ex_out)

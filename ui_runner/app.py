@@ -2276,6 +2276,150 @@ def _composition_label_from_legs(legs: list[dict[str, Any]]) -> str:
     return f"{s}S+{g}G+{d}D"
 
 
+def _normalize_delta_signature(raw: object) -> str:
+    """
+    Sort Goblin/Demon distances into a stable multiset label, e.g. '1.5+2.0+3.5'.
+    Empty / unknown → ''.
+    """
+    if raw is None:
+        return ""
+    text = str(raw).strip()
+    if not text:
+        return ""
+    vals: list[float] = []
+    for part in text.replace("|", ",").replace("+", ",").split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            vals.append(float(part))
+        except (TypeError, ValueError):
+            continue
+    if not vals:
+        return ""
+    vals.sort()
+    return "+".join(f"{v:g}" for v in vals)
+
+
+def _leg_line_distance(leg: dict[str, Any]) -> float | None:
+    """Abs distance of Goblin/Demon played line from Standard."""
+    if not isinstance(leg, dict):
+        return None
+    try:
+        dist = float(leg.get("line_distance"))
+        if math.isfinite(dist) and dist > 0:
+            return dist
+    except (TypeError, ValueError):
+        pass
+    line = _safe_num_or_none(leg.get("line") or leg.get("played_line"))
+    std = _safe_num_or_none(
+        leg.get("standard_line") or leg.get("std_line") or leg.get("Standard Line")
+    )
+    if line is None or std is None:
+        return None
+    dist = abs(float(line) - float(std))
+    return dist if dist > 0 else None
+
+
+def _deltas_from_legs(legs: list[dict[str, Any]]) -> tuple[str, str]:
+    goblin: list[float] = []
+    demon: list[float] = []
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        pt = _normalize_leg_pick_type(leg.get("pick_type"))
+        dist = _leg_line_distance(leg)
+        if dist is None:
+            continue
+        if pt == "Goblin":
+            goblin.append(dist)
+        elif pt == "Demon":
+            demon.append(dist)
+    return (
+        _normalize_delta_signature(",".join(str(x) for x in goblin)),
+        _normalize_delta_signature(",".join(str(x) for x in demon)),
+    )
+
+
+def _ticket_index_for_ladder_enrichment() -> dict[str, dict[str, Any]]:
+    """ticket_id → ticket dict from tickets_latest.json (best-effort)."""
+    out: dict[str, dict[str, Any]] = {}
+    for cand in (
+        TEMPLATES_DIR / "tickets_latest.json",
+        UI_DIR / "data" / "tickets_latest.json",
+    ):
+        if not cand.is_file():
+            continue
+        try:
+            data = json.loads(cand.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        for g in data.get("groups") or []:
+            if not isinstance(g, dict):
+                continue
+            for t in g.get("tickets") or []:
+                if not isinstance(t, dict):
+                    continue
+                tid = str(t.get("ticket_id") or "").strip()
+                if tid:
+                    out[tid] = t
+        if out:
+            break
+    return out
+
+
+def _enrich_ladder_row_deltas(
+    row: dict[str, Any],
+    tickets_by_id: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Fill missing goblin/demon deltas from ticket legs when possible."""
+    out = dict(row)
+    g_sig = _normalize_delta_signature(out.get("goblin_deltas"))
+    d_sig = _normalize_delta_signature(out.get("demon_deltas"))
+    if g_sig:
+        out["goblin_deltas"] = g_sig.replace("+", ",")
+        out["goblin_delta_sig"] = g_sig
+    if d_sig:
+        out["demon_deltas"] = d_sig.replace("+", ",")
+        out["demon_delta_sig"] = d_sig
+    if g_sig or d_sig:
+        if not out.get("goblin_delta_sig"):
+            out["goblin_delta_sig"] = g_sig
+        if not out.get("demon_delta_sig"):
+            out["demon_delta_sig"] = d_sig
+        return out
+
+    tid = ""
+    notes = str(out.get("notes") or "")
+    if "ticket_id=" in notes:
+        tid = notes.split("ticket_id=", 1)[1].split(";", 1)[0].strip()
+    if not tid:
+        tid = str(out.get("ticket_id") or "").strip()
+    if not tid or not tickets_by_id:
+        out["goblin_delta_sig"] = ""
+        out["demon_delta_sig"] = ""
+        return out
+    ticket = tickets_by_id.get(tid)
+    if not isinstance(ticket, dict):
+        out["goblin_delta_sig"] = ""
+        out["demon_delta_sig"] = ""
+        return out
+    g_sig, d_sig = _deltas_from_legs(ticket.get("legs") if isinstance(ticket.get("legs"), list) else [])
+    if g_sig:
+        out["goblin_deltas"] = g_sig.replace("+", ",")
+        out["goblin_delta_sig"] = g_sig
+    else:
+        out["goblin_delta_sig"] = ""
+    if d_sig:
+        out["demon_deltas"] = d_sig.replace("+", ",")
+        out["demon_delta_sig"] = d_sig
+    else:
+        out["demon_delta_sig"] = ""
+    return out
+
+
 def _read_payout_ladder_rows() -> list[dict[str, Any]]:
     p = PAYOUT_LADDER_LOG_PATH
     out: list[dict[str, Any]] = []
@@ -2317,11 +2461,121 @@ def _read_payout_ladder_rows() -> list[dict[str, Any]]:
                         "flex_payout_x": str(row.get("flex_payout_x") or ""),
                         "source": str(row.get("source") or "live_cdp"),
                         "notes": str(row.get("notes") or ""),
+                        "ticket_id": tid,
                     }
                 )
         except (OSError, json.JSONDecodeError):
             pass
-    return out
+
+    tickets_by_id = _ticket_index_for_ladder_enrichment()
+    return [_enrich_ladder_row_deltas(r, tickets_by_id) for r in out]
+
+
+def _parse_sgd_counts(comp: str) -> tuple[int, int, int]:
+    """Parse '0S+2G+0D' → (s, g, d)."""
+    s = g = d = 0
+    for part in str(comp or "").split("+"):
+        part = part.strip().upper()
+        if not part:
+            continue
+        try:
+            if part.endswith("S"):
+                s = int(part[:-1] or 0)
+            elif part.endswith("G"):
+                g = int(part[:-1] or 0)
+            elif part.endswith("D"):
+                d = int(part[:-1] or 0)
+        except ValueError:
+            continue
+    return s, g, d
+
+
+def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> list[dict[str, Any]]:
+    """Aggregate Min/Max/Avg payout by composition, optionally + Goblin/Demon distance signature."""
+    grouped: dict[tuple, list[dict[str, Any]]] = {}
+    for r in rows:
+        n = int(_safe_float(r.get("n_legs"), 0))
+        comp = str(r.get("leg_composition") or "").strip()
+        if n <= 0 or not comp:
+            continue
+        if by_delta:
+            g_sig = str(
+                r.get("goblin_delta_sig") or _normalize_delta_signature(r.get("goblin_deltas")) or ""
+            )
+            d_sig = str(
+                r.get("demon_delta_sig") or _normalize_delta_signature(r.get("demon_deltas")) or ""
+            )
+            _, g_count, d_count = _parse_sgd_counts(comp)
+            # Delta table only includes recipes with a full known distance set.
+            if g_count > 0 and not g_sig:
+                continue
+            if d_count > 0 and not d_sig:
+                continue
+            if g_count == 0 and d_count == 0:
+                continue  # all-standard: no distance breakdown needed
+            if g_count > 0:
+                n_g_parts = len([x for x in str(g_sig).split("+") if x and x != "—"])
+                if n_g_parts != g_count:
+                    continue
+            if d_count > 0:
+                n_d_parts = len([x for x in str(d_sig).split("+") if x and x != "—"])
+                if n_d_parts != d_count:
+                    continue
+            key: tuple = (n, comp, g_sig or "—", d_sig or "—")
+        else:
+            key = (n, comp)
+        grouped.setdefault(key, []).append(r)
+
+    summary: list[dict[str, Any]] = []
+    for key, recs in sorted(grouped.items(), key=lambda x: x[0]):
+        vals: list[float] = []
+        n_live = 0
+        for r in recs:
+            if str(r.get("source") or "").strip().lower() == "live_cdp":
+                n_live += 1
+            p = _safe_float(r.get("power_payout_x"), float("nan"))
+            f = _safe_float(r.get("flex_payout_x"), float("nan"))
+            if math.isfinite(p) and p > 0:
+                vals.append(p)
+            if math.isfinite(f) and f > 0:
+                vals.append(f)
+        if vals:
+            mn, mx, avg = min(vals), max(vals), statistics.mean(vals)
+        else:
+            mn = mx = avg = 0.0
+        if by_delta:
+            n, comp, g_sig, d_sig = key  # type: ignore[misc]
+            g_vals = [float(x) for x in str(g_sig).split("+") if x not in ("", "—")]
+            summary.append(
+                {
+                    "n_legs": n,
+                    "leg_composition": comp,
+                    "goblin_delta_sig": g_sig,
+                    "demon_delta_sig": d_sig,
+                    "goblin_delta_sum": round(sum(g_vals), 2) if g_vals else None,
+                    "samples": len(recs),
+                    "live_cdp_samples": n_live,
+                    "min_payout_x": round(mn, 4),
+                    "max_payout_x": round(mx, 4),
+                    "avg_payout_x": round(avg, 4),
+                    "is_sparse": len(recs) < 3,
+                }
+            )
+        else:
+            n, comp = key  # type: ignore[misc]
+            summary.append(
+                {
+                    "n_legs": n,
+                    "leg_composition": comp,
+                    "samples": len(recs),
+                    "live_cdp_samples": n_live,
+                    "min_payout_x": round(mn, 4),
+                    "max_payout_x": round(mx, 4),
+                    "avg_payout_x": round(avg, 4),
+                    "is_sparse": len(recs) < 5,
+                }
+            )
+    return summary
 
 
 @app.post("/payout/predict")
@@ -2450,47 +2704,21 @@ def api_payout_log_save():
 def page_payout_ladder():
     rows = _read_payout_ladder_rows()
     n_live_cdp = sum(1 for r in rows if str(r.get("source") or "").strip().lower() == "live_cdp")
-    grouped: dict[tuple[int, str], list[dict[str, Any]]] = {}
-    for r in rows:
-        n = int(_safe_float(r.get("n_legs"), 0))
-        comp = str(r.get("leg_composition") or "").strip()
-        if n <= 0 or not comp:
-            continue
-        grouped.setdefault((n, comp), []).append(r)
-    summary: list[dict[str, Any]] = []
-    for (n, comp), recs in sorted(grouped.items(), key=lambda x: (x[0][0], x[0][1])):
-        vals: list[float] = []
-        n_live = 0
-        for r in recs:
-            if str(r.get("source") or "").strip().lower() == "live_cdp":
-                n_live += 1
-            p = _safe_float(r.get("power_payout_x"), float("nan"))
-            f = _safe_float(r.get("flex_payout_x"), float("nan"))
-            if math.isfinite(p) and p > 0:
-                vals.append(p)
-            if math.isfinite(f) and f > 0:
-                vals.append(f)
-        if vals:
-            mn, mx, avg = min(vals), max(vals), statistics.mean(vals)
-        else:
-            mn = mx = avg = 0.0
-        summary.append(
-            {
-                "n_legs": n,
-                "leg_composition": comp,
-                "samples": len(recs),
-                "live_cdp_samples": n_live,
-                "min_payout_x": round(mn, 4),
-                "max_payout_x": round(mx, 4),
-                "avg_payout_x": round(avg, 4),
-                "is_sparse": len(recs) < 5,
-            }
-        )
+    n_with_deltas = sum(
+        1
+        for r in rows
+        if _normalize_delta_signature(r.get("goblin_delta_sig") or r.get("goblin_deltas"))
+        or _normalize_delta_signature(r.get("demon_delta_sig") or r.get("demon_deltas"))
+    )
+    summary = _summarize_ladder_rows(rows, by_delta=False)
+    delta_rows = _summarize_ladder_rows(rows, by_delta=True)
     return _grades_html_response(
         "payout_ladder.html",
         ladder_rows=summary,
+        delta_rows=delta_rows,
         total_rows=len(rows),
         live_cdp_rows=n_live_cdp,
+        delta_known_rows=n_with_deltas,
     )
 
 

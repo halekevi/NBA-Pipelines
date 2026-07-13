@@ -3049,17 +3049,35 @@ def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
         if not isinstance(leg, dict):
             continue
         pt = str(leg.get("pick_type") or "").strip().lower()
+        dist = None
         try:
             dist = float(leg.get("line_distance") or 0.0)
+            if not (dist > 0):
+                dist = None
         except (TypeError, ValueError):
-            dist = 0.0
-        if dist <= 0:
+            dist = None
+        if dist is None:
+            try:
+                line = float(leg.get("line") or leg.get("played_line"))
+                std = float(leg.get("standard_line") or leg.get("std_line"))
+                dist = abs(line - std)
+                if not (dist > 0):
+                    dist = None
+            except (TypeError, ValueError):
+                dist = None
+        if dist is None:
             continue
-        val = str(round(dist, 2))
+        val = str(round(float(dist), 2))
         if "goblin" in pt:
             goblin_deltas.append(val)
         elif "demon" in pt:
             demon_deltas.append(val)
+    # Stable sorted signature for grouping
+    try:
+        goblin_deltas = [f"{v:g}" for v in sorted(float(x) for x in goblin_deltas)]
+        demon_deltas = [f"{v:g}" for v in sorted(float(x) for x in demon_deltas)]
+    except (TypeError, ValueError):
+        pass
     tid = str(rec.get("ticket_id") or "").strip()
     sports = sorted(
         {
@@ -3088,6 +3106,7 @@ def sync_captures_to_payout_ladder_live(
     *,
     date_str: str,
     output_path: Path | None = None,
+    tickets_path: Path | None = None,
 ) -> dict[str, Any]:
     """
     Upsert live CDP captures into ui_runner/data/payout_ladder_live_cdp.json.
@@ -3096,6 +3115,69 @@ def sync_captures_to_payout_ladder_live(
     """
     date_str = str(date_str or "").strip()[:10]
     output_path = output_path or PAYOUT_LADDER_LIVE_CDP_PATH
+
+    # Enrich legs with standard_line / line_distance from tickets JSON when available.
+    tickets_by_id: dict[str, dict] = {}
+    for cand in (
+        tickets_path,
+        ROOT / "ui_runner" / "templates" / "tickets_latest.json",
+        ROOT / "ui_runner" / "data" / "tickets_latest.json",
+    ):
+        if cand is None:
+            continue
+        p = Path(cand)
+        if not p.is_file():
+            continue
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for g in (data.get("groups") or []) if isinstance(data, dict) else []:
+            if not isinstance(g, dict):
+                continue
+            for t in g.get("tickets") or []:
+                if not isinstance(t, dict):
+                    continue
+                tid = str(t.get("ticket_id") or "").strip()
+                if tid:
+                    tickets_by_id[tid] = t
+        if tickets_by_id:
+            break
+
+    enriched_captured: list[dict] = []
+    for rec in captured or []:
+        if not isinstance(rec, dict):
+            continue
+        row = dict(rec)
+        tid = str(row.get("ticket_id") or "").strip()
+        ticket = tickets_by_id.get(tid) if tid else None
+        if ticket and isinstance(ticket.get("legs"), list):
+            # Prefer ticket legs (often have standard_line) but keep capture payout fields.
+            t_legs = ticket.get("legs") or []
+            c_legs = row.get("legs") if isinstance(row.get("legs"), list) else []
+            merged_legs = []
+            for i, tleg in enumerate(t_legs):
+                if not isinstance(tleg, dict):
+                    continue
+                m = dict(tleg)
+                if i < len(c_legs) and isinstance(c_legs[i], dict):
+                    for k, v in c_legs[i].items():
+                        if k not in m or m.get(k) in (None, ""):
+                            m[k] = v
+                if m.get("line_distance") in (None, "", 0, 0.0):
+                    try:
+                        line = float(m.get("line") or m.get("played_line"))
+                        std = float(m.get("standard_line") or m.get("std_line"))
+                        dist = abs(line - std)
+                        if dist > 0:
+                            m["line_distance"] = round(dist, 2)
+                    except (TypeError, ValueError):
+                        pass
+                merged_legs.append(m)
+            if merged_legs:
+                row["legs"] = merged_legs
+        enriched_captured.append(row)
+
     prior: dict[str, Any] = {"schema_version": 1, "date": date_str, "rows": []}
     if output_path.is_file():
         try:
@@ -3114,7 +3196,7 @@ def sync_captures_to_payout_ladder_live(
         if key:
             rows_by_id[key] = row
     n_new = 0
-    for rec in captured or []:
+    for rec in enriched_captured:
         row = _capture_to_ladder_row(rec, date_str)
         if not row:
             continue
@@ -3130,13 +3212,17 @@ def sync_captures_to_payout_ladder_live(
         "schema_version": 1,
         "date": date_str,
         "generated_at": datetime.utcnow().isoformat() + "Z",
-        "rows": sorted(rows_by_id.values(), key=lambda r: (r.get("leg_composition") or "", r.get("ticket_id") or "")),
+        "rows": sorted(
+            rows_by_id.values(),
+            key=lambda r: (r.get("leg_composition") or "", r.get("goblin_deltas") or "", r.get("ticket_id") or ""),
+        ),
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    n_with_delta = sum(1 for r in out["rows"] if str(r.get("goblin_deltas") or "").strip())
     print(
         f"[PAYOUT] ladder live -> {output_path} "
-        f"(rows={len(out['rows'])} new={n_new})"
+        f"(rows={len(out['rows'])} new={n_new} with_goblin_delta={n_with_delta})"
     )
     return out
 

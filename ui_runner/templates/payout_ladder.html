@@ -8,14 +8,16 @@
   <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260418nav"/>
   <link rel="stylesheet" href="/static/mobile-content-width.css?v=20260422incomeplot"/>
   <style>
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px 14px 24px; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 16px 14px 24px; }
     .card { border: 1px solid rgba(255,255,255,.12); border-radius: 14px; background: rgba(255,255,255,.03); padding: 14px; margin-bottom: 12px; }
-    h1 { margin: 0; font-family: "Bebas Neue", sans-serif; letter-spacing: .08em; color: var(--accent, #d4af37); }
+    h1, h2 { margin: 0; font-family: "Bebas Neue", sans-serif; letter-spacing: .08em; color: var(--accent, #d4af37); }
+    h2 { font-size: 1.35rem; margin-bottom: 6px; }
     .muted { color: rgba(255,255,255,.72); font-size: 12px; line-height: 1.6; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { border-bottom: 1px solid rgba(255,255,255,.08); padding: 8px 6px; text-align: right; white-space: nowrap; }
-    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: left; }
     tr.sparse { background: rgba(255, 127, 127, 0.08); }
+    code.delta { font-size: 12px; color: #9fd4ff; }
     @media (max-width: 900px) { table { font-size: 12px; } }
   </style>
 </head>
@@ -25,11 +27,14 @@
   <main class="wrap">
     <section class="card">
       <h1>Payout Ladder Coverage</h1>
-      <p class="muted">Grouped by leg count and composition (Standard / Goblin / Demon). Rows with fewer than 5 samples are highlighted as incomplete coverage.</p>
-      <p class="muted">Total rows: <strong>{{ total_rows }}</strong>{% if live_cdp_rows %} · live CDP: <strong>{{ live_cdp_rows }}</strong>{% endif %}</p>
+      <p class="muted">Mix table: grouped by leg count and S/G/D composition. Distance table: same recipes broken down by how far each Goblin/Demon line sits from Standard (sorted units).</p>
+      <p class="muted">Total rows: <strong>{{ total_rows }}</strong>{% if live_cdp_rows %} · live CDP: <strong>{{ live_cdp_rows }}</strong>{% endif %}{% if delta_known_rows is defined %} · with known distances: <strong>{{ delta_known_rows }}</strong>{% endif %}</p>
     </section>
+
     <section class="card">
-      <table aria-label="Payout ladder summary">
+      <h2>By mix (S / G / D)</h2>
+      <p class="muted">Rows with fewer than 5 samples are highlighted as incomplete coverage.</p>
+      <table aria-label="Payout ladder by mix">
         <thead>
           <tr>
             <th>Legs</th>
@@ -52,6 +57,45 @@
             <td>{{ '%.3f'|format(r.max_payout_x) }}</td>
             <td>{{ '%.3f'|format(r.avg_payout_x) }}</td>
           </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>By Goblin / Demon distance from Standard</h2>
+      <p class="muted">Goblin Δ = |Standard − Goblin line| per leg, sorted (e.g. <code class="delta">1.5+3.5</code>). Only rows with known distances. Sparse (&lt;3 samples) highlighted.</p>
+      <table aria-label="Payout ladder by Goblin distance">
+        <thead>
+          <tr>
+            <th>Legs</th>
+            <th>Composition</th>
+            <th>Goblin Δ</th>
+            <th>Demon Δ</th>
+            <th>ΣG Δ</th>
+            <th>Samples</th>
+            <th>Live</th>
+            <th>Min X</th>
+            <th>Max X</th>
+            <th>Avg X</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in delta_rows %}
+          <tr class="{{ 'sparse' if r.is_sparse else '' }}">
+            <td>{{ r.n_legs }}</td>
+            <td>{{ r.leg_composition }}</td>
+            <td><code class="delta">{{ r.goblin_delta_sig }}</code></td>
+            <td>{% if r.demon_delta_sig and r.demon_delta_sig != '—' %}<code class="delta">{{ r.demon_delta_sig }}</code>{% else %}—{% endif %}</td>
+            <td>{% if r.goblin_delta_sum is not none %}{{ '%.1f'|format(r.goblin_delta_sum) }}{% else %}—{% endif %}</td>
+            <td>{{ r.samples }}</td>
+            <td>{{ r.live_cdp_samples or 0 }}</td>
+            <td>{{ '%.3f'|format(r.min_payout_x) }}</td>
+            <td>{{ '%.3f'|format(r.max_payout_x) }}</td>
+            <td>{{ '%.3f'|format(r.avg_payout_x) }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10" style="text-align:left;color:rgba(255,255,255,.6)">No distance-tagged samples yet. Log slips with Standard vs Goblin lines, or capture tickets that include <code>standard_line</code>.</td></tr>
           {% endfor %}
         </tbody>
       </table>

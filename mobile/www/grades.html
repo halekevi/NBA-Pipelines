@@ -418,7 +418,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .grades-analytics-wrap{position:absolute;inset:0;overflow:scroll;scrollbar-gutter:stable;padding:20px 24px 36px;z-index:4;background:transparent;}
 .insights-card.insights-card-empty{display:none !important;}
 .grades-props-inner{width:100%;max-width:none;margin:0;}
-.props-eval-toolbar{display:flex;flex-direction:column;gap:12px;margin-top:12px;margin-bottom:14px;}
+.props-eval-toolbar{display:flex;flex-direction:column;gap:10px;margin-top:10px;margin-bottom:10px;}
 .props-eval-filter-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 10px;}
 .props-eval-filter-label{
   flex:0 0 auto;min-width:4.5rem;padding-top:6px;
@@ -426,7 +426,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 }
 .props-filter-pills{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 0;min-width:0;}
 .props-filter-pill{
-  padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);
+  padding:6px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);
   background:transparent;color:var(--text);cursor:pointer;
   font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.05em;
   transition:border-color .15s ease,color .15s ease,background .15s ease;
@@ -437,6 +437,24 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .props-filter-pill[data-filter="HIT"].active{background:#00ff88;border-color:#00ff88;color:#0a0a0f;}
 .props-filter-pill[data-filter="MISS"].active{background:#ff6b6b;border-color:#ff6b6b;color:#0a0a0f;}
 .props-filter-pill[data-filter="VOID"].active{background:var(--amber);border-color:var(--amber);color:#0a0a0f;}
+.props-filter-pill[data-filter="DECIDED"].active{background:rgba(127,199,217,0.95);border-color:#7fc7d9;color:#0a0a0f;}
+.props-eval-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.props-eval-view-toggle{display:inline-flex;gap:0;padding:3px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.22);}
+.props-view-btn{
+  appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);
+  font-family:'Bebas Neue',sans-serif;letter-spacing:1.2px;font-size:13px;padding:7px 12px;border-radius:8px;cursor:pointer;
+}
+.props-view-btn.active{background:#f0a500;color:#0a0a14;}
+.props-eval-kpis{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px;}
+.props-kpi{
+  display:inline-flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);
+  font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.7);
+}
+.props-kpi strong{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#f0a500;font-weight:400;}
+.props-kpi.is-hit strong{color:#5ef598;}
+.props-kpi.is-miss strong{color:#ff7070;}
+.props-kpi.is-void strong{color:#f5c842;}
 .props-eval-search-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
 .props-eval-search-row label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2);font-weight:600;}
 .props-eval-toolbar input[type="search"]{
@@ -445,22 +463,61 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   min-width:160px;flex:1 1 180px;max-width:100%;
 }
 .props-eval-counts{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);letter-spacing:0.4px;margin-bottom:6px;}
-/* Desktop: responsive card masonry */
+/* List mode (default): dense rows — much faster/cheaper than glass cards */
 .props-eval-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:12px;
+  display:flex;
+  flex-direction:column;
+  gap:0;
   width:100%;
   max-width:100%;
   box-sizing:border-box;
   padding-bottom:28px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  overflow:hidden;
+  background:rgba(255,255,255,0.02);
 }
-.prop-eval-card{
-  border-radius:14px;padding:14px 16px;border:1px solid var(--glass-panel-border);
-  background:rgba(255,255,255,0.035);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
-  box-shadow:var(--glass-shadow);text-align:left;transition:border-color .15s,transform .15s;
+.props-eval-grid[data-view="cards"]{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:10px;
+  border:none;
+  background:transparent;
+  overflow:visible;
+}
+.prop-eval-row{
+  display:grid;
+  grid-template-columns:56px minmax(0,1.2fr) minmax(0,1.4fr) minmax(0,0.9fr) auto;
+  gap:10px 12px;
+  align-items:center;
+  padding:10px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
   content-visibility:auto;
-  contain-intrinsic-size:auto 132px;
+  contain-intrinsic-size:auto 48px;
+  contain:content;
+}
+.prop-eval-row:last-of-type{border-bottom:none;}
+.prop-eval-row:hover{background:rgba(255,255,255,0.03);}
+.prop-eval-row.hit{box-shadow:inset 3px 0 0 #5ef598;}
+.prop-eval-row.miss{box-shadow:inset 3px 0 0 #ff7070;}
+.prop-eval-row.other{box-shadow:inset 3px 0 0 #f5c842;}
+.prop-eval-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;padding:4px 0;
+}
+.prop-eval-badge.hit{color:#5ef598;}
+.prop-eval-badge.miss{color:#ff7070;}
+.prop-eval-badge.other{color:#f5c842;}
+.prop-eval-row .prop-eval-player{font-weight:650;font-size:13px;color:var(--text-primary);line-height:1.25;margin:0;}
+.prop-eval-row .prop-eval-line{font-size:12px;color:var(--cyan);margin:0;}
+.prop-eval-row .prop-eval-meta{font-size:11px;color:var(--muted);margin:0;}
+.prop-eval-row .prop-eval-stats{font-size:11px;color:rgba(255,255,255,0.72);text-align:right;white-space:nowrap;}
+.prop-eval-card{
+  border-radius:12px;padding:12px 14px;border:1px solid var(--glass-panel-border);
+  background:rgba(255,255,255,0.035);
+  box-shadow:none;text-align:left;transition:border-color .15s;
+  content-visibility:auto;
+  contain-intrinsic-size:auto 110px;
+  contain:content;
 }
 .props-eval-sentinel{
   grid-column:1 / -1;
@@ -480,7 +537,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   text-align:center;
   padding:8px 0 16px;
 }
-.prop-eval-card:hover{border-color:rgba(212,160,23,0.22);transform:translateY(-1px);}
+.prop-eval-card:hover{border-color:rgba(212,160,23,0.22);}
 .prop-eval-card.hit{border-left:4px solid var(--green);background:rgba(57,255,110,0.05);}
 .prop-eval-card.miss{border-left:4px solid var(--red);background:rgba(255,77,77,0.07);}
 .prop-eval-card.other{border-left:4px solid var(--amber);}
@@ -494,6 +551,21 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .prop-eval-player{font-weight:700;font-size:15px;color:var(--text-primary);line-height:1.25;margin-bottom:4px;}
 .prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.45;}
 .prop-eval-line{font-family:'Inter',sans-serif;font-size:13px;color:var(--cyan);margin-top:8px;}
+@media(max-width:900px){
+  .prop-eval-row{
+    grid-template-columns:52px minmax(0,1fr);
+    grid-template-areas:
+      "badge player"
+      "badge line"
+      "badge meta"
+      "badge stats";
+  }
+  .prop-eval-badge{grid-area:badge;}
+  .prop-eval-row .prop-eval-player{grid-area:player;}
+  .prop-eval-row .prop-eval-line{grid-area:line;}
+  .prop-eval-row .prop-eval-meta{grid-area:meta;}
+  .prop-eval-row .prop-eval-stats{grid-area:stats;text-align:left;}
+}
 [data-theme="light"] .prop-eval-card{background:rgba(255,255,255,0.72)!important;border-color:rgba(0,0,0,0.08)!important;}
 [data-theme="light"] .prop-eval-card.hit{background:rgba(26,140,69,.08)!important;}
 [data-theme="light"] .prop-eval-card.miss{background:rgba(204,34,0,.06)!important;}
@@ -505,10 +577,12 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 [data-theme="light"] .props-eval-toolbar input[type="search"]{
   background:rgba(255,255,255,0.85)!important;border-color:rgba(0,0,0,0.12)!important;color:rgba(0,0,0,0.85)!important;
 }
+[data-theme="light"] .props-eval-grid{background:rgba(255,255,255,0.55);border-color:rgba(0,0,0,0.08);}
+[data-theme="light"] .prop-eval-row:hover{background:rgba(0,0,0,0.03);}
 .glass-insights{background:var(--glass-panel);border:1px solid var(--glass-panel-border);border-radius:16px;padding:20px 22px;box-shadow:var(--glass-shadow);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);}
 .insights-card-title{font-size:19px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent-gold);margin-bottom:8px;}
 .insights-card-sub{font-size:16px;color:var(--muted);margin-bottom:14px;line-height:1.45;}
-.props-eval-intro .insights-card-sub{font-size:14px;line-height:1.35;}
+.props-eval-intro .insights-card-sub{font-size:14px;line-height:1.35;margin-bottom:0;}
 .insights-table-host table{width:100%;border-collapse:collapse;font-size:clamp(15px,1.02vw,17px);}
 .insights-table-host th,.insights-table-host td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
 .insights-table-host th{color:var(--muted2);font-weight:600;font-size:clamp(13px,0.92vw,15px);text-transform:uppercase;letter-spacing:0.06em;}
@@ -663,12 +737,17 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
     touch-action:pan-y;
   }
   .grades-props-wrap .grades-props-inner{overflow:visible;}
-  .props-eval-grid{
+  .props-eval-grid[data-view="cards"]{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:10px 12px;
     align-content:start;
     padding-bottom:24px;
+  }
+  .props-eval-grid:not([data-view="cards"]){
+    display:flex;
+    flex-direction:column;
+    gap:0;
   }
   .prop-eval-card{
     min-width:0;
@@ -1653,8 +1732,17 @@ select option,
   <div id="props-eval-panel" class="grades-analytics-wrap grades-props-wrap" hidden aria-label="Graded props by report date">
     <div class="grades-props-inner">
       <div class="glass-insights props-eval-intro">
-        <h3 class="insights-card-title">Prop evaluation</h3>
-        <p class="insights-card-sub">Graded props for the selected report date. Filter by sport, result, or pick type — or search a player.</p>
+        <div class="props-eval-head">
+          <div>
+            <h3 class="insights-card-title">Prop evaluation</h3>
+            <p class="insights-card-sub">Decided props load first (voids hidden). Switch filters or search to refine.</p>
+          </div>
+          <div class="props-eval-view-toggle" role="group" aria-label="Display density">
+            <button type="button" class="props-view-btn active" id="props-view-list" data-view="list" aria-pressed="true">List</button>
+            <button type="button" class="props-view-btn" id="props-view-cards" data-view="cards" aria-pressed="false">Cards</button>
+          </div>
+        </div>
+        <div class="props-eval-kpis" id="props-eval-kpis" hidden></div>
         <div class="props-eval-toolbar">
           <div class="props-eval-filter-row">
             <span class="props-eval-filter-label">Sport</span>
@@ -1665,10 +1753,11 @@ select option,
           <div class="props-eval-filter-row">
             <span class="props-eval-filter-label">Result</span>
             <div class="props-filter-pills" id="props-filter-result-group" role="group" aria-label="Filter by result">
-              <button type="button" class="props-filter-pill active" data-filter="" aria-pressed="true">ALL</button>
+              <button type="button" class="props-filter-pill active" data-filter="DECIDED" aria-pressed="true">DECIDED</button>
               <button type="button" class="props-filter-pill" data-filter="HIT" aria-pressed="false">HITS</button>
               <button type="button" class="props-filter-pill" data-filter="MISS" aria-pressed="false">MISSES</button>
               <button type="button" class="props-filter-pill" data-filter="VOID" aria-pressed="false">VOIDS</button>
+              <button type="button" class="props-filter-pill" data-filter="" aria-pressed="false">ALL</button>
             </div>
           </div>
           <div class="props-eval-filter-row">
@@ -3625,19 +3714,32 @@ function propsEvalIsVoidResult(r) {
   if (r && r.void_reason && String(r.void_reason).trim()) return true;
   return ru !== 'HIT' && ru !== 'MISS' && ru !== 'WIN' && ru !== 'LOSS' && ru !== 'LOSE' && ru !== '';
 }
+function propsEvalIsHit(r) {
+  var ru = String((r && r.result) || '').toUpperCase();
+  return ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT';
+}
+function propsEvalIsMiss(r) {
+  var ru = String((r && r.result) || '').toUpperCase();
+  return ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE';
+}
 function fillPropsSportFilter(rows) {
   const group = document.getElementById('props-filter-sport-group');
   if (!group) return;
   const cur = getPropsFilterGroupValue('props-filter-sport-group');
-  const fromData = new Set(rows.map(function (r) { return normalizePropsEvalSport(r.sport); }).filter(Boolean));
-  const sports = PROPS_EVAL_SPORT_PILLS.slice();
-  fromData.forEach(function (s) {
+  const fromData = {};
+  rows.forEach(function (r) {
+    var s = normalizePropsEvalSport(r.sport);
+    if (s) fromData[s] = (fromData[s] || 0) + 1;
+  });
+  const sports = PROPS_EVAL_SPORT_PILLS.filter(function (s) { return fromData[s]; });
+  Object.keys(fromData).forEach(function (s) {
     if (sports.indexOf(s) < 0) sports.push(s);
   });
   group.innerHTML =
     '<button type="button" class="props-filter-pill active" data-filter="" aria-pressed="true">ALL</button>' +
     sports.map(function (s) {
-      return '<button type="button" class="props-filter-pill" data-filter="' + escProps(s) + '" aria-pressed="false">' + escProps(s) + '</button>';
+      return '<button type="button" class="props-filter-pill" data-filter="' + escProps(s) + '" aria-pressed="false">' +
+        escProps(s) + ' <span style="opacity:.65">' + fromData[s] + '</span></button>';
     }).join('');
   var restore = null;
   if (cur) {
@@ -3646,6 +3748,26 @@ function fillPropsSportFilter(rows) {
     });
   }
   setActivePropsFilterPill(group, restore || group.querySelector('.props-filter-pill[data-filter=""]'));
+}
+function updatePropsEvalKpis(rows) {
+  var el = document.getElementById('props-eval-kpis');
+  if (!el) return;
+  var n = rows.length, hit = 0, miss = 0, voids = 0;
+  for (var i = 0; i < n; i++) {
+    var r = rows[i];
+    if (propsEvalIsHit(r)) hit++;
+    else if (propsEvalIsMiss(r)) miss++;
+    else if (propsEvalIsVoidResult(r)) voids++;
+  }
+  var decided = hit + miss;
+  var rate = decided ? ((hit / decided) * 100).toFixed(1) + '%' : '—';
+  el.hidden = false;
+  el.innerHTML =
+    '<span class="props-kpi"><strong>' + n + '</strong> total</span>' +
+    '<span class="props-kpi is-hit"><strong>' + hit + '</strong> hits</span>' +
+    '<span class="props-kpi is-miss"><strong>' + miss + '</strong> misses</span>' +
+    '<span class="props-kpi is-void"><strong>' + voids + '</strong> voids</span>' +
+    '<span class="props-kpi"><strong>' + rate + '</strong> decided HR</span>';
 }
 /** Team vs opponent; strips placeholders so we do not show "NYY vs —" when opp is missing in JSON. */
 function formatPropEvalMatchup(r) {
@@ -3666,8 +3788,47 @@ function formatPropEvalMatchup(r) {
 }
 var PROPS_EVAL_RENDER_GEN = 0;
 var PROPS_EVAL_IO = null;
-var PROPS_EVAL_BATCH_MOBILE = 48;
-var PROPS_EVAL_BATCH_DESKTOP = 96;
+var PROPS_EVAL_BATCH_MOBILE = 36;
+var PROPS_EVAL_BATCH_DESKTOP = 56;
+var PROPS_EVAL_VIEW = 'list';
+var PROPS_EVAL_DATE_CACHE = Object.create(null);
+var PROPS_EVAL_LOAD_ABORT = null;
+var PROPS_EVAL_SEARCH_TIMER = null;
+
+function getPropsEvalView() {
+  try {
+    var v = localStorage.getItem('grades-props-view');
+    if (v === 'cards' || v === 'list') return v;
+  } catch (_e) {}
+  return PROPS_EVAL_VIEW || 'list';
+}
+function setPropsEvalView(view) {
+  PROPS_EVAL_VIEW = view === 'cards' ? 'cards' : 'list';
+  try { localStorage.setItem('grades-props-view', PROPS_EVAL_VIEW); } catch (_e) {}
+  var listBtn = document.getElementById('props-view-list');
+  var cardsBtn = document.getElementById('props-view-cards');
+  if (listBtn) {
+    listBtn.classList.toggle('active', PROPS_EVAL_VIEW === 'list');
+    listBtn.setAttribute('aria-pressed', PROPS_EVAL_VIEW === 'list' ? 'true' : 'false');
+  }
+  if (cardsBtn) {
+    cardsBtn.classList.toggle('active', PROPS_EVAL_VIEW === 'cards');
+    cardsBtn.setAttribute('aria-pressed', PROPS_EVAL_VIEW === 'cards' ? 'true' : 'false');
+  }
+  var grid = document.getElementById('props-eval-grid');
+  if (grid) grid.setAttribute('data-view', PROPS_EVAL_VIEW);
+}
+
+function enrichPropsEvalRow(r) {
+  if (!r._enriched) {
+    r._rank = propsEvalOutcomeRank(r.result);
+    r._hay = [r.player_name, r.prop_type, r.team, r.opp_team, r.pick_type, r.tier, r.direction, r.sport]
+      .map(function (x) { return String(x || '').toLowerCase(); }).join(' ');
+    r._playerDisp = formatPlayerDisplay(r.player_name);
+    r._enriched = 1;
+  }
+  return r;
+}
 
 function buildPropEvalCardElement(r) {
   const ru = String(r.result || '').toUpperCase();
@@ -3691,7 +3852,7 @@ function buildPropEvalCardElement(r) {
   card.className = 'prop-eval-card ' + cls;
   card.innerHTML =
     '<div class="prop-eval-result ' + cls + '">' + escProps(rlbl) + '</div>' +
-    '<div class="prop-eval-player">' + escProps(formatPlayerDisplay(r.player_name)) + '</div>' +
+    '<div class="prop-eval-player">' + escProps(r._playerDisp || formatPlayerDisplay(r.player_name)) + '</div>' +
     '<div class="prop-eval-meta">' + escProps(r.sport) + ' · ' + escProps(r.pick_type || '') + (r.tier ? (' · Tier ' + escProps(r.tier)) : '') + '</div>' +
     '<div class="prop-eval-line">' + escProps(r.prop_type) + ' ' + (dir === 'OVER' ? '▲' : dir === 'UNDER' ? '▼' : '') + ' ' + escProps(dir) + linePart + '</div>' +
     '<div class="prop-eval-meta" style="margin-top:8px;">' + escProps(formatPropEvalMatchup(r)) + '</div>' +
@@ -3701,6 +3862,28 @@ function buildPropEvalCardElement(r) {
     '<div class="prop-eval-meta">Actual <span class="prop-eval-stat ' + cls + '">' + fmtPropsNum(r.actual_value) + '</span>' +
     ' · Margin <span class="prop-eval-stat ' + cls + '">' + fmtPropsNum(r.margin) + '</span></div>';
   return card;
+}
+
+function buildPropEvalRowElement(r) {
+  const ru = String(r.result || '').toUpperCase();
+  var cls = 'other';
+  var rlbl = ru || '—';
+  if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') { cls = 'hit'; rlbl = 'HIT'; }
+  else if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') { cls = 'miss'; rlbl = 'MISS'; }
+  else if (ru === 'VOID') { cls = 'other'; rlbl = 'VOID'; }
+  else if (ru === 'PUSH') { cls = 'other'; rlbl = 'PUSH'; }
+  const dir = String(r.direction || '').toUpperCase();
+  const linePart = (r.line != null && r.line !== '') ? (' ' + fmtPropsNum(r.line)) : '';
+  const arrow = dir === 'OVER' ? '▲' : dir === 'UNDER' ? '▼' : '';
+  const row = document.createElement('div');
+  row.className = 'prop-eval-row ' + cls;
+  row.innerHTML =
+    '<div class="prop-eval-badge ' + cls + '">' + escProps(rlbl) + '</div>' +
+    '<div class="prop-eval-player">' + escProps(r._playerDisp || formatPlayerDisplay(r.player_name)) + '</div>' +
+    '<div class="prop-eval-line">' + escProps(r.prop_type) + ' ' + arrow + ' ' + escProps(dir) + linePart + '</div>' +
+    '<div class="prop-eval-meta">' + escProps(r.sport) + (r.pick_type ? (' · ' + escProps(r.pick_type)) : '') + (r.tier ? (' · ' + escProps(r.tier)) : '') + '</div>' +
+    '<div class="prop-eval-stats">Act ' + fmtPropsNum(r.actual_value) + ' · M ' + fmtPropsNum(r.margin) + '</div>';
+  return row;
 }
 
 function teardownPropsEvalInfiniteScroll() {
@@ -3717,18 +3900,22 @@ function renderPropsEvalCards(rows) {
   PROPS_EVAL_RENDER_GEN += 1;
   const gen = PROPS_EVAL_RENDER_GEN;
   window._propsEvalFilteredRows = rows;
+  const view = getPropsEvalView();
+  setPropsEvalView(view);
   if (!rows.length) {
-    grid.innerHTML = '<p class="insights-card-sub">No props match filters.</p>';
+    grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">No props match filters.</p>';
     scheduleSyncPropsEvalHeight();
     return;
   }
   const batchSize = gradesFrameMobileLayout() ? PROPS_EVAL_BATCH_MOBILE : PROPS_EVAL_BATCH_DESKTOP;
   let rendered = 0;
   grid.innerHTML = '';
+  grid.setAttribute('data-view', view);
   const sentinel = document.createElement('div');
   sentinel.className = 'props-eval-sentinel';
   sentinel.setAttribute('aria-hidden', 'true');
   grid.appendChild(sentinel);
+  const build = view === 'cards' ? buildPropEvalCardElement : buildPropEvalRowElement;
 
   function appendBatch() {
     if (gen !== PROPS_EVAL_RENDER_GEN) return false;
@@ -3736,7 +3923,7 @@ function renderPropsEvalCards(rows) {
     if (end <= rendered) return false;
     const frag = document.createDocumentFragment();
     for (let i = rendered; i < end; i++) {
-      frag.appendChild(buildPropEvalCardElement(rows[i]));
+      frag.appendChild(build(rows[i]));
     }
     grid.insertBefore(frag, sentinel);
     rendered = end;
@@ -3749,7 +3936,7 @@ function renderPropsEvalCards(rows) {
 
   const hint = document.createElement('div');
   hint.className = 'props-eval-load-more';
-  hint.textContent = 'Loading more…';
+  hint.textContent = 'Scroll for more · ' + rendered + ' / ' + rows.length;
   grid.insertBefore(hint, sentinel);
 
   const scrollRoot = gradesFrameMobileLayout()
@@ -3761,13 +3948,18 @@ function renderPropsEvalCards(rows) {
       if (gen !== PROPS_EVAL_RENDER_GEN) return;
       if (!entries.some(function (e) { return e.isIntersecting; })) return;
       const hasMore = appendBatch();
+      if (hint.parentNode) {
+        hint.textContent = hasMore
+          ? ('Scroll for more · ' + rendered + ' / ' + rows.length)
+          : '';
+      }
       if (!hasMore) {
         teardownPropsEvalInfiniteScroll();
         if (hint.parentNode) hint.remove();
         scheduleSyncPropsEvalHeight();
       }
     },
-    { root: scrollRoot === document.documentElement || scrollRoot === document.body ? null : scrollRoot, rootMargin: '280px 0px', threshold: 0 }
+    { root: scrollRoot === document.documentElement || scrollRoot === document.body ? null : scrollRoot, rootMargin: '320px 0px', threshold: 0 }
   );
   PROPS_EVAL_IO.observe(sentinel);
 }
@@ -3777,39 +3969,38 @@ function applyPropsEvalFilters() {
   const pickTypeF = getPropsFilterGroupValue('props-filter-picktype-group');
   const q = (((document.getElementById('props-filter-q') || {}).value) || '').trim().toLowerCase();
   const rows = window._propsEvalCache || [];
-  const filtered = rows.filter(function (r) {
-    if (sport && !propsEvalSportMatches(r.sport, sport)) return false;
+  const filtered = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = enrichPropsEvalRow(rows[i]);
+    if (sport && !propsEvalSportMatches(r.sport, sport)) continue;
     var pt = String(r.pick_type || '').toUpperCase();
-    if (pickTypeF === 'NO_DEMON' && pt.indexOf('DEMON') >= 0) return false;
-    if (pickTypeF && pickTypeF !== 'NO_DEMON' && pt.indexOf(pickTypeF) < 0) return false;
-    const ru = String(r.result || '').toUpperCase();
-    if (resF === 'HIT' && ru !== 'HIT' && ru !== 'WIN' && ru !== 'WIN_NO_MULT') return false;
-    if (resF === 'MISS' && ru !== 'MISS' && ru !== 'LOSS' && ru !== 'LOSE') return false;
-    if (resF === 'VOID' && !propsEvalIsVoidResult(r)) return false;
-    if (!q) return true;
-    const hay = [r.player_name, r.prop_type, r.team, r.opp_team, r.pick_type, r.tier, r.direction]
-      .map(function (x) { return String(x || '').toLowerCase(); }).join(' ');
-    return hay.indexOf(q) >= 0;
-  });
+    if (pickTypeF === 'NO_DEMON' && pt.indexOf('DEMON') >= 0) continue;
+    if (pickTypeF && pickTypeF !== 'NO_DEMON' && pt.indexOf(pickTypeF) < 0) continue;
+    if (resF === 'HIT' && !propsEvalIsHit(r)) continue;
+    if (resF === 'MISS' && !propsEvalIsMiss(r)) continue;
+    if (resF === 'VOID' && !propsEvalIsVoidResult(r)) continue;
+    if (resF === 'DECIDED' && !(propsEvalIsHit(r) || propsEvalIsMiss(r))) continue;
+    if (q && r._hay.indexOf(q) < 0) continue;
+    filtered.push(r);
+  }
   filtered.sort(function (a, b) {
-    var ra = propsEvalOutcomeRank(a.result);
-    var rb = propsEvalOutcomeRank(b.result);
-    if (ra !== rb) return ra - rb;
+    if (a._rank !== b._rank) return a._rank - b._rank;
     return String(a.player_name || '').localeCompare(String(b.player_name || ''), undefined, { sensitivity: 'base' });
   });
   renderPropsEvalCards(filtered);
   scheduleSyncPropsEvalHeight();
   var fHit = 0, fMiss = 0, fVoid = 0;
-  filtered.forEach(function (r) {
-    var ru = String(r.result || '').toUpperCase();
-    if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') fHit += 1;
-    else if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') fMiss += 1;
-    else if (propsEvalIsVoidResult(r)) fVoid += 1;
-  });
+  for (var j = 0; j < filtered.length; j++) {
+    var fr = filtered[j];
+    if (propsEvalIsHit(fr)) fHit++;
+    else if (propsEvalIsMiss(fr)) fMiss++;
+    else if (propsEvalIsVoidResult(fr)) fVoid++;
+  }
   const el = document.getElementById('props-eval-counts');
   if (el) {
     var note = '';
-    if (pickTypeF === 'NO_DEMON') note = ' · demon excluded';
+    if (resF === 'DECIDED') note = ' · voids hidden';
+    else if (pickTypeF === 'NO_DEMON') note = ' · demon excluded';
     else if (pickTypeF === 'DEMON') note = ' · demon only';
     else if (pickTypeF) note = ' · ' + pickTypeF.toLowerCase() + ' only';
     el.textContent = 'Showing ' + filtered.length + ' of ' + rows.length + ' loaded · ' +
@@ -3835,43 +4026,57 @@ function mapGradedJsonToEvalRow(p) {
     void_reason: p.void_reason || '',
   };
 }
+function commitPropsEvalRows(mapped, footText) {
+  for (var i = 0; i < mapped.length; i++) enrichPropsEvalRow(mapped[i]);
+  window._propsEvalCache = mapped;
+  var nh = 0, nm = 0;
+  mapped.forEach(function (r) {
+    if (propsEvalIsHit(r)) nh++;
+    else if (propsEvalIsMiss(r)) nm++;
+  });
+  window._propsEvalStats = { n_hit: nh, n_miss: nm, n: mapped.length };
+  updatePropsEvalKpis(mapped);
+  fillPropsSportFilter(mapped);
+  var foot = document.getElementById('props-eval-foot');
+  if (foot && footText) foot.textContent = footText;
+  applyPropsEvalFilters();
+}
 async function loadGradesProps(dateStr) {
   const grid = document.getElementById('props-eval-grid');
   const foot = document.getElementById('props-eval-foot');
   if (!dateStr || !grid) return;
-  grid.innerHTML = '<p class="insights-card-sub">Loading…</p>';
+  if (PROPS_EVAL_DATE_CACHE[dateStr] && PROPS_EVAL_DATE_CACHE[dateStr].length) {
+    commitPropsEvalRows(PROPS_EVAL_DATE_CACHE[dateStr], 'Cached · ' + dateStr);
+    return;
+  }
+  if (PROPS_EVAL_LOAD_ABORT) {
+    try { PROPS_EVAL_LOAD_ABORT.abort(); } catch (_a) {}
+  }
+  PROPS_EVAL_LOAD_ABORT = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var signal = PROPS_EVAL_LOAD_ABORT ? PROPS_EVAL_LOAD_ABORT.signal : undefined;
+  grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">Loading decided props…</p>';
   if (foot) foot.textContent = '';
   try {
-    const jres = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), { cache: 'no-store' });
+    const jres = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), { cache: 'force-cache', signal: signal });
     const jd = await jres.json();
     if (jres.ok && Array.isArray(jd.props) && jd.props.length) {
       const mapped = jd.props.map(mapGradedJsonToEvalRow);
-      window._propsEvalCache = mapped;
-      var nh = 0, nm = 0;
-      mapped.forEach(function (r) {
-        var u = String(r.result || '').toUpperCase();
-        if (u === 'HIT') nh++;
-        else if (u === 'MISS') nm++;
-      });
-      window._propsEvalStats = { n_hit: nh, n_miss: nm, n: mapped.length };
-      if (foot) {
-        foot.textContent = jd.source === 'ticket_eval_html'
-          ? 'Ticket legs from ticket_eval_' + dateStr + '.html (subset). Run build_grades_html / backfill_graded_props_json and push graded_props_' + dateStr + '.json for every slate prop.'
-          : 'Source: graded_props_' + dateStr + '.json';
-      }
-      fillPropsSportFilter(window._propsEvalCache);
-      applyPropsEvalFilters();
+      PROPS_EVAL_DATE_CACHE[dateStr] = mapped;
+      commitPropsEvalRows(
+        mapped,
+        jd.source === 'ticket_eval_html'
+          ? 'Ticket legs from ticket_eval_' + dateStr + '.html (subset).'
+          : 'Source: graded_props_' + dateStr + '.json'
+      );
       return;
     }
-    // Some deploys expose graded_props JSON only through /api/grades/page-rows
-    // (flattened rows used by the slate page), without jd.props on /api/graded-props.
     if (jres.ok && !Array.isArray(jd.props)) {
       var pageRows = [];
       var off = 0;
       var loops = 0;
       while (loops < 20) {
         loops += 1;
-        var pRes = await fetch('/api/grades/page-rows?date=' + encodeURIComponent(dateStr) + '&offset=' + off + '&limit=1000', { cache: 'no-store' });
+        var pRes = await fetch('/api/grades/page-rows?date=' + encodeURIComponent(dateStr) + '&offset=' + off + '&limit=1000', { cache: 'force-cache', signal: signal });
         if (!pRes.ok) break;
         var pJson = await pRes.json();
         var items = Array.isArray(pJson.items) ? pJson.items : [];
@@ -3885,35 +4090,20 @@ async function loadGradesProps(dateStr) {
       }
       if (pageRows.length) {
         const mappedRows = pageRows.map(mapGradedJsonToEvalRow);
-        window._propsEvalCache = mappedRows;
-        var pHit = 0, pMiss = 0;
-        mappedRows.forEach(function (r) {
-          var ru = String(r.result || '').toUpperCase();
-          if (ru === 'HIT') pHit++;
-          else if (ru === 'MISS') pMiss++;
-        });
-        window._propsEvalStats = { n_hit: pHit, n_miss: pMiss, n: mappedRows.length };
-        fillPropsSportFilter(window._propsEvalCache);
-        if (foot) foot.textContent = 'Source: /api/grades/page-rows fallback';
-        applyPropsEvalFilters();
+        PROPS_EVAL_DATE_CACHE[dateStr] = mappedRows;
+        commitPropsEvalRows(mappedRows, 'Source: /api/grades/page-rows fallback');
         return;
       }
     }
-    const res = await fetch('/api/grades/props?date=' + encodeURIComponent(dateStr), { cache: 'no-store' });
+    const res = await fetch('/api/grades/props?date=' + encodeURIComponent(dateStr), { cache: 'force-cache', signal: signal });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || res.statusText);
-    window._propsEvalCache = d.props || [];
-    window._propsEvalStats = { n_hit: d.n_hit, n_miss: d.n_miss, n: d.n };
-    fillPropsSportFilter(window._propsEvalCache);
-    if (foot) {
-      var t = '';
-      if (d.truncated) t += 'Showing first ' + d.n_returned + ' of ' + d.n + ' rows. ';
-      foot.textContent = t;
-    }
-    if (!window._propsEvalCache.length) {
+    const archiveRows = d.props || [];
+    PROPS_EVAL_DATE_CACHE[dateStr] = archiveRows;
+    if (!archiveRows.length) {
       var hint = '';
       try {
-        var ar = await fetch('/api/grades/archive_dates', { cache: 'no-store' });
+        var ar = await fetch('/api/grades/archive_dates', { cache: 'force-cache', signal: signal });
         if (ar.ok) {
           var aj = await ar.json();
           var ds = aj.dates || [];
@@ -3923,21 +4113,26 @@ async function loadGradesProps(dateStr) {
               var n = rc[x];
               return escProps(x) + (n != null ? ' (' + n + ' props)' : '');
             });
-            hint = '<p class="insights-card-sub" style="margin-top:12px">Archive has rows for other dates (newest first): <strong>' + top.join('</strong> · <strong>') + '</strong>. Use <strong>Jump to date</strong> with one of these if your slate was graded under a different calendar day or year.</p>';
+            hint = '<p class="insights-card-sub" style="margin-top:12px">Archive has rows for other dates: <strong>' + top.join('</strong> · <strong>') + '</strong>.</p>';
           }
         }
       } catch (_e) {}
-      grid.innerHTML = '<p class="insights-card-sub">No archived props for <strong>' + escProps(dateStr) + '</strong>. After grading, run the archive step so rows are written to <code>data/cache/*_props_history.db</code> (see <code>scripts/step_archive.py</code> or <code>scripts/backfill_props_archive.ps1</code>).</p>' + hint;
+      grid.innerHTML = '<p class="insights-card-sub">No archived props for <strong>' + escProps(dateStr) + '</strong>.</p>' + hint;
       var elc = document.getElementById('props-eval-counts');
       if (elc) elc.textContent = '0 props';
       return;
     }
-    applyPropsEvalFilters();
+    commitPropsEvalRows(
+      archiveRows,
+      d.truncated ? ('Showing first ' + d.n_returned + ' of ' + d.n + ' rows.') : ''
+    );
   } catch (e) {
+    if (e && e.name === 'AbortError') return;
     grid.innerHTML = '<p class="insights-card-sub">Could not load props: ' + escProps(e.message || e) + '</p>';
   }
 }
 (function initPropsEvalFilters() {
+  setPropsEvalView(getPropsEvalView());
   document.querySelectorAll('.props-filter-pills').forEach(function (group) {
     group.addEventListener('click', function (e) {
       var btn = e.target.closest('.props-filter-pill');
@@ -3947,7 +4142,25 @@ async function loadGradesProps(dateStr) {
     });
   });
   var qel = document.getElementById('props-filter-q');
-  if (qel) qel.addEventListener('input', applyPropsEvalFilters);
+  if (qel) {
+    qel.addEventListener('input', function () {
+      if (PROPS_EVAL_SEARCH_TIMER) clearTimeout(PROPS_EVAL_SEARCH_TIMER);
+      PROPS_EVAL_SEARCH_TIMER = setTimeout(function () {
+        PROPS_EVAL_SEARCH_TIMER = null;
+        applyPropsEvalFilters();
+      }, 180);
+    });
+  }
+  var listBtn = document.getElementById('props-view-list');
+  var cardsBtn = document.getElementById('props-view-cards');
+  function onViewClick(ev) {
+    var btn = ev.currentTarget;
+    var view = btn.getAttribute('data-view') || 'list';
+    setPropsEvalView(view);
+    applyPropsEvalFilters();
+  }
+  if (listBtn) listBtn.addEventListener('click', onViewClick);
+  if (cardsBtn) cardsBtn.addEventListener('click', onViewClick);
 })();
 
 // ─── TAB SWITCHING ────────────────────────────────────────────────────────────

@@ -1,0 +1,1767 @@
+{
+  "date": "2026-07-13",
+  "generated_at": "2026-07-13T13:47:44.015713Z",
+  "cdp_url": "http://127.0.0.1:9222",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\payout_ladder_validation_tickets.json",
+  "fields": [
+    "power_min_x",
+    "power_first_x",
+    "min_guarantee"
+  ],
+  "primary_field": "power_min_x",
+  "entry_amount": 1.0,
+  "slips": [
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|1",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 13.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 3.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|10",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Demon",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.75,
+      "power_first_x": 3.0,
+      "min_guarantee": 4.75
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|11",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 7.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.25,
+      "power_first_x": 3.0,
+      "min_guarantee": 3.25
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|12",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|13",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.25,
+      "power_first_x": 3.0,
+      "min_guarantee": 4.25
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|14",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 7.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "partial",
+      "error": "missing_power_multipliers",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|15",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 7.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Demon",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Demon",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 5.25,
+      "power_first_x": 3.0,
+      "min_guarantee": 5.25
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|16",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 7.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|17",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Monique Akoa Makani",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 15.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|18",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Monique Akoa Makani",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|19",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 15.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|2",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 13.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_2_of_3_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|20",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Kayla McBride",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 15.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 5.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 5.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|21",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 5.75,
+      "power_first_x": 6.0,
+      "min_guarantee": 5.75
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|22",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Monique Akoa Makani",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 15.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nia Coffey",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_6_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|23",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 15.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nia Coffey",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 25.5,
+      "power_first_x": 25.0,
+      "min_guarantee": 25.5
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|24",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nia Coffey",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 21.5,
+      "power_first_x": 25.0,
+      "min_guarantee": 21.5
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|25",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Naz Hillmon",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nia Coffey",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 16.0,
+      "power_first_x": 25.0,
+      "min_guarantee": 16.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|26",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nia Coffey",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 13.0,
+      "power_first_x": 25.0,
+      "min_guarantee": 13.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|27",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "DeWanna Bonner",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 7.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 10.5,
+      "power_first_x": 25.0,
+      "min_guarantee": 10.5
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|28",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 3.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.8
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|29",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.6,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.6
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|3",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 13.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "DeWanna Bonner",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|30",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Assists",
+          "direction": "OVER",
+          "line": 6.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.1,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.1
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|31",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 18.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.3
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|32",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Olivia Miles",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 18.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 3.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|33",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Rae Burrell",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.3
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|34",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Nia Coffey",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 4.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Rae Burrell",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|35",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Rae Burrell",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|36",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Rhyne Howard",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.0
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|37",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 5.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 1.9
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|38",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 5.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 1.9
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|39",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Valeriane Ayayi",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 1.9
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|4",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "DeWanna Bonner",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|40",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Alyssa Thomas",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 13.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 1.9
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|5",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "DeWanna Bonner",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Jordin Canada",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 11.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_5_of_6_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|6",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 10.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_1_of_2_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|7",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.4,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.4
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|8",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "DeWanna Bonner",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Dearica Hamby",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 16.0,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_1_of_3_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|9",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Allisha Gray",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "Ariel Atkins",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA"
+        },
+        {
+          "player": "DeWanna Bonner",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Standard",
+          "sport": "WNBA"
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_0_of_3_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    }
+  ],
+  "summary": {
+    "n_total": 40,
+    "n_ok": 26,
+    "n_partial": 1,
+    "n_failed": 13,
+    "n_strong": 40,
+    "n_main": 0
+  }
+}

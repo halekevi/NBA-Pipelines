@@ -1,0 +1,2291 @@
+{
+  "summary": {
+    "n_cells": 228,
+    "n_observed": 54,
+    "n_extrapolated": 174,
+    "n_live_cdp": 28,
+    "n_evidence_rows": 69
+  },
+  "rows": [
+    {
+      "legs": 2,
+      "mix": "2S+0G+0D",
+      "gDelta": "\u2014",
+      "rate": 3.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 2
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "0.5",
+      "rate": 2.8,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "1",
+      "rate": 2.6,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "1.5",
+      "rate": 2.1,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "2",
+      "rate": 2.3,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "2.5",
+      "rate": 3.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "3",
+      "rate": 2.3,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "3.5",
+      "rate": 2.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "4",
+      "rate": 2.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "4.5",
+      "rate": 2.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "5",
+      "rate": 1.9,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "5.5",
+      "rate": 1.8753,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "1S+1G+0D",
+      "gDelta": "6",
+      "rate": 1.9,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 2
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "0.5+0.5",
+      "rate": 1.9427,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "0.5+1",
+      "rate": 1.9214,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "0.5+1.5",
+      "rate": 1.9,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "1+1",
+      "rate": 1.9,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 2
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "0.5+2",
+      "rate": 1.8786,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "1+1.5",
+      "rate": 1.8786,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "0.5+2.5",
+      "rate": 1.8573,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "1+2",
+      "rate": 1.8573,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "1.5+1.5",
+      "rate": 1.8573,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "0.5+3",
+      "rate": 1.8359,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "1+2.5",
+      "rate": 1.8359,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 2,
+      "mix": "0S+2G+0D",
+      "gDelta": "1.5+2",
+      "rate": 1.8359,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "3S+0G+0D",
+      "gDelta": "\u2014",
+      "rate": 3.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 3
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "0.5",
+      "rate": 5.0644,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "1",
+      "rate": 4.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 2
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "1.5",
+      "rate": 5.5,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "2",
+      "rate": 4.7388,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "2.5",
+      "rate": 5.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "3",
+      "rate": 4.5217,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "3.5",
+      "rate": 4.4132,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "4",
+      "rate": 4.3046,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "4.5",
+      "rate": 4.1961,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "5",
+      "rate": 3.75,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "5.5",
+      "rate": 4.0,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "2S+1G+0D",
+      "gDelta": "6",
+      "rate": 3.8705,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "0.5+0.5",
+      "rate": 3.7333,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "0.5+1",
+      "rate": 3.5542,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "0.5+1.5",
+      "rate": 3.375,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1+1",
+      "rate": 3.375,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 2
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "0.5+2",
+      "rate": 3.1958,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1+1.5",
+      "rate": 3.1958,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "0.5+2.5",
+      "rate": 3.0167,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1+2",
+      "rate": 3.0167,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1.5+1.5",
+      "rate": 3.0167,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "0.5+3",
+      "rate": 2.8375,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1+2.5",
+      "rate": 2.8375,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1.5+2",
+      "rate": 2.8375,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "1S+2G+0D",
+      "gDelta": "1+4",
+      "rate": 2.3,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+0.5+0.5",
+      "rate": 3.5788,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+0.5+1",
+      "rate": 3.5034,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+0.5+1.5",
+      "rate": 3.4281,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+1+1",
+      "rate": 3.4281,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+0.5+2",
+      "rate": 3.3527,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "1+1+1",
+      "rate": 3.25,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+0.5+2.5",
+      "rate": 3.2774,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+1.5+1.5",
+      "rate": 3.2774,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "1+1+1.5",
+      "rate": 3.2774,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "0.5+0.5+3",
+      "rate": 3.2021,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "1+1+2",
+      "rate": 3.2021,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "1+1.5+1.5",
+      "rate": 3.2021,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "2+2+2.5",
+      "rate": 3.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 3
+    },
+    {
+      "legs": 3,
+      "mix": "0S+3G+0D",
+      "gDelta": "2+4.5+5",
+      "rate": 2.0,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "4S+0G+0D",
+      "gDelta": "\u2014",
+      "rate": 3.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 3
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "0.5",
+      "rate": 5.6237,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "1",
+      "rate": 5.5,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "1.5",
+      "rate": 5.3763,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "2",
+      "rate": 5.2525,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "2.5",
+      "rate": 5.1288,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "3",
+      "rate": 5.005,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "3.5",
+      "rate": 4.8812,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "4",
+      "rate": 4.7575,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "4.5",
+      "rate": 4.6338,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "5",
+      "rate": 4.51,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "5.5",
+      "rate": 4.3862,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "3S+1G+0D",
+      "gDelta": "6",
+      "rate": 4.2625,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "0.5+0.5",
+      "rate": 5.5833,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "0.5+1",
+      "rate": 5.25,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "0.5+1.5",
+      "rate": 4.6136,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "1+1",
+      "rate": 4.25,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "0.5+2",
+      "rate": 6.25,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "1+1.5",
+      "rate": 6.25,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "0.5+2.5",
+      "rate": 7.8864,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "1+2",
+      "rate": 8.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "1.5+1.5",
+      "rate": 7.8864,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "0.5+3",
+      "rate": 7.25,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "1+2.5",
+      "rate": 7.25,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "2S+2G+0D",
+      "gDelta": "1.5+2",
+      "rate": 7.25,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+0.5+0.5",
+      "rate": 6.3553,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+0.5+1",
+      "rate": 6.2763,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+0.5+1.5",
+      "rate": 6.1974,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+1+1",
+      "rate": 6.1974,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+0.5+2",
+      "rate": 6.1184,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "1+1+1",
+      "rate": 6.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+0.5+2.5",
+      "rate": 6.0395,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+1.5+1.5",
+      "rate": 6.0395,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "1+1+1.5",
+      "rate": 6.0395,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "0.5+0.5+3",
+      "rate": 5.9605,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "1+1+2",
+      "rate": 5.9605,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "1+1.5+1.5",
+      "rate": 5.9605,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "1+2+2",
+      "rate": 6.0,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "1S+3G+0D",
+      "gDelta": "2+3+3",
+      "rate": 5.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5",
+      "rate": 7.9809,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+1",
+      "rate": 7.8105,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+1.5",
+      "rate": 7.6401,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+2",
+      "rate": 7.4697,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+1+1+1",
+      "rate": 7.4697,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+2.5",
+      "rate": 7.2993,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+1+1",
+      "rate": 7.2993,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+3",
+      "rate": 7.1289,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+1+1.5",
+      "rate": 7.1289,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+3.5",
+      "rate": 6.9585,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+1.5+1.5+1.5",
+      "rate": 6.9585,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+1+2",
+      "rate": 6.9585,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+4",
+      "rate": 6.7881,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+1+2.5",
+      "rate": 6.7881,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1.5+1.5+1.5",
+      "rate": 6.7881,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+4.5",
+      "rate": 6.6177,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+1+3",
+      "rate": 6.6177,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1.5+1.5+1.5+1.5",
+      "rate": 6.6177,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+2+3",
+      "rate": 5.5,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+2+2+2",
+      "rate": 6.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "2+2+2+3",
+      "rate": 4.75,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "0.5+1.5+3.5+4",
+      "rate": 5.5,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+1+2+6",
+      "rate": 4.75,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1.5+1.5+3.5+4",
+      "rate": 9.0,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+2+2+6",
+      "rate": 4.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "1+3+3+6",
+      "rate": 3.75,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "2+3+3+6",
+      "rate": 3.5,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 4,
+      "mix": "0S+4G+0D",
+      "gDelta": "3+3+3+6",
+      "rate": 3.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "5S+0G+0D",
+      "gDelta": "\u2014",
+      "rate": 20.0,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5",
+      "rate": 5.1406,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+1",
+      "rate": 5.1125,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+1.5",
+      "rate": 5.0844,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+2",
+      "rate": 5.0563,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+1+1+1",
+      "rate": 5.0563,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+2.5",
+      "rate": 5.0281,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "1+1+1+1",
+      "rate": 5.0281,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+3",
+      "rate": 5.0,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "1+1+1+1.5",
+      "rate": 5.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+3.5",
+      "rate": 4.9719,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "0.5+1.5+1.5+1.5",
+      "rate": 4.9719,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "1S+4G+0D",
+      "gDelta": "1+1+1+2",
+      "rate": 4.9719,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5",
+      "rate": 6.5975,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+1",
+      "rate": 6.6059,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+1.5",
+      "rate": 6.6144,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+2",
+      "rate": 6.6229,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+2.5",
+      "rate": 6.6314,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+1+1+1+1",
+      "rate": 6.6314,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+3",
+      "rate": 6.6398,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "1+1+1+1+1",
+      "rate": 6.6398,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+3.5",
+      "rate": 6.6483,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "1+1+1+1+1.5",
+      "rate": 6.6483,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+4",
+      "rate": 6.6568,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "1+1+1+1+2",
+      "rate": 6.6568,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "1+1+1.5+2+2",
+      "rate": 5.75,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "2+2+2+2+3",
+      "rate": 7.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "0.5+1.5+3+3.5+4",
+      "rate": 8.75,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 5,
+      "mix": "0S+5G+0D",
+      "gDelta": "2+2+3+3+5",
+      "rate": 5.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "6S+0G+0D",
+      "gDelta": "\u2014",
+      "rate": 40.0,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "0.5+0.5",
+      "rate": 26.0738,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "0.5+1",
+      "rate": 25.7869,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "0.5+1.5",
+      "rate": 25.5,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "1+1",
+      "rate": 25.5,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "0.5+2",
+      "rate": 25.2131,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "1+1.5",
+      "rate": 25.2131,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "0.5+2.5",
+      "rate": 24.9262,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "1+2",
+      "rate": 24.9262,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "1.5+1.5",
+      "rate": 24.9262,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "0.5+3",
+      "rate": 24.6394,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "1+2.5",
+      "rate": 24.6394,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "4S+2G+0D",
+      "gDelta": "1.5+2",
+      "rate": 24.6394,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+0.5+0.5",
+      "rate": 22.145,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+0.5+1",
+      "rate": 21.9838,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+0.5+1.5",
+      "rate": 21.8225,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+1+1",
+      "rate": 21.8225,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+0.5+2",
+      "rate": 21.6613,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "1+1+1",
+      "rate": 21.6613,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+0.5+2.5",
+      "rate": 21.5,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+1.5+1.5",
+      "rate": 21.5,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "1+1+1.5",
+      "rate": 21.5,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "0.5+0.5+3",
+      "rate": 21.3388,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "1+1+2",
+      "rate": 21.3388,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "3S+3G+0D",
+      "gDelta": "1+1.5+1.5",
+      "rate": 21.3388,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5",
+      "rate": 16.81,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+1",
+      "rate": 16.72,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+1.5",
+      "rate": 16.63,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+2",
+      "rate": 16.54,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+1+1+1",
+      "rate": 16.54,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+2.5",
+      "rate": 16.45,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "1+1+1+1",
+      "rate": 16.45,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+3",
+      "rate": 16.36,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "1+1+1+1.5",
+      "rate": 16.36,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+0.5+0.5+3.5",
+      "rate": 16.27,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "0.5+1.5+1.5+1.5",
+      "rate": 16.27,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "1+1+1+2",
+      "rate": 16.27,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "2S+4G+0D",
+      "gDelta": "1+1.5+2+2",
+      "rate": 16.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5",
+      "rate": 15.7168,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+1",
+      "rate": 15.4759,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+1.5",
+      "rate": 15.235,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+2",
+      "rate": 14.9942,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+2.5",
+      "rate": 14.7533,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+1+1+1+1",
+      "rate": 14.7533,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+3",
+      "rate": 14.5125,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "1+1+1+1+1",
+      "rate": 14.5125,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+3.5",
+      "rate": 14.2716,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "1+1+1+1+1.5",
+      "rate": 14.2716,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+4",
+      "rate": 14.0307,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "1+1+1+1+2",
+      "rate": 14.0307,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "1+1.5+2+2+2",
+      "rate": 13.0,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "2+2+3+6+7",
+      "rate": 6.75,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "1S+5G+0D",
+      "gDelta": "2+3+6+7+7.5",
+      "rate": 5.0,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+0.5",
+      "rate": 12.5833,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+1",
+      "rate": 12.4444,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+1.5",
+      "rate": 12.3056,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+2",
+      "rate": 12.1667,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+2.5",
+      "rate": 12.0278,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+3",
+      "rate": 11.8889,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+1+1+1+1+1",
+      "rate": 11.8889,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+3.5",
+      "rate": 11.75,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "1+1+1+1+1+1",
+      "rate": 11.75,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+4",
+      "rate": 11.6111,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "1+1+1+1+1+1.5",
+      "rate": 11.6111,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "0.5+0.5+0.5+0.5+0.5+4.5",
+      "rate": 11.4722,
+      "src": "extrapolated",
+      "status": "extrapolated",
+      "conf": "medium",
+      "live": 0
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "1+1.5+2+2+2+2",
+      "rate": 10.5,
+      "src": "live_cdp",
+      "status": "observed",
+      "conf": "high",
+      "live": 1
+    },
+    {
+      "legs": 6,
+      "mix": "0S+6G+0D",
+      "gDelta": "2+2+2+3+3+3",
+      "rate": 9.25,
+      "src": "historical",
+      "status": "observed",
+      "conf": "low",
+      "live": 0
+    }
+  ]
+}

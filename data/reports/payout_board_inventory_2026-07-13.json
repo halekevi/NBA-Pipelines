@@ -1,0 +1,320 @@
+{
+  "date": "2026-07-13",
+  "generated_at": "2026-07-13T12:44:29.320911+00:00",
+  "step1": {
+    "path": "Sports\\WNBA\\data\\outputs\\step1_wnba_props_2026-07-13.csv",
+    "n_rows": 782,
+    "n_standard": 124,
+    "n_goblin": 236,
+    "n_goblin_with_delta": 185,
+    "n_demon": 421,
+    "std_keys": 124,
+    "goblin_delta_bins": {
+      "0.5": 16,
+      "1": 26,
+      "1.5": 16,
+      "2": 38,
+      "2.5": 13,
+      "3": 16,
+      "3.5": 2,
+      "4": 15,
+      "4.5": 5,
+      "5": 18,
+      "5.5": 7,
+      "6": 9,
+      "6.5": 1,
+      "7": 2,
+      "8": 1
+    }
+  },
+  "prefetch_http": false,
+  "gentle": true,
+  "cdp_pools": {
+    "standard": 124,
+    "goblin": 236,
+    "goblin_with_delta": 185,
+    "demon": 421
+  },
+  "goblin_delta_examples": [
+    {
+      "player": "Allisha Gray",
+      "prop": "Rebounds",
+      "line": 3.5,
+      "standard_line": 4.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Alyssa Thomas",
+      "prop": "Assists",
+      "line": 7.5,
+      "standard_line": 8.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Alyssa Thomas",
+      "prop": "Rebounds",
+      "line": 6.5,
+      "standard_line": 7.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Courtney Williams",
+      "prop": "Rebounds",
+      "line": 4.5,
+      "standard_line": 5.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Courtney Williams",
+      "prop": "Assists",
+      "line": 3.5,
+      "standard_line": 4.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Dearica Hamby",
+      "prop": "Rebounds",
+      "line": 7.5,
+      "standard_line": 8.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Jordin Canada",
+      "prop": "Assists",
+      "line": 7.5,
+      "standard_line": 8.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Jordin Canada",
+      "prop": "Rebounds",
+      "line": 3.5,
+      "standard_line": 4.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Jordin Canada",
+      "prop": "Rebs+Asts",
+      "line": 11.5,
+      "standard_line": 12.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Kahleah Copper",
+      "prop": "Rebounds",
+      "line": 3.5,
+      "standard_line": 4.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Natasha Howard",
+      "prop": "Rebounds",
+      "line": 7.5,
+      "standard_line": 8.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Natasha Howard",
+      "prop": "Rebs+Asts",
+      "line": 9.5,
+      "standard_line": 10.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Naz Hillmon",
+      "prop": "Rebounds",
+      "line": 5.5,
+      "standard_line": 6.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Nneka Ogwumike",
+      "prop": "Rebs+Asts",
+      "line": 11.5,
+      "standard_line": 12.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Olivia Miles",
+      "prop": "Assists",
+      "line": 5.5,
+      "standard_line": 6.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Rhyne Howard",
+      "prop": "Rebs+Asts",
+      "line": 7.5,
+      "standard_line": 8.0,
+      "delta": 0.5
+    },
+    {
+      "player": "Allisha Gray",
+      "prop": "Points",
+      "line": 19.5,
+      "standard_line": 20.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Alyssa Thomas",
+      "prop": "Rebs+Asts",
+      "line": 14.5,
+      "standard_line": 15.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Ariel Atkins",
+      "prop": "Points",
+      "line": 9.5,
+      "standard_line": 10.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Ariel Atkins",
+      "prop": "Pts+Rebs+Asts",
+      "line": 14.5,
+      "standard_line": 15.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Courtney Williams",
+      "prop": "Pts+Rebs+Asts",
+      "line": 24.5,
+      "standard_line": 25.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Courtney Williams",
+      "prop": "Pts+Asts",
+      "line": 19.5,
+      "standard_line": 20.5,
+      "delta": 1.0
+    },
+    {
+      "player": "DeWanna Bonner",
+      "prop": "Rebounds",
+      "line": 4.5,
+      "standard_line": 5.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Erica Wheeler",
+      "prop": "Points",
+      "line": 7.5,
+      "standard_line": 8.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Erica Wheeler",
+      "prop": "Assists",
+      "line": 4.5,
+      "standard_line": 5.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Jordin Canada",
+      "prop": "Pts+Rebs",
+      "line": 14.5,
+      "standard_line": 15.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Kahleah Copper",
+      "prop": "Pts+Rebs+Asts",
+      "line": 24.5,
+      "standard_line": 25.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Kayla McBride",
+      "prop": "Points",
+      "line": 14.5,
+      "standard_line": 15.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Kayla McBride",
+      "prop": "Rebs+Asts",
+      "line": 5.5,
+      "standard_line": 6.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Natasha Howard",
+      "prop": "Points",
+      "line": 14.5,
+      "standard_line": 15.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Naz Hillmon",
+      "prop": "Points",
+      "line": 9.5,
+      "standard_line": 10.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Nia Coffey",
+      "prop": "Rebounds",
+      "line": 4.5,
+      "standard_line": 5.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Nia Coffey",
+      "prop": "Assists",
+      "line": 1.5,
+      "standard_line": 2.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Nia Coffey",
+      "prop": "Pts+Asts",
+      "line": 9.5,
+      "standard_line": 10.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Nneka Ogwumike",
+      "prop": "Rebounds",
+      "line": 7.5,
+      "standard_line": 8.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Olivia Miles",
+      "prop": "Points",
+      "line": 17.5,
+      "standard_line": 18.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Olivia Miles",
+      "prop": "Rebounds",
+      "line": 3.5,
+      "standard_line": 4.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Olivia Miles",
+      "prop": "Rebs+Asts",
+      "line": 9.5,
+      "standard_line": 10.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Rhyne Howard",
+      "prop": "Rebounds",
+      "line": 3.5,
+      "standard_line": 4.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Rhyne Howard",
+      "prop": "Assists",
+      "line": 2.5,
+      "standard_line": 3.5,
+      "delta": 1.0
+    }
+  ]
+}

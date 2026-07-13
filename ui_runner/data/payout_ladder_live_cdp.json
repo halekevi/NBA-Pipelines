@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "date": "2026-07-13",
-  "generated_at": "2026-07-13T12:24:35.979258Z",
+  "generated_at": "2026-07-13T13:48:24.663859Z",
   "rows": [
     {
       "date": "2026-07-12",
@@ -303,6 +303,19 @@
       "_dedupe_key": "2026-07-13|courtney williams|points|over|17.500||erica wheeler|points|over|7.500||kayla mcbride|points|over|14.500||naz hillmon|points|over|11.500|8.25"
     },
     {
+      "date": "2026-07-13",
+      "n_legs": "4",
+      "leg_composition": "0S+2G+2D",
+      "goblin_deltas": "1,1",
+      "demon_deltas": "1,1",
+      "power_payout_x": "5.25",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|15; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|15",
+      "_dedupe_key": "2026-07-13|courtney williams|points|over|17.500||erica wheeler|points|over|7.500||kayla mcbride|points|over|14.500||naz hillmon|points|over|11.500|5.25"
+    },
+    {
       "date": "2026-07-12",
       "n_legs": "3",
       "leg_composition": "0S+3G+0D",
@@ -420,6 +433,19 @@
       "_dedupe_key": "2026-07-12|kayla mcbride|assists|over|2.500||monique akoa makani|assists|over|1.500||natasha howard|assists|over|1.500||nneka ogwumike|assists|over|2.500||rae burrell|assists|over|2.500|6.5"
     },
     {
+      "date": "2026-07-13",
+      "n_legs": "5",
+      "leg_composition": "0S+5G+0D",
+      "goblin_deltas": "1,1,1.5,2,2",
+      "demon_deltas": "",
+      "power_payout_x": "5.75",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|21; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|21",
+      "_dedupe_key": "2026-07-13|alyssa thomas|points|over|11.500||ariel atkins|points|over|8.500||dearica hamby|points|over|14.500||olivia miles|points|over|17.500||valeriane ayayi|points|over|9.500|5.75"
+    },
+    {
       "date": "2026-07-12",
       "n_legs": "6",
       "leg_composition": "0S+6G+0D",
@@ -433,6 +459,19 @@
       "_dedupe_key": "2026-07-12|kayla mcbride|rebounds|over|2.500||monique akoa makani|assists|over|1.500||natasha howard|assists|over|1.500||nneka ogwumike|assists|over|2.500||rae burrell|assists|over|2.500||valeriane ayayi|rebounds|over|3.500|8.5"
     },
     {
+      "date": "2026-07-13",
+      "n_legs": "6",
+      "leg_composition": "0S+6G+0D",
+      "goblin_deltas": "1,1.5,2,2,2,2",
+      "demon_deltas": "",
+      "power_payout_x": "10.5",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|27; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|27",
+      "_dedupe_key": "2026-07-13|alyssa thomas|points|over|11.500||ariel atkins|points|over|8.500||courtney williams|points|over|14.500||dearica hamby|points|over|14.500||dewanna bonner|points|over|7.500||valeriane ayayi|points|over|9.500|10.5"
+    },
+    {
       "date": "2026-07-12",
       "n_legs": "2",
       "leg_composition": "1S+1G+0D",
@@ -444,6 +483,162 @@
       "notes": "ticket_id=2026-07-12|LADDER_VAL|discover|2; sports=WNBA; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-12|LADDER_VAL|discover|2",
       "_dedupe_key": "2026-07-12|ariel atkins|assists|over|1.500||dearica hamby|points|over|16.000|2.3"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "0.5",
+      "demon_deltas": "",
+      "power_payout_x": "2.8",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|28; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|28",
+      "_dedupe_key": "2026-07-13|allisha gray|rebounds|over|3.500||nneka ogwumike|points|over|17.500|2.8"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "1",
+      "demon_deltas": "",
+      "power_payout_x": "2.6",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|29; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|29",
+      "_dedupe_key": "2026-07-13|allisha gray|points|over|19.500||nneka ogwumike|points|over|17.500|2.6"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "1.5",
+      "demon_deltas": "",
+      "power_payout_x": "2.1",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|30; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|30",
+      "_dedupe_key": "2026-07-13|alyssa thomas|assists|over|6.500||nneka ogwumike|points|over|17.500|2.1"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "2",
+      "demon_deltas": "",
+      "power_payout_x": "2.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|31; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|31",
+      "_dedupe_key": "2026-07-13|alyssa thomas|points|over|11.500||olivia miles|points|over|18.500|2.3"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "2.5",
+      "demon_deltas": "",
+      "power_payout_x": "3.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|32; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|32",
+      "_dedupe_key": "2026-07-13|allisha gray|rebounds|over|1.500||olivia miles|points|over|18.500|3.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "3",
+      "demon_deltas": "",
+      "power_payout_x": "2.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|33; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|33",
+      "_dedupe_key": "2026-07-13|allisha gray|points|over|17.500||rae burrell|points|over|14.500|2.3"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "3.5",
+      "demon_deltas": "",
+      "power_payout_x": "2.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|34; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|34",
+      "_dedupe_key": "2026-07-13|nia coffey|points|over|4.500||rae burrell|points|over|14.500|2.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "4",
+      "demon_deltas": "",
+      "power_payout_x": "2.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|35; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|35",
+      "_dedupe_key": "2026-07-13|alyssa thomas|points|over|9.500||rae burrell|points|over|14.500|2.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "4.5",
+      "demon_deltas": "",
+      "power_payout_x": "2.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|36; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|36",
+      "_dedupe_key": "2026-07-13|dearica hamby|points|over|11.500||rhyne howard|points|over|19.500|2.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "5",
+      "demon_deltas": "",
+      "power_payout_x": "1.9",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|38; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|38",
+      "_dedupe_key": "2026-07-13|ariel atkins|points|over|5.500||valeriane ayayi|points|over|10.500|1.9"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "6",
+      "demon_deltas": "",
+      "power_payout_x": "1.9",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|39; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|39",
+      "_dedupe_key": "2026-07-13|allisha gray|points|over|14.500||valeriane ayayi|points|over|10.500|1.9"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "2",
+      "leg_composition": "1S+1G+0D",
+      "goblin_deltas": "6",
+      "demon_deltas": "",
+      "power_payout_x": "1.9",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|40; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|40",
+      "_dedupe_key": "2026-07-13|allisha gray|points|over|14.500||alyssa thomas|points|over|13.500|1.9"
     },
     {
       "date": "2026-07-12",
@@ -535,6 +730,32 @@
       "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|14; sports=WNBA; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-13|LADDER_VAL|discover|14",
       "_dedupe_key": "2026-07-13|ariel atkins|points|over|9.500||erica wheeler|points|over|7.500||jordin canada|points|over|11.500||kayla mcbride|points|over|14.500|6.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "5",
+      "leg_composition": "1S+4G+0D",
+      "goblin_deltas": "1,1,1,1.5",
+      "demon_deltas": "",
+      "power_payout_x": "5.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|20; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|20",
+      "_dedupe_key": "2026-07-13|dearica hamby|points|over|14.500||kayla mcbride|points|over|15.500||naz hillmon|points|over|9.500||olivia miles|points|over|17.500||valeriane ayayi|points|over|9.500|5.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "6",
+      "leg_composition": "1S+5G+0D",
+      "goblin_deltas": "1,1.5,2,2,2",
+      "demon_deltas": "",
+      "power_payout_x": "13.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|26; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|26",
+      "_dedupe_key": "2026-07-13|alyssa thomas|points|over|11.500||ariel atkins|points|over|8.500||courtney williams|points|over|14.500||dearica hamby|points|over|14.500||nia coffey|points|over|8.000||valeriane ayayi|points|over|9.500|13.0"
     },
     {
       "date": "2026-07-12",
@@ -667,6 +888,32 @@
       "_dedupe_key": "2026-07-12|courtney williams|points|over|16.500||kayla mcbride|assists|over|2.500||natasha howard|assists|over|1.500||olivia miles|points|over|18.500|6.5"
     },
     {
+      "date": "2026-07-13",
+      "n_legs": "4",
+      "leg_composition": "2S+2G+0D",
+      "goblin_deltas": "1,1",
+      "demon_deltas": "",
+      "power_payout_x": "4.25",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|13; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|13",
+      "_dedupe_key": "2026-07-13|allisha gray|points|over|19.500||ariel atkins|points|over|9.500||erica wheeler|points|over|8.500||jordin canada|points|over|11.500|4.25"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "6",
+      "leg_composition": "2S+4G+0D",
+      "goblin_deltas": "1,1.5,2,2",
+      "demon_deltas": "",
+      "power_payout_x": "16.0",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|25; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|25",
+      "_dedupe_key": "2026-07-13|alyssa thomas|points|over|11.500||ariel atkins|points|over|8.500||dearica hamby|points|over|14.500||naz hillmon|points|over|10.500||nia coffey|points|over|8.000||valeriane ayayi|points|over|9.500|16.0"
+    },
+    {
       "date": "2026-07-12",
       "n_legs": "3",
       "leg_composition": "3S+0G+0D",
@@ -719,6 +966,19 @@
       "_dedupe_key": "2026-07-12|alyssa thomas|points|over|13.500||courtney williams|points|over|16.500||kayla mcbride|assists|over|2.500||natasha howard|points|over|15.500|8.25"
     },
     {
+      "date": "2026-07-13",
+      "n_legs": "6",
+      "leg_composition": "3S+3G+0D",
+      "goblin_deltas": "1,1,1.5",
+      "demon_deltas": "",
+      "power_payout_x": "21.5",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|24; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|24",
+      "_dedupe_key": "2026-07-13|dearica hamby|points|over|14.500||naz hillmon|points|over|10.500||nia coffey|points|over|8.000||nneka ogwumike|points|over|17.500||olivia miles|points|over|17.500||valeriane ayayi|points|over|9.500|21.5"
+    },
+    {
       "date": "2026-07-12",
       "n_legs": "4",
       "leg_composition": "4S+0G+0D",
@@ -756,6 +1016,19 @@
       "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|3; sports=WNBA; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-13|LADDER_VAL|discover|3",
       "_dedupe_key": "2026-07-13|alyssa thomas|points|over|13.500||ariel atkins|points|over|10.500||courtney williams|points|over|16.500||dewanna bonner|points|over|9.500|3.0"
+    },
+    {
+      "date": "2026-07-13",
+      "n_legs": "6",
+      "leg_composition": "4S+2G+0D",
+      "goblin_deltas": "1,1",
+      "demon_deltas": "",
+      "power_payout_x": "25.5",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-13|LADDER_VAL|discover|23; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-13|LADDER_VAL|discover|23",
+      "_dedupe_key": "2026-07-13|natasha howard|points|over|15.500||naz hillmon|points|over|10.500||nia coffey|points|over|8.000||nneka ogwumike|points|over|17.500||olivia miles|points|over|17.500||valeriane ayayi|points|over|9.500|25.5"
     }
   ]
 }

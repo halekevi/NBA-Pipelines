@@ -1,9 +1,9 @@
 #requires -Version 7.2
-# Validate payout ladder rates with synthetic tickets on live PrizePicks (CDP).
+# Scrape live PrizePicks and validate ladder payout rates with REAL board slips.
 #
 # Usage:
 #   .\scripts\run_validate_payout_ladder.ps1              # dry-run plan
-#   .\scripts\run_validate_payout_ladder.ps1 -Run         # full CDP validation
+#   .\scripts\run_validate_payout_ladder.ps1 -Run         # scrape PP + capture real Min Guarantees
 #   .\scripts\run_validate_payout_ladder.ps1 -Run -MaxCases 25 -DeltaOnly
 param(
     [string]$Date = "",
@@ -30,7 +30,8 @@ if ($LaunchChrome -or $Run) {
     if (-not $up) {
         Write-Host "[validate] CDP down — launching PrizePicks Chrome..." -ForegroundColor Yellow
         & pwsh -NoProfile -File (Join-Path $Root "scripts\launch_prizepicks_chrome_cdp.ps1") -OpenBoard
-        Start-Sleep -Seconds 4
+        Start-Sleep -Seconds 5
+        Write-Host "[validate] Log into PrizePicks in that Chrome window if prompted, then re-run -Run if needed." -ForegroundColor Yellow
     }
 }
 

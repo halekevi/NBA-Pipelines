@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 """
-Validate payout ladder rates by building synthetic (fake) tickets on live PrizePicks.
+Validate payout ladder rates by scraping LIVE PrizePicks and building real slips.
 
-For each ladder recipe (mix and/or Goblin-distance signature):
-  1) Pick real board cards matching Standard/Goblin/Demon counts (+ target deltas)
-  2) Build the slip via CDP and read power_min_x (Min Guarantee)
-  3) Compare live floor vs ladder Avg / Min–Max
+Flow:
+  1) CDP-scrape the live board (real players / lines / Goblin distances)
+  2) For each ladder recipe, click a real Power slip matching that S/G/D (+ deltas)
+  3) Read the real Min Guarantee (power_min_x) from the slip panel
+  4) Compare to ladder Avg / Min–Max → in_range / near_avg / mismatch
+
+This does NOT invent payout numbers. Tickets are built from live board cards only.
 
 Usage:
-  # Dry-run: print recipes + write fake ticket stubs (no CDP)
-  py -3.14 scripts/validate_payout_ladder.py --dry-run
-
-  # Full live validation (Chrome CDP on 9222, logged into PrizePicks)
   pwsh -File scripts/launch_prizepicks_chrome_cdp.ps1 -OpenBoard
   py -3.14 scripts/validate_payout_ladder.py --run --max-cases 40
 
 Outputs:
   data/reports/payout_ladder_validation_<date>.json
-  ui_runner/data/payout_ladder_validation_tickets.json  (fake tickets used)
+  ui_runner/data/payout_ladder_validation_tickets.json  (live-board tickets used)
+  data/reports/payout_ladder_validation_capture_<date>.json
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ import collect_payout_data as cpd  # noqa: E402
 
 LADDER_LOG = ROOT / "ui_runner" / "data" / "payout_ladder_log.csv"
 LADDER_LIVE = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
-FAKE_TICKETS_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_validation_tickets.json"
+LIVE_TICKETS_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_validation_tickets.json"
 REPORTS_DIR = ROOT / "data" / "reports"
 
 
@@ -263,7 +263,7 @@ def _pick_cards_for_recipe(
     }
 
 
-def build_fake_tickets_payload(
+def build_live_board_tickets_payload(
     recipes: list[dict[str, Any]],
     *,
     standard: list[dict],
@@ -272,13 +272,12 @@ def build_fake_tickets_payload(
     date_str: str,
     max_cases: int = 0,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    """Build tickets_latest-shaped payload of synthetic validation slips."""
+    """Build tickets payload from LIVE board cards matching each ladder recipe."""
     tickets: list[dict] = []
-    plan_rows: list[dict] = []
+    plan_rows: list[dict[str, Any]] = []
     for i, recipe in enumerate(recipes, 1):
         if max_cases > 0 and len(tickets) >= max_cases:
             break
-        # Prefer delta recipes when available; mix recipes fill gaps.
         pick = _pick_cards_for_recipe(recipe, standard=standard, goblins=goblins, demons=demons)
         if not pick:
             plan_rows.append({**recipe, "status": "unbuildable", "error": "no_matching_board_cards"})
@@ -326,7 +325,7 @@ def build_fake_tickets_payload(
     payload = {
         "date": date_str,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "purpose": "payout_ladder_validation",
+        "purpose": "payout_ladder_live_board_validation",
         "groups": [
             {
                 "name": "LADDER VALIDATION",
@@ -460,14 +459,16 @@ def scrape_board_pools(cdp_url: str) -> tuple[list[dict], list[dict], list[dict]
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Validate payout ladder rates with synthetic tickets")
+    ap = argparse.ArgumentParser(
+        description="Scrape live PrizePicks and validate ladder payout rates with real slips"
+    )
     ap.add_argument("--date", default=datetime.now(timezone.utc).strftime("%Y-%m-%d"))
     ap.add_argument("--cdp-url", default="http://127.0.0.1:9222")
-    ap.add_argument("--max-cases", type=int, default=40, help="Max synthetic tickets to build/capture")
+    ap.add_argument("--max-cases", type=int, default=40, help="Max live-board slips to build/capture")
     ap.add_argument("--mix-only", action="store_true", help="Only mix-level recipes (ignore exact deltas)")
     ap.add_argument("--delta-only", action="store_true", help="Only Goblin-distance recipes")
-    ap.add_argument("--dry-run", action="store_true", help="List recipes / write stubs without CDP")
-    ap.add_argument("--run", action="store_true", help="Full CDP build + capture + compare")
+    ap.add_argument("--dry-run", action="store_true", help="List recipes without CDP scrape")
+    ap.add_argument("--run", action="store_true", help="Scrape board, build real slips, capture + compare")
     ap.add_argument("--rel-tol", type=float, default=0.15)
     ap.add_argument("--abs-tol", type=float, default=0.5)
     args = ap.parse_args()
@@ -481,14 +482,13 @@ def main() -> int:
     print(f"[validate] loaded {len(recipes)} ladder recipes (mix={include_mix} delta={include_delta})")
 
     if args.dry_run and not args.run:
-        # Write recipe checklist without board matching
         out = {
             "date": date_str,
             "mode": "dry_run",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "n_recipes": len(recipes),
             "recipes": recipes[: max(1, int(args.max_cases)) ] if args.max_cases else recipes,
-            "note": "Start Chrome CDP then re-run with --run to build fake tickets and capture live floors.",
+            "note": "Start Chrome CDP then re-run with --run to scrape PP and capture live floors.",
         }
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
         path = REPORTS_DIR / f"payout_ladder_validation_{date_str}.json"
@@ -520,10 +520,10 @@ def main() -> int:
 
     standard, goblins, demons = scrape_board_pools(args.cdp_url)
     if len(standard) + len(goblins) < 4:
-        print("[validate] FATAL: not enough board cards")
+        print("[validate] FATAL: not enough board cards from live scrape")
         return 1
 
-    payload, plan_rows = build_fake_tickets_payload(
+    payload, plan_rows = build_live_board_tickets_payload(
         recipes,
         standard=standard,
         goblins=goblins,
@@ -531,16 +531,16 @@ def main() -> int:
         date_str=date_str,
         max_cases=int(args.max_cases),
     )
-    FAKE_TICKETS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    FAKE_TICKETS_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    LIVE_TICKETS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    LIVE_TICKETS_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     n_planned = sum(1 for p in plan_rows if p.get("status") == "planned")
     n_skip = sum(1 for p in plan_rows if p.get("status") == "unbuildable")
-    print(f"[validate] fake tickets -> {FAKE_TICKETS_PATH} planned={n_planned} unbuildable={n_skip}")
+    print(f"[validate] live-board tickets -> {LIVE_TICKETS_PATH} planned={n_planned} unbuildable={n_skip}")
 
     capture_path = REPORTS_DIR / f"payout_ladder_validation_capture_{date_str}.json"
-    print(f"[validate] capturing live floors for {n_planned} synthetic tickets...")
+    print(f"[validate] scraping live Min Guarantee for {n_planned} real slips...")
     rc = cpd.capture_tickets_from_board(
-        tickets_path=FAKE_TICKETS_PATH,
+        tickets_path=LIVE_TICKETS_PATH,
         output_path=capture_path,
         fields=["power_min_x", "power_first_x", "min_guarantee"],
         cdp_url=args.cdp_url,
@@ -549,7 +549,7 @@ def main() -> int:
         delay_sec=0.5,
         write_back=False,
         date_override=date_str,
-        strict_lines=False,  # validation may use nearest-line proxies when deltas are sparse
+        strict_lines=True,
     )
     captured = []
     if capture_path.is_file():
@@ -558,7 +558,6 @@ def main() -> int:
         except (OSError, json.JSONDecodeError):
             captured = []
 
-    # Attach recipe meta onto plan rows that were planned
     recipe_by_tid = {}
     for t in payload["groups"][0]["tickets"]:
         recipe_by_tid[t["ticket_id"]] = {**(t.get("ladder_recipe") or {}), "ticket_id": t["ticket_id"]}
@@ -568,7 +567,6 @@ def main() -> int:
             p.update({k: v for k, v in recipe_by_tid[tid].items() if k not in p or p.get(k) in (None, "")})
 
     results = compare_capture_to_recipes(captured, plan_rows)
-    # Override verdicts with CLI tols
     for r in results:
         live = r.get("live_power_min_x")
         if live and r.get("verdict") in ("in_range", "near_avg", "mismatch"):
@@ -591,7 +589,7 @@ def main() -> int:
         "date": date_str,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "cdp_url": args.cdp_url,
-        "fake_tickets_path": str(FAKE_TICKETS_PATH),
+        "live_board_tickets_path": str(LIVE_TICKETS_PATH),
         "capture_path": str(capture_path),
         "capture_exit": rc,
         "summary": counts,
@@ -602,7 +600,7 @@ def main() -> int:
     report_path = REPORTS_DIR / f"payout_ladder_validation_{date_str}.json"
     report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print("\n=== LADDER VALIDATION SUMMARY ===")
+    print("\n=== LADDER LIVE-BOARD VALIDATION ===")
     for k, v in counts.items():
         if v:
             print(f"  {k}: {v}")
@@ -623,7 +621,6 @@ def main() -> int:
     if shown == 0:
         print("  (none)")
 
-    # Soft success if we validated anything in-range/near
     ok_n = counts.get("in_range", 0) + counts.get("near_avg", 0)
     return 0 if ok_n > 0 else (1 if counts.get("mismatch", 0) else rc)
 

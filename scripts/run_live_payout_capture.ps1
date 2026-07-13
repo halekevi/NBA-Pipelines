@@ -7,12 +7,16 @@
 #       (navigates to that slip's sport board; does not crawl unrelated leagues)
 #    2) Write payout_patch_<date>.json + write-back display_min_x
 #       (payout_source=live_cdp) onto combined + tickets_latest.json
+#    3) Verify outstanding ticket floors + mix/Δ coverage
+#       (scripts/verify_ticket_payout_rates.py). Fills missing live_cdp slips
+#       when CDP is up; rebuilds SG Δ rate card after fills.
 #    Optional: -IncludeMixGrid for once/day rate-card calibration (separate from tickets)
 #
 #  Usage:
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -Force
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -IncludeMixGrid
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -FillMissingTickets -RebuildRateCard
 #
 #  Exit codes:
 #    0  = capture attempted (ok or soft-fail / CDP skip)
@@ -30,7 +34,12 @@ param(
     [switch]$NoWriteBack,
     [switch]$Force,
     # Default: exact line+Goblin only. Pass -AllowLineFallback to price moved proxies.
-    [switch]$AllowLineFallback
+    [switch]$AllowLineFallback,
+    # After capture: audit + optionally fill still-missing live floors / rebuild rate card.
+    [switch]$SkipVerify,
+    [switch]$FillMissingTickets,
+    [switch]$RebuildRateCard,
+    [switch]$Gentle
 )
 
 $ErrorActionPreference = "Continue"
@@ -51,12 +60,19 @@ $mixGridOut = Join-Path $Root "data\reports\payout_mix_grid_$Date.json"
 $rateCardOut = Join-Path $Root "data\reports\payout_rate_card.json"
 $ticketsLatest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
 $mobileTickets = Join-Path $Root "mobile\www\tickets_latest.json"
+$verifyScript = Join-Path $Root "scripts\verify_ticket_payout_rates.py"
 
 if (-not $TicketsPath) {
     $TicketsPath = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
     if (-not (Test-Path -LiteralPath $TicketsPath)) {
         $alt = Join-Path $Root "outputs\$Date\combined_slate_tickets_$Date.json"
-        if (Test-Path -LiteralPath $alt) { $TicketsPath = $alt }
+        if (Test-Path -LiteralPath $alt) {
+            $TicketsPath = $alt
+        } elseif (Test-Path -LiteralPath (Join-Path $Root "ui_runner\templates\tickets_latest.json")) {
+            $TicketsPath = Join-Path $Root "ui_runner\templates\tickets_latest.json"
+        } elseif (Test-Path -LiteralPath (Join-Path $Root "ui_runner\data\tickets_latest.json")) {
+            $TicketsPath = Join-Path $Root "ui_runner\data\tickets_latest.json"
+        }
     }
 }
 
@@ -76,6 +92,47 @@ function Test-CdpUp {
     }
 }
 
+function Invoke-PayoutVerify {
+    param(
+        [string]$VerifyRoot,
+        [string]$VerifyDate,
+        [string]$VerifyTickets,
+        [string]$VerifyCdp,
+        [bool]$DoFill,
+        [bool]$DoRebuild,
+        [bool]$DoGentle
+    )
+    if (-not (Test-Path -LiteralPath $verifyScript)) {
+        Write-Host "  [PAYOUT-VERIFY] WARN: verify_ticket_payout_rates.py missing" -ForegroundColor Yellow
+        return
+    }
+    if (-not (Test-Path -LiteralPath $VerifyTickets)) {
+        Write-Host "  [PAYOUT-VERIFY] WARN: tickets missing -- $VerifyTickets" -ForegroundColor Yellow
+        return
+    }
+    Write-Host "  [PAYOUT-VERIFY] Auditing ticket floors + outstanding mix/Δ coverage..." -ForegroundColor Cyan
+    $verifyArgs = @(
+        "-3.14", "-X", "utf8", $verifyScript,
+        "--date", $VerifyDate,
+        "--tickets", $VerifyTickets,
+        "--cdp-url", $VerifyCdp
+    )
+    if ($DoFill) { $verifyArgs += "--fill-missing-tickets" }
+    if ($DoRebuild) { $verifyArgs += "--rebuild-rate-card" }
+    if ($DoGentle) { $verifyArgs += "--gentle" }
+    Push-Location $VerifyRoot
+    try {
+        & py @verifyArgs
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  [PAYOUT-VERIFY] WARN: verify exit $LASTEXITCODE (non-blocking)" -ForegroundColor Yellow
+        } else {
+            Write-Host "  [PAYOUT-VERIFY] OK -> data/reports/ticket_payout_verify_$VerifyDate.json" -ForegroundColor Green
+        }
+    } finally {
+        Pop-Location
+    }
+}
+
 Write-Host ""
 Write-Host "[LIVE PAYOUT] Post-ticket PrizePicks scrape ($Date)" -ForegroundColor Magenta
 
@@ -86,7 +143,12 @@ if (-not (Test-Path -LiteralPath $payoutScript)) {
 
 $cdpUp = Test-CdpUp -Url $CdpUrl
 if (-not $cdpUp) {
-    Write-Host "  [PAYOUT] CDP not running on $CdpUrl -- skip (tickets keep board-avg / rate-card)" -ForegroundColor DarkGray
+    Write-Host "  [PAYOUT] CDP not running on $CdpUrl -- skip scrape (tickets keep board-avg / rate-card)" -ForegroundColor DarkGray
+    # Still audit so daily reports show outstanding gaps.
+    if (-not $SkipVerify) {
+        Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
+            -VerifyCdp $CdpUrl -DoFill:$false -DoRebuild:$RebuildRateCard.IsPresent -DoGentle:$false
+    }
     exit 0
 }
 
@@ -114,77 +176,91 @@ try {
 
     if (-not (Test-Path -LiteralPath $TicketsPath)) {
         Write-Host "  [PAYOUT] WARN: tickets JSON missing -- $TicketsPath" -ForegroundColor Yellow
+        if (-not $SkipVerify) {
+            Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
+                -VerifyCdp $CdpUrl -DoFill:$false -DoRebuild:$RebuildRateCard.IsPresent -DoGentle:$Gentle.IsPresent
+        }
         exit 0
     }
 
-    # Idempotent: skip re-scrape when today's capture already has live floors (unless -Force).
+    $skippedFullCapture = $false
+    # Idempotent: skip full re-scrape when today's capture already has live floors (unless -Force).
+    # Verify still runs so missing slips / outstanding Δ recipes get filled.
     if (-not $Force -and (Test-Path -LiteralPath $payoutOut)) {
         try {
             $prior = Get-Content -LiteralPath $payoutOut -Raw | ConvertFrom-Json
             $priorOk = 0
             if ($null -ne $prior.summary) { $priorOk = [int]($prior.summary.n_ok) }
             if ($priorOk -gt 0) {
-                Write-Host "  [PAYOUT] already have live capture n_ok=$priorOk ($payoutOut) -- skip (pass -Force to redo)" -ForegroundColor DarkGray
-                exit 0
+                Write-Host "  [PAYOUT] already have live capture n_ok=$priorOk ($payoutOut) -- skip full scrape (verify may still fill missing)" -ForegroundColor DarkGray
+                $skippedFullCapture = $true
             }
         } catch { }
     }
 
-    Write-Host "  [PAYOUT] Capturing MAIN/STRONG floors from $TicketsPath" -ForegroundColor Cyan
-    $ticketArgs = @(
-        "-3.14", "-X", "utf8", $payoutScript,
-        "--tickets", $TicketsPath,
-        "--output", $payoutOut,
-        "--date", $Date,
-        "--cdp-url", $CdpUrl,
-        "--fields", "power_min_x,power_first_x,min_guarantee,flex_min"
-    )
-    if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
-    if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
-    & py @ticketArgs
-    $capExit = $LASTEXITCODE
-
+    $capExit = 0
     $nOk = 0
-    if (Test-Path -LiteralPath $payoutOut) {
-        try {
-            $cap = Get-Content -LiteralPath $payoutOut -Raw | ConvertFrom-Json
-            if ($null -ne $cap.summary) {
-                $nOk = [int]($cap.summary.n_ok)
-                $nFail = [int]($cap.summary.n_failed)
-                Write-Host "  [PAYOUT] summary ok=$nOk failed=$nFail -> $payoutOut" -ForegroundColor $(if ($nOk -gt 0) { "Green" } else { "Yellow" })
+    if (-not $skippedFullCapture) {
+        Write-Host "  [PAYOUT] Capturing MAIN/STRONG floors from $TicketsPath" -ForegroundColor Cyan
+        $ticketArgs = @(
+            "-3.14", "-X", "utf8", $payoutScript,
+            "--tickets", $TicketsPath,
+            "--output", $payoutOut,
+            "--date", $Date,
+            "--cdp-url", $CdpUrl,
+            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min"
+        )
+        if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
+        if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
+        if ($Gentle) { $ticketArgs += "--gentle" }
+        & py @ticketArgs
+        $capExit = $LASTEXITCODE
+
+        if (Test-Path -LiteralPath $payoutOut) {
+            try {
+                $cap = Get-Content -LiteralPath $payoutOut -Raw | ConvertFrom-Json
+                if ($null -ne $cap.summary) {
+                    $nOk = [int]($cap.summary.n_ok)
+                    $nFail = [int]($cap.summary.n_failed)
+                    Write-Host "  [PAYOUT] summary ok=$nOk failed=$nFail -> $payoutOut" -ForegroundColor $(if ($nOk -gt 0) { "Green" } else { "Yellow" })
+                }
+            } catch { }
+        }
+
+        if ($capExit -eq 0 -and $nOk -gt 0) {
+            if ((Test-Path -LiteralPath $ticketsLatest) -and (Test-Path (Split-Path $mobileTickets -Parent))) {
+                Copy-Item $ticketsLatest $mobileTickets -Force -ErrorAction SilentlyContinue
+                Write-Host "  [PAYOUT] mirrored -> mobile/www/tickets_latest.json" -ForegroundColor Green
             }
-        } catch { }
+            Write-Host "  [PAYOUT] Live floors applied (payout_source=live_cdp on patched slips)" -ForegroundColor Green
+            $rateCardsScript = Join-Path $Root "scripts\build_payout_rate_cards.py"
+            if (Test-Path -LiteralPath $rateCardsScript) {
+                & py -3.14 -X utf8 $rateCardsScript | Out-Host
+                Write-Host "  [PAYOUT] rate-cards deck rebuilt -> data/payout_rate_cards.json" -ForegroundColor Green
+            }
+        } elseif ($capExit -eq 0) {
+            Write-Host "  [PAYOUT] WARN: capture finished but 0 live floors (board avg remains)" -ForegroundColor Yellow
+        } else {
+            Write-Host "  [PAYOUT] WARN: capture exit $capExit (non-blocking)" -ForegroundColor Yellow
+        }
+
+        if ($capExit -eq 0 -and (Test-Path -LiteralPath $payoutOut)) {
+            try {
+                Write-Host "  [PAYOUT] Pruning unplayable slips from live tickets_latest..." -ForegroundColor Cyan
+                py -3.14 -X utf8 (Join-Path $Root "scripts\ticket_run_archive.py") `
+                    --prune-live --date $Date --capture $payoutOut | Out-Host
+            } catch {
+                Write-Host "  [PAYOUT] WARN: live prune failed: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+        }
     }
 
-    if ($capExit -eq 0 -and $nOk -gt 0) {
-        # Keep mobile mirror in sync when templates/tickets_latest was write-backed.
-        if ((Test-Path -LiteralPath $ticketsLatest) -and (Test-Path (Split-Path $mobileTickets -Parent))) {
-            Copy-Item $ticketsLatest $mobileTickets -Force -ErrorAction SilentlyContinue
-            Write-Host "  [PAYOUT] mirrored -> mobile/www/tickets_latest.json" -ForegroundColor Green
-        }
-        Write-Host "  [PAYOUT] Live floors applied (payout_source=live_cdp on patched slips)" -ForegroundColor Green
-        # Refresh /payout Rate cards deck from merged live composition floors.
-        $rateCardsScript = Join-Path $Root "scripts\build_payout_rate_cards.py"
-        if (Test-Path -LiteralPath $rateCardsScript) {
-            & py -3.14 -X utf8 $rateCardsScript | Out-Host
-            Write-Host "  [PAYOUT] rate-cards deck rebuilt -> data/payout_rate_cards.json" -ForegroundColor Green
-        }
-    } elseif ($capExit -eq 0) {
-        Write-Host "  [PAYOUT] WARN: capture finished but 0 live floors (board avg remains)" -ForegroundColor Yellow
-    } else {
-        Write-Host "  [PAYOUT] WARN: capture exit $capExit (non-blocking)" -ForegroundColor Yellow
-    }
-
-    # Remove slips that can no longer be built on PP from the LIVE site/app only.
-    # Grade pool + per-run archives keep every historical slip for grading/compare.
-    if ($capExit -eq 0 -and (Test-Path -LiteralPath $payoutOut)) {
-        try {
-            Write-Host "  [PAYOUT] Pruning unplayable slips from live tickets_latest..." -ForegroundColor Cyan
-            py -3.14 -X utf8 (Join-Path $Root "scripts\ticket_run_archive.py") `
-                --prune-live --date $Date --capture $payoutOut | Out-Host
-        } catch {
-            Write-Host "  [PAYOUT] WARN: live prune failed: $($_.Exception.Message)" -ForegroundColor Yellow
-        }
+    if (-not $SkipVerify) {
+        # Fill missing by default when CDP is up (covers prior partial captures).
+        $doFill = $FillMissingTickets -or $Force -or $cdpUp
+        $doRebuild = $RebuildRateCard -or $doFill
+        Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
+            -VerifyCdp $CdpUrl -DoFill:$doFill -DoRebuild:$doRebuild -DoGentle:$Gentle.IsPresent
     }
 } catch {
     Write-Host "  [PAYOUT] WARN: $($_.Exception.Message)" -ForegroundColor Yellow

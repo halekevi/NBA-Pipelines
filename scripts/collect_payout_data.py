@@ -2333,7 +2333,19 @@ def _parse_fields_arg(raw: str | None) -> list[str]:
     return out or list(DEFAULT_CAPTURE_FIELDS)
 
 
-def load_main_strong_tickets(path: Path) -> list[dict]:
+def _ticket_already_has_live_cdp(ticket: dict) -> bool:
+    pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
+    src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if src != "live_cdp":
+        return False
+    try:
+        min_x = float(pay.get("power_min_x") or pay.get("display_min_x") or ticket.get("display_min_x") or 0)
+    except (TypeError, ValueError):
+        return False
+    return min_x > 0
+
+
+def load_main_strong_tickets(path: Path, *, only_missing_live: bool = False) -> list[dict]:
     """Load MAIN + STRONG slips from combined_slate_tickets_*.json."""
     data = json.loads(path.read_text(encoding="utf-8"))
     slips: list[dict] = []
@@ -2343,6 +2355,8 @@ def load_main_strong_tickets(path: Path) -> list[dict]:
         group_name = str(g.get("group_name") or g.get("name") or "")
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
+                continue
+            if only_missing_live and _ticket_already_has_live_cdp(t):
                 continue
             raw_legs = t.get("legs") or []
             if len(raw_legs) < 2:
@@ -2367,6 +2381,10 @@ def load_main_strong_tickets(path: Path) -> list[dict]:
                             leg.get("pick_type") or leg.get("pick") or "Goblin"
                         ).strip(),
                         "sport": str(leg.get("sport") or "").strip().upper(),
+                        # Keep Δ fields so ladder live_cdp rows get Goblin distances.
+                        "standard_line": leg.get("standard_line") or leg.get("std_line"),
+                        "line_distance": leg.get("line_distance") or leg.get("delta"),
+                        "delta": leg.get("delta") or leg.get("line_distance"),
                     }
                 )
             if len(legs) < 2:
@@ -2653,7 +2671,12 @@ def write_payout_patch_and_apply_to_tickets(
                 date_str=date_str,
                 source="ticket_capture",
             )
-            sync_captures_to_payout_ladder_live(captured, date_str=date_str)
+            sync_captures_to_payout_ladder_live(
+                captured,
+                date_str=date_str,
+                tickets_path=tickets_path,
+                keep_same_date=True,
+            )
             rebuild_payout_rate_cards_deck()
         except Exception as e:
             print(f"[PAYOUT] WARN: rate-card / ladder merge failed: {e}")
@@ -2718,6 +2741,7 @@ def capture_tickets_from_board(
     strict_lines: bool = True,
     require_line: bool | None = None,
     gentle: bool = False,
+    only_missing_live: bool = False,
 ) -> int:
     """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts.
 
@@ -2725,22 +2749,35 @@ def capture_tickets_from_board(
     require_line defaults to strict_lines; set False to allow board line drift while
     still requiring the badge (used by ladder live-board validation).
     gentle=True: human-paced delays + random cooloff between slips (less DataDome).
+    only_missing_live=True: skip slips that already have payout_source=live_cdp.
     """
     if require_line is None:
         require_line = bool(strict_lines)
     if gentle:
         delay_sec = max(float(delay_sec), 2.0)
-    slips = load_main_strong_tickets(tickets_path)
+    slips = load_main_strong_tickets(tickets_path, only_missing_live=only_missing_live)
     if not slips:
-        print(f"[PAYOUT] No MAIN/STRONG slips in {tickets_path}")
+        reason = (
+            "missing-live pool empty (all have live_cdp)"
+            if only_missing_live
+            else "no slips"
+        )
+        print(f"[PAYOUT] No MAIN/STRONG slips to scrape in {tickets_path} ({reason})")
         payload = {
-            "date": "",
+            "date": str(date_override or "")[:10],
             "generated_at": datetime.utcnow().isoformat() + "Z",
             "tickets_path": str(tickets_path),
             "fields": fields,
             "primary_field": "power_min_x",
+            "only_missing_live": bool(only_missing_live),
             "slips": [],
-            "summary": {"n_ok": 0, "n_failed": 0, "n_partial": 0, "n_total": 0},
+            "summary": {
+                "n_ok": 0,
+                "n_failed": 0,
+                "n_partial": 0,
+                "n_total": 0,
+                "n_skipped_live": 0,
+            },
         }
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -2763,7 +2800,9 @@ def capture_tickets_from_board(
         f"(sports={','.join(sports_in_run) or 'unknown'}; "
         f"strict_lines={'on' if strict_lines else 'off'} "
         f"require_line={'on' if require_line else 'off'} "
-        f"gentle={'on' if gentle else 'off'} delay={delay_sec:.1f}s)"
+        f"gentle={'on' if gentle else 'off'} "
+        f"only_missing_live={'on' if only_missing_live else 'off'} "
+        f"delay={delay_sec:.1f}s)"
     )
 
     want_flex = "flex_min" in fields
@@ -4120,6 +4159,16 @@ def main():
         help="With --tickets: allow nearest-line proxies when exact Goblin/line left the board.",
     )
     ap.add_argument(
+        "--only-missing-live",
+        action="store_true",
+        help="With --tickets: scrape only slips that do not already have payout_source=live_cdp.",
+    )
+    ap.add_argument(
+        "--gentle",
+        action="store_true",
+        help="With --tickets: slower pacing between slips (less DataDome pressure).",
+    )
+    ap.add_argument(
         "--rebuild-patch-from-tickets",
         default="",
         help=(
@@ -4227,6 +4276,8 @@ def main():
                 write_back=not bool(getattr(args, "no_write_back", False)),
                 date_override=date_override,
                 strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
+                only_missing_live=bool(getattr(args, "only_missing_live", False)),
+                gentle=bool(getattr(args, "gentle", False)),
             )
         )
 

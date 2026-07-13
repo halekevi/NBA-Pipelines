@@ -3354,35 +3354,6 @@
   },
   {
     "date": "2026-07-12",
-    "track": "goblin_only_3leg",
-    "n_tickets": 14,
-    "wins": 11,
-    "guarantees": 0,
-    "losses": 3,
-    "void_loss_ct": 0,
-    "win_rate": 0.7857,
-    "avg_ev_predicted": 0.3896,
-    "net_per_10": 16.66,
-    "roi_pct": 166.56,
-    "strong_tickets": {
-      "count": 11,
-      "wins": 8
-    },
-    "ok_tickets": {
-      "count": 0,
-      "wins": 0
-    },
-    "marginal_tickets": {
-      "count": 0,
-      "wins": 0
-    },
-    "skip_tickets": {
-      "count": 3,
-      "wins": 3
-    }
-  },
-  {
-    "date": "2026-07-12",
     "track": "long_parlay",
     "n_tickets": 31,
     "wins": 3,
@@ -3408,6 +3379,35 @@
     "skip_tickets": {
       "count": 14,
       "wins": 0
+    }
+  },
+  {
+    "date": "2026-07-12",
+    "track": "goblin_only_3leg",
+    "n_tickets": 14,
+    "wins": 11,
+    "guarantees": 0,
+    "losses": 3,
+    "void_loss_ct": 0,
+    "win_rate": 0.7857,
+    "avg_ev_predicted": 0.3896,
+    "net_per_10": 16.66,
+    "roi_pct": 166.56,
+    "strong_tickets": {
+      "count": 11,
+      "wins": 8
+    },
+    "ok_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "marginal_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "skip_tickets": {
+      "count": 3,
+      "wins": 3
     }
   }
 ]

@@ -1290,8 +1290,9 @@ def _append_grade_history(record: dict[str, Any]) -> None:
 
 
 EVAL_TRACK_LABELS: dict[str, str] = {
-    "graded_main": "Graded Main Slate (2-leg, win-rate)",
-    "goblin_only_3leg": "Goblin-only 3-leg MAIN (shipped tickets)",
+    "graded_main": "Graded Main Slate (high-prob Std+Gob)",
+    "high_prob_std_gob": "High-prob Standard+Goblin MAIN (shipped tickets)",
+    "goblin_only_3leg": "Goblin-only 3-leg MAIN (legacy / shadow)",
     "long_parlay": "Long Parlays (5-6 leg)",
     "high_leg_hr": "High Leg HR",
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
@@ -2370,28 +2371,55 @@ def _ticket_json_matches_date(path: Path, arg_date: str) -> bool:
 
 
 def find_goblin_only_3leg_ticket_json(arg_date: str) -> Path | None:
-    """Shipped MAIN pool JSON (post goblin_only_3leg policy) — prefer over legacy xlsx tabs."""
+    """Shipped MAIN pool JSON (high_prob_std_gob or legacy goblin_only_3leg)."""
+    preferred_modes = ("high_prob_std_gob", "goblin_only_3leg")
     for jp in (
         REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
         REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
         TEMPLATES_DIR / "tickets_latest.json",
     ):
         if jp.is_file() and _ticket_json_matches_date(jp, arg_date):
-            if _ticket_json_pool_mode(jp) == "goblin_only_3leg":
+            if _ticket_json_pool_mode(jp) in preferred_modes:
                 return jp
     return None
+
+
+def _ticket_json_has_ticket_groups(path: Path) -> bool:
+    """True when dated JSON has at least one group with tickets (not an empty export)."""
+    try:
+        with path.open(encoding="utf-8") as f:
+            hdr = json.load(f)
+        groups = hdr.get("groups") if isinstance(hdr, dict) else None
+        if not isinstance(groups, list):
+            return False
+        for g in groups:
+            if not isinstance(g, dict):
+                continue
+            tickets = g.get("tickets") or g.get("slips") or []
+            if isinstance(tickets, list) and len(tickets) > 0:
+                return True
+        return False
+    except (OSError, json.JSONDecodeError, TypeError):
+        return False
 
 
 def find_ticket_payload_path(
     arg_date: str, override: Path | None = None
 ) -> Path | None:
-    """Resolve combined slate: goblin_only_3leg JSON when present; else workbook; else legacy JSON."""
+    """Resolve combined slate: high-prob MAIN JSON when present; else non-empty dated JSON; else workbook."""
     if override is not None:
         p = override.expanduser().resolve()
         return p if p.is_file() else None
     goblin_json = find_goblin_only_3leg_ticket_json(arg_date)
     if goblin_json is not None:
         return goblin_json
+    # Prefer dated JSON with real tickets over workbook shells that only have slate tabs.
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
+        REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
+    ):
+        if jp.is_file() and _ticket_json_has_ticket_groups(jp):
+            return jp
     wb = find_ticket_json(arg_date, override=None)
     if wb is not None:
         return wb
@@ -2925,15 +2953,37 @@ def _load_tickets(path: Path, arg_date: str) -> dict[str, Any]:
 
 
 def _group_is_goblin_only_3leg_shipped(group_name: str) -> bool:
-    """Shipped MAIN JSON groups (post goblin_only_3leg) — not legacy xlsx tab names."""
+    """Legacy Goblin-only MAIN JSON groups — not legacy xlsx tab names."""
     n = str(group_name or "").strip()
     if re.match(r"^STRONG Goblin HOT$", n, re.I):
         return True
     return bool(re.match(r"^[A-Za-z0-9]+\s+\d+-Leg Goblin$", n, re.I))
 
 
+def _group_is_high_prob_main_shipped(group_name: str) -> bool:
+    """Shipped high-prob MAIN groups: Goblin / Standard / Mixed N-leg (+ STRONG)."""
+    n = str(group_name or "").strip()
+    if re.match(r"^STRONG Goblin HOT$", n, re.I):
+        return True
+    return bool(
+        re.match(
+            r"^[A-Za-z0-9]+\s+\d+-Leg (Goblin|Standard|Mixed)$",
+            n,
+            re.I,
+        )
+    )
+
+
 def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
+    if pool_mode == "high_prob_std_gob" and _group_is_high_prob_main_shipped(group_name):
+        return True
     if pool_mode == "goblin_only_3leg" and _group_is_goblin_only_3leg_shipped(group_name):
+        return True
+    # Older dated JSON may omit filters.pool_mode but still ship STRONG / N-Leg Goblin groups.
+    if not pool_mode and (
+        _group_is_goblin_only_3leg_shipped(group_name)
+        or _group_is_high_prob_main_shipped(group_name)
+    ):
         return True
     n = str(group_name or "").strip()
     # combined_slate_tickets workbook tabs often end with " #1", " #2", … after the N-Leg label.
@@ -3384,11 +3434,10 @@ def _build_html(
     roi_pct = (100.0 * total_net_10 / (10 * n_pay)) if n_pay else 0.0
 
     pool_mode = _payload_pool_mode(payload)
-    display_track = (
-        "goblin_only_3leg"
-        if pool_mode == "goblin_only_3leg" and eval_track == "graded_main"
-        else eval_track
-    )
+    if eval_track == "graded_main" and pool_mode in ("high_prob_std_gob", "goblin_only_3leg"):
+        display_track = pool_mode
+    else:
+        display_track = eval_track
     track_label = EVAL_TRACK_LABELS.get(display_track, display_track)
     history_record: dict[str, Any] | None = None
     if n_pay:
@@ -3484,8 +3533,9 @@ def _build_html(
     page_title_label = {
         "long_parlay": "Long Parlay Ticket Eval (5-6 leg)",
         "high_leg_hr": "High Leg HR Ticket Eval",
-        "goblin_only_3leg": "Goblin-only 3-leg MAIN Ticket Eval",
-    }.get(display_track, "Ticket Eval (2-leg, win-rate)")
+        "high_prob_std_gob": "High-prob Standard+Goblin MAIN Ticket Eval",
+        "goblin_only_3leg": "Goblin-only 3-leg MAIN Ticket Eval (legacy)",
+    }.get(display_track, "Ticket Eval (high-prob Std+Gob)")
     parts: list[str] = [
         "<!DOCTYPE html>",
         f'<html lang="en" data-theme="dark" data-ticket-track="{esc(display_track)}">',

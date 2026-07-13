@@ -801,6 +801,14 @@ def _ml_defense_tier_series(out: pd.DataFrame, n_teams: int) -> pd.Series:
 
 def _apply_ml_blend(out: pd.DataFrame, existing_score: pd.Series, n_teams: int) -> tuple[pd.Series, pd.Series, pd.Series]:
     root = Path(__file__).resolve().parents[3]
+    try:
+        from prop_model_runtime import skip_prop_model_inference, skip_prop_model_log
+
+        if skip_prop_model_inference():
+            skip_prop_model_log("Soccer")
+            return pd.Series(np.nan, index=out.index), pd.Series(np.nan, index=out.index), existing_score.copy()
+    except Exception:
+        pass
     model_path = root / "models" / "prop_model_soccer.pkl"
     feat_path = root / "models" / "prop_model_soccer_features.json"
     if not (model_path.exists() and feat_path.exists()):

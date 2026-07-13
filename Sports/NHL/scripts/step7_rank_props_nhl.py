@@ -744,6 +744,14 @@ def _apply_ml_blend(df: pd.DataFrame) -> tuple[pd.Series, pd.Series, pd.Series]:
     model_path = root / "models" / "prop_model_nhl.pkl"
     feat_path = root / "models" / "prop_model_nhl_features.json"
     existing_score = _to_num(df.get("prop_score", pd.Series(np.nan, index=df.index))).fillna(0.0)
+    try:
+        from prop_model_runtime import skip_prop_model_inference, skip_prop_model_log
+
+        if skip_prop_model_inference():
+            skip_prop_model_log("NHL")
+            return pd.Series(np.nan, index=df.index), pd.Series(np.nan, index=df.index), existing_score
+    except Exception:
+        pass
     if not (model_path.exists() and feat_path.exists()):
         print(f"[WARN] NHL ML model missing at {model_path} - skipping ML blend")
         return pd.Series(np.nan, index=df.index), pd.Series(np.nan, index=df.index), existing_score

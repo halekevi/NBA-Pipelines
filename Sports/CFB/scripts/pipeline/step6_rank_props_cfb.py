@@ -564,6 +564,14 @@ def _cbb_meta_adjust_ml_prob(
 
 def _apply_ml_blend(out: pd.DataFrame, existing_score: pd.Series, source_hint: str = "") -> tuple[pd.Series, pd.Series, pd.Series]:
     root = Path(__file__).resolve().parents[4]
+    try:
+        from prop_model_runtime import skip_prop_model_inference, skip_prop_model_log
+
+        if skip_prop_model_inference():
+            skip_prop_model_log("CFB")
+            return pd.Series(np.nan, index=out.index), pd.Series(np.nan, index=out.index), existing_score.copy()
+    except Exception:
+        pass
     source_key = str(source_hint).lower()
     model_keys = ["cbb"]
     if "wcbb" in source_key:

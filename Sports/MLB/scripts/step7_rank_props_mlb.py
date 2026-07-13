@@ -268,6 +268,15 @@ def _apply_ml_blend_mlb(out: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         blend_w = 0.20
 
+    try:
+        from prop_model_runtime import skip_prop_model_inference, skip_prop_model_log
+
+        if skip_prop_model_inference():
+            skip_prop_model_log("MLB")
+            return _finalize_mlb_ml_blend(out, _fallback_ml_prob_series_mlb(out), blend_w, "prior-only-skip")
+    except Exception:
+        pass
+
     model_path = root / "models" / "prop_model_mlb.pkl"
     feat_path = root / "models" / "prop_model_mlb_features.json"
     if not (model_path.exists() and feat_path.exists()):

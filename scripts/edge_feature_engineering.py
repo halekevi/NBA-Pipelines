@@ -591,31 +591,24 @@ def _collect_last_minutes(df: pd.DataFrame, sport: str) -> list[pd.Series]:
 
 
 def _minutes_cv_series(df: pd.DataFrame, sport: str) -> pd.Series:
+    """Coefficient of variation across last-N minutes + L5/L10 avgs (vectorized)."""
     last3 = _collect_last_minutes(df, sport)
     avg_l5 = _to_num(_first_col(df, ("avg_L5", "stat_last5_avg")))
     avg_l10 = _to_num(_first_col(df, ("avg_L10", "stat_last10_avg")))
     idx = df.index
-    cv_vals = []
-    for i in range(len(df)):
-        vals = []
-        for s in last3:
-            v = s.iloc[i] if i < len(s) else np.nan
-            if pd.notna(v):
-                vals.append(float(v))
-        for s in (avg_l5, avg_l10):
-            v = s.iloc[i] if i < len(s) else np.nan
-            if pd.notna(v):
-                vals.append(float(v))
-        if len(vals) < 3:
-            cv_vals.append(np.nan)
-            continue
-        arr = np.array(vals, dtype=float)
-        mu = float(np.mean(arr))
-        if mu == 0 or np.isnan(mu):
-            cv_vals.append(np.nan)
-        else:
-            cv_vals.append(float(np.std(arr, ddof=0) / mu))
-    return pd.Series(cv_vals, index=idx)
+    cols = [s.reindex(idx) for s in (*last3, avg_l5, avg_l10)]
+    if not cols:
+        return pd.Series(np.nan, index=idx, dtype=float)
+    mat = np.column_stack([pd.to_numeric(c, errors="coerce").to_numpy(dtype=float) for c in cols])
+    valid = np.isfinite(mat)
+    counts = valid.sum(axis=1)
+    # nanmean / nanstd over ≥3 finite values; else NaN
+    with np.errstate(all="ignore"):
+        mu = np.nanmean(mat, axis=1)
+        sd = np.nanstd(mat, axis=1, ddof=0)
+        cv = sd / mu
+    cv = np.where((counts >= 3) & np.isfinite(mu) & (mu != 0.0) & np.isfinite(cv), cv, np.nan)
+    return pd.Series(cv, index=idx, dtype=float)
 
 
 def _minutes_trend_series(df: pd.DataFrame) -> pd.Series:

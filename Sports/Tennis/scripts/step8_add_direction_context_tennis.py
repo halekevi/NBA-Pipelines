@@ -57,6 +57,21 @@ def _norm_pick_type(x: str) -> str:
 
 def _attach_unified_ml_prob(out: pd.DataFrame, repo_root: Path) -> pd.DataFrame:
     """Apply unified edge model ml_prob (non-fatal; keeps heuristic ml_prob on failure)."""
+    # step7b already wrote unified scores — only re-apply tennis caps.
+    if "prob_source" in out.columns and "ml_prob" in out.columns:
+        src = out["prob_source"].astype(str).str.strip().str.lower()
+        if bool((src == "ml_prob_unified").fillna(False).any()) and pd.to_numeric(
+            out["ml_prob"], errors="coerce"
+        ).notna().mean() > 0.5:
+            print("[Tennis step8] unified ml_prob already present (step7b) — skip re-score")
+            try:
+                from utils.tennis_ml_prob_caps import apply_tennis_ml_prob_caps  # noqa: WPS433
+
+                out = apply_tennis_ml_prob_caps(out, in_place=True)
+            except Exception:
+                pass
+            return out
+
     scripts_dir = repo_root / "scripts"
     if str(scripts_dir) not in sys.path:
         sys.path.insert(0, str(scripts_dir))
@@ -75,8 +90,9 @@ def _attach_unified_ml_prob(out: pd.DataFrame, repo_root: Path) -> pd.DataFrame:
         out["ml_prob"] = pd.to_numeric(ml_p, errors="coerce").round(4)
         out["edge_score"] = pd.to_numeric(edge_sc, errors="coerce").round(4)
         out["blended_score"] = pd.to_numeric(blended, errors="coerce").round(4)
-        if "prob_source" in out.columns:
-            out.loc[ml_p.notna(), "prob_source"] = "ml_prob_unified"
+        if "prob_source" not in out.columns:
+            out["prob_source"] = ""
+        out.loc[ml_p.notna(), "prob_source"] = "ml_prob_unified"
         print(f"[Tennis step8] unified ml_prob filled {filled}/{len(out)} rows")
     except Exception as exc:
         print(f"[Tennis step8] WARN unified ml_prob failed: {exc}")
@@ -124,18 +140,21 @@ def _attach_distribution_std(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or len(df) == 0:
         return df
     out = df.copy()
-    dist_n: list[int | None] = []
-    dist_std: list[float | None] = []
-    for _, row in out.iterrows():
-        g_vals = _parse_g_vals(row, prefix="stat_g")
-        n = len(g_vals)
-        dist_n.append(n)
-        if n >= 2:
-            dist_std.append(round(float(pd.Series(g_vals).std(ddof=1)), 4))
-        else:
-            dist_std.append(None)
-    out["distribution_n"] = dist_n
-    out["distribution_std"] = dist_std
+    g_cols = [f"stat_g{i}" for i in range(1, 11) if f"stat_g{i}" in out.columns]
+    if not g_cols:
+        out["distribution_n"] = 0
+        out["distribution_std"] = None
+        return out
+    mat = out[g_cols].apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
+    # Treat missing sentinels already coerced to NaN via to_numeric.
+    counts = np.isfinite(mat).sum(axis=1)
+    with np.errstate(all="ignore"):
+        # Sample std with ddof=1; when n<2 → NaN (nanstd returns NaN for n=0/1 with ddof=1)
+        std = np.nanstd(mat, axis=1, ddof=1)
+    out["distribution_n"] = counts.astype(int)
+    out["distribution_std"] = [
+        round(float(v), 4) if n >= 2 and np.isfinite(v) else None for n, v in zip(counts, std)
+    ]
     return out
 
 

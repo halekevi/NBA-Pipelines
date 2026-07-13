@@ -858,6 +858,23 @@ def _apply_demon_prob_sanity_caps(
 
 def _apply_ml_blend(out: pd.DataFrame, existing_score: pd.Series, source_hint: str = "") -> tuple[pd.Series, pd.Series, pd.Series]:
     root = Path(__file__).resolve().parents[3]
+    try:
+        from prop_model_runtime import skip_prop_model_inference, skip_prop_model_log
+
+        if skip_prop_model_inference():
+            skip_prop_model_log("NBA")
+            prior = pd.to_numeric(out.get("prop_hr_prior"), errors="coerce")
+            if prior is None or prior.isna().all():
+                return (
+                    pd.Series(np.nan, index=out.index),
+                    pd.Series(np.nan, index=out.index),
+                    existing_score.copy(),
+                )
+            ml_prob = prior.fillna(0.5).clip(0.001, 0.999)
+            ml_edge = ml_prob - 0.5
+            return ml_prob, ml_edge, existing_score.copy()
+    except Exception:
+        pass
     source_key = str(source_hint).lower()
     model_keys = ["nba"]
     if "nba1h" in source_key:

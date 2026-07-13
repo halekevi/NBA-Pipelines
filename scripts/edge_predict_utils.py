@@ -65,6 +65,13 @@ _SLICE_CAL_PATH: Path | None = None
 _SLICE_CAL_MTIME: float | None = None
 _SLICE_CAL_BUNDLE: dict | None = None
 
+_EDGE_MODEL_PATH: Path | None = None
+_EDGE_MODEL_MTIME: float | None = None
+_EDGE_MODEL: object | None = None
+_EDGE_FEATS_PATH: Path | None = None
+_EDGE_FEATS_MTIME: float | None = None
+_EDGE_FEATS: list[str] | None = None
+
 
 def _load_slice_calibrators(models_dir: Path) -> dict | None:
     """Load ``edge_slice_calibrators.pkl`` if present; reload when file mtime changes."""
@@ -84,6 +91,51 @@ def _load_slice_calibrators(models_dir: Path) -> dict | None:
     _SLICE_CAL_MTIME = mt
     return _SLICE_CAL_BUNDLE
 
+
+def load_unified_edge_model(models_dir: Path | None = None) -> tuple[object, list[str]] | None:
+    """
+    Load ``edge_model_unified.pkl`` + feature list with process-level mtime cache.
+
+    Safe across repeated step7b / backfill / tennis re-score calls in one process.
+    """
+    global _EDGE_MODEL_PATH, _EDGE_MODEL_MTIME, _EDGE_MODEL
+    global _EDGE_FEATS_PATH, _EDGE_FEATS_MTIME, _EDGE_FEATS
+    mdir = Path(models_dir) if models_dir is not None else (repo_root() / "models")
+    model_path = mdir / "edge_model_unified.pkl"
+    feat_path = mdir / "edge_model_features.json"
+    if not model_path.is_file() or not feat_path.is_file():
+        return None
+    try:
+        model_mt = float(model_path.stat().st_mtime)
+        feat_mt = float(feat_path.stat().st_mtime)
+    except OSError:
+        return None
+    model_ok = (
+        _EDGE_MODEL is not None
+        and _EDGE_MODEL_PATH == model_path.resolve()
+        and _EDGE_MODEL_MTIME == model_mt
+    )
+    feats_ok = (
+        _EDGE_FEATS is not None
+        and _EDGE_FEATS_PATH == feat_path.resolve()
+        and _EDGE_FEATS_MTIME == feat_mt
+    )
+    if model_ok and feats_ok:
+        return _EDGE_MODEL, list(_EDGE_FEATS)
+    try:
+        if not feats_ok:
+            _EDGE_FEATS = list(json.loads(feat_path.read_text(encoding="utf-8")))
+            _EDGE_FEATS_PATH = feat_path.resolve()
+            _EDGE_FEATS_MTIME = feat_mt
+        if not model_ok:
+            _EDGE_MODEL = joblib.load(model_path)
+            _EDGE_MODEL_PATH = model_path.resolve()
+            _EDGE_MODEL_MTIME = model_mt
+    except Exception:
+        return None
+    if _EDGE_MODEL is None or _EDGE_FEATS is None:
+        return None
+    return _EDGE_MODEL, list(_EDGE_FEATS)
 
 def apply_ml_prob_post_calibration(
     p_platt: np.ndarray,
@@ -181,11 +233,10 @@ def predict_unified_edge_scores(
     """
     root = repo_root()
     mdir = models_dir or (root / "models")
-    model_path = mdir / "edge_model_unified.pkl"
-    feat_path = mdir / "edge_model_features.json"
-    if not model_path.is_file() or not feat_path.is_file():
+    loaded = load_unified_edge_model(mdir)
+    if loaded is None:
         return None
-    feats = json.loads(feat_path.read_text(encoding="utf-8"))
+    model, feats = loaded
     aug = augment_graded_box_raw_for_edge(df)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
@@ -201,10 +252,6 @@ def predict_unified_edge_scores(
         if np.isnan(med):
             med = 0.0
         df2[c] = ser.fillna(med)
-    try:
-        model = joblib.load(model_path)
-    except Exception:
-        return None
     X = df2[feats].astype(float)
     spu = str(sport_for_model or "").strip().upper()
     p_platt = np.asarray(model.predict_proba(X)[:, 1], dtype=float)

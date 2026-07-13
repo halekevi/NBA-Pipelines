@@ -1,4 +1,4 @@
-"""Tests for Goblin-only 3-leg primary MAIN track."""
+"""Tests for high-prob MAIN track (Standard+Goblin, 3-leg primary, strict 4-leg)."""
 from __future__ import annotations
 
 import sys
@@ -13,6 +13,7 @@ from combined_slate_tickets import (  # noqa: E402
     MAIN_DEFAULT_LEGS,
     MAIN_POOL_MODE,
     MAIN_THIN_POOL_MIN_LEGS,
+    _main_leg_prop_banned,
     _row_main_four_leg_eligible,
     _row_win_rate_eligible,
     _ticket_passes_main_four_leg_gate,
@@ -62,13 +63,42 @@ def test_goblin_only_excludes_standard():
     assert not _row_win_rate_eligible(std, min_leg_prob=0.62, min_composite_hr=0.52, goblin_only=True)
 
 
-def test_four_leg_gate_requires_tier_a_hot_ml():
-    ok = _leg(tier="A", l10_streak="HOT", ml_prob=0.70)
-    bad = _leg(tier="B", l10_streak="HOT", ml_prob=0.70)
+def test_high_prob_allows_standard_ab():
+    std_a = _leg(pick_type="Standard", tier="A")
+    std_c = _leg(pick_type="Standard", tier="C")
+    gob = _leg(pick_type="Goblin", tier="B")
+    assert _row_win_rate_eligible(std_a, min_leg_prob=0.62, min_composite_hr=0.55)
+    assert _row_win_rate_eligible(gob, min_leg_prob=0.62, min_composite_hr=0.55)
+    assert not _row_win_rate_eligible(std_c, min_leg_prob=0.62, min_composite_hr=0.55)
+
+
+def test_four_leg_gate_requires_tier_a_hot_hr():
+    ok = _leg(tier="A", l10_streak="HOT", ml_prob=0.70, composite_hit_rate=0.70)
+    bad_tier = _leg(tier="B", l10_streak="HOT", ml_prob=0.70, composite_hit_rate=0.70)
+    bad_comp = _leg(tier="A", l10_streak="HOT", ml_prob=0.70, composite_hit_rate=0.60)
     assert _row_main_four_leg_eligible(ok)
-    assert not _row_main_four_leg_eligible(bad)
+    assert not _row_main_four_leg_eligible(bad_tier)
+    assert not _row_main_four_leg_eligible(bad_comp)
     assert _ticket_passes_main_four_leg_gate([ok, ok, ok, ok])
-    assert not _ticket_passes_main_four_leg_gate([ok, ok, ok, bad])
+    assert not _ticket_passes_main_four_leg_gate([ok, ok, ok, bad_tier])
+
+
+def test_build_win_rate_prefers_three_leg_high_prob():
+    frames = [("WNBA", _frame(8))]
+    groups = build_win_rate_ticket_groups(
+        frames,
+        min_leg_prob=0.62,
+        min_composite_hr=0.55,
+        max_legs=4,
+        max_tickets=5,
+        goblin_only=False,
+        goblin_only_3leg=False,
+    )
+    assert groups
+    leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
+    assert MAIN_DEFAULT_LEGS in leg_counts
+    assert all(n <= 4 for n in leg_counts)
+    assert not any(n >= 5 for n in leg_counts)
 
 
 def test_build_win_rate_prefers_three_leg_when_goblin_only_3leg():
@@ -86,7 +116,6 @@ def test_build_win_rate_prefers_three_leg_when_goblin_only_3leg():
     leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
     assert MAIN_DEFAULT_LEGS in leg_counts
     assert all(n <= 4 for n in leg_counts)
-    assert not any(n >= 5 for n in leg_counts)
 
 
 def test_thin_pool_allows_two_leg_fallback():
@@ -104,8 +133,8 @@ def test_thin_pool_allows_two_leg_fallback():
     assert 2 in leg_counts
 
 
-def test_filter_main_goblin_only_3leg_payload():
-    from combined_slate_tickets import filter_main_goblin_only_3leg_payload
+def test_filter_main_high_prob_keeps_standard_and_goblin():
+    from combined_slate_tickets import filter_main_high_prob_payload
 
     payload = {
         "pool_mode": MAIN_POOL_MODE,
@@ -124,6 +153,13 @@ def test_filter_main_goblin_only_3leg_payload():
                         "legs": [
                             _leg(pick_type="Standard"),
                             _leg(pick_type="Goblin", player="P2"),
+                            _leg(pick_type="Standard", player="P3"),
+                        ]
+                    },
+                    {
+                        "legs": [
+                            _leg(pick_type="Demon"),
+                            _leg(pick_type="Goblin", player="P2"),
                             _leg(pick_type="Goblin", player="P3"),
                         ]
                     },
@@ -131,13 +167,48 @@ def test_filter_main_goblin_only_3leg_payload():
             }
         ],
     }
-    out = filter_main_goblin_only_3leg_payload(payload)
+    out = filter_main_high_prob_payload(payload)
     tickets = out["groups"][0]["tickets"]
-    assert len(tickets) == 1
-    assert all("goblin" in str(l.get("pick_type", "")).lower() for l in tickets[0]["legs"])
+    assert len(tickets) == 2
+    demon_left = [
+        t
+        for t in tickets
+        if any("demon" in str(l.get("pick_type", "")).lower() for l in t["legs"])
+    ]
+    assert not demon_left
 
 
-def test_graded_main_payload_sets_pool_mode():
+def test_banned_tennis_aces_goblin_and_soccer_goblin_over():
+    assert _main_leg_prop_banned(_leg(sport="TENNIS", prop_type="Aces", pick_type="Goblin"))
+    assert _main_leg_prop_banned(
+        _leg(sport="SOCCER", prop_type="Shots", pick_type="Goblin", direction="OVER")
+    )
+    assert not _main_leg_prop_banned(
+        _leg(sport="SOCCER", prop_type="Shots", pick_type="Standard", direction="OVER")
+    )
+    assert not _main_leg_prop_banned(
+        _leg(sport="TENNIS", prop_type="Total Games Won", pick_type="Goblin")
+    )
+
+
+def test_graded_main_payload_sets_high_prob_pool_mode():
+    frames = [("WNBA", _frame(8))]
+    payload = build_graded_main_win_rate_payload(
+        frames,
+        "2026-07-10",
+        {},
+        bankroll=0.0,
+        curve_stake_usd=0.0,
+        goblin_only_3leg=False,
+    )
+    assert payload.get("pool_mode") == MAIN_POOL_MODE
+    assert payload.get("goblin_only") is False
+    assert payload.get("allow_standard") is True
+    filters = payload.get("filters") or {}
+    assert filters.get("pool_mode") == MAIN_POOL_MODE
+
+
+def test_graded_main_legacy_goblin_only_pool_mode():
     frames = [("WNBA", _frame(8))]
     payload = build_graded_main_win_rate_payload(
         frames,
@@ -147,10 +218,8 @@ def test_graded_main_payload_sets_pool_mode():
         curve_stake_usd=0.0,
         goblin_only_3leg=True,
     )
-    assert payload.get("pool_mode") == MAIN_POOL_MODE
+    assert payload.get("pool_mode") == "goblin_only_3leg"
     assert payload.get("goblin_only") is True
-    filters = payload.get("filters") or {}
-    assert filters.get("pool_mode") == MAIN_POOL_MODE
 
 
 def test_hot_hr_sort_prefers_hot_l10_over_rank_score():

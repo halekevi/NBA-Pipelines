@@ -1651,6 +1651,42 @@ def prop_breakdown_widget(rows: list[dict]) -> str:
 #  SPORT SECTION BUILDER
 # ══════════════════════════════════════════════════════════════════════════════
 
+def pick_tier_direction_matrix_panel(rows: list[dict], min_decided: int = 10) -> str:
+    """Matrix panel body without outer <details> (used by in-sport tabs)."""
+    raw = pick_tier_direction_matrix_html(rows, min_decided=min_decided)
+    # Strip outer details/summary; keep matrix-body contents.
+    start = raw.find('<div class="matrix-body">')
+    end = raw.rfind("</details>")
+    if start < 0 or end < 0:
+        return raw
+    return raw[start:end]
+
+
+def def_tier_panel(rows: list[dict], min_decided: int = 10) -> str:
+    raw = def_tier_table(rows, min_decided=min_decided)
+    if not raw:
+        return ""
+    start = raw.find('<div class="matrix-body">')
+    end = raw.rfind("</details>")
+    if start < 0 or end < 0:
+        return raw
+    return raw[start:end]
+
+
+def prop_breakdown_panel(rows: list[dict]) -> str:
+    raw = prop_breakdown_widget(rows)
+    start = raw.find('<div class="matrix-body">')
+    end = raw.rfind("</details>")
+    if start < 0 or end < 0:
+        return raw
+    return raw[start:end]
+
+
+def _sport_anchor_id(sport: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", sport.strip().lower()).strip("-") or "sport"
+    return f"slate-sport-{slug}"
+
+
 def build_sport_section(rows: list[dict], sport: str, icon: str) -> str:
     rows = _filter_prop_level_rows(rows)
     if not rows:
@@ -1664,19 +1700,21 @@ def build_sport_section(rows: list[dict], sport: str, icon: str) -> str:
         icon = "⚾"
 
     total_label = fmt_num(stats["total"]) if stats["total"] > 0 else fmt_num(stats["decided"] + stats["voids"])
-    # Apply the pick-type x tier analysis uniformly across all sport sections.
-    matrix_section = pick_tier_direction_matrix_html(rows, min_decided=10)
+    rate_lbl = pct(stats["hit_rate"]) if stats["decided"] > 0 else "—"
+    rate_cls = "is-hot" if stats["hit_rate"] >= 55 else ("is-cold" if stats["hit_rate"] < 48 else "is-mid")
+    rate_chip = (
+        f'<span class="sport-meta-rate {rate_cls}" title="Hit rate on decided props">{rate_lbl}</span>'
+        if stats["decided"] > 0
+        else ""
+    )
+    anchor = _sport_anchor_id(sport)
 
-    # ── Def Tier ───────────────────────────────────────────────────────────────
-    def_section = def_tier_table(rows)
+    matrix_panel = pick_tier_direction_matrix_panel(rows, min_decided=10)
+    def_panel = def_tier_panel(rows)
+    prop_panel = prop_breakdown_panel(rows)
 
-    # ── Prop Type Breakdowns (interactive widget) ─────────────────────────────
-    prop_section = prop_breakdown_widget(rows)
-
-    # ── Player Leaderboards ────────────────────────────────────────────────────
-    top_players   = player_table(rows, top=True,  min_decided=3, limit=8)
+    top_players = player_table(rows, top=True, min_decided=3, limit=8)
     worst_players = player_table(rows, top=False, min_decided=3, limit=8)
-
     player_section = f"""<div class="two-col">
       <div>
         <div class="section-label">🏆 TOP PLAYERS (SAME-DAY RECORD)</div>
@@ -1688,19 +1726,37 @@ def build_sport_section(rows: list[dict], sport: str, icon: str) -> str:
       </div>
     </div>"""
 
-    return f"""<details class="sport-section sport-collapsible">
+    tabs = [
+        ("overview", "Overview", player_section),
+        ("matrix", "Matrix", matrix_panel),
+    ]
+    if def_panel:
+        tabs.append(("def", "Def Tier", def_panel))
+    if prop_panel:
+        tabs.append(("props", "Prop Types", prop_panel))
+
+    tab_btns = ""
+    tab_panels = ""
+    for i, (tid, label, html) in enumerate(tabs):
+        active = " active" if i == 0 else ""
+        selected = "true" if i == 0 else "false"
+        tab_btns += (
+            f'<button type="button" class="sport-view-tab{active}" role="tab" '
+            f'data-view="{tid}" aria-selected="{selected}">{label}</button>'
+        )
+        tab_panels += f'<div class="sport-view-panel{active}" data-view="{tid}">{html}</div>'
+
+    return f"""<details class="sport-section sport-collapsible" id="{anchor}">
     <summary>
       <div class="sport-header">
         <div class="sport-label">{icon} {sport}</div>
         <div class="sport-header-line"></div>
-        <div class="sport-meta-count">{total_label} TOTAL PROPS</div>
+        <div class="sport-meta-count">{total_label} TOTAL PROPS{rate_chip}</div>
       </div>
     </summary>
-    <div class="sport-section-body">
-      {matrix_section}
-      {def_section}
-      {prop_section}
-      {player_section}
+    <div class="sport-section-body sport-view-tabbed" data-tabified="1">
+      <div class="sport-view-tabs" role="tablist">{tab_btns}</div>
+      <div class="sport-view-panels">{tab_panels}</div>
     </div>
   </details>"""
 
@@ -1766,13 +1822,17 @@ def build_takeaways(
     if not all_rows:
         add_insight("📊", "No Data", "No graded props found for this date.")
         insights_html = "\n".join(insights)
-        return f"""<div class="sport-section">
-    <div class="sport-header">
-      <div class="sport-label">📋 TAKEAWAYS</div>
-      <div class="sport-header-line"></div>
+        return f"""<details class="sport-section grades-sport-bucket" id="slate-sport-takeaways">
+    <summary>
+      <span>📋 TAKEAWAYS</span>
+      <span class="grades-sport-meta">insights</span>
+    </summary>
+    <div class="grades-sport-bucket-body">
+      <div class="sport-section" style="border:none;background:transparent;box-shadow:none;padding:12px 14px;margin:0">
+        <div class="insight-grid">{insights_html}</div>
+      </div>
     </div>
-    <div class="insight-grid">{insights_html}</div>
-  </div>"""
+  </details>"""
 
     all_stats = overall_stats(all_rows)
     bundles = [
@@ -1847,14 +1907,18 @@ def build_takeaways(
     insights_html = "\n".join(insights)
     alerts_html = "\n".join(alerts)
 
-    return f"""<div class="sport-section">
-    <div class="sport-header">
-      <div class="sport-label">📋 TAKEAWAYS</div>
-      <div class="sport-header-line"></div>
+    return f"""<details class="sport-section grades-sport-bucket" id="slate-sport-takeaways">
+    <summary>
+      <span>📋 TAKEAWAYS</span>
+      <span class="grades-sport-meta">insights</span>
+    </summary>
+    <div class="grades-sport-bucket-body">
+      <div class="sport-section" style="border:none;background:transparent;box-shadow:none;padding:12px 14px;margin:0">
+        {alerts_html}
+        <div class="insight-grid">{insights_html}</div>
+      </div>
     </div>
-    {alerts_html}
-    <div class="insight-grid">{insights_html}</div>
-  </div>"""
+  </details>"""
 
 
 def sport_label(s: str) -> str:
@@ -2048,7 +2112,11 @@ border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spa
 .sport-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;min-width:0}
 .sport-label{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;line-height:1;color:var(--gold);text-shadow:0 0 28px rgba(240,165,0,.18)}
 .sport-header-line{flex:1;min-width:80px;height:1px;background:rgba(255,255,255,0.08)}
-.sport-meta-count{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2)}
+.sport-meta-count{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2);display:inline-flex;align-items:center;gap:0;flex-wrap:wrap}
+.sport-meta-rate{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.4px;margin-left:8px;padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.12)}
+.sport-meta-rate.is-hot{color:#5ef598;border-color:rgba(94,245,152,0.35);background:rgba(94,245,152,0.08)}
+.sport-meta-rate.is-cold{color:#ff7070;border-color:rgba(255,112,112,0.35);background:rgba(255,112,112,0.08)}
+.sport-meta-rate.is-mid{color:#f5c842;border-color:rgba(245,200,66,0.35);background:rgba(245,200,66,0.08)}
 .sport-section{margin-bottom:16px;width:100%;max-width:100%;box-sizing:border-box}
 .sport-section:last-child{margin-bottom:0}
 .sport-collapsible{border:1px solid var(--glass-bd);border-radius:14px;padding:12px 14px;background:var(--glass);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 4px 24px rgba(0,0,0,.18)}
@@ -2059,6 +2127,24 @@ border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spa
 .sport-collapsible>summary .sport-label::before{content:'▸ ';color:var(--gold)}
 .sport-collapsible[open]>summary .sport-label::before{content:'▾ '}
 .sport-collapsible .sport-section-body{padding-top:14px}
+.slate-sport-jump{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0 12px;margin:0 0 10px;background:rgba(10,10,20,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.slate-sport-jump-label{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.6px;color:rgba(255,255,255,0.45);margin-right:4px}
+.slate-sport-jump-btn{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.72);border-radius:999px;padding:6px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
+.slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff;background:rgba(255,255,255,0.07)}
+.slate-sport-jump-btn.active{color:var(--gold);border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);box-shadow:0 0 14px rgba(240,165,0,0.12)}
+.slate-sport-jump-btn .sj-meta{opacity:0.7;font-size:11px}
+.sport-view-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:0}
+.sport-view-tab{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);border-radius:10px;padding:7px 12px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px}
+.sport-view-tab:hover{color:rgba(255,255,255,0.88);border-color:rgba(255,255,255,0.18)}
+.sport-view-tab.active{color:var(--gold);border-color:rgba(240,165,0,0.5);background:rgba(240,165,0,0.1)}
+.sport-view-panel{display:none}
+.sport-view-panel.active{display:block}
+.sport-section-body.sport-view-tabbed{padding-top:10px}
+.grades-sport-bucket{border:1px solid var(--glass-bd);border-radius:14px;padding:0;background:var(--glass);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 4px 24px rgba(0,0,0,.18);margin-bottom:16px;overflow:hidden}
+.grades-sport-bucket>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:'Bebas Neue',sans-serif;letter-spacing:1.6px;font-size:clamp(18px,1.6vw,28px);color:var(--gold)}
+.grades-sport-bucket>summary::-webkit-details-marker{display:none}
+.grades-sport-bucket>summary::marker{display:none;content:''}
+.grades-sport-meta{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:1px;opacity:.72;color:var(--muted2)}
 .matrix-collapsible{margin:6px 0 20px;border:1px solid var(--glass-bd);border-radius:14px;background:var(--glass);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 4px 24px rgba(0,0,0,.18);overflow:hidden}
 .matrix-collapsible>summary{list-style:none;cursor:pointer;padding:12px 14px;font-family:'Bebas Neue',sans-serif;font-size:clamp(14px,1.08vw,16px);letter-spacing:2px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px}
 .matrix-collapsible>summary::-webkit-details-marker{display:none}
@@ -2390,6 +2476,51 @@ TABLE_SORT_JS = """
 """
 
 
+SPORT_LAYOUT_JS = """
+<script>
+(function () {
+  function syncParentHeight() {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'proporacle-grades-resize' }, '*');
+      }
+    } catch (_e) {}
+  }
+  document.querySelectorAll('.sport-view-tabbed').forEach(function (root) {
+    var bar = root.querySelector(':scope > .sport-view-tabs');
+    var panels = root.querySelector(':scope > .sport-view-panels');
+    if (!bar || !panels) return;
+    bar.addEventListener('click', function (ev) {
+      var btn = ev.target && ev.target.closest ? ev.target.closest('.sport-view-tab') : null;
+      if (!btn || !bar.contains(btn)) return;
+      var view = btn.getAttribute('data-view');
+      bar.querySelectorAll('.sport-view-tab').forEach(function (b) {
+        var on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      panels.querySelectorAll('.sport-view-panel').forEach(function (p) {
+        p.classList.toggle('active', p.getAttribute('data-view') === view);
+      });
+      syncParentHeight();
+    });
+  });
+  document.addEventListener('toggle', function (ev) {
+    var t = ev.target;
+    if (!t || !t.matches) return;
+    if (!t.matches('details.sport-collapsible, details.grades-sport-bucket')) return;
+    if (t.open) {
+      document.querySelectorAll('details.sport-collapsible, details.grades-sport-bucket').forEach(function (d) {
+        if (d !== t) d.open = false;
+      });
+    }
+    syncParentHeight();
+  }, true);
+})();
+</script>
+"""
+
+
 PROP_BREAKDOWN_WIDGET_JS = """
 <script>
 (function () {
@@ -2619,7 +2750,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         )
 
     return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-slate-layout="v2">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
@@ -2646,6 +2777,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
 {body_content}
 </div>
 {TABLE_SORT_JS}
+{SPORT_LAYOUT_JS}
 {PROP_BREAKDOWN_WIDGET_JS}
 </body>
 </html>"""

@@ -2301,6 +2301,41 @@ def _normalize_delta_signature(raw: object) -> str:
     return "+".join(f"{v:g}" for v in vals)
 
 
+# Goblin/Demon must sit off the Standard line. Δ≈0 means bad slate join / mislabel.
+_MIN_VALID_LINE_DELTA = 0.25
+
+
+def _delta_parts(sig: object) -> list[float]:
+    text = _normalize_delta_signature(sig)
+    if not text:
+        return []
+    out: list[float] = []
+    for part in text.split("+"):
+        try:
+            out.append(float(part))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _delta_signature_has_zero(sig: object) -> bool:
+    """True when any distance part is missing/near-zero (invalid Goblin/Demon Δ)."""
+    parts = _delta_parts(sig)
+    return bool(parts) and any(abs(v) < _MIN_VALID_LINE_DELTA for v in parts)
+
+
+def _ladder_row_has_invalid_distance(row: dict[str, Any]) -> bool:
+    """Reject recipes that claim Goblin/Demon legs but include a Δ≈0 (or empty when required)."""
+    _, g_count, d_count = _parse_sgd_counts(str(row.get("leg_composition") or ""))
+    g_sig = _normalize_delta_signature(row.get("goblin_delta_sig") or row.get("goblin_deltas"))
+    d_sig = _normalize_delta_signature(row.get("demon_delta_sig") or row.get("demon_deltas"))
+    if g_count > 0 and g_sig and _delta_signature_has_zero(g_sig):
+        return True
+    if d_count > 0 and d_sig and _delta_signature_has_zero(d_sig):
+        return True
+    return False
+
+
 def _leg_line_distance(leg: dict[str, Any]) -> float | None:
     """Abs distance of Goblin/Demon played line from Standard."""
     if not isinstance(leg, dict):
@@ -2491,12 +2526,20 @@ def _parse_sgd_counts(comp: str) -> tuple[int, int, int]:
 
 
 def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> list[dict[str, Any]]:
-    """Aggregate Min/Max/Avg payout by composition, optionally + Goblin/Demon distance signature."""
+    """Aggregate Min/Max/Avg payout by composition, optionally + Goblin/Demon distance signature.
+
+    Quality rules:
+      - Drop rows with Goblin/Demon Δ≈0 (mislabel / bad Standard join).
+      - When live CDP samples exist for a bucket, use those for Min/Max/Avg (not diluted
+        by old screenshot_manual outliers).
+    """
     grouped: dict[tuple, list[dict[str, Any]]] = {}
     for r in rows:
         n = int(_safe_float(r.get("n_legs"), 0))
         comp = str(r.get("leg_composition") or "").strip()
         if n <= 0 or not comp:
+            continue
+        if _ladder_row_has_invalid_distance(r):
             continue
         if by_delta:
             g_sig = str(
@@ -2521,6 +2564,7 @@ def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> lis
                 n_d_parts = len([x for x in str(d_sig).split("+") if x and x != "—"])
                 if n_d_parts != d_count:
                     continue
+            # Near-zero already filtered via _ladder_row_has_invalid_distance.
             key: tuple = (n, comp, g_sig or "—", d_sig or "—")
         else:
             key = (n, comp)
@@ -2528,11 +2572,14 @@ def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> lis
 
     summary: list[dict[str, Any]] = []
     for key, recs in sorted(grouped.items(), key=lambda x: x[0]):
+        live_recs = [
+            r for r in recs if str(r.get("source") or "").strip().lower() == "live_cdp"
+        ]
+        n_live = len(live_recs)
+        # Prefer live CDP floors when present — screenshots often mis-logged min vs first.
+        rate_recs = live_recs if live_recs else recs
         vals: list[float] = []
-        n_live = 0
-        for r in recs:
-            if str(r.get("source") or "").strip().lower() == "live_cdp":
-                n_live += 1
+        for r in rate_recs:
             p = _safe_float(r.get("power_payout_x"), float("nan"))
             f = _safe_float(r.get("flex_payout_x"), float("nan"))
             if math.isfinite(p) and p > 0:
@@ -2543,6 +2590,8 @@ def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> lis
             mn, mx, avg = min(vals), max(vals), statistics.mean(vals)
         else:
             mn = mx = avg = 0.0
+        # Soft outlier flag for non-live extremes (e.g. 54x screenshot).
+        is_suspect = bool(n_live == 0 and mx >= 40.0)
         if by_delta:
             n, comp, g_sig, d_sig = key  # type: ignore[misc]
             g_vals = [float(x) for x in str(g_sig).split("+") if x not in ("", "—")]
@@ -2555,10 +2604,12 @@ def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> lis
                     "goblin_delta_sum": round(sum(g_vals), 2) if g_vals else None,
                     "samples": len(recs),
                     "live_cdp_samples": n_live,
+                    "rate_source": "live_cdp" if n_live else "historical",
                     "min_payout_x": round(mn, 4),
                     "max_payout_x": round(mx, 4),
                     "avg_payout_x": round(avg, 4),
                     "is_sparse": len(recs) < 3,
+                    "is_suspect": is_suspect,
                 }
             )
         else:
@@ -2569,13 +2620,26 @@ def _summarize_ladder_rows(rows: list[dict[str, Any]], *, by_delta: bool) -> lis
                     "leg_composition": comp,
                     "samples": len(recs),
                     "live_cdp_samples": n_live,
+                    "rate_source": "live_cdp" if n_live else "historical",
                     "min_payout_x": round(mn, 4),
                     "max_payout_x": round(mx, 4),
                     "avg_payout_x": round(avg, 4),
                     "is_sparse": len(recs) < 5,
+                    "is_suspect": is_suspect,
                 }
             )
     return summary
+
+
+def _ladder_quality_stats(rows: list[dict[str, Any]]) -> dict[str, int]:
+    """Counts for ladder page quality banner."""
+    n_zero = sum(1 for r in rows if _ladder_row_has_invalid_distance(r))
+    n_live = sum(1 for r in rows if str(r.get("source") or "").strip().lower() == "live_cdp")
+    return {
+        "excluded_zero_delta": n_zero,
+        "live_cdp": n_live,
+        "total": len(rows),
+    }
 
 
 @app.post("/payout/predict")
@@ -2703,12 +2767,16 @@ def api_payout_log_save():
 @app.get("/payout/ladder")
 def page_payout_ladder():
     rows = _read_payout_ladder_rows()
-    n_live_cdp = sum(1 for r in rows if str(r.get("source") or "").strip().lower() == "live_cdp")
+    quality = _ladder_quality_stats(rows)
+    n_live_cdp = int(quality.get("live_cdp") or 0)
     n_with_deltas = sum(
         1
         for r in rows
-        if _normalize_delta_signature(r.get("goblin_delta_sig") or r.get("goblin_deltas"))
-        or _normalize_delta_signature(r.get("demon_delta_sig") or r.get("demon_deltas"))
+        if (
+            _normalize_delta_signature(r.get("goblin_delta_sig") or r.get("goblin_deltas"))
+            or _normalize_delta_signature(r.get("demon_delta_sig") or r.get("demon_deltas"))
+        )
+        and not _ladder_row_has_invalid_distance(r)
     )
     summary = _summarize_ladder_rows(rows, by_delta=False)
     delta_rows = _summarize_ladder_rows(rows, by_delta=True)
@@ -2719,6 +2787,7 @@ def page_payout_ladder():
         total_rows=len(rows),
         live_cdp_rows=n_live_cdp,
         delta_known_rows=n_with_deltas,
+        excluded_zero_delta_rows=int(quality.get("excluded_zero_delta") or 0),
     )
 
 

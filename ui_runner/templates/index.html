@@ -3644,6 +3644,9 @@ async function refreshStatus() {
   applyStatusCard("cfb",      d.cfb?.slate,      "CFB Slate");
   applyStatusCard("nhl",      d.nhl?.slate,      "NHL Slate", statusOpts("nhl"));
   applyStatusCard("soccer",   d.soccer?.slate,   "Soccer Slate", statusOpts("soccer"));
+  const soccerVal = document.getElementById("sc-soccer-val");
+  const soccerMd = d.soccer_match_day;
+  if (soccerVal && soccerMd && d.soccer?.slate?.exists) soccerVal.textContent = soccerMd;
   applyStatusCard("mlb",      d.mlb?.slate,      "MLB Slate", statusOpts("mlb"));
   applyStatusCard("nfl",      d.nfl?.slate,      "NFL Slate", statusOpts("nfl"));
   applyStatusCard("tennis",   d.tennis?.slate,   "Tennis Slate", statusOpts("tennis"));

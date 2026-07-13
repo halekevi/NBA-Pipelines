@@ -1,41 +1,20 @@
 ﻿<!DOCTYPE html>
-<html lang="en" data-theme="dark" data-ui-build="" data-deploy-sha="">
+<html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}" data-deploy-sha="{{ deploy_git_sha|default('', true) }}">
 <head>
-
-<script>
-async function fetch_smart(localPath) {
-  // If we have a remote override URL for this file type, prefer it
-  let remoteUrl = null;
-  if (localPath === 'slate_latest.json' && window.SLATE_JSON_URL) remoteUrl = window.SLATE_JSON_URL;
-  if (localPath === 'tickets_latest.json' && window.TICKETS_JSON_URL) remoteUrl = window.TICKETS_JSON_URL;
-
-  if (remoteUrl) {
-    try {
-      const resp = await fetch(remoteUrl, { cache: 'no-store' });
-      if (resp.ok) return resp;
-    } catch (e) {
-      console.warn("SmartFetch remote failed, falling back to local:", localPath, e);
-    }
-  }
-  return fetch(localPath, { cache: 'no-store' });
-}
-</script>
-
-<script defer src="static/proporacle-ota.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <script>(function(){try{var t=localStorage.getItem('proporacle-theme')||localStorage.getItem('theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
 <meta name="theme-color" content="#050505"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="proporacle-build" content=""/>
+<meta name="proporacle-build" content="{{ ui_build_id|default('', true) }}"/>
 <meta property="og:title" content="PropOracle — Home"/>
 <title>PropOracle — Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="static/global-scrollbar.css?v=20260531scroll"/>
-<link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
+<link rel="stylesheet" href="/static/global-scrollbar.css?v=20260531scroll"/>
+<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
+<link rel="stylesheet" href="/static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
 <style>
 :root{
   /* Hybrid liquid-glass palette */
@@ -796,6 +775,50 @@ select option,
 [data-theme="light"] .load-overlay { background:rgba(218,234,248,0.92) !important; }
 [data-theme="light"] .empty-state { background:rgba(218,234,248,0.65) !important; }
 
+/* Soft honesty banner — never hides home cats */
+.home-skew-banner{
+  display:none;
+  margin:0 0 14px;
+  padding:12px 16px;
+  border-radius:12px;
+  border:1px solid rgba(200,154,74,0.35);
+  background:rgba(200,154,74,0.08);
+  color:var(--muted2);
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  line-height:1.4;
+  letter-spacing:0.02em;
+}
+.home-skew-banner[data-show="1"]{display:block;}
+.home-skew-banner strong{
+  font-family:'Bebas Neue',sans-serif;
+  font-weight:400;
+  letter-spacing:0.06em;
+  color:var(--amber);
+  margin-right:8px;
+}
+.home-cat-empty-state{
+  text-align:center;
+  padding:28px 20px;
+  color:rgba(255,255,255,0.28);
+  font-size:12px;
+  font-family:'Inter',sans-serif;
+}
+.home-cat-empty-state .hec-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;
+  letter-spacing:0.06em;
+  color:rgba(255,255,255,0.4);
+  margin-bottom:6px;
+}
+[data-theme="light"] .home-skew-banner{
+  background:rgba(200,154,74,0.12);
+  border-color:rgba(180,130,40,0.35);
+  color:rgba(60,50,30,0.75);
+}
+[data-theme="light"] .home-cat-empty-state{color:rgba(0,0,0,0.35);}
+[data-theme="light"] .home-cat-empty-state .hec-title{color:rgba(0,0,0,0.5);}
+
 /* Brand wordmark: PropOracle casing must survive theme/injected CSS */
 a.snav-brand .brand-wordmark .wb-first,
 a.snav-brand .brand-wordmark .oracle-word {
@@ -1038,11 +1061,11 @@ body > nav.snav.glass-card {
 }
 
 </style>
-<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260525shell98"/>
-<link rel="stylesheet" href="static/matchup-edge.css?v=20260528"/>
-<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
-<link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
+<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
+<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260525shell98"/>
+<link rel="stylesheet" href="/static/matchup-edge.css?v=20260528"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260408"/>
+<link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
 </head>
 <body>
 
@@ -1057,51 +1080,8 @@ body > nav.snav.glass-card {
 <div class="mesh-bg" aria-hidden="true"></div>
 <div class="grain-layer" aria-hidden="true"></div>
 
-
-
-
-
-<nav class="snav glass-card">
-  <div class="nav-accent"></div>
-  <a class="snav-brand" href="index.html">
-    <div class="hybrid-logo">
-      <img src="static/proporacle-logo-v3.png?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
-      <span class="nav-brand brand-wordmark"><span class="wb-first">Prop</span><span class="oracle-word gold-shimmer">Oracle</span></span>
-    </div>
-  </a>
-  <ul class="snav-links nav-links" id="nav-links">
-    <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
-    <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
-    <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
-    <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
-  </ul>
-  <div class="snav-right">
-    <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
-      <span class="tt-icon tt-moon">🌙</span>
-      <span class="tt-icon tt-sun" style="display:none">☀️</span>
-    </button>
-    <div class="nav-live-cluster">
-      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; </div>
-      <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
-        <div class="nav-slate-date" id="slate-date">—</div>
-        <div class="nav-sync-line">
-          <span id="nav-local-datetime" class="nav-local-datetime">—</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <button class="hamburger" type="button" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
-</nav>
-
-<div class="mobile-menu" id="mobile-menu">
-  <a href="index.html" class="">🏠 Home</a>
-  <a href="tickets.html" class="">🎟 Tickets</a>
-  <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
-  <a href="income.html" class="">📈 Income</a>
-  <a href="payout.html" class="">💰 Payouts</a>
-</div>
-
+{% set nav_active = 'home' %}
+{% include '_site_nav.html' %}
 
 <div class="shell">
 
@@ -1114,6 +1094,8 @@ body > nav.snav.glass-card {
         <span class="ht2">Oracle</span>
       </h1>
     </div>
+
+  <div id="home-skew-banner" class="home-skew-banner" role="status" aria-live="polite"></div>
     
   <!-- SLATE STATUS CARDS -->
   <details class="home-cat" open id="slate-explorer">
@@ -2206,245 +2188,7 @@ body > nav.snav.glass-card {
   <details class="home-cat" id="hot-players-cat">
     <summary><span class="home-cat-title">Hot <span>Players</span></span></summary>
     <div class="home-cat-body">
-      <section class="hot-players-section" id="hot-players-section" style="display:none" aria-label="Hot players on today's slate">
-  <div class="hot-players-header">
-    <span class="hot-players-title">Hot <span>Players</span></span>
-    <span class="hot-players-badge">TODAY</span>
-    <span class="hot-players-updated" id="hot-players-updated"></span>
-  </div>
-  <div id="hot-track-wrap" class="hot-track-wrap" style="display:none" aria-label="Yesterday's Hot Players results">
-    <div class="hot-track-header">
-      <span class="hot-track-label" id="hot-track-label">Yesterday</span>
-      <span class="hot-track-summary" id="hot-track-summary"></span>
-    </div>
-    <div class="hot-players-scroll hot-players-grid hot-track-grid" id="hot-track-scroll"></div>
-  </div>
-  <div id="hot-sport-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
-  <div class="hot-players-scroll hot-players-grid" id="hot-players-scroll"></div>
-  <div class="hot-players-empty" id="hot-players-empty" style="display:none">
-    No players on today's slate yet — check back after the daily pipeline runs.
-  </div>
-</section>
-
-<script>
-(function () {
-  const API = '/api/hot-players?limit=8&_v=2';
-  const TRACK_API = '/api/hot-players/track-record';
-  const SECTION = document.getElementById('hot-players-section');
-  const SCROLL = document.getElementById('hot-players-scroll');
-  const FILTERS = document.getElementById('hot-sport-filters');
-  const EMPTY = document.getElementById('hot-players-empty');
-  const UPDATED = document.getElementById('hot-players-updated');
-  const TRACK_WRAP = document.getElementById('hot-track-wrap');
-  const TRACK_SCROLL = document.getElementById('hot-track-scroll');
-  const TRACK_LABEL = document.getElementById('hot-track-label');
-  const TRACK_SUMMARY = document.getElementById('hot-track-summary');
-  if (!SECTION || !SCROLL) return;
-
-  let allCardsBySport = {};
-  let activeSport = 'ALL';
-
-  function dirClass(d) {
-    return d === 'OVER' ? 'over' : d === 'UNDER' ? 'under' : 'both';
-  }
-  function fmtPct(v) {
-    return v != null ? (v * 100).toFixed(1) + '%' : '—';
-  }
-  function tierDot(tier) {
-    const colors = { high: 'var(--green,#9fd8a7)', medium: 'var(--amber,#c89a4a)', low: 'var(--muted2,#8b8b99)' };
-    return '<span title="Confidence: ' + tier + '" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:' + (colors[tier] || colors.low) + ';margin-right:3px;vertical-align:middle"></span>';
-  }
-
-  function resolveBestProp(p) {
-    const dp = p.display_prop;
-    if (dp && dp.prop_type) return dp;
-    const bp = p.best_prop;
-    if (bp && bp.prop_type) return bp;
-    const list = p.best_props;
-    if (Array.isArray(list) && list.length && list[0].prop_type) return list[0];
-    return null;
-  }
-
-  function gradeBadge(result) {
-    const r = String(result || '').toUpperCase();
-    if (!r || r === 'PENDING' || r === 'NO_MATCH') return '';
-    const cls = r === 'HIT' ? 'hit' : (r === 'MISS' ? 'miss' : 'void');
-    return '<span class="card-grade-badge ' + cls + '">' + r + '</span>';
-  }
-
-  function bestPropBlock(p, opts) {
-    opts = opts || {};
-    const bp = resolveBestProp(p);
-    if (!bp || !bp.prop_type) {
-      const dir = (p.direction || 'BOTH').toString().toUpperCase();
-      return '<div class="card-best-prop card-best-prop--empty">' +
-        '<div class="card-prop-name card-prop-muted">Mixed props</div>' +
-        '<div class="card-best-prop-row">' +
-        '<span class="card-dir-badge ' + dirClass(dir) + '">' + (dir === 'BOTH' ? '—' : dir) + '</span>' +
-        '</div></div>';
-    }
-    const dir = bp.direction || '';
-    const tip = (bp.prop_type || '') + ' ' + dir + ' — ' + fmtPct(bp.hit_rate) + ' (' + (bp.total || 0) + ' props)';
-    let lineMeta = '';
-    if (opts.showLine && p.slate_line != null) {
-      lineMeta = '<div class="card-slice-meta">Line ' + p.slate_line + (p.actual != null ? ' · actual ' + p.actual : '') + '</div>';
-    } else {
-      lineMeta = '<div class="card-slice-meta">' + (bp.hits || 0) + '/' + (bp.total || 0) + ' on this prop</div>';
-    }
-    return '<div class="card-best-prop" title="' + tip + '">' +
-      '<div class="card-prop-name">' + (bp.prop_type || '') + '</div>' +
-      '<div class="card-best-prop-row">' +
-      '<span class="card-dir-badge ' + dirClass(dir) + '">' + dir + '</span>' +
-      '<span class="card-slice-rate">' + fmtPct(bp.hit_rate) + '</span>' +
-      '</div>' +
-      lineMeta +
-      '</div>';
-  }
-
-  function buildCard(p, opts) {
-    opts = opts || {};
-    const slate = p.on_today_slate ? '<span class="card-on-slate" title="On today\'s slate"></span>' : '';
-    const bp = resolveBestProp(p);
-    const rateLabel = bp && bp.prop_type
-      ? tierDot(p.tier) + 'overall · ' + (p.total || 0) + ' props'
-      : tierDot(p.tier) + 'hit rate · ' + (p.total || 0) + ' props';
-    const tip = (p.player || '') + ' — ' + (p.sport || '') +
-      (bp && bp.prop_type ? ' · best: ' + bp.prop_type + ' ' + (bp.direction || '') : '') +
-      (p.result ? ' · ' + p.result : '');
-    return '<div class="hot-player-card' + (opts.graded ? ' hot-player-card--graded' : '') + '" data-sport="' + (p.sport || '') + '" title="' + tip + '">' +
-      slate +
-      gradeBadge(p.result) +
-      '<div class="card-sport">' + (p.sport || '') + '</div>' +
-      '<div class="card-name">' + (p.player || '') + '</div>' +
-      '<div class="card-rate">' + fmtPct(p.hit_rate) + '</div>' +
-      '<div class="card-rate-label">' + rateLabel + '</div>' +
-      bestPropBlock(p, opts) +
-      '</div>';
-  }
-
-  function renderCards(sport) {
-    SCROLL.innerHTML = '';
-    const list = sport === 'ALL' ? Object.values(allCardsBySport).flat() : (allCardsBySport[sport] || []);
-    if (!list.length) {
-      EMPTY.style.display = '';
-      SCROLL.style.display = 'none';
-      return;
-    }
-    EMPTY.style.display = 'none';
-    SCROLL.style.display = 'grid';
-    SCROLL.innerHTML = list.map(function (p) { return buildCard(p); }).join('');
-  }
-
-  function buildFilters(sports) {
-    const allSports = ['ALL'].concat(sports);
-    FILTERS.innerHTML = allSports.map(function (s) {
-      return '<button type="button" class="hot-sport-pill' + (s === activeSport ? ' active' : '') + '" data-s="' + s + '">' + s + '</button>';
-    }).join('');
-    FILTERS.querySelectorAll('button').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        activeSport = btn.dataset.s;
-        FILTERS.querySelectorAll('button').forEach(function (b) {
-          b.classList.toggle('active', b.dataset.s === activeSport);
-        });
-        renderCards(activeSport);
-      });
-    });
-  }
-
-  function renderTrackRecord(data) {
-    if (!TRACK_WRAP || !TRACK_SCROLL || !data || !Array.isArray(data.recent) || !data.recent.length) return;
-    const day = data.recent[0];
-    const results = (day.results || []).filter(function (r) {
-      const res = String(r.result || '').toUpperCase();
-      return res === 'HIT' || res === 'MISS' || res === 'VOID' || res === 'PUSH';
-    });
-    if (!results.length) return;
-
-    const s = day.summary || {};
-    const decided = (Number(s.hit) || 0) + (Number(s.miss) || 0);
-    const hr = day.hit_rate != null ? fmtPct(day.hit_rate) : (decided ? fmtPct((Number(s.hit) || 0) / decided) : '—');
-
-    if (TRACK_LABEL) TRACK_LABEL.textContent = 'Yesterday (' + (day.slate_date || '') + ')';
-    if (TRACK_SUMMARY) {
-      TRACK_SUMMARY.textContent = (s.hit || 0) + ' hit / ' + (s.miss || 0) + ' miss · ' + hr + ' on featured legs';
-    }
-    TRACK_SCROLL.innerHTML = results.map(function (p) {
-      return buildCard(p, { graded: true, showLine: true });
-    }).join('');
-    TRACK_WRAP.style.display = '';
-    SECTION.style.display = '';
-  }
-
-  function fetchTrackRecord() {
-    const urls = [TRACK_API, 'hot_players_track_record.json'];
-    (function tryNext(i) {
-      if (i >= urls.length) return;
-      fetch(urls[i], { cache: 'no-store' })
-        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-        .then(renderTrackRecord)
-        .catch(function () { tryNext(i + 1); });
-    })(0);
-  }
-
-  function initHotPlayers() {
-    fetchTrackRecord();
-    fetch(API)
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        allCardsBySport = data.sports || {};
-        const sports = Object.keys(allCardsBySport).sort();
-        if (!sports.length) {
-          SECTION.style.display = '';
-          if (!TRACK_WRAP || TRACK_WRAP.style.display !== '') {
-            EMPTY.style.display = '';
-          }
-          return;
-        }
-        SECTION.style.display = '';
-        if (data.date) UPDATED.textContent = data.date;
-        buildFilters(sports);
-        renderCards('ALL');
-      })
-      .catch(function (err) {
-        console.warn('[HotPlayers]', err);
-      });
-  }
-
-  // Defer until Hot Players <details> opens — avoid competing with slate first paint.
-  let hotStarted = false;
-  function startHotPlayersOnce() {
-    if (hotStarted) return;
-    hotStarted = true;
-    initHotPlayers();
-  }
-  function bindHotPlayersLazy() {
-    const cat = document.getElementById('hot-players-cat');
-    if (cat) {
-      if (cat.hasAttribute('open')) {
-        startHotPlayersOnce();
-        return;
-      }
-      cat.addEventListener('toggle', function () {
-        if (cat.open) startHotPlayersOnce();
-      });
-      return;
-    }
-    // Fallback when not wrapped in details: idle warm only.
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(startHotPlayersOnce, { timeout: 6000 });
-    } else {
-      window.setTimeout(startHotPlayersOnce, 3500);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindHotPlayersLazy);
-  } else {
-    bindHotPlayersLazy();
-  }
-})();
-</script>
-
+      {% include '_hot_players_section.html' %}
     </div>
   </details>
 
@@ -2456,7 +2200,7 @@ body > nav.snav.glass-card {
     <div class="sec-header">
       <div class="sec-title">Top <span style="color:var(--accent)">Edges</span></div>
       <div class="sec-line"></div>
-      <a href="tickets.html" class="edges-see-all">See All Picks ↗</a>
+      <a href="/tickets" class="edges-see-all">See All Picks ↗</a>
     </div>
     <div id="top-edges-debug" style="font-size:9px;font-family:Inter,sans-serif;color:var(--muted2);letter-spacing:0.04em;margin:-4px 0 10px;min-height:12px;"></div>
     
@@ -2548,8 +2292,8 @@ body > nav.snav.glass-card {
   </div>
 </div>
 
-<script src="static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="static/matchup-edge.js?v=20260604c" defer></script>
+<script src="/static/site-nav-chrome.js?v=20260412" defer></script>
+<script src="/static/matchup-edge.js?v=20260604c" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -3457,19 +3201,8 @@ async function loadHomeCardsFromFullSlate() {
     if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
       fetchOpts.signal = AbortSignal.timeout(120000);
     }
-    const r = await fetch("/api/slate-excel", fetchOpts);
-    if (r.ok) {
-      const d = await r.json();
-      const sh = d.sheets && d.sheets.combined;
-      if (sh && sh.columns && sh.rows && sh.rows.length) {
-        SLATE_DEBUG_META = {
-          source: "combined_excel",
-          generated_at: "",
-          date: String(d.date || ""),
-        };
-        if (syncCardsFromCombinedSheet(sh.columns, sh.rows)) return;
-      }
-    }
+    // Prefer slim JSON for Edges/L5/L10 first paint; excel only as fallback
+    // (Combined explorer tab still loads excel on demand).
     const r2 = await fetch("/api/slate-sport/combined", fetchOpts);
     if (r2.ok) {
       const d2 = await r2.json();
@@ -3494,6 +3227,19 @@ async function loadHomeCardsFromFullSlate() {
           date: String(d3.date || ""),
         };
         if (syncCardsFromCombinedRows(rows)) return;
+      }
+    }
+    const r = await fetch("/api/slate-excel", fetchOpts);
+    if (r.ok) {
+      const d = await r.json();
+      const sh = d.sheets && d.sheets.combined;
+      if (sh && sh.columns && sh.rows && sh.rows.length) {
+        SLATE_DEBUG_META = {
+          source: "combined_excel",
+          generated_at: "",
+          date: String(d.date || ""),
+        };
+        if (syncCardsFromCombinedSheet(sh.columns, sh.rows)) return;
       }
     }
   } catch (e) {
@@ -3729,6 +3475,18 @@ function getDefaultBootSlateSport() {
   }
   return "wnba";
 }
+
+/** Open the default in-season sport panel so fetched props are visible without an extra click. */
+function autoOpenBootSlatePanel() {
+  const sport = getDefaultBootSlateSport();
+  const panel = document.getElementById(`sp-${sport}`);
+  if (!panel || panel.classList.contains("open")) return;
+  try {
+    toggleSlatePanel(sport);
+  } catch (e) {
+    console.warn("autoOpenBootSlatePanel:", e);
+  }
+}
 function applyOffseasonSportCards() {
   const today = ymdInEastern(new Date());
   ["cbb", "cfb", "nfl", "wcbb"].forEach((id) => {
@@ -3852,7 +3610,7 @@ function sportDisplayLabel(rawSport) {
 async function refreshStatus() {
   let d = null;
   try {
-    const res = await fetch_smart('pipeline_status.json');
+    const res = await fetch("/api/pipeline/status", { cache: "no-store" });
     if (res.ok) d = await res.json();
   } catch (e) {}
   // Bundled / Capacitor WebView: no API — use static file from mobile/www (see generate_mobile_bundle.py).
@@ -3868,21 +3626,14 @@ async function refreshStatus() {
     applyOffseasonSportCards();
     return;
   }
-  const strictGameDay = {};
-  const gameDayCheckSports = [...SLATE_STRICT_GAME_DAY_SPORTS, "tennis"];
-  await Promise.all(
-    gameDayCheckSports.map(async (sid) => {
-      const target = sid === "tennis" ? tennisMatchDayEt() : ymdInEastern(new Date());
-      const v = await sportSlateHasGamesOnDay(sid, target);
-      if (v !== null) strictGameDay[sid] = v;
-    })
-  );
+  // Prefer server-side game_day flags (avoids N× /api/slate-sport fan-out every minute).
+  const gameDay = (d.game_day && typeof d.game_day === "object") ? d.game_day : {};
   const statusOpts = (sid) => {
     if (sid === "tennis") {
-      return { requireTodayGames: true, hasTodayGames: strictGameDay.tennis };
+      return { requireTodayGames: true, hasTodayGames: gameDay.tennis };
     }
     if (SLATE_STRICT_GAME_DAY_SPORTS.has(sid)) {
-      return { requireTodayGames: true, hasTodayGames: strictGameDay[sid] };
+      return { requireTodayGames: true, hasTodayGames: gameDay[sid] };
     }
     return null;
   };
@@ -3893,18 +3644,66 @@ async function refreshStatus() {
   applyStatusCard("cfb",      d.cfb?.slate,      "CFB Slate");
   applyStatusCard("nhl",      d.nhl?.slate,      "NHL Slate", statusOpts("nhl"));
   applyStatusCard("soccer",   d.soccer?.slate,   "Soccer Slate", statusOpts("soccer"));
+  const soccerVal = document.getElementById("sc-soccer-val");
+  const soccerMd = d.soccer_match_day;
+  if (soccerVal && soccerMd && d.soccer?.slate?.exists) soccerVal.textContent = soccerMd;
   applyStatusCard("mlb",      d.mlb?.slate,      "MLB Slate", statusOpts("mlb"));
   applyStatusCard("nfl",      d.nfl?.slate,      "NFL Slate", statusOpts("nfl"));
   applyStatusCard("tennis",   d.tennis?.slate,   "Tennis Slate", statusOpts("tennis"));
   const tennisVal = document.getElementById("sc-tennis-val");
-  const tennisMd = tennisMatchDayEt();
+  const tennisMd = d.tennis_match_day || tennisMatchDayEt();
   if (tennisVal && tennisMd) tennisVal.textContent = tennisMd;
   applyStatusCard("wnba",     d.wnba?.slate,     "WNBA Slate", statusOpts("wnba"));
   applyStatusCard("combined", d.combined?.slate, "Combined Tickets");
   applyOffseasonSportCards();
+  if (typeof window.applyHomeSkewBanner === "function") {
+    window.applyHomeSkewBanner(d);
+  }
 }
 setInterval(refreshStatus, 60000);
 refreshStatus();
+
+(function initHomeSkewBanner() {
+  function fmtChip(ymd) {
+    if (!ymd || String(ymd).length < 10) return "";
+    const parts = String(ymd).slice(0, 10).split("-").map(Number);
+    const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  function applyHomeSkewBanner(meta) {
+    const el = document.getElementById("home-skew-banner");
+    if (!el || !meta) return;
+    const ticketsEmpty = Boolean(meta.tickets_empty);
+    const skew = Boolean(meta.skew) || (
+      meta.tickets_date && meta.slate_date && meta.tickets_date !== meta.slate_date
+    );
+    if (!ticketsEmpty && !skew) {
+      el.removeAttribute("data-show");
+      el.textContent = "";
+      return;
+    }
+    const slateChip = fmtChip(meta.slate_date || meta.date || meta.tickets_date);
+    const populated = Array.isArray(meta.populated_sports) ? meta.populated_sports : [];
+    let detail = "showing pipeline props";
+    if (ticketsEmpty && populated.length) {
+      detail = "tickets empty · " + populated.join("/") + " on slate";
+    } else if (ticketsEmpty) {
+      detail = "tickets empty · showing pipeline props";
+    } else if (skew) {
+      detail = "tickets " + fmtChip(meta.tickets_date) + " · slate " + fmtChip(meta.slate_date);
+    }
+    el.innerHTML = "<strong>BOARD</strong>" +
+      (slateChip ? ("Slate " + slateChip + " · ") : "") + detail;
+    el.setAttribute("data-show", "1");
+  }
+  window.applyHomeSkewBanner = applyHomeSkewBanner;
+  (async function bootBanner() {
+    try {
+      const res = await fetch("/api/slate-display-date", { cache: "no-store" });
+      if (res.ok) applyHomeSkewBanner(await res.json());
+    } catch (e) {}
+  })();
+})();
 
 // ── SVG chart (full) — premium area chart ──────────────────
 function makeSVG(data, bookLine, isOver, W=260, H=100, bookLineSeries=null, extraScale=null) {
@@ -4272,15 +4071,25 @@ function renderEdges() {
     const dir = String(p.dir || "").trim().toUpperCase();
     if (dir === "OVER" && !isFantasyScoreEdgePick(p)) overRows.push(p);
   }
-  // Top Edges quality gate: keep only rows with strong last-5 directionality
-  // (>=4/5, i.e. >=80%) so cards reflect high-confidence short-window form.
+  // Top Edges quality gate: prefer strong L5 (>=4/5). If nothing clears it,
+  // fall back to best available slate rows so homepage still shows fetched props.
   const passesEdgeL5Gate = (p, dir) => {
     const pct = topEdgeL5HitPct(p, dir);
     return Number.isFinite(pct) && pct >= 80;
   };
-  const overPrimary = pickPrimaryLineRows(overRows)
+  let overPrimary = pickPrimaryLineRows(overRows)
     .filter((p) => passesEdgeL5Gate(p, "OVER"))
     .filter((p) => passesTopEdgeEmpiricalSanity(p, "OVER"));
+  if (!overPrimary.length) {
+    overPrimary = pickPrimaryLineRows(overRows)
+      .slice()
+      .sort((a, b) => {
+        const ha = topEdgeL5HitPct(a, "OVER") || 0;
+        const hb = topEdgeL5HitPct(b, "OVER") || 0;
+        if (hb !== ha) return hb - ha;
+        return num(b.edge) - num(a.edge);
+      });
+  }
   const stdO = overPrimary.filter((p) => !isGoblinPick(p));
   const gobO = overPrimary.filter((p) => isGoblinPick(p));
   const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
@@ -4300,7 +4109,7 @@ function renderEdges() {
     ].join("|");
     if (!underByKey.has(k)) underByKey.set(k, row);
   }
-  const underRows = pickPrimaryLineRows(underSourceRows.map((x) => x.disp))
+  let underRows = pickPrimaryLineRows(underSourceRows.map((x) => x.disp))
     .filter((disp) => passesEdgeL5Gate(disp, "UNDER"))
     .filter((disp) => passesTopEdgeEmpiricalSanity(disp, "UNDER"))
     .map((disp) => {
@@ -4314,6 +4123,25 @@ function renderEdges() {
       return underByKey.get(k) || { baseIdx: 0, disp };
     })
     .sort((a, b) => num(b.disp.edge) - num(a.disp.edge));
+  if (!underRows.length) {
+    underRows = pickPrimaryLineRows(underSourceRows.map((x) => x.disp))
+      .map((disp) => {
+        const k = [
+          String(disp.sport || "").trim().toUpperCase(),
+          String(disp.player || "").trim().toLowerCase(),
+          String(disp.prop || "").trim().toLowerCase(),
+          String(disp.pick || "").trim().toLowerCase(),
+          String(disp.dir || "").trim().toUpperCase(),
+        ].join("|");
+        return underByKey.get(k) || { baseIdx: 0, disp };
+      })
+      .sort((a, b) => {
+        const ha = topEdgeL5HitPct(a.disp, "UNDER") || 0;
+        const hb = topEdgeL5HitPct(b.disp, "UNDER") || 0;
+        if (hb !== ha) return hb - ha;
+        return num(b.disp.edge) - num(a.disp.edge);
+      });
+  }
   const EDGE_CARD_LIMIT = 10;
 
   const appendAll = (arr, el) => {
@@ -4342,6 +4170,31 @@ function renderEdges() {
   appendAll(gobO, og);
   if (us) appendUnderRows(underRows, us);
   wireEdgeCardExpandHandlers();
+  const emptyHost = document.getElementById("top-edges-empty");
+  const anyCards = (stdO.length + gobO.length + underRows.length) > 0;
+  if (!anyCards) {
+    let el = emptyHost;
+    if (!el) {
+      const body = document.querySelector("#top-edges .home-cat-body .home-cat-flat") ||
+        document.querySelector("#top-edges .home-cat-body");
+      if (body) {
+        el = document.createElement("div");
+        el.id = "top-edges-empty";
+        el.className = "home-cat-empty-state";
+        body.appendChild(el);
+      }
+    }
+    if (el) {
+      el.hidden = false;
+      el.innerHTML = '<div class="hec-title">No Top Edges yet</div>' +
+        (ALL_SLATE.length
+          ? '<div>No legs cleared the L5 quality gate on this slate</div>'
+          : '<div>Waiting for pipeline props — open Slate Explorer or check back after the daily run</div>');
+    }
+  } else if (emptyHost) {
+    emptyHost.hidden = true;
+    emptyHost.innerHTML = "";
+  }
 }
 
 function wireEdgeCardExpandHandlers() {
@@ -4511,8 +4364,17 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 4)
     .sort((a, b) => b.h - a.h);
 
-  const l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
-  const l5U = underStreakRows(5, 4);
+  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5U = underStreakRows(5, 4);
+  if (!l5O.length && !l5U.length) {
+    const soft = [...ALL_SLATE]
+      .filter((p) => !isFantasyScoreEdgePick(p))
+      .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
+      .filter(p => p.h !== null && p.h >= 1)
+      .sort((a, b) => b.h - a.h);
+    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5U = underStreakRows(5, 1);
+  }
 
   const l10all = [...ALL_SLATE]
     .filter((p) => !isFantasyScoreEdgePick(p))
@@ -4520,15 +4382,24 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 8)
     .sort((a, b) => b.h - a.h);
 
-  const l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
-  const l10U = underStreakRows(10, 8);
+  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10U = underStreakRows(10, 8);
+  if (!l10O.length && !l10U.length) {
+    const soft = [...ALL_SLATE]
+      .filter((p) => !isFantasyScoreEdgePick(p))
+      .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
+      .filter(p => p.h !== null && p.h >= 1)
+      .sort((a, b) => b.h - a.h);
+    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10U = underStreakRows(10, 1);
+  }
 
-  const none = msg => `<div style="padding:14px 0;font-size:11px;color:var(--muted2);letter-spacing:1px;">${msg}</div>`;
+  const none = msg => `<div class="home-cat-empty-state" style="padding:14px 0;"><div class="hec-title" style="font-size:18px;margin-bottom:4px;">${msg}</div></div>`;
 
-  document.getElementById("l5-over-grid").innerHTML   = l5O.length  ? l5O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 over data on today's slate");
-  document.getElementById("l5-under-grid").innerHTML  = l5U.length  ? l5U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 under data on today's slate (need l5_under or l5_over on legs)");
-  document.getElementById("l10-over-grid").innerHTML  = l10O.length ? l10O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 over streaks (8+/10) on today's slate");
-  document.getElementById("l10-under-grid").innerHTML = l10U.length ? l10U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 under streaks (8+/10) on this slate — legs here may skew over-heavy, or lack L10 totals");
+  document.getElementById("l5-over-grid").innerHTML   = l5O.length  ? l5O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 over streaks");
+  document.getElementById("l5-under-grid").innerHTML  = l5U.length  ? l5U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,5)).join("")   : none("No L5 under streaks");
+  document.getElementById("l10-over-grid").innerHTML  = l10O.length ? l10O.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 over streaks");
+  document.getElementById("l10-under-grid").innerHTML = l10U.length ? l10U.slice(0, STREAK_CARD_LIMIT).map(p=>streakCard(p,10)).join("") : none("No L10 under streaks");
   ["l5-over-grid", "l5-under-grid", "l10-over-grid", "l10-under-grid"].forEach(wireStreakGridClicks);
 }
 
@@ -5015,7 +4886,7 @@ async function fetchSlateSport(sport, opts = {}) {
     let rows = [];
     let source = "";
     try {
-      const res = await fetch_smart(`slate_sport_${encodeURIComponent(sport)}.json`);
+      const res = await fetch(`/api/slate-sport/${encodeURIComponent(sport)}`, {cache: 'no-store'});
       if (res.ok) {
         const d = await res.json();
         rows = Array.isArray(d.rows) ? d.rows : [];
@@ -5313,7 +5184,7 @@ async function loadCombinedFromMergedJson() {
     void loadSlateData().catch(() => {});
     let d = null;
     try {
-      const res = await fetch_smart('slate_sport_combined.json');
+      const res = await fetch('/api/slate-sport/combined', {cache: 'no-store'});
       if (res.ok) d = await res.json();
     } catch (e) {}
     if (!d || !Array.isArray(d.rows) || !d.rows.length) {
@@ -5345,7 +5216,7 @@ async function loadSlateExcel() {
   if (!_slateExcelPromise) {
     _slateExcelPromise = (async () => {
       try {
-        const r = await fetch_smart('slate_excel.json');
+        const r = await fetch('/api/slate-excel', {cache: 'no-store'});
         const d = await r.json();
         const sh = d.sheets && d.sheets.combined;
         if (sh && sh.columns && sh.rows && sh.rows.length) {
@@ -5513,6 +5384,7 @@ function sortSlateDynamic(sport, key) {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     fetchSlateSport(getDefaultBootSlateSport());
+    autoOpenBootSlatePanel();
     const warmFullSlate = () => {
       try {
         loadSlateData().catch((e) => console.warn("deferred loadSlateData:", e));

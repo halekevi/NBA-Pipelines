@@ -1427,6 +1427,12 @@ def _sport_slate_status(
     if key == "cbb":
         cnt += int(counts.get("wcbb", 0))
 
+    # No explorer rows in the live slate JSON — PENDING, not STALE-from-Excel.
+    # Empty boards (All-Star break, off-day soccer) previously fell through to
+    # leftover step8 files and looked "STALE" even when correctly empty today.
+    if cnt <= 0:
+        return {"exists": False, "modified": None, "size_kb": None}
+
     direct = _file_info(path)
     if cnt > 0 and json_disp:
         if direct.get("exists"):
@@ -2280,13 +2286,45 @@ def _normalize_delta_signature(raw: object) -> str:
     """
     Sort Goblin/Demon distances into a stable multiset label, e.g. '1.5+2.0+3.5'.
     Empty / unknown → ''.
+    Accepts lists (including char-sploded ['1', ',', '1']) or joined strings.
     """
     if raw is None:
         return ""
+    if isinstance(raw, (int, float)):
+        try:
+            f = float(raw)
+        except (TypeError, ValueError):
+            return ""
+        return f"{f:g}" if f > 0 else ""
+    if isinstance(raw, list):
+        # Character-sploded joined string → rejoin then parse.
+        if raw and all(isinstance(x, str) and len(x) <= 1 for x in raw):
+            return _normalize_delta_signature("".join(raw))
+        vals: list[float] = []
+        for x in raw:
+            if isinstance(x, (int, float)):
+                try:
+                    f = float(x)
+                except (TypeError, ValueError):
+                    continue
+                if f > 0:
+                    vals.append(f)
+            else:
+                nested = _normalize_delta_signature(x)
+                if nested:
+                    for part in nested.split("+"):
+                        try:
+                            vals.append(float(part))
+                        except (TypeError, ValueError):
+                            continue
+        if not vals:
+            return ""
+        vals.sort()
+        return "+".join(f"{v:g}" for v in vals)
     text = str(raw).strip()
-    if not text:
+    if not text or text in {"—", "-", "nan", "None"}:
         return ""
-    vals: list[float] = []
+    vals = []
     for part in text.replace("|", ",").replace("+", ",").split(","):
         part = part.strip()
         if not part:
@@ -3835,11 +3873,20 @@ def api_pipeline_status():
 
     et_today = _eastern_today_ymd()
     tennis_match_day = tennis_override_date or et_today
+    soccer_override_date = str((slate_payload or {}).get("soccer_date") or "").strip()[:10]
+    if len(soccer_override_date) != 10:
+        soccer_override_date = None
+    soccer_match_day = soccer_override_date or et_today
     # Strict game-day sports (matches index.html SLATE_STRICT_GAME_DAY_SPORTS + tennis).
     _game_day_sports = ("nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba", "tennis")
     game_day: dict[str, bool | None] = {}
     for sid in _game_day_sports:
-        target = tennis_match_day if sid == "tennis" else et_today
+        if sid == "tennis":
+            target = tennis_match_day
+        elif sid == "soccer":
+            target = soccer_match_day
+        else:
+            target = et_today
         game_day[sid] = _sport_rows_have_game_on_ymd(slate_payload, sid, target)
     board_meta = _home_board_display_meta(tickets_payload, slate_payload)
 
@@ -3897,6 +3944,7 @@ def api_pipeline_status():
         "as_of": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "et_today": et_today,
         "tennis_match_day": tennis_match_day,
+        "soccer_match_day": soccer_match_day,
         "game_day": game_day,
         "tickets_date": board_meta.get("tickets_date"),
         "slate_date": board_meta.get("slate_date"),

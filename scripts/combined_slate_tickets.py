@@ -105,6 +105,15 @@ def default_tennis_match_date(bundle_date: str | None = None) -> str:
     except ValueError:
         return raw
 
+
+def default_soccer_match_date(bundle_date: str | None = None) -> str:
+    """Soccer often posts the next calendar day's NWSL / tournament board.
+
+    Same default as tennis (ET today + 1 / historical bundle + 1). Override with
+    ``--soccer-date`` when the live board is same-day.
+    """
+    return default_tennis_match_date(bundle_date)
+
 import numpy as np
 import pandas as pd
 from openpyxl import Workbook
@@ -1111,6 +1120,38 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
 }
 
 
+def _load_live_composition_floors() -> dict[tuple[int, int], float]:
+    """Override MIX_GRID_AVERAGE_FLOORS from payout_rate_card composition_floors."""
+    out: dict[tuple[int, int], float] = dict(MIX_GRID_AVERAGE_FLOORS)
+    try:
+        with open(PAYOUT_RATE_CARD_PATH, "r", encoding="utf-8") as f:
+            card = json.load(f)
+    except Exception:
+        return out
+    comp = card.get("composition_floors") if isinstance(card, dict) else None
+    if not isinstance(comp, dict):
+        return out
+    for comp_key, meta in comp.items():
+        if not isinstance(meta, dict):
+            continue
+        try:
+            avg = float(meta.get("avg_min_x"))
+        except (TypeError, ValueError):
+            continue
+        if not (avg > 0):
+            continue
+        m = re.match(r"^(\d+)L_(\d+)G$", str(comp_key).strip())
+        if not m:
+            continue
+        n_legs, n_g = int(m.group(1)), int(m.group(2))
+        if n_legs >= 2:
+            out[(n_legs, n_g)] = round(avg, 4)
+    return out
+
+
+_LIVE_COMPOSITION_FLOORS: dict[tuple[int, int], float] = _load_live_composition_floors()
+
+
 def _ticket_legs_for_display_payout(ticket: dict) -> list[dict[str, Any]]:
     legs_out: list[dict[str, Any]] = []
     for leg in ticket.get("legs") or []:
@@ -1168,18 +1209,24 @@ def attach_display_min_x(ticket: dict) -> dict:
         if model_keep is not None:
             pay["model_min_payout_x"] = round(model_keep, 4)
 
-    # 1) Already live from write-back / patch
+    # 1) Already live from write-back / patch — never downgrade to board avg.
     src_now = str(pay.get("payout_source") or "").strip().lower()
     live_v = _safe_positive_float(pay.get("power_min_x"))
-    if src_now == "live_cdp" and live_v is not None:
-        pay["display_min_x"] = round(live_v, 4)
-        pay["payout_source"] = "live_cdp"
-        ticket["payout"] = pay
-        ticket["display_min_x"] = pay["display_min_x"]
-        return ticket
+    disp_v = _safe_positive_float(pay.get("display_min_x"))
+    if disp_v is None:
+        disp_v = _safe_positive_float(ticket.get("display_min_x"))
+    if src_now == "live_cdp":
+        keep = live_v if live_v is not None else disp_v
+        if keep is not None:
+            pay["display_min_x"] = round(keep, 4)
+            pay["power_min_x"] = round(live_v if live_v is not None else keep, 4)
+            pay["payout_source"] = "live_cdp"
+            ticket["payout"] = pay
+            ticket["display_min_x"] = pay["display_min_x"]
+            return ticket
     if live_v is not None and src_now in ("", "live_cdp"):
         # power_min_x present from capture even if source blank
-        disp = _safe_positive_float(pay.get("display_min_x")) or live_v
+        disp = disp_v if disp_v is not None else live_v
         pay["display_min_x"] = round(float(disp), 4)
         pay["power_min_x"] = round(live_v, 4)
         pay["payout_source"] = "live_cdp"
@@ -1207,8 +1254,10 @@ def attach_display_min_x(ticket: dict) -> dict:
             ticket["display_min_x"] = pay["display_min_x"]
             return ticket
 
-    # 3) Mix-grid average floors
-    avg = MIX_GRID_AVERAGE_FLOORS.get((int(n), int(g_count)))
+    # 3) Mix-grid average floors (live composition overrides seeded defaults)
+    avg = _LIVE_COMPOSITION_FLOORS.get((int(n), int(g_count)))
+    if avg is None:
+        avg = MIX_GRID_AVERAGE_FLOORS.get((int(n), int(g_count)))
     avg_f = _safe_positive_float(avg)
     if avg_f is not None:
         pay["display_min_x"] = round(avg_f, 4)
@@ -1258,6 +1307,137 @@ def _leg_sig_key_for_payout_patch(legs: list | None) -> str:
             line = ""
         parts.append(f"{player}|{prop}|{direction}|{line}")
     return "||".join(sorted(p for p in parts if p and p != "|||"))
+
+
+def harvest_live_cdp_entries(payload: dict) -> tuple[dict, dict]:
+    """Extract live_cdp floors from a tickets payload → (by_ticket_id, by_leg_sig)."""
+    by_id: dict = {}
+    by_sig: dict = {}
+    if not isinstance(payload, dict):
+        return by_id, by_sig
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+            src = str(pay.get("payout_source") or "").strip().lower()
+            min_x = _safe_positive_float(pay.get("power_min_x"))
+            if min_x is None:
+                min_x = _safe_positive_float(pay.get("display_min_x"))
+            if min_x is None:
+                min_x = _safe_positive_float(t.get("display_min_x"))
+            if min_x is None:
+                continue
+            if src and src != "live_cdp":
+                continue
+            if not src and _safe_positive_float(pay.get("power_min_x")) is None:
+                continue
+            entry = {
+                "power_min_x": float(min_x),
+                "display_min_x": float(min_x),
+                "payout_source": "live_cdp",
+                "ticket_id": t.get("ticket_id"),
+                "n_legs": t.get("n_legs") or len(t.get("legs") or []),
+            }
+            if pay.get("power_first_x") is not None:
+                entry["power_first_x"] = pay.get("power_first_x")
+            tid = str(t.get("ticket_id") or "").strip()
+            if tid:
+                by_id[tid] = entry
+            sig = _leg_sig_key_for_payout_patch(t.get("legs"))
+            if sig:
+                by_sig[sig] = entry
+    return by_id, by_sig
+
+
+def preserve_live_cdp_onto_payload(payload: dict, source_payload: dict) -> int:
+    """Copy live_cdp floors from source onto matching tickets in payload (id or leg sig)."""
+    if not isinstance(payload, dict) or not isinstance(source_payload, dict):
+        return 0
+    by_id, by_sig = harvest_live_cdp_entries(source_payload)
+    if not by_id and not by_sig:
+        return 0
+    n = 0
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+            if str(pay.get("payout_source") or "").strip().lower() == "live_cdp":
+                if _safe_positive_float(pay.get("power_min_x") or pay.get("display_min_x")):
+                    continue
+            tid = str(t.get("ticket_id") or "").strip()
+            entry = by_id.get(tid) if tid else None
+            if entry is None:
+                entry = by_sig.get(_leg_sig_key_for_payout_patch(t.get("legs")))
+            if not isinstance(entry, dict):
+                continue
+            min_x = _safe_positive_float(entry.get("power_min_x") or entry.get("display_min_x"))
+            if min_x is None:
+                continue
+            pay = dict(pay)
+            if pay.get("model_min_payout_x") is None and pay.get("min_payout_x") is not None:
+                pay["model_min_payout_x"] = pay.get("min_payout_x")
+            pay["power_min_x"] = round(min_x, 4)
+            pay["display_min_x"] = round(min_x, 4)
+            pay["payout_source"] = "live_cdp"
+            if entry.get("power_first_x") is not None:
+                pay["power_first_x"] = entry.get("power_first_x")
+            t["payout"] = pay
+            t["display_min_x"] = pay["display_min_x"]
+            n += 1
+    return n
+
+
+def upsert_payout_patch_from_payload(payload: dict) -> int:
+    """
+    Merge live_cdp floors from payload into data/reports/payout_patch_<date>.json.
+    Never shrinks an existing patch (empty harvest is a no-op).
+    """
+    if not isinstance(payload, dict):
+        return 0
+    date_str = str(payload.get("date") or "").strip()[:10]
+    if not date_str:
+        return 0
+    by_id, by_sig = harvest_live_cdp_entries(payload)
+    if not by_id and not by_sig:
+        return 0
+    path = os.path.join(REPO_ROOT, "data", "reports", f"payout_patch_{date_str}.json")
+    prior: dict = {}
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                prior = json.load(f)
+        except Exception:
+            prior = {}
+    if not isinstance(prior, dict):
+        prior = {}
+    prior_id = prior.get("by_ticket_id") if isinstance(prior.get("by_ticket_id"), dict) else {}
+    prior_sig = prior.get("by_leg_sig") if isinstance(prior.get("by_leg_sig"), dict) else {}
+    merged_id = dict(prior_id)
+    merged_sig = dict(prior_sig)
+    n_new = 0
+    for k, v in by_id.items():
+        if k not in merged_id:
+            n_new += 1
+        merged_id[k] = v
+    for k, v in by_sig.items():
+        merged_sig[k] = v
+    out = {
+        "date": date_str,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "tickets_path": prior.get("tickets_path") or "",
+        "by_ticket_id": merged_id,
+        "by_leg_sig": merged_sig,
+    }
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=2, ensure_ascii=False)
+    return len(merged_id)
 
 
 def apply_payout_patch_to_payload(payload: dict) -> int:
@@ -1323,6 +1503,13 @@ def finalize_payload_display_payouts(payload: dict) -> dict:
         for t in g.get("tickets") or []:
             if isinstance(t, dict):
                 attach_display_min_x(t)
+    # Persist any live floors back into the durable patch (heals empty patch files).
+    try:
+        n_ids = upsert_payout_patch_from_payload(payload)
+        if n_ids:
+            print(f"  [payout] upserted live_cdp patch ({n_ids} ticket ids)")
+    except Exception as exc:
+        print(f"  [payout] WARN: patch upsert skipped ({exc})")
     return payload
 
 
@@ -6031,11 +6218,16 @@ def enforce_target_date(
     total = len(out)
 
     # Keep cross-date fallback limited to sparse/overnight boards.
-    # NBA/MLB period boards and Soccer should not silently roll dates.
+    # NBA/MLB period boards should not silently roll dates. Soccer/Tennis use
+    # explicit --soccer-date / --tennis-date match days instead.
     sport_u = str(sport).upper()
     fallback_sports = {"TENNIS"}
-    if sport_u in {"NBA", "NBA1Q", "NBA1H", "MLB", "SOCCER", "SOC", "WNBA", "NFL", "NHL"}:
+    if sport_u in {"NBA", "NBA1Q", "NBA1H", "MLB", "WNBA", "NFL", "NHL"}:
         use_date_fallback = False
+    elif sport_u in {"SOCCER", "SOC"}:
+        # Match-day filter is already the soccer target; allow nearest >= target
+        # only when explicitly requested via --allow-cross-date-fallback.
+        use_date_fallback = bool(allow_cross_date_fallback)
     else:
         use_date_fallback = allow_cross_date_fallback or (sport_u in fallback_sports)
     if kept == 0 and use_date_fallback:
@@ -7108,12 +7300,39 @@ def append_in_season_web_supplement_groups(
 
 
 def write_full_ticket_export_snapshot(payload: dict, date_str: str) -> None:
-    """Persist curated MAIN ticket JSON for graders, slice review, and dated ML snapshots."""
-    path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
-    _write_json_file(path, payload)
-    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
-    n_strong = len(_extract_strong_builder_slips(payload))
-    print(f"  [OK] Full ticket export -> {path} ({n_slips} slips, {n_strong} STRONG-builder)")
+    """
+    Persist curated MAIN tickets for graders + immutable per-run archive.
+
+    - ``ui_runner/data/ticket_runs/{date}/{run_id}/tickets.json`` — immutable run
+    - ``ui_runner/data/combined_slate_tickets_{date}.json`` — grade pool (union of runs)
+    Live site JSON (``tickets_latest.json``) is written separately and may be pruned.
+    """
+    try:
+        from ticket_run_archive import archive_and_merge_grade_pool, new_run_id
+
+        rid = str(payload.get("run_id") or new_run_id())
+        payload["run_id"] = rid
+        meta = archive_and_merge_grade_pool(
+            payload,
+            date_str=date_str,
+            run_id=rid,
+            source="combined_slate_tickets",
+        )
+        path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
+        n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+        n_strong = len(_extract_strong_builder_slips(payload))
+        print(
+            f"  [OK] Full ticket export + run archive -> {path} "
+            f"(this_run={n_slips} slips / {n_strong} STRONG; run_id={meta.get('run_id')})"
+        )
+    except Exception as exc:
+        # Fall back to legacy overwrite so a missing helper never blocks ticket emit.
+        path = os.path.join(REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_{date_str}.json")
+        _write_json_file(path, payload)
+        n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+        n_strong = len(_extract_strong_builder_slips(payload))
+        print(f"  [OK] Full ticket export -> {path} ({n_slips} slips, {n_strong} STRONG)")
+        print(f"  [WARN] ticket run archive skipped: {exc}")
 
 
 def _count_l10_streak_legs(legs: list) -> tuple[int, int]:
@@ -7791,7 +8010,7 @@ def publish_wnba_slate_merge_into_web(
 
 def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
                      wcbb=None, mlb=None, nba1q=None, nba1h=None, tennis=None, golf=None, nfl=None, wnba=None, cfb=None,
-                     tennis_date=None):
+                     tennis_date=None, soccer_date=None):
     """Write full per-sport ranked slate to slate_latest.json for the web UI.
 
     Sport keys in ``sports`` are lowercase (nba, nfl, …) so /api/slate-sport and the
@@ -7822,6 +8041,22 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
         tennis_match_ymd = str(tennis_date or default_tennis_match_date(date_str)).strip()[:10]
         payload["tennis_date"] = tennis_match_ymd
 
+    soccer_rows = payload["sports"].get("soccer") or []
+    soccer_match_ymd = ""
+    if isinstance(soccer_rows, list) and len(soccer_rows) > 0:
+        soccer_match_ymd = str(soccer_date or default_soccer_match_date(date_str)).strip()[:10]
+        payload["soccer_date"] = soccer_match_ymd
+        stamped_soccer: list[dict] = []
+        for r in soccer_rows:
+            if not isinstance(r, dict):
+                stamped_soccer.append(r)
+                continue
+            rr = dict(r)
+            rr["game_date"] = soccer_match_ymd
+            stamped_soccer.append(rr)
+        payload["sports"]["soccer"] = stamped_soccer
+        soccer_rows = stamped_soccer
+
     os.makedirs(outdir, exist_ok=True)
     out_path = os.path.join(outdir, "slate_latest.json")
     payload = _sanitize_for_json(payload)
@@ -7846,6 +8081,8 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
                 rr["game_date"] = tennis_match_ymd
                 stamped.append(rr)
             safe_rows = stamped
+        if sport_key == "soccer" and soccer_match_ymd:
+            safe_rows = soccer_rows if isinstance(soccer_rows, list) else safe_rows
         sport_path = os.path.join(outdir, f"slate_sport_{sport_key}.json")
         _write_json_file(
             sport_path,
@@ -8639,6 +8876,41 @@ def merge_web_payloads_by_group(new_payload: dict[str, Any], old_payload: dict[s
     return merged
 
 
+def _preserve_live_cdp_from_existing_web_json(payload: dict, json_path: str) -> int:
+    """Before overwrite, carry live_cdp floors from same-date tickets_latest onto the new payload."""
+    if not isinstance(payload, dict) or not os.path.isfile(json_path):
+        return 0
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            existing = json.load(f)
+    except Exception:
+        return 0
+    if not isinstance(existing, dict):
+        return 0
+    if str(existing.get("date") or "")[:10] != str(payload.get("date") or "")[:10]:
+        return 0
+    n = preserve_live_cdp_onto_payload(payload, existing)
+    if n:
+        print(f"  [payout] preserved live_cdp from existing web JSON on {n} tickets")
+    return n
+
+
+def _sync_tickets_latest_mirrors(payload: dict, outdir: str) -> None:
+    """Keep docs + mobile tickets_latest.json aligned with templates."""
+    try:
+        outdir_p = Path(outdir).resolve()
+        for docs_json in (
+            outdir_p.parent / "docs" / "tickets_latest.json",
+            Path(REPO_ROOT) / "mobile" / "www" / "tickets_latest.json",
+        ):
+            docs_json.parent.mkdir(parents=True, exist_ok=True)
+            with open(docs_json, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
+            print(f"[OK] Tickets mirror -> {docs_json}")
+    except Exception as exc:
+        print(f"[WARN] Tickets mirror sync skipped: {exc}")
+
+
 def write_web_outputs(
     payload,
     outdir: str,
@@ -8656,11 +8928,13 @@ def write_web_outputs(
     if skip_ui_filters:
         _finalize_payload_l10_streaks(payload)
         apply_slate_ev_tier_recommendations(payload)
+        _preserve_live_cdp_from_existing_web_json(payload, json_path)
         finalize_payload_display_payouts(payload)
         payload = _sanitize_for_json(payload)
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
         print(f"[OK] Web JSON  -> {json_path}")
+        _sync_tickets_latest_mirrors(payload, outdir)
         return
     _finalize_payload_l10_streaks(payload)
     apply_slate_ev_tier_recommendations(payload)
@@ -8689,21 +8963,24 @@ def write_web_outputs(
                 print("  [web-merge] skipped: existing tickets_latest.json has a different slate date")
         except Exception as exc:
             print(f"  [web-merge] WARN: could not merge existing tickets_latest.json ({exc})")
+    # Always harvest live floors from the file we are about to overwrite (same date).
+    _preserve_live_cdp_from_existing_web_json(payload, json_path)
     finalize_payload_display_payouts(payload)
     payload = _sanitize_for_json(payload)
+    # Stamp run_id on live JSON when the full export already assigned one.
+    if not payload.get("run_id"):
+        try:
+            from ticket_run_archive import new_run_id
+
+            payload["run_id"] = new_run_id()
+        except Exception:
+            pass
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
     print(f"[OK] Web JSON  -> {json_path}")
-    # Keep docs JSON in sync for static/GitHub Pages views that read ui_runner/docs.
-    try:
-        outdir_p = Path(outdir).resolve()
-        docs_json = outdir_p.parent / "docs" / "tickets_latest.json"
-        docs_json.parent.mkdir(parents=True, exist_ok=True)
-        with open(docs_json, "w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
-        print(f"[OK] Docs JSON -> {docs_json}")
-    except Exception as exc:
-        print(f"[WARN] Docs JSON sync skipped: {exc}")
+    if payload.get("run_id"):
+        print(f"  [web] run_id={payload.get('run_id')}")
+    _sync_tickets_latest_mirrors(payload, outdir)
     print("  (Graded eval HTML) Run: py -3.14 scripts/build_ticket_eval.py --date <YYYY-MM-DD>")
 
 
@@ -15103,6 +15380,12 @@ def main():
         default=None,
         help="Override date for Tennis step8 path + ET match-day filter (default: --date + 1 day ET).",
     )
+    ap.add_argument(
+        "--soccer-date",
+        dest="soccer_date",
+        default=None,
+        help="Override date for Soccer match-day filter (default: --date + 1 day ET, like tennis).",
+    )
     ap.add_argument("--tiers", default="A,B,C", help="Comma-separated tiers e.g. A,B")
     ap.add_argument(
         "--high-conviction",
@@ -15471,6 +15754,12 @@ def main():
         # Perpetual next-day board: bundle dated today, match-day filter tomorrow (ET).
         args.tennis_date = default_tennis_match_date(str(args.date).strip()[:10])
 
+    soccer_ds = str(getattr(args, "soccer_date", None) or "").strip()[:10]
+    if soccer_ds:
+        args.soccer_date = soccer_ds
+    else:
+        args.soccer_date = default_soccer_match_date(str(args.date).strip()[:10])
+
     args.max_ticket_legs = max(2, min(6, int(args.max_ticket_legs)))
     if getattr(args, "win_rate_mode", False):
         cap = int(args.max_legs) if args.max_legs is not None else MAIN_GRADED_MAX_LEGS
@@ -15627,11 +15916,15 @@ def main():
     if str(args.soccer).strip():
         try:
             soccer = load_soccer(args.soccer)
+            soccer_match_day = str(getattr(args, "soccer_date", None) or args.date).strip()[:10]
             soccer = enforce_target_date(
-                soccer, "Soccer", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
+                soccer,
+                "Soccer",
+                soccer_match_day,
+                allow_cross_date_fallback=args.allow_cross_date_fallback,
             )
             soccer = attach_standard_refs(soccer)
-            print(f"  {len(soccer)} Soccer props loaded")
+            print(f"  {len(soccer)} Soccer props loaded (match day {soccer_match_day})")
             _load_audit_row("Soccer", args.soccer, soccer)
         except Exception as e:
             print(f"  WARNING: Could not load Soccer file: {e}")
@@ -15862,11 +16155,13 @@ def main():
         return df[~stale].copy()
 
     _date_fb = bool(args.allow_cross_date_fallback)
+    _soccer_day = str(getattr(args, "soccer_date", None) or args.date).strip()[:10]
+    _tennis_day = str(getattr(args, "tennis_date", None) or args.date).strip()[:10]
     nba = drop_stale_rows(nba, args.date, "NBA", allow_cross_date_fallback=_date_fb)
     cbb = drop_stale_rows(cbb, args.date, "CBB", allow_cross_date_fallback=_date_fb)
     nhl = drop_stale_rows(nhl, args.date, "NHL", allow_cross_date_fallback=_date_fb)
-    soccer = drop_stale_rows(soccer, args.date, "Soccer", allow_cross_date_fallback=_date_fb)
-    tennis = drop_stale_rows(tennis, args.date, "Tennis", allow_cross_date_fallback=_date_fb)
+    soccer = drop_stale_rows(soccer, _soccer_day, "Soccer", allow_cross_date_fallback=_date_fb)
+    tennis = drop_stale_rows(tennis, _tennis_day, "Tennis", allow_cross_date_fallback=_date_fb)
     golf = drop_stale_rows(golf, args.date, "Golf", allow_cross_date_fallback=_date_fb)
     wnba = drop_stale_rows(wnba, args.date, "WNBA", allow_cross_date_fallback=_date_fb)
     wcbb = drop_stale_rows(wcbb, args.date, "WCBB", allow_cross_date_fallback=_date_fb)
@@ -15922,6 +16217,7 @@ def main():
             wnba=wnba,
             cfb=cfb,
             tennis_date=getattr(args, "tennis_date", None),
+            soccer_date=getattr(args, "soccer_date", None),
         )
         print("[OK] Slate web JSON only (skipped workbook + tickets).")
         return
@@ -17424,13 +17720,14 @@ def main():
                 continue
             dated = sdf["game_date"].notna()
             gd = sdf["game_date"].astype(str).str[:10]
-            if label == "Tennis":
+            if label in ("Tennis", "Soccer"):
+                # Match-day sports (tennis_date / soccer_date) may be ET tomorrow vs bundle --date.
                 bad = sdf[dated & (gd < td)]
             elif label in ("NBA", "NBA1Q", "NBA1H"):
                 bad = sdf[dated & (gd < td)]
             elif label == "Combined" and "sport" in sdf.columns:
                 su = sdf["sport"].astype(str).str.upper()
-                is_roll = su.isin(["TENNIS", "NBA", "NFL"])
+                is_roll = su.isin(["TENNIS", "SOCCER", "SOC", "NBA", "NFL"])
                 bad = sdf[dated & ((gd < td) | (~is_roll & (gd != td)))]
             else:
                 bad = sdf[dated & (gd != td)]
@@ -17808,7 +18105,8 @@ def main():
         write_slate_json(nba, cbb, nhl, soccer, args.date, args.web_outdir,
                          wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h, tennis=tennis, golf=golf,
                          nfl=nfl, wnba=wnba, cfb=cfb,
-                         tennis_date=getattr(args, "tennis_date", None))
+                         tennis_date=getattr(args, "tennis_date", None),
+                         soccer_date=getattr(args, "soccer_date", None))
         try:
             ex_out = os.path.join(REPO_ROOT, "ui_runner", "data", "payout_ladder_examples.json")
             generate_payout_ladder_examples(payload, ex_out)

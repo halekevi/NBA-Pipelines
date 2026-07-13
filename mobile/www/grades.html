@@ -463,40 +463,47 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   min-width:160px;flex:1 1 180px;max-width:100%;
 }
 .props-eval-counts{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);letter-spacing:0.4px;margin-bottom:6px;}
-/* List mode (default): dense rows — much faster/cheaper than glass cards */
+/* Fixed viewport + virtual window — keeps DOM small while scrolling. */
+.props-eval-scroll{
+  max-height:min(72vh, 920px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  background:rgba(255,255,255,0.02);
+  contain:strict;
+}
 .props-eval-grid{
-  display:flex;
-  flex-direction:column;
-  gap:0;
+  position:relative;
+  display:block;
   width:100%;
   max-width:100%;
   box-sizing:border-box;
-  padding-bottom:28px;
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:12px;
-  overflow:hidden;
-  background:rgba(255,255,255,0.02);
-}
-.props-eval-grid[data-view="cards"]{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:10px;
+  min-height:120px;
   border:none;
   background:transparent;
-  overflow:visible;
+  padding-bottom:0;
+}
+.props-eval-virtual-spacer{width:100%;pointer-events:none;}
+.props-eval-virtual-window{
+  position:absolute;
+  left:0;right:0;top:0;
+  will-change:transform;
+  contain:content;
 }
 .prop-eval-row{
   display:grid;
   grid-template-columns:56px minmax(0,1.2fr) minmax(0,1.4fr) minmax(0,0.9fr) auto;
   gap:10px 12px;
   align-items:center;
-  padding:10px 12px;
+  height:52px;
+  padding:0 12px;
   border-bottom:1px solid rgba(255,255,255,0.06);
-  content-visibility:auto;
-  contain-intrinsic-size:auto 48px;
-  contain:content;
+  box-sizing:border-box;
+  overflow:hidden;
 }
-.prop-eval-row:last-of-type{border-bottom:none;}
 .prop-eval-row:hover{background:rgba(255,255,255,0.03);}
 .prop-eval-row.hit{box-shadow:inset 3px 0 0 #5ef598;}
 .prop-eval-row.miss{box-shadow:inset 3px 0 0 #ff7070;}
@@ -507,51 +514,33 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .prop-eval-badge.hit{color:#5ef598;}
 .prop-eval-badge.miss{color:#ff7070;}
 .prop-eval-badge.other{color:#f5c842;}
-.prop-eval-row .prop-eval-player{font-weight:650;font-size:13px;color:var(--text-primary);line-height:1.25;margin:0;}
-.prop-eval-row .prop-eval-line{font-size:12px;color:var(--cyan);margin:0;}
-.prop-eval-row .prop-eval-meta{font-size:11px;color:var(--muted);margin:0;}
+.prop-eval-row .prop-eval-player{font-weight:650;font-size:13px;color:var(--text-primary);line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prop-eval-row .prop-eval-line{font-size:12px;color:var(--cyan);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prop-eval-row .prop-eval-meta{font-size:11px;color:var(--muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .prop-eval-row .prop-eval-stats{font-size:11px;color:rgba(255,255,255,0.72);text-align:right;white-space:nowrap;}
 .prop-eval-card{
   border-radius:12px;padding:12px 14px;border:1px solid var(--glass-panel-border);
   background:rgba(255,255,255,0.035);
-  box-shadow:none;text-align:left;transition:border-color .15s;
-  content-visibility:auto;
-  contain-intrinsic-size:auto 110px;
+  box-shadow:none;text-align:left;
+  height:148px;box-sizing:border-box;overflow:hidden;
   contain:content;
-}
-.props-eval-sentinel{
-  grid-column:1 / -1;
-  height:1px;
-  margin:0;
-  padding:0;
-  visibility:hidden;
-  pointer-events:none;
-}
-.props-eval-load-more{
-  grid-column:1 / -1;
-  font-family:'Inter',sans-serif;
-  font-size:11px;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:var(--muted2);
-  text-align:center;
-  padding:8px 0 16px;
 }
 .prop-eval-card:hover{border-color:rgba(212,160,23,0.22);}
 .prop-eval-card.hit{border-left:4px solid var(--green);background:rgba(57,255,110,0.05);}
 .prop-eval-card.miss{border-left:4px solid var(--red);background:rgba(255,77,77,0.07);}
 .prop-eval-card.other{border-left:4px solid var(--amber);}
-.prop-eval-result{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.4px;margin-bottom:8px;}
+.prop-eval-result{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.4px;margin-bottom:6px;}
 .prop-eval-result.hit{color:var(--green);}
 .prop-eval-result.miss{color:var(--red);}
 .prop-eval-result.other{color:var(--amber);}
 .prop-eval-stat.hit{color:var(--green);font-weight:600;}
 .prop-eval-stat.miss{color:var(--red);font-weight:600;}
 .prop-eval-stat.other{color:var(--amber);font-weight:600;}
-.prop-eval-player{font-weight:700;font-size:15px;color:var(--text-primary);line-height:1.25;margin-bottom:4px;}
-.prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.45;}
-.prop-eval-line{font-family:'Inter',sans-serif;font-size:13px;color:var(--cyan);margin-top:8px;}
+.prop-eval-player{font-weight:700;font-size:14px;color:var(--text-primary);line-height:1.25;margin-bottom:4px;}
+.prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.4;}
+.prop-eval-line{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);margin-top:6px;}
 @media(max-width:900px){
+  .props-eval-scroll{max-height:min(68vh, 780px);}
   .prop-eval-row{
     grid-template-columns:52px minmax(0,1fr);
     grid-template-areas:
@@ -559,12 +548,16 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
       "badge line"
       "badge meta"
       "badge stats";
+    height:96px;
+    padding:8px 10px;
+    align-items:start;
   }
   .prop-eval-badge{grid-area:badge;}
-  .prop-eval-row .prop-eval-player{grid-area:player;}
-  .prop-eval-row .prop-eval-line{grid-area:line;}
+  .prop-eval-row .prop-eval-player{grid-area:player;white-space:normal;}
+  .prop-eval-row .prop-eval-line{grid-area:line;white-space:normal;}
   .prop-eval-row .prop-eval-meta{grid-area:meta;}
   .prop-eval-row .prop-eval-stats{grid-area:stats;text-align:left;}
+  .prop-eval-card{height:132px;}
 }
 [data-theme="light"] .prop-eval-card{background:rgba(255,255,255,0.72)!important;border-color:rgba(0,0,0,0.08)!important;}
 [data-theme="light"] .prop-eval-card.hit{background:rgba(26,140,69,.08)!important;}
@@ -577,7 +570,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 [data-theme="light"] .props-eval-toolbar input[type="search"]{
   background:rgba(255,255,255,0.85)!important;border-color:rgba(0,0,0,0.12)!important;color:rgba(0,0,0,0.85)!important;
 }
-[data-theme="light"] .props-eval-grid{background:rgba(255,255,255,0.55);border-color:rgba(0,0,0,0.08);}
+[data-theme="light"] .props-eval-scroll{background:rgba(255,255,255,0.55);border-color:rgba(0,0,0,0.08);}
 [data-theme="light"] .prop-eval-row:hover{background:rgba(0,0,0,0.03);}
 .glass-insights{background:var(--glass-panel);border:1px solid var(--glass-panel-border);border-radius:16px;padding:20px 22px;box-shadow:var(--glass-shadow);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);}
 .insights-card-title{font-size:19px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent-gold);margin-bottom:8px;}
@@ -737,18 +730,7 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
     touch-action:pan-y;
   }
   .grades-props-wrap .grades-props-inner{overflow:visible;}
-  .props-eval-grid[data-view="cards"]{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:10px 12px;
-    align-content:start;
-    padding-bottom:24px;
-  }
-  .props-eval-grid:not([data-view="cards"]){
-    display:flex;
-    flex-direction:column;
-    gap:0;
-  }
+  .props-eval-scroll{max-height:min(68vh, 780px);}
   .prop-eval-card{
     min-width:0;
     padding:10px 11px;
@@ -1777,7 +1759,9 @@ select option,
         </div>
         <div class="props-eval-counts" id="props-eval-counts"></div>
       </div>
-      <div class="props-eval-grid" id="props-eval-grid"></div>
+      <div class="props-eval-scroll" id="props-eval-scroll" tabindex="0" aria-label="Graded props list">
+        <div class="props-eval-grid" id="props-eval-grid" data-view="list"></div>
+      </div>
       <p class="insights-card-sub" id="props-eval-foot" style="margin-top:8px;"></p>
     </div>
   </div>
@@ -3794,6 +3778,159 @@ var PROPS_EVAL_VIEW = 'list';
 var PROPS_EVAL_DATE_CACHE = Object.create(null);
 var PROPS_EVAL_LOAD_ABORT = null;
 var PROPS_EVAL_SEARCH_TIMER = null;
+var PROPS_EVAL_VIRTUAL = {
+  rows: [],
+  view: 'list',
+  gen: 0,
+  scrollEl: null,
+  onScroll: null,
+  onResize: null,
+  raf: null,
+  lastStart: -1,
+  lastEnd: -1,
+};
+
+function propsEvalRowHeight(view) {
+  if (view === 'cards') return gradesFrameMobileLayout() ? 142 : 158;
+  return gradesFrameMobileLayout() ? 96 : 52;
+}
+
+function propsEvalCardCols(scrollEl) {
+  var w = (scrollEl && scrollEl.clientWidth) || 800;
+  var min = 250;
+  var gap = 10;
+  var pad = 20;
+  return Math.max(1, Math.floor((w - pad + gap) / (min + gap)));
+}
+
+function teardownPropsEvalInfiniteScroll() {
+  if (PROPS_EVAL_IO) {
+    try { PROPS_EVAL_IO.disconnect(); } catch (_e) {}
+    PROPS_EVAL_IO = null;
+  }
+  var v = PROPS_EVAL_VIRTUAL;
+  if (v.scrollEl && v.onScroll) {
+    try { v.scrollEl.removeEventListener('scroll', v.onScroll); } catch (_e2) {}
+  }
+  if (v.onResize) {
+    try { window.removeEventListener('resize', v.onResize); } catch (_e3) {}
+  }
+  if (v.raf != null) {
+    try { cancelAnimationFrame(v.raf); } catch (_e4) {}
+  }
+  v.scrollEl = null;
+  v.onScroll = null;
+  v.onResize = null;
+  v.raf = null;
+  v.lastStart = -1;
+  v.lastEnd = -1;
+}
+
+function paintPropsEvalVirtualWindow() {
+  var v = PROPS_EVAL_VIRTUAL;
+  var grid = document.getElementById('props-eval-grid');
+  var scrollEl = document.getElementById('props-eval-scroll') || grid;
+  if (!grid || !scrollEl) return;
+  var rows = v.rows || [];
+  var view = v.view || 'list';
+  var itemH = propsEvalRowHeight(view);
+  var n = rows.length;
+  /* Keep virtualization 1-col for both modes — avoids multi-col transform glitches while scrolling. */
+  var totalH = Math.max(itemH, n * itemH);
+  var spacer = grid.querySelector('.props-eval-virtual-spacer');
+  var win = grid.querySelector('.props-eval-virtual-window');
+  if (!spacer || !win) return;
+  spacer.style.height = totalH + 'px';
+
+  var scrollTop = scrollEl.scrollTop || 0;
+  var viewH = scrollEl.clientHeight || 600;
+  var overscan = 10;
+  var startIdx = Math.max(0, Math.floor(scrollTop / itemH) - overscan);
+  var endIdx = Math.min(n, Math.ceil((scrollTop + viewH) / itemH) + overscan);
+  if (startIdx === v.lastStart && endIdx === v.lastEnd && win.childNodes.length) return;
+  v.lastStart = startIdx;
+  v.lastEnd = endIdx;
+
+  win.style.transform = 'translate3d(0,' + (startIdx * itemH) + 'px,0)';
+  win.style.display = 'block';
+  win.style.padding = view === 'cards' ? '0 10px' : '0';
+
+  var build = view === 'cards' ? buildPropEvalCardElement : buildPropEvalRowElement;
+  var frag = document.createDocumentFragment();
+  for (var i = startIdx; i < endIdx; i++) {
+    var el = build(rows[i]);
+    if (view === 'cards') {
+      el.style.marginBottom = '10px';
+      el.style.height = (itemH - 10) + 'px';
+    }
+    frag.appendChild(el);
+  }
+  if (typeof win.replaceChildren === 'function') {
+    win.replaceChildren(frag);
+  } else {
+    win.innerHTML = '';
+    win.appendChild(frag);
+  }
+}
+
+function schedulePropsEvalVirtualPaint() {
+  var v = PROPS_EVAL_VIRTUAL;
+  if (v.raf != null) return;
+  v.raf = requestAnimationFrame(function () {
+    v.raf = null;
+    if (v.gen !== PROPS_EVAL_RENDER_GEN) return;
+    paintPropsEvalVirtualWindow();
+  });
+}
+
+function renderPropsEvalCards(rows) {
+  const grid = document.getElementById('props-eval-grid');
+  if (!grid) return;
+  teardownPropsEvalInfiniteScroll();
+  PROPS_EVAL_RENDER_GEN += 1;
+  const gen = PROPS_EVAL_RENDER_GEN;
+  window._propsEvalFilteredRows = rows;
+  const view = getPropsEvalView();
+  setPropsEvalView(view);
+  const scrollEl = document.getElementById('props-eval-scroll') || grid;
+  grid.setAttribute('data-view', view);
+
+  if (!rows.length) {
+    grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">No props match filters.</p>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  const spacer = document.createElement('div');
+  spacer.className = 'props-eval-virtual-spacer';
+  spacer.setAttribute('aria-hidden', 'true');
+  const win = document.createElement('div');
+  win.className = 'props-eval-virtual-window';
+  grid.appendChild(spacer);
+  grid.appendChild(win);
+
+  PROPS_EVAL_VIRTUAL.rows = rows;
+  PROPS_EVAL_VIRTUAL.view = view;
+  PROPS_EVAL_VIRTUAL.gen = gen;
+  PROPS_EVAL_VIRTUAL.scrollEl = scrollEl;
+  PROPS_EVAL_VIRTUAL.lastStart = -1;
+  PROPS_EVAL_VIRTUAL.lastEnd = -1;
+
+  try { scrollEl.scrollTop = 0; } catch (_e) {}
+  paintPropsEvalVirtualWindow();
+
+  PROPS_EVAL_VIRTUAL.onScroll = function () {
+    if (gen !== PROPS_EVAL_RENDER_GEN) return;
+    schedulePropsEvalVirtualPaint();
+  };
+  PROPS_EVAL_VIRTUAL.onResize = function () {
+    if (gen !== PROPS_EVAL_RENDER_GEN) return;
+    PROPS_EVAL_VIRTUAL.lastStart = -1;
+    schedulePropsEvalVirtualPaint();
+  };
+  scrollEl.addEventListener('scroll', PROPS_EVAL_VIRTUAL.onScroll, { passive: true });
+  window.addEventListener('resize', PROPS_EVAL_VIRTUAL.onResize, { passive: true });
+}
 
 function getPropsEvalView() {
   try {
@@ -3886,83 +4023,6 @@ function buildPropEvalRowElement(r) {
   return row;
 }
 
-function teardownPropsEvalInfiniteScroll() {
-  if (PROPS_EVAL_IO) {
-    try { PROPS_EVAL_IO.disconnect(); } catch (_e) {}
-    PROPS_EVAL_IO = null;
-  }
-}
-
-function renderPropsEvalCards(rows) {
-  const grid = document.getElementById('props-eval-grid');
-  if (!grid) return;
-  teardownPropsEvalInfiniteScroll();
-  PROPS_EVAL_RENDER_GEN += 1;
-  const gen = PROPS_EVAL_RENDER_GEN;
-  window._propsEvalFilteredRows = rows;
-  const view = getPropsEvalView();
-  setPropsEvalView(view);
-  if (!rows.length) {
-    grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">No props match filters.</p>';
-    scheduleSyncPropsEvalHeight();
-    return;
-  }
-  const batchSize = gradesFrameMobileLayout() ? PROPS_EVAL_BATCH_MOBILE : PROPS_EVAL_BATCH_DESKTOP;
-  let rendered = 0;
-  grid.innerHTML = '';
-  grid.setAttribute('data-view', view);
-  const sentinel = document.createElement('div');
-  sentinel.className = 'props-eval-sentinel';
-  sentinel.setAttribute('aria-hidden', 'true');
-  grid.appendChild(sentinel);
-  const build = view === 'cards' ? buildPropEvalCardElement : buildPropEvalRowElement;
-
-  function appendBatch() {
-    if (gen !== PROPS_EVAL_RENDER_GEN) return false;
-    const end = Math.min(rendered + batchSize, rows.length);
-    if (end <= rendered) return false;
-    const frag = document.createDocumentFragment();
-    for (let i = rendered; i < end; i++) {
-      frag.appendChild(build(rows[i]));
-    }
-    grid.insertBefore(frag, sentinel);
-    rendered = end;
-    scheduleSyncPropsEvalHeight();
-    return rendered < rows.length;
-  }
-
-  appendBatch();
-  if (rendered >= rows.length) return;
-
-  const hint = document.createElement('div');
-  hint.className = 'props-eval-load-more';
-  hint.textContent = 'Scroll for more · ' + rendered + ' / ' + rows.length;
-  grid.insertBefore(hint, sentinel);
-
-  const scrollRoot = gradesFrameMobileLayout()
-    ? (document.scrollingElement || document.documentElement)
-    : (document.getElementById('props-eval-panel') || grid);
-
-  PROPS_EVAL_IO = new IntersectionObserver(
-    function (entries) {
-      if (gen !== PROPS_EVAL_RENDER_GEN) return;
-      if (!entries.some(function (e) { return e.isIntersecting; })) return;
-      const hasMore = appendBatch();
-      if (hint.parentNode) {
-        hint.textContent = hasMore
-          ? ('Scroll for more · ' + rendered + ' / ' + rows.length)
-          : '';
-      }
-      if (!hasMore) {
-        teardownPropsEvalInfiniteScroll();
-        if (hint.parentNode) hint.remove();
-        scheduleSyncPropsEvalHeight();
-      }
-    },
-    { root: scrollRoot === document.documentElement || scrollRoot === document.body ? null : scrollRoot, rootMargin: '320px 0px', threshold: 0 }
-  );
-  PROPS_EVAL_IO.observe(sentinel);
-}
 function applyPropsEvalFilters() {
   const sport = getPropsFilterGroupValue('props-filter-sport-group');
   const resF = getPropsFilterGroupValue('props-filter-result-group');
@@ -3988,7 +4048,6 @@ function applyPropsEvalFilters() {
     return String(a.player_name || '').localeCompare(String(b.player_name || ''), undefined, { sensitivity: 'base' });
   });
   renderPropsEvalCards(filtered);
-  scheduleSyncPropsEvalHeight();
   var fHit = 0, fMiss = 0, fVoid = 0;
   for (var j = 0; j < filtered.length; j++) {
     var fr = filtered[j];

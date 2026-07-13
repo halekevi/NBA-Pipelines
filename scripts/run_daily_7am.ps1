@@ -16,8 +16,19 @@ if (-not (Test-Path $Snapshot)) {
 }
 
 Set-Location $Root
-Write-Host "[7AM DAILY] Pulling latest repository..." -ForegroundColor Cyan
-git pull --ff-only 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+# Railway tracks origin/main. Daily must run on main so STEP E commits reach production.
+$branch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+if ($branch -ne "main") {
+    Write-Host "[7AM DAILY] On '$branch' — switching to main for Railway freshness..." -ForegroundColor Yellow
+    git checkout main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[7AM DAILY] FAILED: cannot checkout main (uncommitted WIP on '$branch'). Abort so we do not push stale main." -ForegroundColor Red
+        exit 1
+    }
+}
+
+Write-Host "[7AM DAILY] Pulling latest repository (main)..." -ForegroundColor Cyan
+git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[7AM DAILY] git pull failed (exit $LASTEXITCODE)" -ForegroundColor Red
     exit $LASTEXITCODE

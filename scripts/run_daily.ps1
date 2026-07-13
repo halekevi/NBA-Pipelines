@@ -1705,6 +1705,9 @@ else {
 # =============================================================================
 # STEP E — Git commit + push
 # =============================================================================
+# Railway serves origin/main (and re-fetches slate JSON from GitHub raw main).
+# Committing on a feature branch then `git push origin main` only pushes the
+# stale local main ref — production stays STALE. Always commit on main here.
 if ($SkipPush) {
     Write-Log "STEP E - Git push: SKIPPED (-SkipPush)"
 }
@@ -1712,8 +1715,26 @@ else {
     Write-Log "STEP E - Git push: START"
     $gitLog = Join-Path $Root "logs\git_push_log.txt"
     Push-Location $Root
+    $stepEPrevBranch = $null
+    $stepESkipPush = $false
     try {
-        if ($WeeklyAnalysis) {
+        $stepEPrevBranch = (git -C $Root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+        if (-not $stepEPrevBranch) { $stepEPrevBranch = "HEAD" }
+        if ($stepEPrevBranch -ne "main") {
+            Write-Log "STEP E - on '$stepEPrevBranch'; checking out main for Railway deploy commit"
+            git -C $Root checkout main 2>&1 | ForEach-Object { Write-Log "STEP E - checkout: $_" }
+            if ($LASTEXITCODE -ne 0) {
+                Write-Log "STEP E - FAILED: cannot checkout main (uncommitted feature changes?). Abort push — Railway would stay STALE."
+                Write-Warning "STEP E aborted: checkout main failed while on '$stepEPrevBranch'. Commit/stash WIP or run: git checkout main"
+                "$Today - STEP E aborted: on $stepEPrevBranch, checkout main failed" | Out-File -FilePath $gitLog -Append -Encoding utf8
+                $stepESkipPush = $true
+            }
+            else {
+                Write-Log "STEP E - checked out main (will restore '$stepEPrevBranch' after push)"
+            }
+        }
+
+        if (-not $stepESkipPush -and $WeeklyAnalysis) {
             $analysisTodayDir = Join-Path $Root "outputs\$Today"
             if (-not (Test-Path $analysisTodayDir)) {
                 New-Item -ItemType Directory -Path $analysisTodayDir -Force | Out-Null
@@ -1765,105 +1786,120 @@ else {
             }
         }
 
-        # mobile/www: grader copies graded_props + slate_eval here; many scripts read mobile/www not templates
-        git -C $Root add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/"
-        git -C $Root add -- "ui_runner/templates/*_matchup_edge.json"
-        git -C $Root add -- "mobile/www/data/*_matchup_edge.json"
+        if (-not $stepESkipPush) {
+            # mobile/www: grader copies graded_props + slate_eval here; many scripts read mobile/www not templates
+            git -C $Root add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/"
+            git -C $Root add -- "ui_runner/templates/*_matchup_edge.json"
+            git -C $Root add -- "mobile/www/data/*_matchup_edge.json"
 
-        # Grade HTML is gitignored by default; force-add yesterday + today so Railway /grades can serve them.
-        $syncDatesScript = Join-Path $Root "scripts\sync_grades_report_dates.py"
-        if (Test-Path -LiteralPath $syncDatesScript) {
-            & py -3.14 $syncDatesScript
-            if ($LASTEXITCODE -eq 0) {
-                Write-Log "STEP E - sync_grades_report_dates: OK"
-            }
-            else {
-                Write-Log "STEP E - sync_grades_report_dates: WARN (exit $LASTEXITCODE)"
-            }
-        }
-        foreach ($gd in @($Yesterday, $Today)) {
-            foreach ($pat in @(
-                "ui_runner/templates/slate_eval_$gd.html",
-                "ui_runner/templates/ticket_eval_$gd.html",
-                "ui_runner/templates/ticket_eval_long_parlay_$gd.html",
-                "ui_runner/templates/ticket_eval_high_leg_$gd.html",
-                "ui_runner/templates/graded_props_$gd.json"
-            )) {
-                $full = Join-Path $Root $pat
-                if (Test-Path -LiteralPath $full) {
-                    git -C $Root add -f -- $pat
+            # Grade HTML is gitignored by default; force-add yesterday + today so Railway /grades can serve them.
+            $syncDatesScript = Join-Path $Root "scripts\sync_grades_report_dates.py"
+            if (Test-Path -LiteralPath $syncDatesScript) {
+                & py -3.14 $syncDatesScript
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Log "STEP E - sync_grades_report_dates: OK"
+                }
+                else {
+                    Write-Log "STEP E - sync_grades_report_dates: WARN (exit $LASTEXITCODE)"
                 }
             }
-        }
-        git -C $Root add -- "ui_runner/templates/grades_report_dates.json"
-        $optionalAdds = @(
-            "Sports\NBA\step8_all_direction_clean.xlsx",
-            "Sports\NBA\step8_nba1h_direction_clean.xlsx",
-            "Sports\NBA\step8_nba1q_direction_clean.xlsx",
-            "Sports\Soccer\step8_soccer_direction_clean.xlsx",
-            "Sports\MLB\step8_mlb_direction_clean.xlsx",
-            "Sports\Tennis\step8_tennis_direction_clean.xlsx",
-            # CBB deactivated - season over (April 2026)
-            "Sports\NHL\outputs\step8_nhl_direction_clean.xlsx"
-        )
-        foreach ($rel in $optionalAdds) {
-            $full = Join-Path $Root $rel
-            if (Test-Path $full) {
-                git -C $Root add -- $rel
+            foreach ($gd in @($Yesterday, $Today)) {
+                foreach ($pat in @(
+                    "ui_runner/templates/slate_eval_$gd.html",
+                    "ui_runner/templates/ticket_eval_$gd.html",
+                    "ui_runner/templates/ticket_eval_long_parlay_$gd.html",
+                    "ui_runner/templates/ticket_eval_high_leg_$gd.html",
+                    "ui_runner/templates/graded_props_$gd.json"
+                )) {
+                    $full = Join-Path $Root $pat
+                    if (Test-Path -LiteralPath $full) {
+                        git -C $Root add -f -- $pat
+                    }
+                }
             }
-        }
-
-        if ($WeeklyAnalysis -and (Test-Path (Join-Path $Root "outputs\$Today\grader_analysis_$Today.txt"))) {
-            git -C $Root add -- "outputs/$Today/grader_analysis_$Today.txt"
-        }
-        $ticketMlArtifacts = @(
-            "data\ml\ticket_model_eval_history.csv",
-            "data\ml\ticket_model_eval_by_date.csv",
-            "data\ml\ticket_model_eval_summary_latest.json",
-            "data\graded_analysis_latest.json"
-        )
-        foreach ($rel in $ticketMlArtifacts) {
-            $full = Join-Path $Root $rel
-            if (Test-Path $full) {
-                git -C $Root add -- $rel
+            git -C $Root add -- "ui_runner/templates/grades_report_dates.json"
+            $optionalAdds = @(
+                "Sports\NBA\step8_all_direction_clean.xlsx",
+                "Sports\NBA\step8_nba1h_direction_clean.xlsx",
+                "Sports\NBA\step8_nba1q_direction_clean.xlsx",
+                "Sports\Soccer\step8_soccer_direction_clean.xlsx",
+                "Sports\MLB\step8_mlb_direction_clean.xlsx",
+                "Sports\Tennis\step8_tennis_direction_clean.xlsx",
+                # CBB deactivated - season over (April 2026)
+                "Sports\NHL\outputs\step8_nhl_direction_clean.xlsx"
+            )
+            foreach ($rel in $optionalAdds) {
+                $full = Join-Path $Root $rel
+                if (Test-Path $full) {
+                    git -C $Root add -- $rel
+                }
             }
-        }
 
-        $CommitMsg = "Daily slate $Today [auto]"
-        $porcelain = git -C $Root status --porcelain 2>$null
-        if (-not $porcelain) {
-            Write-Host "Git: nothing to commit." -ForegroundColor DarkGray
-            Write-Log "STEP E - Git push: OK (nothing to commit)"
-        }
-        else {
-            git -C $Root commit -m $CommitMsg
-            if ($LASTEXITCODE -ne 0) {
-                Write-Log "STEP E - Git push: FAILED (commit exit $LASTEXITCODE)"
-                Write-Warning "Git commit failed — check repo state"
+            if ($WeeklyAnalysis -and (Test-Path (Join-Path $Root "outputs\$Today\grader_analysis_$Today.txt"))) {
+                git -C $Root add -- "outputs/$Today/grader_analysis_$Today.txt"
+            }
+            $ticketMlArtifacts = @(
+                "data\ml\ticket_model_eval_history.csv",
+                "data\ml\ticket_model_eval_by_date.csv",
+                "data\ml\ticket_model_eval_summary_latest.json",
+                "data\graded_analysis_latest.json"
+            )
+            foreach ($rel in $ticketMlArtifacts) {
+                $full = Join-Path $Root $rel
+                if (Test-Path $full) {
+                    git -C $Root add -- $rel
+                }
+            }
+
+            $CommitMsg = "Daily slate $Today [auto]"
+            $porcelain = git -C $Root status --porcelain 2>$null
+            if (-not $porcelain) {
+                Write-Host "Git: nothing to commit." -ForegroundColor DarkGray
+                Write-Log "STEP E - Git push: OK (nothing to commit)"
             }
             else {
-                try {
-                    git -C $Root push origin main
-                    if ($LASTEXITCODE -ne 0) {
-                        $err = if ($Error.Count -gt 0) { $Error[0].ToString() } else { "unknown" }
+                git -C $Root commit -m $CommitMsg
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Log "STEP E - Git push: FAILED (commit exit $LASTEXITCODE)"
+                    Write-Warning "Git commit failed — check repo state"
+                }
+                else {
+                    try {
+                        git -C $Root push origin main
+                        if ($LASTEXITCODE -ne 0) {
+                            $err = if ($Error.Count -gt 0) { $Error[0].ToString() } else { "unknown" }
+                            "$Today - push failed: $err" | Out-File -FilePath $gitLog -Append -Encoding utf8
+                            Write-Warning "Git push failed — logged to logs\git_push_log.txt"
+                            Write-Log "STEP E - Git push: FAILED (push exit $LASTEXITCODE)"
+                        }
+                        else {
+                            Write-Log "STEP E - Git push: OK"
+                        }
+                    }
+                    catch {
+                        $err = $_.Exception.Message
                         "$Today - push failed: $err" | Out-File -FilePath $gitLog -Append -Encoding utf8
                         Write-Warning "Git push failed — logged to logs\git_push_log.txt"
-                        Write-Log "STEP E - Git push: FAILED (push exit $LASTEXITCODE)"
+                        Write-Log "STEP E - Git push: FAILED (exception: $err)"
                     }
-                    else {
-                        Write-Log "STEP E - Git push: OK"
-                    }
-                }
-                catch {
-                    $err = $_.Exception.Message
-                    "$Today - push failed: $err" | Out-File -FilePath $gitLog -Append -Encoding utf8
-                    Write-Warning "Git push failed — logged to logs\git_push_log.txt"
-                    Write-Log "STEP E - Git push: FAILED (exception: $err)"
                 }
             }
         }
     }
     finally {
+        # Restore the prior branch so agent/feature WIP stays checked out after daily.
+        if ($stepEPrevBranch -and $stepEPrevBranch -ne "main" -and $stepEPrevBranch -ne "HEAD") {
+            $cur = (git -C $Root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+            if ($cur -eq "main") {
+                git -C $Root checkout $stepEPrevBranch 2>&1 | ForEach-Object { Write-Log "STEP E - restore branch: $_" }
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Log "STEP E - WARN: could not restore branch '$stepEPrevBranch' (still on main)"
+                }
+                else {
+                    Write-Log "STEP E - restored branch '$stepEPrevBranch'"
+                }
+            }
+        }
         Pop-Location
     }
 }

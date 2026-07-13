@@ -311,6 +311,24 @@ function Warn-IfSlateFilenameMissingGradeDate {
     }
 }
 
+function Push-PropOracleToMainIfOnMain {
+    <#
+      Railway serves origin/main. Never `git push origin HEAD` from a feature branch —
+      that updates the wrong remote ref and leaves production STALE.
+    #>
+    param(
+        [string]$RepoRoot = $Root,
+        [string]$Context = "grader"
+    )
+    $br = (git -C $RepoRoot rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+    if ($br -eq "main") {
+        git -C $RepoRoot push origin main 2>$null
+        return ($LASTEXITCODE -eq 0)
+    }
+    Write-Warning "[GRADER] Skipping $Context git push: on '$br' (Railway needs main). Daily STEP E publishes on main."
+    return $false
+}
+
 Write-Host "`n=====================================" -ForegroundColor Green
 Write-Host "   SLATE IQ GRADER RUNNER" -ForegroundColor Green
 Write-Host "   Date: $Date"
@@ -1151,7 +1169,7 @@ if ($env:PROPORACLE_SKIP_GRADES_GIT_PUSH -ne "1") {
             if ($LASTEXITCODE -ne 0) {
                 git commit -m "data: graded props $Date"
                 if ($LASTEXITCODE -eq 0) {
-                    git push origin HEAD 2>$null
+                    [void](Push-PropOracleToMainIfOnMain -Context "graded props")
                 }
             }
         }
@@ -1432,8 +1450,9 @@ if ($env:PROPORACLE_SKIP_GRADES_GIT_PUSH -ne "1") {
             if ($LASTEXITCODE -ne 0) {
                 git commit -m "data: ticket eval + slate eval grades $Date"
                 if ($LASTEXITCODE -eq 0) {
-                    git push origin HEAD 2>$null
-                    Write-Host "[GRADER] Grades ticket/slate HTML pushed for $Date" -ForegroundColor Green
+                    if (Push-PropOracleToMainIfOnMain -Context "ticket/slate eval") {
+                        Write-Host "[GRADER] Grades ticket/slate HTML pushed for $Date" -ForegroundColor Green
+                    }
                 }
             }
         }
@@ -1467,8 +1486,9 @@ if (Test-Path $DateDir) {
                 git diff --cached --quiet
                 if ($LASTEXITCODE -ne 0) {
                     git commit -m "data: graded slate $Date"
-                    git push origin HEAD
-                    Write-Host "[GRADER] Graded slate pushed for $Date" -ForegroundColor Green
+                    if (Push-PropOracleToMainIfOnMain -Context "graded slate") {
+                        Write-Host "[GRADER] Graded slate pushed for $Date" -ForegroundColor Green
+                    }
                 }
                 else {
                     Write-Host "[GRADER] No graded_slate changes to commit." -ForegroundColor DarkGray

@@ -1727,12 +1727,62 @@ function ticketIframeDocLooksReady(doc) {
   return false;
 }
 
-function enforceTicketEvalBucketsCollapsed(doc) {
+/** Open sport buckets that have tickets; keep Manual Ticket Builder closed. */
+function enforceTicketEvalBucketsDefaultOpen(doc) {
   if (!doc) return;
   doc.querySelectorAll('details.ticket-bucket, details.grades-sport-bucket').forEach((el) => {
-    el.removeAttribute('open');
-    el.open = false;
+    const summary = String((el.querySelector('summary') || {}).textContent || '').toLowerCase();
+    const isBuilder =
+      summary.includes('manual ticket') ||
+      summary.includes('ticket builder') ||
+      el.classList.contains('manual-ticket-builder') ||
+      !!el.querySelector('#builder, .utp-panel, .manual-builder');
+    const cardCount = el.querySelectorAll('article.ticket-card, .ticket-card').length;
+    const ticketMeta = (summary.match(/(\d+)\s*tickets?/) || [])[1];
+    const metaTickets = ticketMeta != null ? parseInt(ticketMeta, 10) : 0;
+    const hasTickets = cardCount > 0 || metaTickets > 0;
+    if (isBuilder || !hasTickets) {
+      el.removeAttribute('open');
+      el.open = false;
+    } else {
+      el.setAttribute('open', '');
+      el.open = true;
+    }
   });
+}
+
+/** True when baked ticket_eval HTML has expandable ticket slips (not an empty shell). */
+function ticketEvalHtmlLooksPopulated(html) {
+  if (!html || typeof html !== 'string') return false;
+  if (html.length < 70000) return false;
+  const cardHits = (html.match(/ticket-card/g) || []).length;
+  if (cardHits >= 8) return true;
+  const metaHits = html.match(/(\d+)\s+tickets?/gi) || [];
+  for (let i = 0; i < metaHits.length; i++) {
+    const n = parseInt(metaHits[i], 10);
+    if (Number.isFinite(n) && n > 0) return true;
+  }
+  return cardHits >= 3 && /ticket-sections-wrap|grades-sport-bucket|ticket-bucket/i.test(html);
+}
+
+function ticketEvalDocHasTickets(doc) {
+  if (!doc || !doc.body) return false;
+  try {
+    const cards = doc.querySelectorAll(
+      '.wrap.ticket-eval-main article.ticket-card, .ticket-sections-wrap article.ticket-card, article.ticket-card'
+    );
+    for (let i = 0; i < cards.length; i++) {
+      if (String(cards[i].innerText || '').trim().length > 40) return true;
+    }
+    const metas = doc.querySelectorAll(
+      'details.ticket-bucket > summary, details.grades-sport-bucket > summary'
+    );
+    for (let j = 0; j < metas.length; j++) {
+      const m = String(metas[j].textContent || '').match(/(\d+)\s*tickets?/i);
+      if (m && parseInt(m[1], 10) > 0) return true;
+    }
+  } catch (_e) {}
+  return false;
 }
 
 /** All PropOracle pipelines — matches build_ticket_eval.TICKET_EVAL_SPORT_ORDER */
@@ -1802,7 +1852,7 @@ function ensureTicketEvalSportStatsBar(doc) {
   row.replaceChildren(frag);
 }
 
-function scheduleTicketFrameCollapse(frame) {
+function scheduleTicketFrameBucketDefaults(frame) {
   if (!frame) return;
   const delays = [0, 80, 250, 700, 1800];
   delays.forEach((ms) => {
@@ -2671,7 +2721,7 @@ function collapseSportsInTicketFrame(frame) {
   const wrap = doc.querySelector('.wrap.ticket-eval-main') || doc.querySelector('.wrap');
   if (!wrap) return;
 
-  enforceTicketEvalBucketsCollapsed(doc);
+  enforceTicketEvalBucketsDefaultOpen(doc);
 
   const nativeWrap = wrap.querySelector('.ticket-sections-wrap');
   const nativeBuckets = nativeWrap
@@ -2679,6 +2729,7 @@ function collapseSportsInTicketFrame(frame) {
     : [];
   const hubBucketsEarly = wrap.querySelectorAll(':scope > details.grades-sport-bucket');
   if (hubBucketsEarly.length === 0 && nativeBuckets.length > 0) {
+    enforceTicketEvalBucketsDefaultOpen(doc);
     try {
       if (activeTab === 'tickets' && frame && frame.id === 'ticket-frame') {
         requestAnimationFrame(function () {
@@ -2696,7 +2747,10 @@ function collapseSportsInTicketFrame(frame) {
   }
 
   const sections = Array.from(wrap.querySelectorAll('section.sec'));
-  if (!sections.length) return;
+  if (!sections.length) {
+    enforceTicketEvalBucketsDefaultOpen(doc);
+    return;
+  }
 
   const hubBuckets = wrap.querySelectorAll(':scope > details.grades-sport-bucket');
   if (hubBuckets.length && sections.every((sec) => sec.closest('details.grades-sport-bucket'))) {
@@ -2706,7 +2760,7 @@ function collapseSportsInTicketFrame(frame) {
         tsWrap.remove();
       } catch (_r) {}
     }
-    enforceTicketEvalBucketsCollapsed(doc);
+    enforceTicketEvalBucketsDefaultOpen(doc);
     return;
   }
 
@@ -2738,8 +2792,9 @@ function collapseSportsInTicketFrame(frame) {
   sortedGroups.forEach(([key, groupSecs]) => {
     const details = doc.createElement('details');
     details.className = 'grades-sport-bucket';
-    // Default collapsed for all groups on load.
-    details.open = false;
+    const ticketCount = groupSecs.reduce((n, sec) => n + sec.querySelectorAll('article.ticket-card').length, 0);
+    // Grades hub: open buckets that have slips so the tab is not a blank KPI strip.
+    details.open = ticketCount > 0;
     idx += 1;
 
     const summary = doc.createElement('summary');
@@ -2748,7 +2803,6 @@ function collapseSportsInTicketFrame(frame) {
     summary.appendChild(title);
     const metaEl = doc.createElement('span');
     metaEl.className = 'grades-sport-meta';
-    const ticketCount = groupSecs.reduce((n, sec) => n + sec.querySelectorAll('article.ticket-card').length, 0);
     metaEl.textContent = `${groupSecs.length} sections · ${ticketCount} tickets`;
     summary.appendChild(metaEl);
     details.appendChild(summary);
@@ -2771,7 +2825,7 @@ function collapseSportsInTicketFrame(frame) {
       tsWrap.remove();
     } catch (_r) {}
   }
-  enforceTicketEvalBucketsCollapsed(doc);
+  enforceTicketEvalBucketsDefaultOpen(doc);
   collapseAllSlateDetails(doc);
   try {
     if (activeTab === 'tickets' && frame && frame.id === 'ticket-frame') {
@@ -3566,10 +3620,10 @@ function injectTicketEvalHeightReporter(doc) {
 async function probeTicketEval(dateStr) {
   const url = ticketEvalUrl(dateStr);
   try {
-    const res = await fetch(url, { method: 'HEAD', cache: 'no-cache', signal: gradesFetchSignal(15000) });
-    if (res.ok) return true;
-    const res2 = await fetch(url, { method: 'GET', cache: 'no-cache', signal: gradesFetchSignal(15000) });
-    return res2.ok;
+    const res = await fetch(url, { method: 'GET', cache: 'no-cache', signal: gradesFetchSignal(20000) });
+    if (!res.ok) return false;
+    const html = await res.text();
+    return ticketEvalHtmlLooksPopulated(html);
   } catch (e) {
     return false;
   }
@@ -3594,6 +3648,15 @@ async function resolveTicketEvalLoadDate(dateStr) {
       return { load: ds, fallback: { requested: dateStr, showing: ds } };
     }
   }
+  // Last resort: HTML exists but is an empty shell — still load so builder/KPI chrome show.
+  try {
+    const res = await fetch(ticketEvalUrl(dateStr), {
+      method: 'HEAD',
+      cache: 'no-cache',
+      signal: gradesFetchSignal(10000),
+    });
+    if (res.ok) return { load: dateStr, fallback: null };
+  } catch (_e) {}
   return { load: null, fallback: null };
 }
 
@@ -3637,7 +3700,7 @@ async function loadTicketEval(dateStr) {
         }
       } catch (_e0d) {}
       try {
-        scheduleTicketFrameCollapse(tf);
+        scheduleTicketFrameBucketDefaults(tf);
       } catch (_e) {}
       try {
         window.setupGradesBarsScrollHide();
@@ -3699,7 +3762,7 @@ async function loadTicketEval(dateStr) {
           tw.__ticketEvalScheduleHeight();
         }
       } catch (_e0d) {}
-      scheduleTicketFrameCollapse(tf);
+      scheduleTicketFrameBucketDefaults(tf);
       syncTicketFrameHeight(tf);
       setupTicketFrameAutoHeight(tf);
       setupTicketEvalToggleHeightSync(tf);

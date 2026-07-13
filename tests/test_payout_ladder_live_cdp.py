@@ -40,8 +40,26 @@ def test_sync_captures_to_ladder_live(tmp_path, monkeypatch):
     assert out["rows"][0]["leg_composition"] == "0S+2G+0D"
     assert out["rows"][0]["source"] == "live_cdp"
     assert float(out["rows"][0]["power_payout_x"]) == 2.6
+    assert out["rows"][0]["goblin_deltas"] in ("1,1.5", "1.0,1.5", "1+1.5".replace("+", ","))
 
     # Re-sync same date replaces rows for that date only.
     cpd.sync_captures_to_payout_ladder_live(captured[:1], date_str="2026-07-12")
     data = json.loads((tmp_path / "payout_ladder_live_cdp.json").read_text(encoding="utf-8"))
     assert len(data["rows"]) == 1
+
+
+def test_capture_row_computes_distance_from_standard_line():
+    row = cpd._capture_to_ladder_row(
+        {
+            "status": "ok",
+            "ticket_id": "x",
+            "power_min_x": 2.4,
+            "legs": [
+                {"player": "A", "prop_type": "Pts", "pick_type": "Goblin", "line": 16.5, "standard_line": 20.5},
+                {"player": "B", "prop_type": "Reb", "pick_type": "Goblin", "line": 5.5, "standard_line": 7.5},
+            ],
+        },
+        "2026-07-12",
+    )
+    assert row is not None
+    assert row["goblin_deltas"] == "2,4"

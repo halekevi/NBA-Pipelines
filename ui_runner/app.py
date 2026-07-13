@@ -130,6 +130,7 @@ PAYOUT_SAMPLES_DIR = DATA_ROOT / "payout_samples"
 PAYOUT_LOG_PATH = PAYOUT_SAMPLES_DIR / "payout_log_hand.csv"
 PAYOUT_OBS_PATH = DATA_ROOT / "payout_observations.csv"
 PAYOUT_LADDER_LOG_PATH = UI_DIR / "data" / "payout_ladder_log.csv"
+PAYOUT_LADDER_LIVE_CDP_PATH = UI_DIR / "data" / "payout_ladder_live_cdp.json"
 PAYOUT_TICKET_LEGS_PATH = UI_DIR / "data" / "payout_ticket_legs.csv"
 PAYOUT_LADDER_EXAMPLES_PATH = UI_DIR / "data" / "payout_ladder_examples.json"
 
@@ -2277,17 +2278,49 @@ def _composition_label_from_legs(legs: list[dict[str, Any]]) -> str:
 
 def _read_payout_ladder_rows() -> list[dict[str, Any]]:
     p = PAYOUT_LADDER_LOG_PATH
-    if not p.is_file():
-        return []
     out: list[dict[str, Any]] = []
-    try:
-        with p.open("r", newline="", encoding="utf-8") as f:
-            rdr = csv.DictReader(f)
-            for row in rdr:
-                if isinstance(row, dict):
-                    out.append({str(k): (v if v is not None else "") for k, v in row.items()})
-    except OSError:
-        return []
+    if p.is_file():
+        try:
+            with p.open("r", newline="", encoding="utf-8") as f:
+                rdr = csv.DictReader(f)
+                for row in rdr:
+                    if isinstance(row, dict):
+                        out.append({str(k): (v if v is not None else "") for k, v in row.items()})
+        except OSError:
+            out = []
+
+    # Merge live CDP captures (ticket scrape Min Guarantee floors).
+    live_path = PAYOUT_LADDER_LIVE_CDP_PATH
+    if live_path.is_file():
+        try:
+            live = json.loads(live_path.read_text(encoding="utf-8"))
+            seen_ids = {
+                str(r.get("notes") or "")
+                for r in out
+                if "ticket_id=" in str(r.get("notes") or "")
+            }
+            for row in live.get("rows") or []:
+                if not isinstance(row, dict):
+                    continue
+                tid = str(row.get("ticket_id") or "").strip()
+                note = f"ticket_id={tid}"
+                if tid and any(note in s for s in seen_ids):
+                    continue
+                out.append(
+                    {
+                        "date": str(row.get("date") or ""),
+                        "n_legs": str(row.get("n_legs") or ""),
+                        "leg_composition": str(row.get("leg_composition") or ""),
+                        "goblin_deltas": str(row.get("goblin_deltas") or ""),
+                        "demon_deltas": str(row.get("demon_deltas") or ""),
+                        "power_payout_x": str(row.get("power_payout_x") or ""),
+                        "flex_payout_x": str(row.get("flex_payout_x") or ""),
+                        "source": str(row.get("source") or "live_cdp"),
+                        "notes": str(row.get("notes") or ""),
+                    }
+                )
+        except (OSError, json.JSONDecodeError):
+            pass
     return out
 
 
@@ -2416,6 +2449,7 @@ def api_payout_log_save():
 @app.get("/payout/ladder")
 def page_payout_ladder():
     rows = _read_payout_ladder_rows()
+    n_live_cdp = sum(1 for r in rows if str(r.get("source") or "").strip().lower() == "live_cdp")
     grouped: dict[tuple[int, str], list[dict[str, Any]]] = {}
     for r in rows:
         n = int(_safe_float(r.get("n_legs"), 0))
@@ -2426,7 +2460,10 @@ def page_payout_ladder():
     summary: list[dict[str, Any]] = []
     for (n, comp), recs in sorted(grouped.items(), key=lambda x: (x[0][0], x[0][1])):
         vals: list[float] = []
+        n_live = 0
         for r in recs:
+            if str(r.get("source") or "").strip().lower() == "live_cdp":
+                n_live += 1
             p = _safe_float(r.get("power_payout_x"), float("nan"))
             f = _safe_float(r.get("flex_payout_x"), float("nan"))
             if math.isfinite(p) and p > 0:
@@ -2442,13 +2479,19 @@ def page_payout_ladder():
                 "n_legs": n,
                 "leg_composition": comp,
                 "samples": len(recs),
+                "live_cdp_samples": n_live,
                 "min_payout_x": round(mn, 4),
                 "max_payout_x": round(mx, 4),
                 "avg_payout_x": round(avg, 4),
                 "is_sparse": len(recs) < 5,
             }
         )
-    return _grades_html_response("payout_ladder.html", ladder_rows=summary, total_rows=len(rows))
+    return _grades_html_response(
+        "payout_ladder.html",
+        ladder_rows=summary,
+        total_rows=len(rows),
+        live_cdp_rows=n_live_cdp,
+    )
 
 
 @app.get("/payout/examples")

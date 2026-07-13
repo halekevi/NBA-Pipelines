@@ -10,7 +10,9 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import re
+import sys
 import time
 from collections import Counter
 from difflib import get_close_matches
@@ -23,6 +25,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLES_DIR = ROOT / "data" / "payout_samples"
+PAYOUT_LADDER_LIVE_CDP_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
 DEBUG_DIR = ROOT / "data" / "debug"
 
 VALID_PROP_KEYWORDS = [
@@ -328,17 +331,21 @@ def ensure_popular_filter(frame, page):
 
 
 def _extract_cards_data_js(page) -> list[dict]:
+    # PP cards use newline-prefixed matchups ("\\n@ WAS", "\\nvs SEA"), not " @ "/" vs ".
     return page.evaluate(
         """
         () => {
           const allElements = document.querySelectorAll('*');
           const cards = [];
+          const hasMatchup = (text) =>
+            /(^|\\n|\\s)@\\s/.test(text) || /(^|\\n|\\s)vs\\s/i.test(text)
+            || text.includes(' vs ') || text.includes(' @ ');
           for (const el of allElements) {
             const text = (el.innerText || '').trim();
             if (!text) continue;
-            if ((text.includes(' vs ') || text.includes(' @ '))
+            if (hasMatchup(text)
                 && /\\d+\\.?\\d*/.test(text)
-                && text.length < 200
+                && text.length < 400
                 && text.length > 20) {
               const r = el.getBoundingClientRect();
               cards.push({
@@ -361,9 +368,147 @@ def _extract_cards_data_js(page) -> list[dict]:
 
 def _player_name_from_card_text(text: str) -> str | None:
     lines = [l.strip() for l in str(text or "").split("\n") if l.strip()]
-    if len(lines) > 1:
-        return lines[1]
-    return None
+    player, _line, _prop = parse_card_lines(lines)
+    return player
+
+
+def prop_type_to_board_filter(prop: str) -> str:
+    """Map ticket prop labels onto PrizePicks board filter chip text."""
+    raw = str(prop or "").strip()
+    key = re.sub(r"\s+", "", raw.lower()).replace("–", "-").replace("—", "-")
+    mapping = {
+        "points": "Points",
+        "assists": "Assists",
+        "rebounds": "Rebounds",
+        "steals": "Steals",
+        "blocks": "Blocks",
+        "blockedshots": "Blocks",
+        "turnovers": "Turnovers",
+        "3-ptmade": "3-PT Made",
+        "3ptmade": "3-PT Made",
+        "threes": "3-PT Made",
+        "pts+rebs": "Pts+Rebs",
+        "points+rebounds": "Pts+Rebs",
+        "pts+asts": "Pts+Asts",
+        "points+assists": "Pts+Asts",
+        "rebs+asts": "Reb+Asts",
+        "rebounds+assists": "Reb+Asts",
+        "pts+reb+ast": "Pts+Reb+Ast",
+        "pts+reb+asts": "Pts+Reb+Ast",
+        "pra": "Pts+Reb+Ast",
+        "points+rebounds+assists": "Pts+Reb+Ast",
+        "fantasyscore": "Fantasy Score",
+        "fgmade": "FG Made",
+        "fgattempted": "FG Attempted",
+        "freethrowsmade": "Free Throws Made",
+    }
+    if key in mapping:
+        return mapping[key]
+    # Already looks like a chip label (Pts+Rebs, 3-PT Made, …).
+    if raw:
+        return raw
+    return "Points"
+
+
+def _switch_board_filter(frame, page, tab: str) -> bool:
+    tab = str(tab or "").strip()
+    if not tab:
+        return False
+    try:
+        dismiss_modal(frame, page)
+        tloc = frame.get_by_text(tab, exact=True).first
+        if tloc.count() == 0:
+            tloc = frame.get_by_text(tab, exact=False).first
+        tloc.click(force=True, timeout=2000)
+        frame.wait_for_timeout(900)
+        _scroll_board_for_lazy_load(page)
+        print(f"[FILTER] switched to {tab}")
+        return True
+    except Exception as e:
+        print(f"[FILTER] could not switch to {tab}: {e}")
+        return False
+
+
+def _resolve_ticket_leg_card(
+    player: str,
+    prop: str,
+    line: Any,
+    pick_type: str,
+    cards: list[dict],
+    *,
+    strict: bool = False,
+) -> dict | None:
+    """Pick the best live board card for a generated MAIN/STRONG leg.
+
+    strict=True: require exact line (when known) AND pick_type; never fall back
+    to a moved/standard proxy card (those payouts are not the ticket's).
+    """
+    nt = _norm(player)
+    np = _norm(prop)
+    pt = str(pick_type or "standard").strip().lower()
+    if pt not in ("goblin", "demon", "standard"):
+        pt = "standard"
+    nl = _line_key(line) if line is not None and str(line).strip() != "" else None
+
+    def _name_hit(c: dict) -> bool:
+        cn = _norm(c.get("player"))
+        return bool(cn) and (nt in cn or cn in nt or nt == cn)
+
+    pool = [c for c in cards if _name_hit(c)]
+    if not pool:
+        return None
+
+    # Require prop match when we know it.
+    if np:
+        prop_pool = [
+            c
+            for c in pool
+            if (cp := _norm(c.get("prop_type"))) and (np == cp or np in cp or cp in np)
+        ]
+        if prop_pool:
+            pool = prop_pool
+        elif strict:
+            print(f"[LOOKUP] STRICT miss prop={prop} for {player}")
+            return None
+
+    # Exact line when ticket specifies one (board may have moved).
+    if nl is not None:
+        line_pool = [c for c in pool if _line_key(c.get("line")) == nl]
+        if line_pool:
+            pool = line_pool
+        else:
+            print(
+                f"[LOOKUP] {'STRICT' if strict else 'WARN'} no exact line {nl} "
+                f"for {player} {prop}; "
+                f"candidates={[(c.get('line'), c.get('pick_type')) for c in pool[:6]]}"
+            )
+            if strict:
+                return None
+
+    # Prefer requested pick_type (goblin/demon/standard).
+    typed = [c for c in pool if str(c.get("pick_type") or "").lower() == pt]
+    if typed:
+        pool = typed
+    elif strict:
+        print(
+            f"[LOOKUP] STRICT miss pick_type={pt} for {player} {prop} line={nl}; "
+            f"candidates={[(c.get('line'), c.get('pick_type')) for c in pool[:6]]}"
+        )
+        return None
+
+    ranked: list[tuple[int, dict]] = []
+    for c in pool:
+        score = 0
+        cp = _norm(c.get("prop_type"))
+        if np and (np == cp or np in cp or cp in np):
+            score += 5
+        if str(c.get("pick_type") or "").lower() == pt:
+            score += 4
+        if nl is not None and _line_key(c.get("line")) == nl:
+            score += 3
+        ranked.append((score, c))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    return ranked[0][1] if ranked else None
 
 
 def _collect_visible_players(frame) -> tuple[list[str], str | None, dict[str, int]]:
@@ -796,8 +941,14 @@ def expand_card_pool(frame, page) -> list[dict]:
         "Assists",
         "Rebounds",
         "3-PT Made",
+        "Pts+Rebs",
         "Pts+Asts",
+        "Reb+Asts",
         "Pts+Reb+Ast",
+        "Steals",
+        "Blocks",
+        "Turnovers",
+        "Fantasy Score",
     ]
     for filter_name in filters:
         try:
@@ -1161,14 +1312,22 @@ def set_ticket_type(frame, ticket_type: str):
             continue
 
 
-def add_leg(frame, page, leg: dict) -> bool:
+def add_leg(frame, page, leg: dict, *, strict_lines: bool = False) -> bool:
     global _LOOKUP_DIAG_PRINTED
     player = leg["player"]
     prop = leg["prop_type"]
     direction = str(leg["direction"]).upper()
+    pick_type = str(leg.get("pick_type") or "standard").strip().lower()
+    if pick_type not in ("goblin", "demon", "standard"):
+        pick_type = "standard"
+    line = leg.get("line")
     try:
         ensure_popular_filter(frame, page)
+        tab = prop_type_to_board_filter(prop)
+        _switch_board_filter(frame, page, tab)
+        dismiss_modal(frame, page)
         _scroll_board_for_lazy_load(page)
+
         visible_players, best_sel, sel_counts = _collect_visible_players(frame)
         if not _LOOKUP_DIAG_PRINTED:
             print("[LOOKUP] Card selector counts:")
@@ -1180,31 +1339,95 @@ def add_leg(frame, page, leg: dict) -> bool:
                 print(f"  - {nm}")
             _LOOKUP_DIAG_PRINTED = True
 
-        print(f"[LOOKUP] Target player text: {player}")
-        print(f"[LOOKUP] Target prop text: {prop}")
-        print(f"[LOOKUP] Target direction text: {direction}")
+        print(
+            f"[LOOKUP] Target player={player} prop={prop} line={line} "
+            f"pick={pick_type} dir={direction} tab={tab} strict={strict_lines}"
+        )
 
-        # Search player first when search exists.
-        for sel in ["input[placeholder*='Search']", "input[type='search']", "input[aria-label*='Search']"]:
-            box = frame.locator(sel).first
-            if box.count() > 0:
+        cards = get_all_cards(frame)
+        target = _resolve_ticket_leg_card(
+            player, prop, line, pick_type, cards, strict=strict_lines
+        )
+        if target is None:
+            # Hidden Search input often exists but does not filter; still try force-fill.
+            for sel in [
+                "input[placeholder*='Search']",
+                "input[type='search']",
+                "input[aria-label*='Search']",
+                "input[aria-label='search']",
+            ]:
+                box = frame.locator(sel).first
+                if box.count() == 0:
+                    continue
                 try:
                     print(f"[LOOKUP] Using search selector: {sel}")
-                    box.click(timeout=500)
-                    box.fill(player, timeout=1200)
-                    page.wait_for_timeout(250)
+                    box.click(force=True, timeout=800)
+                    box.fill(player, force=True, timeout=1200)
+                    try:
+                        box.press("Enter", timeout=500)
+                    except Exception:
+                        pass
+                    page.wait_for_timeout(400)
                     break
                 except Exception:
                     continue
-        _scroll_board_for_lazy_load(page)
-        visible_players2, _, _ = _collect_visible_players(frame)
-        visible_pool = visible_players2 or visible_players
-        match = get_close_matches(player, visible_pool, n=1, cutoff=0.7)
-        matched_name = match[0] if match else None
-        if matched_name:
-            print(f"[LOOKUP] Fuzzy matched '{player}' -> '{matched_name}'")
-            if _click_player_direction(frame, matched_name, direction, prop):
+            _scroll_board_for_lazy_load(page)
+            cards = get_all_cards(frame)
+            target = _resolve_ticket_leg_card(
+                player, prop, line, pick_type, cards, strict=strict_lines
+            )
+
+        # Fuzzy name click skips line/pick checks — never use in strict mode.
+        if target is None and visible_players and not strict_lines:
+            match = get_close_matches(player, visible_players, n=1, cutoff=0.7)
+            if match:
+                print(f"[LOOKUP] Fuzzy matched '{player}' -> '{match[0]}'")
+                if _click_player_direction(frame, match[0], direction, prop):
+                    return True
+
+        if target is not None:
+            print(
+                f"[LOOKUP] Resolved {target.get('player')} "
+                f"{target.get('prop_type')} {target.get('line')} "
+                f"({target.get('pick_type')})"
+            )
+            if click_leg(frame, target, direction):
                 return True
+
+        # Last resort name-click also skips line checks — skip when strict.
+        if not strict_lines:
+            try:
+                ploc = frame.get_by_text(str(player), exact=False).first
+                if ploc.count() > 0:
+                    ploc.scroll_into_view_if_needed(timeout=1500)
+                    ok = ploc.evaluate(
+                        """
+                        (el, direction) => {
+                          let p = el;
+                          for (let i = 0; i < 12; i++) {
+                            p = p ? p.parentElement : null;
+                            if (!p) break;
+                            const t = (p.innerText || '');
+                            if (!/\\bMore\\b/.test(t)) continue;
+                            const btns = p.querySelectorAll('button, [role="button"], div, span');
+                            const want = (direction || 'OVER').toUpperCase() === 'UNDER' ? 'Less' : 'More';
+                            for (const b of btns) {
+                              if ((b.innerText || '').trim() === want) {
+                                b.click();
+                                return true;
+                              }
+                            }
+                          }
+                          return false;
+                        }
+                        """,
+                        direction,
+                    )
+                    if ok:
+                        frame.wait_for_timeout(400)
+                        return True
+            except Exception as e:
+                print(f"[LOOKUP] name-click fallback failed: {e}")
 
         print(f"[PAYOUT] SKIP: {player} not found on board")
         try:
@@ -1216,8 +1439,8 @@ def add_leg(frame, page, leg: dict) -> bool:
         except Exception as se:
             print(f"[LOOKUP] Screenshot failed: {se}")
         return False
-    except Exception:
-        print(f"[PAYOUT] SKIP: {player} not found on board")
+    except Exception as e:
+        print(f"[PAYOUT] SKIP: {player} not found on board ({e})")
         try:
             DEBUG_DIR.mkdir(parents=True, exist_ok=True)
             ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -1317,7 +1540,9 @@ def read_to_win_amount(frame) -> float | None:
 
 
 # Primary payout multipliers on PrizePicks are within this band; filters bad DOM parses.
-_SLIP_MULT_MIN = 2.0
+# Goblin 2-legs routinely print Min Guarantee in the 1.3–1.9x band near tip;
+# do not treat those as parse noise.
+_SLIP_MULT_MIN = 1.0
 _SLIP_MULT_MAX = 40.0
 # Power Play standard payouts (pick multipliers near these when in Power mode).
 _SLIP_BASE_BY_LEGS = {2: 3.0, 3: 6.0, 4: 10.0, 5: 20.0, 6: 37.5}
@@ -1831,16 +2056,74 @@ def write_payout_patch_and_apply_to_tickets(
 
     Each ok/partial capture with power_min_x sets:
       payout.power_min_x, payout.display_min_x, payout.payout_source='live_cdp'
-    Uncaptured tickets get mix-grid average floors when composition matches.
+    Uncaptured tickets keep prior live_cdp when present; otherwise mix-grid / model.
+    Never wipe a prior good patch with an empty 0-ok capture.
     """
     date_str = str(date_str or "").strip()[:10]
+    reports = ROOT / "data" / "reports"
+    reports.mkdir(parents=True, exist_ok=True)
+    patch_path = reports / f"payout_patch_{date_str or 'unknown'}.json"
+
+    # Start from prior patch so a failed re-scrape cannot erase live floors.
+    prior: dict[str, Any] = {}
+    if patch_path.is_file():
+        try:
+            prior = json.loads(patch_path.read_text(encoding="utf-8"))
+        except Exception:
+            prior = {}
+    prior_by_id = (
+        prior.get("by_ticket_id") if isinstance(prior.get("by_ticket_id"), dict) else {}
+    )
+    prior_by_sig = (
+        prior.get("by_leg_sig") if isinstance(prior.get("by_leg_sig"), dict) else {}
+    )
+    # Heal empty patch: seed gaps from any live_cdp already on the tickets file.
+    if tickets_path.is_file():
+        try:
+            data_seed = json.loads(tickets_path.read_text(encoding="utf-8"))
+            for g in data_seed.get("groups") or []:
+                if not isinstance(g, dict):
+                    continue
+                for t in g.get("tickets") or []:
+                    if not isinstance(t, dict):
+                        continue
+                    pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+                    if str(pay.get("payout_source") or "").strip().lower() != "live_cdp":
+                        continue
+                    try:
+                        min_x = float(pay.get("power_min_x") or pay.get("display_min_x") or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if not (min_x > 0):
+                        continue
+                    entry = {
+                        "power_min_x": min_x,
+                        "power_first_x": pay.get("power_first_x"),
+                        "display_min_x": min_x,
+                        "payout_source": "live_cdp",
+                        "ticket_id": t.get("ticket_id"),
+                        "n_legs": t.get("n_legs") or len(t.get("legs") or []),
+                    }
+                    tid = str(t.get("ticket_id") or "").strip()
+                    if tid and tid not in prior_by_id:
+                        prior_by_id[tid] = entry
+                    sig = _leg_sig_key(t.get("legs") if isinstance(t.get("legs"), list) else [])
+                    if sig and sig not in prior_by_sig:
+                        prior_by_sig[sig] = entry
+        except Exception as e:
+            print(f"[PAYOUT] WARN: seed from tickets failed ({e})")
+
+    prior_by_id = dict(prior_by_id)
+    prior_by_sig = dict(prior_by_sig)
+
     patch: dict[str, Any] = {
         "date": date_str,
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "tickets_path": str(tickets_path),
-        "by_ticket_id": {},
-        "by_leg_sig": {},
+        "by_ticket_id": dict(prior_by_id),
+        "by_leg_sig": dict(prior_by_sig),
     }
+    n_new = 0
     for rec in captured:
         if not isinstance(rec, dict):
             continue
@@ -1864,15 +2147,25 @@ def write_payout_patch_and_apply_to_tickets(
         tid = str(rec.get("ticket_id") or "").strip()
         if tid:
             patch["by_ticket_id"][tid] = entry
+            n_new += 1
         sig = _leg_sig_key(rec.get("legs") if isinstance(rec.get("legs"), list) else [])
         if sig:
             patch["by_leg_sig"][sig] = entry
 
-    reports = ROOT / "data" / "reports"
-    reports.mkdir(parents=True, exist_ok=True)
-    patch_path = reports / f"payout_patch_{date_str or 'unknown'}.json"
+    if n_new == 0 and not patch["by_ticket_id"] and prior_by_id:
+        # Absolute last resort: keep prior file untouched.
+        patch["by_ticket_id"] = dict(prior_by_id)
+        patch["by_leg_sig"] = dict(prior_by_sig)
+        print(
+            f"[PAYOUT] WARN: 0 new live floors; keeping prior patch "
+            f"({len(prior_by_id)} ids)"
+        )
+
     patch_path.write_text(json.dumps(patch, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"[PAYOUT] patch -> {patch_path} (ids={len(patch['by_ticket_id'])})")
+    print(
+        f"[PAYOUT] patch -> {patch_path} "
+        f"(ids={len(patch['by_ticket_id'])} new={n_new})"
+    )
 
     # Mix-grid composition floors (live grid overwrites seeded defaults when present).
     mix_avg = mix_avg_floors_from_grid(
@@ -1895,6 +2188,7 @@ def write_payout_patch_and_apply_to_tickets(
 
     n_patched = 0
     n_fallback = 0
+    n_kept_live = 0
     if tickets_path.is_file():
         data = json.loads(tickets_path.read_text(encoding="utf-8"))
         for g in data.get("groups") or []:
@@ -1921,7 +2215,24 @@ def write_payout_patch_and_apply_to_tickets(
                     t["display_min_x"] = entry["display_min_x"]
                     n_patched += 1
                     continue
-                # Uncaptured: mix-grid average, else keep model as fallback_estimate
+
+                # Do NOT downgrade an existing live_cdp floor to board-avg on miss.
+                src_now = str(pay.get("payout_source") or "").strip().lower()
+                live_keep = None
+                try:
+                    live_keep = float(pay.get("power_min_x") or pay.get("display_min_x") or 0)
+                except (TypeError, ValueError):
+                    live_keep = None
+                if src_now == "live_cdp" and live_keep and live_keep > 0:
+                    pay["display_min_x"] = float(live_keep)
+                    pay["power_min_x"] = float(live_keep)
+                    pay["payout_source"] = "live_cdp"
+                    t["payout"] = pay
+                    t["display_min_x"] = float(live_keep)
+                    n_kept_live += 1
+                    continue
+
+                # Uncaptured + no prior live: mix-grid average, else model estimate
                 legs = t.get("legs") if isinstance(t.get("legs"), list) else []
                 n_legs = len(legs) or int(t.get("n_legs") or 0)
                 avg = mix_avg.get((int(n_legs), int(_goblin_n(legs))))
@@ -1945,28 +2256,69 @@ def write_payout_patch_and_apply_to_tickets(
         tickets_path.write_text(
             json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-        # Mirror to templates/tickets_latest.json when patching a dated combined file.
-        latest = ROOT / "ui_runner" / "templates" / "tickets_latest.json"
-        try:
-            if latest.is_file() and tickets_path.resolve() != latest.resolve():
-                latest_data = json.loads(latest.read_text(encoding="utf-8"))
-                if str(latest_data.get("date") or "")[:10] == date_str:
-                    latest.write_text(
-                        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-                    )
-                    print(f"[PAYOUT] mirrored write-back -> {latest}")
-        except Exception as e:
-            print(f"[PAYOUT] WARN: could not mirror tickets_latest.json ({e})")
+        sync_tickets_json_mirrors(data, date_str=date_str, primary=tickets_path)
         print(
-            f"[PAYOUT] write-back live_cdp={n_patched} fallback={n_fallback} in {tickets_path}"
+            f"[PAYOUT] write-back live_cdp={n_patched} kept_live={n_kept_live} "
+            f"fallback={n_fallback} in {tickets_path}"
         )
+
+    # Feed /payout Rate cards + ladder table with live Goblin composition floors.
+    if captured:
+        try:
+            merge_live_floors_into_rate_card(
+                captured=captured,
+                date_str=date_str,
+                source="ticket_capture",
+            )
+            sync_captures_to_payout_ladder_live(captured, date_str=date_str)
+            rebuild_payout_rate_cards_deck()
+        except Exception as e:
+            print(f"[PAYOUT] WARN: rate-card / ladder merge failed: {e}")
 
     return {
         "patch_path": str(patch_path),
         "n_patched": n_patched,
         "n_fallback": n_fallback,
+        "n_kept_live": n_kept_live,
         "patch": patch,
     }
+
+
+def sync_tickets_json_mirrors(
+    data: dict[str, Any],
+    *,
+    date_str: str = "",
+    primary: Path | None = None,
+) -> None:
+    """Keep templates + docs + mobile tickets_latest.json aligned after payout write-back."""
+    date_str = str(date_str or data.get("date") or "").strip()[:10]
+    body = json.dumps(data, indent=2, ensure_ascii=False)
+    mirrors = [
+        ROOT / "ui_runner" / "templates" / "tickets_latest.json",
+        ROOT / "ui_runner" / "docs" / "tickets_latest.json",
+        ROOT / "mobile" / "www" / "tickets_latest.json",
+    ]
+    for path in mirrors:
+        try:
+            if primary is not None and path.resolve() == Path(primary).resolve():
+                continue
+        except Exception:
+            pass
+        if not path.parent.is_dir() and path.parent.name in ("www", "docs", "templates"):
+            path.parent.mkdir(parents=True, exist_ok=True)
+        if not path.parent.is_dir():
+            continue
+        # Only overwrite same-date live files (or empty/missing).
+        try:
+            if path.is_file():
+                existing = json.loads(path.read_text(encoding="utf-8"))
+                ex_date = str(existing.get("date") or "")[:10]
+                if date_str and ex_date and ex_date != date_str:
+                    continue
+            path.write_text(body, encoding="utf-8")
+            print(f"[PAYOUT] mirrored -> {path}")
+        except Exception as e:
+            print(f"[PAYOUT] WARN: mirror {path} failed ({e})")
 
 
 def capture_tickets_from_board(
@@ -1980,8 +2332,13 @@ def capture_tickets_from_board(
     delay_sec: float,
     write_back: bool = True,
     date_override: str = "",
+    strict_lines: bool = True,
 ) -> int:
-    """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts."""
+    """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts.
+
+    strict_lines (default True): only click exact line + pick_type matches so
+    captured floors match the ticketed props (no moved-line proxies).
+    """
     slips = load_main_strong_tickets(tickets_path)
     if not slips:
         print(f"[PAYOUT] No MAIN/STRONG slips in {tickets_path}")
@@ -2012,7 +2369,8 @@ def capture_tickets_from_board(
     sports_in_run = sorted({_slip_primary_sport(s) for s in slips_sorted if _slip_primary_sport(s)})
     print(
         f"[PAYOUT] scraping {len(slips_sorted)} generated MAIN/STRONG slips only "
-        f"(sports={','.join(sports_in_run) or 'unknown'})"
+        f"(sports={','.join(sports_in_run) or 'unknown'}; "
+        f"strict_lines={'on' if strict_lines else 'off'})"
     )
 
     want_flex = "flex_min" in fields
@@ -2076,14 +2434,15 @@ def capture_tickets_from_board(
 
                 clicked = 0
                 for leg in slip.get("legs") or []:
-                    if add_leg(frame, page, leg):
+                    if add_leg(frame, page, leg, strict_lines=strict_lines):
                         clicked += 1
                     else:
                         print(f"  [WARN] could not click {leg.get('player')}")
                     frame.wait_for_timeout(int(max(0.05, delay_sec * 0.5) * 1000))
 
-                if clicked < 2:
-                    rec["error"] = f"only_clicked_{clicked}_legs"
+                n_need = int(slip.get("n_legs") or len(slip.get("legs") or []) or 2)
+                if clicked < n_need:
+                    rec["error"] = f"only_clicked_{clicked}_of_{n_need}_legs"
                     n_failed += 1
                     captured.append(_project_capture_fields(rec, fields))
                     clear_slip(frame)
@@ -2456,10 +2815,342 @@ def mix_avg_floors_from_grid(slips: list[dict] | None = None) -> dict[tuple[int,
     return out
 
 
+def _slip_power_min_x(rec: dict) -> float | None:
+    """Read power_min_x / min_x from a capture or ticket slip record."""
+    if not isinstance(rec, dict):
+        return None
+    for key in ("power_min_x", "min_x", "display_min_x"):
+        try:
+            v = float(rec.get(key))
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(v) and v > 0:
+            return v
+    pay = rec.get("payout")
+    if isinstance(pay, dict):
+        for key in ("power_min_x", "display_min_x", "min_payout_x"):
+            try:
+                v = float(pay.get(key))
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(v) and v > 0:
+                return v
+    return None
+
+
+def _normalize_slips_for_floor_summary(slips: list[dict]) -> list[dict]:
+    """Normalize ticket-capture or mix-grid slips for summarize_mix_grid_floors."""
+    out: list[dict] = []
+    for rec in slips or []:
+        if not isinstance(rec, dict):
+            continue
+        if str(rec.get("status") or "").lower() not in ("ok", "partial"):
+            continue
+        min_x = _slip_power_min_x(rec)
+        if min_x is None:
+            continue
+        legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+        n_g = int(rec.get("n_goblin") or 0)
+        n_s = int(rec.get("n_standard") or 0)
+        if legs and (n_g + n_s) <= 0:
+            n_g = sum(
+                1
+                for leg in legs
+                if isinstance(leg, dict)
+                and "goblin" in str(leg.get("pick_type") or "").lower()
+            )
+            n_s = max(0, len(legs) - n_g)
+        n_legs = int(rec.get("n_legs") or (n_g + n_s) or len(legs) or 0)
+        if n_legs <= 0:
+            continue
+        deviations: list[float] = []
+        for leg in legs:
+            if not isinstance(leg, dict):
+                continue
+            if "goblin" not in str(leg.get("pick_type") or "").lower():
+                continue
+            try:
+                dist = float(leg.get("line_distance") or 0.0)
+            except (TypeError, ValueError):
+                dist = 0.0
+            if dist > 0:
+                deviations.append(dist)
+        row = dict(rec)
+        row["min_x"] = min_x
+        row["power_min_x"] = min_x
+        row["n_goblin"] = n_g
+        row["n_standard"] = n_s
+        row["n_legs"] = n_legs
+        row["deviations"] = deviations or list(rec.get("deviations") or [])
+        if row.get("dev_bucket") is None and deviations:
+            mean_dev = sum(deviations) / len(deviations)
+            bucket = _nearest_dev_bucket(mean_dev)
+            if bucket is not None:
+                row["dev_bucket"] = bucket
+        out.append(row)
+    return out
+
+
+def merge_live_floors_into_rate_card(
+    *,
+    captured: list[dict],
+    date_str: str,
+    source: str = "ticket_capture",
+    rate_card_path: Path | None = None,
+) -> dict[str, Any]:
+    """
+    Merge live power_min_x observations into data/reports/payout_rate_card.json.
+
+    Updates composition_floors (2G, 3G, 1G+1S, …) for /payout Rate cards + ticket fallbacks.
+    Preserves prior goblin_discount_per_unit when a new dev-bucket fit has 0 observations.
+    """
+    date_str = str(date_str or "").strip()[:10]
+    rate_card_path = rate_card_path or (ROOT / "data" / "reports" / "payout_rate_card.json")
+    prior: dict[str, Any] = {}
+    if rate_card_path.is_file():
+        try:
+            prior = json.loads(rate_card_path.read_text(encoding="utf-8"))
+        except Exception:
+            prior = {}
+    if not isinstance(prior, dict):
+        prior = {}
+
+    norm = _normalize_slips_for_floor_summary(captured)
+    floors = summarize_mix_grid_floors(norm)
+    by_comp = floors.get("by_composition") if isinstance(floors.get("by_composition"), dict) else {}
+
+    comp_prior = (
+        prior.get("composition_floors")
+        if isinstance(prior.get("composition_floors"), dict)
+        else {}
+    )
+    merged_comp: dict[str, Any] = dict(comp_prior)
+    for comp_key, meta in by_comp.items():
+        if not isinstance(meta, dict):
+            continue
+        merged_comp[comp_key] = {
+            **meta,
+            "source": source,
+            "source_date": date_str,
+            "updated_at": datetime.utcnow().isoformat() + "Z",
+        }
+
+    # Dev-bucket fit when line_distance is present on Goblin legs.
+    grid = {"date": date_str, "path": source, "slips": norm}
+    fitted = fit_payout_rate_card_from_grid(grid)
+
+    out: dict[str, Any] = dict(prior)
+    out["schema_version"] = 1
+    out["generated_at"] = datetime.utcnow().isoformat() + "Z"
+    out["source_date"] = date_str
+    out["composition_floors"] = merged_comp
+    out["composition_summary"] = {
+        k: v.get("avg_min_x")
+        for k, v in merged_comp.items()
+        if isinstance(v, dict) and v.get("avg_min_x") is not None
+    }
+    out["n_slips_in_capture"] = len(norm)
+
+    new_obs = int(fitted.get("n_observations") or 0)
+    prior_obs = int(prior.get("n_observations") or 0)
+    prior_dpu = prior.get("goblin_discount_per_unit") if isinstance(prior.get("goblin_discount_per_unit"), dict) else {}
+    new_dpu = fitted.get("goblin_discount_per_unit") if isinstance(fitted.get("goblin_discount_per_unit"), dict) else {}
+
+    if new_obs > 0:
+        out["goblin_discount_per_unit"] = new_dpu
+        out["n_observations"] = new_obs
+        out["source_grid"] = fitted.get("source_grid") or source
+        baselines = fitted.get("baselines_power_min_x")
+        if isinstance(baselines, dict) and baselines:
+            out["baselines_power_min_x"] = baselines
+    elif prior_dpu:
+        out["goblin_discount_per_unit"] = prior_dpu
+        out["n_observations"] = prior_obs
+    else:
+        out["goblin_discount_per_unit"] = new_dpu or {}
+        out["n_observations"] = new_obs
+
+    if not out.get("baselines_power_min_x"):
+        out["baselines_power_min_x"] = {
+            "2S": 3.0,
+            "3S": 6.0,
+            "4S": 10.0,
+            "5S": 20.0,
+        }
+
+    out["notes"] = (
+        "composition_floors: live PrizePicks power_min_x by n_legs × n_goblin (ticket + mix-grid). "
+        "goblin_discount_per_unit: dev-bucket fit when line_distance available."
+    )
+    rate_card_path.parent.mkdir(parents=True, exist_ok=True)
+    rate_card_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(
+        f"[PAYOUT] rate card merged ({source}) -> {rate_card_path} "
+        f"comps={len(merged_comp)} new_slips={len(norm)} dpu_obs={out.get('n_observations')}"
+    )
+    for comp, meta in sorted(merged_comp.items()):
+        if isinstance(meta, dict) and meta.get("avg_min_x") is not None:
+            print(f"  [floor] {comp}: avg_min_x={meta.get('avg_min_x')} n={meta.get('n')}")
+    return out
+
+
+def rebuild_payout_rate_cards_deck() -> None:
+    """Regenerate data/payout_rate_cards.json for /payout Rate cards tab."""
+    script = ROOT / "scripts" / "build_payout_rate_cards.py"
+    if not script.is_file():
+        print(f"[PAYOUT] WARN: {script} missing — skip rate-cards deck rebuild")
+        return
+    import subprocess
+
+    try:
+        subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(ROOT),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        print(f"[PAYOUT] rebuilt -> {ROOT / 'data' / 'payout_rate_cards.json'}")
+    except subprocess.CalledProcessError as exc:
+        print(f"[PAYOUT] WARN: rate-cards rebuild failed: {exc.stderr or exc}")
+
+
+def _composition_label_from_legs(legs: list[dict]) -> str:
+    s = g = d = 0
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or "Standard").strip().lower()
+        if "goblin" in pt:
+            g += 1
+        elif "demon" in pt:
+            d += 1
+        else:
+            s += 1
+    return f"{s}S+{g}G+{d}D"
+
+
+def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
+    """Map one ok CDP capture slip to a payout ladder log row."""
+    if not isinstance(rec, dict):
+        return None
+    if str(rec.get("status") or "").lower() not in ("ok", "partial"):
+        return None
+    min_x = _slip_power_min_x(rec)
+    if min_x is None:
+        return None
+    legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+    n_legs = len(legs) or int(rec.get("n_legs") or 0)
+    if n_legs < 2:
+        return None
+    goblin_deltas: list[str] = []
+    demon_deltas: list[str] = []
+    for leg in legs:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or "").strip().lower()
+        try:
+            dist = float(leg.get("line_distance") or 0.0)
+        except (TypeError, ValueError):
+            dist = 0.0
+        if dist <= 0:
+            continue
+        val = str(round(dist, 2))
+        if "goblin" in pt:
+            goblin_deltas.append(val)
+        elif "demon" in pt:
+            demon_deltas.append(val)
+    tid = str(rec.get("ticket_id") or "").strip()
+    sports = sorted(
+        {
+            str(leg.get("sport") or "").strip().upper()
+            for leg in legs
+            if isinstance(leg, dict) and str(leg.get("sport") or "").strip()
+        }
+    )
+    sport_note = ",".join(sports) if sports else "unknown"
+    return {
+        "date": date_str,
+        "n_legs": str(n_legs),
+        "leg_composition": _composition_label_from_legs(legs),
+        "goblin_deltas": ",".join(goblin_deltas),
+        "demon_deltas": ",".join(demon_deltas),
+        "power_payout_x": str(round(min_x, 4)),
+        "flex_payout_x": "",
+        "source": "live_cdp",
+        "notes": f"ticket_id={tid}; sports={sport_note}; CDP power_min_x Min Guarantee",
+        "ticket_id": tid,
+    }
+
+
+def sync_captures_to_payout_ladder_live(
+    captured: list[dict],
+    *,
+    date_str: str,
+    output_path: Path | None = None,
+) -> dict[str, Any]:
+    """
+    Upsert live CDP captures into ui_runner/data/payout_ladder_live_cdp.json.
+
+    Merged at read time with payout_ladder_log.csv for /payout/ladder table.
+    """
+    date_str = str(date_str or "").strip()[:10]
+    output_path = output_path or PAYOUT_LADDER_LIVE_CDP_PATH
+    prior: dict[str, Any] = {"schema_version": 1, "date": date_str, "rows": []}
+    if output_path.is_file():
+        try:
+            loaded = json.loads(output_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                prior = loaded
+        except Exception:
+            pass
+    rows_by_id: dict[str, dict[str, Any]] = {}
+    for row in prior.get("rows") or []:
+        if not isinstance(row, dict):
+            continue
+        if str(row.get("date") or "")[:10] == date_str:
+            continue  # replace this slate date on each sync
+        key = str(row.get("_dedupe_key") or row.get("ticket_id") or "").strip()
+        if key:
+            rows_by_id[key] = row
+    n_new = 0
+    for rec in captured or []:
+        row = _capture_to_ladder_row(rec, date_str)
+        if not row:
+            continue
+        legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+        sig = _leg_sig_key(legs)
+        min_x = row.get("power_payout_x") or ""
+        key = f"{date_str}|{sig}|{min_x}"
+        row["_dedupe_key"] = key
+        if key not in rows_by_id:
+            n_new += 1
+        rows_by_id[key] = row
+    out = {
+        "schema_version": 1,
+        "date": date_str,
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "rows": sorted(rows_by_id.values(), key=lambda r: (r.get("leg_composition") or "", r.get("ticket_id") or "")),
+    }
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(
+        f"[PAYOUT] ladder live -> {output_path} "
+        f"(rows={len(out['rows'])} new={n_new})"
+    )
+    return out
+
+
 def fit_payout_rate_card_from_grid(grid: dict) -> dict:
     """Fit goblin_discount_per_unit by deviation bucket from power_min_x observations."""
     slips = [s for s in (grid.get("slips") or []) if isinstance(s, dict)]
-    ok = [s for s in slips if s.get("min_x") is not None and float(s.get("min_x") or 0) > 0]
+    ok: list[dict] = []
+    for s in slips:
+        min_x = _slip_power_min_x(s)
+        if min_x is not None:
+            row = dict(s)
+            row["min_x"] = min_x
+            ok.append(row)
     baselines: dict[str, float] = {}
     for s in ok:
         if int(s.get("n_goblin") or 0) == 0 and int(s.get("n_standard") or 0) > 0:
@@ -2842,12 +3533,23 @@ def run_mix_grid_capture(
 
     card = fit_payout_rate_card_from_grid(grid)
     rate_card_path.parent.mkdir(parents=True, exist_ok=True)
-    rate_card_path.write_text(json.dumps(card, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(
-        f"[payout-grid] fitted rate card from {card.get('n_observations', 0)} "
-        f"slip observations -> {rate_card_path}"
+    merged = merge_live_floors_into_rate_card(
+        captured=captured,
+        date_str=date_str,
+        source=str(output_path),
+        rate_card_path=rate_card_path,
     )
-    print(f"[payout-grid] goblin_discount_per_unit={card.get('goblin_discount_per_unit')}")
+    # merge_live_floors already wrote the card; keep fitted dpu from grid when present.
+    if int(card.get("n_observations") or 0) > int(merged.get("n_observations") or 0):
+        merged["goblin_discount_per_unit"] = card.get("goblin_discount_per_unit") or {}
+        merged["n_observations"] = card.get("n_observations")
+        rate_card_path.write_text(json.dumps(merged, indent=2, ensure_ascii=False), encoding="utf-8")
+    rebuild_payout_rate_cards_deck()
+    print(
+        f"[payout-grid] fitted rate card from {merged.get('n_observations', 0)} "
+        f"dev-bucket observations -> {rate_card_path}"
+    )
+    print(f"[payout-grid] goblin_discount_per_unit={merged.get('goblin_discount_per_unit')}")
     return 0 if n_ok > 0 else 1
 
 
@@ -2901,7 +3603,78 @@ def main():
         action="store_true",
         help="With --tickets: skip writing payout_patch + updating combined_slate_tickets JSON.",
     )
+    ap.add_argument(
+        "--strict-lines",
+        action="store_true",
+        default=True,
+        help="With --tickets: require exact line+pick_type (default on).",
+    )
+    ap.add_argument(
+        "--allow-line-fallback",
+        action="store_true",
+        help="With --tickets: allow nearest-line proxies when exact Goblin/line left the board.",
+    )
+    ap.add_argument(
+        "--rebuild-patch-from-tickets",
+        default="",
+        help=(
+            "No CDP: rebuild payout_patch_<date>.json from live_cdp floors already on "
+            "the tickets JSON, write-back + mirror templates/docs/mobile."
+        ),
+    )
+    ap.add_argument(
+        "--merge-capture-into-rate-card",
+        default="",
+        help=(
+            "No CDP: merge payout_capture_<date>.json slips into payout_rate_card.json "
+            "+ rebuild data/payout_rate_cards.json for /payout Rate cards."
+        ),
+    )
     args = ap.parse_args()
+
+    if str(getattr(args, "merge_capture_into_rate_card", "") or "").strip():
+        capture_path = Path(str(args.merge_capture_into_rate_card).strip())
+        if not capture_path.is_file():
+            raise SystemExit(f"[PAYOUT] capture file not found: {capture_path}")
+        payload = json.loads(capture_path.read_text(encoding="utf-8"))
+        date_override = str(args.date or payload.get("date") or "")[:10]
+        if not date_override:
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", capture_path.name)
+            date_override = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
+        slips = payload.get("slips") if isinstance(payload.get("slips"), list) else []
+        merge_live_floors_into_rate_card(
+            captured=slips,
+            date_str=date_override,
+            source=str(capture_path),
+        )
+        sync_captures_to_payout_ladder_live(slips, date_str=date_override)
+        rebuild_payout_rate_cards_deck()
+        raise SystemExit(0)
+
+    if str(getattr(args, "rebuild_patch_from_tickets", "") or "").strip():
+        tickets_path = Path(str(args.rebuild_patch_from_tickets).strip())
+        if not tickets_path.is_file():
+            raise SystemExit(f"[PAYOUT] tickets file not found: {tickets_path}")
+        date_override = str(args.date or "").strip()[:10]
+        if not date_override:
+            try:
+                data0 = json.loads(tickets_path.read_text(encoding="utf-8"))
+                date_override = str(data0.get("date") or "")[:10]
+            except Exception:
+                date_override = ""
+            if not date_override:
+                m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
+                date_override = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
+        result = write_payout_patch_and_apply_to_tickets(
+            tickets_path=tickets_path,
+            captured=[],
+            date_str=date_override,
+        )
+        print(
+            f"[PAYOUT] rebuild-patch done: ids={len((result.get('patch') or {}).get('by_ticket_id') or {})} "
+            f"patched={result.get('n_patched')} kept={result.get('n_kept_live')}"
+        )
+        raise SystemExit(0)
 
     if bool(getattr(args, "mix_grid", False)):
         date_str = str(args.date or "").strip()[:10] or datetime.utcnow().strftime("%Y-%m-%d")
@@ -2948,6 +3721,7 @@ def main():
                 delay_sec=float(args.delay_sec),
                 write_back=not bool(getattr(args, "no_write_back", False)),
                 date_override=date_override,
+                strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
             )
         )
 

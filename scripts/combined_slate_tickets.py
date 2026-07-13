@@ -4186,6 +4186,7 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
     blend: 0.5*ml + 0.5*sigmoid(rank), with missing ml falling back to sigmoid(rank) only.
     rule: user ruleset (L5, L10/season consistency, defense, minutes, role, H2H, edge),
     with Demon legs deprioritized.
+    hot_hr: directional L10/L5 + composite HR (ignore edge) — preferred for MLB Goblin.
     """
     out = df.copy()
     if out.empty:
@@ -4196,7 +4197,7 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
     ml = pd.to_numeric(out["ml_prob"], errors="coerce") if "ml_prob" in out.columns else pd.Series(np.nan, index=out.index)
     rs_p = rs.map(_scalar_rank_to_prob_for_sort)
     m = (mode or "rank").strip().lower()
-    if m not in ("rank", "ml", "blend", "rule"):
+    if m not in ("rank", "ml", "blend", "rule", "hot_hr"):
         m = "rank"
     if m == "ml":
         out["__ts_pri"] = ml.fillna(-1.0)
@@ -4207,6 +4208,27 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         ml_b = ml.where(ml.notna(), rs_p)
         out["__ts_pri"] = (0.45 * ml_b + 0.35 * rs_p + 0.20 * ctx.clip(-0.15, 0.15)).fillna(-1.0)
         out["__ts_sec"] = rs.fillna(-1e9)
+    elif m == "hot_hr":
+        # MLB edge is anti-correlated with hits — rank on recent side hits + composite HR only.
+        direction = out.get("direction", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
+        nan_s = pd.Series(np.nan, index=out.index)
+        l5_over = pd.to_numeric(out.get("l5_over", nan_s), errors="coerce")
+        l5_under = pd.to_numeric(out.get("l5_under", nan_s), errors="coerce")
+        l10_over = pd.to_numeric(out.get("l10_over", nan_s), errors="coerce")
+        l10_under = pd.to_numeric(out.get("l10_under", nan_s), errors="coerce")
+        comp = pd.to_numeric(out.get("composite_hit_rate", nan_s), errors="coerce")
+        hr = pd.to_numeric(out.get("hit_rate", nan_s), errors="coerce")
+        side_l5 = np.where(direction.eq("UNDER"), l5_under, l5_over)
+        side_l10 = np.where(direction.eq("UNDER"), l10_under, l10_over)
+        base = comp.where(comp.notna(), hr)
+        base = base.where(base.notna(), ml).fillna(0.50)
+        pri = base.astype(float)
+        pri = pri + np.where(pd.isna(side_l10), 0.0, np.where(side_l10 >= 7, 0.08, np.where(side_l10 <= 4, -0.05, 0.0)))
+        pri = pri + np.where(pd.isna(side_l5), 0.0, np.where(side_l5 >= 4, 0.05, np.where(side_l5 <= 2, -0.04, 0.0)))
+        tier = out.get("tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
+        pri = pri + np.where(tier.eq("A"), 0.03, np.where(tier.eq("B"), 0.015, 0.0))
+        out["__ts_pri"] = pri
+        out["__ts_sec"] = base.fillna(-1.0)
     elif m == "rule":
         # User methodology:
         # 1) Remove/deprioritize Demon
@@ -5234,7 +5256,9 @@ def build_win_rate_ticket_groups(
                 wr_df,
                 n,
                 max_tickets=max(5, int(max_tickets) * 2),
-                ticket_sort_mode="rank",
+                ticket_sort_mode=(
+                    "hot_hr" if str(label).strip().upper() == "MLB" else "rank"
+                ),
                 player_ticket_counts=defaultdict(int),
             )
             for t in built:
@@ -6564,6 +6588,24 @@ MAIN_EXCLUDE_SPORTS: frozenset[str] = frozenset(
     ).split(",")
     if s.strip()
 )
+# MLB Goblin shadow track: graded Goblin A/B/C near MAIN floors, but production MAIN stays
+# basketball-only until shadow validates. Sort uses hot_hr (not edge — MLB edge anti-correlated).
+MAIN_MLB_SHADOW_ENABLED: bool = os.getenv("PROPORACLE_MAIN_MLB_SHADOW", "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+)
+MAIN_MLB_SHADOW_ALLOWED_SPORTS: frozenset[str] = frozenset(
+    s.strip().upper()
+    for s in os.getenv("PROPORACLE_MAIN_MLB_SHADOW_SPORTS", "MLB").split(",")
+    if s.strip()
+)
+MAIN_MLB_SHADOW_MIN_TIERS: frozenset[str] = frozenset(
+    s.strip().upper()
+    for s in os.getenv("PROPORACLE_MAIN_MLB_SHADOW_MIN_TIERS", "A,B").split(",")
+    if s.strip()
+)
 MAIN_REQUIRE_STRONG_OK: bool = os.getenv("PROPORACLE_MAIN_REQUIRE_STRONG_OK", "0").strip().lower() not in (
     "0",
     "false",
@@ -6717,9 +6759,19 @@ def _main_track_wr_sport_frames(
     nba1h,
     wnba,
     pool_fn,
+    mlb=None,
+    include_mlb: bool = False,
 ) -> list[tuple[str, pd.DataFrame]]:
     frames: list[tuple[str, pd.DataFrame]] = []
-    for label, frame in (("NBA1Q", nba1q), ("NBA", nba), ("NBA1H", nba1h), ("WNBA", wnba)):
+    sport_order: list[tuple[str, object]] = [
+        ("NBA1Q", nba1q),
+        ("NBA", nba),
+        ("NBA1H", nba1h),
+        ("WNBA", wnba),
+    ]
+    if include_mlb:
+        sport_order.append(("MLB", mlb))
+    for label, frame in sport_order:
         if frame is None or len(frame) == 0:
             continue
         gated, _reason = _sport_ticket_gated(label)
@@ -6729,6 +6781,64 @@ def _main_track_wr_sport_frames(
         if pooled is not None and len(pooled) > 0:
             frames.append((label, pooled))
     return frames
+
+
+def _mlb_shadow_sport_frames(*, mlb, pool_fn) -> list[tuple[str, pd.DataFrame]]:
+    """MLB-only frames for the Goblin MAIN shadow track."""
+    return _main_track_wr_sport_frames(
+        nba1q=None,
+        nba=None,
+        nba1h=None,
+        wnba=None,
+        mlb=mlb,
+        pool_fn=pool_fn,
+        include_mlb=True,
+    )
+
+
+def _filter_mlb_shadow_payload(payload: dict) -> dict:
+    """Keep Goblin A/B MLB slips only on the shadow MAIN track."""
+    if not isinstance(payload, dict):
+        return {}
+    out = dict(payload)
+    allowed = set(MAIN_MLB_SHADOW_ALLOWED_SPORTS)
+    min_tiers = set(MAIN_MLB_SHADOW_MIN_TIERS) or {"A", "B"}
+    new_groups: list[dict] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        kept: list[dict] = []
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            legs = [leg for leg in (t.get("legs") or []) if isinstance(leg, dict)]
+            if not legs:
+                continue
+            sports = {
+                str(leg.get("sport") or "").strip().upper()
+                for leg in legs
+                if str(leg.get("sport") or "").strip()
+            }
+            if not sports or not sports.issubset(allowed):
+                continue
+            tiers = {str(leg.get("tier") or "").strip().upper() for leg in legs}
+            if not tiers.issubset(min_tiers):
+                continue
+            picks = {str(leg.get("pick_type") or "").strip().lower() for leg in legs}
+            if picks != {"goblin"}:
+                continue
+            kept.append(t)
+        if kept:
+            ng = dict(g)
+            ng["tickets"] = kept
+            new_groups.append(ng)
+    out["groups"] = new_groups
+    out["shadow_track"] = True
+    out["main_allowed_sports"] = sorted(allowed)
+    out["mlb_shadow_min_tiers"] = sorted(min_tiers)
+    out["ticket_sort_hint"] = "hot_hr"
+    _finalize_payload_l10_streaks(out)
+    return out
 
 
 def build_graded_main_win_rate_payload(
@@ -6940,6 +7050,54 @@ def _emit_winrate_goblin_opt3_shadow_payload(
     _write_winrate_goblin_opt3_shadow_snapshot(shadow, date_str)
 
 
+def _emit_winrate_mlb_goblin_shadow_payload(
+    *,
+    mlb,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    pool_fn,
+    graded_analysis: dict | None,
+) -> None:
+    """
+    Shadow MAIN track: MLB Goblin 3-leg (Tier A/B, hot_hr sort).
+    Production MAIN allowlist stays basketball-only until this validates.
+    """
+    if not MAIN_MLB_SHADOW_ENABLED:
+        print("  [shadow-mlb] skipped (PROPORACLE_MAIN_MLB_SHADOW off)")
+        return
+    if mlb is None or (hasattr(mlb, "__len__") and len(mlb) == 0):
+        print("  [shadow-mlb] skipped (no MLB frame)")
+        return
+    wr_frames = _mlb_shadow_sport_frames(mlb=mlb, pool_fn=pool_fn)
+    if not wr_frames:
+        print("  [shadow-mlb] skipped (empty MLB win-rate pool)")
+        return
+    shadow = build_graded_main_win_rate_payload(
+        wr_frames,
+        date_str,
+        thresholds,
+        bankroll=bankroll,
+        curve_stake_usd=curve_stake_usd,
+        graded_analysis=graded_analysis,
+        goblin_only_3leg=True,
+        ticket_track="winrate_mlb_goblin_shadow",
+        payload_mode="winrate_mlb_goblin_shadow",
+        policy_tag="mlb_goblin_hot_hr",
+    )
+    shadow["shadow_track"] = True
+    shadow["main_allowed_sports"] = sorted(MAIN_MLB_SHADOW_ALLOWED_SPORTS)
+    shadow["ticket_sort_hint"] = "hot_hr"
+    shadow = _filter_mlb_shadow_payload(shadow)
+    n_shadow = sum(len(g.get("tickets") or []) for g in shadow.get("groups") or [])
+    print(
+        f"  [shadow-mlb] MLB Goblin hot_hr (tiers {','.join(sorted(MAIN_MLB_SHADOW_MIN_TIERS))}): "
+        f"{n_shadow} slips (production main unchanged)"
+    )
+    _write_winrate_mlb_goblin_shadow_snapshot(shadow, date_str)
+
+
 def _write_long_parlay_ticket_snapshot(payload: dict, date_str: str) -> None:
     path = os.path.join(
         REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_long_parlay_{date_str}.json"
@@ -6970,6 +7128,29 @@ def _write_winrate_goblin_opt3_shadow_snapshot(payload: dict, date_str: str) -> 
     n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
     print(
         f"  [OK] Win-rate Goblin opt3 shadow -> {dated} ({n_slips} slips; "
+        "production main unchanged)"
+    )
+
+
+def _write_winrate_mlb_goblin_shadow_snapshot(payload: dict, date_str: str) -> None:
+    """Persist MLB Goblin MAIN shadow tickets (hot_hr sort; production MAIN unchanged)."""
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_winrate_mlb_goblin_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        "winrate_mlb_goblin_shadow_latest.json",
+    )
+    _write_json_file(dated, payload)
+    _write_json_file(latest, payload)
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [OK] Win-rate MLB Goblin shadow -> {dated} ({n_slips} slips; "
         "production main unchanged)"
     )
 
@@ -15419,7 +15600,7 @@ def main():
     )
     ap.add_argument(
         "--ticket-candidate-sort",
-        choices=("rank", "ml", "blend", "rule"),
+        choices=("rank", "ml", "blend", "rule", "hot_hr"),
         default="rule",
         dest="ticket_candidate_sort",
         help=(
@@ -17988,6 +18169,15 @@ def main():
                 pool_fn=lambda f: pool(f, for_win_rate=True),
                 graded_analysis=_load_graded_analysis(),
             )
+            _emit_winrate_mlb_goblin_shadow_payload(
+                mlb=mlb,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
         else:
             print("  WARNING: workbook produced 0 groups — falling back to FINAL builder.")
             nhl_pool_web = pool(nhl) if nhl is not None and len(nhl) > 0 else None
@@ -18086,6 +18276,15 @@ def main():
                 nba=nba,
                 nba1h=nba1h,
                 wnba=wnba,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            _emit_winrate_mlb_goblin_shadow_payload(
+                mlb=mlb,
                 date_str=str(args.date),
                 thresholds=thresholds,
                 bankroll=max(0.0, float(args.bankroll)),

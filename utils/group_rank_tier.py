@@ -36,6 +36,20 @@ SPORT_ML_PROB_CUTS: dict[str, tuple[float, float, float] | dict[str, tuple[float
         "standard": (0.58, 0.52, 0.47),
         "goblin": (0.58, 0.52, 0.47),  # distance fallback when no standard_line; same scale as Standard
     },
+    # NHL Goblin mean ml_prob ~0.31 (long-run); DEFAULT NBA cuts (0.71/…) collapse almost everything to D.
+    # Standard UNDER mean ~0.67 — use MLB-like Standard cuts. See tier_criteria_nhl_ml_prob_scan.json.
+    "nhl": {
+        "goblin": (0.42, 0.35, 0.28),
+        "standard": (0.58, 0.52, 0.47),
+        "demon": (0.50, 0.42, 0.35),
+    },
+    # Tennis uses a heuristic ml_prob band (~0.38–0.78) that overstates Goblin HR (ml~0.61 vs HR~0.41).
+    # Slightly below DEFAULT so Standard can form A/B, but not as loose as Soccer.
+    "tennis": {
+        "goblin": (0.65, 0.58, 0.52),
+        "standard": (0.62, 0.55, 0.48),
+        "demon": (0.60, 0.52, 0.45),
+    },
 }
 
 # Optional Standard direction overrides by sport.
@@ -44,6 +58,15 @@ SPORT_STANDARD_DIRECTION_CUTS: dict[str, dict[str, tuple[float, float, float]]] 
     "mlb": {
         "OVER": (0.58, 0.52, 0.47),
         "UNDER": (0.56, 0.50, 0.45),
+    },
+    # NHL Standard UNDER is the strong side (~66% long-run); OVER stays weak.
+    "nhl": {
+        "OVER": (0.58, 0.52, 0.47),
+        "UNDER": (0.58, 0.52, 0.48),
+    },
+    "tennis": {
+        "OVER": (0.62, 0.55, 0.48),
+        "UNDER": (0.55, 0.48, 0.42),
     },
 }
 

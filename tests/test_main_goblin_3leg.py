@@ -151,3 +151,77 @@ def test_graded_main_payload_sets_pool_mode():
     assert payload.get("goblin_only") is True
     filters = payload.get("filters") or {}
     assert filters.get("pool_mode") == MAIN_POOL_MODE
+
+
+def test_hot_hr_sort_prefers_hot_l10_over_rank_score():
+    from combined_slate_tickets import _attach_ticket_pick_order
+
+    df = pd.DataFrame(
+        [
+            {
+                "direction": "OVER",
+                "tier": "B",
+                "composite_hit_rate": 0.60,
+                "hit_rate": 0.60,
+                "ml_prob": 0.55,
+                "l10_over": 8.0,
+                "l5_over": 4.0,
+                "rank_score": 1.0,
+            },
+            {
+                "direction": "OVER",
+                "tier": "A",
+                "composite_hit_rate": 0.58,
+                "hit_rate": 0.58,
+                "ml_prob": 0.80,
+                "l10_over": 3.0,
+                "l5_over": 1.0,
+                "rank_score": 9.0,
+            },
+        ]
+    )
+    ranked = _attach_ticket_pick_order(df, "hot_hr").sort_values(
+        ["__ts_pri", "__ts_sec"], ascending=[False, False]
+    )
+    assert float(ranked.iloc[0]["l10_over"]) == 8.0
+
+
+def test_mlb_shadow_filter_keeps_ab_goblin_only():
+    from combined_slate_tickets import _filter_mlb_shadow_payload
+
+    payload = {
+        "groups": [
+            {
+                "group_name": "MLB 3-Leg Goblin",
+                "tickets": [
+                    {
+                        "legs": [
+                            _leg(sport="MLB", tier="A", pick_type="Goblin", player="A1"),
+                            _leg(sport="MLB", tier="B", pick_type="Goblin", player="A2"),
+                            _leg(sport="MLB", tier="A", pick_type="Goblin", player="A3"),
+                        ]
+                    },
+                    {
+                        "legs": [
+                            _leg(sport="MLB", tier="C", pick_type="Goblin", player="B1"),
+                            _leg(sport="MLB", tier="A", pick_type="Goblin", player="B2"),
+                            _leg(sport="MLB", tier="A", pick_type="Goblin", player="B3"),
+                        ]
+                    },
+                    {
+                        "legs": [
+                            _leg(sport="WNBA", tier="A", pick_type="Goblin", player="C1"),
+                            _leg(sport="MLB", tier="A", pick_type="Goblin", player="C2"),
+                            _leg(sport="MLB", tier="A", pick_type="Goblin", player="C3"),
+                        ]
+                    },
+                ],
+            }
+        ]
+    }
+    out = _filter_mlb_shadow_payload(payload)
+    tickets = out["groups"][0]["tickets"]
+    assert len(tickets) == 1
+    assert out.get("shadow_track") is True
+    assert out.get("ticket_sort_hint") == "hot_hr"
+    assert "MLB" in (out.get("main_allowed_sports") or [])

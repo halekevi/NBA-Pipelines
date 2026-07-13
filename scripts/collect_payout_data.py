@@ -3543,8 +3543,10 @@ def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
         "date": date_str,
         "n_legs": str(n_legs),
         "leg_composition": _composition_label_from_legs(legs),
-        "goblin_deltas": ",".join(goblin_deltas),
-        "demon_deltas": ",".join(demon_deltas),
+        # Store as list of numeric strings (not a joined string) so consumers
+        # never character-split "1,1" into ['1', ',', '1'].
+        "goblin_deltas": list(goblin_deltas),
+        "demon_deltas": list(demon_deltas),
         "power_payout_x": str(round(min_x, 4)),
         "flex_payout_x": "",
         "source": "live_cdp",

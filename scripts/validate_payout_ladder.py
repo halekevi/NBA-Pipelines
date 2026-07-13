@@ -282,6 +282,45 @@ def enrich_pools_with_std_map(
     )
 
 
+def _live_covered_recipe_keys() -> set[str]:
+    """Composition|goblin_delta_sig keys already present in live CDP with a real floor."""
+    if not LADDER_LIVE.is_file():
+        return set()
+    try:
+        payload = json.loads(LADDER_LIVE.read_text(encoding="utf-8"))
+    except Exception:
+        return set()
+    rows = payload.get("rows") if isinstance(payload, dict) else payload
+    covered: set[str] = set()
+    if not isinstance(rows, list):
+        return covered
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        if str(r.get("source") or "").lower() not in ("", "live_cdp"):
+            continue
+        try:
+            px = float(r.get("power_payout_x") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not (px > 0):
+            continue
+        comp = str(r.get("leg_composition") or "").strip()
+        raw = r.get("goblin_deltas")
+        if isinstance(raw, list):
+            if raw and all(isinstance(x, str) and len(x) <= 1 for x in raw):
+                raw = "".join(raw)
+            elif all(isinstance(x, (int, float)) for x in raw):
+                raw = "+".join(f"{float(x):g}" for x in raw)
+            else:
+                raw = ",".join(str(x) for x in raw)
+        g_sig = _norm_delta_sig(str(raw or ""))
+        if not g_sig and ("+0G+" in comp or comp.endswith("0G+0D") or "G" not in comp):
+            g_sig = ""
+        covered.add(f"{comp}|{g_sig}")
+    return covered
+
+
 def build_discovery_recipes_from_board(
     *,
     standard: list[dict],
@@ -289,12 +328,14 @@ def build_discovery_recipes_from_board(
     demons: list[dict],
     max_cases: int = 80,
     exhaustive: bool = True,
+    prefer_missing_live: bool = True,
 ) -> list[dict[str, Any]]:
     """
     Enumerate S/G mixes × Goblin-Δ signatures available on the board.
 
     exhaustive=True: all fillable (composition, Δ multiset) pairs, prioritized
     for coverage; truncated to max_cases.
+    prefer_missing_live=True: recipes not yet in payout_ladder_live_cdp.json first.
     """
 
     def _ok_card(c: dict) -> bool:
@@ -383,27 +424,42 @@ def build_discovery_recipes_from_board(
 
         # 2G: every unordered pair of bins (incl. same-same already covered).
         for a, b in combinations(known_deltas, 2):
-            for n_s in (0, 1, 2, 3):
+            for n_s in (0, 1, 2, 3, 4):
                 _add(n_s, 2, g_deltas=[a, b])
 
         if exhaustive:
             # 3G: combinations with replacement across bins (fillable only).
             for trio in combinations_with_replacement(known_deltas, 3):
-                for n_s in (0, 1, 2):
+                for n_s in (0, 1, 2, 3):
                     _add(n_s, 3, g_deltas=list(trio))
-            # 4G: same-Δ already covered; add a few mixed quads from top bins.
-            top = known_deltas[:8]
+            # 4G: mixed quads from top bins.
+            top = known_deltas[:10]
             for quad in combinations_with_replacement(top, 4):
-                # Skip all-same (already in uniform).
                 if len(set(quad)) == 1:
                     continue
-                _add(0, 4, g_deltas=list(quad))
+                for n_s in (0, 1, 2):
+                    _add(n_s, 4, g_deltas=list(quad))
+            # 5G / 6G: uniform already covered; add mixed from top bins.
+            for n_g in (5, 6):
+                for combo in combinations_with_replacement(known_deltas[:6], n_g):
+                    if len(set(combo)) == 1:
+                        continue
+                    _add(0, n_g, g_deltas=list(combo))
+                    if n_g == 5:
+                        _add(1, n_g, g_deltas=list(combo))
 
-    # De-dupe; prefer Δ-tagged, then fewer legs, then more standards (baselines).
+    covered = _live_covered_recipe_keys() if prefer_missing_live else set()
+    if covered:
+        print(f"[discover] already-live recipe keys={len(covered)} (prefer missing first)")
+
+    # De-dupe; prefer missing-live, Δ-tagged, fewer legs, more standards.
     seen: set[str] = set()
     uniq: list[dict[str, Any]] = []
     recipes.sort(
         key=lambda r: (
+            0
+            if f"{r.get('composition')}|{r.get('goblin_delta_sig') or ''}" not in covered
+            else 1,
             0 if r.get("goblin_delta_sig") else 1,
             0 if int(r.get("n_goblin") or 0) == 0 else 1,  # pure-S baselines early
             int(r.get("n_legs") or 99),
@@ -420,20 +476,33 @@ def build_discovery_recipes_from_board(
         uniq.append(r)
 
     total = len(uniq)
+    n_missing = sum(
+        1
+        for r in uniq
+        if f"{r.get('composition')}|{r.get('goblin_delta_sig') or ''}" not in covered
+    )
     if max_cases > 0 and len(uniq) > max_cases:
-        baselines = [r for r in uniq if not r.get("goblin_delta_sig")]
-        tagged = [r for r in uniq if r.get("goblin_delta_sig")]
-        # Round-robin across primary Goblin Δ so one bin (e.g. 1.0) cannot dominate.
+        missing = [
+            r
+            for r in uniq
+            if f"{r.get('composition')}|{r.get('goblin_delta_sig') or ''}" not in covered
+        ]
+        already = [
+            r
+            for r in uniq
+            if f"{r.get('composition')}|{r.get('goblin_delta_sig') or ''}" in covered
+        ]
+        # Round-robin missing first across primary Goblin Δ.
         by_bin: dict[float | str, list[dict[str, Any]]] = {}
-        for r in tagged:
+        for r in missing:
             parts = [
                 float(x)
                 for x in str(r.get("goblin_delta_sig") or "").split("+")
                 if x.strip()
             ]
-            primary: float | str = parts[0] if parts else "other"
+            primary: float | str = parts[0] if parts else ("baseline" if not r.get("goblin_delta_sig") else "other")
             by_bin.setdefault(primary, []).append(r)
-        ordered: list[dict[str, Any]] = list(baselines)
+        ordered: list[dict[str, Any]] = []
         bins = sorted(by_bin.keys(), key=lambda x: (isinstance(x, str), x))
         idx = {b: 0 for b in bins}
         while len(ordered) < max_cases and any(idx[b] < len(by_bin[b]) for b in bins):
@@ -448,11 +517,14 @@ def build_discovery_recipes_from_board(
                         break
             if not progressed:
                 break
+        if len(ordered) < max_cases:
+            ordered.extend(already[: max_cases - len(ordered)])
         uniq = ordered[:max_cases]
 
     print(
         f"[discover] planned recipes={len(uniq)}/{total} "
-        f"(exhaustive={exhaustive}, from board Δ bins + S/G mixes)"
+        f"(exhaustive={exhaustive}, missing_live≈{n_missing}, "
+        f"from board Δ bins + S/G mixes)"
     )
     return uniq
 
@@ -877,6 +949,100 @@ def scrape_board_pools(
                     standard.append(c2)
         goblins.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
         demons.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
+
+        # Harvest Goblin faces via alt-line swap when the board shows mostly Standard.
+        if len(goblins) < 6 and standard:
+            try:
+                frame = cpd.find_prizepicks_frame(page)
+                cpd.dismiss_modal(frame, page)
+                harvested = 0
+                for cand in standard[:18]:
+                    if harvested >= 12:
+                        break
+                    if not cand.get("has_alt_lines"):
+                        continue
+                    player = str(cand.get("player") or "")
+                    prop = str(cand.get("prop_type") or "")
+                    try:
+                        std_line = float(cand.get("line") or cand.get("standard_line") or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if std_line <= 0 or not player or not prop:
+                        continue
+                    btn, _card = cpd._rebind_more_btn(frame, player, prop)
+                    if btn is None:
+                        continue
+                    cycled = cpd.cycle_card_to_pick_type(
+                        frame,
+                        btn,
+                        player=player,
+                        prop=prop,
+                        want_pick="goblin",
+                        want_line=None,
+                        require_line=False,
+                        max_clicks=4,
+                    )
+                    if not cycled:
+                        continue
+                    try:
+                        g_line = float(cycled.get("line") or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if g_line <= 0 or g_line >= std_line:
+                        try:
+                            btn2, _ = cpd._rebind_more_btn(frame, player, prop)
+                            if btn2 is not None:
+                                cpd.cycle_card_to_pick_type(
+                                    frame,
+                                    btn2,
+                                    player=player,
+                                    prop=prop,
+                                    want_pick="standard",
+                                    want_line=std_line,
+                                    require_line=False,
+                                    max_clicks=4,
+                                )
+                        except Exception:
+                            pass
+                        continue
+                    g_card = {
+                        **cand,
+                        "line": g_line,
+                        "pick_type": "goblin",
+                        "standard_line": std_line,
+                        "line_distance": abs(g_line - std_line),
+                        "has_alt_lines": True,
+                        "league": cand.get("league") or cand.get("sport"),
+                        "sport": cand.get("sport") or cand.get("league"),
+                    }
+                    goblins.append(g_card)
+                    harvested += 1
+                    try:
+                        btn3, _ = cpd._rebind_more_btn(frame, player, prop)
+                        if btn3 is not None:
+                            cpd.cycle_card_to_pick_type(
+                                frame,
+                                btn3,
+                                player=player,
+                                prop=prop,
+                                want_pick="standard",
+                                want_line=std_line,
+                                require_line=False,
+                                max_clicks=4,
+                            )
+                    except Exception:
+                        pass
+                    page.wait_for_timeout(400)
+                goblins.sort(
+                    key=lambda c: (
+                        0 if c.get("line_distance") is not None else 1,
+                        str(c.get("player") or ""),
+                    )
+                )
+                print(f"[validate] alt-line harvest goblins=+{harvested} total_G={len(goblins)}")
+            except Exception as e:
+                print(f"[validate] WARN: alt-line goblin harvest failed: {e}")
+
         print(f"[validate] pools standard={len(standard)} goblin={len(goblins)} demon={len(demons)}")
         return standard, goblins, demons
     finally:
@@ -1199,21 +1365,30 @@ def main() -> int:
 
         # Prefer step1 when it has rich Goblin-Δ coverage (tomorrow slate). Sport must be correct
         # so CDP navigates to WNBA/MLB — not NBA (substring bug previously).
-        if skip_cdp_scrape or int(step1_meta.get("n_goblin_with_delta") or 0) >= 10:
+        #
+        # CRITICAL: never replace CDP click pools with step1-only players when we already
+        # scraped the live board — those names/lines often are not clickable → 0/N captures.
+        if skip_cdp_scrape:
             print(
-                f"[discover] using step1 pools for Δ coverage "
+                f"[discover] using step1 pools (CDP scrape skipped) "
                 f"(S={len(s1)} G={len(g1)} withΔ={step1_meta.get('n_goblin_with_delta')}) sport={sport}"
             )
             standard, goblins, demons = _simple_first(s1), _simple_first(g1), _simple_first(d1)
-        elif g_with_delta < 3 and len(g1) >= 3:
-            print(
-                f"[discover] CDP Goblin Δ sparse; falling back to step1 pools sport={sport}"
-            )
-            standard, goblins, demons = _simple_first(s1), _simple_first(g1), _simple_first(d1)
         else:
+            # Keep CDP faces for clicking; step1 only enriched Δ above.
             standard = [{**c, "sport": sport, "league": sport} for c in standard]
             goblins = [{**c, "sport": sport, "league": sport} for c in goblins]
             demons = [{**c, "sport": sport, "league": sport} for c in demons]
+            print(
+                f"[discover] click pools from live CDP board "
+                f"(S={len(standard)} G={len(goblins)} withΔ={g_with_delta} D={len(demons)}; "
+                f"step1 withΔ={step1_meta.get('n_goblin_with_delta')} used for enrich only)"
+            )
+            if g_with_delta < 3:
+                print(
+                    "[discover] WARN: few Goblin-Δ faces on board — "
+                    "coverage limited until alt-line cycle expands Goblins"
+                )
         # Persist inventory for the slate.
         inv_path = REPORTS_DIR / f"payout_board_inventory_{date_str}.json"
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)

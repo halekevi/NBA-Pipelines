@@ -2133,13 +2133,20 @@ border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spa
 .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff;background:rgba(255,255,255,0.07)}
 .slate-sport-jump-btn.active{color:var(--gold);border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);box-shadow:0 0 14px rgba(240,165,0,0.12)}
 .slate-sport-jump-btn .sj-meta{opacity:0.7;font-size:11px}
-.sport-view-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:0}
-.sport-view-tab{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.55);border-radius:10px;padding:7px 12px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px}
-.sport-view-tab:hover{color:rgba(255,255,255,0.88);border-color:rgba(255,255,255,0.18)}
-.sport-view-tab.active{color:var(--gold);border-color:rgba(240,165,0,0.5);background:rgba(240,165,0,0.1)}
+.sport-view-tabs{display:inline-flex;flex-wrap:wrap;gap:0;margin:0 0 14px;padding:3px;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:52px;z-index:30}
+.sport-view-tab{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 14px;min-height:34px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px}
+.sport-view-tab:hover{color:rgba(255,255,255,0.9)}
+.sport-view-tab.active{color:#0a0a14;background:var(--gold);box-shadow:0 4px 14px rgba(240,165,0,0.25)}
 .sport-view-panel{display:none}
 .sport-view-panel.active{display:block}
 .sport-section-body.sport-view-tabbed{padding-top:10px}
+.slate-day-glance{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03)}
+.slate-day-glance-kicker{font-family:'Bebas Neue',sans-serif;letter-spacing:1.8px;font-size:12px;color:rgba(255,255,255,0.45)}
+.slate-day-glance-stat{display:inline-flex;align-items:baseline;gap:6px;font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.78)}
+.slate-day-glance-stat strong{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--gold);font-weight:400}
+.slate-day-glance-hint{margin-left:auto;font-size:12px;color:rgba(255,255,255,0.45)}
+.sport-expand-hint{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.04em;color:rgba(255,255,255,0.38);margin-left:8px;white-space:nowrap}
+.sport-collapsible[open]>summary .sport-expand-hint{display:none}
 .grades-sport-bucket{border:1px solid var(--glass-bd);border-radius:14px;padding:0;background:var(--glass);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 4px 24px rgba(0,0,0,.18);margin-bottom:16px;overflow:hidden}
 .grades-sport-bucket>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:'Bebas Neue',sans-serif;letter-spacing:1.6px;font-size:clamp(18px,1.6vw,28px);color:var(--gold)}
 .grades-sport-bucket>summary::-webkit-details-marker{display:none}

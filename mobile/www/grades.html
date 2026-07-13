@@ -718,18 +718,19 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 }
 /* tabs — glass, gold active */
 .tabs-bar{
-  flex-shrink:0;margin:2px 0 0;padding:6px 10px;display:flex;gap:8px;align-items:center;min-height:40px;z-index:90;position:relative;
+  flex-shrink:0;margin:2px 0 0;padding:4px;display:flex;gap:4px;align-items:center;min-height:40px;z-index:90;position:relative;
   font-family:'Inter',sans-serif;
   background:var(--glass-panel);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
   border:1px solid var(--glass-panel-border);border-radius:14px;box-shadow:var(--glass-shadow);
 }
-.tab-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;font-size:12px;letter-spacing:.55px;text-transform:uppercase;color:var(--muted2);background:rgba(255,255,255,0.03);border:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s,background .2s;white-space:nowrap;}
-.tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);}
+.tab-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:10px;font-size:12px;letter-spacing:.55px;text-transform:uppercase;color:var(--muted2);background:transparent;border:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s,background .2s;white-space:nowrap;flex:1 1 0;min-width:0;}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+.tab-btn:focus-visible{outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;}
 .tab-btn.active{
   color:var(--accent-gold);
-  border-color:rgba(212,160,23,0.55);
+  border-color:rgba(212,160,23,0.45);
   background:rgba(212,160,23,0.12);
-  box-shadow:0 0 22px rgba(212,160,23,0.15),inset 0 -2px 0 var(--accent-gold);
+  box-shadow:inset 0 -2px 0 var(--accent-gold);
 }
 .tab-icon{width:16px;height:16px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;}
 .tab-btn.active .tab-icon{filter:drop-shadow(0 0 8px rgba(240,165,0,0.45));}
@@ -738,6 +739,9 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 @media (max-width:1100px){
   .tab-label-full{display:none;}
   .tab-label-short{display:inline;}
+}
+.date-nav-btn:focus-visible,.date-go-btn:focus-visible,.dpill:focus-visible{
+  outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;
 }
 .ticket-track-bar{
   flex-shrink:0;margin:6px 0 0;padding:0;display:none;gap:16px;align-items:center;flex-wrap:wrap;
@@ -1650,7 +1654,7 @@ select option,
     <div class="grades-props-inner">
       <div class="glass-insights props-eval-intro">
         <h3 class="insights-card-title">Prop evaluation</h3>
-        <p class="insights-card-sub">Every graded prop for the report date (hit / miss / other). When <code>graded_props_YYYY-MM-DD.json</code> is deployed under <code>ui_runner/templates/</code> (written by <code>build_grades_html.py</code>), this tab loads from that file. Otherwise it uses archived rows from <code>props_history</code> in <code>data/cache/*_props_history.db</code>. The date must match the <strong>slate grade date</strong> (same <code>YYYY-MM-DD</code> as <code>outputs/&lt;date&gt;/</code>). Use <strong>Jump to date</strong> if pills default to the wrong year.</p>
+        <p class="insights-card-sub">Graded props for the selected report date. Filter by sport, result, or pick type — or search a player.</p>
         <div class="props-eval-toolbar">
           <div class="props-eval-filter-row">
             <span class="props-eval-filter-label">Sport</span>
@@ -2789,42 +2793,71 @@ function ensureFrameCollapseCss(doc) {
     .def-subgrid-n,.def-tier-subgrid-table td > span[style*="font-size:10px"]{font-size:11px!important;color:rgba(255,255,255,0.62)!important;font-weight:500!important}
     .def-subgrid-empty,.def-tier-subgrid-table td[style*="color:var(--color-text-tertiary"]{color:rgba(255,255,255,0.38)!important}
     .def-subgrid-total-row td,.def-tier-subgrid-table tbody tr:nth-child(odd) td{background:transparent!important}
-    /* v20260713org — sport jump rail + in-sport tabs (hub organized layout). */
+    /* v20260713ux — friendlier sport jump, segment tabs, clearer sport rows. */
+    .slate-day-glance{
+      display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+      margin:0 0 12px;padding:12px 14px;border-radius:14px;
+      border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);
+    }
+    .slate-day-glance-kicker{
+      font-family:'Bebas Neue',sans-serif;letter-spacing:1.8px;font-size:12px;color:rgba(255,255,255,0.45);
+    }
+    .slate-day-glance-stat{
+      display:inline-flex;align-items:baseline;gap:6px;
+      font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.78);
+    }
+    .slate-day-glance-stat strong{
+      font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:#f0a500;font-weight:400;
+    }
+    .slate-day-glance-hint{
+      margin-left:auto;font-size:12px;color:rgba(255,255,255,0.45);
+    }
     .slate-sport-jump{
       position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
-      padding:8px 0 12px;margin:0 0 10px;background:rgba(10,10,20,0.92);
-      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      padding:8px 0 12px;margin:0 0 12px;background:rgba(10,10,20,0.94);
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
       border-bottom:1px solid rgba(255,255,255,0.06);
     }
     .slate-sport-jump-label{
       font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.6px;color:rgba(255,255,255,0.45);
-      margin-right:4px;
+      margin-right:2px;
     }
     .slate-sport-jump-btn{
       appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);
-      color:rgba(255,255,255,0.72);border-radius:999px;padding:6px 11px;cursor:pointer;
-      font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:6px;
+      color:rgba(255,255,255,0.78);border-radius:999px;padding:8px 12px;min-height:36px;cursor:pointer;
+      font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:8px;
+      transition:border-color .15s,background .15s,color .15s,box-shadow .15s;
     }
-    .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff;background:rgba(255,255,255,0.07);}
+    .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.22);color:#fff;background:rgba(255,255,255,0.07);}
+    .slate-sport-jump-btn:focus-visible{outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;}
     .slate-sport-jump-btn.active{
       color:#f0a500;border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);
       box-shadow:0 0 14px rgba(240,165,0,0.12);
     }
-    .slate-sport-jump-btn .sj-meta{opacity:0.7;font-size:11px;}
+    .slate-sport-jump-btn .sj-title{font-weight:600;}
+    .slate-sport-jump-btn .sj-meta{opacity:0.72;font-size:11px;font-variant-numeric:tabular-nums;}
     .sport-view-tabs{
-      display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding:0;
+      display:inline-flex;flex-wrap:wrap;gap:0;margin:0 0 14px;padding:3px;
+      border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);
+      position:sticky;top:52px;z-index:30;
     }
     .sport-view-tab{
-      appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.03);
-      color:rgba(255,255,255,0.55);border-radius:10px;padding:7px 12px;cursor:pointer;
+      appearance:none;border:none;background:transparent;
+      color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 14px;min-height:34px;cursor:pointer;
       font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px;
+      transition:color .15s,background .15s;
     }
-    .sport-view-tab:hover{color:rgba(255,255,255,0.88);border-color:rgba(255,255,255,0.18);}
+    .sport-view-tab:hover{color:rgba(255,255,255,0.9);}
+    .sport-view-tab:focus-visible{outline:2px solid rgba(240,165,0,0.5);outline-offset:1px;}
     .sport-view-tab.active{
-      color:#f0a500;border-color:rgba(240,165,0,0.5);background:rgba(240,165,0,0.1);
+      color:#0a0a14;background:#f0a500;box-shadow:0 4px 14px rgba(240,165,0,0.25);
     }
     .sport-view-panel{display:none;}
-    .sport-view-panel.active{display:block;}
+    .sport-view-panel.active{display:block;animation:slatePanelIn .18s ease;}
+    @keyframes slatePanelIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion:reduce){
+      .sport-view-panel.active{animation:none;}
+    }
     .sport-view-panel details.matrix-collapsible{border:none;background:transparent;box-shadow:none;margin:0;}
     .sport-view-panel details.matrix-collapsible > summary{display:none!important;}
     .sport-view-panel details.matrix-collapsible[open] > .matrix-body,
@@ -2837,11 +2870,26 @@ function ensureFrameCollapseCss(doc) {
     .sport-meta-rate.is-hot{color:#5ef598;border-color:rgba(94,245,152,0.35);background:rgba(94,245,152,0.08);}
     .sport-meta-rate.is-cold{color:#ff7070;border-color:rgba(255,112,112,0.35);background:rgba(255,112,112,0.08);}
     .sport-meta-rate.is-mid{color:#f5c842;border-color:rgba(245,200,66,0.35);background:rgba(245,200,66,0.08);}
+    details.sport-collapsible > summary{
+      border-radius:10px;padding:4px 2px;transition:background .15s;
+    }
+    details.sport-collapsible > summary:hover{background:rgba(255,255,255,0.03);}
+    details.sport-collapsible > summary:focus-visible{outline:2px solid rgba(240,165,0,0.5);outline-offset:2px;}
+    .sport-expand-hint{
+      font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.04em;color:rgba(255,255,255,0.38);
+      margin-left:8px;white-space:nowrap;
+    }
+    details.sport-collapsible[open] > summary .sport-expand-hint{display:none;}
+    details.grades-sport-bucket > summary .sport-expand-hint{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.38);}
+    details.grades-sport-bucket[open] > summary .sport-expand-hint{display:none;}
     @media(max-width:768px){
+      .slate-day-glance{padding:10px 12px;gap:8px 10px;}
+      .slate-day-glance-hint{width:100%;margin-left:0;}
       .slate-sport-jump{gap:6px;padding:6px 0 10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
-      .slate-sport-jump-btn{flex:0 0 auto;white-space:nowrap;}
-      .sport-view-tabs{gap:5px;}
-      .sport-view-tab{padding:6px 10px;font-size:12px;}
+      .slate-sport-jump-btn{flex:0 0 auto;white-space:nowrap;min-height:40px;padding:8px 12px;}
+      .sport-view-tabs{top:46px;width:100%;}
+      .sport-view-tab{padding:8px 12px;font-size:12px;flex:1 1 auto;text-align:center;}
+      .sport-expand-hint{display:none;}
     }
   `;
 }
@@ -3039,6 +3087,126 @@ function tabifySlateSportBodies(doc) {
   });
 }
 
+function _slateCleanSportTitle(raw) {
+  return String(raw || '')
+    .replace(/\s+/g, ' ')
+    .replace(/▸|▾/g, '')
+    .trim();
+}
+
+function _slateCleanSportMeta(raw) {
+  return String(raw || '')
+    .replace(/\s+/g, ' ')
+    .replace(/TOTAL\s+PROPS/gi, 'props')
+    .replace(/\binsights\b/gi, '')
+    .trim();
+}
+
+function _slateSportIsCombined(title) {
+  return /all\s*sports|takeaways/i.test(String(title || ''));
+}
+
+function injectSlateDayGlance(doc) {
+  if (!doc) return;
+  const main = doc.querySelector('.main');
+  if (!main || main.querySelector(':scope > .slate-day-glance')) return;
+  const all = Array.from(
+    main.querySelectorAll(':scope > details.sport-collapsible, :scope > details.grades-sport-bucket')
+  ).find((d) => {
+    const t =
+      d.querySelector(':scope > summary .sport-label')?.textContent ||
+      d.querySelector(':scope > summary > span:first-child')?.textContent ||
+      d.querySelector(':scope > summary')?.textContent ||
+      '';
+    return /all\s*sports/i.test(t);
+  });
+  if (!all) return;
+  const meta =
+    all.querySelector(':scope > summary .sport-meta-count')?.textContent ||
+    all.querySelector(':scope > summary .grades-sport-meta')?.textContent ||
+    '';
+  const rateEl = all.querySelector(':scope > summary .sport-meta-rate');
+  const propsMatch = String(meta).match(/([\d,]+)\s*(?:TOTAL\s+)?PROPS/i);
+  const props = propsMatch ? propsMatch[1] : _slateCleanSportMeta(meta);
+  const rate = rateEl ? rateEl.textContent.trim() : '';
+
+  const glance = doc.createElement('div');
+  glance.className = 'slate-day-glance';
+  const kicker = doc.createElement('span');
+  kicker.className = 'slate-day-glance-kicker';
+  kicker.textContent = 'DAY SNAPSHOT';
+  glance.appendChild(kicker);
+  if (props) {
+    const st = doc.createElement('span');
+    st.className = 'slate-day-glance-stat';
+    const strong = doc.createElement('strong');
+    strong.textContent = props;
+    st.appendChild(strong);
+    st.appendChild(doc.createTextNode(' props graded'));
+    glance.appendChild(st);
+  }
+  if (rate) {
+    const st = doc.createElement('span');
+    st.className = 'slate-day-glance-stat';
+    const strong = doc.createElement('strong');
+    strong.textContent = rate;
+    st.appendChild(strong);
+    st.appendChild(doc.createTextNode(' hit rate'));
+    glance.appendChild(st);
+  }
+  const hint = doc.createElement('span');
+  hint.className = 'slate-day-glance-hint';
+  hint.textContent = 'Pick a sport below — one open at a time';
+  glance.appendChild(hint);
+  main.insertBefore(glance, main.firstChild);
+}
+
+function polishSlateSportSummaries(doc) {
+  if (!doc) return;
+  doc
+    .querySelectorAll(
+      '.main > details.sport-collapsible > summary, .main > details.grades-sport-bucket > summary'
+    )
+    .forEach((summary) => {
+      if (summary.querySelector('.sport-expand-hint')) return;
+      const hint = doc.createElement('span');
+      hint.className = 'sport-expand-hint';
+      hint.textContent = 'Tap to open';
+      summary.appendChild(hint);
+    });
+}
+
+function autoOpenPreferredSlateSport(doc) {
+  if (!doc) return;
+  const sports = Array.from(
+    doc.querySelectorAll(
+      '.main > details.sport-collapsible, .main > details.grades-sport-bucket'
+    )
+  ).filter((d) => {
+    const t =
+      d.querySelector(':scope > summary .sport-label')?.textContent ||
+      d.querySelector(':scope > summary > span:first-child')?.textContent ||
+      '';
+    return !_slateSportIsCombined(t);
+  });
+  if (!sports.length) return;
+  let remembered = '';
+  try {
+    remembered = sessionStorage.getItem('grades-open-sport') || '';
+  } catch (_e) {}
+  let target = remembered ? sports.find((d) => d.id === remembered) : null;
+  if (!target) target = sports[0];
+  sports.forEach((d) => {
+    d.open = d === target;
+  });
+  const nav = doc.querySelector('.slate-sport-jump');
+  if (nav && target) {
+    nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.target === target.id);
+    });
+  }
+}
+
 function injectSlateSportJumpNav(doc) {
   if (!doc) return;
   const main = doc.querySelector('.main');
@@ -3055,7 +3223,7 @@ function injectSlateSportJumpNav(doc) {
   nav.setAttribute('aria-label', 'Jump to sport');
   const label = doc.createElement('span');
   label.className = 'slate-sport-jump-label';
-  label.textContent = 'JUMP';
+  label.textContent = 'SPORTS';
   nav.appendChild(label);
 
   sports.forEach((det, idx) => {
@@ -3066,8 +3234,13 @@ function injectSlateSportJumpNav(doc) {
     const metaEl =
       det.querySelector(':scope > summary .sport-meta-count') ||
       det.querySelector(':scope > summary .grades-sport-meta');
-    const title = (titleEl?.textContent || `Sport ${idx + 1}`).replace(/\s+/g, ' ').trim();
-    const meta = (metaEl?.textContent || '').replace(/\s+/g, ' ').trim();
+    const rateEl = det.querySelector(':scope > summary .sport-meta-rate');
+    const title = _slateCleanSportTitle(titleEl?.textContent || `Sport ${idx + 1}`);
+    let meta = _slateCleanSportMeta(metaEl?.textContent || '');
+    if (rateEl && rateEl.textContent) {
+      const rt = rateEl.textContent.trim();
+      meta = meta ? `${meta} · ${rt}` : rt;
+    }
     const id = _slateSportAnchorId(title, idx);
     det.id = id;
 
@@ -3076,6 +3249,7 @@ function injectSlateSportJumpNav(doc) {
     btn.className = 'slate-sport-jump-btn';
     btn.dataset.target = id;
     const titleSpan = doc.createElement('span');
+    titleSpan.className = 'sj-title';
     titleSpan.textContent = title;
     btn.appendChild(titleSpan);
     if (meta) {
@@ -3092,6 +3266,9 @@ function injectSlateSportJumpNav(doc) {
         b.classList.toggle('active', b === btn);
       });
       try {
+        sessionStorage.setItem('grades-open-sport', id);
+      } catch (_e) {}
+      try {
         det.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (_e) {
         try { det.scrollIntoView(true); } catch (_e2) {}
@@ -3101,7 +3278,12 @@ function injectSlateSportJumpNav(doc) {
     nav.appendChild(btn);
   });
 
-  main.insertBefore(nav, main.firstChild);
+  const glance = main.querySelector(':scope > .slate-day-glance');
+  if (glance && glance.nextSibling) {
+    main.insertBefore(nav, glance.nextSibling);
+  } else {
+    main.insertBefore(nav, main.firstChild);
+  }
 }
 
 function bindSlateExclusiveSportAccordion(doc) {
@@ -3135,6 +3317,9 @@ function bindSlateExclusiveSportAccordion(doc) {
           b.classList.toggle('active', b.dataset.target === t.id);
         });
       }
+      try {
+        if (t.id) sessionStorage.setItem('grades-open-sport', t.id);
+      } catch (_e) {}
       _slateNotifyFrameHeight();
     },
     true
@@ -3144,16 +3329,16 @@ function bindSlateExclusiveSportAccordion(doc) {
 /** Hub-side slate organization: jump nav, in-sport tabs, one-open accordion. */
 function organizeSlateEvalEfficiency(doc) {
   if (!doc || doc.documentElement.dataset.slateOrg === '1') return;
-  if (doc.documentElement.dataset.slateLayout === 'v2') {
-    doc.documentElement.dataset.slateOrg = '1';
-    bindSlateExclusiveSportAccordion(doc);
-    injectSlateSportJumpNav(doc);
-    return;
-  }
   doc.documentElement.dataset.slateOrg = '1';
-  tabifySlateSportBodies(doc);
+  if (doc.documentElement.dataset.slateLayout !== 'v2') {
+    tabifySlateSportBodies(doc);
+  }
+  polishSlateSportSummaries(doc);
+  injectSlateDayGlance(doc);
   injectSlateSportJumpNav(doc);
   bindSlateExclusiveSportAccordion(doc);
+  autoOpenPreferredSlateSport(doc);
+  _slateNotifyFrameHeight();
 }
 
 /** Undo hub double-wrap when native <details.sport-collapsible> was nested inside grades-sport-bucket. */
@@ -3857,6 +4042,9 @@ function switchTab(tab) {
   try {
     window.__gradesActiveTab = tab;
   } catch (_eTab) {}
+  try {
+    localStorage.setItem('grades-active-tab', tab);
+  } catch (_ePersist) {}
   syncGradesTabStage(tab);
   syncTicketTrackBarVisibility();
   const gradeFrame = document.getElementById('grade-frame');
@@ -5260,9 +5448,17 @@ window.addEventListener('pageshow', function (ev) {
       try {
         window.setupGradesBarsScrollHide();
       } catch (_e) {}
-      if (qpTab === 'tickets' || qpTab === 'props') {
+      let startTab = qpTab;
+      if (!startTab) {
         try {
-          switchTab(qpTab);
+          startTab = (localStorage.getItem('grades-active-tab') || '').trim().toLowerCase();
+        } catch (_eLs) {
+          startTab = '';
+        }
+      }
+      if (startTab === 'tickets' || startTab === 'props' || startTab === 'players' || startTab === 'slate') {
+        try {
+          switchTab(startTab);
         } catch (_e2) {}
       }
     }, 0);

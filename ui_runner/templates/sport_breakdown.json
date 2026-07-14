@@ -24,10 +24,10 @@
     },
     {
       "sport": "WNBA",
-      "decided": 43649,
-      "paid": 19598,
-      "win_rate": 0.4489908130770464,
-      "net_dollars": -44530.0
+      "decided": 43989,
+      "paid": 19816,
+      "win_rate": 0.45047625542749326,
+      "net_dollars": -43570.0
     },
     {
       "sport": "MLB",
@@ -133,10 +133,10 @@
     {
       "sport": "WNBA",
       "month": "2026-07",
-      "decided": 4210,
-      "paid": 2391,
-      "win_rate": 0.5679334916864608,
-      "net_dollars": 5720.0
+      "decided": 4550,
+      "paid": 2609,
+      "win_rate": 0.5734065934065934,
+      "net_dollars": 6680.0
     },
     {
       "sport": "WNBA",
@@ -300,6 +300,6 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=140:mt=1783995305883507800",
-  "updated_at": "2026-07-14T02:21:15Z"
+  "signature": "n=141:mt=1784020120001761700",
+  "updated_at": "2026-07-14T09:12:51Z"
 }

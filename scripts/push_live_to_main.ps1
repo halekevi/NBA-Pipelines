@@ -4,10 +4,10 @@
   Publish live Railway-facing tickets/slate JSON (and optional code paths) to origin/main.
 
 .DESCRIPTION
-  Railway + raw.githubusercontent.com/.../main serve production. This script always
-  commits on a checked-out main tip, then restores the prior branch.
-  Used by operators after CombinedOnly rebuilds; daily automation uses STEP E in
-  scripts/run_daily.ps1 (same main-checkout rule).
+  Railway + raw.githubusercontent.com/.../main serve production. This always commits
+  on the worktree that has `main` checked out (this repo or a linked worktree such as
+  PropORACLE_main_cp), then leaves the caller branch untouched.
+  Daily automation uses STEP E in scripts/run_daily.ps1 (same main-worktree rule).
 #>
 param(
     [string]$CommitMessage = "",
@@ -18,6 +18,28 @@ param(
 $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 Set-Location $Root
+
+function Get-MainWorktreeRoot {
+    param([string]$RepoRoot)
+    $porcelain = git -C $RepoRoot worktree list --porcelain 2>$null
+    if (-not $porcelain) { return $RepoRoot }
+    $wt = $null
+    foreach ($line in $porcelain) {
+        if ($line -match '^worktree (.+)$') {
+            $wt = $Matches[1].Trim()
+        }
+        elseif ($line -match '^branch refs/heads/main$' -and $wt) {
+            return $wt
+        }
+        elseif ($line -eq "") {
+            $wt = $null
+        }
+    }
+    # Fallback: current checkout if already on main
+    $br = (git -C $RepoRoot rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+    if ($br -eq "main") { return $RepoRoot }
+    return $null
+}
 
 $liveRel = @(
     "ui_runner/templates/tickets_latest.json",
@@ -56,35 +78,24 @@ if (-not $toPublish.Count) {
     exit 0
 }
 
-$tmp = Join-Path $env:TEMP ("proporacle_push_live_" + [guid]::NewGuid().ToString("N"))
-New-Item -ItemType Directory -Path $tmp -Force | Out-Null
-$prevBranch = $null
+$MainRoot = Get-MainWorktreeRoot -RepoRoot $Root
+if (-not $MainRoot) {
+    throw "No worktree has 'main' checked out. Open PropORACLE_main_cp (or checkout main) then retry."
+}
+Write-Host "Publishing into main worktree: $MainRoot" -ForegroundColor Cyan
+
 $stashed = $false
 try {
-    foreach ($rel in $toPublish) {
-        $src = Join-Path $Root ($rel -replace "/", "\")
-        $dst = Join-Path $tmp ($rel -replace "/", "\")
-        New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-        Copy-Item -LiteralPath $src -Destination $dst -Force
-    }
-
-    $prevBranch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
-    if (-not $prevBranch) { $prevBranch = "HEAD" }
-
+    Push-Location $MainRoot
     if (git status --porcelain) {
         git stash push -m "proporacle-push-live-temp" 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $stashed = $true }
     }
-
-    if ($prevBranch -ne "main") {
-        git checkout main
-        if ($LASTEXITCODE -ne 0) { throw "Cannot checkout main" }
-    }
     git pull --ff-only origin main
 
     foreach ($rel in $toPublish) {
-        $src = Join-Path $tmp ($rel -replace "/", "\")
-        $dst = Join-Path $Root ($rel -replace "/", "\")
+        $src = Join-Path $Root ($rel -replace "/", "\")
+        $dst = Join-Path $MainRoot ($rel -replace "/", "\")
         New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
         Copy-Item -LiteralPath $src -Destination $dst -Force
         git add -f -- $rel
@@ -105,10 +116,6 @@ try {
     }
 }
 finally {
-    $cur = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
-    if ($prevBranch -and $prevBranch -ne "main" -and $prevBranch -ne "HEAD" -and $cur -eq "main") {
-        git checkout $prevBranch 2>&1 | Out-Null
-    }
     if ($stashed) { git stash pop 2>&1 | Out-Null }
-    Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
+    Pop-Location
 }

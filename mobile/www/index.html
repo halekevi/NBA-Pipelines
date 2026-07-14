@@ -1,20 +1,41 @@
 ﻿<!DOCTYPE html>
-<html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}" data-deploy-sha="{{ deploy_git_sha|default('', true) }}">
+<html lang="en" data-theme="dark" data-ui-build="" data-deploy-sha="">
 <head>
+
+<script>
+async function fetch_smart(localPath) {
+  // If we have a remote override URL for this file type, prefer it
+  let remoteUrl = null;
+  if (localPath === 'slate_latest.json' && window.SLATE_JSON_URL) remoteUrl = window.SLATE_JSON_URL;
+  if (localPath === 'tickets_latest.json' && window.TICKETS_JSON_URL) remoteUrl = window.TICKETS_JSON_URL;
+
+  if (remoteUrl) {
+    try {
+      const resp = await fetch(remoteUrl, { cache: 'no-store' });
+      if (resp.ok) return resp;
+    } catch (e) {
+      console.warn("SmartFetch remote failed, falling back to local:", localPath, e);
+    }
+  }
+  return fetch(localPath, { cache: 'no-store' });
+}
+</script>
+
+<script defer src="static/proporacle-ota.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <script>(function(){try{var t=localStorage.getItem('proporacle-theme')||localStorage.getItem('theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
 <meta name="theme-color" content="#050505"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="proporacle-build" content="{{ ui_build_id|default('', true) }}"/>
+<meta name="proporacle-build" content=""/>
 <meta property="og:title" content="PropOracle — Home"/>
 <title>PropOracle — Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/static/global-scrollbar.css?v=20260531scroll"/>
-<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="/static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
+<link rel="stylesheet" href="static/global-scrollbar.css?v=20260531scroll"/>
+<link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
+<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
 <style>
 :root{
   /* Hybrid liquid-glass palette */
@@ -1061,11 +1082,11 @@ body > nav.snav.glass-card {
 }
 
 </style>
-<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260525shell98"/>
-<link rel="stylesheet" href="/static/matchup-edge.css?v=20260528"/>
-<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260408"/>
-<link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
+<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260525shell98"/>
+<link rel="stylesheet" href="static/matchup-edge.css?v=20260528"/>
+<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
+<link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
 </head>
 <body>
 
@@ -1080,8 +1101,51 @@ body > nav.snav.glass-card {
 <div class="mesh-bg" aria-hidden="true"></div>
 <div class="grain-layer" aria-hidden="true"></div>
 
-{% set nav_active = 'home' %}
-{% include '_site_nav.html' %}
+
+
+
+
+<nav class="snav glass-card">
+  <div class="nav-accent"></div>
+  <a class="snav-brand" href="index.html">
+    <div class="hybrid-logo">
+      <img src="static/proporacle-logo-v3.png?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
+      <span class="nav-brand brand-wordmark"><span class="wb-first">Prop</span><span class="oracle-word gold-shimmer">Oracle</span></span>
+    </div>
+  </a>
+  <ul class="snav-links nav-links" id="nav-links">
+    <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
+    <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
+    <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
+    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
+  </ul>
+  <div class="snav-right">
+    <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
+      <span class="tt-icon tt-moon">🌙</span>
+      <span class="tt-icon tt-sun" style="display:none">☀️</span>
+    </button>
+    <div class="nav-live-cluster">
+      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; </div>
+      <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
+        <div class="nav-slate-date" id="slate-date">—</div>
+        <div class="nav-sync-line">
+          <span id="nav-local-datetime" class="nav-local-datetime">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="hamburger" type="button" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="index.html" class="">🏠 Home</a>
+  <a href="tickets.html" class="">🎟 Tickets</a>
+  <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
+  <a href="income.html" class="">📈 Income</a>
+  <a href="payout.html" class="">💰 Payouts</a>
+</div>
+
 
 <div class="shell">
 
@@ -2188,7 +2252,245 @@ body > nav.snav.glass-card {
   <details class="home-cat" id="hot-players-cat">
     <summary><span class="home-cat-title">Hot <span>Players</span></span></summary>
     <div class="home-cat-body">
-      {% include '_hot_players_section.html' %}
+      <section class="hot-players-section" id="hot-players-section" style="display:none" aria-label="Hot players on today's slate">
+  <div class="hot-players-header">
+    <span class="hot-players-title">Hot <span>Players</span></span>
+    <span class="hot-players-badge">TODAY</span>
+    <span class="hot-players-updated" id="hot-players-updated"></span>
+  </div>
+  <div id="hot-track-wrap" class="hot-track-wrap" style="display:none" aria-label="Yesterday's Hot Players results">
+    <div class="hot-track-header">
+      <span class="hot-track-label" id="hot-track-label">Yesterday</span>
+      <span class="hot-track-summary" id="hot-track-summary"></span>
+    </div>
+    <div class="hot-players-scroll hot-players-grid hot-track-grid" id="hot-track-scroll"></div>
+  </div>
+  <div id="hot-sport-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+  <div class="hot-players-scroll hot-players-grid" id="hot-players-scroll"></div>
+  <div class="hot-players-empty" id="hot-players-empty" style="display:none">
+    No players on today's slate yet — check back after the daily pipeline runs.
+  </div>
+</section>
+
+<script>
+(function () {
+  const API = '/api/hot-players?limit=8&_v=2';
+  const TRACK_API = '/api/hot-players/track-record';
+  const SECTION = document.getElementById('hot-players-section');
+  const SCROLL = document.getElementById('hot-players-scroll');
+  const FILTERS = document.getElementById('hot-sport-filters');
+  const EMPTY = document.getElementById('hot-players-empty');
+  const UPDATED = document.getElementById('hot-players-updated');
+  const TRACK_WRAP = document.getElementById('hot-track-wrap');
+  const TRACK_SCROLL = document.getElementById('hot-track-scroll');
+  const TRACK_LABEL = document.getElementById('hot-track-label');
+  const TRACK_SUMMARY = document.getElementById('hot-track-summary');
+  if (!SECTION || !SCROLL) return;
+
+  let allCardsBySport = {};
+  let activeSport = 'ALL';
+
+  function dirClass(d) {
+    return d === 'OVER' ? 'over' : d === 'UNDER' ? 'under' : 'both';
+  }
+  function fmtPct(v) {
+    return v != null ? (v * 100).toFixed(1) + '%' : '—';
+  }
+  function tierDot(tier) {
+    const colors = { high: 'var(--green,#9fd8a7)', medium: 'var(--amber,#c89a4a)', low: 'var(--muted2,#8b8b99)' };
+    return '<span title="Confidence: ' + tier + '" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:' + (colors[tier] || colors.low) + ';margin-right:3px;vertical-align:middle"></span>';
+  }
+
+  function resolveBestProp(p) {
+    const dp = p.display_prop;
+    if (dp && dp.prop_type) return dp;
+    const bp = p.best_prop;
+    if (bp && bp.prop_type) return bp;
+    const list = p.best_props;
+    if (Array.isArray(list) && list.length && list[0].prop_type) return list[0];
+    return null;
+  }
+
+  function gradeBadge(result) {
+    const r = String(result || '').toUpperCase();
+    if (!r || r === 'PENDING' || r === 'NO_MATCH') return '';
+    const cls = r === 'HIT' ? 'hit' : (r === 'MISS' ? 'miss' : 'void');
+    return '<span class="card-grade-badge ' + cls + '">' + r + '</span>';
+  }
+
+  function bestPropBlock(p, opts) {
+    opts = opts || {};
+    const bp = resolveBestProp(p);
+    if (!bp || !bp.prop_type) {
+      const dir = (p.direction || 'BOTH').toString().toUpperCase();
+      return '<div class="card-best-prop card-best-prop--empty">' +
+        '<div class="card-prop-name card-prop-muted">Mixed props</div>' +
+        '<div class="card-best-prop-row">' +
+        '<span class="card-dir-badge ' + dirClass(dir) + '">' + (dir === 'BOTH' ? '—' : dir) + '</span>' +
+        '</div></div>';
+    }
+    const dir = bp.direction || '';
+    const tip = (bp.prop_type || '') + ' ' + dir + ' — ' + fmtPct(bp.hit_rate) + ' (' + (bp.total || 0) + ' props)';
+    let lineMeta = '';
+    if (opts.showLine && p.slate_line != null) {
+      lineMeta = '<div class="card-slice-meta">Line ' + p.slate_line + (p.actual != null ? ' · actual ' + p.actual : '') + '</div>';
+    } else {
+      lineMeta = '<div class="card-slice-meta">' + (bp.hits || 0) + '/' + (bp.total || 0) + ' on this prop</div>';
+    }
+    return '<div class="card-best-prop" title="' + tip + '">' +
+      '<div class="card-prop-name">' + (bp.prop_type || '') + '</div>' +
+      '<div class="card-best-prop-row">' +
+      '<span class="card-dir-badge ' + dirClass(dir) + '">' + dir + '</span>' +
+      '<span class="card-slice-rate">' + fmtPct(bp.hit_rate) + '</span>' +
+      '</div>' +
+      lineMeta +
+      '</div>';
+  }
+
+  function buildCard(p, opts) {
+    opts = opts || {};
+    const slate = p.on_today_slate ? '<span class="card-on-slate" title="On today\'s slate"></span>' : '';
+    const bp = resolveBestProp(p);
+    const rateLabel = bp && bp.prop_type
+      ? tierDot(p.tier) + 'overall · ' + (p.total || 0) + ' props'
+      : tierDot(p.tier) + 'hit rate · ' + (p.total || 0) + ' props';
+    const tip = (p.player || '') + ' — ' + (p.sport || '') +
+      (bp && bp.prop_type ? ' · best: ' + bp.prop_type + ' ' + (bp.direction || '') : '') +
+      (p.result ? ' · ' + p.result : '');
+    return '<div class="hot-player-card' + (opts.graded ? ' hot-player-card--graded' : '') + '" data-sport="' + (p.sport || '') + '" title="' + tip + '">' +
+      slate +
+      gradeBadge(p.result) +
+      '<div class="card-sport">' + (p.sport || '') + '</div>' +
+      '<div class="card-name">' + (p.player || '') + '</div>' +
+      '<div class="card-rate">' + fmtPct(p.hit_rate) + '</div>' +
+      '<div class="card-rate-label">' + rateLabel + '</div>' +
+      bestPropBlock(p, opts) +
+      '</div>';
+  }
+
+  function renderCards(sport) {
+    SCROLL.innerHTML = '';
+    const list = sport === 'ALL' ? Object.values(allCardsBySport).flat() : (allCardsBySport[sport] || []);
+    if (!list.length) {
+      EMPTY.style.display = '';
+      SCROLL.style.display = 'none';
+      return;
+    }
+    EMPTY.style.display = 'none';
+    SCROLL.style.display = 'grid';
+    SCROLL.innerHTML = list.map(function (p) { return buildCard(p); }).join('');
+  }
+
+  function buildFilters(sports) {
+    const allSports = ['ALL'].concat(sports);
+    FILTERS.innerHTML = allSports.map(function (s) {
+      return '<button type="button" class="hot-sport-pill' + (s === activeSport ? ' active' : '') + '" data-s="' + s + '">' + s + '</button>';
+    }).join('');
+    FILTERS.querySelectorAll('button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeSport = btn.dataset.s;
+        FILTERS.querySelectorAll('button').forEach(function (b) {
+          b.classList.toggle('active', b.dataset.s === activeSport);
+        });
+        renderCards(activeSport);
+      });
+    });
+  }
+
+  function renderTrackRecord(data) {
+    if (!TRACK_WRAP || !TRACK_SCROLL || !data || !Array.isArray(data.recent) || !data.recent.length) return;
+    const day = data.recent[0];
+    const results = (day.results || []).filter(function (r) {
+      const res = String(r.result || '').toUpperCase();
+      return res === 'HIT' || res === 'MISS' || res === 'VOID' || res === 'PUSH';
+    });
+    if (!results.length) return;
+
+    const s = day.summary || {};
+    const decided = (Number(s.hit) || 0) + (Number(s.miss) || 0);
+    const hr = day.hit_rate != null ? fmtPct(day.hit_rate) : (decided ? fmtPct((Number(s.hit) || 0) / decided) : '—');
+
+    if (TRACK_LABEL) TRACK_LABEL.textContent = 'Yesterday (' + (day.slate_date || '') + ')';
+    if (TRACK_SUMMARY) {
+      TRACK_SUMMARY.textContent = (s.hit || 0) + ' hit / ' + (s.miss || 0) + ' miss · ' + hr + ' on featured legs';
+    }
+    TRACK_SCROLL.innerHTML = results.map(function (p) {
+      return buildCard(p, { graded: true, showLine: true });
+    }).join('');
+    TRACK_WRAP.style.display = '';
+    SECTION.style.display = '';
+  }
+
+  function fetchTrackRecord() {
+    const urls = [TRACK_API, 'hot_players_track_record.json'];
+    (function tryNext(i) {
+      if (i >= urls.length) return;
+      fetch(urls[i], { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(renderTrackRecord)
+        .catch(function () { tryNext(i + 1); });
+    })(0);
+  }
+
+  function initHotPlayers() {
+    fetchTrackRecord();
+    fetch(API)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        allCardsBySport = data.sports || {};
+        const sports = Object.keys(allCardsBySport).sort();
+        if (!sports.length) {
+          SECTION.style.display = '';
+          if (!TRACK_WRAP || TRACK_WRAP.style.display !== '') {
+            EMPTY.style.display = '';
+          }
+          return;
+        }
+        SECTION.style.display = '';
+        if (data.date) UPDATED.textContent = data.date;
+        buildFilters(sports);
+        renderCards('ALL');
+      })
+      .catch(function (err) {
+        console.warn('[HotPlayers]', err);
+      });
+  }
+
+  // Defer until Hot Players <details> opens — avoid competing with slate first paint.
+  let hotStarted = false;
+  function startHotPlayersOnce() {
+    if (hotStarted) return;
+    hotStarted = true;
+    initHotPlayers();
+  }
+  function bindHotPlayersLazy() {
+    const cat = document.getElementById('hot-players-cat');
+    if (cat) {
+      if (cat.hasAttribute('open')) {
+        startHotPlayersOnce();
+        return;
+      }
+      cat.addEventListener('toggle', function () {
+        if (cat.open) startHotPlayersOnce();
+      });
+      return;
+    }
+    // Fallback when not wrapped in details: idle warm only.
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(startHotPlayersOnce, { timeout: 6000 });
+    } else {
+      window.setTimeout(startHotPlayersOnce, 3500);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindHotPlayersLazy);
+  } else {
+    bindHotPlayersLazy();
+  }
+})();
+</script>
+
     </div>
   </details>
 
@@ -2200,7 +2502,7 @@ body > nav.snav.glass-card {
     <div class="sec-header">
       <div class="sec-title">Top <span style="color:var(--accent)">Edges</span></div>
       <div class="sec-line"></div>
-      <a href="/tickets" class="edges-see-all">See All Picks ↗</a>
+      <a href="tickets.html" class="edges-see-all">See All Picks ↗</a>
     </div>
     <div id="top-edges-debug" style="font-size:9px;font-family:Inter,sans-serif;color:var(--muted2);letter-spacing:0.04em;margin:-4px 0 10px;min-height:12px;"></div>
     
@@ -2292,8 +2594,8 @@ body > nav.snav.glass-card {
   </div>
 </div>
 
-<script src="/static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="/static/matchup-edge.js?v=20260604c" defer></script>
+<script src="static/site-nav-chrome.js?v=20260412" defer></script>
+<script src="static/matchup-edge.js?v=20260604c" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -3610,7 +3912,7 @@ function sportDisplayLabel(rawSport) {
 async function refreshStatus() {
   let d = null;
   try {
-    const res = await fetch("/api/pipeline/status", { cache: "no-store" });
+    const res = await fetch_smart('pipeline_status.json');
     if (res.ok) d = await res.json();
   } catch (e) {}
   // Bundled / Capacitor WebView: no API — use static file from mobile/www (see generate_mobile_bundle.py).
@@ -4886,7 +5188,7 @@ async function fetchSlateSport(sport, opts = {}) {
     let rows = [];
     let source = "";
     try {
-      const res = await fetch(`/api/slate-sport/${encodeURIComponent(sport)}`, {cache: 'no-store'});
+      const res = await fetch_smart(`slate_sport_${encodeURIComponent(sport)}.json`);
       if (res.ok) {
         const d = await res.json();
         rows = Array.isArray(d.rows) ? d.rows : [];
@@ -5184,7 +5486,7 @@ async function loadCombinedFromMergedJson() {
     void loadSlateData().catch(() => {});
     let d = null;
     try {
-      const res = await fetch('/api/slate-sport/combined', {cache: 'no-store'});
+      const res = await fetch_smart('slate_sport_combined.json');
       if (res.ok) d = await res.json();
     } catch (e) {}
     if (!d || !Array.isArray(d.rows) || !d.rows.length) {
@@ -5216,7 +5518,7 @@ async function loadSlateExcel() {
   if (!_slateExcelPromise) {
     _slateExcelPromise = (async () => {
       try {
-        const r = await fetch('/api/slate-excel', {cache: 'no-store'});
+        const r = await fetch_smart('slate_excel.json');
         const d = await r.json();
         const sh = d.sheets && d.sheets.combined;
         if (sh && sh.columns && sh.rows && sh.rows.length) {

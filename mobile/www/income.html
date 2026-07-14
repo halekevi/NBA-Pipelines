@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="static/site-nav-unified.css?v=20260408"/>
   <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
   <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260418nav"/>
-    <link rel="stylesheet" href="static/mobile-content-width.css?v=20260522gradesframe"/>
+  <link rel="stylesheet" href="static/mobile-content-width.css?v=20260522gradesframe"/>
   <style>
     body.page-income {
       font-family: "Inter", sans-serif;
@@ -21,56 +21,63 @@
       max-width: min(1920px, 98vw);
       width: 100%;
       margin: 0 auto;
-      padding: 16px clamp(14px, 2.4vw, 28px) 28px;
+      padding: 12px clamp(12px, 2.2vw, 24px) 28px;
       position: relative;
       z-index: 1;
       box-sizing: border-box;
     }
     .hero {
-      margin: 6px 0 18px;
-      padding: 18px clamp(14px, 2vw, 24px);
+      margin: 4px 0 12px;
+      padding: 12px clamp(12px, 2vw, 18px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(16px) saturate(170%);
       -webkit-backdrop-filter: blur(16px) saturate(170%);
     }
     .hero h1 {
       margin: 0;
-      font-size: clamp(28px, 4.2vw, 44px);
+      font-size: clamp(26px, 3.6vw, 38px);
       letter-spacing: 0.02em;
       color: var(--accent, #d4af37);
       font-family: "Bebas Neue", sans-serif;
     }
     .hero p {
-      margin: 6px 0 0;
+      margin: 4px 0 0;
       color: var(--muted, rgba(255, 255, 255, 0.72));
-      font-size: 13px;
+      font-size: 12px;
+      line-height: 1.45;
+      max-width: 72ch;
     }
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(120px, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .sum-card {
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.035);
-      padding: 12px 12px 10px;
-      min-height: 76px;
+      padding: 10px 10px 8px;
+      min-height: 64px;
     }
     .sum-label {
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted, rgba(255, 255, 255, 0.7));
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .sum-value {
-      font-size: clamp(18px, 2.4vw, 26px);
+      font-size: clamp(16px, 2.1vw, 22px);
       font-weight: 700;
-      line-height: 1.1;
+      line-height: 1.15;
+    }
+    .sum-sub {
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--muted, rgba(255, 255, 255, 0.65));
     }
     .sum-pos { color: #45d388; }
     .sum-neg { color: #ff7f7f; }
@@ -78,53 +85,119 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.03);
-      padding: 12px;
-      margin-bottom: 14px;
+      padding: 10px 12px 12px;
+      margin-bottom: 12px;
+    }
+    .panel-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
     }
     .panel h2 {
-      margin: 0 0 10px;
-      font-size: 16px;
+      margin: 0;
+      font-size: 15px;
       color: var(--text, rgba(255, 255, 255, 0.9));
       letter-spacing: 0.02em;
     }
+    .panel-note {
+      margin: 0;
+      color: var(--muted, rgba(255, 255, 255, 0.68));
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .chip {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted, rgba(255, 255, 255, 0.78));
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .chip:hover { border-color: rgba(255, 255, 255, 0.22); color: var(--text); }
+    .chip.active {
+      border-color: rgba(212, 175, 55, 0.45);
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--accent, #d4af37);
+    }
     .chart-host {
       width: 100%;
-      min-height: 280px;
+      min-height: 240px;
     }
+    .tbl-scroll {
+      max-height: min(520px, 62vh);
+      overflow: auto;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+    }
+    .tbl-scroll.tall { max-height: min(360px, 48vh); }
     table.tbl {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12px;
     }
     .tbl th,
     .tbl td {
-      padding: 8px 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       text-align: right;
       white-space: nowrap;
     }
-    .tbl th {
-      font-size: 11px;
+    .tbl thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(12, 14, 22, 0.96);
+      backdrop-filter: blur(8px);
+      font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted, rgba(255, 255, 255, 0.68));
     }
+    .tbl tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+    .tbl tbody tr:hover td { background: rgba(212, 175, 55, 0.04); }
     .tbl td:first-child,
-    .tbl th:first-child {
-      text-align: left;
-    }
+    .tbl th:first-child { text-align: left; }
     .num-pos { color: #45d388; }
     .num-neg { color: #ff7f7f; }
     .cell-sub {
       display: block;
-      margin-top: 2px;
+      margin-top: 1px;
       color: var(--muted, rgba(255, 255, 255, 0.68));
-      font-size: 11px;
+      font-size: 10px;
       line-height: 1.15;
     }
+    .track-pill {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--muted, rgba(255, 255, 255, 0.75));
+      vertical-align: middle;
+    }
+    .track-pill.main { border-color: rgba(127, 199, 217, 0.35); color: #7fc7d9; }
+    .track-pill.long { border-color: rgba(183, 168, 255, 0.35); color: #b7a8ff; }
+    .track-pill.goblin { border-color: rgba(125, 255, 203, 0.35); color: #7dffcb; }
+    .track-pill.legacy { border-color: rgba(255, 255, 255, 0.16); }
     .empty-note {
       color: var(--muted, rgba(255, 255, 255, 0.72));
-      font-size: 13px;
+      font-size: 12px;
       padding: 8px 2px;
     }
     .stale-banner {
@@ -136,6 +209,29 @@
       font-size: 13px;
       color: #856404;
     }
+    .sport-month-block { margin-top: 8px; }
+    .sport-month-block details {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      overflow: hidden;
+    }
+    .sport-month-block summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+      user-select: none;
+    }
+    .sport-month-block summary::-webkit-details-marker { display: none; }
+    .sport-month-block summary:hover { background: rgba(255, 255, 255, 0.03); }
+    .sport-month-block .tbl-scroll { border: none; border-radius: 0; max-height: 280px; }
+    .hide-guarantees .col-g { display: none; }
     @media (max-width: 1020px) {
       .summary-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     }
@@ -196,321 +292,359 @@
     </div>
     <section class="hero">
       <h1>P&L Log</h1>
-      <p>Flat stake model: $10 per pick (sport breakdown uses graded props). Daily ticket rows come from <code>grade_history.json</code> via <code>scripts/build_ticket_eval.py</code> after grading. On Railway, set a volume or <code>PROPORACLE_PERSISTENT_DATA_DIR</code> so history survives redeploys.</p>
+      <p>$10 flat stake. Ticket days from graded history; sport tables from graded props. Duplicate dates = separate tracks (MAIN / Long / Goblin).</p>
     </section>
 
-    <section class="summary-grid">
+    <section class="summary-grid" id="income-summary">
       <div class="sum-card">
         <div class="sum-label">Total Tickets</div>
-        <div class="sum-value"></div>
+        <div class="sum-value" data-k="tickets"></div>
       </div>
       <div class="sum-card">
-        <div class="sum-label">Win Rate (Paid / Decided)</div>
-        <div class="sum-value"></div>
+        <div class="sum-label">Win Rate</div>
+        <div class="sum-value" data-k="winrate"></div>
+        <div class="sum-sub" data-k="winrate-sub">/</div>
       </div>
       <div class="sum-card">
         <div class="sum-label">Net P&amp;L</div>
-        <div class="sum-value ">$</div>
+        <div class="sum-value " data-k="net">$</div>
       </div>
       <div class="sum-card">
         <div class="sum-label">ROI</div>
-        <div class="sum-value "></div>
+        <div class="sum-value " data-k="roi"></div>
       </div>
       <div class="sum-card">
         <div class="sum-label">Current Streak</div>
-        <div class="sum-value"></div>
+        <div class="sum-value" data-k="streak"></div>
       </div>
     </section>
 
     <section class="panel">
-      <h2>Cumulative P&amp;L ($)</h2>
+      <div class="panel-head">
+        <h2>Cumulative P&amp;L ($)</h2>
+        <p class="panel-note" id="chart-scope-note">All tracks (additive)</p>
+      </div>
       <div id="cum-chart" class="chart-host"></div>
     </section>
 
-    <section class="panel">
-      <h2>Daily P&amp;L</h2>
+    <section class="panel" id="daily-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Daily P&amp;L</h2>
+          <p class="panel-note">Default rolls tracks into one row per date. Expand to see MAIN / Long / Goblin separately.</p>
+        </div>
+        <div class="toolbar" role="group" aria-label="Daily view mode">
+          <button type="button" class="chip active" data-daily-mode="rollup">By day</button>
+          <button type="button" class="chip" data-daily-mode="tracks">By track</button>
+        </div>
+      </div>
       
-      <table class="tbl" aria-label="Daily P and L table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Tickets</th>
-            <th>Wins</th>
-            <th>Losses</th>
-            <th>Guarantees</th>
-            <th>Net $</th>
-            <th>Day ROI%</th>
-          </tr>
-        </thead>
-        <tbody id="daily-pnl-tbody">
-          
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td title="">
-              
-              
-              <span class="cell-sub">(incl.  void-loss)</span>
-              
-            </td>
-            <td></td>
-            <td class="">$</td>
-            <td class=""></td>
-          </tr>
-          
-        </tbody>
-      </table>
+      <div class="tbl-scroll" id="daily-wrap">
+        <table class="tbl" id="daily-tbl" aria-label="Daily P and L table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Tickets</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th class="col-g">Guarantees</th>
+              <th>Net $</th>
+              <th>Day ROI%</th>
+            </tr>
+          </thead>
+          <tbody id="daily-pnl-tbody"></tbody>
+        </table>
+      </div>
       
-      <div class="empty-note">No rows found in <code>grade_history.json</code> (check DATA_ROOT, <code>data/</code>, or bundled templates).</div>
+      <div class="empty-note">No rows found in <code>grade_history.json</code>.</div>
       
     </section>
 
     <section class="panel">
-      <h2>Sport Breakdown</h2>
-      <p class="empty-note" style="margin:0 0 10px;padding:0;">Pick-level totals from graded props ($10 flat stake per pick).</p>
-      <table class="tbl" aria-label="Sport breakdown totals">
-        <thead>
-          <tr>
-            <th>Sport</th>
-            <th>Decided</th>
-            <th>Paid</th>
-            <th>Win%</th>
-            <th>Net $</th>
-          </tr>
-        </thead>
-        <tbody id="sport-breakdown-tbody">
-          
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td class="">$</td>
-          </tr>
-          
-        </tbody>
-      </table>
+      <div class="panel-head">
+        <div>
+          <h2>Sport Breakdown</h2>
+          <p class="panel-note">Pick-level totals from graded props ($10 flat stake). Zero-activity sports hidden.</p>
+        </div>
+      </div>
+      <div class="tbl-scroll tall">
+        <table class="tbl" aria-label="Sport breakdown totals">
+          <thead>
+            <tr>
+              <th>Sport</th>
+              <th>Decided</th>
+              <th>Paid</th>
+              <th>Win%</th>
+              <th>Net $</th>
+            </tr>
+          </thead>
+          <tbody id="sport-breakdown-tbody">
+            
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td class="">$</td>
+            </tr>
+            
+            <tr><td colspan="5" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>
+            
+          </tbody>
+        </table>
+      </div>
 
-      <h3 style="margin:18px 0 10px;font-size:1rem;">By Month</h3>
+      <div class="panel-head" style="margin-top:14px">
+        <h2 style="font-size:14px">By Month</h2>
+        <div class="toolbar">
+          <label class="panel-note" for="month-sport-filter">Sport</label>
+          <select id="month-sport-filter" class="chip" style="border-radius:8px;padding:5px 8px;background:rgba(255,255,255,0.04);color:inherit">
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
       
-      <table class="tbl" aria-label="Sport breakdown by month">
-        <thead>
-          <tr>
-            <th>Sport</th>
-            <th>Month</th>
-            <th>Decided</th>
-            <th>Paid</th>
-            <th>Win%</th>
-            <th>Net $</th>
-          </tr>
-        </thead>
-        <tbody id="sport-monthly-breakdown-tbody">
-          
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td class="">$</td>
-          </tr>
-          
-        </tbody>
-      </table>
+      <div class="sport-month-block" id="sport-month-block"></div>
       
-      <div class="empty-note">No monthly sport data yet — grade slates to populate <code>graded_props_*.json</code>.</div>
+      <div class="empty-note">No monthly sport data yet.</div>
       
     </section>
   </main>
 
-  <!-- Plotly was previously in <head> without defer: it blocked HTML/body parsing until the CDN
-       responded, so a slow or blocked CDN looked like a blank page in the Android WebView. -->
+  <script id="income-daily-data" type="application/json"></script>
+  <script id="income-monthly-data" type="application/json"></script>
+  <script id="income-chart-data" type="application/json"></script>
+
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
   <script src="static/site-nav-chrome.js?v=20260412" defer></script>
   <script defer>
-    const points = [];
-    function drawChart() {
-      const host = document.getElementById('cum-chart');
-      if (!host) return;
-      if (typeof Plotly === 'undefined') {
-        host.innerHTML = '<div class="empty-note">Chart could not load (network or CDN blocked). Daily table and sport breakdown below still work.</div>';
-        return;
-      }
-      if (!points || !points.length) {
-        host.innerHTML = '<div class="empty-note">No cumulative data available yet.</div>';
-        return;
-      }
-      const x = points.map(p => p.date);
-      const y = points.map(p => p.cum_net);
-      Plotly.newPlot('cum-chart', [{
-        x,
-        y,
-        type: 'scatter',
-        mode: 'lines+markers',
-        line: { color: '#7fc7d9', width: 3 },
-        marker: { size: 6, color: '#d4af37' },
-        hovertemplate: '%{x}<br>$%{y:.2f}<extra></extra>',
-      }], {
-        autosize: true,
-        margin: { t: 14, r: 20, b: 42, l: 58 },
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(255,255,255,0.02)',
-        font: { color: 'rgba(255,255,255,0.85)' },
-        xaxis: { title: '', gridcolor: 'rgba(255,255,255,0.06)' },
-        yaxis: { title: '$', tickprefix: '$', gridcolor: 'rgba(255,255,255,0.06)', zerolinecolor: 'rgba(255,255,255,0.15)' },
-      }, { displayModeBar: false, responsive: true });
-    }
-    function whenPlotlyReady(fn) {
-      if (typeof Plotly !== 'undefined') { fn(); return; }
-      var tries = 0;
-      var timer = setInterval(function () {
-        tries += 1;
-        if (typeof Plotly !== 'undefined') { clearInterval(timer); fn(); }
-        else if (tries > 240) { clearInterval(timer); fn(); }
-      }, 25);
-    }
-    document.addEventListener('DOMContentLoaded', function () {
-      whenPlotlyReady(drawChart);
-    });
-    window.addEventListener('resize', () => {
-      const el = document.getElementById('cum-chart');
-      if (typeof Plotly !== 'undefined' && el && el.querySelector('.js-plotly-plot')) Plotly.Plots.resize(el);
-    });
-  </script>
-  <script>
     (function () {
-      const fmtMoney = (n) => (Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00');
-      const fmtPct = (n) => (Number.isFinite(n) ? `${n.toFixed(1)}%` : '0.0%');
-      const clsFor = (n, pos = 'sum-pos', neg = 'sum-neg') => (n > 0 ? pos : (n < 0 ? neg : ''));
+      const dailyRaw = JSON.parse(document.getElementById('income-daily-data').textContent || '[]');
+      const monthlyRaw = JSON.parse(document.getElementById('income-monthly-data').textContent || '[]');
+      let chartPoints = [];
+      try { chartPoints = JSON.parse(document.getElementById('income-chart-data').textContent || '[]'); } catch (_e) { chartPoints = []; }
 
-      function parseRows(raw) {
-        const rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.runs) ? raw.runs : []);
-        return rows
-          .map((r) => {
-            const tickets = Number(r.n_tickets ?? r.tickets ?? 0);
-            const wins = Number(r.wins ?? 0);
-            const guarantees = Number(r.guarantees ?? 0);
-            const losses = Number(r.losses ?? 0);
-            const voidLoss = Number(r.void_loss_ct ?? 0);
-            const decided = Math.max(0, wins + losses);
-            const paid = Math.max(0, wins + guarantees);
-            const net = (r.net_dollars != null)
-              ? Number(r.net_dollars)
-              : (r.net_per_10 != null ? tickets * Number(r.net_per_10) : 0);
-            const roi = Number(r.roi_pct ?? ((tickets > 0) ? (net / (tickets * 10) * 100) : 0));
-            return { date: String(r.date || ''), tickets, wins, guarantees, losses, voidLoss, decided, paid, net, roi };
-          })
-          .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date))
-          .sort((a, b) => a.date.localeCompare(b.date));
+      const TRACK_LABEL = {
+        graded_main: 'MAIN',
+        long_parlay: 'Long',
+        goblin_only_3leg: 'Goblin',
+        legacy: 'Legacy',
+      };
+      const TRACK_CLASS = {
+        graded_main: 'main',
+        long_parlay: 'long',
+        goblin_only_3leg: 'goblin',
+        legacy: 'legacy',
+      };
+
+      let dailyMode = 'rollup';
+
+      function money(n) {
+        const v = Number(n) || 0;
+        const sign = v < 0 ? '-' : '';
+        return sign + '$' + Math.abs(v).toFixed(2);
+      }
+      function pct(n) {
+        return (Number(n) || 0).toFixed(1) + '%';
+      }
+      function numCls(n) {
+        return n > 0 ? 'num-pos' : (n < 0 ? 'num-neg' : '');
+      }
+      function trackLabel(t) {
+        return TRACK_LABEL[t] || String(t || 'Legacy');
+      }
+      function trackClass(t) {
+        return TRACK_CLASS[t] || 'legacy';
       }
 
-      function render(rowsAsc) {
-        const rowsDesc = [...rowsAsc].reverse();
-        const totalTickets = rowsAsc.reduce((s, r) => s + r.tickets, 0);
-        const totalDecided = rowsAsc.reduce((s, r) => s + r.decided, 0);
-        const totalPaid = rowsAsc.reduce((s, r) => s + r.paid, 0);
-        const totalNet = rowsAsc.reduce((s, r) => s + r.net, 0);
-        const winRate = totalDecided > 0 ? (totalPaid / totalDecided) * 100 : 0;
-        const roi = totalTickets > 0 ? (totalNet / (totalTickets * 10)) * 100 : 0;
-
-        let streak = '—';
-        let streakLen = 0;
-        let streakSign = 0;
-        for (let i = rowsAsc.length - 1; i >= 0; i--) {
-          const sign = rowsAsc[i].net > 0 ? 1 : (rowsAsc[i].net < 0 ? -1 : 0);
-          if (sign === 0) continue;
-          if (streakSign === 0) { streakSign = sign; streakLen = 1; continue; }
-          if (sign === streakSign) streakLen += 1; else break;
-        }
-        if (streakLen > 0) streak = `${streakSign > 0 ? 'W' : 'L'}${streakLen}`;
-
-        const sumVals = document.querySelectorAll('.summary-grid .sum-value');
-        if (sumVals.length >= 5) {
-          sumVals[0].textContent = String(totalTickets);
-          sumVals[1].textContent = `${winRate.toFixed(1)}% (${totalPaid}/${totalDecided})`;
-          sumVals[2].textContent = fmtMoney(totalNet);
-          sumVals[2].className = `sum-value ${clsFor(totalNet, 'sum-pos', 'sum-neg')}`;
-          sumVals[3].textContent = fmtPct(roi);
-          sumVals[3].className = `sum-value ${clsFor(roi, 'sum-pos', 'sum-neg')}`;
-          sumVals[4].textContent = streak;
-        }
-
-        const dailyPanel = document.querySelectorAll('.panel')[1];
-        if (dailyPanel) {
-          let tbl = dailyPanel.querySelector('table.tbl');
-          if (!tbl && rowsAsc.length) {
-            dailyPanel.innerHTML = '<h2>Daily P&amp;L</h2><table class="tbl" aria-label="Daily P and L table"><thead><tr><th>Date</th><th>Tickets</th><th>Wins</th><th>Losses</th><th>Guarantees</th><th>Net $</th><th>Day ROI%</th></tr></thead><tbody></tbody></table>';
-            tbl = dailyPanel.querySelector('table.tbl');
+      function rollupDays(rows) {
+        const map = new Map();
+        rows.forEach((r) => {
+          const d = String(r.date || '');
+          if (!d) return;
+          let agg = map.get(d);
+          if (!agg) {
+            agg = { date: d, tickets: 0, wins: 0, losses: 0, void_loss_ct: 0, guarantees: 0, net_dollars: 0, tracks: 0 };
+            map.set(d, agg);
           }
-          const dailyBody = tbl && tbl.querySelector('tbody');
-          if (dailyBody) {
-            dailyBody.innerHTML = rowsDesc.map((r) => `
-              <tr>
-                <td>${r.date}</td>
-                <td>${r.tickets}</td>
-                <td>${r.wins}</td>
-                <td title="${r.voidLoss > 0 ? `Includes ${r.voidLoss} void-loss` : ''}">${r.losses}${r.voidLoss > 0 ? `<span class="cell-sub">(incl. ${r.voidLoss} void-loss)</span>` : ''}</td>
-                <td>${r.guarantees}</td>
-                <td class="${clsFor(r.net, 'num-pos', 'num-neg')}">${fmtMoney(r.net)}</td>
-                <td class="${clsFor(r.roi, 'num-pos', 'num-neg')}">${fmtPct(r.roi)}</td>
-              </tr>
-            `).join('');
-          }
-          const emptyNote = dailyPanel.querySelector('.empty-note');
-          if (emptyNote) emptyNote.style.display = rowsAsc.length ? 'none' : '';
-        }
+          agg.tickets += Number(r.tickets) || 0;
+          agg.wins += Number(r.wins) || 0;
+          agg.losses += Number(r.losses) || 0;
+          agg.void_loss_ct += Number(r.void_loss_ct) || 0;
+          agg.guarantees += Number(r.guarantees) || 0;
+          agg.net_dollars += Number(r.net_dollars) || 0;
+          agg.tracks += 1;
+        });
+        return Array.from(map.values()).map((a) => {
+          a.net_dollars = Math.round(a.net_dollars * 100) / 100;
+          a.roi_pct = a.tickets > 0 ? (a.net_dollars / (a.tickets * 10)) * 100 : 0;
+          return a;
+        }).sort((a, b) => b.date.localeCompare(a.date));
+      }
 
-        const pts = [];
-        let cum = 0;
-        for (const r of rowsAsc) { cum += r.net; pts.push({ date: r.date, cum_net: Number(cum.toFixed(2)) }); }
+      function renderDaily() {
+        const tbody = document.getElementById('daily-pnl-tbody');
+        const wrap = document.getElementById('daily-wrap');
+        const tbl = document.getElementById('daily-tbl');
+        if (!tbody) return;
+        const rows = dailyMode === 'rollup'
+          ? rollupDays(dailyRaw)
+          : [...dailyRaw].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(a.track).localeCompare(String(b.track)));
+
+        const showG = rows.some((r) => (Number(r.guarantees) || 0) > 0);
+        if (tbl) tbl.classList.toggle('hide-guarantees', !showG);
+
+        tbody.innerHTML = rows.map((r) => {
+          const trackHtml = dailyMode === 'tracks'
+            ? `<span class="track-pill ${trackClass(r.track)}">${trackLabel(r.track)}</span>`
+            : (r.tracks > 1 ? `<span class="cell-sub">${r.tracks} tracks</span>` : '');
+          const voidHtml = (Number(r.void_loss_ct) || 0) > 0
+            ? `<span class="cell-sub">(incl. ${r.void_loss_ct} void-loss)</span>`
+            : '';
+          return `<tr>
+            <td>${r.date}${trackHtml}</td>
+            <td>${r.tickets}</td>
+            <td>${r.wins}</td>
+            <td>${r.losses}${voidHtml}</td>
+            <td class="col-g">${r.guarantees || 0}</td>
+            <td class="${numCls(r.net_dollars)}">${money(r.net_dollars)}</td>
+            <td class="${numCls(r.roi_pct)}">${pct(r.roi_pct)}</td>
+          </tr>`;
+        }).join('');
+        if (wrap) wrap.scrollTop = 0;
+      }
+
+      function drawChart() {
         const host = document.getElementById('cum-chart');
         if (!host) return;
-        if (!pts.length) {
+        if (typeof Plotly === 'undefined') {
+          host.innerHTML = '<div class="empty-note">Chart could not load (network or CDN blocked).</div>';
+          return;
+        }
+        // Prefer rolled-up day series so the curve matches "By day" table.
+        const rolled = rollupDays(dailyRaw).slice().reverse();
+        const x = rolled.map((p) => p.date);
+        let cum = 0;
+        const y = rolled.map((p) => {
+          cum += Number(p.net_dollars) || 0;
+          return Math.round(cum * 100) / 100;
+        });
+        if (!x.length) {
           host.innerHTML = '<div class="empty-note">No cumulative data available yet.</div>';
           return;
         }
-        if (typeof Plotly !== 'undefined') {
-          Plotly.newPlot('cum-chart', [{
-            x: pts.map(p => p.date),
-            y: pts.map(p => p.cum_net),
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#7fc7d9', width: 3 },
-            marker: { size: 6, color: '#d4af37' },
-            hovertemplate: '%{x}<br>$%{y:.2f}<extra></extra>'
-          }], {
-            autosize: true,
-            margin: { t: 14, r: 20, b: 42, l: 58 },
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(255,255,255,0.02)',
-            font: { color: 'rgba(255,255,255,0.85)' },
-            xaxis: { title: '', gridcolor: 'rgba(255,255,255,0.06)' },
-            yaxis: { title: '$', tickprefix: '$', gridcolor: 'rgba(255,255,255,0.06)', zerolinecolor: 'rgba(255,255,255,0.15)' }
-          }, { displayModeBar: false, responsive: true });
-        }
+        const note = document.getElementById('chart-scope-note');
+        if (note) note.textContent = 'Day rollup (all tracks summed per date)';
+        Plotly.newPlot('cum-chart', [{
+          x, y,
+          type: 'scatter',
+          mode: 'lines+markers',
+          line: { color: '#7fc7d9', width: 3 },
+          marker: { size: 5, color: '#d4af37' },
+          hovertemplate: '%{x}<br>$%{y:.2f}<extra></extra>',
+        }], {
+          autosize: true,
+          margin: { t: 10, r: 16, b: 36, l: 52 },
+          paper_bgcolor: 'rgba(0,0,0,0)',
+          plot_bgcolor: 'rgba(255,255,255,0.02)',
+          font: { color: 'rgba(255,255,255,0.85)', size: 11 },
+          xaxis: { title: '', gridcolor: 'rgba(255,255,255,0.06)' },
+          yaxis: { title: '$', tickprefix: '$', gridcolor: 'rgba(255,255,255,0.06)', zerolinecolor: 'rgba(255,255,255,0.15)' },
+        }, { displayModeBar: false, responsive: true });
       }
 
-      fetch('/api/grade-history', { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : []))
-        .then((raw) => render(parseRows(raw)))
-        .catch(() => {});
+      function renderMonthly() {
+        const host = document.getElementById('sport-month-block');
+        const sel = document.getElementById('month-sport-filter');
+        if (!host) return;
+        const sports = [...new Set(monthlyRaw.map((r) => String(r.sport || '')).filter(Boolean))].sort();
+        if (sel && sel.options.length <= 1) {
+          sports.forEach((sp) => {
+            const o = document.createElement('option');
+            o.value = sp;
+            o.textContent = sp;
+            sel.appendChild(o);
+          });
+        }
+        const filter = sel ? String(sel.value || 'all') : 'all';
+        const bySport = new Map();
+        monthlyRaw.forEach((r) => {
+          const sp = String(r.sport || '');
+          if (!sp) return;
+          if (filter !== 'all' && sp !== filter) return;
+          if (!bySport.has(sp)) bySport.set(sp, []);
+          bySport.get(sp).push(r);
+        });
+        const blocks = [...bySport.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+        host.innerHTML = blocks.map(([sp, rows]) => {
+          const net = rows.reduce((s, r) => s + (Number(r.net_dollars) || 0), 0);
+          const open = filter !== 'all' ? ' open' : '';
+          const body = rows
+            .slice()
+            .sort((a, b) => String(b.month).localeCompare(String(a.month)))
+            .map((r) => `<tr>
+              <td>${r.month}</td>
+              <td>${r.decided}</td>
+              <td>${r.paid}</td>
+              <td>${r.decided > 0 ? pct((r.win_rate || 0) * 100) : '—'}</td>
+              <td class="${numCls(r.net_dollars)}">${money(r.net_dollars)}</td>
+            </tr>`).join('');
+          return `<details${open}>
+            <summary><span><strong>${sp}</strong> · ${rows.length} mo</span><span class="${numCls(net)}">${money(net)}</span></summary>
+            <div class="tbl-scroll">
+              <table class="tbl">
+                <thead><tr><th>Month</th><th>Decided</th><th>Paid</th><th>Win%</th><th>Net $</th></tr></thead>
+                <tbody>${body}</tbody>
+              </table>
+            </div>
+          </details>`;
+        }).join('') || '<div class="empty-note">No rows for this sport.</div>';
+      }
+
+      document.querySelectorAll('[data-daily-mode]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          dailyMode = btn.getAttribute('data-daily-mode') || 'rollup';
+          document.querySelectorAll('[data-daily-mode]').forEach((b) => b.classList.toggle('active', b === btn));
+          renderDaily();
+        });
+      });
+      const monthSel = document.getElementById('month-sport-filter');
+      if (monthSel) monthSel.addEventListener('change', renderMonthly);
+
+      function whenPlotlyReady(fn) {
+        if (typeof Plotly !== 'undefined') { fn(); return; }
+        let tries = 0;
+        const timer = setInterval(() => {
+          tries += 1;
+          if (typeof Plotly !== 'undefined') { clearInterval(timer); fn(); }
+          else if (tries > 240) { clearInterval(timer); fn(); }
+        }, 25);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        renderDaily();
+        renderMonthly();
+        whenPlotlyReady(drawChart);
+      });
+      window.addEventListener('resize', () => {
+        const el = document.getElementById('cum-chart');
+        if (typeof Plotly !== 'undefined' && el && el.querySelector('.js-plotly-plot')) Plotly.Plots.resize(el);
+      });
     })();
   </script>
   <script>
-    fetch('/income/health')
-      .then(r => r.json())
-      .then(data => {
-        if (data.status === 'stale' || data.status === 'empty') {
-          const ts = document.getElementById('stale-ts');
+    (function () {
+      fetch('/income/health')
+        .then((r) => r.json())
+        .then((j) => {
+          if (!j || j.status === 'ok') return;
           const banner = document.getElementById('income-stale-banner');
-          if (ts && banner) {
-            ts.textContent = data.last_ingest || 'unknown';
-            banner.style.display = 'block';
-          }
-        }
-      })
-      .catch(() => {});
+          const ts = document.getElementById('stale-ts');
+          if (j.last_ingest && ts) ts.textContent = String(j.last_ingest);
+          if (banner && j.status === 'stale') banner.style.display = 'block';
+        })
+        .catch(() => {});
+    })();
   </script>
 
   <script>

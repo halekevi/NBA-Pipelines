@@ -215,11 +215,20 @@
     ]);
   }
 
+  function ticketDisplayMinX(t) {
+    const pay = t && t.payout && typeof t.payout === 'object' ? t.payout : null;
+    if (pay && pay.display_min_x != null) return pay.display_min_x;
+    if (t && t.display_min_x != null) return t.display_min_x;
+    if (pay && pay.power_min_x != null) return pay.power_min_x;
+    if (pay && pay.min_payout_x != null) return pay.min_payout_x;
+    return t ? t.power_payout : null;
+  }
+
   function renderTicket(t) {
     const bucket = String(t.bucket || '').toLowerCase();
     const size = t.size || (t.legs ? t.legs.length : 0);
     const joint = t.joint_p_hit;
-    const payout = t.power_payout;
+    const payout = ticketDisplayMinX(t);
     const ev = t['expected_profit_per_$1'];
     const allHit = (t.legs || []).every((l) => String(l.result || '').toUpperCase() === 'HIT');
     const allDecided = (t.legs || []).every((l) => ['HIT', 'MISS'].includes(String(l.result || '').toUpperCase()));
@@ -299,7 +308,19 @@
       ticketsHost.replaceChildren(
         renderTickets((state.payload || {}).tickets || [], state.filterSize, state.filterBucket)
       );
-      backtestHost.replaceChildren(renderBacktest((state.backtest || {}).rows || []));
+      if (state._backtestLoading) {
+        backtestHost.replaceChildren(
+          el('div', { class: 'utp-loading', style: 'padding:12px;opacity:.75' }, ['Loading backtest…'])
+        );
+      } else if (state.backtest) {
+        backtestHost.replaceChildren(renderBacktest((state.backtest || {}).rows || []));
+      } else if (state.view === 'backtest') {
+        backtestHost.replaceChildren(
+          el('div', { class: 'utp-loading', style: 'padding:12px;opacity:.75' }, ['Loading backtest…'])
+        );
+      } else {
+        backtestHost.replaceChildren();
+      }
       if (titleEl && state.payload && state.payload.date) {
         titleEl.textContent = `Uniform Tickets — ${state.payload.date}`;
       }
@@ -329,7 +350,21 @@
     if (sizeSel) sizeSel.addEventListener('change', () => { state.filterSize = sizeSel.value; paint(); });
     if (bucketSel) bucketSel.addEventListener('change', () => { state.filterBucket = bucketSel.value; paint(); });
     tabBtns.forEach((b) => {
-      b.addEventListener('click', () => { state.view = b.getAttribute('data-utp-tab'); paint(); });
+      b.addEventListener('click', async () => {
+        const next = b.getAttribute('data-utp-tab');
+        state.view = next;
+        paint();
+        if (next === 'backtest' && !state.backtest && !state._backtestLoading) {
+          state._backtestLoading = true;
+          paint();
+          try {
+            state.backtest = await loadBacktest();
+          } finally {
+            state._backtestLoading = false;
+          }
+          paint();
+        }
+      });
     });
     if (dateInput) {
       dateInput.addEventListener('change', () => {
@@ -344,7 +379,7 @@
     }
 
     state.payload = await loadLatest();
-    state.backtest = await loadBacktest();
+    // Defer uniform_tickets_backtest.json until Backtest tab is opened (faster first paint).
     paint();
 
     return {

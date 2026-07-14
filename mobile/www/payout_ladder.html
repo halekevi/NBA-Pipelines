@@ -8,14 +8,22 @@
   <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260418nav"/>
   <link rel="stylesheet" href="static/mobile-content-width.css?v=20260422incomeplot"/>
   <style>
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px 14px 24px; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 16px 14px 24px; }
     .card { border: 1px solid rgba(255,255,255,.12); border-radius: 14px; background: rgba(255,255,255,.03); padding: 14px; margin-bottom: 12px; }
-    h1 { margin: 0; font-family: "Bebas Neue", sans-serif; letter-spacing: .08em; color: var(--accent, #d4af37); }
+    h1, h2 { margin: 0; font-family: "Bebas Neue", sans-serif; letter-spacing: .08em; color: var(--accent, #d4af37); }
+    h2 { font-size: 1.35rem; margin-bottom: 6px; }
     .muted { color: rgba(255,255,255,.72); font-size: 12px; line-height: 1.6; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { border-bottom: 1px solid rgba(255,255,255,.08); padding: 8px 6px; text-align: right; white-space: nowrap; }
-    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { text-align: left; }
     tr.sparse { background: rgba(255, 127, 127, 0.08); }
+    tr.live-backed { background: rgba(80, 200, 120, 0.07); }
+    tr.suspect { background: rgba(255, 180, 60, 0.12); }
+    code.delta { font-size: 12px; color: #9fd4ff; }
+    .pill { display: inline-block; font-size: 10px; letter-spacing: .04em; padding: 1px 6px; border-radius: 999px; margin-left: 4px; vertical-align: middle; }
+    .pill-live { background: rgba(80,200,120,.2); color: #9dffb5; }
+    .pill-hist { background: rgba(255,255,255,.08); color: rgba(255,255,255,.65); }
+    .pill-suspect { background: rgba(255,180,60,.2); color: #ffd27a; }
     @media (max-width: 900px) { table { font-size: 12px; } }
   </style>
 </head>
@@ -68,16 +76,22 @@
   <main class="wrap">
     <section class="card">
       <h1>Payout Ladder Coverage</h1>
-      <p class="muted">Grouped by leg count and composition. Rows with fewer than 5 samples are highlighted as incomplete coverage.</p>
-      <p class="muted">Total logged rows: <strong></strong></p>
+      <p class="muted">Mix table: grouped by leg count and S/G/D composition. Distance table: same recipes broken down by how far each Goblin/Demon line sits from Standard (sorted units).</p>
+      <p class="muted">Total rows: <strong></strong> · live CDP: <strong></strong> · valid distances: <strong></strong> · excluded Δ≈0 junk: <strong></strong></p>
+      <p class="muted">Rates prefer <strong>live CDP Min Guarantee</strong> when available (green rows). Rows with Goblin/Demon Δ≈0 are dropped — that means a Standard join failure, not a real Goblin. Orange = non-live extreme outlier (&ge;40×).</p>
     </section>
+
     <section class="card">
-      <table aria-label="Payout ladder summary">
+      <h2>By mix (S / G / D)</h2>
+      <p class="muted">Rows with fewer than 5 samples are highlighted as incomplete coverage. Min/Max/Avg use live CDP only when Live &gt; 0.</p>
+      <table aria-label="Payout ladder by mix">
         <thead>
           <tr>
             <th>Legs</th>
             <th>Composition</th>
             <th>Samples</th>
+            <th>Live</th>
+            <th>Source</th>
             <th>Min X</th>
             <th>Max X</th>
             <th>Avg X</th>
@@ -85,14 +99,57 @@
         </thead>
         <tbody>
           
-          <tr class="">
+          <tr class="  ">
             <td></td>
             <td></td>
             <td></td>
+            <td></td>
+            <td><span class="pill pill-live">LIVE</span><span class="pill pill-hist">HIST</span><span class="pill pill-suspect">CHECK</span></td>
             <td></td>
             <td></td>
             <td></td>
           </tr>
+          
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>By Goblin / Demon distance from Standard</h2>
+      <p class="muted">Goblin Δ = |Standard − Goblin line| per leg, sorted (e.g. <code class="delta">1.5+3.5</code>). Δ≈0 legs are excluded. Sparse (&lt;3 samples) highlighted. Live CDP preferred for Avg.</p>
+      <table aria-label="Payout ladder by Goblin distance">
+        <thead>
+          <tr>
+            <th>Legs</th>
+            <th>Composition</th>
+            <th>Goblin Δ</th>
+            <th>Demon Δ</th>
+            <th>ΣG Δ</th>
+            <th>Samples</th>
+            <th>Live</th>
+            <th>Source</th>
+            <th>Min X</th>
+            <th>Max X</th>
+            <th>Avg X</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr class="  ">
+            <td></td>
+            <td></td>
+            <td><code class="delta"></code></td>
+            <td><code class="delta"></code>—</td>
+            <td>—</td>
+            <td></td>
+            <td></td>
+            <td><span class="pill pill-live">LIVE</span><span class="pill pill-hist">HIST</span><span class="pill pill-suspect">CHECK</span></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          
+          <tr><td colspan="11" style="text-align:left;color:rgba(255,255,255,.6)">No valid distance-tagged samples yet. Log slips with Standard vs Goblin lines, or capture tickets that include <code>standard_line</code>.</td></tr>
           
         </tbody>
       </table>

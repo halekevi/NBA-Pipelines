@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T10:26:56.154665+00:00",
+  "generated_at": "2026-07-13T22:57:10.991614+00:00",
   "reference": {
     "power_first_standard": {
       "2": 3.0,
@@ -65,7 +65,7 @@
   "fitted_file": {
     "model_type": "live_mix_grid_power_min_x",
     "fitted_from": "payout_rate_card.json",
-    "fitted_at": "2026-07-13T10:26:56.014654Z",
+    "fitted_at": "2026-07-13T22:57:10.846291Z",
     "n_observations": 0,
     "n_slips_in_capture": 0,
     "goblin_discount_per_unit": null,
@@ -102,23 +102,19 @@
         "updated_at": "2026-07-13T00:29:43.152844Z"
       },
       "3L_3G": {
-        "n": 5,
-        "avg_min_x": 3.56,
+        "n": 1,
+        "avg_min_x": 2.5,
         "min_x_vals": [
-          2.9,
-          2.9,
-          3.0,
-          6.0,
-          3.0
+          2.5
         ],
-        "source": "data\\reports\\payout_capture_2026-07-12.json",
-        "source_date": "2026-07-12",
-        "updated_at": "2026-07-13T00:29:43.152869Z"
+        "source": "ticket_capture",
+        "source_date": "2026-07-13",
+        "updated_at": "2026-07-13T22:42:22.781571Z"
       }
     },
     "composition_summary": {
       "2L_2G": 2.5667,
-      "3L_3G": 3.56
+      "3L_3G": 2.5
     },
     "notes": "composition_floors: live PrizePicks power_min_x by n_legs \u00d7 n_goblin (ticket + mix-grid). goblin_discount_per_unit: dev-bucket fit when line_distance available."
   },
@@ -292,7 +288,7 @@
       "subtitle": "power_min_x by leg count \u00d7 Goblin count \u2014 from ticket + mix-grid captures",
       "bullets": [
         "2L_2G: avg 2.5667\u00d7 (n=15, updated 2026-07-12)",
-        "3L_3G: avg 3.56\u00d7 (n=5, updated 2026-07-12)"
+        "3L_3G: avg 2.5\u00d7 (n=1, updated 2026-07-13)"
       ]
     },
     {
@@ -301,11 +297,11 @@
       "title": "Live rate card (power_min_x)",
       "subtitle": "payout_rate_card.json",
       "bullets": [
-        "fitted_at: 2026-07-13T10:26:56.014654Z",
+        "fitted_at: 2026-07-13T22:57:10.846291Z",
         "n_observations (dev-bucket): 0",
         "n_slips_in_capture: 0",
         "composition: 2L_2G: 2.5667\u00d7",
-        "composition: 3L_3G: 3.56\u00d7",
+        "composition: 3L_3G: 2.5\u00d7",
         "composition_floors: live PrizePicks power_min_x by n_legs \u00d7 n_goblin (ticket + mix-grid). goblin_discount_per_unit: dev-bucket fit when line_distance available."
       ]
     }

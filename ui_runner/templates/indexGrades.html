@@ -328,10 +328,10 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 
 /* date bar — glass pill */
 .date-bar{
-  flex-shrink:0;margin:8px 0 0;padding:10px 14px;min-height:48px;height:auto;display:flex;align-items:center;gap:10px;position:relative;z-index:100;
+  flex-shrink:0;margin:6px 0 0;padding:7px 12px;min-height:40px;height:auto;display:flex;align-items:center;gap:8px;position:relative;z-index:100;
   font-family:'Inter',sans-serif;
   background:var(--glass-panel);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid var(--glass-panel-border);border-radius:16px;box-shadow:var(--glass-shadow);
+  border:1px solid var(--glass-panel-border);border-radius:14px;box-shadow:var(--glass-shadow);
 }
 .date-bar-label{flex-shrink:0;font-size:11px;letter-spacing:1.05px;color:var(--muted2);white-space:nowrap;}
 .date-pills{flex:1 1 0;min-width:0;display:flex;gap:10px;align-items:center;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -362,11 +362,14 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 }
 .iframe-shell-toolbar{
   position:sticky;top:0;z-index:60;
-  flex-shrink:0;padding:8px 12px 12px;border-bottom:none;
-  display:flex;flex-direction:column;gap:6px;
+  flex-shrink:0;padding:6px 10px 8px;border-bottom:none;
+  display:flex;flex-direction:column;gap:4px;
   background:transparent;
   transition:padding .28s ease;
 }
+/* Mode tabs already name the view — hide redundant title row until bars collapse on scroll. */
+.iframe-shell-head{display:none;}
+.iframe-shell-toolbar.bars-collapsed .iframe-shell-head{display:flex;}
 /* Date row + Slate/Ticket tabs — collapse on scroll (see setupGradesBarsScrollHide) */
 .grades-scroll-hide-wrap{
   display:grid;
@@ -394,10 +397,10 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   .grades-scroll-hide-wrap{transition:none;}
   .iframe-shell-toolbar{transition:none;}
 }
-.iframe-shell-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.iframe-shell-head{align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .iframe-shell-head-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .ist-title{
-  font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.2px;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.2px;
   color:var(--accent-gold);line-height:1.1;
 }
 .gc-live{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.6px;color:var(--cyan);opacity:.92;}
@@ -415,7 +418,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .grades-analytics-wrap{position:absolute;inset:0;overflow:scroll;scrollbar-gutter:stable;padding:20px 24px 36px;z-index:4;background:transparent;}
 .insights-card.insights-card-empty{display:none !important;}
 .grades-props-inner{width:100%;max-width:none;margin:0;}
-.props-eval-toolbar{display:flex;flex-direction:column;gap:12px;margin-top:12px;margin-bottom:14px;}
+.props-eval-toolbar{display:flex;flex-direction:column;gap:10px;margin-top:10px;margin-bottom:10px;}
 .props-eval-filter-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 10px;}
 .props-eval-filter-label{
   flex:0 0 auto;min-width:4.5rem;padding-top:6px;
@@ -423,7 +426,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 }
 .props-filter-pills{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 0;min-width:0;}
 .props-filter-pill{
-  padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);
+  padding:6px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);
   background:transparent;color:var(--text);cursor:pointer;
   font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.05em;
   transition:border-color .15s ease,color .15s ease,background .15s ease;
@@ -434,6 +437,24 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .props-filter-pill[data-filter="HIT"].active{background:#00ff88;border-color:#00ff88;color:#0a0a0f;}
 .props-filter-pill[data-filter="MISS"].active{background:#ff6b6b;border-color:#ff6b6b;color:#0a0a0f;}
 .props-filter-pill[data-filter="VOID"].active{background:var(--amber);border-color:var(--amber);color:#0a0a0f;}
+.props-filter-pill[data-filter="DECIDED"].active{background:rgba(127,199,217,0.95);border-color:#7fc7d9;color:#0a0a0f;}
+.props-eval-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.props-eval-view-toggle{display:inline-flex;gap:0;padding:3px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.22);}
+.props-view-btn{
+  appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);
+  font-family:'Bebas Neue',sans-serif;letter-spacing:1.2px;font-size:13px;padding:7px 12px;border-radius:8px;cursor:pointer;
+}
+.props-view-btn.active{background:#f0a500;color:#0a0a14;}
+.props-eval-kpis{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px;}
+.props-kpi{
+  display:inline-flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);
+  font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,0.7);
+}
+.props-kpi strong{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:#f0a500;font-weight:400;}
+.props-kpi.is-hit strong{color:#5ef598;}
+.props-kpi.is-miss strong{color:#ff7070;}
+.props-kpi.is-void strong{color:#f5c842;}
 .props-eval-search-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
 .props-eval-search-row label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2);font-weight:600;}
 .props-eval-toolbar input[type="search"]{
@@ -442,55 +463,102 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   min-width:160px;flex:1 1 180px;max-width:100%;
 }
 .props-eval-counts{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);letter-spacing:0.4px;margin-bottom:6px;}
-/* Desktop: responsive card masonry */
+/* Fixed viewport + virtual window — keeps DOM small while scrolling. */
+.props-eval-scroll{
+  max-height:min(72vh, 920px);
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  background:rgba(255,255,255,0.02);
+  contain:strict;
+}
 .props-eval-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:12px;
+  position:relative;
+  display:block;
   width:100%;
   max-width:100%;
   box-sizing:border-box;
-  padding-bottom:28px;
+  min-height:120px;
+  border:none;
+  background:transparent;
+  padding-bottom:0;
 }
+.props-eval-virtual-spacer{width:100%;pointer-events:none;}
+.props-eval-virtual-window{
+  position:absolute;
+  left:0;right:0;top:0;
+  will-change:transform;
+  contain:content;
+}
+.prop-eval-row{
+  display:grid;
+  grid-template-columns:56px minmax(0,1.2fr) minmax(0,1.4fr) minmax(0,0.9fr) auto;
+  gap:10px 12px;
+  align-items:center;
+  height:52px;
+  padding:0 12px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  box-sizing:border-box;
+  overflow:hidden;
+}
+.prop-eval-row:hover{background:rgba(255,255,255,0.03);}
+.prop-eval-row.hit{box-shadow:inset 3px 0 0 #5ef598;}
+.prop-eval-row.miss{box-shadow:inset 3px 0 0 #ff7070;}
+.prop-eval-row.other{box-shadow:inset 3px 0 0 #f5c842;}
+.prop-eval-badge{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;padding:4px 0;
+}
+.prop-eval-badge.hit{color:#5ef598;}
+.prop-eval-badge.miss{color:#ff7070;}
+.prop-eval-badge.other{color:#f5c842;}
+.prop-eval-row .prop-eval-player{font-weight:650;font-size:13px;color:var(--text-primary);line-height:1.2;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prop-eval-row .prop-eval-line{font-size:12px;color:var(--cyan);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prop-eval-row .prop-eval-meta{font-size:11px;color:var(--muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prop-eval-row .prop-eval-stats{font-size:11px;color:rgba(255,255,255,0.72);text-align:right;white-space:nowrap;}
 .prop-eval-card{
-  border-radius:14px;padding:14px 16px;border:1px solid var(--glass-panel-border);
-  background:rgba(255,255,255,0.035);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
-  box-shadow:var(--glass-shadow);text-align:left;transition:border-color .15s,transform .15s;
-  content-visibility:auto;
-  contain-intrinsic-size:auto 132px;
+  border-radius:12px;padding:12px 14px;border:1px solid var(--glass-panel-border);
+  background:rgba(255,255,255,0.035);
+  box-shadow:none;text-align:left;
+  height:148px;box-sizing:border-box;overflow:hidden;
+  contain:content;
 }
-.props-eval-sentinel{
-  grid-column:1 / -1;
-  height:1px;
-  margin:0;
-  padding:0;
-  visibility:hidden;
-  pointer-events:none;
-}
-.props-eval-load-more{
-  grid-column:1 / -1;
-  font-family:'Inter',sans-serif;
-  font-size:11px;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:var(--muted2);
-  text-align:center;
-  padding:8px 0 16px;
-}
-.prop-eval-card:hover{border-color:rgba(212,160,23,0.22);transform:translateY(-1px);}
+.prop-eval-card:hover{border-color:rgba(212,160,23,0.22);}
 .prop-eval-card.hit{border-left:4px solid var(--green);background:rgba(57,255,110,0.05);}
 .prop-eval-card.miss{border-left:4px solid var(--red);background:rgba(255,77,77,0.07);}
 .prop-eval-card.other{border-left:4px solid var(--amber);}
-.prop-eval-result{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.4px;margin-bottom:8px;}
+.prop-eval-result{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.4px;margin-bottom:6px;}
 .prop-eval-result.hit{color:var(--green);}
 .prop-eval-result.miss{color:var(--red);}
 .prop-eval-result.other{color:var(--amber);}
 .prop-eval-stat.hit{color:var(--green);font-weight:600;}
 .prop-eval-stat.miss{color:var(--red);font-weight:600;}
 .prop-eval-stat.other{color:var(--amber);font-weight:600;}
-.prop-eval-player{font-weight:700;font-size:15px;color:var(--text-primary);line-height:1.25;margin-bottom:4px;}
-.prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.45;}
-.prop-eval-line{font-family:'Inter',sans-serif;font-size:13px;color:var(--cyan);margin-top:8px;}
+.prop-eval-player{font-weight:700;font-size:14px;color:var(--text-primary);line-height:1.25;margin-bottom:4px;}
+.prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.4;}
+.prop-eval-line{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);margin-top:6px;}
+@media(max-width:900px){
+  .props-eval-scroll{max-height:min(68vh, 780px);}
+  .prop-eval-row{
+    grid-template-columns:52px minmax(0,1fr);
+    grid-template-areas:
+      "badge player"
+      "badge line"
+      "badge meta"
+      "badge stats";
+    height:96px;
+    padding:8px 10px;
+    align-items:start;
+  }
+  .prop-eval-badge{grid-area:badge;}
+  .prop-eval-row .prop-eval-player{grid-area:player;white-space:normal;}
+  .prop-eval-row .prop-eval-line{grid-area:line;white-space:normal;}
+  .prop-eval-row .prop-eval-meta{grid-area:meta;}
+  .prop-eval-row .prop-eval-stats{grid-area:stats;text-align:left;}
+  .prop-eval-card{height:132px;}
+}
 [data-theme="light"] .prop-eval-card{background:rgba(255,255,255,0.72)!important;border-color:rgba(0,0,0,0.08)!important;}
 [data-theme="light"] .prop-eval-card.hit{background:rgba(26,140,69,.08)!important;}
 [data-theme="light"] .prop-eval-card.miss{background:rgba(204,34,0,.06)!important;}
@@ -502,10 +570,12 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 [data-theme="light"] .props-eval-toolbar input[type="search"]{
   background:rgba(255,255,255,0.85)!important;border-color:rgba(0,0,0,0.12)!important;color:rgba(0,0,0,0.85)!important;
 }
+[data-theme="light"] .props-eval-scroll{background:rgba(255,255,255,0.55);border-color:rgba(0,0,0,0.08);}
+[data-theme="light"] .prop-eval-row:hover{background:rgba(0,0,0,0.03);}
 .glass-insights{background:var(--glass-panel);border:1px solid var(--glass-panel-border);border-radius:16px;padding:20px 22px;box-shadow:var(--glass-shadow);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);}
 .insights-card-title{font-size:19px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent-gold);margin-bottom:8px;}
 .insights-card-sub{font-size:16px;color:var(--muted);margin-bottom:14px;line-height:1.45;}
-.props-eval-intro .insights-card-sub{font-size:14px;line-height:1.35;}
+.props-eval-intro .insights-card-sub{font-size:14px;line-height:1.35;margin-bottom:0;}
 .insights-table-host table{width:100%;border-collapse:collapse;font-size:clamp(15px,1.02vw,17px);}
 .insights-table-host th,.insights-table-host td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);}
 .insights-table-host th{color:var(--muted2);font-weight:600;font-size:clamp(13px,0.92vw,15px);text-transform:uppercase;letter-spacing:0.06em;}
@@ -660,13 +730,7 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
     touch-action:pan-y;
   }
   .grades-props-wrap .grades-props-inner{overflow:visible;}
-  .props-eval-grid{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:10px 12px;
-    align-content:start;
-    padding-bottom:24px;
-  }
+  .props-eval-scroll{max-height:min(68vh, 780px);}
   .prop-eval-card{
     min-width:0;
     padding:10px 11px;
@@ -715,21 +779,31 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 }
 /* tabs — glass, gold active */
 .tabs-bar{
-  flex-shrink:0;margin:4px 0 0;padding:10px 14px;display:flex;gap:12px;align-items:center;min-height:52px;z-index:90;position:relative;
+  flex-shrink:0;margin:2px 0 0;padding:4px;display:flex;gap:4px;align-items:center;min-height:40px;z-index:90;position:relative;
   font-family:'Inter',sans-serif;
   background:var(--glass-panel);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-  border:1px solid var(--glass-panel-border);border-radius:16px;box-shadow:var(--glass-shadow);
+  border:1px solid var(--glass-panel-border);border-radius:14px;box-shadow:var(--glass-shadow);
 }
-.tab-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;font-size:13px;letter-spacing:.55px;text-transform:uppercase;color:var(--muted2);background:rgba(255,255,255,0.03);border:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s,background .2s;white-space:nowrap;}
-.tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);}
+.tab-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:10px;font-size:12px;letter-spacing:.55px;text-transform:uppercase;color:var(--muted2);background:transparent;border:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s,background .2s;white-space:nowrap;flex:1 1 0;min-width:0;}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+.tab-btn:focus-visible{outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;}
 .tab-btn.active{
   color:var(--accent-gold);
-  border-color:rgba(212,160,23,0.55);
+  border-color:rgba(212,160,23,0.45);
   background:rgba(212,160,23,0.12);
-  box-shadow:0 0 22px rgba(212,160,23,0.15),inset 0 -2px 0 var(--accent-gold);
+  box-shadow:inset 0 -2px 0 var(--accent-gold);
 }
-.tab-icon{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.tab-icon{width:16px;height:16px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;}
 .tab-btn.active .tab-icon{filter:drop-shadow(0 0 8px rgba(240,165,0,0.45));}
+.tab-label-full{display:inline;}
+.tab-label-short{display:none;}
+@media (max-width:1100px){
+  .tab-label-full{display:none;}
+  .tab-label-short{display:inline;}
+}
+.date-nav-btn:focus-visible,.date-go-btn:focus-visible,.dpill:focus-visible{
+  outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;
+}
 .ticket-track-bar{
   flex-shrink:0;margin:6px 0 0;padding:0;display:none;gap:16px;align-items:center;flex-wrap:wrap;
   background:transparent !important;border:none !important;box-shadow:none !important;
@@ -1551,17 +1625,17 @@ select option,
             </div>
           </div>
           <div class="tabs-bar">
-            <button type="button" class="tab-btn active" id="tab-slate" onclick="switchTab('slate')">
-              <span class="tab-icon">📋</span>SLATE EVALUATION
+            <button type="button" class="tab-btn active" id="tab-slate" onclick="switchTab('slate')" title="Slate evaluation">
+              <span class="tab-icon">📋</span><span class="tab-label-full">SLATE EVALUATION</span><span class="tab-label-short">SLATE</span>
             </button>
-            <button type="button" class="tab-btn" id="tab-props" onclick="switchTab('props')">
-              <span class="tab-icon">🎯</span>PROP EVALUATION
+            <button type="button" class="tab-btn" id="tab-props" onclick="switchTab('props')" title="Prop evaluation">
+              <span class="tab-icon">🎯</span><span class="tab-label-full">PROP EVALUATION</span><span class="tab-label-short">PROPS</span>
             </button>
-            <button type="button" class="tab-btn" id="tab-tickets" onclick="switchTab('tickets')">
-              <span class="tab-icon">🎟</span>TICKET EVALUATION
+            <button type="button" class="tab-btn" id="tab-tickets" onclick="switchTab('tickets')" title="Ticket evaluation">
+              <span class="tab-icon">🎟</span><span class="tab-label-full">TICKET EVALUATION</span><span class="tab-label-short">TICKETS</span>
             </button>
-            <button type="button" class="tab-btn" id="tab-players" onclick="switchTab('players')">
-              <span class="tab-icon">📊</span>PLAYERS
+            <button type="button" class="tab-btn" id="tab-players" onclick="switchTab('players')" title="Players">
+              <span class="tab-icon">📊</span><span class="tab-label-full">PLAYERS</span><span class="tab-label-short">PLAYERS</span>
             </button>
           </div>
           <div class="ticket-track-bar" id="ticket-track-bar" hidden aria-label="Ticket evaluation track">
@@ -1597,8 +1671,17 @@ select option,
   <div id="props-eval-panel" class="grades-analytics-wrap grades-props-wrap" hidden aria-label="Graded props by report date">
     <div class="grades-props-inner">
       <div class="glass-insights props-eval-intro">
-        <h3 class="insights-card-title">Prop evaluation</h3>
-        <p class="insights-card-sub">Every graded prop for the report date (hit / miss / other). When <code>graded_props_YYYY-MM-DD.json</code> is deployed under <code>ui_runner/templates/</code> (written by <code>build_grades_html.py</code>), this tab loads from that file. Otherwise it uses archived rows from <code>props_history</code> in <code>data/cache/*_props_history.db</code>. The date must match the <strong>slate grade date</strong> (same <code>YYYY-MM-DD</code> as <code>outputs/&lt;date&gt;/</code>). Use <strong>Jump to date</strong> if pills default to the wrong year.</p>
+        <div class="props-eval-head">
+          <div>
+            <h3 class="insights-card-title">Prop evaluation</h3>
+            <p class="insights-card-sub">Decided props load first (voids hidden). Switch filters or search to refine.</p>
+          </div>
+          <div class="props-eval-view-toggle" role="group" aria-label="Display density">
+            <button type="button" class="props-view-btn active" id="props-view-list" data-view="list" aria-pressed="true">List</button>
+            <button type="button" class="props-view-btn" id="props-view-cards" data-view="cards" aria-pressed="false">Cards</button>
+          </div>
+        </div>
+        <div class="props-eval-kpis" id="props-eval-kpis" hidden></div>
         <div class="props-eval-toolbar">
           <div class="props-eval-filter-row">
             <span class="props-eval-filter-label">Sport</span>
@@ -1609,10 +1692,11 @@ select option,
           <div class="props-eval-filter-row">
             <span class="props-eval-filter-label">Result</span>
             <div class="props-filter-pills" id="props-filter-result-group" role="group" aria-label="Filter by result">
-              <button type="button" class="props-filter-pill active" data-filter="" aria-pressed="true">ALL</button>
+              <button type="button" class="props-filter-pill active" data-filter="DECIDED" aria-pressed="true">DECIDED</button>
               <button type="button" class="props-filter-pill" data-filter="HIT" aria-pressed="false">HITS</button>
               <button type="button" class="props-filter-pill" data-filter="MISS" aria-pressed="false">MISSES</button>
               <button type="button" class="props-filter-pill" data-filter="VOID" aria-pressed="false">VOIDS</button>
+              <button type="button" class="props-filter-pill" data-filter="" aria-pressed="false">ALL</button>
             </div>
           </div>
           <div class="props-eval-filter-row">
@@ -1632,7 +1716,9 @@ select option,
         </div>
         <div class="props-eval-counts" id="props-eval-counts"></div>
       </div>
-      <div class="props-eval-grid" id="props-eval-grid"></div>
+      <div class="props-eval-scroll" id="props-eval-scroll" tabindex="0" aria-label="Graded props list">
+        <div class="props-eval-grid" id="props-eval-grid" data-view="list"></div>
+      </div>
       <p class="insights-card-sub" id="props-eval-foot" style="margin-top:8px;"></p>
     </div>
   </div>
@@ -2601,6 +2687,104 @@ function ensureFrameCollapseCss(doc) {
     .def-subgrid-n,.def-tier-subgrid-table td > span[style*="font-size:10px"]{font-size:11px!important;color:rgba(255,255,255,0.62)!important;font-weight:500!important}
     .def-subgrid-empty,.def-tier-subgrid-table td[style*="color:var(--color-text-tertiary"]{color:rgba(255,255,255,0.38)!important}
     .def-subgrid-total-row td,.def-tier-subgrid-table tbody tr:nth-child(odd) td{background:transparent!important}
+    /* v20260713ux — friendlier sport jump, segment tabs, clearer sport rows. */
+    .slate-day-glance{
+      display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+      margin:0 0 12px;padding:12px 14px;border-radius:14px;
+      border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);
+    }
+    .slate-day-glance-kicker{
+      font-family:'Bebas Neue',sans-serif;letter-spacing:1.8px;font-size:12px;color:rgba(255,255,255,0.45);
+    }
+    .slate-day-glance-stat{
+      display:inline-flex;align-items:baseline;gap:6px;
+      font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,0.78);
+    }
+    .slate-day-glance-stat strong{
+      font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:#f0a500;font-weight:400;
+    }
+    .slate-day-glance-hint{
+      margin-left:auto;font-size:12px;color:rgba(255,255,255,0.45);
+    }
+    .slate-sport-jump{
+      position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+      padding:8px 0 12px;margin:0 0 12px;background:rgba(10,10,20,0.94);
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .slate-sport-jump-label{
+      font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.6px;color:rgba(255,255,255,0.45);
+      margin-right:2px;
+    }
+    .slate-sport-jump-btn{
+      appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);
+      color:rgba(255,255,255,0.78);border-radius:999px;padding:8px 12px;min-height:36px;cursor:pointer;
+      font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:8px;
+      transition:border-color .15s,background .15s,color .15s,box-shadow .15s;
+    }
+    .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.22);color:#fff;background:rgba(255,255,255,0.07);}
+    .slate-sport-jump-btn:focus-visible{outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;}
+    .slate-sport-jump-btn.active{
+      color:#f0a500;border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);
+      box-shadow:0 0 14px rgba(240,165,0,0.12);
+    }
+    .slate-sport-jump-btn .sj-title{font-weight:600;}
+    .slate-sport-jump-btn .sj-meta{opacity:0.72;font-size:11px;font-variant-numeric:tabular-nums;}
+    .sport-view-tabs{
+      display:inline-flex;flex-wrap:wrap;gap:0;margin:0 0 14px;padding:3px;
+      border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);
+      position:sticky;top:52px;z-index:30;
+    }
+    .sport-view-tab{
+      appearance:none;border:none;background:transparent;
+      color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 14px;min-height:34px;cursor:pointer;
+      font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px;
+      transition:color .15s,background .15s;
+    }
+    .sport-view-tab:hover{color:rgba(255,255,255,0.9);}
+    .sport-view-tab:focus-visible{outline:2px solid rgba(240,165,0,0.5);outline-offset:1px;}
+    .sport-view-tab.active{
+      color:#0a0a14;background:#f0a500;box-shadow:0 4px 14px rgba(240,165,0,0.25);
+    }
+    .sport-view-panel{display:none;}
+    .sport-view-panel.active{display:block;animation:slatePanelIn .18s ease;}
+    @keyframes slatePanelIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion:reduce){
+      .sport-view-panel.active{animation:none;}
+    }
+    .sport-view-panel details.matrix-collapsible{border:none;background:transparent;box-shadow:none;margin:0;}
+    .sport-view-panel details.matrix-collapsible > summary{display:none!important;}
+    .sport-view-panel details.matrix-collapsible[open] > .matrix-body,
+    .sport-view-panel details.matrix-collapsible > .matrix-body{display:block!important;padding:0;}
+    .sport-section-body.sport-view-tabbed{padding-top:10px;}
+    .sport-meta-rate{
+      font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.4px;margin-left:8px;
+      padding:3px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.12);
+    }
+    .sport-meta-rate.is-hot{color:#5ef598;border-color:rgba(94,245,152,0.35);background:rgba(94,245,152,0.08);}
+    .sport-meta-rate.is-cold{color:#ff7070;border-color:rgba(255,112,112,0.35);background:rgba(255,112,112,0.08);}
+    .sport-meta-rate.is-mid{color:#f5c842;border-color:rgba(245,200,66,0.35);background:rgba(245,200,66,0.08);}
+    details.sport-collapsible > summary{
+      border-radius:10px;padding:4px 2px;transition:background .15s;
+    }
+    details.sport-collapsible > summary:hover{background:rgba(255,255,255,0.03);}
+    details.sport-collapsible > summary:focus-visible{outline:2px solid rgba(240,165,0,0.5);outline-offset:2px;}
+    .sport-expand-hint{
+      font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.04em;color:rgba(255,255,255,0.38);
+      margin-left:8px;white-space:nowrap;
+    }
+    details.sport-collapsible[open] > summary .sport-expand-hint{display:none;}
+    details.grades-sport-bucket > summary .sport-expand-hint{margin-left:auto;font-size:11px;color:rgba(255,255,255,0.38);}
+    details.grades-sport-bucket[open] > summary .sport-expand-hint{display:none;}
+    @media(max-width:768px){
+      .slate-day-glance{padding:10px 12px;gap:8px 10px;}
+      .slate-day-glance-hint{width:100%;margin-left:0;}
+      .slate-sport-jump{gap:6px;padding:6px 0 10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+      .slate-sport-jump-btn{flex:0 0 auto;white-space:nowrap;min-height:40px;padding:8px 12px;}
+      .sport-view-tabs{top:46px;width:100%;}
+      .sport-view-tab{padding:8px 12px;font-size:12px;flex:1 1 auto;text-align:center;}
+      .sport-expand-hint{display:none;}
+    }
   `;
 }
 
@@ -2690,6 +2874,367 @@ function collapseAllSlateDetails(doc) {
   });
 }
 
+function _slateMatrixTabLabel(summaryText) {
+  const t = String(summaryText || '').toUpperCase();
+  if (t.includes('DEF TIER')) return 'Def Tier';
+  if (t.includes('PROP TYPE')) return 'Prop Types';
+  if (t.includes('PERFORMANCE') || t.includes('MATRIX')) return 'Matrix';
+  const clean = String(summaryText || '').replace(/\s+/g, ' ').trim();
+  return clean.slice(0, 22) || 'Details';
+}
+
+function _slateSportAnchorId(label, idx) {
+  const slug = String(label || `sport-${idx}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  return `slate-sport-${slug || idx}`;
+}
+
+function _slateNotifyFrameHeight() {
+  try {
+    const frame = document.getElementById('grade-frame');
+    if (frame) {
+      syncGradeFrameHeight(frame);
+      setupGradeFrameAutoHeight(frame);
+    }
+  } catch (_e) {}
+}
+
+/** Replace nested matrix <details> with one-click in-sport tabs (Overview / Matrix / …). */
+function tabifySlateSportBodies(doc) {
+  if (!doc) return;
+  const bodies = Array.from(doc.querySelectorAll('.sport-section-body'));
+  bodies.forEach((body) => {
+    if (body.dataset.tabified === '1' || body.classList.contains('sport-view-tabbed')) return;
+    const matrices = Array.from(body.querySelectorAll(':scope > details.matrix-collapsible'));
+    const players = body.querySelector(':scope > .two-col');
+    if (!matrices.length) return;
+
+    body.dataset.tabified = '1';
+    body.classList.add('sport-view-tabbed');
+
+    const tabBar = doc.createElement('div');
+    tabBar.className = 'sport-view-tabs';
+    tabBar.setAttribute('role', 'tablist');
+
+    const panelsHost = doc.createElement('div');
+    panelsHost.className = 'sport-view-panels';
+
+    const parts = [];
+    const overviewKids = Array.from(body.children).filter(
+      (el) => !(el.tagName === 'DETAILS' && el.classList.contains('matrix-collapsible'))
+    );
+    if (overviewKids.length || players) {
+      const panel = doc.createElement('div');
+      panel.className = 'sport-view-panel';
+      panel.dataset.view = 'overview';
+      overviewKids.forEach((kid) => panel.appendChild(kid));
+      parts.push({ id: 'overview', label: 'Overview', panel });
+    }
+    matrices.forEach((det, i) => {
+      const summary = det.querySelector(':scope > summary');
+      const label = _slateMatrixTabLabel(summary ? summary.textContent : `Section ${i + 1}`);
+      det.open = true;
+      const panel = doc.createElement('div');
+      panel.className = 'sport-view-panel';
+      panel.dataset.view = `m${i}`;
+      panel.appendChild(det);
+      parts.push({ id: `m${i}`, label, panel });
+    });
+
+    while (body.firstChild) body.removeChild(body.firstChild);
+
+    const prefer = parts.find((p) => p.id === 'overview') || parts[0];
+    parts.forEach((part) => {
+      const btn = doc.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sport-view-tab' + (part === prefer ? ' active' : '');
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', part === prefer ? 'true' : 'false');
+      btn.dataset.view = part.id;
+      btn.textContent = part.label;
+      tabBar.appendChild(btn);
+
+      part.panel.classList.toggle('active', part === prefer);
+      panelsHost.appendChild(part.panel);
+    });
+
+    tabBar.addEventListener('click', (ev) => {
+      const btn = ev.target && ev.target.closest ? ev.target.closest('.sport-view-tab') : null;
+      if (!btn || !tabBar.contains(btn)) return;
+      const view = btn.dataset.view;
+      tabBar.querySelectorAll('.sport-view-tab').forEach((b) => {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      panelsHost.querySelectorAll('.sport-view-panel').forEach((p) => {
+        p.classList.toggle('active', p.dataset.view === view);
+      });
+      _slateNotifyFrameHeight();
+    });
+
+    body.appendChild(tabBar);
+    body.appendChild(panelsHost);
+  });
+}
+
+function _slateCleanSportTitle(raw) {
+  return String(raw || '')
+    .replace(/\s+/g, ' ')
+    .replace(/▸|▾/g, '')
+    .trim();
+}
+
+function _slateCleanSportMeta(raw) {
+  return String(raw || '')
+    .replace(/\s+/g, ' ')
+    .replace(/TOTAL\s+PROPS/gi, 'props')
+    .replace(/\binsights\b/gi, '')
+    .trim();
+}
+
+function _slateSportIsCombined(title) {
+  return /all\s*sports|takeaways/i.test(String(title || ''));
+}
+
+function injectSlateDayGlance(doc) {
+  if (!doc) return;
+  const main = doc.querySelector('.main');
+  if (!main || main.querySelector(':scope > .slate-day-glance')) return;
+  const all = Array.from(
+    main.querySelectorAll(':scope > details.sport-collapsible, :scope > details.grades-sport-bucket')
+  ).find((d) => {
+    const t =
+      d.querySelector(':scope > summary .sport-label')?.textContent ||
+      d.querySelector(':scope > summary > span:first-child')?.textContent ||
+      d.querySelector(':scope > summary')?.textContent ||
+      '';
+    return /all\s*sports/i.test(t);
+  });
+  if (!all) return;
+  const meta =
+    all.querySelector(':scope > summary .sport-meta-count')?.textContent ||
+    all.querySelector(':scope > summary .grades-sport-meta')?.textContent ||
+    '';
+  const rateEl = all.querySelector(':scope > summary .sport-meta-rate');
+  const propsMatch = String(meta).match(/([\d,]+)\s*(?:TOTAL\s+)?PROPS/i);
+  const props = propsMatch ? propsMatch[1] : _slateCleanSportMeta(meta);
+  const rate = rateEl ? rateEl.textContent.trim() : '';
+
+  const glance = doc.createElement('div');
+  glance.className = 'slate-day-glance';
+  const kicker = doc.createElement('span');
+  kicker.className = 'slate-day-glance-kicker';
+  kicker.textContent = 'DAY SNAPSHOT';
+  glance.appendChild(kicker);
+  if (props) {
+    const st = doc.createElement('span');
+    st.className = 'slate-day-glance-stat';
+    const strong = doc.createElement('strong');
+    strong.textContent = props;
+    st.appendChild(strong);
+    st.appendChild(doc.createTextNode(' props graded'));
+    glance.appendChild(st);
+  }
+  if (rate) {
+    const st = doc.createElement('span');
+    st.className = 'slate-day-glance-stat';
+    const strong = doc.createElement('strong');
+    strong.textContent = rate;
+    st.appendChild(strong);
+    st.appendChild(doc.createTextNode(' hit rate'));
+    glance.appendChild(st);
+  }
+  const hint = doc.createElement('span');
+  hint.className = 'slate-day-glance-hint';
+  hint.textContent = 'Pick a sport below — one open at a time';
+  glance.appendChild(hint);
+  main.insertBefore(glance, main.firstChild);
+}
+
+function polishSlateSportSummaries(doc) {
+  if (!doc) return;
+  doc
+    .querySelectorAll(
+      '.main > details.sport-collapsible > summary, .main > details.grades-sport-bucket > summary'
+    )
+    .forEach((summary) => {
+      if (summary.querySelector('.sport-expand-hint')) return;
+      const hint = doc.createElement('span');
+      hint.className = 'sport-expand-hint';
+      hint.textContent = 'Tap to open';
+      summary.appendChild(hint);
+    });
+}
+
+function autoOpenPreferredSlateSport(doc) {
+  if (!doc) return;
+  const sports = Array.from(
+    doc.querySelectorAll(
+      '.main > details.sport-collapsible, .main > details.grades-sport-bucket'
+    )
+  ).filter((d) => {
+    const t =
+      d.querySelector(':scope > summary .sport-label')?.textContent ||
+      d.querySelector(':scope > summary > span:first-child')?.textContent ||
+      '';
+    return !_slateSportIsCombined(t);
+  });
+  if (!sports.length) return;
+  let remembered = '';
+  try {
+    remembered = sessionStorage.getItem('grades-open-sport') || '';
+  } catch (_e) {}
+  let target = remembered ? sports.find((d) => d.id === remembered) : null;
+  if (!target) target = sports[0];
+  sports.forEach((d) => {
+    d.open = d === target;
+  });
+  const nav = doc.querySelector('.slate-sport-jump');
+  if (nav && target) {
+    nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.target === target.id);
+    });
+  }
+}
+
+function injectSlateSportJumpNav(doc) {
+  if (!doc) return;
+  const main = doc.querySelector('.main');
+  if (!main) return;
+  if (main.querySelector(':scope > .slate-sport-jump')) return;
+
+  const sports = Array.from(
+    main.querySelectorAll(':scope > details.sport-collapsible, :scope > details.grades-sport-bucket')
+  );
+  if (sports.length < 2) return;
+
+  const nav = doc.createElement('nav');
+  nav.className = 'slate-sport-jump';
+  nav.setAttribute('aria-label', 'Jump to sport');
+  const label = doc.createElement('span');
+  label.className = 'slate-sport-jump-label';
+  label.textContent = 'SPORTS';
+  nav.appendChild(label);
+
+  sports.forEach((det, idx) => {
+    const titleEl =
+      det.querySelector(':scope > summary .sport-label') ||
+      det.querySelector(':scope > summary > span:first-child') ||
+      det.querySelector(':scope > summary');
+    const metaEl =
+      det.querySelector(':scope > summary .sport-meta-count') ||
+      det.querySelector(':scope > summary .grades-sport-meta');
+    const rateEl = det.querySelector(':scope > summary .sport-meta-rate');
+    const title = _slateCleanSportTitle(titleEl?.textContent || `Sport ${idx + 1}`);
+    let meta = _slateCleanSportMeta(metaEl?.textContent || '');
+    if (rateEl && rateEl.textContent) {
+      const rt = rateEl.textContent.trim();
+      meta = meta ? `${meta} · ${rt}` : rt;
+    }
+    const id = _slateSportAnchorId(title, idx);
+    det.id = id;
+
+    const btn = doc.createElement('button');
+    btn.type = 'button';
+    btn.className = 'slate-sport-jump-btn';
+    btn.dataset.target = id;
+    const titleSpan = doc.createElement('span');
+    titleSpan.className = 'sj-title';
+    titleSpan.textContent = title;
+    btn.appendChild(titleSpan);
+    if (meta) {
+      const metaSpan = doc.createElement('span');
+      metaSpan.className = 'sj-meta';
+      metaSpan.textContent = meta;
+      btn.appendChild(metaSpan);
+    }
+    btn.addEventListener('click', () => {
+      sports.forEach((d) => {
+        d.open = d === det;
+      });
+      nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
+        b.classList.toggle('active', b === btn);
+      });
+      try {
+        sessionStorage.setItem('grades-open-sport', id);
+      } catch (_e) {}
+      try {
+        det.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_e) {
+        try { det.scrollIntoView(true); } catch (_e2) {}
+      }
+      _slateNotifyFrameHeight();
+    });
+    nav.appendChild(btn);
+  });
+
+  const glance = main.querySelector(':scope > .slate-day-glance');
+  if (glance && glance.nextSibling) {
+    main.insertBefore(nav, glance.nextSibling);
+  } else {
+    main.insertBefore(nav, main.firstChild);
+  }
+}
+
+function bindSlateExclusiveSportAccordion(doc) {
+  if (!doc || doc.documentElement.dataset.slateExclusive === '1') return;
+  doc.documentElement.dataset.slateExclusive = '1';
+  doc.addEventListener(
+    'toggle',
+    (ev) => {
+      const t = ev.target;
+      if (!t || !t.matches) return;
+      if (!t.matches('details.sport-collapsible, details.grades-sport-bucket')) return;
+      if (!t.open) {
+        const nav = doc.querySelector('.slate-sport-jump');
+        if (nav) {
+          nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
+            if (b.dataset.target === t.id) b.classList.remove('active');
+          });
+        }
+        _slateNotifyFrameHeight();
+        return;
+      }
+      const main = doc.querySelector('.main') || doc;
+      main
+        .querySelectorAll('details.sport-collapsible, details.grades-sport-bucket')
+        .forEach((d) => {
+          if (d !== t) d.open = false;
+        });
+      const nav = doc.querySelector('.slate-sport-jump');
+      if (nav) {
+        nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
+          b.classList.toggle('active', b.dataset.target === t.id);
+        });
+      }
+      try {
+        if (t.id) sessionStorage.setItem('grades-open-sport', t.id);
+      } catch (_e) {}
+      _slateNotifyFrameHeight();
+    },
+    true
+  );
+}
+
+/** Hub-side slate organization: jump nav, in-sport tabs, one-open accordion. */
+function organizeSlateEvalEfficiency(doc) {
+  if (!doc || doc.documentElement.dataset.slateOrg === '1') return;
+  doc.documentElement.dataset.slateOrg = '1';
+  if (doc.documentElement.dataset.slateLayout !== 'v2') {
+    tabifySlateSportBodies(doc);
+  }
+  polishSlateSportSummaries(doc);
+  injectSlateDayGlance(doc);
+  injectSlateSportJumpNav(doc);
+  bindSlateExclusiveSportAccordion(doc);
+  autoOpenPreferredSlateSport(doc);
+  _slateNotifyFrameHeight();
+}
+
 /** Undo hub double-wrap when native <details.sport-collapsible> was nested inside grades-sport-bucket. */
 function unwrapDoubleWrappedNativeSports(doc) {
   if (!doc) return;
@@ -2763,11 +3308,13 @@ function collapseSportsInSlateFrame(frame) {
   if (nativeSportDetails.length > 0) {
     legacySections.forEach((sec, idx) => wrapSlateSportSectionInBucket(doc, sec, idx));
     collapseAllSlateDetails(doc);
+    try { organizeSlateEvalEfficiency(doc); } catch (_org1) {}
     return;
   }
 
   sections.forEach((sec, idx) => wrapSlateSportSectionInBucket(doc, sec, idx));
   collapseAllSlateDetails(doc);
+  try { organizeSlateEvalEfficiency(doc); } catch (_org2) {}
 }
 
 function collapseSportsInTicketFrame(frame) {
@@ -2976,19 +3523,32 @@ function propsEvalIsVoidResult(r) {
   if (r && r.void_reason && String(r.void_reason).trim()) return true;
   return ru !== 'HIT' && ru !== 'MISS' && ru !== 'WIN' && ru !== 'LOSS' && ru !== 'LOSE' && ru !== '';
 }
+function propsEvalIsHit(r) {
+  var ru = String((r && r.result) || '').toUpperCase();
+  return ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT';
+}
+function propsEvalIsMiss(r) {
+  var ru = String((r && r.result) || '').toUpperCase();
+  return ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE';
+}
 function fillPropsSportFilter(rows) {
   const group = document.getElementById('props-filter-sport-group');
   if (!group) return;
   const cur = getPropsFilterGroupValue('props-filter-sport-group');
-  const fromData = new Set(rows.map(function (r) { return normalizePropsEvalSport(r.sport); }).filter(Boolean));
-  const sports = PROPS_EVAL_SPORT_PILLS.slice();
-  fromData.forEach(function (s) {
+  const fromData = {};
+  rows.forEach(function (r) {
+    var s = normalizePropsEvalSport(r.sport);
+    if (s) fromData[s] = (fromData[s] || 0) + 1;
+  });
+  const sports = PROPS_EVAL_SPORT_PILLS.filter(function (s) { return fromData[s]; });
+  Object.keys(fromData).forEach(function (s) {
     if (sports.indexOf(s) < 0) sports.push(s);
   });
   group.innerHTML =
     '<button type="button" class="props-filter-pill active" data-filter="" aria-pressed="true">ALL</button>' +
     sports.map(function (s) {
-      return '<button type="button" class="props-filter-pill" data-filter="' + escProps(s) + '" aria-pressed="false">' + escProps(s) + '</button>';
+      return '<button type="button" class="props-filter-pill" data-filter="' + escProps(s) + '" aria-pressed="false">' +
+        escProps(s) + ' <span style="opacity:.65">' + fromData[s] + '</span></button>';
     }).join('');
   var restore = null;
   if (cur) {
@@ -2997,6 +3557,26 @@ function fillPropsSportFilter(rows) {
     });
   }
   setActivePropsFilterPill(group, restore || group.querySelector('.props-filter-pill[data-filter=""]'));
+}
+function updatePropsEvalKpis(rows) {
+  var el = document.getElementById('props-eval-kpis');
+  if (!el) return;
+  var n = rows.length, hit = 0, miss = 0, voids = 0;
+  for (var i = 0; i < n; i++) {
+    var r = rows[i];
+    if (propsEvalIsHit(r)) hit++;
+    else if (propsEvalIsMiss(r)) miss++;
+    else if (propsEvalIsVoidResult(r)) voids++;
+  }
+  var decided = hit + miss;
+  var rate = decided ? ((hit / decided) * 100).toFixed(1) + '%' : '—';
+  el.hidden = false;
+  el.innerHTML =
+    '<span class="props-kpi"><strong>' + n + '</strong> total</span>' +
+    '<span class="props-kpi is-hit"><strong>' + hit + '</strong> hits</span>' +
+    '<span class="props-kpi is-miss"><strong>' + miss + '</strong> misses</span>' +
+    '<span class="props-kpi is-void"><strong>' + voids + '</strong> voids</span>' +
+    '<span class="props-kpi"><strong>' + rate + '</strong> decided HR</span>';
 }
 /** Team vs opponent; strips placeholders so we do not show "NYY vs —" when opp is missing in JSON. */
 function formatPropEvalMatchup(r) {
@@ -3017,8 +3597,200 @@ function formatPropEvalMatchup(r) {
 }
 var PROPS_EVAL_RENDER_GEN = 0;
 var PROPS_EVAL_IO = null;
-var PROPS_EVAL_BATCH_MOBILE = 48;
-var PROPS_EVAL_BATCH_DESKTOP = 96;
+var PROPS_EVAL_BATCH_MOBILE = 36;
+var PROPS_EVAL_BATCH_DESKTOP = 56;
+var PROPS_EVAL_VIEW = 'list';
+var PROPS_EVAL_DATE_CACHE = Object.create(null);
+var PROPS_EVAL_LOAD_ABORT = null;
+var PROPS_EVAL_SEARCH_TIMER = null;
+var PROPS_EVAL_VIRTUAL = {
+  rows: [],
+  view: 'list',
+  gen: 0,
+  scrollEl: null,
+  onScroll: null,
+  onResize: null,
+  raf: null,
+  lastStart: -1,
+  lastEnd: -1,
+};
+
+function propsEvalRowHeight(view) {
+  if (view === 'cards') return gradesFrameMobileLayout() ? 142 : 158;
+  return gradesFrameMobileLayout() ? 96 : 52;
+}
+
+function propsEvalCardCols(scrollEl) {
+  var w = (scrollEl && scrollEl.clientWidth) || 800;
+  var min = 250;
+  var gap = 10;
+  var pad = 20;
+  return Math.max(1, Math.floor((w - pad + gap) / (min + gap)));
+}
+
+function teardownPropsEvalInfiniteScroll() {
+  if (PROPS_EVAL_IO) {
+    try { PROPS_EVAL_IO.disconnect(); } catch (_e) {}
+    PROPS_EVAL_IO = null;
+  }
+  var v = PROPS_EVAL_VIRTUAL;
+  if (v.scrollEl && v.onScroll) {
+    try { v.scrollEl.removeEventListener('scroll', v.onScroll); } catch (_e2) {}
+  }
+  if (v.onResize) {
+    try { window.removeEventListener('resize', v.onResize); } catch (_e3) {}
+  }
+  if (v.raf != null) {
+    try { cancelAnimationFrame(v.raf); } catch (_e4) {}
+  }
+  v.scrollEl = null;
+  v.onScroll = null;
+  v.onResize = null;
+  v.raf = null;
+  v.lastStart = -1;
+  v.lastEnd = -1;
+}
+
+function paintPropsEvalVirtualWindow() {
+  var v = PROPS_EVAL_VIRTUAL;
+  var grid = document.getElementById('props-eval-grid');
+  var scrollEl = document.getElementById('props-eval-scroll') || grid;
+  if (!grid || !scrollEl) return;
+  var rows = v.rows || [];
+  var view = v.view || 'list';
+  var itemH = propsEvalRowHeight(view);
+  var n = rows.length;
+  /* Keep virtualization 1-col for both modes — avoids multi-col transform glitches while scrolling. */
+  var totalH = Math.max(itemH, n * itemH);
+  var spacer = grid.querySelector('.props-eval-virtual-spacer');
+  var win = grid.querySelector('.props-eval-virtual-window');
+  if (!spacer || !win) return;
+  spacer.style.height = totalH + 'px';
+
+  var scrollTop = scrollEl.scrollTop || 0;
+  var viewH = scrollEl.clientHeight || 600;
+  var overscan = 10;
+  var startIdx = Math.max(0, Math.floor(scrollTop / itemH) - overscan);
+  var endIdx = Math.min(n, Math.ceil((scrollTop + viewH) / itemH) + overscan);
+  if (startIdx === v.lastStart && endIdx === v.lastEnd && win.childNodes.length) return;
+  v.lastStart = startIdx;
+  v.lastEnd = endIdx;
+
+  win.style.transform = 'translate3d(0,' + (startIdx * itemH) + 'px,0)';
+  win.style.display = 'block';
+  win.style.padding = view === 'cards' ? '0 10px' : '0';
+
+  var build = view === 'cards' ? buildPropEvalCardElement : buildPropEvalRowElement;
+  var frag = document.createDocumentFragment();
+  for (var i = startIdx; i < endIdx; i++) {
+    var el = build(rows[i]);
+    if (view === 'cards') {
+      el.style.marginBottom = '10px';
+      el.style.height = (itemH - 10) + 'px';
+    }
+    frag.appendChild(el);
+  }
+  if (typeof win.replaceChildren === 'function') {
+    win.replaceChildren(frag);
+  } else {
+    win.innerHTML = '';
+    win.appendChild(frag);
+  }
+}
+
+function schedulePropsEvalVirtualPaint() {
+  var v = PROPS_EVAL_VIRTUAL;
+  if (v.raf != null) return;
+  v.raf = requestAnimationFrame(function () {
+    v.raf = null;
+    if (v.gen !== PROPS_EVAL_RENDER_GEN) return;
+    paintPropsEvalVirtualWindow();
+  });
+}
+
+function renderPropsEvalCards(rows) {
+  const grid = document.getElementById('props-eval-grid');
+  if (!grid) return;
+  teardownPropsEvalInfiniteScroll();
+  PROPS_EVAL_RENDER_GEN += 1;
+  const gen = PROPS_EVAL_RENDER_GEN;
+  window._propsEvalFilteredRows = rows;
+  const view = getPropsEvalView();
+  setPropsEvalView(view);
+  const scrollEl = document.getElementById('props-eval-scroll') || grid;
+  grid.setAttribute('data-view', view);
+
+  if (!rows.length) {
+    grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">No props match filters.</p>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  const spacer = document.createElement('div');
+  spacer.className = 'props-eval-virtual-spacer';
+  spacer.setAttribute('aria-hidden', 'true');
+  const win = document.createElement('div');
+  win.className = 'props-eval-virtual-window';
+  grid.appendChild(spacer);
+  grid.appendChild(win);
+
+  PROPS_EVAL_VIRTUAL.rows = rows;
+  PROPS_EVAL_VIRTUAL.view = view;
+  PROPS_EVAL_VIRTUAL.gen = gen;
+  PROPS_EVAL_VIRTUAL.scrollEl = scrollEl;
+  PROPS_EVAL_VIRTUAL.lastStart = -1;
+  PROPS_EVAL_VIRTUAL.lastEnd = -1;
+
+  try { scrollEl.scrollTop = 0; } catch (_e) {}
+  paintPropsEvalVirtualWindow();
+
+  PROPS_EVAL_VIRTUAL.onScroll = function () {
+    if (gen !== PROPS_EVAL_RENDER_GEN) return;
+    schedulePropsEvalVirtualPaint();
+  };
+  PROPS_EVAL_VIRTUAL.onResize = function () {
+    if (gen !== PROPS_EVAL_RENDER_GEN) return;
+    PROPS_EVAL_VIRTUAL.lastStart = -1;
+    schedulePropsEvalVirtualPaint();
+  };
+  scrollEl.addEventListener('scroll', PROPS_EVAL_VIRTUAL.onScroll, { passive: true });
+  window.addEventListener('resize', PROPS_EVAL_VIRTUAL.onResize, { passive: true });
+}
+
+function getPropsEvalView() {
+  try {
+    var v = localStorage.getItem('grades-props-view');
+    if (v === 'cards' || v === 'list') return v;
+  } catch (_e) {}
+  return PROPS_EVAL_VIEW || 'list';
+}
+function setPropsEvalView(view) {
+  PROPS_EVAL_VIEW = view === 'cards' ? 'cards' : 'list';
+  try { localStorage.setItem('grades-props-view', PROPS_EVAL_VIEW); } catch (_e) {}
+  var listBtn = document.getElementById('props-view-list');
+  var cardsBtn = document.getElementById('props-view-cards');
+  if (listBtn) {
+    listBtn.classList.toggle('active', PROPS_EVAL_VIEW === 'list');
+    listBtn.setAttribute('aria-pressed', PROPS_EVAL_VIEW === 'list' ? 'true' : 'false');
+  }
+  if (cardsBtn) {
+    cardsBtn.classList.toggle('active', PROPS_EVAL_VIEW === 'cards');
+    cardsBtn.setAttribute('aria-pressed', PROPS_EVAL_VIEW === 'cards' ? 'true' : 'false');
+  }
+  var grid = document.getElementById('props-eval-grid');
+  if (grid) grid.setAttribute('data-view', PROPS_EVAL_VIEW);
+}
+
+function enrichPropsEvalRow(r) {
+  if (!r._enriched) {
+    r._rank = propsEvalOutcomeRank(r.result);
+    r._hay = [r.player_name, r.prop_type, r.team, r.opp_team, r.pick_type, r.tier, r.direction, r.sport]
+      .map(function (x) { return String(x || '').toLowerCase(); }).join(' ');
+    r._playerDisp = formatPlayerDisplay(r.player_name);
+    r._enriched = 1;
+  }
+  return r;
+}
 
 function buildPropEvalCardElement(r) {
   const ru = String(r.result || '').toUpperCase();
@@ -3042,7 +3814,7 @@ function buildPropEvalCardElement(r) {
   card.className = 'prop-eval-card ' + cls;
   card.innerHTML =
     '<div class="prop-eval-result ' + cls + '">' + escProps(rlbl) + '</div>' +
-    '<div class="prop-eval-player">' + escProps(formatPlayerDisplay(r.player_name)) + '</div>' +
+    '<div class="prop-eval-player">' + escProps(r._playerDisp || formatPlayerDisplay(r.player_name)) + '</div>' +
     '<div class="prop-eval-meta">' + escProps(r.sport) + ' · ' + escProps(r.pick_type || '') + (r.tier ? (' · Tier ' + escProps(r.tier)) : '') + '</div>' +
     '<div class="prop-eval-line">' + escProps(r.prop_type) + ' ' + (dir === 'OVER' ? '▲' : dir === 'UNDER' ? '▼' : '') + ' ' + escProps(dir) + linePart + '</div>' +
     '<div class="prop-eval-meta" style="margin-top:8px;">' + escProps(formatPropEvalMatchup(r)) + '</div>' +
@@ -3054,113 +3826,65 @@ function buildPropEvalCardElement(r) {
   return card;
 }
 
-function teardownPropsEvalInfiniteScroll() {
-  if (PROPS_EVAL_IO) {
-    try { PROPS_EVAL_IO.disconnect(); } catch (_e) {}
-    PROPS_EVAL_IO = null;
-  }
+function buildPropEvalRowElement(r) {
+  const ru = String(r.result || '').toUpperCase();
+  var cls = 'other';
+  var rlbl = ru || '—';
+  if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') { cls = 'hit'; rlbl = 'HIT'; }
+  else if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') { cls = 'miss'; rlbl = 'MISS'; }
+  else if (ru === 'VOID') { cls = 'other'; rlbl = 'VOID'; }
+  else if (ru === 'PUSH') { cls = 'other'; rlbl = 'PUSH'; }
+  const dir = String(r.direction || '').toUpperCase();
+  const linePart = (r.line != null && r.line !== '') ? (' ' + fmtPropsNum(r.line)) : '';
+  const arrow = dir === 'OVER' ? '▲' : dir === 'UNDER' ? '▼' : '';
+  const row = document.createElement('div');
+  row.className = 'prop-eval-row ' + cls;
+  row.innerHTML =
+    '<div class="prop-eval-badge ' + cls + '">' + escProps(rlbl) + '</div>' +
+    '<div class="prop-eval-player">' + escProps(r._playerDisp || formatPlayerDisplay(r.player_name)) + '</div>' +
+    '<div class="prop-eval-line">' + escProps(r.prop_type) + ' ' + arrow + ' ' + escProps(dir) + linePart + '</div>' +
+    '<div class="prop-eval-meta">' + escProps(r.sport) + (r.pick_type ? (' · ' + escProps(r.pick_type)) : '') + (r.tier ? (' · ' + escProps(r.tier)) : '') + '</div>' +
+    '<div class="prop-eval-stats">Act ' + fmtPropsNum(r.actual_value) + ' · M ' + fmtPropsNum(r.margin) + '</div>';
+  return row;
 }
 
-function renderPropsEvalCards(rows) {
-  const grid = document.getElementById('props-eval-grid');
-  if (!grid) return;
-  teardownPropsEvalInfiniteScroll();
-  PROPS_EVAL_RENDER_GEN += 1;
-  const gen = PROPS_EVAL_RENDER_GEN;
-  window._propsEvalFilteredRows = rows;
-  if (!rows.length) {
-    grid.innerHTML = '<p class="insights-card-sub">No props match filters.</p>';
-    scheduleSyncPropsEvalHeight();
-    return;
-  }
-  const batchSize = gradesFrameMobileLayout() ? PROPS_EVAL_BATCH_MOBILE : PROPS_EVAL_BATCH_DESKTOP;
-  let rendered = 0;
-  grid.innerHTML = '';
-  const sentinel = document.createElement('div');
-  sentinel.className = 'props-eval-sentinel';
-  sentinel.setAttribute('aria-hidden', 'true');
-  grid.appendChild(sentinel);
-
-  function appendBatch() {
-    if (gen !== PROPS_EVAL_RENDER_GEN) return false;
-    const end = Math.min(rendered + batchSize, rows.length);
-    if (end <= rendered) return false;
-    const frag = document.createDocumentFragment();
-    for (let i = rendered; i < end; i++) {
-      frag.appendChild(buildPropEvalCardElement(rows[i]));
-    }
-    grid.insertBefore(frag, sentinel);
-    rendered = end;
-    scheduleSyncPropsEvalHeight();
-    return rendered < rows.length;
-  }
-
-  appendBatch();
-  if (rendered >= rows.length) return;
-
-  const hint = document.createElement('div');
-  hint.className = 'props-eval-load-more';
-  hint.textContent = 'Loading more…';
-  grid.insertBefore(hint, sentinel);
-
-  const scrollRoot = gradesFrameMobileLayout()
-    ? (document.scrollingElement || document.documentElement)
-    : (document.getElementById('props-eval-panel') || grid);
-
-  PROPS_EVAL_IO = new IntersectionObserver(
-    function (entries) {
-      if (gen !== PROPS_EVAL_RENDER_GEN) return;
-      if (!entries.some(function (e) { return e.isIntersecting; })) return;
-      const hasMore = appendBatch();
-      if (!hasMore) {
-        teardownPropsEvalInfiniteScroll();
-        if (hint.parentNode) hint.remove();
-        scheduleSyncPropsEvalHeight();
-      }
-    },
-    { root: scrollRoot === document.documentElement || scrollRoot === document.body ? null : scrollRoot, rootMargin: '280px 0px', threshold: 0 }
-  );
-  PROPS_EVAL_IO.observe(sentinel);
-}
 function applyPropsEvalFilters() {
   const sport = getPropsFilterGroupValue('props-filter-sport-group');
   const resF = getPropsFilterGroupValue('props-filter-result-group');
   const pickTypeF = getPropsFilterGroupValue('props-filter-picktype-group');
   const q = (((document.getElementById('props-filter-q') || {}).value) || '').trim().toLowerCase();
   const rows = window._propsEvalCache || [];
-  const filtered = rows.filter(function (r) {
-    if (sport && !propsEvalSportMatches(r.sport, sport)) return false;
+  const filtered = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = enrichPropsEvalRow(rows[i]);
+    if (sport && !propsEvalSportMatches(r.sport, sport)) continue;
     var pt = String(r.pick_type || '').toUpperCase();
-    if (pickTypeF === 'NO_DEMON' && pt.indexOf('DEMON') >= 0) return false;
-    if (pickTypeF && pickTypeF !== 'NO_DEMON' && pt.indexOf(pickTypeF) < 0) return false;
-    const ru = String(r.result || '').toUpperCase();
-    if (resF === 'HIT' && ru !== 'HIT' && ru !== 'WIN' && ru !== 'WIN_NO_MULT') return false;
-    if (resF === 'MISS' && ru !== 'MISS' && ru !== 'LOSS' && ru !== 'LOSE') return false;
-    if (resF === 'VOID' && !propsEvalIsVoidResult(r)) return false;
-    if (!q) return true;
-    const hay = [r.player_name, r.prop_type, r.team, r.opp_team, r.pick_type, r.tier, r.direction]
-      .map(function (x) { return String(x || '').toLowerCase(); }).join(' ');
-    return hay.indexOf(q) >= 0;
-  });
+    if (pickTypeF === 'NO_DEMON' && pt.indexOf('DEMON') >= 0) continue;
+    if (pickTypeF && pickTypeF !== 'NO_DEMON' && pt.indexOf(pickTypeF) < 0) continue;
+    if (resF === 'HIT' && !propsEvalIsHit(r)) continue;
+    if (resF === 'MISS' && !propsEvalIsMiss(r)) continue;
+    if (resF === 'VOID' && !propsEvalIsVoidResult(r)) continue;
+    if (resF === 'DECIDED' && !(propsEvalIsHit(r) || propsEvalIsMiss(r))) continue;
+    if (q && r._hay.indexOf(q) < 0) continue;
+    filtered.push(r);
+  }
   filtered.sort(function (a, b) {
-    var ra = propsEvalOutcomeRank(a.result);
-    var rb = propsEvalOutcomeRank(b.result);
-    if (ra !== rb) return ra - rb;
+    if (a._rank !== b._rank) return a._rank - b._rank;
     return String(a.player_name || '').localeCompare(String(b.player_name || ''), undefined, { sensitivity: 'base' });
   });
   renderPropsEvalCards(filtered);
-  scheduleSyncPropsEvalHeight();
   var fHit = 0, fMiss = 0, fVoid = 0;
-  filtered.forEach(function (r) {
-    var ru = String(r.result || '').toUpperCase();
-    if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') fHit += 1;
-    else if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') fMiss += 1;
-    else if (propsEvalIsVoidResult(r)) fVoid += 1;
-  });
+  for (var j = 0; j < filtered.length; j++) {
+    var fr = filtered[j];
+    if (propsEvalIsHit(fr)) fHit++;
+    else if (propsEvalIsMiss(fr)) fMiss++;
+    else if (propsEvalIsVoidResult(fr)) fVoid++;
+  }
   const el = document.getElementById('props-eval-counts');
   if (el) {
     var note = '';
-    if (pickTypeF === 'NO_DEMON') note = ' · demon excluded';
+    if (resF === 'DECIDED') note = ' · voids hidden';
+    else if (pickTypeF === 'NO_DEMON') note = ' · demon excluded';
     else if (pickTypeF === 'DEMON') note = ' · demon only';
     else if (pickTypeF) note = ' · ' + pickTypeF.toLowerCase() + ' only';
     el.textContent = 'Showing ' + filtered.length + ' of ' + rows.length + ' loaded · ' +
@@ -3186,43 +3910,57 @@ function mapGradedJsonToEvalRow(p) {
     void_reason: p.void_reason || '',
   };
 }
+function commitPropsEvalRows(mapped, footText) {
+  for (var i = 0; i < mapped.length; i++) enrichPropsEvalRow(mapped[i]);
+  window._propsEvalCache = mapped;
+  var nh = 0, nm = 0;
+  mapped.forEach(function (r) {
+    if (propsEvalIsHit(r)) nh++;
+    else if (propsEvalIsMiss(r)) nm++;
+  });
+  window._propsEvalStats = { n_hit: nh, n_miss: nm, n: mapped.length };
+  updatePropsEvalKpis(mapped);
+  fillPropsSportFilter(mapped);
+  var foot = document.getElementById('props-eval-foot');
+  if (foot && footText) foot.textContent = footText;
+  applyPropsEvalFilters();
+}
 async function loadGradesProps(dateStr) {
   const grid = document.getElementById('props-eval-grid');
   const foot = document.getElementById('props-eval-foot');
   if (!dateStr || !grid) return;
-  grid.innerHTML = '<p class="insights-card-sub">Loading…</p>';
+  if (PROPS_EVAL_DATE_CACHE[dateStr] && PROPS_EVAL_DATE_CACHE[dateStr].length) {
+    commitPropsEvalRows(PROPS_EVAL_DATE_CACHE[dateStr], 'Cached · ' + dateStr);
+    return;
+  }
+  if (PROPS_EVAL_LOAD_ABORT) {
+    try { PROPS_EVAL_LOAD_ABORT.abort(); } catch (_a) {}
+  }
+  PROPS_EVAL_LOAD_ABORT = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var signal = PROPS_EVAL_LOAD_ABORT ? PROPS_EVAL_LOAD_ABORT.signal : undefined;
+  grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">Loading decided props…</p>';
   if (foot) foot.textContent = '';
   try {
-    const jres = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), { cache: 'no-store' });
+    const jres = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), { cache: 'force-cache', signal: signal });
     const jd = await jres.json();
     if (jres.ok && Array.isArray(jd.props) && jd.props.length) {
       const mapped = jd.props.map(mapGradedJsonToEvalRow);
-      window._propsEvalCache = mapped;
-      var nh = 0, nm = 0;
-      mapped.forEach(function (r) {
-        var u = String(r.result || '').toUpperCase();
-        if (u === 'HIT') nh++;
-        else if (u === 'MISS') nm++;
-      });
-      window._propsEvalStats = { n_hit: nh, n_miss: nm, n: mapped.length };
-      if (foot) {
-        foot.textContent = jd.source === 'ticket_eval_html'
-          ? 'Ticket legs from ticket_eval_' + dateStr + '.html (subset). Run build_grades_html / backfill_graded_props_json and push graded_props_' + dateStr + '.json for every slate prop.'
-          : 'Source: graded_props_' + dateStr + '.json';
-      }
-      fillPropsSportFilter(window._propsEvalCache);
-      applyPropsEvalFilters();
+      PROPS_EVAL_DATE_CACHE[dateStr] = mapped;
+      commitPropsEvalRows(
+        mapped,
+        jd.source === 'ticket_eval_html'
+          ? 'Ticket legs from ticket_eval_' + dateStr + '.html (subset).'
+          : 'Source: graded_props_' + dateStr + '.json'
+      );
       return;
     }
-    // Some deploys expose graded_props JSON only through /api/grades/page-rows
-    // (flattened rows used by the slate page), without jd.props on /api/graded-props.
     if (jres.ok && !Array.isArray(jd.props)) {
       var pageRows = [];
       var off = 0;
       var loops = 0;
       while (loops < 20) {
         loops += 1;
-        var pRes = await fetch('/api/grades/page-rows?date=' + encodeURIComponent(dateStr) + '&offset=' + off + '&limit=1000', { cache: 'no-store' });
+        var pRes = await fetch('/api/grades/page-rows?date=' + encodeURIComponent(dateStr) + '&offset=' + off + '&limit=1000', { cache: 'force-cache', signal: signal });
         if (!pRes.ok) break;
         var pJson = await pRes.json();
         var items = Array.isArray(pJson.items) ? pJson.items : [];
@@ -3236,35 +3974,20 @@ async function loadGradesProps(dateStr) {
       }
       if (pageRows.length) {
         const mappedRows = pageRows.map(mapGradedJsonToEvalRow);
-        window._propsEvalCache = mappedRows;
-        var pHit = 0, pMiss = 0;
-        mappedRows.forEach(function (r) {
-          var ru = String(r.result || '').toUpperCase();
-          if (ru === 'HIT') pHit++;
-          else if (ru === 'MISS') pMiss++;
-        });
-        window._propsEvalStats = { n_hit: pHit, n_miss: pMiss, n: mappedRows.length };
-        fillPropsSportFilter(window._propsEvalCache);
-        if (foot) foot.textContent = 'Source: /api/grades/page-rows fallback';
-        applyPropsEvalFilters();
+        PROPS_EVAL_DATE_CACHE[dateStr] = mappedRows;
+        commitPropsEvalRows(mappedRows, 'Source: /api/grades/page-rows fallback');
         return;
       }
     }
-    const res = await fetch('/api/grades/props?date=' + encodeURIComponent(dateStr), { cache: 'no-store' });
+    const res = await fetch('/api/grades/props?date=' + encodeURIComponent(dateStr), { cache: 'force-cache', signal: signal });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || res.statusText);
-    window._propsEvalCache = d.props || [];
-    window._propsEvalStats = { n_hit: d.n_hit, n_miss: d.n_miss, n: d.n };
-    fillPropsSportFilter(window._propsEvalCache);
-    if (foot) {
-      var t = '';
-      if (d.truncated) t += 'Showing first ' + d.n_returned + ' of ' + d.n + ' rows. ';
-      foot.textContent = t;
-    }
-    if (!window._propsEvalCache.length) {
+    const archiveRows = d.props || [];
+    PROPS_EVAL_DATE_CACHE[dateStr] = archiveRows;
+    if (!archiveRows.length) {
       var hint = '';
       try {
-        var ar = await fetch('/api/grades/archive_dates', { cache: 'no-store' });
+        var ar = await fetch('/api/grades/archive_dates', { cache: 'force-cache', signal: signal });
         if (ar.ok) {
           var aj = await ar.json();
           var ds = aj.dates || [];
@@ -3274,21 +3997,26 @@ async function loadGradesProps(dateStr) {
               var n = rc[x];
               return escProps(x) + (n != null ? ' (' + n + ' props)' : '');
             });
-            hint = '<p class="insights-card-sub" style="margin-top:12px">Archive has rows for other dates (newest first): <strong>' + top.join('</strong> · <strong>') + '</strong>. Use <strong>Jump to date</strong> with one of these if your slate was graded under a different calendar day or year.</p>';
+            hint = '<p class="insights-card-sub" style="margin-top:12px">Archive has rows for other dates: <strong>' + top.join('</strong> · <strong>') + '</strong>.</p>';
           }
         }
       } catch (_e) {}
-      grid.innerHTML = '<p class="insights-card-sub">No archived props for <strong>' + escProps(dateStr) + '</strong>. After grading, run the archive step so rows are written to <code>data/cache/*_props_history.db</code> (see <code>scripts/step_archive.py</code> or <code>scripts/backfill_props_archive.ps1</code>).</p>' + hint;
+      grid.innerHTML = '<p class="insights-card-sub">No archived props for <strong>' + escProps(dateStr) + '</strong>.</p>' + hint;
       var elc = document.getElementById('props-eval-counts');
       if (elc) elc.textContent = '0 props';
       return;
     }
-    applyPropsEvalFilters();
+    commitPropsEvalRows(
+      archiveRows,
+      d.truncated ? ('Showing first ' + d.n_returned + ' of ' + d.n + ' rows.') : ''
+    );
   } catch (e) {
+    if (e && e.name === 'AbortError') return;
     grid.innerHTML = '<p class="insights-card-sub">Could not load props: ' + escProps(e.message || e) + '</p>';
   }
 }
 (function initPropsEvalFilters() {
+  setPropsEvalView(getPropsEvalView());
   document.querySelectorAll('.props-filter-pills').forEach(function (group) {
     group.addEventListener('click', function (e) {
       var btn = e.target.closest('.props-filter-pill');
@@ -3298,7 +4026,25 @@ async function loadGradesProps(dateStr) {
     });
   });
   var qel = document.getElementById('props-filter-q');
-  if (qel) qel.addEventListener('input', applyPropsEvalFilters);
+  if (qel) {
+    qel.addEventListener('input', function () {
+      if (PROPS_EVAL_SEARCH_TIMER) clearTimeout(PROPS_EVAL_SEARCH_TIMER);
+      PROPS_EVAL_SEARCH_TIMER = setTimeout(function () {
+        PROPS_EVAL_SEARCH_TIMER = null;
+        applyPropsEvalFilters();
+      }, 180);
+    });
+  }
+  var listBtn = document.getElementById('props-view-list');
+  var cardsBtn = document.getElementById('props-view-cards');
+  function onViewClick(ev) {
+    var btn = ev.currentTarget;
+    var view = btn.getAttribute('data-view') || 'list';
+    setPropsEvalView(view);
+    applyPropsEvalFilters();
+  }
+  if (listBtn) listBtn.addEventListener('click', onViewClick);
+  if (cardsBtn) cardsBtn.addEventListener('click', onViewClick);
 })();
 
 // ─── TAB SWITCHING ────────────────────────────────────────────────────────────
@@ -3393,6 +4139,9 @@ function switchTab(tab) {
   try {
     window.__gradesActiveTab = tab;
   } catch (_eTab) {}
+  try {
+    localStorage.setItem('grades-active-tab', tab);
+  } catch (_ePersist) {}
   syncGradesTabStage(tab);
   syncTicketTrackBarVisibility();
   const gradeFrame = document.getElementById('grade-frame');
@@ -4829,9 +5578,17 @@ window.addEventListener('pageshow', function (ev) {
       try {
         window.setupGradesBarsScrollHide();
       } catch (_e) {}
-      if (qpTab === 'tickets' || qpTab === 'props') {
+      let startTab = qpTab;
+      if (!startTab) {
         try {
-          switchTab(qpTab);
+          startTab = (localStorage.getItem('grades-active-tab') || '').trim().toLowerCase();
+        } catch (_eLs) {
+          startTab = '';
+        }
+      }
+      if (startTab === 'tickets' || startTab === 'props' || startTab === 'players' || startTab === 'slate') {
+        try {
+          switchTab(startTab);
         } catch (_e2) {}
       }
     }, 0);

@@ -6,10 +6,11 @@ typical slates. Thresholds are computed per payload from the empirical payout.ev
 distribution, with small absolute floors so tiers stay meaningful on thin slates.
 
 STRONG is leg-count aware: percentile tiers are computed within each leg-count bucket
-so 6-leg parlays are not labeled STRONG just because they rank high among all slips.
+so long parlays are not labeled STRONG just because they rank high among all slips.
 Additional gates demote STRONG→OK when p_win is too low for the leg count, when
-cross-sport (default: cross-sport cannot be STRONG), or when any leg fails Goblin +
-Tier A/B + HOT streak quality checks.
+cross-sport (default: cross-sport cannot be STRONG), when length exceeds
+STRONG_MAX_LEGS (default 6), or when any leg fails Goblin + Tier A/B + HOT streak
+quality checks.
 """
 from __future__ import annotations
 
@@ -41,10 +42,16 @@ TIER_EV_MIN_MARGINAL: float = 0.0
 
 MIN_SAMPLES_FOR_PERCENTILES: int = 8
 
-# STRONG is for short, high-conviction slips — not 5-6 leg lottery tickets.
-STRONG_MAX_LEGS: int = max(2, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "3")))
+# STRONG favors high-conviction Goblin HOT slips up to 6 unique-player legs
+# (override via env). Absolute p_win floors must fall with length: 0.75^3≈0.42
+# before correlation, so a 3-leg floor of 0.42 was nearly unreachable after
+# density haircuts and starved longer slips (boards filled with 2-legs only).
+STRONG_MAX_LEGS: int = max(2, min(6, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "6"))))
 STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.33"))
-STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.42"))
+STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.28"))
+STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.22"))
+STRONG_MIN_P_WIN_5LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_5LEG", "0.12"))
+STRONG_MIN_P_WIN_6LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_6LEG", "0.08"))
 STRONG_ALLOW_CROSS_SPORT: bool = os.getenv("PROPORACLE_STRONG_ALLOW_CROSS_SPORT", "0").strip().lower() not in (
     "0",
     "false",
@@ -211,7 +218,7 @@ def _demote_strong_recommendation(
     *,
     gate_stats: MutableMapping[str, int] | None = None,
 ) -> str:
-    """STRONG must be short, same-sport, high p_win, and all legs pass quality gates."""
+    """STRONG must be same-sport, high p_win, and all legs pass quality gates."""
     if rec != "STRONG":
         return rec
     n = _slip_leg_count(ticket)
@@ -226,6 +233,12 @@ def _demote_strong_recommendation(
     if n <= 2 and p_win < STRONG_MIN_P_WIN_2LEG:
         return "OK"
     if n == 3 and p_win < STRONG_MIN_P_WIN_3LEG:
+        return "OK"
+    if n == 4 and p_win < STRONG_MIN_P_WIN_4LEG:
+        return "OK"
+    if n == 5 and p_win < STRONG_MIN_P_WIN_5LEG:
+        return "OK"
+    if n >= 6 and p_win < STRONG_MIN_P_WIN_6LEG:
         return "OK"
     legs = [leg for leg in (ticket.get("legs") or []) if isinstance(leg, dict)]
     if gate_stats is not None:
@@ -296,7 +309,7 @@ def apply_slate_ev_tier_recommendations(
     in a slate payload using percentile thresholds. Stores cuts on the payload.
 
     When stratify_by_legs is True (default), thresholds are computed separately
-    per leg-count bucket so 6-leg parlays do not steal the STRONG label.
+    per leg-count bucket so long parlays do not steal the STRONG label.
     """
     evs = collect_payload_payout_evs(payload)
     global_thresholds = compute_ev_tier_thresholds(evs, percentiles=percentiles)
@@ -347,6 +360,9 @@ def apply_slate_ev_tier_recommendations(
         "max_legs": STRONG_MAX_LEGS,
         "min_p_win_2leg": STRONG_MIN_P_WIN_2LEG,
         "min_p_win_3leg": STRONG_MIN_P_WIN_3LEG,
+        "min_p_win_4leg": STRONG_MIN_P_WIN_4LEG,
+        "min_p_win_5leg": STRONG_MIN_P_WIN_5LEG,
+        "min_p_win_6leg": STRONG_MIN_P_WIN_6LEG,
         "allow_cross_sport": STRONG_ALLOW_CROSS_SPORT,
         "require_goblin": True,
         "require_tier_ab": True,

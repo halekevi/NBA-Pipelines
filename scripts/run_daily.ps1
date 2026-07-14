@@ -1913,7 +1913,10 @@ else {
                 "Sports\Soccer\step8_soccer_direction_clean.xlsx",
                 "Sports\MLB\step8_mlb_direction_clean.xlsx",
                 "Sports\Tennis\step8_tennis_direction_clean.xlsx",
-                "Sports\NHL\outputs\step8_nhl_direction_clean.xlsx"
+                "Sports\NHL\outputs\step8_nhl_direction_clean.xlsx",
+                # Keep STRONG builder on main so 7am daily (main worktree) builds longer slips.
+                "scripts\combined_slate_tickets.py",
+                "utils\ticket_ev_tiers.py"
             )
             foreach ($rel in $optionalAdds) {
                 $fullRoot = Join-Path $Root $rel

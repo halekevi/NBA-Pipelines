@@ -63,7 +63,8 @@ if ($IncludePublishHelpers) {
         "scripts/run_daily.ps1",
         "scripts/run_daily_7am.ps1",
         "scripts/push_live_to_main.ps1",
-        "scripts/combined_slate_tickets.py"
+        "scripts/combined_slate_tickets.py",
+        "utils/ticket_ev_tiers.py"
     )
 }
 $AlsoPaths = @($AlsoPaths | Where-Object { $_ } | Select-Object -Unique)

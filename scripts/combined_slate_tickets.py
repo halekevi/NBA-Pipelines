@@ -13780,9 +13780,10 @@ def _log_strong_builder(
     for _, row in top.iterrows():
         leg_p, _ = _resolve_leg_prob(pd.Series(row))
         hit_pct = float(leg_p) if leg_p is not None else float(row.get("hit_rate") or 0.0)
+        streak = str(row.get("l10_streak") or "").strip().upper() or "?"
         print(
             f"  Top leg: {row.get('player')} {row.get('prop_type')} {row.get('sport')} "
-            f"({hit_pct:.0%} HOT {row.get('tier')})"
+            f"({hit_pct:.0%} {streak} {row.get('tier')})"
         )
 
 

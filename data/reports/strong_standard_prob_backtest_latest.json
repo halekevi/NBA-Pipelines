@@ -1,0 +1,996 @@
+{
+  "generated_at": "2026-07-14",
+  "from": "2026-06-26",
+  "to": "2026-07-13",
+  "pick_mode": "standard_prob",
+  "params": {
+    "max_tickets": 25,
+    "max_legs": 3,
+    "exhaust": false,
+    "compare_goblin": false
+  },
+  "summary": {
+    "days_scanned": 18,
+    "days_built": 18,
+    "days_skipped_no_hot": 0,
+    "gates": {
+      "standard_ab": 6148,
+      "gate_pass": 358,
+      "gate_pass_pct": 5.8,
+      "avg_leg_prob": 0.7157
+    },
+    "standard_strong_tickets": {
+      "built": 154,
+      "wins": 29,
+      "n_graded": 130,
+      "win_pct": 22.3
+    },
+    "ticket_quality": {
+      "n": 154,
+      "avg_est_win_prob": 0.4287,
+      "avg_ev_power": 1.5672
+    },
+    "standard_gate_pass_legs": {
+      "hits": 175,
+      "misses": 159,
+      "n": 334,
+      "hr_pct": 52.4
+    },
+    "standard_hot_ab_legs": {
+      "hits": 422,
+      "misses": 449,
+      "n": 871,
+      "hr_pct": 48.5
+    }
+  },
+  "days": [
+    {
+      "date": "2026-06-26",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-06-26.json",
+      "gates": {
+        "pool_rows": 9375,
+        "standard_ab": 391,
+        "gate_pass": 23,
+        "gate_pass_pct": 5.9,
+        "avg_leg_prob": 0.72,
+        "by_direction": {
+          "OVER": {
+            "n": 23,
+            "avg_leg_prob": 0.72,
+            "hits": 11,
+            "misses": 12,
+            "hr_pct": 47.8,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 0,
+      "std_ticket": {
+        "built": 0,
+        "n_graded": 0,
+        "wins": 0,
+        "losses": 0,
+        "ungraded": 0,
+        "win_pct": null
+      },
+      "ticket_quality": {
+        "n": 0,
+        "avg_est_win_prob": null,
+        "avg_ev_power": null,
+        "by_n_legs": {}
+      },
+      "std_leg_gate_pass": {
+        "hits": 11,
+        "misses": 12,
+        "n": 23,
+        "hr_pct": 47.8
+      },
+      "std_leg_hot_ab": {
+        "hits": 29,
+        "misses": 37,
+        "n": 66,
+        "hr_pct": 43.9
+      }
+    },
+    {
+      "date": "2026-06-27",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-06-27.json",
+      "gates": {
+        "pool_rows": 12339,
+        "standard_ab": 391,
+        "gate_pass": 16,
+        "gate_pass_pct": 4.1,
+        "avg_leg_prob": 0.72,
+        "by_direction": {
+          "OVER": {
+            "n": 16,
+            "avg_leg_prob": 0.72,
+            "hits": 8,
+            "misses": 8,
+            "hr_pct": 50.0,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 0,
+      "std_ticket": {
+        "built": 0,
+        "n_graded": 0,
+        "wins": 0,
+        "losses": 0,
+        "ungraded": 0,
+        "win_pct": null
+      },
+      "ticket_quality": {
+        "n": 0,
+        "avg_est_win_prob": null,
+        "avg_ev_power": null,
+        "by_n_legs": {}
+      },
+      "std_leg_gate_pass": {
+        "hits": 8,
+        "misses": 8,
+        "n": 16,
+        "hr_pct": 50.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 34,
+        "misses": 27,
+        "n": 61,
+        "hr_pct": 55.7
+      }
+    },
+    {
+      "date": "2026-06-28",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-06-28.json",
+      "gates": {
+        "pool_rows": 11857,
+        "standard_ab": 524,
+        "gate_pass": 31,
+        "gate_pass_pct": 5.9,
+        "avg_leg_prob": 0.7168,
+        "by_direction": {
+          "OVER": {
+            "n": 31,
+            "avg_leg_prob": 0.7168,
+            "hits": 13,
+            "misses": 17,
+            "hr_pct": 43.3,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 16,
+      "std_ticket": {
+        "built": 16,
+        "n_graded": 16,
+        "wins": 1,
+        "losses": 15,
+        "ungraded": 0,
+        "win_pct": 6.2
+      },
+      "ticket_quality": {
+        "n": 16,
+        "avg_est_win_prob": 0.3606,
+        "avg_ev_power": 1.3,
+        "by_n_legs": {
+          "3": 4,
+          "2": 12
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 13,
+        "misses": 17,
+        "n": 30,
+        "hr_pct": 43.3
+      },
+      "std_leg_hot_ab": {
+        "hits": 24,
+        "misses": 61,
+        "n": 85,
+        "hr_pct": 28.2
+      }
+    },
+    {
+      "date": "2026-06-29",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-06-29.json",
+      "gates": {
+        "pool_rows": 12061,
+        "standard_ab": 492,
+        "gate_pass": 20,
+        "gate_pass_pct": 4.1,
+        "avg_leg_prob": 0.719,
+        "by_direction": {
+          "OVER": {
+            "n": 20,
+            "avg_leg_prob": 0.719,
+            "hits": 14,
+            "misses": 5,
+            "hr_pct": 73.7,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 7,
+      "std_ticket": {
+        "built": 7,
+        "n_graded": 5,
+        "wins": 5,
+        "losses": 0,
+        "ungraded": 2,
+        "win_pct": 100.0
+      },
+      "ticket_quality": {
+        "n": 7,
+        "avg_est_win_prob": 0.3603,
+        "avg_ev_power": 1.2072,
+        "by_n_legs": {
+          "3": 1,
+          "2": 6
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 14,
+        "misses": 5,
+        "n": 19,
+        "hr_pct": 73.7
+      },
+      "std_leg_hot_ab": {
+        "hits": 42,
+        "misses": 21,
+        "n": 63,
+        "hr_pct": 66.7
+      }
+    },
+    {
+      "date": "2026-06-30",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-06-30.json",
+      "gates": {
+        "pool_rows": 10774,
+        "standard_ab": 411,
+        "gate_pass": 27,
+        "gate_pass_pct": 6.6,
+        "avg_leg_prob": 0.72,
+        "by_direction": {
+          "OVER": {
+            "n": 27,
+            "avg_leg_prob": 0.72,
+            "hits": 15,
+            "misses": 10,
+            "hr_pct": 60.0,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 0,
+      "std_ticket": {
+        "built": 0,
+        "n_graded": 0,
+        "wins": 0,
+        "losses": 0,
+        "ungraded": 0,
+        "win_pct": null
+      },
+      "ticket_quality": {
+        "n": 0,
+        "avg_est_win_prob": null,
+        "avg_ev_power": null,
+        "by_n_legs": {}
+      },
+      "std_leg_gate_pass": {
+        "hits": 15,
+        "misses": 10,
+        "n": 25,
+        "hr_pct": 60.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 28,
+        "misses": 42,
+        "n": 70,
+        "hr_pct": 40.0
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-01.json",
+      "gates": {
+        "pool_rows": 10367,
+        "standard_ab": 406,
+        "gate_pass": 27,
+        "gate_pass_pct": 6.7,
+        "avg_leg_prob": 0.7193,
+        "by_direction": {
+          "OVER": {
+            "n": 27,
+            "avg_leg_prob": 0.7193,
+            "hits": 10,
+            "misses": 17,
+            "hr_pct": 37.0,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 10,
+      "std_ticket": {
+        "built": 10,
+        "n_graded": 10,
+        "wins": 0,
+        "losses": 10,
+        "ungraded": 0,
+        "win_pct": 0.0
+      },
+      "ticket_quality": {
+        "n": 10,
+        "avg_est_win_prob": 0.3741,
+        "avg_ev_power": 1.3215,
+        "by_n_legs": {
+          "3": 2,
+          "2": 8
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 10,
+        "misses": 17,
+        "n": 27,
+        "hr_pct": 37.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 30,
+        "misses": 28,
+        "n": 58,
+        "hr_pct": 51.7
+      }
+    },
+    {
+      "date": "2026-07-02",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-02.json",
+      "gates": {
+        "pool_rows": 8246,
+        "standard_ab": 280,
+        "gate_pass": 20,
+        "gate_pass_pct": 7.1,
+        "avg_leg_prob": 0.718,
+        "by_direction": {
+          "OVER": {
+            "n": 20,
+            "avg_leg_prob": 0.718,
+            "hits": 11,
+            "misses": 8,
+            "hr_pct": 57.9,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 8,
+      "std_ticket": {
+        "built": 8,
+        "n_graded": 8,
+        "wins": 0,
+        "losses": 8,
+        "ungraded": 0,
+        "win_pct": 0.0
+      },
+      "ticket_quality": {
+        "n": 8,
+        "avg_est_win_prob": 0.3638,
+        "avg_ev_power": 1.322,
+        "by_n_legs": {
+          "3": 2,
+          "2": 6
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 11,
+        "misses": 8,
+        "n": 19,
+        "hr_pct": 57.9
+      },
+      "std_leg_hot_ab": {
+        "hits": 18,
+        "misses": 21,
+        "n": 39,
+        "hr_pct": 46.2
+      }
+    },
+    {
+      "date": "2026-07-03",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-03.json",
+      "gates": {
+        "pool_rows": 9815,
+        "standard_ab": 392,
+        "gate_pass": 24,
+        "gate_pass_pct": 6.1,
+        "avg_leg_prob": 0.7179,
+        "by_direction": {
+          "OVER": {
+            "n": 24,
+            "avg_leg_prob": 0.7179,
+            "hits": 12,
+            "misses": 11,
+            "hr_pct": 52.2,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 16,
+      "std_ticket": {
+        "built": 16,
+        "n_graded": 14,
+        "wins": 3,
+        "losses": 11,
+        "ungraded": 2,
+        "win_pct": 21.4
+      },
+      "ticket_quality": {
+        "n": 16,
+        "avg_est_win_prob": 0.3634,
+        "avg_ev_power": 1.3101,
+        "by_n_legs": {
+          "3": 4,
+          "2": 12
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 12,
+        "misses": 11,
+        "n": 23,
+        "hr_pct": 52.2
+      },
+      "std_leg_hot_ab": {
+        "hits": 28,
+        "misses": 33,
+        "n": 61,
+        "hr_pct": 45.9
+      }
+    },
+    {
+      "date": "2026-07-04",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-04.json",
+      "gates": {
+        "pool_rows": 10607,
+        "standard_ab": 442,
+        "gate_pass": 19,
+        "gate_pass_pct": 4.3,
+        "avg_leg_prob": 0.7189,
+        "by_direction": {
+          "OVER": {
+            "n": 19,
+            "avg_leg_prob": 0.7189,
+            "hits": 8,
+            "misses": 10,
+            "hr_pct": 44.4,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 8,
+      "std_ticket": {
+        "built": 8,
+        "n_graded": 8,
+        "wins": 0,
+        "losses": 8,
+        "ungraded": 0,
+        "win_pct": 0.0
+      },
+      "ticket_quality": {
+        "n": 8,
+        "avg_est_win_prob": 0.3617,
+        "avg_ev_power": 1.2975,
+        "by_n_legs": {
+          "3": 2,
+          "2": 6
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 8,
+        "misses": 10,
+        "n": 18,
+        "hr_pct": 44.4
+      },
+      "std_leg_hot_ab": {
+        "hits": 36,
+        "misses": 35,
+        "n": 71,
+        "hr_pct": 50.7
+      }
+    },
+    {
+      "date": "2026-07-05",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-05.json",
+      "gates": {
+        "pool_rows": 11220,
+        "standard_ab": 454,
+        "gate_pass": 24,
+        "gate_pass_pct": 5.3,
+        "avg_leg_prob": 0.7179,
+        "by_direction": {
+          "OVER": {
+            "n": 24,
+            "avg_leg_prob": 0.7179,
+            "hits": 12,
+            "misses": 11,
+            "hr_pct": 52.2,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 10,
+      "std_ticket": {
+        "built": 10,
+        "n_graded": 9,
+        "wins": 0,
+        "losses": 9,
+        "ungraded": 1,
+        "win_pct": 0.0
+      },
+      "ticket_quality": {
+        "n": 10,
+        "avg_est_win_prob": 0.3724,
+        "avg_ev_power": 1.2904,
+        "by_n_legs": {
+          "3": 2,
+          "2": 8
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 12,
+        "misses": 11,
+        "n": 23,
+        "hr_pct": 52.2
+      },
+      "std_leg_hot_ab": {
+        "hits": 43,
+        "misses": 30,
+        "n": 73,
+        "hr_pct": 58.9
+      }
+    },
+    {
+      "date": "2026-07-06",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-06.json",
+      "gates": {
+        "pool_rows": 6978,
+        "standard_ab": 260,
+        "gate_pass": 14,
+        "gate_pass_pct": 5.4,
+        "avg_leg_prob": 0.7186,
+        "by_direction": {
+          "OVER": {
+            "n": 14,
+            "avg_leg_prob": 0.7186,
+            "hits": 6,
+            "misses": 8,
+            "hr_pct": 42.9,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 9,
+      "std_ticket": {
+        "built": 9,
+        "n_graded": 9,
+        "wins": 0,
+        "losses": 9,
+        "ungraded": 0,
+        "win_pct": 0.0
+      },
+      "ticket_quality": {
+        "n": 9,
+        "avg_est_win_prob": 0.3728,
+        "avg_ev_power": 1.2323,
+        "by_n_legs": {
+          "3": 1,
+          "2": 8
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 6,
+        "misses": 8,
+        "n": 14,
+        "hr_pct": 42.9
+      },
+      "std_leg_hot_ab": {
+        "hits": 18,
+        "misses": 16,
+        "n": 34,
+        "hr_pct": 52.9
+      }
+    },
+    {
+      "date": "2026-07-07",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-07.json",
+      "gates": {
+        "pool_rows": 10872,
+        "standard_ab": 456,
+        "gate_pass": 25,
+        "gate_pass_pct": 5.5,
+        "avg_leg_prob": 0.7148,
+        "by_direction": {
+          "OVER": {
+            "n": 25,
+            "avg_leg_prob": 0.7148,
+            "hits": 16,
+            "misses": 8,
+            "hr_pct": 66.7,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 16,
+      "std_ticket": {
+        "built": 16,
+        "n_graded": 14,
+        "wins": 6,
+        "losses": 8,
+        "ungraded": 2,
+        "win_pct": 42.9
+      },
+      "ticket_quality": {
+        "n": 16,
+        "avg_est_win_prob": 0.3652,
+        "avg_ev_power": 1.3169,
+        "by_n_legs": {
+          "3": 4,
+          "2": 12
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 16,
+        "misses": 8,
+        "n": 24,
+        "hr_pct": 66.7
+      },
+      "std_leg_hot_ab": {
+        "hits": 21,
+        "misses": 18,
+        "n": 39,
+        "hr_pct": 53.8
+      }
+    },
+    {
+      "date": "2026-07-08",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-08.json",
+      "gates": {
+        "pool_rows": 9467,
+        "standard_ab": 339,
+        "gate_pass": 8,
+        "gate_pass_pct": 2.4,
+        "avg_leg_prob": 0.72,
+        "by_direction": {
+          "OVER": {
+            "n": 8,
+            "avg_leg_prob": 0.72,
+            "hits": 7,
+            "misses": 1,
+            "hr_pct": 87.5,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 0,
+      "std_ticket": {
+        "built": 0,
+        "n_graded": 0,
+        "wins": 0,
+        "losses": 0,
+        "ungraded": 0,
+        "win_pct": null
+      },
+      "ticket_quality": {
+        "n": 0,
+        "avg_est_win_prob": null,
+        "avg_ev_power": null,
+        "by_n_legs": {}
+      },
+      "std_leg_gate_pass": {
+        "hits": 7,
+        "misses": 1,
+        "n": 8,
+        "hr_pct": 87.5
+      },
+      "std_leg_hot_ab": {
+        "hits": 5,
+        "misses": 19,
+        "n": 24,
+        "hr_pct": 20.8
+      }
+    },
+    {
+      "date": "2026-07-09",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-09.json",
+      "gates": {
+        "pool_rows": 2955,
+        "standard_ab": 78,
+        "gate_pass": 9,
+        "gate_pass_pct": 11.5,
+        "avg_leg_prob": 0.68,
+        "by_direction": {
+          "OVER": {
+            "n": 6,
+            "avg_leg_prob": 0.72,
+            "hits": 1,
+            "misses": 2,
+            "hr_pct": 33.3,
+            "min_floor_example": 0.68
+          },
+          "UNDER": {
+            "n": 3,
+            "avg_leg_prob": 0.6,
+            "hits": 0,
+            "misses": 1,
+            "hr_pct": 0.0,
+            "min_floor_example": 0.6
+          }
+        }
+      },
+      "std_candidates_built": 8,
+      "std_ticket": {
+        "built": 8,
+        "n_graded": 1,
+        "wins": 0,
+        "losses": 1,
+        "ungraded": 7,
+        "win_pct": 0.0
+      },
+      "ticket_quality": {
+        "n": 8,
+        "avg_est_win_prob": 0.7922,
+        "avg_ev_power": 3.2123,
+        "by_n_legs": {
+          "3": 3,
+          "2": 5
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 1,
+        "misses": 3,
+        "n": 4,
+        "hr_pct": 25.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 0,
+        "misses": 0,
+        "n": 0,
+        "hr_pct": null
+      }
+    },
+    {
+      "date": "2026-07-10",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-10.json",
+      "gates": {
+        "pool_rows": 2083,
+        "standard_ab": 73,
+        "gate_pass": 8,
+        "gate_pass_pct": 11.0,
+        "avg_leg_prob": 0.72,
+        "by_direction": {
+          "OVER": {
+            "n": 8,
+            "avg_leg_prob": 0.72,
+            "hits": 4,
+            "misses": 4,
+            "hr_pct": 50.0,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 4,
+      "std_ticket": {
+        "built": 4,
+        "n_graded": 4,
+        "wins": 2,
+        "losses": 2,
+        "ungraded": 0,
+        "win_pct": 50.0
+      },
+      "ticket_quality": {
+        "n": 4,
+        "avg_est_win_prob": 0.4067,
+        "avg_ev_power": 1.6607,
+        "by_n_legs": {
+          "3": 2,
+          "2": 2
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 4,
+        "misses": 4,
+        "n": 8,
+        "hr_pct": 50.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 7,
+        "misses": 7,
+        "n": 14,
+        "hr_pct": 50.0
+      }
+    },
+    {
+      "date": "2026-07-11",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-11.json",
+      "gates": {
+        "pool_rows": 2099,
+        "standard_ab": 77,
+        "gate_pass": 10,
+        "gate_pass_pct": 13.0,
+        "avg_leg_prob": 0.72,
+        "by_direction": {
+          "OVER": {
+            "n": 10,
+            "avg_leg_prob": 0.72,
+            "hits": 4,
+            "misses": 6,
+            "hr_pct": 40.0,
+            "min_floor_example": 0.68
+          }
+        }
+      },
+      "std_candidates_built": 5,
+      "std_ticket": {
+        "built": 5,
+        "n_graded": 5,
+        "wins": 2,
+        "losses": 3,
+        "ungraded": 0,
+        "win_pct": 40.0
+      },
+      "ticket_quality": {
+        "n": 5,
+        "avg_est_win_prob": 0.4085,
+        "avg_ev_power": 1.5778,
+        "by_n_legs": {
+          "3": 2,
+          "2": 3
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 4,
+        "misses": 6,
+        "n": 10,
+        "hr_pct": 40.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 8,
+        "misses": 8,
+        "n": 16,
+        "hr_pct": 50.0
+      }
+    },
+    {
+      "date": "2026-07-12",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-12.json",
+      "gates": {
+        "pool_rows": 10401,
+        "standard_ab": 549,
+        "gate_pass": 39,
+        "gate_pass_pct": 7.1,
+        "avg_leg_prob": 0.7101,
+        "by_direction": {
+          "OVER": {
+            "n": 36,
+            "avg_leg_prob": 0.7153,
+            "hits": 17,
+            "misses": 18,
+            "hr_pct": 48.6,
+            "min_floor_example": 0.68
+          },
+          "UNDER": {
+            "n": 3,
+            "avg_leg_prob": 0.6472,
+            "hits": 2,
+            "misses": 1,
+            "hr_pct": 66.7,
+            "min_floor_example": 0.6
+          }
+        }
+      },
+      "std_candidates_built": 25,
+      "std_ticket": {
+        "built": 25,
+        "n_graded": 23,
+        "wins": 6,
+        "losses": 17,
+        "ungraded": 2,
+        "win_pct": 26.1
+      },
+      "ticket_quality": {
+        "n": 25,
+        "avg_est_win_prob": 0.4456,
+        "avg_ev_power": 1.6045,
+        "by_n_legs": {
+          "3": 7,
+          "2": 18
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 19,
+        "misses": 19,
+        "n": 38,
+        "hr_pct": 50.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 45,
+        "misses": 46,
+        "n": 91,
+        "hr_pct": 49.5
+      }
+    },
+    {
+      "date": "2026-07-13",
+      "pick_mode": "standard_prob",
+      "graded_file": "ui_runner/templates/graded_props_2026-07-13.json",
+      "gates": {
+        "pool_rows": 3538,
+        "standard_ab": 133,
+        "gate_pass": 14,
+        "gate_pass_pct": 10.5,
+        "avg_leg_prob": 0.6943,
+        "by_direction": {
+          "OVER": {
+            "n": 11,
+            "avg_leg_prob": 0.72,
+            "hits": 4,
+            "misses": 1,
+            "hr_pct": 80.0,
+            "min_floor_example": 0.68
+          },
+          "UNDER": {
+            "n": 3,
+            "avg_leg_prob": 0.6,
+            "hits": 0,
+            "misses": 0,
+            "hr_pct": null,
+            "min_floor_example": 0.6
+          }
+        }
+      },
+      "std_candidates_built": 12,
+      "std_ticket": {
+        "built": 12,
+        "n_graded": 4,
+        "wins": 4,
+        "losses": 0,
+        "ungraded": 8,
+        "win_pct": 100.0
+      },
+      "ticket_quality": {
+        "n": 12,
+        "avg_est_win_prob": 0.6911,
+        "avg_ev_power": 2.6304,
+        "by_n_legs": {
+          "3": 3,
+          "2": 9
+        }
+      },
+      "std_leg_gate_pass": {
+        "hits": 4,
+        "misses": 1,
+        "n": 5,
+        "hr_pct": 80.0
+      },
+      "std_leg_hot_ab": {
+        "hits": 6,
+        "misses": 0,
+        "n": 6,
+        "hr_pct": 100.0
+      }
+    }
+  ]
+}

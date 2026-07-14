@@ -19,8 +19,11 @@ from combined_slate_tickets import (  # noqa: E402
     _apply_strong_per_slate_player_cap,
     _apply_strong_rolling_hr_gate,
     _ok_strong_pair,
+    _row_standard_high_prob_eligible,
+    _standard_direction_floor,
     _strong_candidate_legs,
     _strong_candidate_legs_standard,
+    _strong_candidate_legs_standard_prob,
     _strong_combo_players_ok,
     build_strong_tickets,
 )
@@ -120,6 +123,151 @@ def test_strong_candidate_legs_standard_only_hot_ab():
     assert len(out) == 1
     assert str(out.iloc[0]["player"]) == "Std Four"
     assert str(out.iloc[0]["pick_type"]).lower() == "standard"
+
+
+def test_standard_direction_floor_under_lower_than_over():
+    under = _standard_direction_floor({"sport": "WNBA", "direction": "UNDER"})
+    over = _standard_direction_floor({"sport": "WNBA", "direction": "OVER"})
+    assert under < over
+    assert over >= 0.68
+
+
+def test_row_standard_high_prob_eligible_over_needs_higher_bar():
+    weak_over = {
+        "sport": "WNBA",
+        "pick_type": "Standard",
+        "tier": "A",
+        "direction": "OVER",
+        "prop_type": "Points",
+        "hit_rate": 0.64,
+        "ml_prob": 0.64,
+        "composite_hit_rate": 0.64,
+    }
+    strong_over = dict(weak_over, hit_rate=0.72, ml_prob=0.72, composite_hit_rate=0.72)
+    under_ok = {
+        "sport": "WNBA",
+        "pick_type": "Standard",
+        "tier": "B",
+        "direction": "UNDER",
+        "prop_type": "Points",
+        "hit_rate": 0.62,
+        "ml_prob": 0.62,
+        "composite_hit_rate": 0.62,
+    }
+    assert not _row_standard_high_prob_eligible(weak_over)
+    assert _row_standard_high_prob_eligible(strong_over)
+    assert _row_standard_high_prob_eligible(under_ok)
+
+
+def test_strong_candidate_legs_standard_prob_no_hot_required():
+    df = pd.DataFrame(
+        [
+            {
+                "sport": "WNBA",
+                "player": "Cold High",
+                "team": "LVA",
+                "opp": "NYL",
+                "prop_type": "Points",
+                "pick_type": "Standard",
+                "tier": "A",
+                "direction": "UNDER",
+                "line": 14.5,
+                "hit_rate": 0.72,
+                "rank_score": 88,
+                "ml_prob": 0.72,
+                "composite_hit_rate": 0.72,
+                "l10_over": 2.0,
+                "l10_under": 8.0,
+                "l10_streak": "COLD",
+                "prop_quality_score": 0.85,
+            },
+            {
+                "sport": "WNBA",
+                "player": "Goblin Hot",
+                "team": "NYL",
+                "opp": "LVA",
+                "prop_type": "Points",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 8.5,
+                "hit_rate": 0.80,
+                "rank_score": 90,
+                "ml_prob": 0.80,
+                "composite_hit_rate": 0.80,
+                "l10_over": 9.0,
+                "l10_under": 1.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.90,
+            },
+            {
+                "sport": "WNBA",
+                "player": "Weak Over",
+                "team": "CHI",
+                "opp": "DAL",
+                "prop_type": "Rebounds",
+                "pick_type": "Standard",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 6.5,
+                "hit_rate": 0.63,
+                "rank_score": 70,
+                "ml_prob": 0.63,
+                "composite_hit_rate": 0.63,
+                "l10_over": 6.0,
+                "l10_under": 4.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.70,
+            },
+        ]
+    )
+    out = _strong_candidate_legs_standard_prob(df)
+    players = set(out["player"].astype(str)) if not out.empty else set()
+    assert "Cold High" in players
+    assert "Goblin Hot" not in players
+    assert "Weak Over" not in players
+
+
+def test_build_strong_tickets_standard_prob_labels_and_policy():
+    df = pd.DataFrame(
+        [
+            {
+                "sport": "WNBA",
+                "player": f"StdP {i}",
+                "team": "LVA",
+                "opp": "NYL",
+                "prop_type": "Points",
+                "pick_type": "Standard",
+                "tier": "A" if i % 2 == 0 else "B",
+                "direction": "UNDER" if i % 2 else "OVER",
+                "line": 12.5 + i,
+                "hit_rate": 0.72,
+                "rank_score": 80 + i,
+                "ml_prob": 0.72,
+                "composite_hit_rate": 0.72,
+                "l10_over": 3.0,
+                "l10_under": 7.0,
+                "l10_streak": "COLD",
+                "prop_quality_score": 0.80,
+            }
+            for i in range(6)
+        ]
+    )
+    tickets = build_strong_tickets(
+        df,
+        pick_mode="standard_prob",
+        max_tickets=10,
+        max_legs=2,
+        exhaust_pool=False,
+        min_p_win_2leg=0.01,
+    )
+    assert tickets
+    assert all(t.get("strong_builder_pick") == "Standard" for t in tickets)
+    assert all(t.get("pool_policy") == "standard_high_prob" for t in tickets)
+    assert all(
+        all(str(r.get("pick_type")).lower() == "standard" for r in t.get("rows") or [])
+        for t in tickets
+    )
 
 
 def test_build_strong_tickets_standard_pick_mode_labels_slips():

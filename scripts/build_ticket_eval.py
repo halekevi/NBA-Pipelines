@@ -232,18 +232,19 @@ details.ticket-bucket:not(.manual-tb) > summary{
   width:100%;
   box-sizing:border-box;
   margin:0;
-  padding:12px 16px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.14);
+  padding:14px 18px;
+  border-radius:16px;
+  border:1px solid rgba(212,160,23,0.35);
   background:
-    linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)),
-    rgba(18,18,30,0.55);
-  backdrop-filter:blur(18px) saturate(180%);
-  -webkit-backdrop-filter:blur(18px) saturate(180%);
+    linear-gradient(135deg, rgba(212,160,23,0.18), rgba(255,255,255,0.06) 42%, rgba(255,255,255,0.02)),
+    rgba(22,22,36,0.92);
+  backdrop-filter:blur(22px) saturate(190%);
+  -webkit-backdrop-filter:blur(22px) saturate(190%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.12),
-    0 8px 28px rgba(0,0,0,0.28);
-  color:rgba(255,255,255,0.92);
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 3px 0 0 rgba(212,160,23,0.85),
+    0 10px 36px rgba(0,0,0,0.45);
+  color:rgba(255,255,255,0.95);
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(22px,2.4vw,30px);
   letter-spacing:2px;
@@ -260,15 +261,20 @@ details.ticket-bucket:not(.manual-tb) > summary .ticket-bucket-title{
   text-shadow:0 0 18px rgba(212,160,23,0.22);
 }
 details.ticket-bucket:not(.manual-tb) > summary .ticket-bucket-meta{
-  flex:1 1 auto;
+  flex:0 1 auto;
   margin-left:auto;
   text-align:right;
   white-space:nowrap;
   font-family:'Inter',system-ui,sans-serif;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:0.6px;
-  color:rgba(255,255,255,0.55);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.7px;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.78);
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.16);
+  background:rgba(0,0,0,0.28);
 }
 details.ticket-bucket:not(.manual-tb) > summary::after{
   content:'▸';
@@ -279,14 +285,15 @@ details.ticket-bucket:not(.manual-tb) > summary::after{
   transition:transform .2s ease;
 }
 details.ticket-bucket:not(.manual-tb)[open] > summary{
-  border-color:rgba(212,160,23,0.45);
+  border-color:rgba(212,160,23,0.65);
   background:
-    linear-gradient(135deg, rgba(212,160,23,0.16), rgba(255,255,255,0.04)),
-    rgba(18,18,30,0.62);
+    linear-gradient(135deg, rgba(212,160,23,0.28), rgba(255,255,255,0.07) 45%, rgba(255,255,255,0.03)),
+    rgba(28,24,18,0.95);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    0 0 0 1px rgba(212,160,23,0.12),
-    0 10px 32px rgba(0,0,0,0.34);
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 3px 0 0 rgba(240,185,40,1),
+    0 0 0 1px rgba(212,160,23,0.2),
+    0 12px 40px rgba(0,0,0,0.5);
 }
 details.ticket-bucket:not(.manual-tb)[open] > summary::after{transform:rotate(90deg);}
 details.ticket-bucket:not(.manual-tb) > summary:hover{

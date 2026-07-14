@@ -160,12 +160,51 @@ def test_build_strong_tickets_produces_labeled_slips():
     assert len(tickets) >= 1
     t = tickets[0]
     assert t.get("strong_builder") is True
+    # Sample pool only has 2 HOT Goblin players → 2-leg fallback.
     assert t.get("n_legs") == 2
     assert float(t.get("est_win_prob") or 0) >= 0.33
     for row in t.get("rows") or []:
         assert "goblin" in str(row.get("pick_type", "")).lower()
         assert str(row.get("tier", "")).upper() in ("A", "B")
         assert str(row.get("l10_streak", "")).upper() == "HOT"
+
+
+def _many_hot_goblin_df(n: int = 6) -> pd.DataFrame:
+    rows = []
+    for i in range(n):
+        rows.append(
+            {
+                "sport": "WNBA",
+                "player": f"Player {i}",
+                "team": f"T{i}",
+                "opp": "OPP",
+                "prop_type": "Points" if i % 2 == 0 else "Assists",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 5.5 + i,
+                "hit_rate": 0.80,
+                "rank_score": 90 - i,
+                "ml_prob": 0.80,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.90 - 0.01 * i,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def test_build_strong_tickets_prefers_three_plus_legs_when_pool_allows():
+    tickets = build_strong_tickets(_many_hot_goblin_df(6), max_tickets=10, date_str="2026-07-14")
+    assert tickets
+    lengths = sorted({int(t.get("n_legs") or 0) for t in tickets}, reverse=True)
+    assert max(lengths) >= 3
+    # Board should lead with longer slips, not fill exclusively with 2-legs.
+    assert int(tickets[0].get("n_legs") or 0) >= 3
+    two_leg = sum(1 for t in tickets if int(t.get("n_legs") or 0) == 2)
+    longer = sum(1 for t in tickets if int(t.get("n_legs") or 0) >= 3)
+    assert longer >= two_leg
 
 
 def test_strong_builder_slips_keep_strong_recommendation():

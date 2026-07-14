@@ -41,10 +41,12 @@ TIER_EV_MIN_MARGINAL: float = 0.0
 
 MIN_SAMPLES_FOR_PERCENTILES: int = 8
 
-# STRONG is for short, high-conviction slips — not 5-6 leg lottery tickets.
-STRONG_MAX_LEGS: int = max(2, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "3")))
+# STRONG favors short, high-conviction slips. Default 4 so Goblin HOT boards can
+# stack 3–4 unique players before falling back to 2-leg filler (override via env).
+STRONG_MAX_LEGS: int = max(2, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "4")))
 STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.33"))
 STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.42"))
+STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.48"))
 STRONG_ALLOW_CROSS_SPORT: bool = os.getenv("PROPORACLE_STRONG_ALLOW_CROSS_SPORT", "0").strip().lower() not in (
     "0",
     "false",
@@ -227,6 +229,8 @@ def _demote_strong_recommendation(
         return "OK"
     if n == 3 and p_win < STRONG_MIN_P_WIN_3LEG:
         return "OK"
+    if n >= 4 and p_win < STRONG_MIN_P_WIN_4LEG:
+        return "OK"
     legs = [leg for leg in (ticket.get("legs") or []) if isinstance(leg, dict)]
     if gate_stats is not None:
         if not _track_strong_leg_quality(legs, gate_stats):
@@ -347,6 +351,7 @@ def apply_slate_ev_tier_recommendations(
         "max_legs": STRONG_MAX_LEGS,
         "min_p_win_2leg": STRONG_MIN_P_WIN_2LEG,
         "min_p_win_3leg": STRONG_MIN_P_WIN_3LEG,
+        "min_p_win_4leg": STRONG_MIN_P_WIN_4LEG,
         "allow_cross_sport": STRONG_ALLOW_CROSS_SPORT,
         "require_goblin": True,
         "require_tier_ab": True,

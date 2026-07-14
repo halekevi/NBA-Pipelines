@@ -163,8 +163,10 @@ from utils.ticket_tier_defense_gates import (
 from utils.prop_signal_score import l10_streak_series
 from utils.ticket_ev_tiers import (
     STRONG_ALLOW_CROSS_SPORT,
+    STRONG_MAX_LEGS,
     STRONG_MIN_P_WIN_2LEG,
     STRONG_MIN_P_WIN_3LEG,
+    STRONG_MIN_P_WIN_4LEG,
     apply_slate_ev_tier_recommendations,
     recommendation_from_ev,
 )
@@ -13470,19 +13472,44 @@ def _log_strong_builder(
         )
 
 
+def _strong_best_prop_per_player(rows: list[dict]) -> list[dict]:
+    """Keep the highest-quality prop per player (rows assumed quality-sorted desc)."""
+    seen: set[str] = set()
+    out: list[dict] = []
+    for row in rows:
+        player = str(row.get("player") or "").strip().lower()
+        if not player or player in seen:
+            continue
+        seen.add(player)
+        out.append(row)
+    return out
+
+
+def _strong_min_p_win_for_legs(n_legs: int, floor_2: float, floor_3: float, floor_4: float) -> float:
+    n = int(n_legs)
+    if n <= 2:
+        return float(floor_2)
+    if n == 3:
+        return float(floor_3)
+    return float(floor_4)
+
+
 def build_strong_tickets(
     df: pd.DataFrame,
     *,
     max_tickets: int | None = None,
     min_p_win_2leg: float | None = None,
     min_p_win_3leg: float | None = None,
-    max_legs: int = 3,
+    min_p_win_4leg: float | None = None,
+    max_legs: int | None = None,
     player_ticket_counts: dict[str, int] | None = None,
     date_str: str = "",
 ) -> list[dict]:
     """
-    Build 2–3 leg power tickets from Goblin A/B HOT legs only.
-    Tickets are tagged strong_builder=True for STRONG tier assignment.
+    Build power tickets from Goblin A/B HOT legs.
+
+    Prefers longer unique-player slips (4 → 3 → 2) so the board is not filled with
+    2-leg combos before 3/4-leg tickets can be assembled.
     """
     prepared = _prepare_strong_builder_pool(df)
     candidates = _strong_candidate_legs(prepared)
@@ -13492,6 +13519,9 @@ def build_strong_tickets(
     cap = int(max_tickets if max_tickets is not None else STRONG_BUILDER_MAX_TICKETS)
     floor_2 = float(min_p_win_2leg if min_p_win_2leg is not None else STRONG_MIN_P_WIN_2LEG)
     floor_3 = float(min_p_win_3leg if min_p_win_3leg is not None else STRONG_MIN_P_WIN_3LEG)
+    floor_4 = float(min_p_win_4leg if min_p_win_4leg is not None else STRONG_MIN_P_WIN_4LEG)
+    max_legs_i = int(max_legs if max_legs is not None else STRONG_MAX_LEGS)
+    max_legs_i = max(2, min(int(STRONG_MAX_LEGS), max_legs_i))
     if n_candidates < 2:
         _log_strong_builder(date_str, n_candidates, [], candidates)
         return []
@@ -13504,17 +13534,22 @@ def build_strong_tickets(
     )
     top_k = min(len(capped_rows), STRONG_BUILDER_TOP_K)
     top_rows = capped_rows[:top_k]
+    # For 3+ legs: one best prop per player so we don't burn unique slots on McBride×3 props.
+    unique_player_rows = _strong_best_prop_per_player(top_rows)
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
     scan_cap = max(8_000, cap * 800)
+    # Longer first so 2-leg filler cannot exhaust the ticket budget.
+    leg_order = list(range(max_legs_i, 1, -1))
 
-    for n_legs in (2, 3):
-        if n_legs > int(max_legs) or len(top_rows) < n_legs:
+    for n_legs in leg_order:
+        pool_rows = unique_player_rows if n_legs >= 3 else top_rows
+        if len(pool_rows) < n_legs:
             continue
-        min_p_win = floor_2 if n_legs <= 2 else floor_3
+        min_p_win = _strong_min_p_win_for_legs(n_legs, floor_2, floor_3, floor_4)
         scanned = 0
-        for combo in itertools.combinations(top_rows, n_legs):
+        for combo in itertools.combinations(pool_rows, n_legs):
             scanned += 1
             if scanned > scan_cap or len(tickets) >= cap:
                 break
@@ -13579,14 +13614,22 @@ def build_strong_tickets(
             seen_keys.add(key)
             _ticket_cap_register(rows, player_ticket_counts)
 
+    # Prefer longer slips in the final board ranking, then p_win.
     tickets.sort(
         key=lambda t: (
+            -int(t.get("n_legs") or 0),
             -float(t.get("est_win_prob") or 0.0),
             -float(t.get("avg_rank_score") or 0.0),
         )
     )
     tickets = tickets[:cap]
     _log_strong_builder(date_str, n_candidates, tickets, candidates)
+    by_n = Counter(int(t.get("n_legs") or 0) for t in tickets)
+    if tickets:
+        print(
+            f"[strong-builder] leg mix: "
+            + ", ".join(f"{n}-leg={by_n[n]}" for n in sorted(by_n, reverse=True))
+        )
     return tickets
 
 

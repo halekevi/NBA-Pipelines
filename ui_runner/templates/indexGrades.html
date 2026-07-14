@@ -3625,6 +3625,7 @@ var PROPS_EVAL_VIRTUAL = {
   raf: null,
   lastStart: -1,
   lastEnd: -1,
+  lastCols: 0,
 };
 
 function propsEvalRowHeight(view) {
@@ -3634,7 +3635,7 @@ function propsEvalRowHeight(view) {
 
 function propsEvalCardCols(scrollEl) {
   var w = (scrollEl && scrollEl.clientWidth) || 800;
-  var min = 250;
+  var min = 220;
   var gap = 10;
   var pad = 20;
   return Math.max(1, Math.floor((w - pad + gap) / (min + gap)));
@@ -3672,8 +3673,9 @@ function paintPropsEvalVirtualWindow() {
   var view = v.view || 'list';
   var itemH = propsEvalRowHeight(view);
   var n = rows.length;
-  /* Keep virtualization 1-col for both modes — avoids multi-col transform glitches while scrolling. */
-  var totalH = Math.max(itemH, n * itemH);
+  var cols = view === 'cards' ? propsEvalCardCols(scrollEl) : 1;
+  var rowCount = Math.max(1, Math.ceil(n / cols));
+  var totalH = Math.max(itemH, rowCount * itemH);
   var spacer = grid.querySelector('.props-eval-virtual-spacer');
   var win = grid.querySelector('.props-eval-virtual-window');
   if (!spacer || !win) return;
@@ -3681,24 +3683,38 @@ function paintPropsEvalVirtualWindow() {
 
   var scrollTop = scrollEl.scrollTop || 0;
   var viewH = scrollEl.clientHeight || 600;
-  var overscan = 10;
-  var startIdx = Math.max(0, Math.floor(scrollTop / itemH) - overscan);
-  var endIdx = Math.min(n, Math.ceil((scrollTop + viewH) / itemH) + overscan);
-  if (startIdx === v.lastStart && endIdx === v.lastEnd && win.childNodes.length) return;
+  var overscan = 8;
+  var startRow = Math.max(0, Math.floor(scrollTop / itemH) - overscan);
+  var endRow = Math.min(rowCount, Math.ceil((scrollTop + viewH) / itemH) + overscan);
+  var startIdx = startRow * cols;
+  var endIdx = Math.min(n, endRow * cols);
+  if (startIdx === v.lastStart && endIdx === v.lastEnd && cols === v.lastCols && win.childNodes.length) return;
   v.lastStart = startIdx;
   v.lastEnd = endIdx;
+  v.lastCols = cols;
 
-  win.style.transform = 'translate3d(0,' + (startIdx * itemH) + 'px,0)';
-  win.style.display = 'block';
+  win.style.transform = 'translate3d(0,' + (startRow * itemH) + 'px,0)';
   win.style.padding = view === 'cards' ? '0 10px' : '0';
+  win.style.boxSizing = 'border-box';
+  if (view === 'cards' && cols > 1) {
+    win.style.display = 'grid';
+    win.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr))';
+    win.style.gap = '10px';
+  } else {
+    win.style.display = 'block';
+    win.style.gridTemplateColumns = '';
+    win.style.gap = '';
+  }
 
   var build = view === 'cards' ? buildPropEvalCardElement : buildPropEvalRowElement;
   var frag = document.createDocumentFragment();
   for (var i = startIdx; i < endIdx; i++) {
     var el = build(rows[i]);
     if (view === 'cards') {
-      el.style.marginBottom = '10px';
+      el.style.marginBottom = cols > 1 ? '0' : '10px';
       el.style.height = (itemH - 10) + 'px';
+      el.style.width = '100%';
+      el.style.minWidth = '0';
     }
     frag.appendChild(el);
   }
@@ -3752,6 +3768,7 @@ function renderPropsEvalCards(rows) {
   PROPS_EVAL_VIRTUAL.scrollEl = scrollEl;
   PROPS_EVAL_VIRTUAL.lastStart = -1;
   PROPS_EVAL_VIRTUAL.lastEnd = -1;
+  PROPS_EVAL_VIRTUAL.lastCols = 0;
 
   try { scrollEl.scrollTop = 0; } catch (_e) {}
   paintPropsEvalVirtualWindow();
@@ -3763,6 +3780,7 @@ function renderPropsEvalCards(rows) {
   PROPS_EVAL_VIRTUAL.onResize = function () {
     if (gen !== PROPS_EVAL_RENDER_GEN) return;
     PROPS_EVAL_VIRTUAL.lastStart = -1;
+    PROPS_EVAL_VIRTUAL.lastCols = 0;
     schedulePropsEvalVirtualPaint();
   };
   scrollEl.addEventListener('scroll', PROPS_EVAL_VIRTUAL.onScroll, { passive: true });

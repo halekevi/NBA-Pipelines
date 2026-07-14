@@ -320,6 +320,7 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "prop_type": "Hits",
                 "pick_type": "Goblin",
                 "tier": "A",
+                "direction": "OVER",
                 "l10_streak": "HOT",
             },
             {
@@ -328,6 +329,7 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "prop_type": "Home Runs",
                 "pick_type": "Goblin",
                 "tier": "A",
+                "direction": "OVER",
                 "l10_streak": "HOT",
             },
             {
@@ -336,6 +338,7 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "prop_type": "3-PT Made",
                 "pick_type": "Goblin",
                 "tier": "A",
+                "direction": "OVER",
                 "l10_streak": "HOT",
             },
             {
@@ -344,6 +347,7 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "prop_type": "Points",
                 "pick_type": "Goblin",
                 "tier": "A",
+                "direction": "OVER",
                 "l10_streak": "HOT",
             },
         ]

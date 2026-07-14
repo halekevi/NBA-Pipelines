@@ -73,7 +73,7 @@ import sys
 import unicodedata
 import zipfile
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Sequence
 from zoneinfo import ZoneInfo
@@ -232,6 +232,22 @@ DEFAULT_WNBA_PATH = os.path.join(REPO_ROOT, "Sports", "WNBA", "outputs", "step8_
 DEFAULT_NHL_PATH = os.path.join(REPO_ROOT, "Sports", "NHL", "outputs", "step8_nhl_direction_clean.xlsx")
 DEFAULT_WEB_OUTDIR = os.path.join(REPO_ROOT, "ui_runner", "templates")
 
+# Seasonal MAIN / web exclusions: inactive until first-game (or tipoff) date.
+# Reactivate MAIN_SEASON_LEAD_DAYS early so boards can warm up before Week 1 / tipoff.
+# Override any sport via PROPORACLE_<SPORT>_MAIN_RESUME=YYYY-MM-DD (e.g. PROPORACLE_NFL_MAIN_RESUME).
+MAIN_SEASON_LEAD_DAYS: int = max(0, int(os.getenv("PROPORACLE_MAIN_SEASON_LEAD_DAYS", "7")))
+_MAIN_SEASON_RESUME_DEFAULTS: dict[str, str] = {
+    # 2026 NFL Kickoff (Wed): Seahawks vs Patriots
+    "NFL": "2026-09-09",
+    # 2026 CFB Week Zero
+    "CFB": "2026-08-27",
+    # 2026-27 NCAA DI men's tipoff window
+    "CBB": "2026-11-01",
+    # Women's DI basketball tipoff (align with men's weekend)
+    "WCBB": "2026-11-01",
+}
+# Golf is year-round when a slate exists — exclude only via env hard-list if needed.
+
 
 def _outputs_dir_for_date(date_str: str) -> str:
     d = str(date_str).strip()[:10]
@@ -260,7 +276,45 @@ def _nhl_off_season(slate_date: str) -> bool:
         return False
 
 
-_PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset({"cbb", "cfb", "nfl", "wcbb"})
+_PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset()  # use dated resumes in _sport_slug_off_season
+
+
+def _parse_iso_date(s: object):
+    try:
+        return datetime.strptime(str(s).strip()[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def _main_season_resume_date(sport: str):
+    """First calendar date sport may enter MAIN / leave off-season hide."""
+    sp = str(sport or "").strip().upper()
+    if not sp:
+        return None
+    env_v = os.getenv(f"PROPORACLE_{sp}_MAIN_RESUME", "").strip()
+    if env_v:
+        return _parse_iso_date(env_v)
+    raw = _MAIN_SEASON_RESUME_DEFAULTS.get(sp)
+    return _parse_iso_date(raw) if raw else None
+
+
+def _sport_in_season_for_main(sport: str, slate_date: str) -> bool:
+    """
+    True when sport should not be filtered for being off-season on slate_date.
+    Sports without a resume calendar are treated as always in-season.
+    Lead days pull reactivation forward so tickets can build before tipoff.
+    """
+    resume = _main_season_resume_date(sport)
+    if resume is None:
+        return True
+    slate = _parse_iso_date(slate_date)
+    if slate is None:
+        return False
+    from datetime import timedelta
+
+    open_on = resume - timedelta(days=int(MAIN_SEASON_LEAD_DAYS))
+    return slate >= open_on
+
 
 WEB_SUPPLEMENT_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
@@ -274,7 +328,8 @@ def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
     sl = str(sport_slug or "").strip().lower()
     if not sl:
         return False
-    if sl in _PERMANENT_OFF_SEASON_SPORT_SLUGS:
+    seasonal = {"nfl": "NFL", "cfb": "CFB", "cbb": "CBB", "wcbb": "WCBB"}
+    if sl in seasonal and not _sport_in_season_for_main(seasonal[sl], slate_date):
         return True
     if sl in ("nba", "nba1h", "nba1q") and _nba_family_off_season(slate_date):
         return True
@@ -3883,7 +3938,9 @@ def _sport_ticket_gated(sport: str) -> tuple[bool, str]:
     if not su or su in ALWAYS_ALLOW_SPORTS:
         return False, ""
     if su == "NFL" and NFL_TICKET_GATE:
-        return True, NFL_TICKET_GATE_REASON
+        # Scaffold kill-switch only while MAIN season calendar still parks NFL.
+        if not _sport_in_season_for_main("NFL", date.today().isoformat()):
+            return True, NFL_TICKET_GATE_REASON
     global _MODEL_GATE_CACHE
     if _MODEL_GATE_CACHE is None:
         _MODEL_GATE_CACHE = _load_model_gate_recommendations()
@@ -4074,8 +4131,13 @@ def _apply_tier_defense_pool_gate(df: pd.DataFrame, sport: str) -> pd.DataFrame:
 ACTIVE_SPORTS = ("NBA", "NHL", "SOCCER", "TENNIS", "WNBA", "MLB", "NBA1H", "NBA1Q", "WCBB", "NFL", "CFB")
 # NFL — Phase 1 scaffold only; keep off slate until step8 + historical hit rates exist (Sept 2026).
 # Reference: {"NFL": False}  # activate September 2026 — do not add "NFL" to ACTIVE_SPORTS yet.
+# NFL — scaffold gate stays on until season resume (MAIN calendar also excludes until Kickoff).
+# Flip NFL_TICKET_GATE off after Week 1 boards are validated, or override via model gates.
 NFL_TICKET_GATE = True
-NFL_TICKET_GATE_REASON = "Off-season scaffold — activate Week 1 2026"
+NFL_TICKET_GATE_REASON = (
+    f"NFL scaffold — MAIN resume {_MAIN_SEASON_RESUME_DEFAULTS.get('NFL', '2026-09-09')} "
+    f"(lead {MAIN_SEASON_LEAD_DAYS}d); unset NFL_TICKET_GATE when live step8 is ready"
+)
 
 # When --high-conviction: per-leg hit_rate floors (merged with LEG_MIN_HIT_RATE via max())
 HIGH_CONVICTION_LEG_MIN_HIT_RATE = {
@@ -6854,7 +6916,9 @@ MAIN_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_MAIN_MIN_LEG_PROB", "0.62
 MAIN_MIN_ML_PROB_LEG: float = float(os.getenv("PROPORACLE_MAIN_MIN_ML_PROB_LEG", "0.58"))
 MAIN_MIN_P_WIN_FLOOR: float = float(os.getenv("PROPORACLE_MAIN_MIN_P_WIN_FLOOR", "0.33"))
 MAIN_MAX_SLIPS: int = max(5, int(os.getenv("PROPORACLE_MAIN_MAX_SLIPS", "15")))
-# Empty allowlist = no sport whitelist. Exclude only scaffold / off-season pipelines.
+# Empty allowlist = no sport whitelist. Candidate exclude list is seasonal for
+# NFL/CFB/CBB/WCBB (see main_exclude_sports_for_date). Golf stays hard-excluded
+# until pipeline is ready (override by clearing env).
 MAIN_ALLOWED_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv("PROPORACLE_MAIN_ALLOWED_SPORTS", "").split(",")
@@ -6867,6 +6931,30 @@ MAIN_EXCLUDE_SPORTS: frozenset[str] = frozenset(
     ).split(",")
     if s.strip()
 )
+
+
+def main_exclude_sports_for_date(slate_date: str | None = None) -> frozenset[str]:
+    """
+    Sports barred from MAIN on this slate date.
+
+    Seasonal sports in MAIN_EXCLUDE_SPORTS (NFL/CFB/CBB/WCBB, or any with
+    PROPORACLE_<SPORT>_MAIN_RESUME) are dropped from the exclude set once
+    resume−lead_days. Non-seasonal names (e.g. GOLF) stay excluded.
+    """
+    candidates = set(MAIN_EXCLUDE_SPORTS)
+    if not slate_date:
+        return frozenset(candidates)
+    keep: set[str] = set()
+    for sp in candidates:
+        has_calendar = sp in _MAIN_SEASON_RESUME_DEFAULTS or bool(
+            os.getenv(f"PROPORACLE_{sp}_MAIN_RESUME", "").strip()
+        )
+        if has_calendar:
+            if not _sport_in_season_for_main(sp, slate_date):
+                keep.add(sp)
+            continue
+        keep.add(sp)
+    return frozenset(keep)
 # MLB Goblin shadow track still emitted for A/B-only grading comparison.
 MAIN_MLB_SHADOW_ENABLED: bool = os.getenv("PROPORACLE_MAIN_MLB_SHADOW", "1").strip().lower() not in (
     "0",
@@ -6970,7 +7058,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
         return {}
     floor_p = float(MAIN_MIN_P_WIN_FLOOR)
     max_slips = int(MAIN_MAX_SLIPS)
-    exclude = set(MAIN_EXCLUDE_SPORTS)
+    exclude = set(main_exclude_sports_for_date(str(payload.get("date") or "")))
     candidates: list[tuple[float, dict, dict]] = []
     for g in payload.get("groups") or []:
         if not isinstance(g, dict):
@@ -7049,6 +7137,7 @@ def _main_track_wr_sport_frames(
     include_soccer: bool = True,
     include_tennis: bool = True,
     include_nhl: bool = True,
+    slate_date: str = "",
 ) -> list[tuple[str, pd.DataFrame]]:
     frames: list[tuple[str, pd.DataFrame]] = []
     sport_order: list[tuple[str, object]] = [
@@ -7065,11 +7154,12 @@ def _main_track_wr_sport_frames(
         sport_order.append(("TENNIS", tennis))
     if include_nhl:
         sport_order.append(("NHL", nhl))
+    exclude = main_exclude_sports_for_date(slate_date)
     for label, frame in sport_order:
         if frame is None or len(frame) == 0:
             continue
         su = str(label).strip().upper()
-        if su in MAIN_EXCLUDE_SPORTS:
+        if su in exclude:
             continue
         if MAIN_ALLOWED_SPORTS and su not in MAIN_ALLOWED_SPORTS:
             continue
@@ -7209,7 +7299,13 @@ def build_graded_main_win_rate_payload(
     payload["sort"] = "p_win"
     payload["main_source"] = "win_rate"
     payload["main_allowed_sports"] = sorted(MAIN_ALLOWED_SPORTS) if MAIN_ALLOWED_SPORTS else ["*"]
-    payload["main_exclude_sports"] = sorted(MAIN_EXCLUDE_SPORTS)
+    payload["main_exclude_sports"] = sorted(main_exclude_sports_for_date(str(date_str or "")))
+    payload["main_exclude_sports_candidates"] = sorted(MAIN_EXCLUDE_SPORTS)
+    payload["main_season_resume"] = {
+        sp: (_main_season_resume_date(sp).isoformat() if _main_season_resume_date(sp) else None)
+        for sp in sorted(set(MAIN_EXCLUDE_SPORTS) | set(_MAIN_SEASON_RESUME_DEFAULTS))
+    }
+    payload["main_season_lead_days"] = int(MAIN_SEASON_LEAD_DAYS)
     payload["main_min_leg_prob"] = wr_min_prob
     payload["main_min_ml_prob_leg"] = MAIN_MIN_ML_PROB_LEG
     if policy_tag:
@@ -7315,6 +7411,7 @@ def resolve_graded_main_and_long_payloads(
         tennis=tennis,
         nhl=nhl,
         pool_fn=pool_fn,
+        slate_date=str(date_str or ""),
     )
     main = build_graded_main_win_rate_payload(
         wr_frames,
@@ -7327,10 +7424,11 @@ def resolve_graded_main_and_long_payloads(
     )
     n_main = sum(len(g.get("tickets") or []) for g in main.get("groups") or [])
     if n_main > 0:
+        excl = main_exclude_sports_for_date(str(date_str or ""))
         sports_note = (
             ",".join(sorted(MAIN_ALLOWED_SPORTS))
             if MAIN_ALLOWED_SPORTS
-            else f"all except {','.join(sorted(MAIN_EXCLUDE_SPORTS)) or 'none'}"
+            else f"all except {','.join(sorted(excl)) or 'none'}"
         )
         print(
             f"  [main-track] win-rate main pool: {n_main} slips "
@@ -7364,6 +7462,7 @@ def _emit_winrate_goblin_opt3_shadow_payload(
         nba1h=nba1h,
         wnba=wnba,
         pool_fn=pool_fn,
+        slate_date=str(date_str or ""),
     )
     shadow = build_graded_main_win_rate_goblin_opt3_shadow_payload(
         wr_frames,
@@ -7796,7 +7895,7 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
                 for leg in legs
                 if str(leg.get("sport") or "").strip()
             }
-            if leg_sports & set(MAIN_EXCLUDE_SPORTS):
+            if leg_sports & set(main_exclude_sports_for_date(str(out.get("date") or ""))):
                 continue
             if MAIN_ALLOWED_SPORTS and not leg_sports.issubset(MAIN_ALLOWED_SPORTS):
                 continue
@@ -13619,7 +13718,20 @@ STRONG_BUILDER_EXHAUST_POOL: bool = os.getenv("PROPORACLE_STRONG_EXHAUST_POOL", 
     "off",
 )
 STRONG_BUILDER_HARD_MAX: int = max(25, int(os.getenv("PROPORACLE_STRONG_HARD_MAX", "200")))
-STRONG_BUILDER_SPORTS: frozenset[str] = frozenset({"NBA", "NBA1Q", "WNBA", "MLB"})
+# Any active sport that clears sport + pick gates can enter STRONG (not just hoops/MLB).
+STRONG_BUILDER_SPORTS: frozenset[str] = frozenset(
+    {
+        "NBA",
+        "NBA1Q",
+        "NBA1H",
+        "WNBA",
+        "MLB",
+        "SOCCER",
+        "SOC",
+        "TENNIS",
+        "NHL",
+    }
+)
 STRONG_BUILDER_CORE_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
     for x in ("points", "rebounds", "pts+rebs", "pts+rebs+asts", "assists")
@@ -13636,6 +13748,36 @@ STRONG_BUILDER_MLB_PROPS_NORM: frozenset[str] = frozenset(
         "pitchesthrown",
         "pitching outs",
         "pitchingouts",
+    )
+)
+STRONG_BUILDER_SOCCER_PROPS_NORM: frozenset[str] = frozenset(
+    x.replace("+", "").replace(" ", "")
+    for x in ("shots", "shots on target", "shotsontarget", "goals")
+)
+STRONG_BUILDER_TENNIS_PROPS_NORM: frozenset[str] = frozenset(
+    x.replace("+", "").replace(" ", "")
+    for x in (
+        "total games won",
+        "totalgameswon",
+        "total games",
+        "totalgames",
+        "games won",
+        "gameswon",
+        "games played",
+        "gamesplayed",
+    )
+)
+STRONG_BUILDER_NHL_PROPS_NORM: frozenset[str] = frozenset(
+    x.replace("+", "").replace(" ", "")
+    for x in (
+        "shots on goal",
+        "shotsongoal",
+        "sog",
+        "saves",
+        "blocked shots",
+        "blockedshots",
+        "hits",
+        "points",
     )
 )
 STRONG_ROLLING_HR_PATH = os.path.join(REPO_ROOT, "data", "reports", "strong_player_rolling_hr.json")
@@ -13772,7 +13914,29 @@ def _strong_builder_prop_allowed(v: object, sport: object = None) -> bool:
     sp = str(sport or "").upper().strip()
     if sp == "MLB":
         return norm in STRONG_BUILDER_MLB_PROPS_NORM
+    if sp in ("SOCCER", "SOC"):
+        return norm in STRONG_BUILDER_SOCCER_PROPS_NORM
+    if sp == "TENNIS":
+        return norm in STRONG_BUILDER_TENNIS_PROPS_NORM
+    if sp == "NHL":
+        return norm in STRONG_BUILDER_NHL_PROPS_NORM
     return norm in STRONG_BUILDER_CORE_PROPS_NORM
+
+
+def _strong_sport_leg_allowed(row: dict | pd.Series) -> bool:
+    """Apply per-sport ticket gates inside STRONG candidate selection."""
+    if isinstance(row, pd.Series):
+        row_d = row.to_dict()
+    else:
+        row_d = dict(row)
+    sp = str(row_d.get("sport") or "").strip().upper()
+    if sp in ("SOCCER", "SOC"):
+        return bool(soccer_allowed_leg(row_d))
+    if sp == "TENNIS":
+        return bool(tennis_allowed_leg(row_d))
+    if sp == "NHL":
+        return bool(nhl_allowed_leg(row_d))
+    return True
 
 
 def _prepare_strong_builder_pool(df: pd.DataFrame) -> pd.DataFrame:
@@ -13822,8 +13986,8 @@ def _strong_candidate_legs(
             if not bool(prop_ok.loc[idx]):
                 continue
             if str(row.get("sport") or "").strip().upper() not in STRONG_BUILDER_SPORTS:
-                # Also allow NHL/tennis when sport is in builder set only for now —
-                # STRONG sports stay the summer core (NBA/WNBA/MLB).
+                continue
+            if not _strong_sport_leg_allowed(row):
                 continue
             if _row_standard_high_prob_eligible(row):
                 keep_idx.append(idx)
@@ -13860,7 +14024,11 @@ def _strong_candidate_legs(
         & sport.isin(STRONG_BUILDER_SPORTS)
         & prop_ok.fillna(False)
     )
-    return df[mask].copy()
+    out = df[mask].copy()
+    if out.empty:
+        return out
+    keep_idx = [idx for idx in out.index if _strong_sport_leg_allowed(out.loc[idx])]
+    return out.loc[keep_idx].copy() if keep_idx else out.iloc[0:0].copy()
 
 
 def _strong_candidate_legs_standard(df: pd.DataFrame) -> pd.DataFrame:

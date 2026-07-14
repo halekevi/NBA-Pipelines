@@ -6,7 +6,7 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate → (D-payout) live CDP payout scrape (scripts/run_live_payout_capture.ps1; also runs inside Run-Combined) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate → (D-payout) live CDP payout scrape + verify outstanding ticket floors / mixΔ (scripts/run_live_payout_capture.ps1; also runs inside Run-Combined) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
          Tennis: -TennisDate defaults to Eastern tomorrow (early-AM board); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
@@ -1166,7 +1166,8 @@ if ($script:PipelineFailed) {
 # STEP D-payout — Live PrizePicks payout capture after tickets (shared helper)
 # Primary path is also Run-Combined in run_pipeline.ps1; this step is the
 # safety net when Combined already ran with CDP down / skip, or for re-runs.
-# Idempotent: skips if payout_capture_<date>.json already has n_ok>0.
+# Idempotent: skips full scrape if payout_capture_<date>.json already has n_ok>0,
+# then still runs verify_ticket_payout_rates (fills missing live floors + reports Δ gaps).
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
@@ -1185,10 +1186,10 @@ else {
         Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
     }
     else {
-        Write-Log "STEP D-payout - Live payout capture: START"
+        Write-Log "STEP D-payout - Live payout capture + verify: START"
         try {
-            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets
-            Write-Log "STEP D-payout - Live payout capture: DONE (exit $LASTEXITCODE)"
+            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -RebuildRateCard
+            Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
         }
         catch {
             Write-Host "  [PAYOUT] WARN: payout capture error (non-blocking)" -ForegroundColor Yellow
@@ -1714,85 +1715,148 @@ if ($SkipPush) {
 else {
     Write-Log "STEP E - Git push: START"
     $gitLog = Join-Path $Root "logs\git_push_log.txt"
-    Push-Location $Root
-    $stepEPrevBranch = $null
-    $stepESkipPush = $false
-    try {
-        $stepEPrevBranch = (git -C $Root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
-        if (-not $stepEPrevBranch) { $stepEPrevBranch = "HEAD" }
-        if ($stepEPrevBranch -ne "main") {
-            Write-Log "STEP E - on '$stepEPrevBranch'; checking out main for Railway deploy commit"
-            git -C $Root checkout main 2>&1 | ForEach-Object { Write-Log "STEP E - checkout: $_" }
-            if ($LASTEXITCODE -ne 0) {
-                Write-Log "STEP E - FAILED: cannot checkout main (uncommitted feature changes?). Abort push — Railway would stay STALE."
-                Write-Warning "STEP E aborted: checkout main failed while on '$stepEPrevBranch'. Commit/stash WIP or run: git checkout main"
-                "$Today - STEP E aborted: on $stepEPrevBranch, checkout main failed" | Out-File -FilePath $gitLog -Append -Encoding utf8
-                $stepESkipPush = $true
-            }
-            else {
-                Write-Log "STEP E - checked out main (will restore '$stepEPrevBranch' after push)"
+
+    function Get-MainWorktreeRoot-Daily {
+        param([string]$RepoRoot = $Root)
+        $porcelain = git -C $RepoRoot worktree list --porcelain 2>$null
+        if (-not $porcelain) { return $RepoRoot }
+        $wt = $null
+        foreach ($line in $porcelain) {
+            if ($line -match '^worktree (.+)$') { $wt = $Matches[1].Trim() }
+            elseif ($line -match '^branch refs/heads/main$' -and $wt) { return $wt }
+            elseif ($line -eq "") { $wt = $null }
+        }
+        $br = (git -C $RepoRoot rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+        if ($br -eq "main") { return $RepoRoot }
+        return $null
+    }
+
+    $MainRoot = Get-MainWorktreeRoot-Daily
+    if (-not $MainRoot) {
+        Write-Log "STEP E - FAILED: no worktree has main checked out — Railway would stay STALE"
+        Write-Warning "STEP E aborted: create/use PropORACLE_main_cp worktree (or checkout main)"
+        "$Today - STEP E aborted: no main worktree" | Out-File -FilePath $gitLog -Append -Encoding utf8
+    }
+    else {
+        if ($MainRoot -ne $Root) {
+            Write-Log "STEP E - publishing via main worktree: $MainRoot"
+        }
+        $stepELiveRels = @(
+            "ui_runner/templates/tickets_latest.json",
+            "ui_runner/docs/tickets_latest.json",
+            "mobile/www/tickets_latest.json",
+            "ui_runner/templates/slate_latest.json",
+            "mobile/www/slate_latest.json",
+            "ui_runner/templates/pipeline_status.json",
+            "mobile/www/pipeline_status.json"
+        )
+        # Snapshot live tickets from the daily run workspace before main-side staging.
+        $stepELiveSnap = Join-Path $env:TEMP ("proporacle_step_e_live_" + [guid]::NewGuid().ToString("N"))
+        New-Item -ItemType Directory -Path $stepELiveSnap -Force | Out-Null
+        foreach ($rel in $stepELiveRels) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            if (Test-Path -LiteralPath $src) {
+                $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                Copy-Item -LiteralPath $src -Destination $dst -Force
             }
         }
 
-        if (-not $stepESkipPush -and $WeeklyAnalysis) {
-            $analysisTodayDir = Join-Path $Root "outputs\$Today"
-            if (-not (Test-Path $analysisTodayDir)) {
-                New-Item -ItemType Directory -Path $analysisTodayDir -Force | Out-Null
+        Push-Location $MainRoot
+        $stepEStashed = $false
+        try {
+            if (git status --porcelain) {
+                Write-Log "STEP E - dirty main worktree; stashing before pull/commit"
+                git stash push -m "proporacle-step-e-temp-$Today" 2>&1 | ForEach-Object { Write-Log "STEP E - stash: $_" }
+                if ($LASTEXITCODE -eq 0) { $stepEStashed = $true }
             }
-            $weeklyReportPath = Join-Path $analysisTodayDir "grader_analysis_$Today.txt"
-            Write-Log "STEP E0 - Weekly grader analysis: START"
-            $analyzeScript = Join-Path $Root "scripts\analyze_grader.py"
-            try {
-                & py -3.14 $analyzeScript --output $weeklyReportPath
-                $ae = $LASTEXITCODE
-                if ($ae -ne 0) {
-                    Write-Log "STEP E0 - Weekly grader analysis: FAILED (py exit $ae)"
+            git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log "STEP E - pull: $_" }
+
+            # Restore snapshotted live tickets onto main worktree
+            foreach ($rel in $stepELiveRels) {
+                $src = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                if (Test-Path -LiteralPath $src) {
+                    $dst = Join-Path $MainRoot ($rel -replace "/", "\")
+                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                    Copy-Item -LiteralPath $src -Destination $dst -Force
                 }
-                else {
-                    Write-Log "STEP E0 - Weekly grader analysis: OK"
-                    $script:WeeklyAnalysisReport = $weeklyReportPath
-                    $synScript = Join-Path $Root "scripts\build_synthetic_graded.py"
-                    $consScript = Join-Path $Root "scripts\build_player_consistency.py"
-                    Write-Log "STEP E0b - Weekly synthetic + consistency rebuild: START"
-                    try {
-                        # build_synthetic_graded.py writes synthetic props to data\cache\synthetic_graded.db
-                        & py -3.14 $synScript
-                        $se = $LASTEXITCODE
-                        if ($se -ne 0) {
-                            Write-Log "STEP E0b - build_synthetic_graded: FAILED (exit $se)"
-                            Write-Warning "build_synthetic_graded.py failed (exit $se)"
+            }
+
+            # Also copy today's outputs/templates/mobile from run workspace when paths differ
+            if ($MainRoot -ne $Root) {
+                foreach ($dirRel in @("outputs\$Today", "ui_runner\templates", "mobile\www", "ui_runner\docs")) {
+                    $srcDir = Join-Path $Root $dirRel
+                    $dstDir = Join-Path $MainRoot $dirRel
+                    if (Test-Path -LiteralPath $srcDir) {
+                        if (-not (Test-Path -LiteralPath $dstDir)) {
+                            New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
                         }
-                        else {
-                            Write-Log "STEP E0b - build_synthetic_graded: OK"
-                        }
-                        & py -3.14 $consScript --rebuild --sources all
-                        $ce = $LASTEXITCODE
-                        if ($ce -ne 0) {
-                            Write-Log "STEP E0b - build_player_consistency --sources all: FAILED (exit $ce)"
-                            Write-Warning "Player consistency full rebuild failed (exit $ce)"
-                        }
-                        else {
-                            Write-Log "STEP E0b - build_player_consistency --sources all: OK"
-                        }
-                    }
-                    catch {
-                        Write-Log "STEP E0b - Weekly synthetic/consistency: FAILED (exception: $($_.Exception.Message))"
-                        Write-Warning "Weekly synthetic or consistency rebuild error: $_"
+                        Copy-Item -Path (Join-Path $srcDir "*") -Destination $dstDir -Recurse -Force -ErrorAction SilentlyContinue
                     }
                 }
             }
-            catch {
-                Write-Log "STEP E0 - Weekly grader analysis: FAILED (exception: $($_.Exception.Message))"
+
+            if ($WeeklyAnalysis) {
+                $analysisTodayDir = Join-Path $MainRoot "outputs\$Today"
+                if (-not (Test-Path $analysisTodayDir)) {
+                    New-Item -ItemType Directory -Path $analysisTodayDir -Force | Out-Null
+                }
+                $weeklyReportPath = Join-Path $analysisTodayDir "grader_analysis_$Today.txt"
+                Write-Log "STEP E0 - Weekly grader analysis: START"
+                $analyzeScript = Join-Path $Root "scripts\analyze_grader.py"
+                try {
+                    & py -3.14 $analyzeScript --output $weeklyReportPath
+                    $ae = $LASTEXITCODE
+                    if ($ae -ne 0) {
+                        Write-Log "STEP E0 - Weekly grader analysis: FAILED (py exit $ae)"
+                    }
+                    else {
+                        Write-Log "STEP E0 - Weekly grader analysis: OK"
+                        $script:WeeklyAnalysisReport = $weeklyReportPath
+                        $synScript = Join-Path $Root "scripts\build_synthetic_graded.py"
+                        $consScript = Join-Path $Root "scripts\build_player_consistency.py"
+                        Write-Log "STEP E0b - Weekly synthetic + consistency rebuild: START"
+                        try {
+                            & py -3.14 $synScript
+                            $se = $LASTEXITCODE
+                            if ($se -ne 0) {
+                                Write-Log "STEP E0b - build_synthetic_graded: FAILED (exit $se)"
+                                Write-Warning "build_synthetic_graded.py failed (exit $se)"
+                            }
+                            else {
+                                Write-Log "STEP E0b - build_synthetic_graded: OK"
+                            }
+                            & py -3.14 $consScript --rebuild --sources all
+                            $ce = $LASTEXITCODE
+                            if ($ce -ne 0) {
+                                Write-Log "STEP E0b - build_player_consistency --sources all: FAILED (exit $ce)"
+                                Write-Warning "Player consistency full rebuild failed (exit $ce)"
+                            }
+                            else {
+                                Write-Log "STEP E0b - build_player_consistency --sources all: OK"
+                            }
+                        }
+                        catch {
+                            Write-Log "STEP E0b - Weekly synthetic/consistency: FAILED (exception: $($_.Exception.Message))"
+                            Write-Warning "Weekly synthetic or consistency rebuild error: $_"
+                        }
+                    }
+                }
+                catch {
+                    Write-Log "STEP E0 - Weekly grader analysis: FAILED (exception: $($_.Exception.Message))"
+                }
             }
-        }
 
-        if (-not $stepESkipPush) {
-            # mobile/www: grader copies graded_props + slate_eval here; many scripts read mobile/www not templates
-            git -C $Root add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/"
-            git -C $Root add -- "ui_runner/templates/*_matchup_edge.json"
-            git -C $Root add -- "mobile/www/data/*_matchup_edge.json"
+            git add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/" "ui_runner/docs/"
+            git add -- "ui_runner/templates/*_matchup_edge.json"
+            git add -- "mobile/www/data/*_matchup_edge.json"
+            foreach ($rel in $stepELiveRels) {
+                $full = Join-Path $MainRoot ($rel -replace "/", "\")
+                if (Test-Path -LiteralPath $full) {
+                    git add -f -- $rel
+                }
+            }
 
-            # Grade HTML is gitignored by default; force-add yesterday + today so Railway /grades can serve them.
             $syncDatesScript = Join-Path $Root "scripts\sync_grades_report_dates.py"
             if (Test-Path -LiteralPath $syncDatesScript) {
                 & py -3.14 $syncDatesScript
@@ -1811,13 +1875,13 @@ else {
                     "ui_runner/templates/ticket_eval_high_leg_$gd.html",
                     "ui_runner/templates/graded_props_$gd.json"
                 )) {
-                    $full = Join-Path $Root $pat
+                    $full = Join-Path $MainRoot $pat
                     if (Test-Path -LiteralPath $full) {
-                        git -C $Root add -f -- $pat
+                        git add -f -- $pat
                     }
                 }
             }
-            git -C $Root add -- "ui_runner/templates/grades_report_dates.json"
+            git add -- "ui_runner/templates/grades_report_dates.json"
             $optionalAdds = @(
                 "Sports\NBA\step8_all_direction_clean.xlsx",
                 "Sports\NBA\step8_nba1h_direction_clean.xlsx",
@@ -1825,18 +1889,22 @@ else {
                 "Sports\Soccer\step8_soccer_direction_clean.xlsx",
                 "Sports\MLB\step8_mlb_direction_clean.xlsx",
                 "Sports\Tennis\step8_tennis_direction_clean.xlsx",
-                # CBB deactivated - season over (April 2026)
                 "Sports\NHL\outputs\step8_nhl_direction_clean.xlsx"
             )
             foreach ($rel in $optionalAdds) {
-                $full = Join-Path $Root $rel
-                if (Test-Path $full) {
-                    git -C $Root add -- $rel
+                $fullRoot = Join-Path $Root $rel
+                $fullMain = Join-Path $MainRoot $rel
+                if (Test-Path $fullRoot) {
+                    if ($MainRoot -ne $Root) {
+                        New-Item -ItemType Directory -Path (Split-Path $fullMain -Parent) -Force | Out-Null
+                        Copy-Item -LiteralPath $fullRoot -Destination $fullMain -Force
+                    }
+                    git add -- ($rel -replace "\\", "/")
                 }
             }
 
-            if ($WeeklyAnalysis -and (Test-Path (Join-Path $Root "outputs\$Today\grader_analysis_$Today.txt"))) {
-                git -C $Root add -- "outputs/$Today/grader_analysis_$Today.txt"
+            if ($WeeklyAnalysis -and (Test-Path (Join-Path $MainRoot "outputs\$Today\grader_analysis_$Today.txt"))) {
+                git add -- "outputs/$Today/grader_analysis_$Today.txt"
             }
             $ticketMlArtifacts = @(
                 "data\ml\ticket_model_eval_history.csv",
@@ -1845,27 +1913,32 @@ else {
                 "data\graded_analysis_latest.json"
             )
             foreach ($rel in $ticketMlArtifacts) {
-                $full = Join-Path $Root $rel
-                if (Test-Path $full) {
-                    git -C $Root add -- $rel
+                $fullRoot = Join-Path $Root $rel
+                $fullMain = Join-Path $MainRoot $rel
+                if (Test-Path $fullRoot) {
+                    if ($MainRoot -ne $Root) {
+                        New-Item -ItemType Directory -Path (Split-Path $fullMain -Parent) -Force | Out-Null
+                        Copy-Item -LiteralPath $fullRoot -Destination $fullMain -Force
+                    }
+                    git add -- ($rel -replace "\\", "/")
                 }
             }
 
             $CommitMsg = "Daily slate $Today [auto]"
-            $porcelain = git -C $Root status --porcelain 2>$null
+            $porcelain = git status --porcelain 2>$null
             if (-not $porcelain) {
                 Write-Host "Git: nothing to commit." -ForegroundColor DarkGray
                 Write-Log "STEP E - Git push: OK (nothing to commit)"
             }
             else {
-                git -C $Root commit -m $CommitMsg
+                git commit -m $CommitMsg
                 if ($LASTEXITCODE -ne 0) {
                     Write-Log "STEP E - Git push: FAILED (commit exit $LASTEXITCODE)"
                     Write-Warning "Git commit failed — check repo state"
                 }
                 else {
                     try {
-                        git -C $Root push origin main
+                        git push origin main
                         if ($LASTEXITCODE -ne 0) {
                             $err = if ($Error.Count -gt 0) { $Error[0].ToString() } else { "unknown" }
                             "$Today - push failed: $err" | Out-File -FilePath $gitLog -Append -Encoding utf8
@@ -1885,26 +1958,18 @@ else {
                 }
             }
         }
-    }
-    finally {
-        # Restore the prior branch so agent/feature WIP stays checked out after daily.
-        if ($stepEPrevBranch -and $stepEPrevBranch -ne "main" -and $stepEPrevBranch -ne "HEAD") {
-            $cur = (git -C $Root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
-            if ($cur -eq "main") {
-                git -C $Root checkout $stepEPrevBranch 2>&1 | ForEach-Object { Write-Log "STEP E - restore branch: $_" }
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Log "STEP E - WARN: could not restore branch '$stepEPrevBranch' (still on main)"
-                }
-                else {
-                    Write-Log "STEP E - restored branch '$stepEPrevBranch'"
-                }
+        finally {
+            if ($stepEStashed) {
+                git stash pop 2>&1 | ForEach-Object { Write-Log "STEP E - stash pop: $_" }
+            }
+            Pop-Location
+            if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {
+                Remove-Item -LiteralPath $stepELiveSnap -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
-        Pop-Location
     }
 }
 
-# =============================================================================
 # STEP E1 — Merge payout hand log from Railway (persistent /app/data volume)
 # =============================================================================
 # Set PROPORACLE_PAYOUT_EXPORT_URL to your deployed app, e.g.:

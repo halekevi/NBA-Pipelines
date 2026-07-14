@@ -979,39 +979,116 @@ function Invoke-PropOracleStep7b {
     }
 }
 
-# -- Helper: git push templates -----------------------------------------------
-function Run-GitPush {
+# -- Helper: git push live site JSON to origin/main (Railway / raw GitHub) ------
+# Always publish into the worktree that has main checked out. If this repo has
+# main locked in another worktree (e.g. PropORACLE_main_cp), publish there.
+function Get-MainWorktreeRoot {
+    param([string]$RepoRoot = $Root)
+    $porcelain = git -C $RepoRoot worktree list --porcelain 2>$null
+    if (-not $porcelain) { return $RepoRoot }
+    $wt = $null
+    foreach ($line in $porcelain) {
+        if ($line -match '^worktree (.+)$') { $wt = $Matches[1].Trim() }
+        elseif ($line -match '^branch refs/heads/main$' -and $wt) { return $wt }
+        elseif ($line -eq "") { $wt = $null }
+    }
+    $br = (git -C $RepoRoot rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+    if ($br -eq "main") { return $RepoRoot }
+    return $null
+}
+
+function Publish-LiveSiteJsonToMain {
+    param(
+        [string]$CommitMessage = ""
+    )
     Write-Host ""
-    Write-Host "[ GIT ] Pushing updated templates to GitHub..." -ForegroundColor Cyan
-    Push-Location $Root
+    Write-Host "[ GIT ] Publishing live tickets/slate JSON to origin/main..." -ForegroundColor Cyan
+
+    $MainRoot = Get-MainWorktreeRoot
+    if (-not $MainRoot) {
+        Write-Host "  FAILED: no worktree has main checked out (add/use PropORACLE_main_cp)" -ForegroundColor Yellow
+        return
+    }
+    if ($MainRoot -ne $Root) {
+        Write-Host "  Using main worktree: $MainRoot" -ForegroundColor DarkGray
+    }
+
+    $liveRel = @(
+        "ui_runner/templates/tickets_latest.json",
+        "ui_runner/docs/tickets_latest.json",
+        "mobile/www/tickets_latest.json",
+        "ui_runner/templates/slate_latest.json",
+        "ui_runner/templates/pipeline_status.json",
+        "mobile/www/pipeline_status.json",
+        "mobile/www/slate_latest.json",
+        "ui_runner/templates/tickets_winrate_latest.json",
+        "ui_runner/templates/sport_breakdown.json"
+    )
+    Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\templates") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
+        ForEach-Object { $liveRel += ("ui_runner/templates/" + $_.Name) }
+    Get-ChildItem -LiteralPath (Join-Path $Root "mobile\www") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
+        ForEach-Object { $liveRel += ("mobile/www/" + $_.Name) }
+
+    $toPublish = @()
+    foreach ($rel in $liveRel) {
+        $full = Join-Path $Root ($rel -replace "/", "\")
+        if (Test-Path -LiteralPath $full) { $toPublish += $rel }
+    }
+    if (-not $toPublish.Count) {
+        Write-Host "  No live site JSON found — nothing to push" -ForegroundColor DarkGray
+        return
+    }
+
+    $stashed = $false
+    Push-Location $MainRoot
     try {
-        git add "ui_runner/templates/tickets_latest.html" `
-                "ui_runner/templates/tickets_latest.json" `
-                "ui_runner/templates/slate_latest.json" 2>&1 | Out-Null
-        $msg       = "chore: pipeline update $Date $(Get-Date -Format 'HH:mm')"
-        $commitOut = git commit -m $msg 2>&1
+        if (git status --porcelain) {
+            git stash push -m "proporacle-live-publish-temp" 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) { $stashed = $true }
+        }
+        git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+
+        foreach ($rel in $toPublish) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            $dst = Join-Path $MainRoot ($rel -replace "/", "\")
+            $dstDir = Split-Path $dst -Parent
+            if (-not (Test-Path -LiteralPath $dstDir)) {
+                New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+            }
+            Copy-Item -LiteralPath $src -Destination $dst -Force
+            git add -- $rel 2>&1 | Out-Null
+        }
+
+        $msg = if ($CommitMessage) { $CommitMessage } else { "chore: live tickets/slate $Date $(Get-Date -Format 'HH:mm')" }
+        git commit -m $msg 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $pushOut = git push origin main 2>&1
             foreach ($line in $pushOut) { Write-Host "    $line" -ForegroundColor DarkGray }
-            Write-Host "  OK - Pushed to GitHub" -ForegroundColor Green
-            "$Date $(Get-Date -Format 'HH:mm:ss') - PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "  OK - Live site JSON pushed to origin/main" -ForegroundColor Green
+                "$Date $(Get-Date -Format 'HH:mm:ss') - LIVE PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+            } else {
+                Write-Host "  FAILED: git push origin main" -ForegroundColor Yellow
+                "$Date $(Get-Date -Format 'HH:mm:ss') - LIVE PUSH FAILED" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+            }
         } else {
-            Write-Host "  (no changes to push)" -ForegroundColor DarkGray
-            "$Date $(Get-Date -Format 'HH:mm:ss') - NO CHANGES" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+            Write-Host "  (no live JSON changes vs main)" -ForegroundColor DarkGray
+            "$Date $(Get-Date -Format 'HH:mm:ss') - LIVE NO CHANGES" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
         }
-    } catch {
-        Write-Host "  Git push failed: $_" -ForegroundColor Yellow
-        "$Date $(Get-Date -Format 'HH:mm:ss') - PUSH FAILED: $_" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
     } finally {
+        if ($stashed) { git stash pop 2>&1 | Out-Null }
         Pop-Location
     }
+}
+
+function Run-GitPush {
+    # Back-compat name used by Run-Combined: always publish live tickets to main.
+    Publish-LiveSiteJsonToMain
 }
 
 function Run-GitPushGradeArtifacts {
     param(
         [string]$GradeDate,
-        # Pipeline "today" slate: stage ticket_eval_<this>.html alongside yesterday's graded bundle
-        # so Grades hub date pills match /tickets before the next morning's grader run.
         [string]$AlsoTicketEvalDate = ""
     )
 
@@ -1036,30 +1113,39 @@ function Run-GitPushGradeArtifacts {
         return
     }
 
-    Push-Location $Root
+    $MainRoot = Get-MainWorktreeRoot
+    if (-not $MainRoot) {
+        Write-Host "  FAILED: no worktree has main checked out" -ForegroundColor Yellow
+        return
+    }
+    $stashed = $false
+    Push-Location $MainRoot
     try {
-        foreach ($f in $toStage) {
-            git add $f 2>&1 | Out-Null
-            Write-Host "    staged: $f" -ForegroundColor DarkGray
+        if (git status --porcelain) {
+            git stash push -m "proporacle-grade-publish-temp" 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) { $stashed = $true }
         }
-        $msg       = "chore: grades $GradeDate $(Get-Date -Format 'HH:mm')"
+        git pull --ff-only origin main 2>&1 | Out-Null
+        foreach ($rel in $toStage) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            $dst = Join-Path $MainRoot ($rel -replace "/", "\")
+            New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $src -Destination $dst -Force
+            git add -f -- $rel 2>&1 | Out-Null
+            Write-Host "    staged: $rel" -ForegroundColor DarkGray
+        }
+        $msg = "chore: grades $GradeDate $(Get-Date -Format 'HH:mm')"
         git commit -m $msg 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
             $pushOut = git push origin main 2>&1
             foreach ($line in $pushOut) { Write-Host "    $line" -ForegroundColor DarkGray }
-            Write-Host "  OK - Grade HTML pushed" -ForegroundColor Green
+            Write-Host "  OK - Grade HTML pushed to origin/main" -ForegroundColor Green
             "$Date $(Get-Date -Format 'HH:mm:ss') - GRADE PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
         } else {
-            Write-Host "  No git changes for grade HTML (already committed?)" -ForegroundColor DarkGray
-            $unpushed = git log origin/main..HEAD --oneline 2>&1
-            if ($unpushed) {
-                git push origin main 2>&1 | Out-Null
-                if ($LASTEXITCODE -eq 0) { Write-Host "  OK - Flushed pending commits" -ForegroundColor Green }
-            }
+            Write-Host "  No git changes for grade HTML (already on main?)" -ForegroundColor DarkGray
         }
-    } catch {
-        Write-Host "  Grade push exception: $_" -ForegroundColor Red
     } finally {
+        if ($stashed) { git stash pop 2>&1 | Out-Null }
         Pop-Location
     }
 }
@@ -1229,7 +1315,8 @@ function Run-Combined {
         $canonicalFrozenPath = Join-Path $CanonicalOutDir "combined_slate_tickets_${Date}_to_grade_tomorrow.xlsx"
         Copy-Item $CombinedOut $canonicalCombinedPath -Force -ErrorAction SilentlyContinue
         Copy-Item $CombinedOut $canonicalFrozenPath -Force -ErrorAction SilentlyContinue
-        # Snapshot today's tickets_latest.json into ui_runner/data as dated JSON source.
+        # Grade pool is owned by ticket_run_archive (union of runs). Do NOT overwrite it
+        # with pruned live tickets_latest.json — that would erase historical slips needed to grade.
         $TicketsLatestJson = Join-Path $WebOutDir "tickets_latest.json"
         $DatedTicketsJson  = Join-Path $UiDataDir "combined_slate_tickets_$Date.json"
         if (Test-Path $TicketsLatestJson) {
@@ -1237,11 +1324,21 @@ function Run-Combined {
                 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
                 $backupPath = Join-Path $UiDataBackupsDir "combined_slate_tickets_${Date}.bak_$stamp.json"
                 Copy-Item $DatedTicketsJson $backupPath -Force -ErrorAction SilentlyContinue
+                Write-Host "  [ticket-run] kept grade pool $DatedTicketsJson (backup -> $backupPath)" -ForegroundColor DarkGray
+            } else {
+                # First emit of the day: seed grade pool from live if archive helper missed it.
+                Copy-Item $TicketsLatestJson $DatedTicketsJson -Force -ErrorAction SilentlyContinue
+                Write-Host "  Saved grade pool seed -> $DatedTicketsJson" -ForegroundColor Green
             }
-            Copy-Item $TicketsLatestJson $DatedTicketsJson -Force -ErrorAction SilentlyContinue
-            Write-Host "  Saved -> $DatedTicketsJson" -ForegroundColor Green
+            # Always archive the live emit as its own run (idempotent merge into grade pool).
+            try {
+                py -3.14 -X utf8 (Join-Path $Root "scripts\ticket_run_archive.py") `
+                    --archive $TicketsLatestJson --date $Date --source "pipeline_live_snapshot" | Out-Host
+            } catch {
+                Write-Host "  [ticket-run] WARN: archive from tickets_latest failed: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
         } else {
-            Write-Host "  [warn] Missing tickets_latest.json; skipped dated JSON snapshot for ML backfill." -ForegroundColor Yellow
+            Write-Host "  [warn] Missing tickets_latest.json; skipped ticket-run archive." -ForegroundColor Yellow
         }
         # Canonical platform UI snapshots (templates consumed by web app).
         foreach ($uiName in @(

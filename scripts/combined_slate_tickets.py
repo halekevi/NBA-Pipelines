@@ -12712,10 +12712,10 @@ def build_single_structure_ticket(
     allowed_tiers = {"A", "B", "C", "D"}
     q = 0.70 if flow in ("power", "standard") else 0.50  # top 30% / top 50%
 
-    # NHL, Soccer, and Tennis don't use Goblin/Standard split for tickets — all props behave as Standard.
-    # Skip pick_type filtering for these sports so Power/Flex can use Standard props.
+    # NHL/Tennis keep mixed pick_type pools (sport gates already encode Goblin vs Standard).
+    # Soccer uses normal Goblin/Standard split like NBA/WNBA — own soccer_allowed_leg gate.
     sport_up = sport_label.upper()
-    skip_picktype_filter = sport_up in ("NHL", "SOCCER", "SOC", "TENNIS")
+    skip_picktype_filter = sport_up in ("NHL", "TENNIS")
 
     df = pool_df.copy()
     if "pick_type" in df.columns and not skip_picktype_filter:
@@ -12927,7 +12927,7 @@ def build_structure_ticket_variants(
     q = 0.70 if flow in ("power", "standard") else 0.50
 
     sport_up = sport_label.upper()
-    skip_picktype_filter = sport_up in ("NHL", "SOCCER", "SOC", "TENNIS")
+    skip_picktype_filter = sport_up in ("NHL", "TENNIS")
 
     df = pool_df.copy()
     if "pick_type" in df.columns and not skip_picktype_filter:
@@ -17540,7 +17540,11 @@ def main():
             _hr_min_prob = float(getattr(args, "min_leg_prob", 0.55) or 0.55)
 
             def _reserve_for_win_rate(row: pd.Series) -> bool:
+                # Keep sport-gated Soccer / Tennis legs on the main board (not stolen
+                # into a separate win-rate section that rarely emits those sports).
                 if sport == "TENNIS" and tennis_allowed_leg(row):
+                    return False
+                if sport in ("SOCCER", "SOC") and soccer_allowed_leg(row):
                     return False
                 return _row_high_leg_hr_reserved(
                     row,

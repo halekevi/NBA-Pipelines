@@ -9,14 +9,26 @@
 <meta name="proporacle-build" content="{{ ui_build_id|default('', true) }}"/>
 <meta property="og:title" content="{{ page_title }}"/>
 <title>{{ page_title }}</title>
-<link rel="stylesheet" href="/static/proporacle-page-shell.css?v=20260430webviewfix"/>
-<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="/static/site-nav-unified.css?v=20260408"/>
-<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430webviewfix"/>
-<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260408"/>
-<link rel="stylesheet" href="/static/tickets-built-content.css?v=20260520pwin1"/>
-<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260522gradesframe"/>
-<link rel="stylesheet" href="/static/tickets-redesign.css?v=20260526rd1"/>
+{# Critical theme fallback: keep dark bg/nav readable if /static CSS fails to load. #}
+<style id="proporacle-critical-theme">
+  html,body{margin:0;background:#05050f;color:#e8e8f0;font-family:Inter,system-ui,sans-serif;min-height:100vh;}
+  body.page-tickets{background:#05050f;}
+  .snav,.legacy-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:rgba(20,20,20,.92);border-bottom:1px solid rgba(212,175,55,.2);}
+  .snav-links,.nav-links{display:flex;list-style:none;margin:0;padding:0;gap:8px;flex-wrap:wrap;}
+  .snav-links a,.nav-links a,.mobile-menu a{color:#e8e8f0;text-decoration:none;padding:8px 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+  .snav-links a.active,.nav-links a.active{color:#c8ff00;border-bottom:2px solid #c8ff00;}
+  .mobile-menu{display:none;}
+  .logo-icon{height:36px;width:auto;display:inline-block;}
+  .mesh-bg,.grain-layer,.orb-1,.orb-2{pointer-events:none;}
+</style>
+<link rel="stylesheet" href="/static/proporacle-page-shell.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/site-nav-unified.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/tickets-built-content.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/tickets-redesign.css?v=20260714theme1"/>
 </head>
 <body class="page-tickets">
 <div class="orb-1" style="position:fixed;top:-12%;left:-6%;width:560px;height:560px;background:radial-gradient(circle,rgba(127,199,217,0.18) 0%,transparent 70%);filter:blur(120px);z-index:0;pointer-events:none;animation:orbP1 20s ease-in-out infinite alternate;"></div>

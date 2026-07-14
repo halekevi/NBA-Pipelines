@@ -38,7 +38,7 @@
   "mode": "graded_main",
   "groups": [
     {
-      "group_name": "STRONG Goblin HOT",
+      "group_name": "STRONG 6-Leg",
       "n_legs": 6,
       "tickets": [
         {
@@ -1666,7 +1666,15 @@
           "p_win": 0.0568,
           "expected_wins_per_100": 5.7,
           "empirical_recommendation": "OK"
-        },
+        }
+      ],
+      "hot_legs": 12,
+      "cold_legs": 0
+    },
+    {
+      "group_name": "STRONG 5-Leg",
+      "n_legs": 5,
+      "tickets": [
         {
           "web_group_name": "STRONG Goblin HOT",
           "ticket_id": "2026-07-14|STRONG Goblin HOT|3",
@@ -3742,7 +3750,15 @@
           "p_win": 0.091613,
           "expected_wins_per_100": 9.2,
           "empirical_recommendation": "OK"
-        },
+        }
+      ],
+      "hot_legs": 15,
+      "cold_legs": 0
+    },
+    {
+      "group_name": "STRONG 4-Leg",
+      "n_legs": 4,
+      "tickets": [
         {
           "web_group_name": "STRONG Goblin HOT",
           "ticket_id": "2026-07-14|STRONG Goblin HOT|6",
@@ -6014,7 +6030,15 @@
           "p_win": 0.147763,
           "expected_wins_per_100": 14.8,
           "empirical_recommendation": "OK"
-        },
+        }
+      ],
+      "hot_legs": 16,
+      "cold_legs": 0
+    },
+    {
+      "group_name": "STRONG 3-Leg",
+      "n_legs": 3,
+      "tickets": [
         {
           "web_group_name": "STRONG Goblin HOT",
           "ticket_id": "2026-07-14|STRONG Goblin HOT|10",
@@ -9142,7 +9166,15 @@
           "p_win": 0.238328,
           "expected_wins_per_100": 23.8,
           "empirical_recommendation": "OK"
-        },
+        }
+      ],
+      "hot_legs": 21,
+      "cold_legs": 0
+    },
+    {
+      "group_name": "STRONG 2-Leg",
+      "n_legs": 2,
+      "tickets": [
         {
           "web_group_name": "STRONG Goblin HOT",
           "ticket_id": "2026-07-14|STRONG Goblin HOT|17",
@@ -14969,7 +15001,7 @@
           "empirical_recommendation": "STRONG"
         }
       ],
-      "hot_legs": 100,
+      "hot_legs": 36,
       "cold_legs": 0
     },
     {

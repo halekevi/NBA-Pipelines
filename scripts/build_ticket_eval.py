@@ -3047,10 +3047,18 @@ def _load_tickets(path: Path, arg_date: str) -> dict[str, Any]:
         return json.load(f)
 
 
+def _group_is_strong_shipped(group_name: str) -> bool:
+    """STRONG builder groups: legacy 'STRONG Goblin HOT' or 'STRONG N-Leg'."""
+    n = str(group_name or "").strip()
+    return bool(
+        re.match(r"^STRONG(\s+Goblin\s+HOT|\s+\d+-Leg)$", n, re.I)
+    )
+
+
 def _group_is_goblin_only_3leg_shipped(group_name: str) -> bool:
     """Legacy Goblin-only MAIN JSON groups — not legacy xlsx tab names."""
     n = str(group_name or "").strip()
-    if re.match(r"^STRONG Goblin HOT$", n, re.I):
+    if _group_is_strong_shipped(n):
         return True
     return bool(re.match(r"^[A-Za-z0-9]+\s+\d+-Leg Goblin$", n, re.I))
 
@@ -3058,7 +3066,7 @@ def _group_is_goblin_only_3leg_shipped(group_name: str) -> bool:
 def _group_is_high_prob_main_shipped(group_name: str) -> bool:
     """Shipped high-prob MAIN groups: Goblin / Standard / Mixed N-leg (+ STRONG)."""
     n = str(group_name or "").strip()
-    if re.match(r"^STRONG Goblin HOT$", n, re.I):
+    if _group_is_strong_shipped(n):
         return True
     return bool(
         re.match(

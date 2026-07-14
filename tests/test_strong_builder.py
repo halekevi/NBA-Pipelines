@@ -233,6 +233,28 @@ def test_build_strong_tickets_exhausts_unique_player_pool():
     assert any(int(t.get("n_legs") or 0) >= 3 for t in tickets)
 
 
+def test_split_strong_tickets_by_leg_count_orders_longest_first():
+    from combined_slate_tickets import split_strong_tickets_by_leg_count
+
+    tickets = build_strong_tickets(
+        _many_hot_goblin_df(8),
+        exhaust_pool=True,
+        date_str="2026-07-14",
+    )
+    buckets = split_strong_tickets_by_leg_count(tickets)
+    assert buckets
+    names = [b[0] for b in buckets]
+    lengths = [b[2] for b in buckets]
+    assert lengths == sorted(lengths, reverse=True)
+    assert all(name == f"STRONG {n}-Leg" for name, _, n in buckets)
+    assert names[0].startswith("STRONG ")
+    for name, slips, n in buckets:
+        assert slips
+        assert all(
+            (int(t.get("n_legs") or len(t.get("rows") or [])) == n) for t in slips
+        )
+
+
 def test_strong_player_prop_capped_at_two_per_leg_count():
     tickets = build_strong_tickets(
         _many_hot_goblin_df(8),

@@ -75,7 +75,7 @@ import zipfile
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, Optional
+from typing import Any, Iterable, List, Mapping, Optional, Sequence
 from zoneinfo import ZoneInfo
 
 _SLATE_TZ = ZoneInfo("America/New_York")
@@ -7403,6 +7403,44 @@ def emit_standalone_win_rate_outputs(
     return wr_payload
 
 
+def _strong_group_name_for_legs(n_legs: int) -> str:
+    """Display / sheet title for one STRONG length bucket (e.g. STRONG 6-Leg)."""
+    return f"STRONG {int(n_legs)}-Leg"
+
+
+def _strong_ticket_leg_count(ticket: Mapping[str, Any]) -> int:
+    n = ticket.get("n_legs")
+    if n is not None:
+        try:
+            return max(0, int(n))
+        except (TypeError, ValueError):
+            pass
+    legs = ticket.get("legs") or ticket.get("rows") or []
+    return len(legs) if isinstance(legs, (list, tuple)) else 0
+
+
+def split_strong_tickets_by_leg_count(
+    tickets: Sequence[Mapping[str, Any]] | None,
+) -> list[tuple[str, list[dict], int]]:
+    """
+    Bucket STRONG builder slips by length, longest first.
+
+    Returns [(group_name, tickets, n_legs), ...] e.g. STRONG 6-Leg, STRONG 5-Leg, …
+    """
+    by_n: dict[int, list[dict]] = defaultdict(list)
+    for t in tickets or []:
+        if not isinstance(t, Mapping):
+            continue
+        n = _strong_ticket_leg_count(t)
+        if n < 2:
+            continue
+        by_n[n].append(dict(t))
+    out: list[tuple[str, list[dict], int]] = []
+    for n in sorted(by_n.keys(), reverse=True):
+        out.append((_strong_group_name_for_legs(n), by_n[n], n))
+    return out
+
+
 def _extract_strong_builder_slips(payload: Mapping[str, Any]) -> list[dict]:
     """Return strong_builder slips from a full ticket export payload."""
     out: list[dict] = []
@@ -7483,24 +7521,24 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
 
 
 def inject_strong_builder_tickets(full_payload: dict, main_payload: dict) -> dict:
-    """Prepend STRONG Goblin HOT builder slips into the curated main web export."""
+    """Prepend STRONG slips into main web export, one group per leg count."""
     strong_slips = _extract_strong_builder_slips(full_payload)
     if not strong_slips:
         return main_payload
     out = dict(main_payload)
     groups = list(out.get("groups") or [])
-    n_legs = int(strong_slips[0].get("n_legs") or len(strong_slips[0].get("legs") or []) or 2)
-    groups.insert(
-        0,
-        {
-            "group_name": "STRONG Goblin HOT",
-            "n_legs": n_legs,
-            "tickets": strong_slips,
-            "hot_legs": sum(int(t.get("hot_legs") or 0) for t in strong_slips),
-            "cold_legs": sum(int(t.get("cold_legs") or 0) for t in strong_slips),
-        },
-    )
-    out["groups"] = groups
+    strong_groups: list[dict] = []
+    for gname, slips, n_legs in split_strong_tickets_by_leg_count(strong_slips):
+        strong_groups.append(
+            {
+                "group_name": gname,
+                "n_legs": n_legs,
+                "tickets": slips,
+                "hot_legs": sum(int(t.get("hot_legs") or 0) for t in slips),
+                "cold_legs": sum(int(t.get("cold_legs") or 0) for t in slips),
+            }
+        )
+    out["groups"] = strong_groups + groups
     out["strong_builder_count"] = len(strong_slips)
     return out
 
@@ -18052,13 +18090,16 @@ def main():
             date_str=str(args.date),
         )
         if strong_tickets:
-            strong_display = "STRONG Goblin HOT"
-            strong_sname = _excel_ticket_sheet_title_unique(strong_display, wb.sheetnames)
-            write_ticket_sheet(wb, strong_tickets, strong_sname, C["hdr_mix"], label=strong_display)
-            all_ticket_groups.insert(0, (strong_display, strong_tickets, None))
-            for st in strong_tickets:
-                nl = int(st.get("n_legs") or len(st.get("rows") or []))
-                _group_counts_by_size[strong_display][nl] += 1
+            # One Excel/web group per length so the board shows STRONG 6-Leg, 5-Leg, …
+            for i, (strong_display, strong_bucket, nl) in enumerate(
+                split_strong_tickets_by_leg_count(strong_tickets)
+            ):
+                strong_sname = _excel_ticket_sheet_title_unique(strong_display, wb.sheetnames)
+                write_ticket_sheet(
+                    wb, strong_bucket, strong_sname, C["hdr_mix"], label=strong_display
+                )
+                all_ticket_groups.insert(i, (strong_display, strong_bucket, None))
+                _group_counts_by_size[strong_display][int(nl)] += len(strong_bucket)
 
     if getattr(args, "probability_ladder", True):
         ladder_stack_70 = bool(getattr(args, "ladder_stack_70", LADDER_STACK_70_DEFAULT)) or bool(

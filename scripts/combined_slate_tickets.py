@@ -13284,6 +13284,16 @@ def _rerank_tickets_live(tickets: list[dict], max_tickets: int) -> list[dict]:
 # ── STRONG-eligible Goblin + HOT builder ─────────────────────────────────────
 STRONG_BUILDER_MAX_TICKETS: int = max(5, int(os.getenv("PROPORACLE_STRONG_BUILDER_MAX", "25")))
 STRONG_BUILDER_TOP_K: int = max(10, int(os.getenv("PROPORACLE_STRONG_BUILDER_TOP_K", "50")))
+# When true (default), STRONG ignores the global --max-tickets budget and keeps
+# building valid unique-player slips until the candidate pool is exhausted
+# (subject only to STRONG_BUILDER_HARD_MAX as a runaway guard).
+STRONG_BUILDER_EXHAUST_POOL: bool = os.getenv("PROPORACLE_STRONG_EXHAUST_POOL", "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+)
+STRONG_BUILDER_HARD_MAX: int = max(25, int(os.getenv("PROPORACLE_STRONG_HARD_MAX", "200")))
 STRONG_BUILDER_SPORTS: frozenset[str] = frozenset({"NBA", "NBA1Q", "WNBA", "MLB"})
 STRONG_BUILDER_CORE_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
@@ -13504,19 +13514,26 @@ def build_strong_tickets(
     max_legs: int | None = None,
     player_ticket_counts: dict[str, int] | None = None,
     date_str: str = "",
+    exhaust_pool: bool | None = None,
 ) -> list[dict]:
     """
     Build power tickets from Goblin A/B HOT legs.
 
-    Prefers longer unique-player slips (4 → 3 → 2) so the board is not filled with
-    2-leg combos before 3/4-leg tickets can be assembled.
+    Prefers longer unique-player slips (4 → 3 → 2). By default exhausts the
+    unique-player pool (all gate-passing combos) instead of stopping at the
+    global --max-tickets board budget.
     """
     prepared = _prepare_strong_builder_pool(df)
     candidates = _strong_candidate_legs(prepared)
     rolling_hr = _load_strong_player_rolling_hr()
     candidates = _apply_strong_rolling_hr_gate(candidates, rolling_hr)
     n_candidates = len(candidates)
-    cap = int(max_tickets if max_tickets is not None else STRONG_BUILDER_MAX_TICKETS)
+    do_exhaust = STRONG_BUILDER_EXHAUST_POOL if exhaust_pool is None else bool(exhaust_pool)
+    if do_exhaust:
+        # Only a runaway guard — not a "pretty board" quota.
+        cap = int(STRONG_BUILDER_HARD_MAX)
+    else:
+        cap = int(max_tickets if max_tickets is not None else STRONG_BUILDER_MAX_TICKETS)
     floor_2 = float(min_p_win_2leg if min_p_win_2leg is not None else STRONG_MIN_P_WIN_2LEG)
     floor_3 = float(min_p_win_3leg if min_p_win_3leg is not None else STRONG_MIN_P_WIN_3LEG)
     floor_4 = float(min_p_win_4leg if min_p_win_4leg is not None else STRONG_MIN_P_WIN_4LEG)
@@ -13539,8 +13556,9 @@ def build_strong_tickets(
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
-    scan_cap = max(8_000, cap * 800)
-    # Longer first so 2-leg filler cannot exhaust the ticket budget.
+    # Exhaust mode: scan the full unique-player combo space (no early scan abort).
+    # Non-exhaust: keep a bounded scan for latency.
+    # Longer first so 2-leg filler cannot starve 3/4 when a tiny soft cap is used.
     leg_order = list(range(max_legs_i, 1, -1))
 
     for n_legs in leg_order:
@@ -13548,10 +13566,17 @@ def build_strong_tickets(
         if len(pool_rows) < n_legs:
             continue
         min_p_win = _strong_min_p_win_for_legs(n_legs, floor_2, floor_3, floor_4)
+        scan_cap = (
+            math.comb(len(pool_rows), n_legs) + 1
+            if do_exhaust
+            else max(8_000, cap * 800)
+        )
         scanned = 0
         for combo in itertools.combinations(pool_rows, n_legs):
             scanned += 1
-            if scanned > scan_cap or len(tickets) >= cap:
+            if scanned > scan_cap:
+                break
+            if len(tickets) >= cap:
                 break
             rows = list(combo)
             players = [str(r.get("player", "")).strip().lower() for r in rows]
@@ -13626,8 +13651,10 @@ def build_strong_tickets(
     _log_strong_builder(date_str, n_candidates, tickets, candidates)
     by_n = Counter(int(t.get("n_legs") or 0) for t in tickets)
     if tickets:
+        mode = "exhaust" if do_exhaust else f"cap={cap}"
         print(
-            f"[strong-builder] leg mix: "
+            f"[strong-builder] mode={mode} unique_players={len(unique_player_rows)} "
+            f"leg mix: "
             + ", ".join(f"{n}-leg={by_n[n]}" for n in sorted(by_n, reverse=True))
         )
     return tickets
@@ -17947,7 +17974,9 @@ def main():
         strong_df = pd.concat(strong_pool_frames, ignore_index=True)
         strong_tickets = build_strong_tickets(
             strong_df,
-            max_tickets=int(args.max_tickets),
+            # Do not inherit global --max-tickets (often 10); STRONG exhausts its unique-player pool.
+            max_tickets=None,
+            exhaust_pool=True,
             player_ticket_counts=counters["player_ticket_counts"],
             date_str=str(args.date),
         )

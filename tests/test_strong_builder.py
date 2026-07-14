@@ -207,6 +207,18 @@ def test_build_strong_tickets_prefers_three_plus_legs_when_pool_allows():
     assert longer >= two_leg
 
 
+def test_build_strong_tickets_exhausts_unique_player_pool():
+    # With exhaust on, a 5-player pool should yield many more slips than --max-tickets=3.
+    tickets = build_strong_tickets(
+        _many_hot_goblin_df(5),
+        max_tickets=3,
+        exhaust_pool=True,
+        date_str="2026-07-14",
+    )
+    assert len(tickets) > 3
+    assert any(int(t.get("n_legs") or 0) >= 3 for t in tickets)
+
+
 def test_strong_builder_slips_keep_strong_recommendation():
     tickets = build_strong_tickets(_sample_df(), max_tickets=3, date_str="2026-06-14")
     assert tickets

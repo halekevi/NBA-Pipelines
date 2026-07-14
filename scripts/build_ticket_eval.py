@@ -1391,6 +1391,7 @@ EVAL_TRACK_LABELS: dict[str, str] = {
     "long_parlay": "Long Parlays (5-6 leg)",
     "high_leg_hr": "High Leg HR",
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
+    "strong_standard_shadow": "STRONG Standard HOT Shadow",
 }
 
 
@@ -2592,6 +2593,30 @@ def find_winrate_goblin_opt3_shadow_payload_path(
     return None
 
 
+def find_strong_standard_shadow_payload_path(
+    arg_date: str, override: Path | None = None
+) -> Path | None:
+    if override is not None:
+        return override if override.is_file() else None
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_strong_standard_{arg_date}.json",
+        REPO_ROOT / "ui_runner" / "data" / "strong_standard_shadow_latest.json",
+        TEMPLATES_DIR / "strong_standard_shadow_latest.json",
+    ):
+        if jp.is_file():
+            if jp.name.endswith("_latest.json"):
+                try:
+                    with jp.open(encoding="utf-8") as f:
+                        hdr = json.load(f)
+                    if str(hdr.get("date") or "")[:10] == arg_date:
+                        return jp
+                except (OSError, json.JSONDecodeError, TypeError):
+                    pass
+            else:
+                return jp
+    return None
+
+
 def _normalize_eval_track(raw: str | None) -> str:
     t = str(raw or "graded_main").strip().lower()
     if t in ("main", "graded_main"):
@@ -2607,6 +2632,14 @@ def _normalize_eval_track(raw: str | None) -> str:
         "opt3_shadow",
     ):
         return "winrate_goblin_opt3_shadow"
+    if t in (
+        "strong_standard_shadow",
+        "strong-standard-shadow",
+        "strong_standard_hot",
+        "strong-standard-hot",
+        "std_strong_shadow",
+    ):
+        return "strong_standard_shadow"
     return "graded_main"
 
 
@@ -3055,6 +3088,12 @@ def _group_is_strong_shipped(group_name: str) -> bool:
     )
 
 
+def _group_is_strong_standard_hot(group_name: str) -> bool:
+    """Shadow STRONG Standard HOT groups (exact or with N-Leg suffix)."""
+    n = str(group_name or "").strip()
+    return bool(re.match(r"^STRONG Standard HOT(\s+\d+-Leg)?$", n, re.I))
+
+
 def _group_is_goblin_only_3leg_shipped(group_name: str) -> bool:
     """Legacy Goblin-only MAIN JSON groups — not legacy xlsx tab names."""
     n = str(group_name or "").strip()
@@ -3078,6 +3117,13 @@ def _group_is_high_prob_main_shipped(group_name: str) -> bool:
 
 
 def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
+    if pool_mode in ("strong_standard_shadow", "strong_standard_hot") and _group_is_strong_standard_hot(
+        group_name
+    ):
+        return True
+    if _group_is_strong_standard_hot(group_name):
+        # Always allow the shadow group name when present (track-local JSON).
+        return True
     if pool_mode == "high_prob_std_gob" and _group_is_high_prob_main_shipped(group_name):
         return True
     if pool_mode == "goblin_only_3leg" and _group_is_goblin_only_3leg_shipped(group_name):
@@ -4925,10 +4971,12 @@ def main() -> int:
             "high_leg_hr",
             "win_rate",
             "winrate_goblin_opt3_shadow",
+            "strong_standard_shadow",
         ),
         help=(
             "Ticket track: graded_main (2-4 leg, default), long_parlay (5-6 leg), "
-            "high_leg_hr (win-rate panel), or winrate_goblin_opt3_shadow (Goblin Tier A shadow)."
+            "high_leg_hr (win-rate panel), winrate_goblin_opt3_shadow (Goblin Tier A shadow), "
+            "or strong_standard_shadow (STRONG Standard HOT shadow)."
         ),
     )
     args = ap.parse_args()
@@ -4975,6 +5023,17 @@ def main() -> int:
                 print(
                     "ERROR: No opt3 shadow ticket payload found "
                     "(combined_slate_tickets_winrate_goblin_opt3_{date}.json)."
+                )
+            return 1
+    elif eval_track == "strong_standard_shadow":
+        tpath = find_strong_standard_shadow_payload_path(arg_date, override=override_path)
+        if not tpath:
+            if override_raw:
+                print(f"ERROR: STRONG Standard HOT shadow file not found: {override_raw}")
+            else:
+                print(
+                    "ERROR: No STRONG Standard HOT shadow payload found "
+                    "(combined_slate_tickets_strong_standard_{date}.json)."
                 )
             return 1
     else:
@@ -5032,6 +5091,7 @@ def main() -> int:
         "long_parlay": f"ticket_eval_long_parlay_{arg_date}.html",
         "high_leg_hr": f"ticket_eval_high_leg_{arg_date}.html",
         "winrate_goblin_opt3_shadow": f"ticket_eval_winrate_goblin_opt3_{arg_date}.html",
+        "strong_standard_shadow": f"ticket_eval_strong_standard_{arg_date}.html",
     }.get(eval_track, f"ticket_eval_{arg_date}.html")
     out_dated = TEMPLATES_DIR / dated_name
     try:

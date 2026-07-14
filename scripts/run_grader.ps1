@@ -1423,6 +1423,35 @@ if (Test-Path $TicketEvalBuilderScript) {
             Run-Py "Compare Win-Rate Goblin Opt3 Shadow vs Baseline" $Root $CompareOpt3Script @("--from", $Date, "--to", $Date)
         }
     }
+
+    # STRONG Standard HOT shadow — separate validation track, never production main.
+    $StdStrongShadowJson = Join-Path $Root "ui_runner\data\combined_slate_tickets_strong_standard_$Date.json"
+    if (Test-Path $StdStrongShadowJson) {
+        $TeStdStrongOut = Join-Path $TemplatesDir "ticket_eval_strong_standard_$Date.html"
+        $TeStdStrongArgs = @(
+            "--date", $Date,
+            "--track", "strong_standard_shadow",
+            "--tickets", $StdStrongShadowJson,
+            "--out", $TeStdStrongOut
+        )
+        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
+            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
+                $t = $gd.Trim()
+                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
+                    $TeStdStrongArgs += @("--game-date", $t)
+                }
+            }
+        }
+        Run-Py "Build STRONG Standard HOT Shadow Ticket Eval" $Root $TicketEvalBuilderScript $TeStdStrongArgs
+        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeStdStrongOut)) {
+            Copy-Item -LiteralPath $TeStdStrongOut -Destination (Join-Path $MobileWwwDir "ticket_eval_strong_standard_$Date.html") -Force -ErrorAction SilentlyContinue
+            Write-Host "[GRADER] Mobile copy: ticket_eval_strong_standard_$Date.html -> mobile\www\" -ForegroundColor DarkGray
+        }
+        $GradeStdStrongScript = Join-Path $Root "scripts\grade_strong_builder_tickets.py"
+        if (Test-Path $GradeStdStrongScript) {
+            Run-Py "Grade STRONG Standard HOT Shadow" $Root $GradeStdStrongScript @("--date", $Date)
+        }
+    }
 }
 else {
     Write-Host "Skipping ticket eval build (build_ticket_eval.py not found)." -ForegroundColor Yellow

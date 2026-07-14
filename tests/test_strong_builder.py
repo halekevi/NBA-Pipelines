@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 from collections import Counter
@@ -15,9 +16,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import combined_slate_tickets as cst  # noqa: E402
 from combined_slate_tickets import (  # noqa: E402
     _apply_strong_per_slate_player_cap,
     _apply_strong_rolling_hr_gate,
+    _emit_strong_standard_shadow_payload,
     _ok_strong_pair,
     _row_standard_high_prob_eligible,
     _standard_direction_floor,
@@ -126,6 +129,9 @@ def test_strong_candidate_legs_standard_only_hot_ab():
     assert len(out) == 1
     assert str(out.iloc[0]["player"]) == "Std Four"
     assert str(out.iloc[0]["pick_type"]).lower() == "standard"
+    # Standard HOT pool must never include Goblin legs.
+    assert not out["pick_type"].astype(str).str.contains("goblin", case=False, na=False).any()
+    assert "Alpha One" not in set(out["player"].astype(str))
 
 
 def test_standard_direction_floor_under_lower_than_over():
@@ -713,3 +719,67 @@ def test_build_strong_tickets_respects_rolling_hr_file(monkeypatch):
     players = {r.get("player") for t in tickets for r in t.get("rows", [])}
     assert "Leonie Fiebich" not in players
     assert tickets
+
+
+def test_strong_standard_shadow_emit_does_not_touch_main(monkeypatch, tmp_path):
+    """Shadow JSON must write only shadow paths — never tickets_latest / MAIN combined."""
+    written: list[str] = []
+
+    def _capture_write(path: str, payload) -> None:
+        written.append(os.path.normpath(path))
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setattr(cst, "REPO_ROOT", str(tmp_path))
+    monkeypatch.setattr(cst, "_write_json_file", _capture_write)
+    monkeypatch.setattr(cst, "STRONG_STANDARD_SHADOW_ENABLED", True)
+    # Enough Standard HOT A/B legs for a 2-leg shadow slip.
+    df = pd.DataFrame(
+        [
+            {
+                "sport": "WNBA",
+                "player": f"Std {i}",
+                "team": "LVA",
+                "opp": "NYL",
+                "prop_type": "Points",
+                "pick_type": "Standard",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 12.5 + i,
+                "hit_rate": 0.72,
+                "rank_score": 85,
+                "ml_prob": 0.72,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.85,
+            }
+            for i in range(4)
+        ]
+    )
+    _emit_strong_standard_shadow_payload(
+        frames=[df],
+        date_str="2026-07-13",
+        thresholds={},
+        bankroll=100.0,
+        curve_stake_usd=1.0,
+        max_tickets=5,
+        max_legs=2,
+    )
+    assert written
+    for p in written:
+        name = Path(p).name.lower()
+        assert "tickets_latest" not in name
+        assert not name.startswith("combined_slate_tickets_2026")
+        assert "strong_standard" in name
+    latest = tmp_path / "ui_runner" / "data" / "strong_standard_shadow_latest.json"
+    dated = tmp_path / "ui_runner" / "data" / "combined_slate_tickets_strong_standard_2026-07-13.json"
+    assert latest.is_file()
+    assert dated.is_file()
+    payload = json.loads(dated.read_text(encoding="utf-8"))
+    assert payload.get("ticket_track") == "strong_standard_shadow"
+    assert payload.get("shadow_track") is True
+    assert all(
+        str(g.get("group_name") or "").startswith("STRONG Standard HOT")
+        for g in payload.get("groups") or []
+    )

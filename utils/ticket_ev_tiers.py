@@ -127,6 +127,72 @@ def recommendation_from_ev(
     return "SKIP"
 
 
+def refresh_ticket_ev_from_min_guarantee(
+    pay: MutableMapping[str, Any],
+    min_x: float,
+    *,
+    update_recommendation: bool = False,
+) -> float | None:
+    """
+    Recompute payout.ev from the live / displayed Power min-guarantee rate.
+
+    PrizePicks ticket scrape + write-back stores power_min_x / display_min_x.
+    Power EV is defined as EV = P(all_win) * min_guarantee - 1 (not the Standard sweep).
+    """
+    try:
+        floor = float(min_x)
+        p_all = float(pay.get("p_all_win"))
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(floor) or floor <= 0:
+        return None
+    if not math.isfinite(p_all) or p_all <= 0:
+        return None
+
+    tt = str(pay.get("ticket_type") or "power").strip().lower()
+    floor = round(floor, 4)
+    pay["min_guarantee"] = floor
+    pay["min_payout_x"] = floor
+    # Primary "payout" rate for Power slips is the min guarantee (scraped board floor).
+    pay["payout"] = floor
+
+    if tt == "flex":
+        try:
+            first = float(
+                pay.get("power_first_x")
+                or pay.get("sweep_payout_x")
+                or pay.get("sweep_payout")
+                or floor
+            )
+        except (TypeError, ValueError):
+            first = floor
+        if not math.isfinite(first) or first <= 0:
+            first = floor
+        try:
+            p_miss = float(pay.get("p_miss_1") or 0.0)
+        except (TypeError, ValueError):
+            p_miss = 0.0
+        try:
+            p_lose = float(pay.get("p_lose"))
+        except (TypeError, ValueError):
+            p_lose = max(0.0, 1.0 - p_all - p_miss)
+        if not math.isfinite(p_lose):
+            p_lose = max(0.0, 1.0 - p_all - p_miss)
+        ev = (p_all * first) + (p_miss * floor) - p_lose
+        pay["ev_formula"] = (
+            f"EV = P(all)*{first:.2f} + P(miss-1)*{floor:.2f} - 1.0"
+        )
+    else:
+        ev = (p_all * floor) - 1.0
+        pay["ev_formula"] = f"EV = P(all)*{floor:.2f} - 1.0"
+
+    ev_r = round(float(ev), 4)
+    pay["ev"] = ev_r
+    if update_recommendation:
+        pay["recommendation"] = recommendation_from_ev(ev_r)
+    return ev_r
+
+
 def _iter_tickets(payload: Mapping[str, Any]):
     for g in payload.get("groups") or []:
         for t in g.get("tickets") or []:

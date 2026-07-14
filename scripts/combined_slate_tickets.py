@@ -175,6 +175,7 @@ from utils.ticket_ev_tiers import (
     STRONG_MIN_P_WIN_6LEG,
     apply_slate_ev_tier_recommendations,
     recommendation_from_ev,
+    refresh_ticket_ev_from_min_guarantee,
 )
 
 try:
@@ -1198,13 +1199,29 @@ def _safe_positive_float(v: Any) -> float | None:
     return f
 
 
+def _commit_display_min_x(ticket: dict, pay: dict, min_x: float, source: str) -> dict:
+    """Stamp min-guarantee display fields and recompute Power EV from that floor."""
+    floor = round(float(min_x), 4)
+    pay["display_min_x"] = floor
+    if source == "live_cdp":
+        pay["power_min_x"] = floor
+    pay["payout_source"] = source
+    refresh_ticket_ev_from_min_guarantee(pay, floor, update_recommendation=False)
+    ticket["payout"] = pay
+    ticket["display_min_x"] = floor
+    return ticket
+
+
 def attach_display_min_x(ticket: dict) -> dict:
     """
     Set payout.display_min_x + payout.payout_source with fallback hierarchy:
-      1. live_cdp (power_min_x from --tickets capture)
+      1. live_cdp (power_min_x from --tickets capture — scraped PP min guarantee)
       2. rate_card (payout_rate_card.json + line_distance)
       3. mix_grid_average (hardcoded 2G/1G+1S/2S floors)
       4. fallback_estimate (model min_payout_x / power_payout)
+
+    Power EV is always recomputed as P(all) * display_min_x - 1 so the board
+    uses the scrape/rate-card min guarantee, not the modeled Standard sweep.
     """
     if not isinstance(ticket, dict):
         return ticket
@@ -1226,21 +1243,11 @@ def attach_display_min_x(ticket: dict) -> dict:
     if src_now == "live_cdp":
         keep = live_v if live_v is not None else disp_v
         if keep is not None:
-            pay["display_min_x"] = round(keep, 4)
-            pay["power_min_x"] = round(live_v if live_v is not None else keep, 4)
-            pay["payout_source"] = "live_cdp"
-            ticket["payout"] = pay
-            ticket["display_min_x"] = pay["display_min_x"]
-            return ticket
+            return _commit_display_min_x(ticket, pay, keep, "live_cdp")
     if live_v is not None and src_now in ("", "live_cdp"):
         # power_min_x present from capture even if source blank
         disp = disp_v if disp_v is not None else live_v
-        pay["display_min_x"] = round(float(disp), 4)
-        pay["power_min_x"] = round(live_v, 4)
-        pay["payout_source"] = "live_cdp"
-        ticket["payout"] = pay
-        ticket["display_min_x"] = pay["display_min_x"]
-        return ticket
+        return _commit_display_min_x(ticket, pay, float(disp), "live_cdp")
 
     legs = _ticket_legs_for_display_payout(ticket)
     n = len(legs) or int(ticket.get("n_legs") or ticket.get("size") or 0)
@@ -1255,12 +1262,8 @@ def attach_display_min_x(ticket: dict) -> dict:
         except Exception:
             mg_f = None
         if mg_f is not None:
-            pay["display_min_x"] = round(mg_f, 4)
-            pay["payout_source"] = "rate_card"
-            pay["rate_card_min_x"] = pay["display_min_x"]
-            ticket["payout"] = pay
-            ticket["display_min_x"] = pay["display_min_x"]
-            return ticket
+            pay["rate_card_min_x"] = round(mg_f, 4)
+            return _commit_display_min_x(ticket, pay, mg_f, "rate_card")
 
     # 3) Mix-grid average floors (live composition overrides seeded defaults)
     avg = _LIVE_COMPOSITION_FLOORS.get((int(n), int(g_count)))
@@ -1268,11 +1271,7 @@ def attach_display_min_x(ticket: dict) -> dict:
         avg = MIX_GRID_AVERAGE_FLOORS.get((int(n), int(g_count)))
     avg_f = _safe_positive_float(avg)
     if avg_f is not None:
-        pay["display_min_x"] = round(avg_f, 4)
-        pay["payout_source"] = "mix_grid_average"
-        ticket["payout"] = pay
-        ticket["display_min_x"] = pay["display_min_x"]
-        return ticket
+        return _commit_display_min_x(ticket, pay, avg_f, "mix_grid_average")
 
     # 4) Model estimate last resort
     model = _safe_positive_float(pay.get("model_min_payout_x"))
@@ -1283,11 +1282,7 @@ def attach_display_min_x(ticket: dict) -> dict:
     if model is None:
         model = _safe_positive_float(ticket.get("base_power_payout"))
     if model is not None:
-        pay["display_min_x"] = round(model, 4)
-        pay["payout_source"] = "fallback_estimate"
-        ticket["payout"] = pay
-        ticket["display_min_x"] = pay["display_min_x"]
-        return ticket
+        return _commit_display_min_x(ticket, pay, model, "fallback_estimate")
 
     ticket["payout"] = pay
     return ticket
@@ -1395,6 +1390,7 @@ def preserve_live_cdp_onto_payload(payload: dict, source_payload: dict) -> int:
             pay["payout_source"] = "live_cdp"
             if entry.get("power_first_x") is not None:
                 pay["power_first_x"] = entry.get("power_first_x")
+            refresh_ticket_ev_from_min_guarantee(pay, min_x, update_recommendation=False)
             t["payout"] = pay
             t["display_min_x"] = pay["display_min_x"]
             n += 1
@@ -1492,6 +1488,7 @@ def apply_payout_patch_to_payload(payload: dict) -> int:
             pay["payout_source"] = "live_cdp"
             if entry.get("power_first_x") is not None:
                 pay["power_first_x"] = entry.get("power_first_x")
+            refresh_ticket_ev_from_min_guarantee(pay, min_x, update_recommendation=False)
             t["payout"] = pay
             t["display_min_x"] = pay["display_min_x"]
             n += 1
@@ -1511,6 +1508,8 @@ def finalize_payload_display_payouts(payload: dict) -> dict:
         for t in g.get("tickets") or []:
             if isinstance(t, dict):
                 attach_display_min_x(t)
+    # EV was recomputed from display_min_x; refresh STRONG/OK/MARGINAL cuts.
+    apply_slate_ev_tier_recommendations(payload, log=False)
     # Persist any live floors back into the durable patch (heals empty patch files).
     try:
         n_ids = upsert_payout_patch_from_payload(payload)

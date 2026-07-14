@@ -957,7 +957,14 @@ def apply_ticket_eligibility_voids(df: pd.DataFrame, sport: str) -> pd.DataFrame
         else rec.eq("OVER") & ml_prob.ge(0.71) & def_u.str.contains("ABOVE")
     )
     void_tier_d = tier_u.eq("D") & ~nba_over_tierd_exception & ~is_under
-    void_min = (mt == 0) & (~tier_u.eq("A")) & ~is_under
+    # Minutes-tier voids are basketball-family only. Soccer/Tennis/etc. use sport-owned gates
+    # (e.g. soccer_allowed_leg) — unknown minutes_tier must not wipe Goblin/Standard OVER.
+    _minutes_void_sports = frozenset({"NBA", "WNBA", "NBA1H", "NBA1Q", "CBB", "WCBB"})
+    void_min = (
+        (mt == 0) & (~tier_u.eq("A")) & ~is_under
+        if sp in _minutes_void_sports
+        else pd.Series(False, index=out.index)
+    )
     # NHL OVER no longer gets blanket-voided. Keep only genuinely low-confidence OVERs out.
     void_nhl_over = (
         rec.eq("OVER") & is_standard_pick & ml_prob.ge(0.0) & ml_prob.lt(0.58)

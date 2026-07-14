@@ -3760,7 +3760,25 @@ def _hard_void_mask_for_ticket_pool(
     if soft_void:
         # Thin-pool relax: only hard voids; rank_score sorts the rest.
         return hard
-    soft_empty = vr.isna() | vr_text.isin(("", "nan", "none", "null"))
+    su = str(sport or "").strip().upper()
+    # Basketball soft voids (minutes / directional) must not wipe Soccer and other
+    # non-bball pools — those sports use their own allowed_leg / pool gates.
+    _bball = frozenset({"NBA", "WNBA", "NBA1H", "NBA1Q", "CBB", "WCBB"})
+    vr_eff = vr_text
+    if su and su not in _bball:
+        for token in (
+            "void_low_minutes_non_a",
+            "void_std_over_low_ml_prob",
+            "void_over_elite_def_non_q5",
+            "void_under_weak_def_non_q5",
+        ):
+            vr_eff = vr_eff.str.replace(token, "", regex=False)
+        vr_eff = (
+            vr_eff.str.replace(r"[;\s|]+", ";", regex=True)
+            .str.strip(" ;|")
+            .fillna("")
+        )
+    soft_empty = vr.isna() | vr_eff.isin(("", "nan", "none", "null"))
     return hard | (~soft_empty)
 
 

@@ -454,15 +454,13 @@ def generate_bundle():
     shutil.copytree(STATIC_DIR, MOBILE_WWW_DIR / "static")
 
     # Process templates and write to mobile/www root
-    # Tickets page source priority (mobile app should show the Tickets generator page):
-    # 1) tickets_latest.html (generator + slips UI)
-    # 2) tickets_built.html
-    # 3) latest dated ticket_eval_YYYY-MM-DD.html (fallback only)
-    # 4) ticket_eval_latest.html
-    ticket_source = "tickets_latest.html"
+    # Tickets page source priority (Railway /tickets uses tickets_built.html).
+    # Prefer the same shell for the mobile bundle so theme CSS stays in sync.
+    # tickets_latest.html is a separate legacy full-page bake — do not prefer it.
+    ticket_source = "tickets_built.html"
     if not (TEMPLATES_DIR / ticket_source).exists():
-        if (TEMPLATES_DIR / "tickets_built.html").exists():
-            ticket_source = "tickets_built.html"
+        if (TEMPLATES_DIR / "tickets_latest.html").exists():
+            ticket_source = "tickets_latest.html"
         else:
             dated_ticket_pages = sorted(
                 [p for p in TEMPLATES_DIR.glob("ticket_eval_*.html") if re.fullmatch(r"ticket_eval_\d{4}-\d{2}-\d{2}\.html", p.name)],

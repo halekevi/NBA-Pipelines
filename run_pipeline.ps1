@@ -979,32 +979,124 @@ function Invoke-PropOracleStep7b {
     }
 }
 
-# -- Helper: git push templates -----------------------------------------------
-function Run-GitPush {
+# -- Helper: git push live site JSON to origin/main (Railway / raw GitHub) ------
+# Always publish from a main checkout. Committing on a feature branch then
+# `git push origin main` only moves the stale local main tip — production stays old.
+function Publish-LiveSiteJsonToMain {
+    param(
+        [string]$CommitMessage = ""
+    )
     Write-Host ""
-    Write-Host "[ GIT ] Pushing updated templates to GitHub..." -ForegroundColor Cyan
-    Push-Location $Root
-    try {
-        git add "ui_runner/templates/tickets_latest.html" `
-                "ui_runner/templates/tickets_latest.json" `
-                "ui_runner/templates/slate_latest.json" 2>&1 | Out-Null
-        $msg       = "chore: pipeline update $Date $(Get-Date -Format 'HH:mm')"
-        $commitOut = git commit -m $msg 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            $pushOut = git push origin main 2>&1
-            foreach ($line in $pushOut) { Write-Host "    $line" -ForegroundColor DarkGray }
-            Write-Host "  OK - Pushed to GitHub" -ForegroundColor Green
-            "$Date $(Get-Date -Format 'HH:mm:ss') - PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
-        } else {
-            Write-Host "  (no changes to push)" -ForegroundColor DarkGray
-            "$Date $(Get-Date -Format 'HH:mm:ss') - NO CHANGES" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
-        }
-    } catch {
-        Write-Host "  Git push failed: $_" -ForegroundColor Yellow
-        "$Date $(Get-Date -Format 'HH:mm:ss') - PUSH FAILED: $_" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
-    } finally {
-        Pop-Location
+    Write-Host "[ GIT ] Publishing live tickets/slate JSON to origin/main..." -ForegroundColor Cyan
+
+    $liveRel = @(
+        "ui_runner/templates/tickets_latest.json",
+        "ui_runner/docs/tickets_latest.json",
+        "mobile/www/tickets_latest.json",
+        "ui_runner/templates/slate_latest.json",
+        "ui_runner/templates/pipeline_status.json",
+        "mobile/www/pipeline_status.json",
+        "mobile/www/slate_latest.json",
+        "ui_runner/templates/tickets_winrate_latest.json",
+        "ui_runner/templates/sport_breakdown.json"
+    )
+    # Sport slate cards used by /tickets + /api/slate-sport
+    Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\templates") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
+        ForEach-Object { $liveRel += ("ui_runner/templates/" + $_.Name) }
+    Get-ChildItem -LiteralPath (Join-Path $Root "mobile\www") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
+        ForEach-Object { $liveRel += ("mobile/www/" + $_.Name) }
+
+    $toPublish = @()
+    foreach ($rel in $liveRel) {
+        $full = Join-Path $Root ($rel -replace "/", "\")
+        if (Test-Path -LiteralPath $full) { $toPublish += $rel }
     }
+    if (-not $toPublish.Count) {
+        Write-Host "  No live site JSON found — nothing to push" -ForegroundColor DarkGray
+        return
+    }
+
+    $tmp = Join-Path $env:TEMP ("proporacle_live_publish_" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $tmp -Force | Out-Null
+    try {
+        foreach ($rel in $toPublish) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            $dst = Join-Path $tmp ($rel -replace "/", "\")
+            $dstDir = Split-Path $dst -Parent
+            if (-not (Test-Path -LiteralPath $dstDir)) {
+                New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+            }
+            Copy-Item -LiteralPath $src -Destination $dst -Force
+        }
+
+        Push-Location $Root
+        $prevBranch = $null
+        $stashed = $false
+        try {
+            $prevBranch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+            if (-not $prevBranch) { $prevBranch = "HEAD" }
+
+            $porcelain = git status --porcelain 2>$null
+            if ($porcelain) {
+                # Tracked WIP only — avoid stashing massive untracked data dumps
+                git stash push -m "proporacle-live-publish-temp" 2>&1 | Out-Null
+                if ($LASTEXITCODE -eq 0) { $stashed = $true }
+            }
+
+            if ($prevBranch -ne "main") {
+                git checkout main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "  FAILED: cannot checkout main (commit/stash WIP first)" -ForegroundColor Yellow
+                    return
+                }
+            }
+            git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+
+            foreach ($rel in $toPublish) {
+                $src = Join-Path $tmp ($rel -replace "/", "\")
+                $dst = Join-Path $Root ($rel -replace "/", "\")
+                $dstDir = Split-Path $dst -Parent
+                if (-not (Test-Path -LiteralPath $dstDir)) {
+                    New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+                }
+                Copy-Item -LiteralPath $src -Destination $dst -Force
+                git add -- $rel 2>&1 | Out-Null
+            }
+
+            $msg = if ($CommitMessage) { $CommitMessage } else { "chore: live tickets/slate $Date $(Get-Date -Format 'HH:mm')" }
+            git commit -m $msg 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $pushOut = git push origin main 2>&1
+                foreach ($line in $pushOut) { Write-Host "    $line" -ForegroundColor DarkGray }
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "  OK - Live site JSON pushed to origin/main" -ForegroundColor Green
+                    "$Date $(Get-Date -Format 'HH:mm:ss') - LIVE PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+                } else {
+                    Write-Host "  FAILED: git push origin main" -ForegroundColor Yellow
+                    "$Date $(Get-Date -Format 'HH:mm:ss') - LIVE PUSH FAILED" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+                }
+            } else {
+                Write-Host "  (no live JSON changes vs main)" -ForegroundColor DarkGray
+                "$Date $(Get-Date -Format 'HH:mm:ss') - LIVE NO CHANGES" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+            }
+        } finally {
+            $cur = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+            if ($prevBranch -and $prevBranch -ne "main" -and $prevBranch -ne "HEAD" -and $cur -eq "main") {
+                git checkout $prevBranch 2>&1 | ForEach-Object { Write-Host "    restore: $_" -ForegroundColor DarkGray }
+            }
+            if ($stashed) {
+                git stash pop 2>&1 | Out-Null
+            }
+            Pop-Location
+        }
+    } finally {
+        Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Run-GitPush {
+    # Back-compat name used by Run-Combined: always publish live tickets to main.
+    Publish-LiveSiteJsonToMain
 }
 
 function Run-GitPushGradeArtifacts {
@@ -1036,31 +1128,63 @@ function Run-GitPushGradeArtifacts {
         return
     }
 
-    Push-Location $Root
+    # Reuse live-publish checkout pattern so grade HTML lands on origin/main even from a feature branch.
+    $tmp = Join-Path $env:TEMP ("proporacle_grade_publish_" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $tmp -Force | Out-Null
     try {
-        foreach ($f in $toStage) {
-            git add $f 2>&1 | Out-Null
-            Write-Host "    staged: $f" -ForegroundColor DarkGray
+        foreach ($rel in $toStage) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            $dst = Join-Path $tmp ($rel -replace "/", "\")
+            New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $src -Destination $dst -Force
         }
-        $msg       = "chore: grades $GradeDate $(Get-Date -Format 'HH:mm')"
-        git commit -m $msg 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            $pushOut = git push origin main 2>&1
-            foreach ($line in $pushOut) { Write-Host "    $line" -ForegroundColor DarkGray }
-            Write-Host "  OK - Grade HTML pushed" -ForegroundColor Green
-            "$Date $(Get-Date -Format 'HH:mm:ss') - GRADE PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
-        } else {
-            Write-Host "  No git changes for grade HTML (already committed?)" -ForegroundColor DarkGray
-            $unpushed = git log origin/main..HEAD --oneline 2>&1
-            if ($unpushed) {
-                git push origin main 2>&1 | Out-Null
-                if ($LASTEXITCODE -eq 0) { Write-Host "  OK - Flushed pending commits" -ForegroundColor Green }
+        Push-Location $Root
+        $prevBranch = $null
+        $stashed = $false
+        try {
+            $prevBranch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+            if (-not $prevBranch) { $prevBranch = "HEAD" }
+            $porcelain = git status --porcelain 2>$null
+            if ($porcelain) {
+                git stash push -m "proporacle-grade-publish-temp" 2>&1 | Out-Null
+                if ($LASTEXITCODE -eq 0) { $stashed = $true }
             }
+            if ($prevBranch -ne "main") {
+                git checkout main 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "  FAILED: cannot checkout main for grade push" -ForegroundColor Yellow
+                    return
+                }
+            }
+            git pull --ff-only origin main 2>&1 | Out-Null
+            foreach ($rel in $toStage) {
+                $src = Join-Path $tmp ($rel -replace "/", "\")
+                $dst = Join-Path $Root ($rel -replace "/", "\")
+                New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                Copy-Item -LiteralPath $src -Destination $dst -Force
+                git add -f -- $rel 2>&1 | Out-Null
+                Write-Host "    staged: $rel" -ForegroundColor DarkGray
+            }
+            $msg = "chore: grades $GradeDate $(Get-Date -Format 'HH:mm')"
+            git commit -m $msg 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $pushOut = git push origin main 2>&1
+                foreach ($line in $pushOut) { Write-Host "    $line" -ForegroundColor DarkGray }
+                Write-Host "  OK - Grade HTML pushed to origin/main" -ForegroundColor Green
+                "$Date $(Get-Date -Format 'HH:mm:ss') - GRADE PUSHED: $msg" | Out-File -FilePath (Join-Path $Root "git_push_log.txt") -Append -Encoding utf8
+            } else {
+                Write-Host "  No git changes for grade HTML (already on main?)" -ForegroundColor DarkGray
+            }
+        } finally {
+            $cur = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
+            if ($prevBranch -and $prevBranch -ne "main" -and $prevBranch -ne "HEAD" -and $cur -eq "main") {
+                git checkout $prevBranch 2>&1 | Out-Null
+            }
+            if ($stashed) { git stash pop 2>&1 | Out-Null }
+            Pop-Location
         }
-    } catch {
-        Write-Host "  Grade push exception: $_" -ForegroundColor Red
     } finally {
-        Pop-Location
+        Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
 

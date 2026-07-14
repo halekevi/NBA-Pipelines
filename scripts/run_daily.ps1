@@ -1718,20 +1718,69 @@ else {
     Push-Location $Root
     $stepEPrevBranch = $null
     $stepESkipPush = $false
+    $stepEStashed = $false
+    # Snapshot live tickets onto disk before any stash/checkout so Railway cannot miss them
+    # when WIP forced a stash (CombinedOnly / feature-branch daily runs).
+    $stepELiveSnap = Join-Path $env:TEMP ("proporacle_step_e_live_" + [guid]::NewGuid().ToString("N"))
+    $stepELiveRels = @(
+        "ui_runner/templates/tickets_latest.json",
+        "ui_runner/docs/tickets_latest.json",
+        "mobile/www/tickets_latest.json",
+        "ui_runner/templates/slate_latest.json",
+        "mobile/www/slate_latest.json",
+        "ui_runner/templates/pipeline_status.json",
+        "mobile/www/pipeline_status.json"
+    )
+    try {
+        New-Item -ItemType Directory -Path $stepELiveSnap -Force | Out-Null
+        foreach ($rel in $stepELiveRels) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            if (Test-Path -LiteralPath $src) {
+                $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                Copy-Item -LiteralPath $src -Destination $dst -Force
+            }
+        }
+    } catch {
+        Write-Log "STEP E - WARN: live ticket snapshot failed: $($_.Exception.Message)"
+    }
     try {
         $stepEPrevBranch = (git -C $Root rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
         if (-not $stepEPrevBranch) { $stepEPrevBranch = "HEAD" }
+
+        # Dirty feature trees used to abort STEP E and leave Railway on stale main.
+        $dirty = git -C $Root status --porcelain 2>$null
+        if ($dirty) {
+            Write-Log "STEP E - dirty working tree; stashing before main checkout"
+            # Tracked changes only (-u would drag huge untracked slate/data churn into stash)
+            git -C $Root stash push -m "proporacle-step-e-temp-$Today" 2>&1 | ForEach-Object { Write-Log "STEP E - stash: $_" }
+            if ($LASTEXITCODE -eq 0) { $stepEStashed = $true }
+        }
+
         if ($stepEPrevBranch -ne "main") {
             Write-Log "STEP E - on '$stepEPrevBranch'; checking out main for Railway deploy commit"
             git -C $Root checkout main 2>&1 | ForEach-Object { Write-Log "STEP E - checkout: $_" }
             if ($LASTEXITCODE -ne 0) {
-                Write-Log "STEP E - FAILED: cannot checkout main (uncommitted feature changes?). Abort push — Railway would stay STALE."
-                Write-Warning "STEP E aborted: checkout main failed while on '$stepEPrevBranch'. Commit/stash WIP or run: git checkout main"
+                Write-Log "STEP E - FAILED: cannot checkout main. Abort push — Railway would stay STALE."
+                Write-Warning "STEP E aborted: checkout main failed while on '$stepEPrevBranch'."
                 "$Today - STEP E aborted: on $stepEPrevBranch, checkout main failed" | Out-File -FilePath $gitLog -Append -Encoding utf8
                 $stepESkipPush = $true
             }
             else {
                 Write-Log "STEP E - checked out main (will restore '$stepEPrevBranch' after push)"
+            }
+        }
+
+        if (-not $stepESkipPush) {
+            git -C $Root pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log "STEP E - pull: $_" }
+            # Restore snapshotted live tickets onto main (post-stash / post-pull).
+            foreach ($rel in $stepELiveRels) {
+                $src = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                if (Test-Path -LiteralPath $src) {
+                    $dst = Join-Path $Root ($rel -replace "/", "\")
+                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                    Copy-Item -LiteralPath $src -Destination $dst -Force
+                }
             }
         }
 
@@ -1789,9 +1838,16 @@ else {
 
         if (-not $stepESkipPush) {
             # mobile/www: grader copies graded_props + slate_eval here; many scripts read mobile/www not templates
-            git -C $Root add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/"
+            git -C $Root add -- "outputs/$Today/" "ui_runner/templates/" "mobile/www/" "ui_runner/docs/"
             git -C $Root add -- "ui_runner/templates/*_matchup_edge.json"
             git -C $Root add -- "mobile/www/data/*_matchup_edge.json"
+            # Explicit Railway-critical mirrors (in case path globs / ignore rules omit them)
+            foreach ($rel in $stepELiveRels) {
+                $full = Join-Path $Root ($rel -replace "/", "\")
+                if (Test-Path -LiteralPath $full) {
+                    git -C $Root add -f -- $rel
+                }
+            }
 
             # Grade HTML is gitignored by default; force-add yesterday + today so Railway /grades can serve them.
             $syncDatesScript = Join-Path $Root "scripts\sync_grades_report_dates.py"
@@ -1900,6 +1956,12 @@ else {
                     Write-Log "STEP E - restored branch '$stepEPrevBranch'"
                 }
             }
+        }
+        if ($stepEStashed) {
+            git -C $Root stash pop 2>&1 | ForEach-Object { Write-Log "STEP E - stash pop: $_" }
+        }
+        if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {
+            Remove-Item -LiteralPath $stepELiveSnap -Recurse -Force -ErrorAction SilentlyContinue
         }
         Pop-Location
     }

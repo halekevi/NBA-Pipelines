@@ -20,6 +20,7 @@ from combined_slate_tickets import (  # noqa: E402
     _apply_strong_rolling_hr_gate,
     _ok_strong_pair,
     _strong_candidate_legs,
+    _strong_candidate_legs_standard,
     _strong_combo_players_ok,
     build_strong_tickets,
 )
@@ -111,6 +112,55 @@ def test_strong_candidate_legs_filters_goblin_hot_ab():
     assert len(out) == 2
     players = set(out["player"].astype(str))
     assert players == {"Alpha One", "Beta Two"}
+
+
+def test_strong_candidate_legs_standard_only_hot_ab():
+    df = _sample_df()
+    out = _strong_candidate_legs_standard(df)
+    assert len(out) == 1
+    assert str(out.iloc[0]["player"]) == "Std Four"
+    assert str(out.iloc[0]["pick_type"]).lower() == "standard"
+
+
+def test_build_strong_tickets_standard_pick_mode_labels_slips():
+    df = pd.DataFrame(
+        [
+            {
+                "sport": "WNBA",
+                "player": f"Player {i}",
+                "team": "LVA",
+                "opp": "NYL",
+                "prop_type": "Points",
+                "pick_type": "Standard",
+                "tier": "A" if i % 2 == 0 else "B",
+                "direction": "OVER",
+                "line": 12.5 + i,
+                "hit_rate": 0.70,
+                "rank_score": 80 + i,
+                "ml_prob": 0.70,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.80,
+            }
+            for i in range(6)
+        ]
+    )
+    tickets = build_strong_tickets(
+        df,
+        pick_mode="standard",
+        max_tickets=10,
+        max_legs=2,
+        exhaust_pool=False,
+        min_p_win_2leg=0.01,
+    )
+    assert tickets
+    assert all(t.get("strong_builder") for t in tickets)
+    assert all(t.get("strong_builder_pick") == "Standard" for t in tickets)
+    assert all(
+        all(str(r.get("pick_type")).lower() == "standard" for r in t.get("rows") or [])
+        for t in tickets
+    )
 
 
 def test_strong_candidate_legs_excludes_non_core_props():

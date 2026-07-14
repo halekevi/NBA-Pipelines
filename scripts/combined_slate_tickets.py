@@ -13502,10 +13502,15 @@ def _prepare_strong_builder_pool(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def _strong_candidate_legs(df: pd.DataFrame) -> pd.DataFrame:
-    """Goblin + Tier A/B + HOT streak legs for STRONG ticket stacking."""
+def _strong_candidate_legs(
+    df: pd.DataFrame,
+    *,
+    pick_mode: str = "goblin",
+) -> pd.DataFrame:
+    """Tier A/B + HOT streak legs for STRONG ticket stacking (Goblin or Standard)."""
     if df is None or df.empty:
         return df.iloc[0:0].copy()
+    mode = str(pick_mode or "goblin").strip().lower()
     pick = df.get("pick_type", pd.Series("", index=df.index)).astype(str).str.lower()
     tier = df.get("tier", pd.Series("", index=df.index)).astype(str).str.upper().str.strip()
     streak = df.get("l10_streak", pd.Series("", index=df.index)).astype(str).str.upper().str.strip()
@@ -13523,8 +13528,12 @@ def _strong_candidate_legs(df: pd.DataFrame) -> pd.DataFrame:
         ],
         index=df.index,
     )
+    if mode in ("standard", "std"):
+        pick_ok = pick.str.contains("standard", na=False) & ~pick.str.contains("goblin", na=False)
+    else:
+        pick_ok = pick.str.contains("goblin", na=False)
     mask = (
-        pick.str.contains("goblin", na=False)
+        pick_ok
         & tier.isin(["A", "B"])
         & streak.eq("HOT")
         & sport.isin(STRONG_BUILDER_SPORTS)
@@ -13533,14 +13542,23 @@ def _strong_candidate_legs(df: pd.DataFrame) -> pd.DataFrame:
     return df[mask].copy()
 
 
+def _strong_candidate_legs_standard(df: pd.DataFrame) -> pd.DataFrame:
+    """Standard + Tier A/B + HOT streak legs for shadow STRONG stacking."""
+    return _strong_candidate_legs(df, pick_mode="standard")
+
+
 def _log_strong_builder(
     date_str: str,
     n_candidates: int,
     tickets: list[dict],
     candidates: pd.DataFrame,
+    *,
+    pick_mode: str = "goblin",
 ) -> None:
+    mode = str(pick_mode or "goblin").strip().lower()
+    label = "STANDARD" if mode in ("standard", "std") else "GOBLIN"
     print(
-        f"[strong-builder] {date_str}: {n_candidates} candidate legs, "
+        f"[strong-builder/{label}] {date_str}: {n_candidates} candidate legs, "
         f"{len(tickets)} STRONG tickets built"
     )
     if candidates is None or candidates.empty:
@@ -13601,16 +13619,18 @@ def build_strong_tickets(
     player_ticket_counts: dict[str, int] | None = None,
     date_str: str = "",
     exhaust_pool: bool | None = None,
+    pick_mode: str = "goblin",
 ) -> list[dict]:
     """
-    Build power tickets from Goblin A/B HOT legs.
+    Build power tickets from Goblin or Standard A/B HOT legs.
 
     Prefers longer unique-player slips (6 → 5 → 4 → 3 → 2). By default exhausts
     the unique-player pool (all gate-passing combos) instead of stopping at the
     global --max-tickets board budget.
     """
+    mode = str(pick_mode or "goblin").strip().lower()
     prepared = _prepare_strong_builder_pool(df)
-    candidates = _strong_candidate_legs(prepared)
+    candidates = _strong_candidate_legs(prepared, pick_mode=mode)
     rolling_hr = _load_strong_player_rolling_hr()
     candidates = _apply_strong_rolling_hr_gate(candidates, rolling_hr)
     n_candidates = len(candidates)
@@ -13628,7 +13648,7 @@ def build_strong_tickets(
     max_legs_i = int(max_legs if max_legs is not None else STRONG_MAX_LEGS)
     max_legs_i = max(2, min(int(STRONG_MAX_LEGS), max_legs_i))
     if n_candidates < 2:
-        _log_strong_builder(date_str, n_candidates, [], candidates)
+        _log_strong_builder(date_str, n_candidates, [], candidates, pick_mode=mode)
         return []
 
     if "prop_quality_score" not in candidates.columns:
@@ -13689,7 +13709,7 @@ def build_strong_tickets(
             if len(set(p for p in players if p)) != len([p for p in players if p]):
                 continue
             player_props = {
-                f"{p}::{_norm_prop_label(r.get('prop_type', ''))}"
+                f"{p}::{_norm_prop_label(r.get('prop_type', '') or r.get('prop', ''))}"
                 for p, r in zip(players, rows)
                 if p
             }
@@ -13719,6 +13739,7 @@ def build_strong_tickets(
             hrs = [float(r.get("hit_rate", 0.5) or 0.5) for r in rows]
             rss = [float(r.get("rank_score", 0.0) or 0.0) for r in rows]
             sport_label = next(iter(sports)) if len(sports) == 1 else "MIX"
+            pick_label = "Standard" if mode in ("standard", "std") else "Goblin"
 
             tickets.append(
                 {
@@ -13737,6 +13758,7 @@ def build_strong_tickets(
                     "ticket_type": "Power Play",
                     "sport": sport_label,
                     "strong_builder": True,
+                    "strong_builder_pick": pick_label,
                     "correlation_multiplier": cmult,
                     "correlation_audit": caudit,
                     "leg_prob_sources": ",".join(
@@ -13757,12 +13779,12 @@ def build_strong_tickets(
         )
     )
     tickets = tickets[:cap]
-    _log_strong_builder(date_str, n_candidates, tickets, candidates)
+    _log_strong_builder(date_str, n_candidates, tickets, candidates, pick_mode=mode)
     by_n = Counter(int(t.get("n_legs") or 0) for t in tickets)
     if tickets:
-        mode = "exhaust" if do_exhaust else f"cap={cap}"
+        mode_s = "exhaust" if do_exhaust else f"cap={cap}"
         print(
-            f"[strong-builder] mode={mode} unique_players={len(unique_player_rows)} "
+            f"[strong-builder] mode={mode_s} pick={mode} unique_players={len(unique_player_rows)} "
             f"leg mix: "
             + ", ".join(f"{n}-leg={by_n[n]}" for n in sorted(by_n, reverse=True))
         )

@@ -499,10 +499,22 @@ if (-not $SkipGrader) {
                         Write-Warning "Hot Players grade failed for $graderDate (non-fatal, exit $htg)"
                         Write-Log "STEP A1 - Hot Players grade ($graderDate): FAILED (py exit $htg)"
                     }
+                else {
+                    Write-Log "STEP A1 - Hot Players grade ($graderDate): OK"
+                }
+                $consTrackScript = Join-Path $Root "scripts\slate_consistency_tracker.py"
+                if (Test-Path $consTrackScript) {
+                    & py -3.14 $consTrackScript grade --date $graderDate
+                    $ctg = $LASTEXITCODE
+                    if ($ctg -ne 0) {
+                        Write-Warning "Slate consistency grade failed for $graderDate (non-fatal, exit $ctg)"
+                        Write-Log "STEP A1d - Slate consistency grade ($graderDate): FAILED (py exit $ctg)"
+                    }
                     else {
-                        Write-Log "STEP A1 - Hot Players grade ($graderDate): OK"
+                        Write-Log "STEP A1d - Slate consistency grade ($graderDate): OK"
                     }
                 }
+            }
             }
         }
         catch {
@@ -761,6 +773,18 @@ else {
             }
             else {
                 Write-Log "STEP A2c - Hot Players snapshot ($Today): OK"
+            }
+        }
+        $consTrackScript = Join-Path $Root "scripts\slate_consistency_tracker.py"
+        if (Test-Path $consTrackScript) {
+            & py -3.14 $consTrackScript snapshot --date $Today
+            $cts = $LASTEXITCODE
+            if ($cts -ne 0) {
+                Write-Warning "Slate consistency snapshot failed (non-fatal, exit $cts)"
+                Write-Log "STEP A2d - Slate consistency snapshot: FAILED (py exit $cts)"
+            }
+            else {
+                Write-Log "STEP A2d - Slate consistency snapshot ($Today): OK"
             }
         }
     }

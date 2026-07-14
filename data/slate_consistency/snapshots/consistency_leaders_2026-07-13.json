@@ -1,0 +1,1095 @@
+{
+  "slate_date": "2026-07-13",
+  "snapshotted_at": "2026-07-14T03:03:39.385221Z",
+  "active_sports": [
+    "SOCCER",
+    "TENNIS",
+    "WNBA"
+  ],
+  "n_slate_rows": 2236,
+  "n_profiles": 697,
+  "n_tracked": 42,
+  "n_on_tickets": 15,
+  "tracked": [
+    {
+      "sport": "SOCCER",
+      "player": "Aur\u00e9lien Tchouam\u00e9ni",
+      "prop": "Shots",
+      "side": "OVER",
+      "line": 0.5,
+      "team": "FRANCE",
+      "opp": "SPAIN",
+      "season_avg": 1.6,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Stan Wawrinka",
+      "prop": "Double Faults",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "STAN WAWRINKA",
+      "opp": "JAIME FARIA",
+      "season_avg": 3.0,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Kayla McBride",
+      "prop": "Points",
+      "side": "OVER",
+      "line": 11.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 18.7,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Natasha Howard",
+      "prop": "Rebounds",
+      "side": "OVER",
+      "line": 5.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 8.9,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Jerome Kym",
+      "prop": "Aces",
+      "side": "OVER",
+      "line": 7.5,
+      "team": "JEROME KYM",
+      "opp": "DYLAN DIETRICH",
+      "season_avg": 13.1,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 7,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Jordin Canada",
+      "prop": "Pts+Asts",
+      "side": "OVER",
+      "line": 14.5,
+      "team": "ATL",
+      "opp": "LAS",
+      "season_avg": 20.0,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Courtney Williams",
+      "prop": "Points",
+      "side": "OVER",
+      "line": 11.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 14.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER",
+        "UNDER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "SOCCER",
+      "player": "Mikel Oyarzabal",
+      "prop": "Fouls",
+      "side": "OVER",
+      "line": 0.5,
+      "team": "SPAIN",
+      "opp": "FRANCE",
+      "season_avg": 1.2,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "SOCCER",
+      "player": "Maghnes Akliouche",
+      "prop": "Fouls",
+      "side": "OVER",
+      "line": 0.5,
+      "team": "FRANCE",
+      "opp": "SPAIN",
+      "season_avg": 1.4,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Quentin Halys",
+      "prop": "Aces",
+      "side": "OVER",
+      "line": 8.5,
+      "team": "QUENTIN HALYS",
+      "opp": "FEDERICO CINA",
+      "season_avg": 12.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Alexander Blockx",
+      "prop": "Double Faults",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "ALEXANDER BLOCKX",
+      "opp": "TITOUAN DROGUET",
+      "season_avg": 2.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Linda Fruhvirtova",
+      "prop": "Aces",
+      "side": "OVER",
+      "line": 2.5,
+      "team": "LINDA FRUHVIRTOVA",
+      "opp": "XINYU GAO",
+      "season_avg": 3.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Alina Korneeva",
+      "prop": "Double Faults",
+      "side": "OVER",
+      "line": 3.5,
+      "team": "ALINA KORNEEVA",
+      "opp": "AOI ITO",
+      "season_avg": 5.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Allisha Gray",
+      "prop": "Assists",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "ATL",
+      "opp": "LAS",
+      "season_avg": 2.4,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Nneka Ogwumike",
+      "prop": "Assists",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "LAS",
+      "opp": "ATL",
+      "season_avg": 2.9,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.88,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "over_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Clara Tauson",
+      "prop": "Double Faults",
+      "side": "UNDER",
+      "line": 5.5,
+      "team": "CLARA TAUSON",
+      "opp": "NAO HIBINO",
+      "season_avg": 3.0,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Rebeka Masarova",
+      "prop": "Aces",
+      "side": "UNDER",
+      "line": 7.5,
+      "team": "REBEKA MASAROVA",
+      "opp": "CAROLE MONNET",
+      "season_avg": 4.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Yue Yuan",
+      "prop": "Double Faults",
+      "side": "UNDER",
+      "line": 4.5,
+      "team": "YUE YUAN",
+      "opp": "ALIONA FALEI",
+      "season_avg": 0.9,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Nao Hibino",
+      "prop": "Double Faults",
+      "side": "UNDER",
+      "line": 6.5,
+      "team": "NAO HIBINO",
+      "opp": "CLARA TAUSON",
+      "season_avg": 2.9,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Vera Zvonareva",
+      "prop": "Aces",
+      "side": "UNDER",
+      "line": 3.5,
+      "team": "VERA ZVONAREVA",
+      "opp": "POLINA IATCENKO",
+      "season_avg": 0.7,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Nicolai Budkov Kjaer",
+      "prop": "Double Faults",
+      "side": "UNDER",
+      "line": 8.5,
+      "team": "NICOLAI BUDKOV KJAER",
+      "opp": "ANDREA PELLEGRINO",
+      "season_avg": 1.5,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Anna Blinkova",
+      "prop": "Aces",
+      "side": "UNDER",
+      "line": 2.5,
+      "team": "ANNA BLINKOVA",
+      "opp": "ALIAKSANDRA SASNOVICH",
+      "season_avg": 0.9,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Allisha Gray",
+      "prop": "3-PT Made",
+      "side": "UNDER",
+      "line": 4.5,
+      "team": "ATL",
+      "opp": "LAS",
+      "season_avg": 1.0,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "SOCCER",
+      "player": "Kylian Mbapp\u00e9 + Lamine Yamal + Lionel Messi",
+      "prop": "Shots (Combo)",
+      "side": "UNDER",
+      "line": 10.5,
+      "team": "FRANCE/SPAIN/ARGENTINA",
+      "opp": "",
+      "season_avg": 6.2,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 8,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "UNDER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "SOCCER",
+      "player": "Rodri",
+      "prop": "Fouls",
+      "side": "UNDER",
+      "line": 1.5,
+      "team": "SPAIN",
+      "opp": "FRANCE",
+      "season_avg": 0.6,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 7,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Cagla Buyukakcay",
+      "prop": "Aces",
+      "side": "UNDER",
+      "line": 2.5,
+      "team": "CAGLA BUYUKAKCAY",
+      "opp": "VIKTORIA HRUNCAKOVA",
+      "season_avg": 0.1,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 7,
+      "score": 1.0,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Viktoria Hruncakova",
+      "prop": "Aces",
+      "side": "UNDER",
+      "line": 13.5,
+      "team": "VIKTORIA HRUNCAKOVA",
+      "opp": "CAGLA BUYUKAKCAY",
+      "season_avg": 4.6,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Andrea Pellegrino",
+      "prop": "Double Faults",
+      "side": "UNDER",
+      "line": 4.5,
+      "team": "ANDREA PELLEGRINO",
+      "opp": "NICOLAI BUDKOV KJAER",
+      "season_avg": 2.2,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Tamara Zidansek",
+      "prop": "Aces",
+      "side": "UNDER",
+      "line": 1.5,
+      "team": "TAMARA ZIDANSEK",
+      "opp": "EMILIANA ARANGO",
+      "season_avg": 0.5,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Rhyne Howard",
+      "prop": "Rebs+Asts",
+      "side": "UNDER",
+      "line": 8.5,
+      "team": "ATL",
+      "opp": "LAS",
+      "season_avg": 6.9,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER",
+        "UNDER"
+      ],
+      "on_tickets": false,
+      "bucket": "under_excl_tennis_games"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Jerome Kym",
+      "prop": "Total Games",
+      "side": "OVER",
+      "line": 19.5,
+      "team": "JEROME KYM",
+      "opp": "DYLAN DIETRICH",
+      "season_avg": 33.6,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": true,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Jordin Canada",
+      "prop": "Points",
+      "side": "OVER",
+      "line": 7.5,
+      "team": "ATL",
+      "opp": "LAS",
+      "season_avg": 12.1,
+      "l5": 0.8,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.86,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER",
+        "UNDER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Jordin Canada",
+      "prop": "Pts+Rebs+Asts",
+      "side": "OVER",
+      "line": 19.5,
+      "team": "ATL",
+      "opp": "LAS",
+      "season_avg": 24.2,
+      "l5": 0.8,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.8,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Kayla McBride",
+      "prop": "Assists",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 2.3,
+      "l5": 0.8,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.8,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Kayla McBride",
+      "prop": "Rebounds",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 3.4,
+      "l5": 0.6,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.72,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Moise Kouame",
+      "prop": "Total Games Won",
+      "side": "OVER",
+      "line": 6.5,
+      "team": "MOISE KOUAME",
+      "opp": "NUNO BORGES",
+      "season_avg": 15.1,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 7,
+      "score": 1.0,
+      "tennis_games": true,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Monique Akoa Makani",
+      "prop": "Points",
+      "side": "OVER",
+      "line": 5.5,
+      "team": "PHX",
+      "opp": "MIN",
+      "season_avg": 10.0,
+      "l5": 0.6,
+      "l5_n": 5,
+      "l10": 0.8,
+      "l10_n": 10,
+      "score": 0.72,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER",
+        "UNDER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Natasha Howard",
+      "prop": "Assists",
+      "side": "OVER",
+      "line": 1.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 2.4,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.94,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "WNBA",
+      "player": "Natasha Howard",
+      "prop": "Pts+Rebs+Asts",
+      "side": "OVER",
+      "line": 19.5,
+      "team": "MIN",
+      "opp": "PHX",
+      "season_avg": 27.1,
+      "l5": 0.8,
+      "l5_n": 5,
+      "l10": 0.9,
+      "l10_n": 10,
+      "score": 0.86,
+      "tennis_games": false,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Titouan Droguet",
+      "prop": "Total Games Won",
+      "side": "OVER",
+      "line": 7.5,
+      "team": "TITOUAN DROGUET",
+      "opp": "ALEXANDER BLOCKX",
+      "season_avg": 13.3,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": true,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Viktoriya Tomova",
+      "prop": "Total Games Won",
+      "side": "OVER",
+      "line": 4.5,
+      "team": "VIKTORIYA TOMOVA",
+      "opp": "BARBORA KREJCIKOVA",
+      "season_avg": 9.6,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": true,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    },
+    {
+      "sport": "TENNIS",
+      "player": "Yannick Hanfmann",
+      "prop": "Total Games",
+      "side": "OVER",
+      "line": 18.5,
+      "team": "YANNICK HANFMANN",
+      "opp": "PEDRO MARTINEZ",
+      "season_avg": 28.2,
+      "l5": 1.0,
+      "l5_n": 5,
+      "l10": 1.0,
+      "l10_n": 10,
+      "score": 1.0,
+      "tennis_games": true,
+      "today_dirs": [
+        "OVER"
+      ],
+      "on_tickets": true,
+      "bucket": "on_tickets_consistent"
+    }
+  ],
+  "summary_preview": {
+    "top_over": [
+      {
+        "player": "Aur\u00e9lien Tchouam\u00e9ni",
+        "prop": "Shots",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Stan Wawrinka",
+        "prop": "Double Faults",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Kayla McBride",
+        "prop": "Points",
+        "l10": 1.0,
+        "on_tickets": true
+      },
+      {
+        "player": "Natasha Howard",
+        "prop": "Rebounds",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Jerome Kym",
+        "prop": "Aces",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Jordin Canada",
+        "prop": "Pts+Asts",
+        "l10": 0.9,
+        "on_tickets": false
+      },
+      {
+        "player": "Courtney Williams",
+        "prop": "Points",
+        "l10": 0.9,
+        "on_tickets": false
+      },
+      {
+        "player": "Mikel Oyarzabal",
+        "prop": "Fouls",
+        "l10": 0.8,
+        "on_tickets": false
+      }
+    ],
+    "top_under": [
+      {
+        "player": "Clara Tauson",
+        "prop": "Double Faults",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Rebeka Masarova",
+        "prop": "Aces",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Yue Yuan",
+        "prop": "Double Faults",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Nao Hibino",
+        "prop": "Double Faults",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Vera Zvonareva",
+        "prop": "Aces",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Nicolai Budkov Kjaer",
+        "prop": "Double Faults",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Anna Blinkova",
+        "prop": "Aces",
+        "l10": 1.0,
+        "on_tickets": false
+      },
+      {
+        "player": "Allisha Gray",
+        "prop": "3-PT Made",
+        "l10": 1.0,
+        "on_tickets": false
+      }
+    ],
+    "on_tickets": [
+      {
+        "player": "Kayla McBride",
+        "prop": "Points",
+        "side": "OVER",
+        "l10": 1.0
+      },
+      {
+        "player": "Allisha Gray",
+        "prop": "Assists",
+        "side": "OVER",
+        "l10": 0.8
+      },
+      {
+        "player": "Nneka Ogwumike",
+        "prop": "Assists",
+        "side": "OVER",
+        "l10": 0.8
+      },
+      {
+        "player": "Jerome Kym",
+        "prop": "Total Games",
+        "side": "OVER",
+        "l10": 1.0
+      },
+      {
+        "player": "Jordin Canada",
+        "prop": "Points",
+        "side": "OVER",
+        "l10": 0.9
+      },
+      {
+        "player": "Jordin Canada",
+        "prop": "Pts+Rebs+Asts",
+        "side": "OVER",
+        "l10": 0.8
+      },
+      {
+        "player": "Kayla McBride",
+        "prop": "Assists",
+        "side": "OVER",
+        "l10": 0.8
+      },
+      {
+        "player": "Kayla McBride",
+        "prop": "Rebounds",
+        "side": "OVER",
+        "l10": 0.8
+      },
+      {
+        "player": "Moise Kouame",
+        "prop": "Total Games Won",
+        "side": "OVER",
+        "l10": 1.0
+      },
+      {
+        "player": "Monique Akoa Makani",
+        "prop": "Points",
+        "side": "OVER",
+        "l10": 0.8
+      },
+      {
+        "player": "Natasha Howard",
+        "prop": "Assists",
+        "side": "OVER",
+        "l10": 0.9
+      },
+      {
+        "player": "Natasha Howard",
+        "prop": "Pts+Rebs+Asts",
+        "side": "OVER",
+        "l10": 0.9
+      },
+      {
+        "player": "Titouan Droguet",
+        "prop": "Total Games Won",
+        "side": "OVER",
+        "l10": 1.0
+      },
+      {
+        "player": "Viktoriya Tomova",
+        "prop": "Total Games Won",
+        "side": "OVER",
+        "l10": 1.0
+      },
+      {
+        "player": "Yannick Hanfmann",
+        "prop": "Total Games",
+        "side": "OVER",
+        "l10": 1.0
+      }
+    ]
+  }
+}

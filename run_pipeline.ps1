@@ -1272,7 +1272,7 @@ function Run-Combined {
 
     # Keep strict date checks for NBA-family slates so /tickets never shows yesterday as today.
     # --also-win-rate: emit tickets_winrate_latest.json in the same process (no 2nd Python launch).
-    $CombinedArgs += " --date $Date --tennis-date $TennisDate --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts 64 --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
+    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts 64 --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
     if (-not $WebEvOnly) {
         $CombinedArgs += " --no-web-ev-gate"
     }

@@ -523,17 +523,19 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .prop-eval-row .prop-eval-meta{font-size:11px;color:var(--muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .prop-eval-row .prop-eval-stats{font-size:11px;color:rgba(255,255,255,0.72);text-align:right;white-space:nowrap;}
 .prop-eval-card{
-  border-radius:12px;padding:12px 14px;border:1px solid var(--glass-panel-border);
+  border-radius:12px;padding:10px 12px;border:1px solid var(--glass-panel-border);
   background:rgba(255,255,255,0.035);
   box-shadow:none;text-align:left;
-  height:148px;box-sizing:border-box;overflow:hidden;
+  height:186px;box-sizing:border-box;overflow:hidden;
   contain:content;
+  display:flex;flex-direction:column;gap:2px;min-width:0;
 }
 .prop-eval-card:hover{border-color:rgba(212,160,23,0.22);}
 .prop-eval-card.hit{border-left:4px solid var(--green);background:rgba(57,255,110,0.05);}
 .prop-eval-card.miss{border-left:4px solid var(--red);background:rgba(255,77,77,0.07);}
 .prop-eval-card.other{border-left:4px solid var(--amber);}
 .prop-eval-result{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.4px;margin-bottom:6px;}
+.prop-eval-card .prop-eval-result{font-size:13px;letter-spacing:1px;margin:0 0 2px;flex:0 0 auto;}
 .prop-eval-result.hit{color:var(--green);}
 .prop-eval-result.miss{color:var(--red);}
 .prop-eval-result.other{color:var(--amber);}
@@ -541,8 +543,18 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .prop-eval-stat.miss{color:var(--red);font-weight:600;}
 .prop-eval-stat.other{color:var(--amber);font-weight:600;}
 .prop-eval-player{font-weight:700;font-size:14px;color:var(--text-primary);line-height:1.25;margin-bottom:4px;}
+.prop-eval-card .prop-eval-player{
+  font-size:13px;line-height:1.2;margin:0;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+}
 .prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.4;}
+.prop-eval-card .prop-eval-meta{font-size:11px;line-height:1.3;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .prop-eval-line{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);margin-top:6px;}
+.prop-eval-card .prop-eval-line{
+  font-size:11px;margin:2px 0 0;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.prop-eval-card .prop-eval-card-matchup{margin-top:4px;}
 @media(max-width:900px){
   .props-eval-scroll{
     height:min(68vh, 780px);
@@ -565,7 +577,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   .prop-eval-row .prop-eval-line{grid-area:line;white-space:normal;}
   .prop-eval-row .prop-eval-meta{grid-area:meta;}
   .prop-eval-row .prop-eval-stats{grid-area:stats;text-align:left;}
-  .prop-eval-card{height:132px;}
+  .prop-eval-card{height:176px;}
 }
 [data-theme="light"] .prop-eval-card{background:rgba(255,255,255,0.72)!important;border-color:rgba(0,0,0,0.08)!important;}
 [data-theme="light"] .prop-eval-card.hit{background:rgba(26,140,69,.08)!important;}
@@ -3914,16 +3926,18 @@ var PROPS_EVAL_VIRTUAL = {
 };
 
 function propsEvalRowHeight(view) {
-  if (view === 'cards') return gradesFrameMobileLayout() ? 142 : 158;
+  if (view === 'cards') return gradesFrameMobileLayout() ? 186 : 196;
   return gradesFrameMobileLayout() ? 96 : 52;
 }
 
 function propsEvalCardCols(scrollEl) {
   var w = (scrollEl && scrollEl.clientWidth) || 800;
-  var min = 220;
+  var mobile = gradesFrameMobileLayout();
+  var min = mobile ? 260 : 300;
   var gap = 10;
   var pad = 20;
-  return Math.max(1, Math.floor((w - pad + gap) / (min + gap)));
+  var maxCols = mobile ? 2 : 3;
+  return Math.min(maxCols, Math.max(1, Math.floor((w - pad + gap) / (min + gap))));
 }
 
 function teardownPropsEvalInfiniteScroll() {
@@ -3968,9 +3982,12 @@ function paintPropsEvalVirtualWindow() {
 
   var scrollTop = scrollEl.scrollTop || 0;
   var viewH = scrollEl.clientHeight || 600;
-  var overscan = 8;
+  var overscan = view === 'cards' ? 2 : 8;
+  var visibleRows = Math.max(1, Math.ceil(viewH / itemH));
   var startRow = Math.max(0, Math.floor(scrollTop / itemH) - overscan);
   var endRow = Math.min(rowCount, Math.ceil((scrollTop + viewH) / itemH) + overscan);
+  var maxPaintRows = visibleRows + overscan * 2 + 1;
+  if (endRow - startRow > maxPaintRows) endRow = Math.min(rowCount, startRow + maxPaintRows);
   var startIdx = startRow * cols;
   var endIdx = Math.min(n, endRow * cols);
   if (startIdx === v.lastStart && endIdx === v.lastEnd && cols === v.lastCols && win.childNodes.length) return;
@@ -3993,11 +4010,12 @@ function paintPropsEvalVirtualWindow() {
 
   var build = view === 'cards' ? buildPropEvalCardElement : buildPropEvalRowElement;
   var frag = document.createDocumentFragment();
+  var cardInnerH = itemH - 10;
   for (var i = startIdx; i < endIdx; i++) {
     var el = build(rows[i]);
     if (view === 'cards') {
       el.style.marginBottom = cols > 1 ? '0' : '10px';
-      el.style.height = (itemH - 10) + 'px';
+      el.style.height = cardInnerH + 'px';
       el.style.width = '100%';
       el.style.minWidth = '0';
     }
@@ -4132,10 +4150,10 @@ function buildPropEvalCardElement(r) {
     '<div class="prop-eval-player">' + escProps(r._playerDisp || formatPlayerDisplay(r.player_name)) + '</div>' +
     '<div class="prop-eval-meta">' + escProps(r.sport) + ' · ' + escProps(r.pick_type || '') + (r.tier ? (' · Tier ' + escProps(r.tier)) : '') + '</div>' +
     '<div class="prop-eval-line">' + escProps(r.prop_type) + ' ' + (dir === 'OVER' ? '▲' : dir === 'UNDER' ? '▼' : '') + ' ' + escProps(dir) + linePart + '</div>' +
-    '<div class="prop-eval-meta" style="margin-top:8px;">' + escProps(formatPropEvalMatchup(r)) + '</div>' +
+    '<div class="prop-eval-meta prop-eval-card-matchup">' + escProps(formatPropEvalMatchup(r)) + '</div>' +
     '<div class="prop-eval-meta">Edge ' + escProps(edgeS) + ' · ML ' + escProps(mlS) + '</div>' +
     ((r.void_reason && String(r.void_reason).trim() && !(ru === 'HIT' || ru === 'MISS' || ru === 'PUSH')) ?
-      ('<div class="prop-eval-meta" style="opacity:0.88;">Eligibility: ' + escProps(String(r.void_reason).trim()) + '</div>') : '') +
+      ('<div class="prop-eval-meta" title="' + escProps(String(r.void_reason).trim()) + '">Eligibility: ' + escProps(String(r.void_reason).trim()) + '</div>') : '') +
     '<div class="prop-eval-meta">Actual <span class="prop-eval-stat ' + cls + '">' + fmtPropsNum(r.actual_value) + '</span>' +
     ' · Margin <span class="prop-eval-stat ' + cls + '">' + fmtPropsNum(r.margin) + '</span></div>';
   return card;

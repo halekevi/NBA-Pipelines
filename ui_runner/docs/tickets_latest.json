@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-14 17:30:25 UTC",
+  "generated_at": "2026-07-14 17:35:33 UTC",
   "date": "2026-07-14",
   "tennis_date": "2026-07-15",
   "filters": {
@@ -19681,5 +19681,5 @@
   "main_thin_pool_min_legs": 6,
   "allow_standard": true,
   "strong_builder_count": 34,
-  "run_id": "20260714_173025_989467"
+  "run_id": "20260714_173533_425885"
 }

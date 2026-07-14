@@ -463,8 +463,12 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   min-width:160px;flex:1 1 180px;max-width:100%;
 }
 .props-eval-counts{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);letter-spacing:0.4px;margin-bottom:6px;}
-/* Fixed viewport + virtual window — keeps DOM small while scrolling. */
+/* Fixed viewport + virtual window — keeps DOM small while scrolling.
+   Do NOT use contain:strict (includes size) — it collapses height to ~0 when only
+   max-height is set, which hides every prop row even after data loads. */
 .props-eval-scroll{
+  height:min(72vh, 920px);
+  min-height:280px;
   max-height:min(72vh, 920px);
   overflow-x:hidden;
   overflow-y:auto;
@@ -473,7 +477,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   border:1px solid rgba(255,255,255,0.08);
   border-radius:12px;
   background:rgba(255,255,255,0.02);
-  contain:strict;
+  contain:layout paint style;
 }
 .props-eval-grid{
   position:relative;
@@ -540,7 +544,11 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .prop-eval-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);line-height:1.4;}
 .prop-eval-line{font-family:'Inter',sans-serif;font-size:12px;color:var(--cyan);margin-top:6px;}
 @media(max-width:900px){
-  .props-eval-scroll{max-height:min(68vh, 780px);}
+  .props-eval-scroll{
+    height:min(68vh, 780px);
+    min-height:240px;
+    max-height:min(68vh, 780px);
+  }
   .prop-eval-row{
     grid-template-columns:52px minmax(0,1fr);
     grid-template-areas:
@@ -730,7 +738,11 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
     touch-action:pan-y;
   }
   .grades-props-wrap .grades-props-inner{overflow:visible;}
-  .props-eval-scroll{max-height:min(68vh, 780px);}
+  .props-eval-scroll{
+    height:min(68vh, 780px);
+    min-height:240px;
+    max-height:min(68vh, 780px);
+  }
   .prop-eval-card{
     min-width:0;
     padding:10px 11px;

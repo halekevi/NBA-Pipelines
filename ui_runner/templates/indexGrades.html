@@ -3648,10 +3648,10 @@ function propsEvalRowHeight(view) {
 function propsEvalCardCols(scrollEl) {
   var w = (scrollEl && scrollEl.clientWidth) || 800;
   var mobile = gradesFrameMobileLayout();
-  var min = mobile ? 260 : 300;
+  var min = mobile ? 240 : 260;
   var gap = 10;
   var pad = 20;
-  var maxCols = mobile ? 2 : 3;
+  var maxCols = mobile ? 2 : 4;
   return Math.min(maxCols, Math.max(1, Math.floor((w - pad + gap) / (min + gap))));
 }
 

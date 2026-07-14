@@ -208,6 +208,19 @@ def test_build_strong_tickets_prefers_three_plus_legs_when_pool_allows():
     assert longer >= two_leg
 
 
+def test_build_strong_tickets_includes_five_and_six_legs():
+    tickets = build_strong_tickets(
+        _many_hot_goblin_df(8),
+        exhaust_pool=True,
+        date_str="2026-07-14",
+    )
+    assert tickets
+    lengths = {int(t.get("n_legs") or 0) for t in tickets}
+    assert 5 in lengths
+    assert 6 in lengths
+    assert int(tickets[0].get("n_legs") or 0) >= 5
+
+
 def test_build_strong_tickets_exhausts_unique_player_pool():
     # With exhaust on, a 5-player pool should yield many more slips than --max-tickets=3.
     tickets = build_strong_tickets(
@@ -220,20 +233,26 @@ def test_build_strong_tickets_exhausts_unique_player_pool():
     assert any(int(t.get("n_legs") or 0) >= 3 for t in tickets)
 
 
-def test_strong_player_prop_capped_at_three_tickets():
+def test_strong_player_prop_capped_at_two_per_leg_count():
     tickets = build_strong_tickets(
         _many_hot_goblin_df(8),
         exhaust_pool=True,
         date_str="2026-07-14",
     )
     assert tickets
-    counts: Counter[str] = Counter()
+    by_n: dict[int, Counter[str]] = {}
     for t in tickets:
+        n = int(t.get("n_legs") or 0)
+        by_n.setdefault(n, Counter())
         for row in t.get("rows") or []:
-            key = f"{str(row.get('player') or '').strip().lower()}::{str(row.get('prop_type') or '').strip().lower()}"
-            counts[key] += 1
-    assert counts, "expected strong legs"
-    assert max(counts.values()) <= 3
+            key = (
+                f"{str(row.get('player') or '').strip().lower()}::"
+                f"{str(row.get('prop_type') or '').strip().lower()}"
+            )
+            by_n[n][key] += 1
+    assert by_n, "expected strong legs"
+    for n, counts in by_n.items():
+        assert max(counts.values()) <= 2, f"{n}-leg exceeded 2 uses/player-prop"
 
 
 def test_strong_builder_slips_keep_strong_recommendation():

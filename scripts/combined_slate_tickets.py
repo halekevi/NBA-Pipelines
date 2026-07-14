@@ -167,6 +167,8 @@ from utils.ticket_ev_tiers import (
     STRONG_MIN_P_WIN_2LEG,
     STRONG_MIN_P_WIN_3LEG,
     STRONG_MIN_P_WIN_4LEG,
+    STRONG_MIN_P_WIN_5LEG,
+    STRONG_MIN_P_WIN_6LEG,
     apply_slate_ev_tier_recommendations,
     recommendation_from_ev,
 )
@@ -13320,9 +13322,10 @@ STRONG_COSTACK_WEAK_THRESHOLD = 0.35
 STRONG_MAX_PLAYER_APPEARANCES_PER_SLATE = max(
     1, int(os.getenv("PROPORACLE_STRONG_MAX_PLAYER_APPS", "2"))
 )
-# Max times the same player+prop may appear across the STRONG board (stops 20–40× spam).
+# Max times the same player+prop may appear among STRONG tickets of one length
+# (e.g. ≤2 uses in 6-leg slips, and again ≤2 in 5-leg slips, independently).
 STRONG_MAX_TICKETS_PER_PLAYER_PROP = max(
-    1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "3"))
+    1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "2"))
 )
 
 
@@ -13527,13 +13530,24 @@ def _strong_best_prop_per_player(rows: list[dict]) -> list[dict]:
     return out
 
 
-def _strong_min_p_win_for_legs(n_legs: int, floor_2: float, floor_3: float, floor_4: float) -> float:
+def _strong_min_p_win_for_legs(
+    n_legs: int,
+    floor_2: float,
+    floor_3: float,
+    floor_4: float,
+    floor_5: float,
+    floor_6: float,
+) -> float:
     n = int(n_legs)
     if n <= 2:
         return float(floor_2)
     if n == 3:
         return float(floor_3)
-    return float(floor_4)
+    if n == 4:
+        return float(floor_4)
+    if n == 5:
+        return float(floor_5)
+    return float(floor_6)
 
 
 def build_strong_tickets(
@@ -13543,6 +13557,8 @@ def build_strong_tickets(
     min_p_win_2leg: float | None = None,
     min_p_win_3leg: float | None = None,
     min_p_win_4leg: float | None = None,
+    min_p_win_5leg: float | None = None,
+    min_p_win_6leg: float | None = None,
     max_legs: int | None = None,
     player_ticket_counts: dict[str, int] | None = None,
     date_str: str = "",
@@ -13551,8 +13567,8 @@ def build_strong_tickets(
     """
     Build power tickets from Goblin A/B HOT legs.
 
-    Prefers longer unique-player slips (4 → 3 → 2). By default exhausts the
-    unique-player pool (all gate-passing combos) instead of stopping at the
+    Prefers longer unique-player slips (6 → 5 → 4 → 3 → 2). By default exhausts
+    the unique-player pool (all gate-passing combos) instead of stopping at the
     global --max-tickets board budget.
     """
     prepared = _prepare_strong_builder_pool(df)
@@ -13569,6 +13585,8 @@ def build_strong_tickets(
     floor_2 = float(min_p_win_2leg if min_p_win_2leg is not None else STRONG_MIN_P_WIN_2LEG)
     floor_3 = float(min_p_win_3leg if min_p_win_3leg is not None else STRONG_MIN_P_WIN_3LEG)
     floor_4 = float(min_p_win_4leg if min_p_win_4leg is not None else STRONG_MIN_P_WIN_4LEG)
+    floor_5 = float(min_p_win_5leg if min_p_win_5leg is not None else STRONG_MIN_P_WIN_5LEG)
+    floor_6 = float(min_p_win_6leg if min_p_win_6leg is not None else STRONG_MIN_P_WIN_6LEG)
     max_legs_i = int(max_legs if max_legs is not None else STRONG_MAX_LEGS)
     max_legs_i = max(2, min(int(STRONG_MAX_LEGS), max_legs_i))
     if n_candidates < 2:
@@ -13588,26 +13606,39 @@ def build_strong_tickets(
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
-    player_prop_counts: Counter[str] = Counter()
+    # Counts are per leg-count so a prop can appear 2× in 6-legs and again 2× in 5-legs.
+    player_prop_counts_by_n: dict[int, Counter[str]] = defaultdict(Counter)
     # Exhaust mode: scan the full unique-player combo space (no early scan abort).
     # Non-exhaust: keep a bounded scan for latency.
-    # Longer first so 2-leg filler cannot starve 3/4 when a tiny soft cap is used.
+    # Longer first so 2-leg filler cannot starve 3–6 when a tiny soft cap is used.
     leg_order = list(range(max_legs_i, 1, -1))
 
     for n_legs in leg_order:
         pool_rows = unique_player_rows if n_legs >= 3 else top_rows
         if len(pool_rows) < n_legs:
             continue
-        min_p_win = _strong_min_p_win_for_legs(n_legs, floor_2, floor_3, floor_4)
+        min_p_win = _strong_min_p_win_for_legs(
+            n_legs, floor_2, floor_3, floor_4, floor_5, floor_6
+        )
         scan_cap = (
             math.comb(len(pool_rows), n_legs) + 1
             if do_exhaust
             else max(8_000, cap * 800)
         )
-        # Keep 2-leg as supplemental filler so longer unique-player stacks dominate the board.
+        # Soft per-length quotas in exhaust mode so longer stacks share the board.
         n_budget = cap
-        if n_legs <= 2 and do_exhaust:
-            n_budget = min(cap, len(tickets) + 40)
+        if do_exhaust:
+            if n_legs >= 6:
+                n_budget = min(cap, len(tickets) + 8)
+            elif n_legs == 5:
+                n_budget = min(cap, len(tickets) + 10)
+            elif n_legs == 4:
+                n_budget = min(cap, len(tickets) + 15)
+            elif n_legs == 3:
+                n_budget = min(cap, len(tickets) + 20)
+            else:
+                n_budget = min(cap, len(tickets) + 40)
+        prop_counts_n = player_prop_counts_by_n[int(n_legs)]
         scanned = 0
         for combo in itertools.combinations(pool_rows, n_legs):
             scanned += 1
@@ -13634,7 +13665,7 @@ def build_strong_tickets(
                 continue
             if not _ticket_cap_can_add(rows, player_ticket_counts):
                 continue
-            if not _strong_player_prop_can_add(rows, player_prop_counts):
+            if not _strong_player_prop_can_add(rows, prop_counts_n):
                 continue
             if not _strong_combo_players_ok(rows, rolling_hr):
                 continue
@@ -13677,7 +13708,7 @@ def build_strong_tickets(
             )
             seen_keys.add(key)
             _ticket_cap_register(rows, player_ticket_counts)
-            _strong_player_prop_register(rows, player_prop_counts)
+            _strong_player_prop_register(rows, prop_counts_n)
 
     # Prefer longer slips in the final board ranking, then p_win.
     tickets.sort(

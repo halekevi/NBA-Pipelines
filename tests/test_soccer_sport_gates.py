@@ -1,4 +1,4 @@
-"""Soccer sport-gate unit tests: UNDER preferred, HQ OVER + Goblin allowed."""
+"""Soccer sport-gate unit tests: UNDER preferred (Standard), Goblin OVER-only."""
 from __future__ import annotations
 
 import sys
@@ -10,12 +10,25 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from combined_slate_tickets import (  # noqa: E402
     SOCCER_OVER_MIN_EDGE,
     SOCCER_OVER_MIN_HIT_RATE,
+    goblin_direction_ok,
     soccer_allowed_leg,
 )
 
 
-def test_soccer_goblin_under_allowed():
-    assert soccer_allowed_leg(
+def test_goblin_under_never_ok():
+    assert not goblin_direction_ok(
+        {"pick_type": "Goblin", "direction": "UNDER"}
+    )
+    assert goblin_direction_ok(
+        {"pick_type": "Goblin", "direction": "OVER"}
+    )
+    assert goblin_direction_ok(
+        {"pick_type": "Standard", "direction": "UNDER"}
+    )
+
+
+def test_soccer_goblin_under_rejected():
+    assert not soccer_allowed_leg(
         {
             "sport": "SOCCER",
             "pick_type": "Goblin",

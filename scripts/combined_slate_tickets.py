@@ -2617,7 +2617,8 @@ SOCCER_EXCLUDED_PROPS = {
 }
 
 # Soccer-only ticket gates (independent of NHL/Tennis/MLB).
-# Graded history prefers UNDER, but high-quality OVER (especially Goblin) stays eligible.
+# Graded history prefers Standard UNDER; Goblins are OVER-only (product rule).
+# High-quality Goblin OVER can still clear HQ floors when UNDER-preferred mode is on.
 SOCCER_UNDER_PREFERRED: bool = os.getenv("PROPORACLE_SOCCER_UNDER_PREFERRED", "1").strip().lower() not in (
     "0",
     "false",
@@ -2635,6 +2636,42 @@ SOCCER_LEG_MIN_HIT_RATE = {
     3: 0.60,
     4: 0.62,
 }
+
+
+def _pick_type_is_goblin(pick: object) -> bool:
+    return "goblin" in str(pick or "").strip().lower()
+
+
+def _leg_bet_direction(leg: object) -> str:
+    if isinstance(leg, dict):
+        raw = leg.get("direction") or leg.get("over_under") or ""
+    elif hasattr(leg, "get"):
+        raw = leg.get("direction") or leg.get("over_under") or ""
+    else:
+        raw = getattr(leg, "direction", None) or getattr(leg, "over_under", None) or ""
+    d = str(raw or "").strip().upper()
+    if "UNDER" in d:
+        return "UNDER"
+    if "OVER" in d:
+        return "OVER"
+    return ""
+
+
+def goblin_direction_ok(leg: object) -> bool:
+    """
+    PrizePicks Goblins are discounted OVER lines only — never UNDER.
+    Non-Goblin legs always pass this check.
+    """
+    if isinstance(leg, dict):
+        pick = leg.get("pick_type", "")
+    elif hasattr(leg, "get"):
+        pick = leg.get("pick_type", "")
+    else:
+        pick = getattr(leg, "pick_type", "")
+    if not _pick_type_is_goblin(pick):
+        return True
+    return _leg_bet_direction(leg) == "OVER"
+
 
 # When strict filter_eligible leaves fewer than this many legs, top-rank fallback runs.
 _BEST_PROPS_POOL_MIN_LEGS = 8
@@ -2906,8 +2943,7 @@ def soccer_allowed_leg(leg) -> bool:
     """
     Soccer sport gate (own pipeline):
 
-    - Goblin + Standard both eligible (like other sports)
-    - UNDER preferred (softer hit floor)
+    - Goblin = OVER only (never UNDER); Standard UNDER preferred
     - OVER allowed only when high-quality (hit/edge/prob floors)
     - Demon never ticket-eligible here
     """
@@ -2921,6 +2957,8 @@ def soccer_allowed_leg(leg) -> bool:
     pick = str(row.get("pick_type", "")).strip().lower()
     if "demon" in pick:
         return False
+    if not goblin_direction_ok(row):
+        return False
     prop = _norm_prop_label(row.get("prop_type") or row.get("prop") or "")
     if prop in SOCCER_EXCLUDED_PROPS:
         return False
@@ -2930,9 +2968,10 @@ def soccer_allowed_leg(leg) -> bool:
     leg_prob = _leg_prob_for_p_win_from_mapping(row)
 
     if direction == "UNDER":
+        # Standard (or blank) UNDER only — Goblins already rejected above.
         if hr is not None and hr < float(SOCCER_UNDER_MIN_HIT_RATE):
             return False
-        return pick in ("", "goblin", "standard") or "goblin" in pick or "standard" in pick
+        return pick in ("", "standard") or "standard" in pick
 
     if direction == "OVER":
         # Soft UNDER preference: OVER must clear HQ floors when preferred mode is on.
@@ -3938,21 +3977,26 @@ def _tennis_leg_prop_label(leg) -> str:
 
 
 def nhl_allowed_leg(leg) -> bool:
-    """NHL tickets: UNDER or Goblin OVER only (block Standard/Demon OVER)."""
+    """NHL tickets: Standard UNDER or Goblin OVER only (block Goblin UNDER / Std OVER)."""
     if isinstance(leg, dict):
         sport = str(leg.get("sport", "")).upper()
         pick_type = str(leg.get("pick_type", "")).strip().lower()
         direction = str(leg.get("direction") or leg.get("over_under") or "").upper()
+        row = leg
     else:
         sport = str(leg.get("sport", "")).upper()
         pick_type = str(leg.get("pick_type", "")).strip().lower()
         direction = str(leg.get("direction") or leg.get("over_under") or "").upper()
+        row = leg
     if sport != "NHL":
         return True
+    if not goblin_direction_ok(row):
+        return False
     if not NHL_UNDER_PREFERRED:
         return True
     if direction == "UNDER":
-        return True
+        # UNDER is Standard-only (Goblins are OVER-only by product rule).
+        return "goblin" not in pick_type and "demon" not in pick_type
     if direction == "OVER" and pick_type == "goblin":
         return True
     return False
@@ -3995,11 +4039,15 @@ def tennis_allowed_leg(leg) -> bool:
         sport = str(leg.get("sport", "")).upper()
         pick_type = str(leg.get("pick_type", "")).strip().lower()
         direction = str(leg.get("direction") or leg.get("over_under") or "").upper()
+        row = leg
     else:
         sport = str(leg.get("sport", "")).upper()
         pick_type = str(leg.get("pick_type", "")).strip().lower()
         direction = str(leg.get("direction") or leg.get("over_under") or "").upper()
+        row = leg
     if sport != "TENNIS":
+        return False
+    if not goblin_direction_ok(row):
         return False
     prop_label = _tennis_leg_prop_label(leg)
     if (
@@ -5133,6 +5181,8 @@ def _row_win_rate_eligible(
         return False
     pt = str(row_d.get("pick_type") or "").strip().lower()
     tier = str(row_d.get("tier") or "").strip().upper()
+    if not goblin_direction_ok(row_d):
+        return False
     if goblin_only:
         if pt != "goblin":
             return False
@@ -13792,13 +13842,22 @@ def _strong_candidate_legs(
     if mode in ("standard", "std"):
         pick_ok = pick.str.contains("standard", na=False) & ~pick.str.contains("goblin", na=False)
         streak_ok = streak.eq("HOT")
+        dir_ok = pd.Series(True, index=df.index)
     else:
+        # Goblins are OVER-only (PrizePicks discounted overs — never UNDER).
         pick_ok = pick.str.contains("goblin", na=False)
         streak_ok = streak.eq("HOT")
+        direction = (
+            df.get("direction", pd.Series("", index=df.index))
+            if "direction" in df.columns
+            else df.get("over_under", pd.Series("", index=df.index))
+        )
+        dir_ok = direction.astype(str).str.upper().str.strip().eq("OVER")
     mask = (
         pick_ok
         & tier.isin(["A", "B"])
         & streak_ok
+        & dir_ok.fillna(False)
         & sport.isin(STRONG_BUILDER_SPORTS)
         & prop_ok.fillna(False)
     )

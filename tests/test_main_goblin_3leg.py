@@ -180,12 +180,9 @@ def test_filter_main_high_prob_keeps_standard_and_goblin():
 
 def test_banned_tennis_aces_goblin_soccer_goblin_not_globally_banned():
     assert _main_leg_prop_banned(_leg(sport="TENNIS", prop_type="Aces", pick_type="Goblin"))
-    # Soccer Goblin OVER/UNDER use soccer_allowed_leg HQ floors, not a MAIN prop ban.
+    # Soccer Goblin OVER uses soccer_allowed_leg HQ floors, not a MAIN prop ban.
     assert not _main_leg_prop_banned(
         _leg(sport="SOCCER", prop_type="Shots", pick_type="Goblin", direction="OVER")
-    )
-    assert not _main_leg_prop_banned(
-        _leg(sport="SOCCER", prop_type="Shots", pick_type="Goblin", direction="UNDER")
     )
     assert not _main_leg_prop_banned(
         _leg(sport="SOCCER", prop_type="Shots", pick_type="Standard", direction="OVER")

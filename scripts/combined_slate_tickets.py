@@ -9217,8 +9217,11 @@ def _preserve_live_cdp_from_existing_web_json(payload: dict, json_path: str) -> 
     return n
 
 
-def _sync_tickets_latest_mirrors(payload: dict, outdir: str) -> None:
-    """Keep docs + mobile tickets_latest.json aligned with templates."""
+def _sync_tickets_latest_mirrors(payload: dict, outdir: str, *, json_filename: str = "tickets_latest.json") -> None:
+    """Keep docs + mobile tickets_latest.json aligned with templates (MAIN only)."""
+    # Never overwrite live MAIN mirrors when writing win-rate / high-leg / shadow JSON.
+    if Path(str(json_filename or "tickets_latest.json")).name != "tickets_latest.json":
+        return
     try:
         outdir_p = Path(outdir).resolve()
         for docs_json in (
@@ -9256,7 +9259,7 @@ def write_web_outputs(
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
         print(f"[OK] Web JSON  -> {json_path}")
-        _sync_tickets_latest_mirrors(payload, outdir)
+        _sync_tickets_latest_mirrors(payload, outdir, json_filename=json_filename)
         return
     _finalize_payload_l10_streaks(payload)
     apply_slate_ev_tier_recommendations(payload)
@@ -9302,7 +9305,7 @@ def write_web_outputs(
     print(f"[OK] Web JSON  -> {json_path}")
     if payload.get("run_id"):
         print(f"  [web] run_id={payload.get('run_id')}")
-    _sync_tickets_latest_mirrors(payload, outdir)
+    _sync_tickets_latest_mirrors(payload, outdir, json_filename=json_filename)
     print("  (Graded eval HTML) Run: py -3.14 scripts/build_ticket_eval.py --date <YYYY-MM-DD>")
 
 

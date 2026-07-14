@@ -743,8 +743,25 @@ def _pick_type_eligible(
     if pd.notna(elig) and int(elig) == 0:
         return False
     void_reason = str(row.get("void_reason") or "").strip()
+    sport_u = norm_sport(row.get("sport_norm") or row.get("sport"))
+    # Basketball soft voids must not wipe Soccer/NHL/Tennis/MLB pick eligibility —
+    # those sports use their own ticket gates (e.g. soccer_allowed_leg).
+    _bball = {"NBA", "WNBA", "NBA1H", "NBA1Q", "CBB", "WCBB", "BASKETBALL_WNBA"}
     if void_reason and void_reason.lower() not in ("", "nan", "none"):
-        return False
+        vr = void_reason.lower()
+        if sport_u and sport_u not in _bball:
+            for token in (
+                "void_low_minutes_non_a",
+                "void_std_over_low_ml_prob",
+                "void_over_elite_def_non_q5",
+                "void_under_weak_def_non_q5",
+            ):
+                vr = vr.replace(token, "")
+            vr = re.sub(r"[;\s|]+", ";", vr).strip(" ;|")
+            if vr and vr not in ("", "nan", "none"):
+                return False
+        else:
+            return False
 
     pt = norm_pick_type(row.get("pick_type") or row.get("pick_type_norm"))
     direction = norm_direction(row.get("direction") or row.get("direction_norm"))

@@ -2612,6 +2612,14 @@ def write_payout_patch_and_apply_to_tickets(
                     pay["payout_source"] = "live_cdp"
                     if entry.get("power_first_x") is not None:
                         pay["power_first_x"] = entry["power_first_x"]
+                    try:
+                        from utils.ticket_ev_tiers import refresh_ticket_ev_from_min_guarantee
+
+                        refresh_ticket_ev_from_min_guarantee(
+                            pay, float(entry["display_min_x"]), update_recommendation=False
+                        )
+                    except Exception:
+                        pass
                     t["payout"] = pay
                     t["display_min_x"] = entry["display_min_x"]
                     n_patched += 1
@@ -2628,6 +2636,14 @@ def write_payout_patch_and_apply_to_tickets(
                     pay["display_min_x"] = float(live_keep)
                     pay["power_min_x"] = float(live_keep)
                     pay["payout_source"] = "live_cdp"
+                    try:
+                        from utils.ticket_ev_tiers import refresh_ticket_ev_from_min_guarantee
+
+                        refresh_ticket_ev_from_min_guarantee(
+                            pay, float(live_keep), update_recommendation=False
+                        )
+                    except Exception:
+                        pass
                     t["payout"] = pay
                     t["display_min_x"] = float(live_keep)
                     n_kept_live += 1
@@ -2640,6 +2656,14 @@ def write_payout_patch_and_apply_to_tickets(
                 if avg is not None and float(avg) > 0:
                     pay["display_min_x"] = float(avg)
                     pay["payout_source"] = "mix_grid_average"
+                    try:
+                        from utils.ticket_ev_tiers import refresh_ticket_ev_from_min_guarantee
+
+                        refresh_ticket_ev_from_min_guarantee(
+                            pay, float(avg), update_recommendation=False
+                        )
+                    except Exception:
+                        pass
                     t["payout"] = pay
                     t["display_min_x"] = float(avg)
                     n_fallback += 1
@@ -2651,9 +2675,24 @@ def write_payout_patch_and_apply_to_tickets(
                     if model > 0:
                         pay["display_min_x"] = model
                         pay["payout_source"] = "fallback_estimate"
+                        try:
+                            from utils.ticket_ev_tiers import refresh_ticket_ev_from_min_guarantee
+
+                            refresh_ticket_ev_from_min_guarantee(
+                                pay, float(model), update_recommendation=False
+                            )
+                        except Exception:
+                            pass
                         t["payout"] = pay
                         t["display_min_x"] = model
                         n_fallback += 1
+        # Re-tier after EV was recomputed from scraped/fallback min guarantees.
+        try:
+            from utils.ticket_ev_tiers import apply_slate_ev_tier_recommendations
+
+            apply_slate_ev_tier_recommendations(data, log=False)
+        except Exception:
+            pass
         tickets_path.write_text(
             json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
         )

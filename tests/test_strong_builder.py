@@ -22,10 +22,13 @@ from combined_slate_tickets import (  # noqa: E402
     _row_standard_high_prob_eligible,
     _standard_direction_floor,
     _strong_candidate_legs,
+    _strong_candidate_legs_mixed,
     _strong_candidate_legs_standard,
     _strong_candidate_legs_standard_prob,
     _strong_combo_players_ok,
+    _ticket_rows_have_goblin_and_standard,
     build_strong_tickets,
+    split_strong_tickets_by_leg_count,
 )
 from utils.ticket_ev_tiers import apply_slate_ev_tier_recommendations  # noqa: E402
 
@@ -568,6 +571,105 @@ def test_strong_costack_guard_blocks_two_weak_anchors():
         [{"player": "Weak A"}, {"player": "Strong"}],
         rolling,
     )
+
+
+def _mixed_hot_pool_df() -> pd.DataFrame:
+    rows = []
+    for i in range(3):
+        rows.append(
+            {
+                "sport": "WNBA",
+                "player": f"Goblin {i}",
+                "team": f"G{i}",
+                "opp": "OPP",
+                "prop_type": "Points",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 8.5 + i,
+                "hit_rate": 0.78,
+                "rank_score": 90 - i,
+                "ml_prob": 0.78,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.90 - 0.01 * i,
+            }
+        )
+    for i in range(3):
+        rows.append(
+            {
+                "sport": "WNBA",
+                "player": f"Standard {i}",
+                "team": f"S{i}",
+                "opp": "OPP",
+                "prop_type": "Rebounds",
+                "pick_type": "Standard",
+                "tier": "B",
+                "direction": "OVER",
+                "line": 6.5 + i,
+                "hit_rate": 0.74,
+                "rank_score": 85 - i,
+                "ml_prob": 0.74,
+                "l10_over": 7.0,
+                "l10_under": 3.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.85 - 0.01 * i,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def test_strong_candidate_legs_mixed_unions_goblin_and_standard_hot():
+    out = _strong_candidate_legs_mixed(_mixed_hot_pool_df())
+    players = set(out["player"].astype(str))
+    assert "Goblin 0" in players
+    assert "Standard 0" in players
+    picks = {str(p).lower() for p in out["pick_type"]}
+    assert any("goblin" in p for p in picks)
+    assert any("standard" in p for p in picks)
+
+
+def test_build_strong_tickets_mixed_requires_both_pick_types():
+    tickets = build_strong_tickets(
+        _mixed_hot_pool_df(),
+        pick_mode="mixed",
+        max_tickets=20,
+        max_legs=3,
+        exhaust_pool=False,
+        min_p_win_2leg=0.01,
+        min_p_win_3leg=0.01,
+        date_str="2026-07-14",
+    )
+    assert tickets
+    assert all(t.get("strong_builder_pick") == "Mixed" for t in tickets)
+    assert all(t.get("pool_policy") == "goblin_standard_mixed" for t in tickets)
+    for t in tickets:
+        rows = t.get("rows") or []
+        assert _ticket_rows_have_goblin_and_standard(rows)
+
+
+def test_split_strong_keeps_goblin_and_mix_groups_separate():
+    goblin = build_strong_tickets(
+        _many_hot_goblin_df(4),
+        pick_mode="goblin",
+        max_tickets=5,
+        max_legs=2,
+        exhaust_pool=False,
+        min_p_win_2leg=0.01,
+    )
+    mixed = build_strong_tickets(
+        _mixed_hot_pool_df(),
+        pick_mode="mixed",
+        max_tickets=5,
+        max_legs=2,
+        exhaust_pool=False,
+        min_p_win_2leg=0.01,
+    )
+    buckets = split_strong_tickets_by_leg_count([*goblin, *mixed])
+    names = [b[0] for b in buckets]
+    assert any(n.startswith("STRONG ") and "Mix" not in n for n in names)
+    assert any(n.startswith("STRONG Mix ") for n in names)
 
 
 def test_build_strong_tickets_respects_rolling_hr_file(monkeypatch):

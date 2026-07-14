@@ -7806,8 +7806,19 @@ def emit_standalone_win_rate_outputs(
     return wr_payload
 
 
-def _strong_group_name_for_legs(n_legs: int) -> str:
+def _strong_ticket_is_mixed(ticket: Mapping[str, Any]) -> bool:
+    """True for STRONG Mix slips (Goblin+Standard hybrid board)."""
+    pick = str(ticket.get("strong_builder_pick") or "").strip().lower()
+    if pick == "mixed":
+        return True
+    policy = str(ticket.get("pool_policy") or "").strip().lower()
+    return policy in ("goblin_standard_mixed", "mixed", "goblin_standard")
+
+
+def _strong_group_name_for_legs(n_legs: int, *, mixed: bool = False) -> str:
     """Display / sheet title for one STRONG length bucket (e.g. STRONG 6-Leg)."""
+    if mixed:
+        return f"STRONG Mix {int(n_legs)}-Leg"
     return f"STRONG {int(n_legs)}-Leg"
 
 
@@ -7824,23 +7835,32 @@ def _strong_ticket_leg_count(ticket: Mapping[str, Any]) -> int:
 
 def split_strong_tickets_by_leg_count(
     tickets: Sequence[Mapping[str, Any]] | None,
+    *,
+    mixed: bool | None = None,
 ) -> list[tuple[str, list[dict], int]]:
     """
     Bucket STRONG builder slips by length, longest first.
 
-    Returns [(group_name, tickets, n_legs), ...] e.g. STRONG 6-Leg, STRONG 5-Leg, …
+    When mixed is None, infer per-ticket (Goblin vs Mix) so boards stay separate.
+    Returns [(group_name, tickets, n_legs), ...] e.g. STRONG 6-Leg, STRONG Mix 3-Leg, …
     """
-    by_n: dict[int, list[dict]] = defaultdict(list)
+    by_key: dict[tuple[bool, int], list[dict]] = defaultdict(list)
     for t in tickets or []:
         if not isinstance(t, Mapping):
             continue
         n = _strong_ticket_leg_count(t)
         if n < 2:
             continue
-        by_n[n].append(dict(t))
+        is_mix = bool(mixed) if mixed is not None else _strong_ticket_is_mixed(t)
+        by_key[(is_mix, n)].append(dict(t))
     out: list[tuple[str, list[dict], int]] = []
-    for n in sorted(by_n.keys(), reverse=True):
-        out.append((_strong_group_name_for_legs(n), by_n[n], n))
+    # Pure Goblin STRONG first (longest→shortest), then Mix (longest→shortest).
+    for is_mix in (False, True):
+        lengths = sorted({n for (mix, n) in by_key if mix is is_mix}, reverse=True)
+        for n in lengths:
+            slips = by_key[(is_mix, n)]
+            if slips:
+                out.append((_strong_group_name_for_legs(n, mixed=is_mix), slips, n))
     return out
 
 
@@ -13718,6 +13738,13 @@ STRONG_BUILDER_EXHAUST_POOL: bool = os.getenv("PROPORACLE_STRONG_EXHAUST_POOL", 
     "off",
 )
 STRONG_BUILDER_HARD_MAX: int = max(25, int(os.getenv("PROPORACLE_STRONG_HARD_MAX", "200")))
+# Separate board: slips that mix Goblin HOT + Standard HOT (not pure Goblin STRONG).
+STRONG_MIX_ENABLED: bool = os.getenv("PROPORACLE_STRONG_MIX", "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+)
 # Any active sport that clears sport + pick gates can enter STRONG (not just hoops/MLB).
 STRONG_BUILDER_SPORTS: frozenset[str] = frozenset(
     {
@@ -13956,7 +13983,7 @@ def _strong_candidate_legs(
     *,
     pick_mode: str = "goblin",
 ) -> pd.DataFrame:
-    """Tier A/B legs for STRONG stacking: Goblin+HOT, Standard+HOT, or Standard high-prob (O/U)."""
+    """Tier A/B legs for STRONG stacking: Goblin+HOT, Standard+HOT, mixed, or Standard high-prob."""
     if df is None or df.empty:
         return df.iloc[0:0].copy()
     mode = str(pick_mode or "goblin").strip().lower()
@@ -13977,6 +14004,22 @@ def _strong_candidate_legs(
         ],
         index=df.index,
     )
+
+    if mode in ("mixed", "mix", "goblin_standard", "goblin_std"):
+        # Union of production Goblin HOT + Standard HOT pools (deduped by index).
+        gob = _strong_candidate_legs(df, pick_mode="goblin")
+        std = _strong_candidate_legs(df, pick_mode="standard")
+        if gob.empty and std.empty:
+            return df.iloc[0:0].copy()
+        if gob.empty:
+            return std
+        if std.empty:
+            return gob
+        out = pd.concat([gob, std], axis=0)
+        out = out[~out.index.duplicated(keep="first")]
+        if "prop_quality_score" in out.columns:
+            out = out.sort_values("prop_quality_score", ascending=False)
+        return out
 
     if mode in ("standard_prob", "standard_high_prob", "std_prob"):
         # Probability-first Standard: no HOT requirement; O or U with direction floors.
@@ -14041,6 +14084,24 @@ def _strong_candidate_legs_standard_prob(df: pd.DataFrame) -> pd.DataFrame:
     return _strong_candidate_legs(df, pick_mode="standard_prob")
 
 
+def _strong_candidate_legs_mixed(df: pd.DataFrame) -> pd.DataFrame:
+    """Goblin HOT ∪ Standard HOT candidate pool for STRONG Mix slips."""
+    return _strong_candidate_legs(df, pick_mode="mixed")
+
+
+def _ticket_rows_have_goblin_and_standard(rows: Sequence[Mapping[str, Any]]) -> bool:
+    """True when slip has ≥1 Goblin leg and ≥1 Standard leg."""
+    has_goblin = False
+    has_standard = False
+    for r in rows or []:
+        pt = str(r.get("pick_type") or "").strip().lower()
+        if "goblin" in pt:
+            has_goblin = True
+        elif "standard" in pt:
+            has_standard = True
+    return has_goblin and has_standard
+
+
 def _log_strong_builder(
     date_str: str,
     n_candidates: int,
@@ -14050,11 +14111,14 @@ def _log_strong_builder(
     pick_mode: str = "goblin",
 ) -> None:
     mode = str(pick_mode or "goblin").strip().lower()
-    label = (
-        "STD_PROB"
-        if mode in ("standard_prob", "standard_high_prob", "std_prob")
-        else ("STANDARD" if mode in ("standard", "std") else "GOBLIN")
-    )
+    if mode in ("mixed", "mix", "goblin_standard", "goblin_std"):
+        label = "MIXED"
+    elif mode in ("standard_prob", "standard_high_prob", "std_prob"):
+        label = "STD_PROB"
+    elif mode in ("standard", "std"):
+        label = "STANDARD"
+    else:
+        label = "GOBLIN"
     print(
         f"[strong-builder/{label}] {date_str}: {n_candidates} candidate legs, "
         f"{len(tickets)} STRONG tickets built"
@@ -14121,18 +14185,20 @@ def build_strong_tickets(
     pick_mode: str = "goblin",
 ) -> list[dict]:
     """
-    Build power tickets from Goblin HOT, Standard HOT, or Standard high-prob legs.
+    Build power tickets from Goblin HOT, Standard HOT, mixed, or Standard high-prob legs.
 
     pick_mode:
       - goblin: Goblin + Tier A/B + HOT (production STRONG)
       - standard: Standard + Tier A/B + HOT (legacy shadow mirror)
       - standard_prob: Standard A/B with direction probability floors (O/U; no HOT req)
+      - mixed: Goblin HOT ∪ Standard HOT; each slip must include both pick types
 
     Prefers longer unique-player slips (6 → 5 → 4 → 3 → 2). By default exhausts
     the unique-player pool (all gate-passing combos) instead of stopping at the
     global --max-tickets board budget.
     """
     mode = str(pick_mode or "goblin").strip().lower()
+    is_mixed = mode in ("mixed", "mix", "goblin_standard", "goblin_std")
     prepared = _prepare_strong_builder_pool(df)
     candidates = _strong_candidate_legs(prepared, pick_mode=mode)
     rolling_hr = _load_strong_player_rolling_hr()
@@ -14231,6 +14297,8 @@ def build_strong_tickets(
                 continue
             if not _strong_combo_players_ok(rows, rolling_hr):
                 continue
+            if is_mixed and not _ticket_rows_have_goblin_and_standard(rows):
+                continue
 
             leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
             cmult, caudit = _correlation_multiplier_and_audit(rows)
@@ -14243,12 +14311,18 @@ def build_strong_tickets(
             hrs = [float(r.get("hit_rate", 0.5) or 0.5) for r in rows]
             rss = [float(r.get("rank_score", 0.0) or 0.0) for r in rows]
             sport_label = next(iter(sports)) if len(sports) == 1 else "MIX"
-            if mode in ("standard_prob", "standard_high_prob", "std_prob"):
+            if is_mixed:
+                pick_label = "Mixed"
+                pool_policy = "goblin_standard_mixed"
+            elif mode in ("standard_prob", "standard_high_prob", "std_prob"):
                 pick_label = "Standard"
+                pool_policy = "standard_high_prob"
             elif mode in ("standard", "std"):
                 pick_label = "Standard"
+                pool_policy = "standard_hot"
             else:
                 pick_label = "Goblin"
+                pool_policy = "goblin_hot"
 
             tickets.append(
                 {
@@ -14268,11 +14342,7 @@ def build_strong_tickets(
                     "sport": sport_label,
                     "strong_builder": True,
                     "strong_builder_pick": pick_label,
-                    "pool_policy": (
-                        "standard_high_prob"
-                        if mode in ("standard_prob", "standard_high_prob", "std_prob")
-                        else ("standard_hot" if pick_label == "Standard" else "goblin_hot")
-                    ),
+                    "pool_policy": pool_policy,
                     "correlation_multiplier": cmult,
                     "correlation_audit": caudit,
                     "leg_prob_sources": ",".join(
@@ -18645,18 +18715,41 @@ def main():
             exhaust_pool=True,
             player_ticket_counts=counters["player_ticket_counts"],
             date_str=str(args.date),
+            pick_mode="goblin",
         )
+        strong_insert_at = 0
         if strong_tickets:
             # One Excel/web group per length so the board shows STRONG 6-Leg, 5-Leg, …
-            for i, (strong_display, strong_bucket, nl) in enumerate(
-                split_strong_tickets_by_leg_count(strong_tickets)
-            ):
+            strong_buckets = split_strong_tickets_by_leg_count(strong_tickets, mixed=False)
+            for i, (strong_display, strong_bucket, nl) in enumerate(strong_buckets):
                 strong_sname = _excel_ticket_sheet_title_unique(strong_display, wb.sheetnames)
                 write_ticket_sheet(
                     wb, strong_bucket, strong_sname, C["hdr_mix"], label=strong_display
                 )
-                all_ticket_groups.insert(i, (strong_display, strong_bucket, None))
+                all_ticket_groups.insert(strong_insert_at + i, (strong_display, strong_bucket, None))
                 _group_counts_by_size[strong_display][int(nl)] += len(strong_bucket)
+            strong_insert_at += len(strong_buckets)
+        # Separate Mix board: ≥1 Goblin HOT + ≥1 Standard HOT per slip (not blended into Goblin STRONG).
+        if STRONG_MIX_ENABLED:
+            mix_tickets = build_strong_tickets(
+                strong_df,
+                max_tickets=None,
+                exhaust_pool=True,
+                # Independent cap so Mix is not starved by pure Goblin STRONG.
+                player_ticket_counts={},
+                date_str=str(args.date),
+                pick_mode="mixed",
+            )
+            if mix_tickets:
+                for i, (mix_display, mix_bucket, nl) in enumerate(
+                    split_strong_tickets_by_leg_count(mix_tickets, mixed=True)
+                ):
+                    mix_sname = _excel_ticket_sheet_title_unique(mix_display, wb.sheetnames)
+                    write_ticket_sheet(
+                        wb, mix_bucket, mix_sname, C["hdr_mix"], label=mix_display
+                    )
+                    all_ticket_groups.insert(strong_insert_at + i, (mix_display, mix_bucket, None))
+                    _group_counts_by_size[mix_display][int(nl)] += len(mix_bucket)
 
     if getattr(args, "probability_ladder", True):
         ladder_stack_70 = bool(getattr(args, "ladder_stack_70", LADDER_STACK_70_DEFAULT)) or bool(

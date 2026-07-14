@@ -43,10 +43,13 @@ MIN_SAMPLES_FOR_PERCENTILES: int = 8
 
 # STRONG favors short, high-conviction slips. Default 4 so Goblin HOT boards can
 # stack 3–4 unique players before falling back to 2-leg filler (override via env).
+# Absolute p_win floors must fall with length: 0.75^3≈0.42 before correlation, so a
+# 3-leg floor of 0.42 was nearly unreachable after density haircuts and starved
+# longer slips (boards filled with 2-legs only).
 STRONG_MAX_LEGS: int = max(2, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "4")))
 STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.33"))
-STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.42"))
-STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.48"))
+STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.28"))
+STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.22"))
 STRONG_ALLOW_CROSS_SPORT: bool = os.getenv("PROPORACLE_STRONG_ALLOW_CROSS_SPORT", "0").strip().lower() not in (
     "0",
     "false",

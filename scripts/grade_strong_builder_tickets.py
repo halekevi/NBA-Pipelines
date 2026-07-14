@@ -115,6 +115,10 @@ def analyze_date(date: str, *, verbose: bool) -> None:
         / "ui_runner"
         / "data"
         / f"combined_slate_tickets_strong_standard_{date}.json",
+        "strong_mix": _REPO
+        / "ui_runner"
+        / "data"
+        / f"combined_slate_tickets_strong_mix_{date}.json",
     }
 
     print(f"\n{'='*60}")
@@ -214,6 +218,10 @@ def main() -> int:
             / "ui_runner"
             / "data"
             / f"combined_slate_tickets_strong_standard_{d}.json",
+            "strong_mix": _REPO
+            / "ui_runner"
+            / "data"
+            / f"combined_slate_tickets_strong_mix_{d}.json",
         }
         for label, p in path_by_label.items():
             if not p.is_file():
@@ -224,7 +232,7 @@ def main() -> int:
                 if res in ("WIN", "LOSS"):
                     rollup[f"{label}_all"]["n"] += 1
                     rollup[f"{label}_all"]["w"] += 1 if res == "WIN" else 0
-                if t.get("strong_builder") or label == "strong_standard":
+                if t.get("strong_builder") or label in ("strong_standard", "strong_mix"):
                     rollup[f"{label}_sb"]["built"] += 1
                     if res in ("WIN", "LOSS"):
                         rollup[f"{label}_sb"]["n"] += 1
@@ -241,6 +249,8 @@ def main() -> int:
             ("winrate_sb", "winrate strong_builder"),
             ("strong_standard_all", "std HOT shadow ALL"),
             ("strong_standard_sb", "std HOT shadow strong"),
+            ("strong_mix_all", "mix shadow ALL"),
+            ("strong_mix_sb", "mix shadow strong"),
         ]:
             r = rollup[key]
             if r["n"]:

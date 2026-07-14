@@ -6966,6 +6966,10 @@ MAIN_MLB_SHADOW_ENABLED: bool = os.getenv("PROPORACLE_MAIN_MLB_SHADOW", "1").str
 STRONG_STANDARD_SHADOW_ENABLED: bool = os.getenv(
     "PROPORACLE_STRONG_STD_SHADOW", "1"
 ).strip().lower() not in ("0", "false", "no", "off")
+# STRONG Mix shadow (Goblin HOT + Standard HOT); never injected into MAIN.
+STRONG_MIX_SHADOW_ENABLED: bool = os.getenv(
+    "PROPORACLE_STRONG_MIX_SHADOW", "1"
+).strip().lower() not in ("0", "false", "no", "off")
 # Probability-first Standard STRONG shadow (OVER/UNDER gates); never injected into MAIN.
 STRONG_STANDARD_PROB_SHADOW_ENABLED: bool = os.getenv(
     "PROPORACLE_STRONG_STD_PROB_SHADOW", "1"
@@ -7701,6 +7705,98 @@ def _emit_strong_standard_shadow_payload(
         "(production main unchanged)"
     )
     _write_strong_standard_shadow_snapshot(payload, date_str)
+
+
+def _write_strong_mix_shadow_snapshot(payload: dict, date_str: str) -> None:
+    """Persist STRONG Mix (Goblin+Standard HOT) shadow (MAIN unchanged)."""
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_strong_mix_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        "strong_mix_shadow_latest.json",
+    )
+    _write_json_file(dated, payload)
+    _write_json_file(latest, payload)
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [OK] STRONG Mix shadow -> {dated} ({n_slips} slips; "
+        "production main unchanged)"
+    )
+
+
+def _emit_strong_mix_shadow_payload(
+    *,
+    frames: list,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    max_tickets: int = 25,
+    max_legs: int = 3,
+) -> None:
+    """
+    Build + persist STRONG Mix tickets (≥1 Goblin HOT + ≥1 Standard HOT).
+    Does not inject into MAIN / production STRONG Goblin board.
+    """
+    if not STRONG_MIX_SHADOW_ENABLED:
+        print("  [shadow-mix] skipped (PROPORACLE_STRONG_MIX_SHADOW off)")
+        return
+    nonempty = [f for f in frames if f is not None and hasattr(f, "__len__") and len(f) > 0]
+    if not nonempty:
+        print("  [shadow-mix] skipped (no sport frames)")
+        return
+    df = pd.concat(nonempty, ignore_index=True)
+    tickets = build_strong_tickets(
+        df,
+        date_str=str(date_str),
+        pick_mode="mixed",
+        max_tickets=int(max_tickets),
+        max_legs=int(max_legs),
+        exhaust_pool=False,
+    )
+    if not tickets:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_mix_shadow",
+            "mode": "strong_mix_shadow",
+            "pool_mode": "strong_mix_shadow",
+            "shadow_track": True,
+            "pool_policy": "goblin_standard_mixed",
+            "groups": [],
+        }
+        _write_strong_mix_shadow_snapshot(empty, date_str)
+        print("  [shadow-mix] 0 Mix slips (MAIN unchanged)")
+        return
+    groups: list[tuple[str, list[dict], None]] = []
+    for gname, slips, _n_legs in split_strong_tickets_by_leg_count(tickets, mixed=True):
+        groups.append((gname, slips, None))
+    if not groups and tickets:
+        groups.append(("STRONG Mix", list(tickets), None))
+    payload = ticket_groups_to_payload(
+        groups,
+        str(date_str),
+        {**(thresholds or {}), "pool_mode": "strong_mix_shadow"},
+        bankroll=float(bankroll or 0.0),
+        curve_stake_usd=float(curve_stake_usd or 1.0),
+        ticket_track="strong_mix_shadow",
+        payload_mode="strong_mix_shadow",
+    )
+    payload["shadow_track"] = True
+    payload["pool_mode"] = "strong_mix_shadow"
+    payload["pool_policy"] = "goblin_standard_mixed"
+    n_shadow = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [shadow-mix] STRONG Mix: {n_shadow} slips "
+        "(production main unchanged)"
+    )
+    _write_strong_mix_shadow_snapshot(payload, date_str)
 
 
 def _emit_strong_standard_prob_shadow_payload(
@@ -13837,7 +13933,8 @@ STRONG_BUILDER_EXHAUST_POOL: bool = os.getenv("PROPORACLE_STRONG_EXHAUST_POOL", 
 )
 STRONG_BUILDER_HARD_MAX: int = max(25, int(os.getenv("PROPORACLE_STRONG_HARD_MAX", "200")))
 # Separate board: slips that mix Goblin HOT + Standard HOT (not pure Goblin STRONG).
-STRONG_MIX_ENABLED: bool = os.getenv("PROPORACLE_STRONG_MIX", "1").strip().lower() not in (
+# Default OFF — validate via STRONG Mix shadow first; set PROPORACLE_STRONG_MIX=1 to inject MAIN.
+STRONG_MIX_ENABLED: bool = os.getenv("PROPORACLE_STRONG_MIX", "0").strip().lower() not in (
     "0",
     "false",
     "no",
@@ -19342,6 +19439,13 @@ def main():
                 bankroll=max(0.0, float(args.bankroll)),
                 curve_stake_usd=float(args.curve_stake_usd),
             )
+            _emit_strong_mix_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
             _emit_strong_standard_prob_shadow_payload(
                 frames=_std_shadow_frames,
                 date_str=str(args.date),
@@ -19477,6 +19581,13 @@ def main():
                 nhl,
             ]
             _emit_strong_standard_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_mix_shadow_payload(
                 frames=_std_shadow_frames,
                 date_str=str(args.date),
                 thresholds=thresholds,

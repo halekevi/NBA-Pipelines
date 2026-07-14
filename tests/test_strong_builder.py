@@ -20,6 +20,7 @@ import combined_slate_tickets as cst  # noqa: E402
 from combined_slate_tickets import (  # noqa: E402
     _apply_strong_per_slate_player_cap,
     _apply_strong_rolling_hr_gate,
+    _emit_strong_mix_shadow_payload,
     _emit_strong_standard_shadow_payload,
     _ok_strong_pair,
     _row_standard_high_prob_eligible,
@@ -783,3 +784,91 @@ def test_strong_standard_shadow_emit_does_not_touch_main(monkeypatch, tmp_path):
         str(g.get("group_name") or "").startswith("STRONG Standard HOT")
         for g in payload.get("groups") or []
     )
+
+
+def test_strong_mix_shadow_emit_does_not_touch_main(monkeypatch, tmp_path):
+    """Mix shadow writes only strong_mix paths; never tickets_latest / MAIN."""
+    written: list[str] = []
+
+    def _capture_write(path: str, payload) -> None:
+        written.append(os.path.normpath(path))
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setattr(cst, "REPO_ROOT", str(tmp_path))
+    monkeypatch.setattr(cst, "_write_json_file", _capture_write)
+    monkeypatch.setattr(cst, "STRONG_MIX_SHADOW_ENABLED", True)
+    rows = []
+    for i in range(3):
+        rows.append(
+            {
+                "sport": "WNBA",
+                "player": f"Gob {i}",
+                "team": "LVA",
+                "opp": "NYL",
+                "prop_type": "Points",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 10.5 + i,
+                "hit_rate": 0.74,
+                "rank_score": 88,
+                "ml_prob": 0.74,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.88,
+            }
+        )
+    for i in range(3):
+        rows.append(
+            {
+                "sport": "WNBA",
+                "player": f"Std {i}",
+                "team": "NYL",
+                "opp": "LVA",
+                "prop_type": "Points",
+                "pick_type": "Standard",
+                "tier": "A",
+                "direction": "OVER",
+                "line": 14.5 + i,
+                "hit_rate": 0.72,
+                "rank_score": 85,
+                "ml_prob": 0.72,
+                "l10_over": 8.0,
+                "l10_under": 2.0,
+                "l10_streak": "HOT",
+                "prop_quality_score": 0.85,
+            }
+        )
+    _emit_strong_mix_shadow_payload(
+        frames=[pd.DataFrame(rows)],
+        date_str="2026-07-14",
+        thresholds={},
+        bankroll=100.0,
+        curve_stake_usd=1.0,
+        max_tickets=8,
+        max_legs=2,
+    )
+    assert written
+    for p in written:
+        name = Path(p).name.lower()
+        assert "tickets_latest" not in name
+        assert "strong_mix" in name
+    dated = tmp_path / "ui_runner" / "data" / "combined_slate_tickets_strong_mix_2026-07-14.json"
+    assert dated.is_file()
+    payload = json.loads(dated.read_text(encoding="utf-8"))
+    assert payload.get("ticket_track") == "strong_mix_shadow"
+    assert payload.get("shadow_track") is True
+    assert all(
+        str(g.get("group_name") or "").startswith("STRONG Mix")
+        for g in payload.get("groups") or []
+    )
+    # Every Mix slip must include both pick types.
+    for g in payload.get("groups") or []:
+        for t in g.get("tickets") or []:
+            assert t.get("strong_builder_pick") == "Mixed"
+            legs = t.get("legs") or t.get("rows") or []
+            picks = {str(leg.get("pick_type") or "").lower() for leg in legs}
+            assert any("goblin" in p for p in picks)
+            assert any("standard" in p for p in picks)

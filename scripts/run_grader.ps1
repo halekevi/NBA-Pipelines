@@ -1452,6 +1452,31 @@ if (Test-Path $TicketEvalBuilderScript) {
             Run-Py "Grade STRONG Standard HOT Shadow" $Root $GradeStdStrongScript @("--date", $Date)
         }
     }
+
+    # STRONG Mix shadow (Goblin+Standard HOT) — separate validation track, never production main.
+    $MixStrongShadowJson = Join-Path $Root "ui_runner\data\combined_slate_tickets_strong_mix_$Date.json"
+    if (Test-Path $MixStrongShadowJson) {
+        $TeMixStrongOut = Join-Path $TemplatesDir "ticket_eval_strong_mix_$Date.html"
+        $TeMixStrongArgs = @(
+            "--date", $Date,
+            "--track", "strong_mix_shadow",
+            "--tickets", $MixStrongShadowJson,
+            "--out", $TeMixStrongOut
+        )
+        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
+            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
+                $t = $gd.Trim()
+                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
+                    $TeMixStrongArgs += @("--game-date", $t)
+                }
+            }
+        }
+        Run-Py "Build STRONG Mix Shadow Ticket Eval" $Root $TicketEvalBuilderScript $TeMixStrongArgs
+        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeMixStrongOut)) {
+            Copy-Item -LiteralPath $TeMixStrongOut -Destination (Join-Path $MobileWwwDir "ticket_eval_strong_mix_$Date.html") -Force -ErrorAction SilentlyContinue
+            Write-Host "[GRADER] Mobile copy: ticket_eval_strong_mix_$Date.html -> mobile\www\" -ForegroundColor DarkGray
+        }
+    }
 }
 else {
     Write-Host "Skipping ticket eval build (build_ticket_eval.py not found)." -ForegroundColor Yellow

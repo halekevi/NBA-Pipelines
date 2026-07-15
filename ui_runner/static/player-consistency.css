@@ -438,16 +438,20 @@
 
 .pe-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   border: 1px solid var(--glass-panel-border, rgba(255, 255, 255, 0.08));
   background: rgba(0, 0, 0, 0.2);
+  max-width: 100%;
 }
 
 .pe-table {
   width: 100%;
+  min-width: 1040px;
   border-collapse: collapse;
   font-family: "Inter", sans-serif;
   font-size: 12px;
+  table-layout: fixed;
 }
 
 .pe-table thead th {
@@ -487,6 +491,63 @@
   padding: 9px 12px;
   color: var(--text-primary, #f5f5f5);
   white-space: nowrap;
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pe-table th:nth-child(1),
+.pe-table td:nth-child(1) {
+  width: 40px;
+}
+
+.pe-table th:nth-child(2),
+.pe-table td:nth-child(2) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 150px;
+  min-width: 120px;
+  max-width: 180px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  background: rgba(10, 10, 18, 0.96);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+.pe-table tbody tr:hover td:nth-child(2) {
+  background: rgba(24, 24, 34, 0.98);
+}
+
+.pe-table tbody tr.on-slate td:nth-child(2) {
+  background: rgba(18, 28, 22, 0.96);
+}
+
+.pe-table th:nth-child(7),
+.pe-table td:nth-child(7),
+.pe-table th:nth-child(8),
+.pe-table td:nth-child(8) {
+  width: 180px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pe-table .pe-player-name {
+  font-weight: 600;
+}
+
+.pe-best-prop,
+.pe-more-slices {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pe-more-slices span {
+  white-space: normal !important;
 }
 
 .pe-hit-rate.great {
@@ -569,7 +630,137 @@
   font-family: "Inter", sans-serif;
 }
 
+/* Mid width: keep a denser core table; secondary cols drop instead of colliding. */
+@media (max-width: 1180px) {
+  .pe-table {
+    min-width: 760px;
+  }
+  .pe-table th:nth-child(8),
+  .pe-table td:nth-child(8),
+  .pe-table th:nth-child(11),
+  .pe-table td:nth-child(11) {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .pe-subtitle {
+    max-width: none;
+  }
+  .pe-controls {
+    width: 100%;
+  }
+  .pe-select {
+    flex: 1 1 140px;
+    min-width: 120px;
+  }
+  .pe-table {
+    min-width: 620px;
+  }
+  .pe-table th:nth-child(9),
+  .pe-table td:nth-child(9),
+  .pe-table th:nth-child(10),
+  .pe-table td:nth-child(10),
+  .pe-table th:nth-child(12),
+  .pe-table td:nth-child(12) {
+    display: none;
+  }
+}
+
+/* Narrow: card rows — every field readable without side-scroll. */
+@media (max-width: 720px) {
+  .pe-table-wrap {
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
+  .pe-table,
+  .pe-table tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .pe-table thead {
+    display: none;
+  }
+  .pe-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--glass-panel-border, rgba(255, 255, 255, 0.1));
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .pe-table tbody tr.on-slate {
+    border-color: rgba(159, 216, 167, 0.28);
+  }
+  .pe-table td {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    min-width: 0;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+  .pe-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted2, #8b8b99);
+  }
+  .pe-table th:nth-child(n),
+  .pe-table td:nth-child(n) {
+    display: flex;
+    width: auto;
+    max-width: none;
+    position: static;
+    background: transparent !important;
+    box-shadow: none;
+  }
+  .pe-table td:nth-child(1) {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--accent-gold, #d4af37);
+  }
+  .pe-table td:nth-child(1)::before {
+    content: "#";
+  }
+  .pe-table td:nth-child(2) {
+    grid-column: 1 / -1;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .pe-table td:nth-child(7),
+  .pe-table td:nth-child(8) {
+    grid-column: 1 / -1;
+  }
+}
+
 [data-theme="light"] .hot-player-card,
 [data-theme="light"] .pe-table-wrap {
   background: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="light"] .pe-table th:nth-child(2),
+[data-theme="light"] .pe-table td:nth-child(2) {
+  background: rgba(236, 242, 248, 0.96);
+}
+
+[data-theme="light"] .pe-table tbody tr:hover td:nth-child(2) {
+  background: rgba(226, 235, 244, 0.98);
+}
+
+@media (max-width: 720px) {
+  [data-theme="light"] .pe-table tbody tr {
+    background: rgba(255, 255, 255, 0.72);
+  }
 }

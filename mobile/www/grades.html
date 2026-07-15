@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="static/global-scrollbar.css?v=20260517platform"/>
 <link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
 <link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/player-consistency.css?v=20260523pc"/>
+<link rel="stylesheet" href="static/player-consistency.css?v=20260714pe"/>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap');
 :root{
@@ -1934,10 +1934,10 @@ select option,
   function moreSlicesCell(p) {
     const list = (p.best_props || []).slice(1, 3);
     if (!list.length) return '—';
-    return list.map(function (s) {
-      return '<span style="display:block;font-size:10px;color:var(--muted);white-space:nowrap">' +
+    return '<span class="pe-more-slices">' + list.map(function (s) {
+      return '<span style="display:block;font-size:10px;color:var(--muted)">' +
         (s.prop_type || '') + ' ' + (s.direction || '') + ' ' + fmtPct(s.hit_rate) + ' (' + (s.total || 0) + ')</span>';
-    }).join('');
+    }).join('') + '</span>';
   }
 
   function renderStats(players) {
@@ -1975,18 +1975,18 @@ select option,
         ? '<span title="Balance: ' + balancePct + '%"><span class="pe-balance-bar"><span class="pe-balance-fill" style="width:' + balancePct + '%"></span></span> <span style="font-size:10px;color:var(--muted2);margin-left:4px">' + balancePct + '%</span></span>'
         : '—';
       return '<tr class="' + (p.on_today_slate ? 'on-slate' : '') + '">' +
-        '<td>' + (i + 1) + '</td>' +
-        '<td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis">' + (p.player || '') + '</td>' +
-        '<td>' + (p.sport || '') + '</td>' +
-        '<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + tierColor(p.tier) + ';margin-right:4px;vertical-align:middle"></span>' + (p.tier || '') + '</td>' +
-        '<td><span class="pe-hit-rate ' + rateClass(p.hit_rate) + '" style="font-weight:700">' + fmtPct(p.hit_rate) + '</span></td>' +
-        '<td style="color:var(--muted)">' + p.hits + '/' + p.total + '</td>' +
-        '<td>' + bestPropCell(p) + '</td>' +
-        '<td style="max-width:140px">' + moreSlicesCell(p) + '</td>' +
-        '<td>' + fmtPct(p.over_rate) + '</td>' +
-        '<td>' + fmtPct(p.under_rate) + '</td>' +
-        '<td>' + balanceCell + '</td>' +
-        '<td>' + slateCell + '</td>' +
+        '<td data-label="#">' + (i + 1) + '</td>' +
+        '<td data-label="Player" class="pe-player-name">' + (p.player || '') + '</td>' +
+        '<td data-label="Sport">' + (p.sport || '') + '</td>' +
+        '<td data-label="Tier"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + tierColor(p.tier) + ';margin-right:4px;vertical-align:middle"></span>' + (p.tier || '') + '</td>' +
+        '<td data-label="Hit rate"><span class="pe-hit-rate ' + rateClass(p.hit_rate) + '" style="font-weight:700">' + fmtPct(p.hit_rate) + '</span></td>' +
+        '<td data-label="Record" style="color:var(--muted)">' + p.hits + '/' + p.total + '</td>' +
+        '<td data-label="Best prop">' + bestPropCell(p) + '</td>' +
+        '<td data-label="More slices">' + moreSlicesCell(p) + '</td>' +
+        '<td data-label="Over %">' + fmtPct(p.over_rate) + '</td>' +
+        '<td data-label="Under %">' + fmtPct(p.under_rate) + '</td>' +
+        '<td data-label="Balance">' + balanceCell + '</td>' +
+        '<td data-label="Slate">' + slateCell + '</td>' +
         '</tr>';
     }).join('');
   }

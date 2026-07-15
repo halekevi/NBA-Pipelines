@@ -28,7 +28,7 @@
 #    .\run_pipeline.ps1 -NHLOnly -SkipFetch    # NHL steps 2-8 + Combined
 #    .\run_pipeline.ps1 -SoccerOnly -SkipFetch # Soccer steps 2-8 + Combined
 #    .\run_pipeline.ps1 -TennisOnly -SkipFetch # Tennis steps 2-8 + Combined (no step1 fetch)
-#    .\run_pipeline.ps1 -TennisOnly -TennisDate 2026-05-14   # Override match day (default: Eastern tomorrow)
+#    .\run_pipeline.ps1 -TennisOnly -TennisDate 2026-05-14   # Override match day (default: same day as -Date)
 #    .\run_pipeline.ps1 -RefreshCache          # Wipe + rebuild ESPN cache before NBA
 #    .\run_pipeline.ps1 -CacheAgeDays 7        # Auto-wipe cache if older than N days
 #    .\run_pipeline.ps1 -SkipDailyGrader       # Skip run_grader + grade HTML git push after combined
@@ -124,9 +124,8 @@ if (-not $Date) {
     }
 }
 
-# Tennis: early-AM board → always look one Eastern calendar day ahead.
-# Live: Eastern *today* + 1 (even if -Date is already tomorrow for WNBA/MLB).
-# Historical backfill (Date more than 1 day behind ET today): Date + 1.
+# Tennis: early-AM board (~4:00–5:30 ET) → same Eastern calendar day as -Date.
+# 3AM light fetch + 7AM full daily both use today's board (refresh at 7AM).
 # Override with -TennisDate when needed.
 function Get-PropOracleEasternTodayYmd {
     try {
@@ -141,17 +140,11 @@ if (-not $TennisDate) {
     $EasternToday = Get-PropOracleEasternTodayYmd
     try {
         $bundleDt = [datetime]::ParseExact($Date, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
-        $etDt = [datetime]::ParseExact($EasternToday, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
-        if (($etDt - $bundleDt).TotalDays -gt 1) {
-            $TennisDate = $bundleDt.AddDays(1).ToString('yyyy-MM-dd')
-            Write-Host "  [Tennis] TennisDate = bundle+1 ($TennisDate) for historical Date=$Date (ET today=$EasternToday)" -ForegroundColor DarkGray
-        } else {
-            $TennisDate = $etDt.AddDays(1).ToString('yyyy-MM-dd')
-            Write-Host "  [Tennis] TennisDate = Eastern tomorrow ($TennisDate)  (ET today=$EasternToday, bundle Date=$Date)" -ForegroundColor DarkGray
-        }
+        $TennisDate = $bundleDt.ToString('yyyy-MM-dd')
+        Write-Host "  [Tennis] TennisDate = same day as -Date ($TennisDate)  (ET today=$EasternToday)" -ForegroundColor DarkGray
     } catch {
-        $TennisDate = (Get-Date $Date).AddDays(1).ToString('yyyy-MM-dd')
-        Write-Host "  [Tennis] TennisDate = Date+1 fallback ($TennisDate)  (bundle Date=$Date)" -ForegroundColor DarkGray
+        $TennisDate = $EasternToday
+        Write-Host "  [Tennis] TennisDate = Eastern today fallback ($TennisDate)  (bundle Date=$Date)" -ForegroundColor DarkGray
     }
 } else {
     Write-Host "  [Tennis] Using specified TennisDate: $TennisDate" -ForegroundColor Cyan

@@ -8,8 +8,8 @@ $Root = Split-Path $PSScriptRoot -Parent
 $SportsRoot = Join-Path $Root "Sports"
 $DateDir = Join-Path $Root "outputs\$Date"
 $CanonicalDateDir = Join-Path $DateDir "canonical"
-# Tennis: early-AM board fetched the prior evening (Eastern tomorrow at fetch time).
-# -Date is the main sports grade day; tennis match day = payload tennis_date or Date+1.
+# Tennis: early-AM board fetched same calendar day (3AM light + 7AM refresh).
+# -Date is the main sports grade day; tennis match day = payload tennis_date or -Date (same day).
 # Step8 may live under outputs/<match_day>/ or outputs/<match_day-1>/ (see Get-TennisStep8Candidates).
 $TennisSlateDate = $Date
 $TennisStep8BundleDate = $Date
@@ -49,9 +49,10 @@ function Get-TennisStep8Candidates {
         [string]$GradeDate,
         [string]$OffsetBundleDate
     )
-    # Tennis is fetched the evening before early-AM matches. Step8 may live under:
-    #   outputs/<match_day>/tennis/     (pipeline -Date already tomorrow for WNBA)
-    #   outputs/<match_day-1>/tennis/   (classic tonight-fetch / tomorrow-play)
+    # Tennis is fetched same calendar day (3AM / 7AM). Step8 may also live under
+    # match_day-1 when an older evening pre-load wrote there. Prefer:
+    #   outputs/<match_day>/tennis/     (same-day pipeline)
+    #   outputs/<match_day-1>/tennis/   (legacy tonight-fetch / tomorrow-play)
     #   outputs/<grade_date>/tennis/    (fallback)
     $dirs = @(
         (Join-Path $Root "outputs\$MatchDate"),
@@ -113,17 +114,17 @@ function Resolve-TennisMatchDateFromPayload {
     }
     try {
         $pd = [datetime]::ParseExact($BundleDate, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
-        return $pd.AddDays(1).ToString("yyyy-MM-dd")
+        return $pd.ToString("yyyy-MM-dd")
     } catch {
         return $BundleDate
     }
 }
 
-# ESPN match day for tennis (payload tennis_date, else bundle + 1). Step8 still lives under bundle folder.
+# ESPN match day for tennis (payload tennis_date, else same day as grader -Date).
 $TennisSlateDate = Resolve-TennisMatchDateFromPayload -BundleDate $Date
 $TennisGradeOutDir = Join-Path $Root "outputs\$TennisSlateDate"
 if ($TennisSlateDate -ne $Date) {
-    Write-Host "Tennis match day: $TennisSlateDate (from payload or bundle+1; grader -Date $Date)" -ForegroundColor DarkGray
+    Write-Host "Tennis match day: $TennisSlateDate (from payload; grader -Date $Date)" -ForegroundColor DarkGray
 }
 
 $NBAActuals  = Join-Path $DateDir "actuals_nba_$Date.csv"
@@ -217,10 +218,13 @@ function Copy-PropOracleGradedSlateBundle {
         $src = Join-Path $OutputsDir $name
         if (-not (Test-Path $src) -and $name -like "graded_tennis_*") {
             try {
-                $matchDay = ([datetime]::ParseExact($GradeDate, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).AddDays(1).ToString("yyyy-MM-dd")
-                $altLeaf = if ($TennisGradedDate) { "graded_tennis_$TennisGradedDate.xlsx" } else { "graded_tennis_$matchDay.xlsx" }
-                $altSrc = Join-Path $RepoRoot "outputs\$matchDay\$altLeaf"
-                if (Test-Path $altSrc) { $src = $altSrc }
+                $gd = [datetime]::ParseExact($GradeDate, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
+                $legacyNext = $gd.AddDays(1).ToString("yyyy-MM-dd")
+                foreach ($matchDay in @($GradeDate, $legacyNext)) {
+                    $altLeaf = if ($TennisGradedDate) { "graded_tennis_$TennisGradedDate.xlsx" } else { "graded_tennis_$matchDay.xlsx" }
+                    $altSrc = Join-Path $RepoRoot "outputs\$matchDay\$altLeaf"
+                    if (Test-Path $altSrc) { $src = $altSrc; break }
+                }
             } catch { }
         }
         if (-not (Test-Path $src)) {

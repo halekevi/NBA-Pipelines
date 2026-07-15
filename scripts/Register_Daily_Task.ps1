@@ -1,9 +1,10 @@
 # ============================================================
 #  Register_Daily_Task.ps1
 #  PropOracle automation scheduler:
+#   - 3:00 AM  light tennis fetch + ticket rebuild (same-day early board)
 #   - 5:00 AM  grader (yesterday)
 #   - 7:00 PM–1:00 AM  grader every hour (yesterday; games finishing)
-#   - 7:00 AM  initial daily pipeline
+#   - 7:00 AM  initial daily pipeline (full multi-sport; tennis refresh)
 #   - 9:00 AM  refresh + add/remove diff log
 #   - 10:30 AM refresh + add/remove diff log (pre-line-move ticket build)
 #   - 11:00 AM refresh + add/remove diff log
@@ -16,12 +17,13 @@
 $PipelineRoot = Split-Path -Parent $PSScriptRoot
 $PowerShellExe = (Get-Command powershell.exe).Source
 
+$Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_grader_5am.ps1"
 $ScriptEvening = Join-Path $PipelineRoot "scripts\run_grader_evening.ps1"
 $Script7 = Join-Path $PipelineRoot "scripts\run_daily_7am.ps1"
 $ScriptRefresh = Join-Path $PipelineRoot "scripts\run_refresh_with_log.ps1"
 
-foreach ($s in @($Script5, $ScriptEvening, $Script7, $ScriptRefresh)) {
+foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script7, $ScriptRefresh)) {
     if (-not (Test-Path $s)) {
         Write-Error "Required script missing: $s"
         exit 1
@@ -72,6 +74,12 @@ function Register-PropTask {
 }
 
 Register-PropTask `
+    -TaskName "PropOracle - Tennis Early 3AM" `
+    -Description "Light tennis fetch + ticket rebuild for same-day early-AM board (pre ~4:00 ET tips)." `
+    -ScriptPath $Script3 `
+    -At "03:00"
+
+Register-PropTask `
     -TaskName "PropOracle - Grader 5AM" `
     -Description "Pull latest, run grader for yesterday." `
     -ScriptPath $Script5 `
@@ -97,7 +105,7 @@ foreach ($eg in $EveningGraderTasks) {
 
 Register-PropTask `
     -TaskName "PropOracle - Daily 7AM" `
-    -Description "Pull latest, run initial daily pipeline, and log fetched props snapshot." `
+    -Description "Pull latest, run full daily pipeline (multi-sport; tennis same-day refresh), and log fetched props snapshot." `
     -ScriptPath $Script7 `
     -At "07:00"
 
@@ -131,6 +139,7 @@ Register-PropTask `
 
 Write-Host ""
 Write-Host "✅ Scheduler tasks registered." -ForegroundColor Green
+Write-Host "  - PropOracle - Tennis Early 3AM"
 Write-Host "  - PropOracle - Grader 5AM"
 foreach ($eg in $EveningGraderTasks) {
     Write-Host "  - $($eg.Name)"

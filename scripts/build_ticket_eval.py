@@ -1890,15 +1890,20 @@ def _resolve_tennis_match_date_from_payload(
     slate_date: str,
     payload: dict[str, Any],
 ) -> str | None:
-    """Tennis match day = payload tennis_date, else Eastern-tomorrow vs live calendar
-    (or slate_date+1 for historical tickets). Early-AM board is always day-ahead.
+    """Tennis match day = payload tennis_date, else same calendar day as slate_date.
+
+    Early-AM board is fetched same day (3AM light + 7AM refresh). Legacy tickets
+    without tennis_date may still store next-day legs in game_time; prefer payload.
     """
     if not _payload_has_tennis_legs(payload):
         return None
     td = str(payload.get("tennis_date") or "").strip()[:10]
     if re.match(r"^\d{4}-\d{2}-\d{2}$", td):
         return td
-    return _inferred_next_calendar_game_date(slate_date)
+    raw = str(slate_date or "").strip()[:10]
+    if re.match(r"^\d{4}-\d{2}-\d{2}$", raw):
+        return raw
+    return None
 
 
 def _payload_has_infer_next_day_sport_legs(payload: dict[str, Any]) -> bool:

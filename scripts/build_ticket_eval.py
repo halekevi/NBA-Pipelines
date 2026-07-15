@@ -3290,6 +3290,66 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
     out: dict[str, Any] = {"date": payload.get("date"), "groups": out_groups}
     if pool_mode:
         out["pool_mode"] = pool_mode
+    # Collapse duplicate group_name sections (e.g. five "WNBA 3-Leg Goblin" boards)
+    # and renumber ticket_no uniquely within each merged group for display/grading.
+    out = _coalesce_groups_and_renumber(out)
+    return out
+
+
+def _coalesce_groups_and_renumber(payload: dict[str, Any]) -> dict[str, Any]:
+    """Merge identical group titles and assign unique ticket_no per group (1..n)."""
+    merged: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        gname = str(g.get("group_name") or "Group").strip() or "Group"
+        if gname not in merged:
+            merged[gname] = {"group_name": gname, "tickets": []}
+            order.append(gname)
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict):
+                merged[gname]["tickets"].append(t)
+    groups_out: list[dict[str, Any]] = []
+    for gname in order:
+        g = merged[gname]
+        tickets_in = g.get("tickets") or []
+        seen: set[str] = set()
+        tickets: list[dict[str, Any]] = []
+        for t in tickets_in:
+            legs = t.get("legs") or []
+            sig_items: list[str] = []
+            for leg in legs:
+                if not isinstance(leg, dict):
+                    continue
+                sig_items.append(
+                    "|".join(
+                        [
+                            str(leg.get("sport") or "").strip().upper(),
+                            _norm_player_name(str(leg.get("player") or "")),
+                            _prop_match_key_from_display(str(leg.get("prop_type") or "")),
+                            str(leg.get("direction") or "").strip().upper(),
+                            str(leg.get("line")),
+                            str(leg.get("team") or "").strip().upper(),
+                            str(leg.get("opp") or "").strip().upper(),
+                        ]
+                    )
+                )
+            sig = "||".join(sorted(sig_items))
+            if sig and sig in seen:
+                continue
+            if sig:
+                seen.add(sig)
+            tickets.append(t)
+        for i, t in enumerate(tickets, start=1):
+            if "_orig_ticket_no" not in t:
+                t["_orig_ticket_no"] = t.get("ticket_no")
+            t["ticket_no"] = i
+        g["tickets"] = tickets
+        if tickets:
+            groups_out.append(g)
+    out = dict(payload)
+    out["groups"] = groups_out
     return out
 
 
@@ -5192,6 +5252,16 @@ def main() -> int:
         print(f"  WARN: could not refresh sport_breakdown.json: {e}")
 
     print(f"Wrote {out_dated}")
+    mobile_www = REPO_ROOT / "mobile" / "www"
+    if mobile_www.is_dir():
+        try:
+            import shutil
+
+            mobile_dst = mobile_www / dated_name
+            shutil.copy2(out_dated, mobile_dst)
+            print(f"  Mobile copy -> {mobile_dst}")
+        except OSError as e:
+            print(f"  WARN: mobile copy failed: {e}")
     print("  (Serve /tickets from tickets_latest.json; graded view: Grades → Ticket evaluation.)")
 
     if args.debug_ungraded:

@@ -124,3 +124,144 @@ def test_filter_drops_one_leg_strong_after_hygiene():
     tix = (out.get("groups") or [{}])[0].get("tickets") or []
     assert len(tix) == 1
     assert len(tix[0]["legs"]) == 2
+
+
+def test_coalesce_merges_duplicate_group_boards_and_renumbers():
+    from build_ticket_eval import _filter_payload_groups
+
+    payload = {
+        "date": "2026-07-13",
+        "pool_mode": "goblin_only_3leg",
+        "groups": [
+            {
+                "group_name": "WNBA 3-Leg Goblin",
+                "tickets": [
+                    {
+                        "ticket_no": 1,
+                        "legs": [
+                            {
+                                "sport": "WNBA",
+                                "player": "A",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 1.5,
+                                "team": "ATL",
+                                "opp": "LAS",
+                            },
+                            {
+                                "sport": "WNBA",
+                                "player": "B",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 2.5,
+                                "team": "MIN",
+                                "opp": "PHX",
+                            },
+                            {
+                                "sport": "WNBA",
+                                "player": "C",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 3.5,
+                                "team": "NYL",
+                                "opp": "CHI",
+                            },
+                        ],
+                    }
+                ],
+            },
+            {
+                "group_name": "WNBA 3-Leg Goblin",
+                "tickets": [
+                    {
+                        "ticket_no": 1,
+                        "legs": [
+                            {
+                                "sport": "WNBA",
+                                "player": "D",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 1.5,
+                                "team": "ATL",
+                                "opp": "LAS",
+                            },
+                            {
+                                "sport": "WNBA",
+                                "player": "E",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 2.5,
+                                "team": "MIN",
+                                "opp": "PHX",
+                            },
+                            {
+                                "sport": "WNBA",
+                                "player": "F",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 3.5,
+                                "team": "NYL",
+                                "opp": "CHI",
+                            },
+                        ],
+                    }
+                ],
+            },
+        ],
+    }
+    out = _filter_payload_groups(payload)
+    groups = out.get("groups") or []
+    assert len(groups) == 1
+    tix = groups[0]["tickets"]
+    assert len(tix) == 2
+    assert [t["ticket_no"] for t in tix] == [1, 2]
+
+
+def test_coalesce_duplicate_group_names_and_renumber():
+    from build_ticket_eval import _filter_payload_groups
+
+    leg = {
+        "sport": "WNBA",
+        "player": "A",
+        "prop_type": "Assists",
+        "direction": "OVER",
+        "line": 2.5,
+        "pick_type": "Goblin",
+        "team": "ATL",
+        "opp": "LAS",
+    }
+    leg2 = dict(leg, player="B")
+    leg3 = dict(leg, player="C")
+    payload = {
+        "date": "2026-07-13",
+        "pool_mode": "goblin_only_3leg",
+        "groups": [
+            {
+                "group_name": "WNBA 3-Leg Goblin",
+                "tickets": [
+                    {"ticket_no": 1, "power_payout": 2.0, "flex_payout": 1.0, "legs": [leg, leg2, leg3]},
+                ],
+            },
+            {
+                "group_name": "WNBA 3-Leg Goblin",
+                "tickets": [
+                    {
+                        "ticket_no": 1,
+                        "power_payout": 2.1,
+                        "flex_payout": 1.0,
+                        "legs": [
+                            dict(leg, player="D"),
+                            dict(leg, player="E"),
+                            dict(leg, player="F"),
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+    out = _filter_payload_groups(payload)
+    groups = out.get("groups") or []
+    assert len(groups) == 1
+    tix = groups[0]["tickets"]
+    assert len(tix) == 2
+    assert [t["ticket_no"] for t in tix] == [1, 2]

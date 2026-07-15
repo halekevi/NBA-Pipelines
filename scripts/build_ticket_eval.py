@@ -1108,6 +1108,33 @@ def _safe_float_ticket(x: Any, default: float | None = None) -> float | None:
         return default
 
 
+def _power_all_hit_multiplier(
+    payd: dict[str, Any],
+    ticket: dict[str, Any],
+    banner_pow: float,
+    min_x: float,
+    sweep_x: float,
+) -> float:
+    """
+    Locked Power / Goblin all-hit multiplier.
+
+    Prefer scraped board lock (display_min_x / min_guarantee) over legacy Fantasy
+    ``sweep_payout`` / first_place defaults (often 6x on 3-leg Goblin boards).
+    """
+    display_min = _safe_float_ticket(payd.get("display_min_x")) or _safe_float_ticket(
+        ticket.get("display_min_x")
+    )
+    for cand in (
+        display_min,
+        min_x if min_x > 0 else None,
+        banner_pow if banner_pow > 0 else None,
+        sweep_x if sweep_x > 0 else None,
+    ):
+        if cand is not None and float(cand) > 0:
+            return float(cand)
+    return 0.0
+
+
 def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: dict[str, Any]) -> dict[str, Any]:
     """
     Empirical payout model vs graded leg outcomes for ticket_eval HTML.
@@ -1206,14 +1233,16 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             result = "SWEEP"
             emoji = "🏆"
             css = "sweep"
-            actual = float(sweep_x)
+            actual = float(sweep_x) if sweep_x > 0 else float(banner_pow if banner_pow > 0 else min_x)
         else:
             result = "MIN GUARANTEE"
             emoji = "🛡️"
             css = "min_guarantee"
             actual = float(min_x)
     else:
-        # Power Play: every effective (non-void) leg correct.
+        # Power Play / Goblin: every effective (non-void) leg correct.
+        # All-hit pays the locked power / scraped min-guarantee — never classic
+        # first_place sweep_payout (often stale 6x for 3-leg) when a Goblin rate exists.
         result = "WIN"
         emoji = "✅"
         css = "win"
@@ -1222,8 +1251,7 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             actual = float(eff_pow if eff_pow is not None else 0.0)
             void_paid_as_power = True
         else:
-            pay_win = float(sweep_x) if sweep_x > 0 else float(min_x)
-            actual = pay_win
+            actual = float(_power_all_hit_multiplier(payd, ticket, banner_pow, min_x, sweep_x))
 
     pred_pay = _safe_float_ticket(payd.get("payout")) or _safe_float_ticket(payd.get("min_guarantee"))
     if pred_pay is None or pred_pay <= 0:

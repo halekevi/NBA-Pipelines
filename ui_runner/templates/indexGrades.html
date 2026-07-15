@@ -109,7 +109,9 @@ html.page-grades-root body.page-grades .grades-body{
   overflow:hidden!important;
   flex:none!important;
 }
-html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .grades-body{
+html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .grades-body,
+html.page-grades-root body.page-grades[data-grades-active-tab="players"] .grades-body,
+html.page-grades-root body.page-grades[data-grades-active-tab="props"] .grades-body{
   overflow:visible!important;
 }
 @media (max-width:900px){
@@ -171,7 +173,8 @@ body.page-grades .iframe-shell-stage > iframe.grade-frame{
 }
 /* Prop tab: #props-eval-panel also uses .grades-analytics-wrap (absolute + overflow:auto + inset:0),
    which traps scroll inside a short box — let content define page/stage height instead. */
-html.page-grades-root #props-eval-panel{
+html.page-grades-root #props-eval-panel,
+html.page-grades-root #player-evaluator-panel{
   overflow-x:hidden!important;
   overflow-y:auto!important;
   -webkit-overflow-scrolling:touch!important;
@@ -409,6 +412,8 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .grades-toolbar-parent-slot.grades-toolbar-parent-slot--collapsed{display:none;height:0;min-height:0;overflow:hidden;margin:0;padding:0;border:0}
 .iframe-shell-stage{flex:1;min-height:0;min-width:0;width:100%;max-width:100%;position:relative;overflow:hidden;}
 .iframe-shell-stage[data-grades-tab="tickets"]{flex:none!important;overflow:visible!important;}
+.iframe-shell-stage[data-grades-tab="players"]{flex:none!important;overflow:visible!important;min-height:0;}
+.iframe-shell-stage[data-grades-tab="props"]{flex:none!important;overflow:visible!important;}
 /* Slate/ticket iframes follow #empty-state in DOM — without z-index, the iframe paints on top and hides
    “No report” / errors on desktop (mobile media query used to fix this only for small screens). */
 .iframe-shell-stage > .grade-frame{position:absolute;inset:0;width:100%;max-width:100%;height:100%;border:none;display:block;transition:opacity .25s;background:transparent;min-width:0;box-sizing:border-box;z-index:1;}
@@ -645,6 +650,11 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .iframe-shell-stage[data-grades-tab="props"] #ticket-frame-inline,
 .iframe-shell-stage[data-grades-tab="tickets"] #grade-frame,
 .iframe-shell-stage[data-grades-tab="tickets"] #grade-frame-inline,
+.iframe-shell-stage[data-grades-tab="players"] #grade-frame,
+.iframe-shell-stage[data-grades-tab="players"] #grade-frame-inline,
+.iframe-shell-stage[data-grades-tab="players"] #ticket-frame,
+.iframe-shell-stage[data-grades-tab="players"] #ticket-frame-inline,
+.iframe-shell-stage[data-grades-tab="players"] #props-eval-panel,
 .iframe-shell-stage[data-grades-tab="slate"] #props-eval-panel,
 .iframe-shell-stage[data-grades-tab="slate"] #player-evaluator-panel,
 .iframe-shell-stage[data-grades-tab="props"] #player-evaluator-panel,
@@ -659,7 +669,8 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   overflow:hidden !important;
   opacity:0 !important;
 }
-.iframe-shell-stage[data-grades-tab="props"] #props-eval-panel{
+.iframe-shell-stage[data-grades-tab="props"] #props-eval-panel,
+.iframe-shell-stage[data-grades-tab="players"] #player-evaluator-panel{
   display:block !important;
   visibility:visible !important;
   pointer-events:auto !important;
@@ -670,6 +681,8 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
   overflow-y:visible !important;
   opacity:1 !important;
   z-index:6;
+  position:relative !important;
+  inset:auto !important;
 }
 .iframe-shell-stage[data-grades-tab="tickets"] #ticket-frame,
 .iframe-shell-stage[data-grades-tab="tickets"] #ticket-frame-inline{
@@ -4216,7 +4229,7 @@ function switchTab(tab) {
   }
   const shell = document.getElementById('grades-iframe-shell');
   if (shell) shell.classList.toggle('iframe-shell--ticket-tab', tab === 'tickets');
-  if (tab === 'tickets' || tab === 'props') {
+  if (tab === 'tickets' || tab === 'props' || tab === 'players') {
     restoreGradesToolbarToParent();
   }
   const ts = gradesEl('tab-slate');

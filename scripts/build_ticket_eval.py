@@ -3369,7 +3369,12 @@ def _leg_drop_reason(group_name: str, leg: dict[str, Any]) -> str | None:
     return None
 
 
-def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict[str, Any]:
+def _filter_payload_groups(
+    payload: dict[str, Any],
+    debug: bool = False,
+    *,
+    drop_duplicate_players: bool = True,
+) -> dict[str, Any]:
     pool_mode = _payload_pool_mode(payload)
     out_groups: list[dict[str, Any]] = []
     for g in payload.get("groups") or []:
@@ -3412,26 +3417,28 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
                 )
                 continue
             # No duplicate players (combo arms count): Carla×2 props, Maignan combo+solo, etc.
-            player_atoms: list[str] = []
-            for leg in legs:
-                raw = str(leg.get("player") or "").strip()
-                if not raw:
+            # Historical Grade rebuilds can pass drop_duplicate_players=False to keep issued slips.
+            if drop_duplicate_players:
+                player_atoms: list[str] = []
+                for leg in legs:
+                    raw = str(leg.get("player") or "").strip()
+                    if not raw:
+                        continue
+                    if "+" in raw or " & " in raw:
+                        parts = [p.strip() for p in re.split(r"\s*(?:\+|&)\s*", raw) if p.strip()]
+                    else:
+                        parts = [raw]
+                    for part in parts:
+                        atom = _norm_player_name(part)
+                        if atom:
+                            player_atoms.append(atom)
+                if len(player_atoms) != len(set(player_atoms)):
+                    print(
+                        f"[WARN] Dropping duplicate-player ticket in {gname}: "
+                        f"{[leg.get('player') for leg in legs]}",
+                        flush=True,
+                    )
                     continue
-                if "+" in raw or " & " in raw:
-                    parts = [p.strip() for p in re.split(r"\s*(?:\+|&)\s*", raw) if p.strip()]
-                else:
-                    parts = [raw]
-                for part in parts:
-                    atom = _norm_player_name(part)
-                    if atom:
-                        player_atoms.append(atom)
-            if len(player_atoms) != len(set(player_atoms)):
-                print(
-                    f"[WARN] Dropping duplicate-player ticket in {gname}: "
-                    f"{[leg.get('player') for leg in legs]}",
-                    flush=True,
-                )
-                continue
             # De-dupe duplicate ticket variants with identical leg sets.
             sig_items: list[str] = []
             for leg in legs:
@@ -5301,6 +5308,14 @@ def main() -> int:
             "strong_standard_shadow (STRONG Standard HOT), or strong_mix_shadow (Goblin+Standard HOT)."
         ),
     )
+    ap.add_argument(
+        "--keep-duplicate-players",
+        action="store_true",
+        help=(
+            "Keep issued slips that repeat a player across combo+solo arms when rebuilding "
+            "historical Grades (default drops them for live hygiene)."
+        ),
+    )
     args = ap.parse_args()
     eval_track = _normalize_eval_track(args.track)
     if args.date:
@@ -5391,7 +5406,11 @@ def main() -> int:
         except Exception as exc:
             print(f"[ticket_eval] WARN: tier calibration skipped: {exc}")
         _print_ml_prob_diagnostics(payload, arg_date)
-        payload = _filter_payload_groups(payload, debug=bool(args.debug))
+        payload = _filter_payload_groups(
+            payload,
+            debug=bool(args.debug),
+            drop_duplicate_players=not bool(args.keep_duplicate_players),
+        )
     except Exception as e:
         print(f"ERROR: Failed to read ticket file: {e}")
         return 1

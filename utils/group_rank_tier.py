@@ -181,7 +181,6 @@ def _tier_from_group(
         pt = "goblin"
     else:
         pt = "standard"
-    _ = (direction or "").strip().upper()
     cuts = _resolve_ml_prob_cuts(sport, pt)
 
     std_ok = standard_line is not None and not (

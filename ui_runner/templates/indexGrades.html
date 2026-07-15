@@ -419,7 +419,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .iframe-shell-stage[data-grades-tab="props"]{flex:none!important;overflow:visible!important;}
 /* Slate/ticket iframes follow #empty-state in DOM — without z-index, the iframe paints on top and hides
    “No report” / errors on desktop (mobile media query used to fix this only for small screens). */
-.iframe-shell-stage > .grade-frame{position:absolute;inset:0;width:100%;max-width:100%;height:100%;border:none;display:block;transition:opacity .25s;background:transparent;min-width:0;box-sizing:border-box;z-index:1;}
+.iframe-shell-stage > .grade-frame{position:absolute;inset:0;width:100%;max-width:100%;height:100%;border:none;display:block;transition:opacity .25s;background:#05050f;min-width:0;box-sizing:border-box;z-index:1;}
 /* Ticket tab: pull iframe flush under toolbar (ticket_eval has its own KPI bar) */
 .iframe-shell--ticket-tab .iframe-shell-toolbar{padding-bottom:0;gap:4px;}
 .iframe-shell--ticket-tab .iframe-shell-stage{margin-top:-1px;}
@@ -3938,6 +3938,8 @@ var PROPS_EVAL_BATCH_DESKTOP = 56;
 var PROPS_EVAL_VIEW = 'list';
 var PROPS_EVAL_DATE_CACHE = Object.create(null);
 var PROPS_EVAL_LOAD_ABORT = null;
+var PROPS_EVAL_LOAD_DATE = '';
+var PROPS_EVAL_LOAD_PROMISE = null;
 var PROPS_EVAL_SEARCH_TIMER = null;
 var PROPS_EVAL_VIRTUAL = {
   rows: [],
@@ -4293,15 +4295,22 @@ async function loadGradesProps(dateStr) {
     commitPropsEvalRows(PROPS_EVAL_DATE_CACHE[dateStr], 'Cached · ' + dateStr);
     return;
   }
+  /* Same-date re-entry (init loadDate + switchTab) — reuse in-flight fetch. */
+  if (PROPS_EVAL_LOAD_PROMISE && PROPS_EVAL_LOAD_DATE === dateStr) {
+    return PROPS_EVAL_LOAD_PROMISE;
+  }
   if (PROPS_EVAL_LOAD_ABORT) {
     try { PROPS_EVAL_LOAD_ABORT.abort(); } catch (_a) {}
   }
   PROPS_EVAL_LOAD_ABORT = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   var signal = PROPS_EVAL_LOAD_ABORT ? PROPS_EVAL_LOAD_ABORT.signal : undefined;
+  var fetchOpts = { cache: 'no-store', signal: signal };
   grid.innerHTML = '<p class="insights-card-sub" style="padding:14px">Loading decided props…</p>';
   if (foot) foot.textContent = '';
+  PROPS_EVAL_LOAD_DATE = dateStr;
+  PROPS_EVAL_LOAD_PROMISE = (async function () {
   try {
-    const jres = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), { cache: 'force-cache', signal: signal });
+    const jres = await fetch('/api/graded-props?date=' + encodeURIComponent(dateStr), fetchOpts);
     const jd = await jres.json();
     if (jres.ok && Array.isArray(jd.props) && jd.props.length) {
       const mapped = jd.props.map(mapGradedJsonToEvalRow);
@@ -4320,7 +4329,7 @@ async function loadGradesProps(dateStr) {
       var loops = 0;
       while (loops < 20) {
         loops += 1;
-        var pRes = await fetch('/api/grades/page-rows?date=' + encodeURIComponent(dateStr) + '&offset=' + off + '&limit=1000', { cache: 'force-cache', signal: signal });
+        var pRes = await fetch('/api/grades/page-rows?date=' + encodeURIComponent(dateStr) + '&offset=' + off + '&limit=1000', fetchOpts);
         if (!pRes.ok) break;
         var pJson = await pRes.json();
         var items = Array.isArray(pJson.items) ? pJson.items : [];
@@ -4339,7 +4348,7 @@ async function loadGradesProps(dateStr) {
         return;
       }
     }
-    const res = await fetch('/api/grades/props?date=' + encodeURIComponent(dateStr), { cache: 'force-cache', signal: signal });
+    const res = await fetch('/api/grades/props?date=' + encodeURIComponent(dateStr), fetchOpts);
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || res.statusText);
     const archiveRows = d.props || [];
@@ -4347,7 +4356,7 @@ async function loadGradesProps(dateStr) {
     if (!archiveRows.length) {
       var hint = '';
       try {
-        var ar = await fetch('/api/grades/archive_dates', { cache: 'force-cache', signal: signal });
+        var ar = await fetch('/api/grades/archive_dates', fetchOpts);
         if (ar.ok) {
           var aj = await ar.json();
           var ds = aj.dates || [];
@@ -4373,7 +4382,14 @@ async function loadGradesProps(dateStr) {
   } catch (e) {
     if (e && e.name === 'AbortError') return;
     grid.innerHTML = '<p class="insights-card-sub">Could not load props: ' + escProps(e.message || e) + '</p>';
+  } finally {
+    if (PROPS_EVAL_LOAD_DATE === dateStr) {
+      PROPS_EVAL_LOAD_PROMISE = null;
+      PROPS_EVAL_LOAD_DATE = '';
+    }
   }
+  })();
+  return PROPS_EVAL_LOAD_PROMISE;
 }
 (function initPropsEvalFilters() {
   setPropsEvalView(getPropsEvalView());
@@ -4842,7 +4858,7 @@ async function probeTicketEval(dateStr) {
       __ticketEvalProbeCache[dateStr] = false;
       return false;
     }
-    const res = await fetch(url, { method: 'GET', cache: 'force-cache', signal: gradesFetchSignal(20000) });
+    const res = await fetch(url, { method: 'GET', cache: 'no-store', signal: gradesFetchSignal(20000) });
     if (!res.ok) {
       __ticketEvalProbeCache[dateStr] = false;
       return false;
@@ -4852,6 +4868,8 @@ async function probeTicketEval(dateStr) {
     __ticketEvalProbeCache[dateStr] = ok;
     return ok;
   } catch (e) {
+    /* Timeout/abort must not poison the session cache as a permanent miss. */
+    if (e && (e.name === 'AbortError' || e.name === 'TimeoutError')) return false;
     __ticketEvalProbeCache[dateStr] = false;
     return false;
   }
@@ -5807,21 +5825,17 @@ function loadDate(dateStr){
   const dj = gradesEl('date-jump');
   if (dj) dj.value = dateStr;
 
-  if (activeTab === 'tickets') {
-    loadTicketEval(dateStr);
-  }
+  /* Prefetch ticket eval with the date so Ticket tab never opens on about:blank. */
+  loadTicketEval(dateStr);
   if (activeTab === 'props') {
     loadGradesProps(dateStr);
   }
   refreshControlsSummary();
 
-  /* Defer heavy slate iframe until Slate tab is active (Props/Ticket/Players first paint). */
-  if (activeTab !== 'slate') {
-    try {
-      frame.dataset.pendingSlateDate = dateStr;
-    } catch (_pd) {}
-    if (overlay) overlay.classList.add('hidden');
-    return;
+  /* Always load slate for the selected date so switching tabs never leaves about:blank white panels.
+     Keep the load overlay off when the user is on another tab. */
+  if (activeTab !== 'slate' && overlay) {
+    overlay.classList.add('hidden');
   }
   try {
     delete frame.dataset.pendingSlateDate;
@@ -6017,7 +6031,7 @@ window.addEventListener('pageshow', function (ev) {
   } catch (_eTabBoot) {}
   syncGradesTabStage(initialTab);
 
-  // Optimistic load — skips slate iframe when landing on Props/Ticket/Players.
+  // Optimistic load for yesterday while report-date discovery runs.
   try {
     loadDate(yest);
   } catch (_earlyLoad) {}

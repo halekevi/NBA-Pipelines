@@ -3536,9 +3536,15 @@ def _build_html(
         tno = t.get("ticket_no", "?")
         t["_leg_grades_cache"] = gs
         if not gs:
-            outcome_map[(gname, tno)] = {"pending": True}
+            oc = {"pending": True}
+            t["_money_outcome"] = oc
+            # Keep outcome_map for back-compat lookups, but ticket_no is NOT unique
+            # across identical group names (many boards reuse #1, #2, …).
+            outcome_map[(gname, tno, id(t))] = oc
             continue
-        outcome_map[(gname, tno)] = _ticket_eval_money_outcome(gname, gs, t)
+        oc = _ticket_eval_money_outcome(gname, gs, t)
+        t["_money_outcome"] = oc
+        outcome_map[(gname, tno, id(t))] = oc
         if all(x == "HIT" for x in gs):
             perfect += 1
         if any(x == "UNGRADED" for x in gs):
@@ -3584,8 +3590,7 @@ def _build_html(
         gs = t.get("_leg_grades_cache") or []
         if not gs or any(x == "UNGRADED" for x in gs) or all(x == "VOID" for x in gs):
             continue
-        gname = str(t.get("_group_name") or "Group")
-        oc = outcome_map.get((gname, t.get("ticket_no", "?")), {})
+        oc = t.get("_money_outcome") or {}
         if oc.get("pending"):
             continue
         pay_summary_rows.append(oc)
@@ -3969,7 +3974,10 @@ def _build_html(
                 fp = t.get("flex_payout")
                 legs = t.get("legs") or []
                 leg_grades = list(t.get("_leg_grades_cache") or [])
-                oc = outcome_map.get((gname, tno), {})
+                oc = t.get("_money_outcome") or {}
+                if not oc and outcome_map:
+                    # Legacy fallback (should be unused once _money_outcome is set).
+                    oc = outcome_map.get((gname, tno, id(t))) or {}
 
                 h = leg_grades.count("HIT")
                 m = leg_grades.count("MISS")

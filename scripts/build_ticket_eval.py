@@ -3309,6 +3309,27 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
                     flush=True,
                 )
                 continue
+            # No duplicate players (combo arms count): Carla×2 props, Maignan combo+solo, etc.
+            player_atoms: list[str] = []
+            for leg in legs:
+                raw = str(leg.get("player") or "").strip()
+                if not raw:
+                    continue
+                if "+" in raw or " & " in raw:
+                    parts = [p.strip() for p in re.split(r"\s*(?:\+|&)\s*", raw) if p.strip()]
+                else:
+                    parts = [raw]
+                for part in parts:
+                    atom = _norm_player_name(part)
+                    if atom:
+                        player_atoms.append(atom)
+            if len(player_atoms) != len(set(player_atoms)):
+                print(
+                    f"[WARN] Dropping duplicate-player ticket in {gname}: "
+                    f"{[leg.get('player') for leg in legs]}",
+                    flush=True,
+                )
+                continue
             # De-dupe duplicate ticket variants with identical leg sets.
             sig_items: list[str] = []
             for leg in legs:

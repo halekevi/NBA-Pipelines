@@ -3587,13 +3587,69 @@ DEFAULT_LEG_PROB_FALLBACK = 0.50
 MAX_SLIPS_PER_PLAYER = 4
 
 
+def _player_name_atoms(player: object) -> list[str]:
+    """
+    Split PrizePicks combo labels into player atoms.
+
+    ``\"Carla Leite\"`` → one atom; ``\"Mike Maignan + Unai Simón\"`` → two.
+    Same player cannot appear twice on a slip as solo+combo or two props.
+    """
+    raw = str(player or "").strip()
+    if not raw or raw.lower() in ("nan", "none", "—", "-"):
+        return []
+    if "+" in raw or " & " in raw or " and " in raw.lower():
+        parts = [p.strip() for p in re.split(r"\s*(?:\+|&| and )\s*", raw, flags=re.I) if p.strip()]
+    else:
+        parts = [raw]
+    out: list[str] = []
+    for part in parts:
+        n = _norm_player_join(part)
+        if n:
+            out.append(n)
+    return out
+
+
 def _ticket_cap_players_from_rows(rows: list) -> set[str]:
+    """Player exposure keys for slip caps — combo arms count individually."""
     out: set[str] = set()
     for r in rows:
-        p = _norm_player_join(r.get("player"))
-        if p:
-            out.add(p)
+        raw = None
+        if isinstance(r, dict):
+            raw = r.get("player")
+        else:
+            try:
+                raw = r.get("player") if hasattr(r, "get") else None
+            except Exception:
+                raw = None
+            if raw is None:
+                try:
+                    raw = r["player"] if "player" in getattr(r, "index", []) else getattr(r, "player", None)
+                except Exception:
+                    raw = None
+        for atom in _player_name_atoms(raw):
+            out.add(atom)
     return out
+
+
+def _ticket_players_unique(rows: list) -> bool:
+    """False when the same player appears twice (exact or as a combo arm)."""
+    atoms: list[str] = []
+    for r in rows:
+        raw = None
+        if isinstance(r, dict):
+            raw = r.get("player")
+        else:
+            try:
+                raw = r.get("player") if hasattr(r, "get") else None
+            except Exception:
+                raw = None
+            if raw is None:
+                try:
+                    raw = r["player"] if "player" in getattr(r, "index", []) else getattr(r, "player", None)
+                except Exception:
+                    raw = None
+        atoms.extend(_player_name_atoms(raw))
+    return len(atoms) == len(set(atoms))
 
 
 def _ticket_cap_can_add(rows: list, counts: dict[str, int] | None, cap: int = MAX_SLIPS_PER_PLAYER) -> bool:
@@ -14470,9 +14526,9 @@ def build_strong_tickets(
             if len(tickets) >= n_budget:
                 break
             rows = list(combo)
-            players = [str(r.get("player", "")).strip().lower() for r in rows]
-            if len(set(p for p in players if p)) != len([p for p in players if p]):
+            if not _ticket_players_unique(rows):
                 continue
+            players = [str(r.get("player", "")).strip().lower() for r in rows]
             player_props = {
                 f"{p}::{_norm_prop_label(r.get('prop_type', '') or r.get('prop', ''))}"
                 for p, r in zip(players, rows)
@@ -14627,6 +14683,9 @@ def build_tickets(
             if len(sports) < 2:
                 continue
 
+        if not _ticket_players_unique(rows):
+            continue
+
         key = frozenset(_leg_fp_tuple(r) for r in rows)
         if key in seen_ticket_keys:
             continue
@@ -14722,6 +14781,9 @@ def build_mixed_picktype_tickets(
         rows = list(combo)
         std_count = sum(1 for r in rows if str(r.get("pick_type", "")) == "Standard")
         if std_count < int(min_standard):
+            continue
+
+        if not _ticket_players_unique(rows):
             continue
 
         key = frozenset(_leg_fp_tuple(r) for r in rows)
@@ -15378,12 +15440,14 @@ def build_cross_pipeline_probability_ladder(
             rows: list[dict] = []
             players: set[str] = set()
             for _sport, row, _prob, _idx in picks:
-                pl = str(row.get("player", "")).strip().lower()
-                if pl and pl in players:
+                atoms = _player_name_atoms(row.get("player"))
+                if any(a in players for a in atoms):
                     continue
                 rows.append(row)
-                players.add(pl)
+                players.update(atoms)
             if len(rows) < target_n:
+                break
+            if not _ticket_players_unique(rows):
                 break
             if not _ticket_cap_can_add(rows, player_ticket_counts):
                 for sport, _row, _prob, idx in picks:
@@ -15605,9 +15669,7 @@ def build_high_probability_parlay_tickets(
                 if scanned > scan_cap:
                     break
                 rows = list(legs_tuple)
-                players = [str(r.get("player", "")).strip().lower() for r in rows]
-                active_players = [p for p in players if p]
-                if len(set(active_players)) != len(active_players):
+                if not _ticket_players_unique(rows):
                     continue
                 key = frozenset(_ladder_leg_fingerprint(r) for r in rows)
                 if key in used_keys:

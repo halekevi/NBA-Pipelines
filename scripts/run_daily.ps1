@@ -8,7 +8,7 @@
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
          → (C) run_pipeline for today → (D) combined_slate → (D-payout) live CDP payout scrape + verify outstanding ticket floors / mixΔ (scripts/run_live_payout_capture.ps1; also runs inside Run-Combined) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
-         Tennis: -TennisDate defaults to Eastern tomorrow (early-AM board); override when needed.
+         Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 7AM refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
          Combined slate (STEP D via run_pipeline.ps1) fetches Underdog + DraftKings by default; set PROPORACLE_SKIP_ALT_BOOKS=1 or pass -SkipAltBooks to run_pipeline to disable.
          Use -SkipFetch to skip A1 and C0b. -SkipGameLines skips C0. -SkipPeriodHistorySync skips C0b only.
@@ -111,8 +111,8 @@ function Get-TimeStamp { return Get-Date -Format "HH:mm:ss" }
 
 $Today = if ($Date.Trim()) { $Date.Trim() } else { (Get-Date).ToString("yyyy-MM-dd") }
 $Yesterday = if ($GradeDate.Trim()) { $GradeDate.Trim() } else { (Get-Date).AddDays(-1).ToString("yyyy-MM-dd") }
-# Tennis: early-AM board → Eastern tomorrow by default (same rule as run_pipeline.ps1).
-# Historical -Date more than 1 day behind ET today → Date+1. Override with -TennisDate.
+# Tennis: early-AM board → same calendar day as -Date (same rule as run_pipeline.ps1).
+# Override with -TennisDate when needed.
 function Get-PropOracleEasternTodayYmd {
     try {
         return [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId(
@@ -125,17 +125,10 @@ function Get-PropOracleEasternTodayYmd {
 $TennisDate = if ($TennisDate -and $TennisDate.Trim()) {
     $TennisDate.Trim()
 } else {
-    $EasternToday = Get-PropOracleEasternTodayYmd
     try {
-        $bundleDt = [datetime]::ParseExact($Today, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
-        $etDt = [datetime]::ParseExact($EasternToday, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
-        if (($etDt - $bundleDt).TotalDays -gt 1) {
-            $bundleDt.AddDays(1).ToString('yyyy-MM-dd')
-        } else {
-            $etDt.AddDays(1).ToString('yyyy-MM-dd')
-        }
+        [datetime]::ParseExact($Today, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture).ToString('yyyy-MM-dd')
     } catch {
-        (Get-Date $Today).AddDays(1).ToString('yyyy-MM-dd')
+        Get-PropOracleEasternTodayYmd
     }
 }
 # Ticket-model train/eval is opt-in via -RunTicketModels (or TICKET_MODEL_MODE when that switch is set).

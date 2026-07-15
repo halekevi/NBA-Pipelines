@@ -29,14 +29,14 @@ def _norm_key(s: object) -> str:
 
 def _tennis_match_date() -> str:
     """
-    ET match day for tennis props (early / next-day boards).
-    Matches run_pipeline.ps1: TennisDate = pipeline calendar day + 1.
+    ET match day for tennis props (same calendar day as the slate).
+    Matches run_pipeline.ps1: TennisDate defaults to -Date.
     Override with env PROPORACLE_TENNIS_DATE=YYYY-MM-DD.
     """
     override = os.environ.get("PROPORACLE_TENNIS_DATE", "").strip()[:10]
     if override:
         return override
-    return (datetime.now(_ET).date() + timedelta(days=1)).isoformat()
+    return datetime.now(_ET).date().isoformat()
 
 
 def _row_et_date(row: dict) -> str:

@@ -3777,18 +3777,15 @@ def api_pipeline_status():
         tennis_override_date = None
     tennis_cnt = int(slate_counts.get("tennis", 0))
     if not tennis_override_date:
-        # Live: Eastern tomorrow (early-AM board). Historical slate: bundle date + 1.
+        # Same calendar day as slate (early-AM board). Historical override unused:
+        # payload tennis_date is preferred when present.
         et_today = datetime.now(ZoneInfo("America/New_York")).date()
         bundle_d = str((slate_payload or {}).get("date") or "").strip()[:10]
-        tennis_override_date = (et_today + timedelta(days=1)).strftime("%Y-%m-%d")
         if len(bundle_d) == 10:
-            try:
-                bundle = datetime.strptime(bundle_d, "%Y-%m-%d").date()
-                if (et_today - bundle).days > 1:
-                    tennis_override_date = (bundle + timedelta(days=1)).strftime("%Y-%m-%d")
-            except ValueError:
-                pass
-        elif tennis_cnt <= 0:
+            tennis_override_date = bundle_d
+        elif tennis_cnt > 0:
+            tennis_override_date = et_today.strftime("%Y-%m-%d")
+        else:
             tennis_override_date = None
     tennis_card_disp = card_disp
     if tennis_cnt > 0:

@@ -87,30 +87,23 @@ def slate_calendar_date_ymd() -> str:
 
 
 def default_tennis_match_date(bundle_date: str | None = None) -> str:
-    """Tennis match day = next Eastern morning (early-AM board).
+    """Tennis match day = same Eastern calendar day as the pipeline slate.
 
-    Live ops: Eastern *today* + 1, even when pipeline ``-Date`` is already tomorrow
-    (e.g. WNBA board for Jul 12 run on Jul 11 night → tennis still Jul 12, not Jul 13).
-
-    Historical backfills (bundle_date more than 1 day before ET today): bundle_date + 1.
+    Early-AM tips (~4:00–5:30 ET) are fetched on that same calendar day (3AM light
+    run, then 7AM full daily refresh). Override with ``--tennis-date`` only when
+    the live board is exclusively another day.
     """
-    et_today_s = slate_calendar_date_ymd()
-    raw = str(bundle_date or et_today_s).strip()[:10]
-    try:
-        bundle = datetime.strptime(raw, "%Y-%m-%d").date()
-        et_today = datetime.strptime(et_today_s, "%Y-%m-%d").date()
-        if (et_today - bundle).days > 1:
-            return (bundle + timedelta(days=1)).strftime("%Y-%m-%d")
-        return (et_today + timedelta(days=1)).strftime("%Y-%m-%d")
-    except ValueError:
+    raw = str(bundle_date or "").strip()[:10]
+    if raw and re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):
         return raw
+    return slate_calendar_date_ymd()
 
 
 def default_soccer_match_date(bundle_date: str | None = None) -> str:
     """Soccer / World Cup boards are same calendar day as the pipeline slate.
 
-    Tennis defaults to ET tomorrow; soccer does not. Override with ``--soccer-date``
-    only when the live board is exclusively next-day.
+    Tennis also defaults to same-day; override with ``--soccer-date`` only when
+    the live board is exclusively next-day.
     """
     raw = (bundle_date or "").strip()[:10]
     if raw and re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):
@@ -16813,7 +16806,7 @@ def main():
         "--tennis-date",
         dest="tennis_date",
         default=None,
-        help="Override date for Tennis step8 path + ET match-day filter (default: --date + 1 day ET).",
+        help="Override date for Tennis step8 path + ET match-day filter (default: same day as --date).",
     )
     ap.add_argument(
         "--soccer-date",
@@ -19205,7 +19198,7 @@ def main():
             dated = sdf["game_date"].notna()
             gd = sdf["game_date"].astype(str).str[:10]
             if label in ("Tennis", "Soccer"):
-                # Match-day sports (tennis_date / soccer_date) may be ET tomorrow vs bundle --date.
+                # Match-day sports (tennis_date / soccer_date) may differ from bundle --date when overridden.
                 bad = sdf[dated & (gd < td)]
             elif label in ("NBA", "NBA1Q", "NBA1H"):
                 bad = sdf[dated & (gd < td)]

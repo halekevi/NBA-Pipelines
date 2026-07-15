@@ -2067,12 +2067,14 @@ select option,
 //   Express: /reports/slate_eval_{date}.html
 //   Same dir: slate_eval_{date}.html  (relative)
 //
-const REPORT_URL_TEMPLATE = 'slate_eval_{date}.html';
+/* Absolute /grades/… paths: page URL is /grades (no trailing slash), so relative
+   slate_eval_….html resolves to /slate_eval_….html (404) instead of /grades/…. */
+const REPORT_URL_TEMPLATE = '/grades/slate_eval_{date}.html';
 /** Every load gets a unique URL so iframe/browsers/CDNs cannot serve a stale slate_eval after deploy. */
 function slateEvalUrl(dateStr) {
   return REPORT_URL_TEMPLATE.replace('{date}', dateStr) + '?cb=' + Date.now();
 }
-const TICKET_EVAL_URL_TEMPLATE = 'ticket_eval_{date}.html';
+const TICKET_EVAL_URL_TEMPLATE = '/grades/ticket_eval_{date}.html';
 const TICKET_EVAL_LONG_PARLAY_URL_TEMPLATE = '/grades/ticket_eval_long_parlay_{date}.html';
 /** Keep ticket iframe fresh too (prevents stale/blank cache edge-cases after deploy). */
 function ticketEvalUrl(dateStr) {
@@ -6328,34 +6330,83 @@ window.addEventListener('resize', () => {
   async function _loadGradedPropsByDate(ds) {
     const d = _extractDate(ds);
     if (!d) return null;
-    const file = `graded_props_${d}.json`;
-    const r = await _origFetch(file, { cache: 'no-store' });
-    if (!r.ok) return null;
-    return r.json();
+    /* Absolute /grades/ path — relative graded_props_*.json resolves to site root from /grades. */
+    const candidates = [
+      '/grades/graded_props_' + d + '.json',
+      'graded_props_' + d + '.json',
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      try {
+        const r = await _origFetch(candidates[i], { cache: 'no-store' });
+        if (r && r.ok) return r.json();
+      } catch (_e) {}
+    }
+    return null;
   }
   window.fetch = async function (input, init) {
     const urlStr = (typeof input === 'string') ? input : (input && input.url ? input.url : String(input || ''));
     const path = urlStr.replace(window.location.origin, '');
 
     if (path.includes('/api/grades/report_dates')) {
-      return _origFetch('grades_report_dates.json', init);
+      try {
+        const live = await _origFetch(input, init);
+        if (live && live.ok) return live;
+      } catch (_eLive) {}
+      return _origFetch('/grades/grades_report_dates.json', init).catch(function () {
+        return _origFetch('grades_report_dates.json', init);
+      });
     }
     if (path.includes('/api/grades/insights')) {
+      try {
+        const live = await _origFetch(input, init);
+        if (live && live.ok) return live;
+      } catch (_eIns) {}
       return _jsonResp({ calibration: [], clv_by_sport: [], edge_bucket_hit_rate: [], clv_by_prop_type: [], clv_by_tier: [] });
     }
     if (path.includes('/api/grades/archive_dates')) {
-      return _origFetch('grades_archive_dates.json', init);
+      try {
+        const live = await _origFetch(input, init);
+        if (live && live.ok) return live;
+      } catch (_eArc) {}
+      return _origFetch('/grades/grades_archive_dates.json', init).catch(function () {
+        return _origFetch('grades_archive_dates.json', init);
+      });
     }
     if (path.includes('/api/grade-history')) {
-      return _origFetch('data/grade_history.json', init);
+      try {
+        const live = await _origFetch(input, init);
+        if (live && live.ok) return live;
+      } catch (_eGh) {}
+      return _origFetch('/grades/data/grade_history.json', init).catch(function () {
+        return _origFetch('data/grade_history.json', init);
+      });
     }
     if (path.includes('/api/graded-props')) {
+      /* Live API first (Railway). Bundle JSON is Capacitor offline fallback only. */
+      try {
+        const live = await _origFetch(input, init);
+        if (live && live.ok) {
+          try {
+            const cloned = live.clone();
+            const jd = await cloned.json();
+            if (Array.isArray(jd.props) && jd.props.length) return live;
+            if (jd && jd.missing !== true && Array.isArray(jd.props)) return live;
+            if (jd && Number(jd.count) > 0) return live;
+          } catch (_parse) {
+            return live;
+          }
+        }
+      } catch (_eGp) {}
       const ds = _dateParamFrom(urlStr);
       const j = await _loadGradedPropsByDate(ds);
       if (j) return _jsonResp(j);
       return _jsonResp({ ok: true, date: _extractDate(ds), props: [], source: 'mobile_bundle_missing' });
     }
     if (path.includes('/api/grades/props')) {
+      try {
+        const live = await _origFetch(input, init);
+        if (live && live.ok) return live;
+      } catch (_eProps) {}
       const ds = _dateParamFrom(urlStr);
       const j = await _loadGradedPropsByDate(ds);
       const props = Array.isArray(j && j.props) ? j.props : [];

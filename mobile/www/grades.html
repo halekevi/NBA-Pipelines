@@ -5026,6 +5026,8 @@ let availableDates = [];  // sorted ascending
 let currentDateIdx = -1;
 let currentDateStr = '';
 let slateReportMissing = false;
+/** Monotonic id so stale probeDate().then callbacks cannot overwrite a newer loadDate(). */
+let __gradesSlateLoadGen = 0;
 /** When the hub date has no ticket_eval HTML but an older report exists (e.g. slate 05-21, tickets 05-20). */
 let ticketEvalFallbackNotice = null;
 /** Main 2-4 leg vs long 5-6 leg parlay scoreboards on Ticket tab. */
@@ -5843,11 +5845,17 @@ function loadDate(dateStr){
     delete frame.dataset.pendingSlateDate;
   } catch (_pd2) {}
 
+  const loadGen = ++__gradesSlateLoadGen;
+  try {
+    frame.dataset.slateLoadGen = String(loadGen);
+  } catch (_sg) {}
   const url = slateEvalUrl(dateStr);
 
   // Set iframe src
   frame.onload = function(){
+    if (Number(frame.dataset.slateLoadGen) !== loadGen) return;
     function runSlateReadyChecks(step) {
+      if (Number(frame.dataset.slateLoadGen) !== loadGen) return;
       try {
         if (slateIframeDocLooksReady(frame.contentDocument)) {
           completeSlateFrameLoad(frame);
@@ -5880,13 +5888,53 @@ function loadDate(dateStr){
     });
   };
   frame.onerror = function(){
+    if (Number(frame.dataset.slateLoadGen) !== loadGen) return;
     finishGradesSlateLoadUI();
     if (emptyState) emptyState.hidden = false;
     syncEmptyStateDateHints(dateStr);
   };
 
-  // Use a short timeout to detect 404s via probe
+  /* Point the iframe at the requested date immediately — waiting on probe caused
+     races where an older date’s callback left Jul 13 (or about:blank) on screen. */
+  slateReportMissing = false;
+  try {
+    frame.src = url;
+  } catch (_src0) {}
+  __gradesSlateLoadTimeout = setTimeout(finishGradesSlateLoadUI, 8000);
+  let pollN = 0;
+  __gradesSlatePoll = setInterval(function () {
+    if (Number(frame.dataset.slateLoadGen) !== loadGen) {
+      if (__gradesSlatePoll != null) {
+        clearInterval(__gradesSlatePoll);
+        __gradesSlatePoll = null;
+      }
+      return;
+    }
+    pollN++;
+    var ok = false;
+    try {
+      ok = slateIframeDocLooksReady(frame.contentDocument);
+    } catch (_pe) {}
+    if (ok || pollN >= 160) {
+      if (__gradesSlatePoll != null) {
+        clearInterval(__gradesSlatePoll);
+        __gradesSlatePoll = null;
+      }
+      if (__gradesSlateLoadTimeout != null) {
+        clearTimeout(__gradesSlateLoadTimeout);
+        __gradesSlateLoadTimeout = null;
+      }
+      if (ok) {
+        completeSlateFrameLoad(frame);
+      } else {
+        finishGradesSlateLoadUI();
+      }
+    }
+  }, 200);
+
+  // Confirm the file exists; only then fall back to an older date if missing.
   probeDate(dateStr).then(async exists => {
+    if (Number(frame.dataset.slateLoadGen) !== loadGen) return;
     if(!exists){
       // Prefer a report that actually exists (meta lists can be stale / HTML gitignored).
       let slateFb = null;
@@ -5895,6 +5943,7 @@ function loadDate(dateStr){
       } catch (_eProbe) {
         slateFb = latestSlateReportDateOnOrBefore(dateStr);
       }
+      if (Number(frame.dataset.slateLoadGen) !== loadGen) return;
       if (slateFb && slateFb !== dateStr) {
         loadDate(slateFb);
         return;
@@ -5904,47 +5953,6 @@ function loadDate(dateStr){
       finishGradesSlateLoadUI();
       if (emptyState) emptyState.hidden = false;
       syncEmptyStateDateHints(dateStr);
-    } else {
-      slateReportMissing = false;
-      let sameDoc = false;
-      try {
-        const abs = new URL(url, window.location.href).href;
-        const cur = String(frame.getAttribute('src') || frame.src || '');
-        sameDoc =
-          (cur === abs || cur.endsWith(url) || abs.endsWith(url.replace(/^\//, ''))) &&
-          slateIframeDocLooksReady(frame.contentDocument);
-      } catch (_e0) {
-        sameDoc = false;
-      }
-      if (sameDoc) {
-        completeSlateFrameLoad(frame);
-      } else {
-        __gradesSlateLoadTimeout = setTimeout(finishGradesSlateLoadUI, 8000);
-        let pollN = 0;
-        __gradesSlatePoll = setInterval(function () {
-          pollN++;
-          var ok = false;
-          try {
-            ok = slateIframeDocLooksReady(frame.contentDocument);
-          } catch (_pe) {}
-          if (ok || pollN >= 160) {
-            if (__gradesSlatePoll != null) {
-              clearInterval(__gradesSlatePoll);
-              __gradesSlatePoll = null;
-            }
-            if (__gradesSlateLoadTimeout != null) {
-              clearTimeout(__gradesSlateLoadTimeout);
-              __gradesSlateLoadTimeout = null;
-            }
-            if (ok) {
-              completeSlateFrameLoad(frame);
-            } else {
-              finishGradesSlateLoadUI();
-            }
-          }
-        }, 200);
-        frame.src = url;
-      }
     }
   });
 

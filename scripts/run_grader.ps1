@@ -27,12 +27,14 @@ function Get-TennisStep8SearchPaths {
         [string]$BundleDate
     )
     $tennisDir = Join-Path $BundleDir "tennis"
+    # Prefer dated step8 (full match-day slate) over undated tennis/ copies —
+    # undated files are often a short/stale subset and produce all-VOID grades.
     $paths = @(
-        (Join-Path $tennisDir "step8_tennis_direction_clean.xlsx"),
-        (Join-Path $tennisDir "step8_tennis_direction.csv"),
         (Join-Path $BundleDir "step8_tennis_direction_clean_$MatchDate.xlsx"),
         (Join-Path $BundleDir "step8_tennis_direction_clean_$BundleDate.xlsx"),
-        (Join-Path $tennisDir "step8_tennis_direction_clean_$MatchDate.xlsx")
+        (Join-Path $tennisDir "step8_tennis_direction_clean_$MatchDate.xlsx"),
+        (Join-Path $tennisDir "step8_tennis_direction_clean.xlsx"),
+        (Join-Path $tennisDir "step8_tennis_direction.csv")
     )
     if (Test-Path $tennisDir) {
         $paths += @(Get-ChildItem -LiteralPath $tennisDir -Filter "step8_*.csv" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })

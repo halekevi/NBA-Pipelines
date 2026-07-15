@@ -1915,16 +1915,37 @@ def find_graded_file(sport: str, date_str: str) -> Path | None:
 def _tennis_step8_search_paths(bundle_dir: Path, match_date: str, bundle_date: str) -> list[Path]:
     """Mirror run_grader.ps1 Get-TennisStep8SearchPaths (path-based, not mtime)."""
     tennis_dir = bundle_dir / "tennis"
+    # Prefer dated step8 over undated tennis/ copies (short/stale subsets → all-VOID).
     paths: list[Path] = [
-        tennis_dir / "step8_tennis_direction_clean.xlsx",
-        tennis_dir / "step8_tennis_direction.csv",
         bundle_dir / f"step8_tennis_direction_clean_{match_date}.xlsx",
         bundle_dir / f"step8_tennis_direction_clean_{bundle_date}.xlsx",
+        tennis_dir / f"step8_tennis_direction_clean_{match_date}.xlsx",
+        tennis_dir / "step8_tennis_direction_clean.xlsx",
+        tennis_dir / "step8_tennis_direction.csv",
     ]
     if tennis_dir.is_dir():
         paths.extend(sorted(tennis_dir.glob("step8_*.csv")))
         paths.extend(sorted(tennis_dir.glob("step8_*.xlsx")))
     return paths
+
+
+def _tennis_graded_has_decided(path: Path) -> bool:
+    """True when a graded tennis workbook has at least one HIT or MISS."""
+    try:
+        df = pd.read_excel(path)
+    except Exception:
+        return False
+    if df is None or df.empty:
+        return False
+    col = None
+    for c in df.columns:
+        if str(c).strip().lower() == "result":
+            col = c
+            break
+    if col is None:
+        return False
+    vals = {str(v).strip().upper() for v in df[col].tolist()}
+    return bool(vals & {"HIT", "MISS", "WIN", "LOSS"})
 
 
 def find_tennis_graded_file(date_str: str) -> Path | None:
@@ -1934,6 +1955,10 @@ def find_tennis_graded_file(date_str: str) -> Path | None:
     When step8 lives in outputs/(grade_date - 1) (tomorrow-fetch), the grader
     writes to outputs/(grade_date + 1)/graded_tennis_{match_day}.xlsx — same
     rule as run_grader.ps1, keyed off step8 bundle location (not file mtimes).
+
+    If that match-day book exists but has no HIT/MISS (stale/short step8 grade),
+    fall back to same-calendar-day ``graded_tennis_{grade_date}.xlsx`` when it
+    has decided props so Grades D shows tennis that actually settled on D.
     """
     date_str = str(date_str or "")[:10]
     try:
@@ -1952,21 +1977,32 @@ def find_tennis_graded_file(date_str: str) -> Path | None:
                 return p
         return None
 
+    same_graded = grade_bundle / f"graded_tennis_{date_str}.xlsx"
+
     offset_step8 = _first_existing(_tennis_step8_search_paths(offset_bundle, date_str, bundle_date))
     if offset_step8 is not None:
         match_day = (grade_dt + timedelta(days=1)).strftime("%Y-%m-%d")
         offset_graded = ROOT_DIR / "outputs" / match_day / f"graded_tennis_{match_day}.xlsx"
         if offset_graded.exists():
+            if _tennis_graded_has_decided(offset_graded):
+                return offset_graded
+            if same_graded.exists() and _tennis_graded_has_decided(same_graded):
+                print(
+                    f"  Tennis: match-day {match_day} book has no decided props; "
+                    f"using same-day {same_graded.name}"
+                )
+                return same_graded
             return offset_graded
         print(
             f"  WARNING: Tennis step8 from bundle {bundle_date} (offset) but "
             f"no graded workbook at {offset_graded.name} under outputs/{match_day}/"
         )
+        if same_graded.exists() and _tennis_graded_has_decided(same_graded):
+            return same_graded
         return None
 
     same_step8 = _first_existing(_tennis_step8_search_paths(grade_bundle, date_str, date_str))
     if same_step8 is not None:
-        same_graded = grade_bundle / f"graded_tennis_{date_str}.xlsx"
         if same_graded.exists():
             return same_graded
 

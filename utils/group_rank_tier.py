@@ -18,10 +18,11 @@ import pandas as pd
 # Default A/B/C thresholds on ml_prob (sports without overrides).
 DEFAULT_ML_PROB_CUTS: tuple[float, float, float] = (0.71, 0.65, 0.58)
 # Direction-separated Standard profiles.
+# ml_prob is play-side P(hit) for the chosen direction (OVER or UNDER).
+# Standard OVER / UNDER both tier on raw ml_prob — never (1 - ml_prob).
 DEFAULT_STANDARD_OVER_CUTS: tuple[float, float, float] = (0.73, 0.69, 0.63)
-# UNDER confidence is evaluated on (1 - ml_prob). In practice this distribution is
-# more compressed than OVER, so use a lower default profile to avoid collapsing most
-# Standard UNDER rows into Tier D.
+# UNDER often lands on a slightly different calibrated band than OVER; sport overrides
+# can tune further via SPORT_STANDARD_DIRECTION_CUTS.
 DEFAULT_STANDARD_UNDER_CUTS: tuple[float, float, float] = (0.58, 0.52, 0.50)
 
 # Format: sport_slug → {group: (A_cut, B_cut, C_cut)} | (A_cut, B_cut, C_cut)
@@ -54,6 +55,11 @@ SPORT_ML_PROB_CUTS: dict[str, tuple[float, float, float] | dict[str, tuple[float
 
 # Optional Standard direction overrides by sport.
 SPORT_STANDARD_DIRECTION_CUTS: dict[str, dict[str, tuple[float, float, float]]] = {
+    # Align with SPORT_ML_PROB_CUTS["soccer"] — soccer probs are low-scale / play-side.
+    "soccer": {
+        "OVER": (0.45, 0.35, 0.25),
+        "UNDER": (0.45, 0.35, 0.25),
+    },
     # MLB standard probabilities are compressed vs NBA-scale outputs.
     "mlb": {
         "OVER": (0.58, 0.52, 0.47),
@@ -214,11 +220,11 @@ def _tier_from_group(
             return "D"
         return _tier_from_ml_scalar(ml_prob, *cuts)
 
-    d = (direction or "").strip().upper()
-    std_prob = _safe_float_prob(ml_prob)
-    if d == "UNDER":
-        std_prob = 1.0 - std_prob
-    return _tier_from_ml_scalar(std_prob, *_resolve_standard_direction_cuts(sport, direction))
+    # Standard: ml_prob is already play-side P(hit) for OVER or UNDER.
+    return _tier_from_ml_scalar(
+        _safe_float_prob(ml_prob),
+        *_resolve_standard_direction_cuts(sport, direction),
+    )
 
 
 def _first_col(df: pd.DataFrame, names: list[str]) -> str | None:
@@ -318,10 +324,8 @@ def assign_tier_column(out: pd.DataFrame, *, sport: str = "") -> pd.Series:
     c_std_over = _resolve_standard_direction_cuts(sport, "OVER")
     c_std_under = _resolve_standard_direction_cuts(sport, "UNDER")
     t_std_over = _tier_from_ml_array(ml_raw, *c_std_over)
-    # Standard UNDER should be tiered on side-aligned probability.
-    # In flows where ml_prob tracks OVER likelihood, UNDER strength is (1 - ml_prob).
-    ml_under = np.where(np.isfinite(ml_raw), 1.0 - ml_raw, np.nan)
-    t_std_under = _tier_from_ml_array(ml_under, *c_std_under)
+    # Standard UNDER: same as OVER — tier on raw play-side ml_prob (not 1 - ml).
+    t_std_under = _tier_from_ml_array(ml_raw, *c_std_under)
     t_gob_fb = _tier_from_ml_array(ml_raw, *c_gob)
     t_dem_fb = _tier_from_ml_array(ml_raw, *c_dem)
     dr = (

@@ -1649,8 +1649,8 @@ def _recompute_standard_tiers_from_directional_ml_prob(df: pd.DataFrame, sport: 
     Recompute Standard tier labels from directional ml_prob when available.
 
     Older graded slates can carry pre-fix tier assignments where Standard UNDER
-    rows were bucketed from non-directional probabilities. This keeps grading UI
-    and matrix outputs aligned with current tiering logic.
+    rows were wrongly bucketed via (1 - ml_prob). This keeps grading UI and matrix
+    outputs aligned with current play-side tiering logic.
     """
     if "tier" not in df.columns or "ml_prob" not in df.columns or "pick_type" not in df.columns:
         return df

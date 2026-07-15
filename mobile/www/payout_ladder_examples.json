@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-07-14T09:57:17.039054+00:00",
+  "generated_at": "2026-07-15T09:54:55.759979+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -84,24 +84,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -110,24 +110,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -136,24 +136,50 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
         }
       ]
     },
@@ -162,34 +188,34 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -198,34 +224,34 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -234,34 +260,34 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -270,34 +296,34 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -306,34 +332,34 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -342,34 +368,34 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -378,30 +404,286 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         },
         {
-          "player": "Aaliyah Edwards",
-          "prop_type": "Rebounds",
+          "player": "Flau'jae Johnson",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
@@ -411,231 +693,47 @@
     },
     {
       "composition": "3S+1G+0D",
-      "goblin_delta": 0.5,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 0.5,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "3S+1G+0D",
-      "goblin_delta": 1.0,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 1.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "3S+1G+0D",
-      "goblin_delta": 1.5,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 1.5,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "3S+1G+0D",
-      "goblin_delta": 2.0,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "3S+1G+0D",
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
           "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -644,44 +742,44 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
           "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -690,40 +788,356 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         },
         {
-          "player": "Aaliyah Edwards",
-          "prop_type": "Rebounds",
+          "player": "Flau'jae Johnson",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "3S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
@@ -733,266 +1147,22 @@
     },
     {
       "composition": "4S+1G+0D",
-      "goblin_delta": 0.5,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 0.5,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 1.0,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 1.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 1.5,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 1.5,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 2.0,
-      "legs": [
-        {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
-          "prop_type": "Assists",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.75
-        },
-        {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1000,14 +1170,34 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1016,39 +1206,19 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
@@ -1056,14 +1226,34 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1072,54 +1262,166 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
           "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         },
         {
-          "player": "Aaliyah Edwards",
-          "prop_type": "Rebounds",
+          "player": "Flau'jae Johnson",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": 3.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        }
+      ]
+    },
+    {
+      "composition": "3S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
           "hit_rate": 1.0
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "4S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
         }
       ]
     },
@@ -1128,47 +1430,47 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
           "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
@@ -1178,14 +1480,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1194,47 +1496,47 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
           "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
@@ -1244,14 +1546,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1260,47 +1562,47 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
           "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
@@ -1310,14 +1612,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1326,47 +1628,47 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
           "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
@@ -1376,14 +1678,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1392,47 +1694,47 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
           "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
@@ -1442,14 +1744,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1458,47 +1760,47 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
-          "line": 2.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.85
-        },
-        {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
-        },
-        {
-          "player": "Brittney Griner",
+          "player": "Kamilla Cardoso",
           "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
           "hit_rate": 0.75
         },
         {
-          "player": "Marina Mabrey",
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
           "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
@@ -1508,14 +1810,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
+          "player": "Erica Wheeler",
           "prop_type": "Assists",
           "line": 3.5,
           "standard_line": 5.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 1.0
         }
       ]
     },
@@ -1524,38 +1826,180 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Sonia Citron",
-          "prop_type": "Rebounds",
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.9
         },
         {
-          "player": "Sarah Ashlee Barker",
-          "prop_type": "Rebounds",
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
           "line": 2.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.85
+          "hit_rate": 0.75
         },
         {
-          "player": "Kennedy Burke",
-          "prop_type": "Rebounds",
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Flau'jae Johnson",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": 3.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        }
+      ]
+    },
+    {
+      "composition": "4S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.8
+          "hit_rate": 0.9
         },
         {
-          "player": "Brittney Griner",
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
           "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Erica Wheeler",
+          "prop_type": "Assists",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.6499999999999999
+        }
+      ]
+    },
+    {
+      "composition": "5S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Kamilla Cardoso",
+          "prop_type": "Assists",
+          "line": 1.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Lexie Hull",
+          "prop_type": "Points",
+          "line": 4.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Jade Melbourne",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Nneka Ogwumike",
+          "prop_type": "Assists",
+          "line": 2.5,
+          "standard_line": null,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.75
+        },
+        {
+          "player": "Courtney Vandersloot",
+          "prop_type": "Rebounds",
           "line": 1.5,
           "standard_line": null,
           "pick_type": "Standard",
@@ -1564,24 +2008,14 @@
           "hit_rate": 0.75
         },
         {
-          "player": "Carla Leite",
-          "prop_type": "Assists",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
+          "player": "Natasha Howard",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 24.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Aaliyah Edwards",
-          "prop_type": "Rebounds",
-          "line": 1.5,
-          "standard_line": 3.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.6499999999999999
         }
       ]
     }

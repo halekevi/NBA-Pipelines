@@ -73,7 +73,7 @@ import sys
 import unicodedata
 import zipfile
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Sequence
 from zoneinfo import ZoneInfo
@@ -232,6 +232,22 @@ DEFAULT_WNBA_PATH = os.path.join(REPO_ROOT, "Sports", "WNBA", "outputs", "step8_
 DEFAULT_NHL_PATH = os.path.join(REPO_ROOT, "Sports", "NHL", "outputs", "step8_nhl_direction_clean.xlsx")
 DEFAULT_WEB_OUTDIR = os.path.join(REPO_ROOT, "ui_runner", "templates")
 
+# Seasonal MAIN / web exclusions: inactive until first-game (or tipoff) date.
+# Reactivate MAIN_SEASON_LEAD_DAYS early so boards can warm up before Week 1 / tipoff.
+# Override any sport via PROPORACLE_<SPORT>_MAIN_RESUME=YYYY-MM-DD (e.g. PROPORACLE_NFL_MAIN_RESUME).
+MAIN_SEASON_LEAD_DAYS: int = max(0, int(os.getenv("PROPORACLE_MAIN_SEASON_LEAD_DAYS", "7")))
+_MAIN_SEASON_RESUME_DEFAULTS: dict[str, str] = {
+    # 2026 NFL Kickoff (Wed): Seahawks vs Patriots
+    "NFL": "2026-09-09",
+    # 2026 CFB Week Zero
+    "CFB": "2026-08-27",
+    # 2026-27 NCAA DI men's tipoff window
+    "CBB": "2026-11-01",
+    # Women's DI basketball tipoff (align with men's weekend)
+    "WCBB": "2026-11-01",
+}
+# Golf is year-round when a slate exists — exclude only via env hard-list if needed.
+
 
 def _outputs_dir_for_date(date_str: str) -> str:
     d = str(date_str).strip()[:10]
@@ -260,7 +276,45 @@ def _nhl_off_season(slate_date: str) -> bool:
         return False
 
 
-_PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset({"cbb", "cfb", "nfl", "wcbb"})
+_PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset()  # use dated resumes in _sport_slug_off_season
+
+
+def _parse_iso_date(s: object):
+    try:
+        return datetime.strptime(str(s).strip()[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def _main_season_resume_date(sport: str):
+    """First calendar date sport may enter MAIN / leave off-season hide."""
+    sp = str(sport or "").strip().upper()
+    if not sp:
+        return None
+    env_v = os.getenv(f"PROPORACLE_{sp}_MAIN_RESUME", "").strip()
+    if env_v:
+        return _parse_iso_date(env_v)
+    raw = _MAIN_SEASON_RESUME_DEFAULTS.get(sp)
+    return _parse_iso_date(raw) if raw else None
+
+
+def _sport_in_season_for_main(sport: str, slate_date: str) -> bool:
+    """
+    True when sport should not be filtered for being off-season on slate_date.
+    Sports without a resume calendar are treated as always in-season.
+    Lead days pull reactivation forward so tickets can build before tipoff.
+    """
+    resume = _main_season_resume_date(sport)
+    if resume is None:
+        return True
+    slate = _parse_iso_date(slate_date)
+    if slate is None:
+        return False
+    from datetime import timedelta
+
+    open_on = resume - timedelta(days=int(MAIN_SEASON_LEAD_DAYS))
+    return slate >= open_on
+
 
 WEB_SUPPLEMENT_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
@@ -274,7 +328,8 @@ def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
     sl = str(sport_slug or "").strip().lower()
     if not sl:
         return False
-    if sl in _PERMANENT_OFF_SEASON_SPORT_SLUGS:
+    seasonal = {"nfl": "NFL", "cfb": "CFB", "cbb": "CBB", "wcbb": "WCBB"}
+    if sl in seasonal and not _sport_in_season_for_main(seasonal[sl], slate_date):
         return True
     if sl in ("nba", "nba1h", "nba1q") and _nba_family_off_season(slate_date):
         return True
@@ -3883,7 +3938,9 @@ def _sport_ticket_gated(sport: str) -> tuple[bool, str]:
     if not su or su in ALWAYS_ALLOW_SPORTS:
         return False, ""
     if su == "NFL" and NFL_TICKET_GATE:
-        return True, NFL_TICKET_GATE_REASON
+        # Scaffold kill-switch only while MAIN season calendar still parks NFL.
+        if not _sport_in_season_for_main("NFL", date.today().isoformat()):
+            return True, NFL_TICKET_GATE_REASON
     global _MODEL_GATE_CACHE
     if _MODEL_GATE_CACHE is None:
         _MODEL_GATE_CACHE = _load_model_gate_recommendations()
@@ -4074,8 +4131,13 @@ def _apply_tier_defense_pool_gate(df: pd.DataFrame, sport: str) -> pd.DataFrame:
 ACTIVE_SPORTS = ("NBA", "NHL", "SOCCER", "TENNIS", "WNBA", "MLB", "NBA1H", "NBA1Q", "WCBB", "NFL", "CFB")
 # NFL — Phase 1 scaffold only; keep off slate until step8 + historical hit rates exist (Sept 2026).
 # Reference: {"NFL": False}  # activate September 2026 — do not add "NFL" to ACTIVE_SPORTS yet.
+# NFL — scaffold gate stays on until season resume (MAIN calendar also excludes until Kickoff).
+# Flip NFL_TICKET_GATE off after Week 1 boards are validated, or override via model gates.
 NFL_TICKET_GATE = True
-NFL_TICKET_GATE_REASON = "Off-season scaffold — activate Week 1 2026"
+NFL_TICKET_GATE_REASON = (
+    f"NFL scaffold — MAIN resume {_MAIN_SEASON_RESUME_DEFAULTS.get('NFL', '2026-09-09')} "
+    f"(lead {MAIN_SEASON_LEAD_DAYS}d); unset NFL_TICKET_GATE when live step8 is ready"
+)
 
 # When --high-conviction: per-leg hit_rate floors (merged with LEG_MIN_HIT_RATE via max())
 HIGH_CONVICTION_LEG_MIN_HIT_RATE = {
@@ -6854,7 +6916,9 @@ MAIN_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_MAIN_MIN_LEG_PROB", "0.62
 MAIN_MIN_ML_PROB_LEG: float = float(os.getenv("PROPORACLE_MAIN_MIN_ML_PROB_LEG", "0.58"))
 MAIN_MIN_P_WIN_FLOOR: float = float(os.getenv("PROPORACLE_MAIN_MIN_P_WIN_FLOOR", "0.33"))
 MAIN_MAX_SLIPS: int = max(5, int(os.getenv("PROPORACLE_MAIN_MAX_SLIPS", "15")))
-# Empty allowlist = no sport whitelist. Exclude only scaffold / off-season pipelines.
+# Empty allowlist = no sport whitelist. Candidate exclude list is seasonal for
+# NFL/CFB/CBB/WCBB (see main_exclude_sports_for_date). Golf stays hard-excluded
+# until pipeline is ready (override by clearing env).
 MAIN_ALLOWED_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv("PROPORACLE_MAIN_ALLOWED_SPORTS", "").split(",")
@@ -6867,6 +6931,30 @@ MAIN_EXCLUDE_SPORTS: frozenset[str] = frozenset(
     ).split(",")
     if s.strip()
 )
+
+
+def main_exclude_sports_for_date(slate_date: str | None = None) -> frozenset[str]:
+    """
+    Sports barred from MAIN on this slate date.
+
+    Seasonal sports in MAIN_EXCLUDE_SPORTS (NFL/CFB/CBB/WCBB, or any with
+    PROPORACLE_<SPORT>_MAIN_RESUME) are dropped from the exclude set once
+    resume−lead_days. Non-seasonal names (e.g. GOLF) stay excluded.
+    """
+    candidates = set(MAIN_EXCLUDE_SPORTS)
+    if not slate_date:
+        return frozenset(candidates)
+    keep: set[str] = set()
+    for sp in candidates:
+        has_calendar = sp in _MAIN_SEASON_RESUME_DEFAULTS or bool(
+            os.getenv(f"PROPORACLE_{sp}_MAIN_RESUME", "").strip()
+        )
+        if has_calendar:
+            if not _sport_in_season_for_main(sp, slate_date):
+                keep.add(sp)
+            continue
+        keep.add(sp)
+    return frozenset(keep)
 # MLB Goblin shadow track still emitted for A/B-only grading comparison.
 MAIN_MLB_SHADOW_ENABLED: bool = os.getenv("PROPORACLE_MAIN_MLB_SHADOW", "1").strip().lower() not in (
     "0",
@@ -6874,6 +6962,14 @@ MAIN_MLB_SHADOW_ENABLED: bool = os.getenv("PROPORACLE_MAIN_MLB_SHADOW", "1").str
     "no",
     "off",
 )
+# STRONG Standard HOT shadow (Tier A/B + HOT); never injected into MAIN.
+STRONG_STANDARD_SHADOW_ENABLED: bool = os.getenv(
+    "PROPORACLE_STRONG_STD_SHADOW", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+# STRONG Mix shadow (Goblin HOT + Standard HOT); never injected into MAIN.
+STRONG_MIX_SHADOW_ENABLED: bool = os.getenv(
+    "PROPORACLE_STRONG_MIX_SHADOW", "1"
+).strip().lower() not in ("0", "false", "no", "off")
 # Probability-first Standard STRONG shadow (OVER/UNDER gates); never injected into MAIN.
 STRONG_STANDARD_PROB_SHADOW_ENABLED: bool = os.getenv(
     "PROPORACLE_STRONG_STD_PROB_SHADOW", "1"
@@ -6970,7 +7066,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
         return {}
     floor_p = float(MAIN_MIN_P_WIN_FLOOR)
     max_slips = int(MAIN_MAX_SLIPS)
-    exclude = set(MAIN_EXCLUDE_SPORTS)
+    exclude = set(main_exclude_sports_for_date(str(payload.get("date") or "")))
     candidates: list[tuple[float, dict, dict]] = []
     for g in payload.get("groups") or []:
         if not isinstance(g, dict):
@@ -7049,6 +7145,7 @@ def _main_track_wr_sport_frames(
     include_soccer: bool = True,
     include_tennis: bool = True,
     include_nhl: bool = True,
+    slate_date: str = "",
 ) -> list[tuple[str, pd.DataFrame]]:
     frames: list[tuple[str, pd.DataFrame]] = []
     sport_order: list[tuple[str, object]] = [
@@ -7065,11 +7162,12 @@ def _main_track_wr_sport_frames(
         sport_order.append(("TENNIS", tennis))
     if include_nhl:
         sport_order.append(("NHL", nhl))
+    exclude = main_exclude_sports_for_date(slate_date)
     for label, frame in sport_order:
         if frame is None or len(frame) == 0:
             continue
         su = str(label).strip().upper()
-        if su in MAIN_EXCLUDE_SPORTS:
+        if su in exclude:
             continue
         if MAIN_ALLOWED_SPORTS and su not in MAIN_ALLOWED_SPORTS:
             continue
@@ -7209,7 +7307,13 @@ def build_graded_main_win_rate_payload(
     payload["sort"] = "p_win"
     payload["main_source"] = "win_rate"
     payload["main_allowed_sports"] = sorted(MAIN_ALLOWED_SPORTS) if MAIN_ALLOWED_SPORTS else ["*"]
-    payload["main_exclude_sports"] = sorted(MAIN_EXCLUDE_SPORTS)
+    payload["main_exclude_sports"] = sorted(main_exclude_sports_for_date(str(date_str or "")))
+    payload["main_exclude_sports_candidates"] = sorted(MAIN_EXCLUDE_SPORTS)
+    payload["main_season_resume"] = {
+        sp: (_main_season_resume_date(sp).isoformat() if _main_season_resume_date(sp) else None)
+        for sp in sorted(set(MAIN_EXCLUDE_SPORTS) | set(_MAIN_SEASON_RESUME_DEFAULTS))
+    }
+    payload["main_season_lead_days"] = int(MAIN_SEASON_LEAD_DAYS)
     payload["main_min_leg_prob"] = wr_min_prob
     payload["main_min_ml_prob_leg"] = MAIN_MIN_ML_PROB_LEG
     if policy_tag:
@@ -7315,6 +7419,7 @@ def resolve_graded_main_and_long_payloads(
         tennis=tennis,
         nhl=nhl,
         pool_fn=pool_fn,
+        slate_date=str(date_str or ""),
     )
     main = build_graded_main_win_rate_payload(
         wr_frames,
@@ -7327,10 +7432,11 @@ def resolve_graded_main_and_long_payloads(
     )
     n_main = sum(len(g.get("tickets") or []) for g in main.get("groups") or [])
     if n_main > 0:
+        excl = main_exclude_sports_for_date(str(date_str or ""))
         sports_note = (
             ",".join(sorted(MAIN_ALLOWED_SPORTS))
             if MAIN_ALLOWED_SPORTS
-            else f"all except {','.join(sorted(MAIN_EXCLUDE_SPORTS)) or 'none'}"
+            else f"all except {','.join(sorted(excl)) or 'none'}"
         )
         print(
             f"  [main-track] win-rate main pool: {n_main} slips "
@@ -7364,6 +7470,7 @@ def _emit_winrate_goblin_opt3_shadow_payload(
         nba1h=nba1h,
         wnba=wnba,
         pool_fn=pool_fn,
+        slate_date=str(date_str or ""),
     )
     shadow = build_graded_main_win_rate_goblin_opt3_shadow_payload(
         wr_frames,
@@ -7483,13 +7590,36 @@ def _write_winrate_mlb_goblin_shadow_snapshot(payload: dict, date_str: str) -> N
     )
 
 
+def _write_strong_standard_shadow_snapshot(payload: dict, date_str: str) -> None:
+    """Persist STRONG Standard HOT shadow (MAIN unchanged)."""
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_strong_standard_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        "strong_standard_shadow_latest.json",
+    )
+    _write_json_file(dated, payload)
+    _write_json_file(latest, payload)
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [OK] STRONG Standard HOT shadow -> {dated} ({n_slips} slips; "
+        "production main unchanged)"
+    )
+
+
 def _write_strong_standard_prob_shadow_snapshot(payload: dict, date_str: str) -> None:
     """Persist probability-first Standard STRONG shadow (MAIN unchanged)."""
     dated = os.path.join(
         REPO_ROOT,
         "ui_runner",
         "data",
-        f"combined_slate_tickets_strong_standard_{date_str}.json",
+        f"combined_slate_tickets_strong_standard_prob_{date_str}.json",
     )
     latest = os.path.join(
         REPO_ROOT,
@@ -7504,6 +7634,169 @@ def _write_strong_standard_prob_shadow_snapshot(payload: dict, date_str: str) ->
         f"  [OK] STRONG Standard high-prob shadow -> {dated} ({n_slips} slips; "
         "production main unchanged)"
     )
+
+
+def _emit_strong_standard_shadow_payload(
+    *,
+    frames: list,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    max_tickets: int = 25,
+    max_legs: int = 3,
+) -> None:
+    """
+    Build + persist STRONG Standard HOT tickets (Tier A/B + HOT mirror of Goblin STRONG).
+    Does not inject into MAIN / production STRONG Goblin board.
+    """
+    if not STRONG_STANDARD_SHADOW_ENABLED:
+        print("  [shadow-std-hot] skipped (PROPORACLE_STRONG_STD_SHADOW off)")
+        return
+    nonempty = [f for f in frames if f is not None and hasattr(f, "__len__") and len(f) > 0]
+    if not nonempty:
+        print("  [shadow-std-hot] skipped (no sport frames)")
+        return
+    df = pd.concat(nonempty, ignore_index=True)
+    tickets = build_strong_tickets(
+        df,
+        date_str=str(date_str),
+        pick_mode="standard",
+        max_tickets=int(max_tickets),
+        max_legs=int(max_legs),
+        exhaust_pool=False,
+    )
+    if not tickets:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_standard_shadow",
+            "mode": "strong_standard_shadow",
+            "pool_mode": "strong_standard_shadow",
+            "shadow_track": True,
+            "pool_policy": "standard_hot",
+            "groups": [],
+        }
+        _write_strong_standard_shadow_snapshot(empty, date_str)
+        print("  [shadow-std-hot] 0 Standard HOT slips (MAIN unchanged)")
+        return
+    groups: list[tuple[str, list[dict], None]] = []
+    for _gname, slips, n_legs in split_strong_tickets_by_leg_count(tickets):
+        # Display as STRONG Standard HOT; keep leg count in the tab for grading UX.
+        groups.append((f"STRONG Standard HOT {int(n_legs)}-Leg", slips, None))
+    # Also expose a single umbrella group name the eval filter allows.
+    if not groups and tickets:
+        groups.append(("STRONG Standard HOT", list(tickets), None))
+    payload = ticket_groups_to_payload(
+        groups,
+        str(date_str),
+        {**(thresholds or {}), "pool_mode": "strong_standard_shadow"},
+        bankroll=float(bankroll or 0.0),
+        curve_stake_usd=float(curve_stake_usd or 1.0),
+        ticket_track="strong_standard_shadow",
+        payload_mode="strong_standard_shadow",
+    )
+    payload["shadow_track"] = True
+    payload["pool_mode"] = "strong_standard_shadow"
+    payload["pool_policy"] = "standard_hot"
+    n_shadow = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [shadow-std-hot] STRONG Standard HOT: {n_shadow} slips "
+        "(production main unchanged)"
+    )
+    _write_strong_standard_shadow_snapshot(payload, date_str)
+
+
+def _write_strong_mix_shadow_snapshot(payload: dict, date_str: str) -> None:
+    """Persist STRONG Mix (Goblin+Standard HOT) shadow (MAIN unchanged)."""
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_strong_mix_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        "strong_mix_shadow_latest.json",
+    )
+    _write_json_file(dated, payload)
+    _write_json_file(latest, payload)
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [OK] STRONG Mix shadow -> {dated} ({n_slips} slips; "
+        "production main unchanged)"
+    )
+
+
+def _emit_strong_mix_shadow_payload(
+    *,
+    frames: list,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    max_tickets: int = 25,
+    max_legs: int = 3,
+) -> None:
+    """
+    Build + persist STRONG Mix tickets (≥1 Goblin HOT + ≥1 Standard HOT).
+    Does not inject into MAIN / production STRONG Goblin board.
+    """
+    if not STRONG_MIX_SHADOW_ENABLED:
+        print("  [shadow-mix] skipped (PROPORACLE_STRONG_MIX_SHADOW off)")
+        return
+    nonempty = [f for f in frames if f is not None and hasattr(f, "__len__") and len(f) > 0]
+    if not nonempty:
+        print("  [shadow-mix] skipped (no sport frames)")
+        return
+    df = pd.concat(nonempty, ignore_index=True)
+    tickets = build_strong_tickets(
+        df,
+        date_str=str(date_str),
+        pick_mode="mixed",
+        max_tickets=int(max_tickets),
+        max_legs=int(max_legs),
+        exhaust_pool=False,
+    )
+    if not tickets:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_mix_shadow",
+            "mode": "strong_mix_shadow",
+            "pool_mode": "strong_mix_shadow",
+            "shadow_track": True,
+            "pool_policy": "goblin_standard_mixed",
+            "groups": [],
+        }
+        _write_strong_mix_shadow_snapshot(empty, date_str)
+        print("  [shadow-mix] 0 Mix slips (MAIN unchanged)")
+        return
+    groups: list[tuple[str, list[dict], None]] = []
+    for gname, slips, _n_legs in split_strong_tickets_by_leg_count(tickets, mixed=True):
+        groups.append((gname, slips, None))
+    if not groups and tickets:
+        groups.append(("STRONG Mix", list(tickets), None))
+    payload = ticket_groups_to_payload(
+        groups,
+        str(date_str),
+        {**(thresholds or {}), "pool_mode": "strong_mix_shadow"},
+        bankroll=float(bankroll or 0.0),
+        curve_stake_usd=float(curve_stake_usd or 1.0),
+        ticket_track="strong_mix_shadow",
+        payload_mode="strong_mix_shadow",
+    )
+    payload["shadow_track"] = True
+    payload["pool_mode"] = "strong_mix_shadow"
+    payload["pool_policy"] = "goblin_standard_mixed"
+    n_shadow = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [shadow-mix] STRONG Mix: {n_shadow} slips "
+        "(production main unchanged)"
+    )
+    _write_strong_mix_shadow_snapshot(payload, date_str)
 
 
 def _emit_strong_standard_prob_shadow_payload(
@@ -7707,8 +8000,19 @@ def emit_standalone_win_rate_outputs(
     return wr_payload
 
 
-def _strong_group_name_for_legs(n_legs: int) -> str:
+def _strong_ticket_is_mixed(ticket: Mapping[str, Any]) -> bool:
+    """True for STRONG Mix slips (Goblin+Standard hybrid board)."""
+    pick = str(ticket.get("strong_builder_pick") or "").strip().lower()
+    if pick == "mixed":
+        return True
+    policy = str(ticket.get("pool_policy") or "").strip().lower()
+    return policy in ("goblin_standard_mixed", "mixed", "goblin_standard")
+
+
+def _strong_group_name_for_legs(n_legs: int, *, mixed: bool = False) -> str:
     """Display / sheet title for one STRONG length bucket (e.g. STRONG 6-Leg)."""
+    if mixed:
+        return f"STRONG Mix {int(n_legs)}-Leg"
     return f"STRONG {int(n_legs)}-Leg"
 
 
@@ -7725,23 +8029,32 @@ def _strong_ticket_leg_count(ticket: Mapping[str, Any]) -> int:
 
 def split_strong_tickets_by_leg_count(
     tickets: Sequence[Mapping[str, Any]] | None,
+    *,
+    mixed: bool | None = None,
 ) -> list[tuple[str, list[dict], int]]:
     """
     Bucket STRONG builder slips by length, longest first.
 
-    Returns [(group_name, tickets, n_legs), ...] e.g. STRONG 6-Leg, STRONG 5-Leg, …
+    When mixed is None, infer per-ticket (Goblin vs Mix) so boards stay separate.
+    Returns [(group_name, tickets, n_legs), ...] e.g. STRONG 6-Leg, STRONG Mix 3-Leg, …
     """
-    by_n: dict[int, list[dict]] = defaultdict(list)
+    by_key: dict[tuple[bool, int], list[dict]] = defaultdict(list)
     for t in tickets or []:
         if not isinstance(t, Mapping):
             continue
         n = _strong_ticket_leg_count(t)
         if n < 2:
             continue
-        by_n[n].append(dict(t))
+        is_mix = bool(mixed) if mixed is not None else _strong_ticket_is_mixed(t)
+        by_key[(is_mix, n)].append(dict(t))
     out: list[tuple[str, list[dict], int]] = []
-    for n in sorted(by_n.keys(), reverse=True):
-        out.append((_strong_group_name_for_legs(n), by_n[n], n))
+    # Pure Goblin STRONG first (longest→shortest), then Mix (longest→shortest).
+    for is_mix in (False, True):
+        lengths = sorted({n for (mix, n) in by_key if mix is is_mix}, reverse=True)
+        for n in lengths:
+            slips = by_key[(is_mix, n)]
+            if slips:
+                out.append((_strong_group_name_for_legs(n, mixed=is_mix), slips, n))
     return out
 
 
@@ -7796,7 +8109,7 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
                 for leg in legs
                 if str(leg.get("sport") or "").strip()
             }
-            if leg_sports & set(MAIN_EXCLUDE_SPORTS):
+            if leg_sports & set(main_exclude_sports_for_date(str(out.get("date") or ""))):
                 continue
             if MAIN_ALLOWED_SPORTS and not leg_sports.issubset(MAIN_ALLOWED_SPORTS):
                 continue
@@ -13619,7 +13932,28 @@ STRONG_BUILDER_EXHAUST_POOL: bool = os.getenv("PROPORACLE_STRONG_EXHAUST_POOL", 
     "off",
 )
 STRONG_BUILDER_HARD_MAX: int = max(25, int(os.getenv("PROPORACLE_STRONG_HARD_MAX", "200")))
-STRONG_BUILDER_SPORTS: frozenset[str] = frozenset({"NBA", "NBA1Q", "WNBA", "MLB"})
+# Separate board: slips that mix Goblin HOT + Standard HOT (not pure Goblin STRONG).
+# Default OFF — validate via STRONG Mix shadow first; set PROPORACLE_STRONG_MIX=1 to inject MAIN.
+STRONG_MIX_ENABLED: bool = os.getenv("PROPORACLE_STRONG_MIX", "0").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+)
+# Any active sport that clears sport + pick gates can enter STRONG (not just hoops/MLB).
+STRONG_BUILDER_SPORTS: frozenset[str] = frozenset(
+    {
+        "NBA",
+        "NBA1Q",
+        "NBA1H",
+        "WNBA",
+        "MLB",
+        "SOCCER",
+        "SOC",
+        "TENNIS",
+        "NHL",
+    }
+)
 STRONG_BUILDER_CORE_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
     for x in ("points", "rebounds", "pts+rebs", "pts+rebs+asts", "assists")
@@ -13636,6 +13970,36 @@ STRONG_BUILDER_MLB_PROPS_NORM: frozenset[str] = frozenset(
         "pitchesthrown",
         "pitching outs",
         "pitchingouts",
+    )
+)
+STRONG_BUILDER_SOCCER_PROPS_NORM: frozenset[str] = frozenset(
+    x.replace("+", "").replace(" ", "")
+    for x in ("shots", "shots on target", "shotsontarget", "goals")
+)
+STRONG_BUILDER_TENNIS_PROPS_NORM: frozenset[str] = frozenset(
+    x.replace("+", "").replace(" ", "")
+    for x in (
+        "total games won",
+        "totalgameswon",
+        "total games",
+        "totalgames",
+        "games won",
+        "gameswon",
+        "games played",
+        "gamesplayed",
+    )
+)
+STRONG_BUILDER_NHL_PROPS_NORM: frozenset[str] = frozenset(
+    x.replace("+", "").replace(" ", "")
+    for x in (
+        "shots on goal",
+        "shotsongoal",
+        "sog",
+        "saves",
+        "blocked shots",
+        "blockedshots",
+        "hits",
+        "points",
     )
 )
 STRONG_ROLLING_HR_PATH = os.path.join(REPO_ROOT, "data", "reports", "strong_player_rolling_hr.json")
@@ -13772,7 +14136,29 @@ def _strong_builder_prop_allowed(v: object, sport: object = None) -> bool:
     sp = str(sport or "").upper().strip()
     if sp == "MLB":
         return norm in STRONG_BUILDER_MLB_PROPS_NORM
+    if sp in ("SOCCER", "SOC"):
+        return norm in STRONG_BUILDER_SOCCER_PROPS_NORM
+    if sp == "TENNIS":
+        return norm in STRONG_BUILDER_TENNIS_PROPS_NORM
+    if sp == "NHL":
+        return norm in STRONG_BUILDER_NHL_PROPS_NORM
     return norm in STRONG_BUILDER_CORE_PROPS_NORM
+
+
+def _strong_sport_leg_allowed(row: dict | pd.Series) -> bool:
+    """Apply per-sport ticket gates inside STRONG candidate selection."""
+    if isinstance(row, pd.Series):
+        row_d = row.to_dict()
+    else:
+        row_d = dict(row)
+    sp = str(row_d.get("sport") or "").strip().upper()
+    if sp in ("SOCCER", "SOC"):
+        return bool(soccer_allowed_leg(row_d))
+    if sp == "TENNIS":
+        return bool(tennis_allowed_leg(row_d))
+    if sp == "NHL":
+        return bool(nhl_allowed_leg(row_d))
+    return True
 
 
 def _prepare_strong_builder_pool(df: pd.DataFrame) -> pd.DataFrame:
@@ -13792,7 +14178,7 @@ def _strong_candidate_legs(
     *,
     pick_mode: str = "goblin",
 ) -> pd.DataFrame:
-    """Tier A/B legs for STRONG stacking: Goblin+HOT, Standard+HOT, or Standard high-prob (O/U)."""
+    """Tier A/B legs for STRONG stacking: Goblin+HOT, Standard+HOT, mixed, or Standard high-prob."""
     if df is None or df.empty:
         return df.iloc[0:0].copy()
     mode = str(pick_mode or "goblin").strip().lower()
@@ -13814,6 +14200,22 @@ def _strong_candidate_legs(
         index=df.index,
     )
 
+    if mode in ("mixed", "mix", "goblin_standard", "goblin_std"):
+        # Union of production Goblin HOT + Standard HOT pools (deduped by index).
+        gob = _strong_candidate_legs(df, pick_mode="goblin")
+        std = _strong_candidate_legs(df, pick_mode="standard")
+        if gob.empty and std.empty:
+            return df.iloc[0:0].copy()
+        if gob.empty:
+            return std
+        if std.empty:
+            return gob
+        out = pd.concat([gob, std], axis=0)
+        out = out[~out.index.duplicated(keep="first")]
+        if "prop_quality_score" in out.columns:
+            out = out.sort_values("prop_quality_score", ascending=False)
+        return out
+
     if mode in ("standard_prob", "standard_high_prob", "std_prob"):
         # Probability-first Standard: no HOT requirement; O or U with direction floors.
         keep_idx = []
@@ -13822,8 +14224,8 @@ def _strong_candidate_legs(
             if not bool(prop_ok.loc[idx]):
                 continue
             if str(row.get("sport") or "").strip().upper() not in STRONG_BUILDER_SPORTS:
-                # Also allow NHL/tennis when sport is in builder set only for now —
-                # STRONG sports stay the summer core (NBA/WNBA/MLB).
+                continue
+            if not _strong_sport_leg_allowed(row):
                 continue
             if _row_standard_high_prob_eligible(row):
                 keep_idx.append(idx)
@@ -13860,7 +14262,11 @@ def _strong_candidate_legs(
         & sport.isin(STRONG_BUILDER_SPORTS)
         & prop_ok.fillna(False)
     )
-    return df[mask].copy()
+    out = df[mask].copy()
+    if out.empty:
+        return out
+    keep_idx = [idx for idx in out.index if _strong_sport_leg_allowed(out.loc[idx])]
+    return out.loc[keep_idx].copy() if keep_idx else out.iloc[0:0].copy()
 
 
 def _strong_candidate_legs_standard(df: pd.DataFrame) -> pd.DataFrame:
@@ -13873,6 +14279,24 @@ def _strong_candidate_legs_standard_prob(df: pd.DataFrame) -> pd.DataFrame:
     return _strong_candidate_legs(df, pick_mode="standard_prob")
 
 
+def _strong_candidate_legs_mixed(df: pd.DataFrame) -> pd.DataFrame:
+    """Goblin HOT ∪ Standard HOT candidate pool for STRONG Mix slips."""
+    return _strong_candidate_legs(df, pick_mode="mixed")
+
+
+def _ticket_rows_have_goblin_and_standard(rows: Sequence[Mapping[str, Any]]) -> bool:
+    """True when slip has ≥1 Goblin leg and ≥1 Standard leg."""
+    has_goblin = False
+    has_standard = False
+    for r in rows or []:
+        pt = str(r.get("pick_type") or "").strip().lower()
+        if "goblin" in pt:
+            has_goblin = True
+        elif "standard" in pt:
+            has_standard = True
+    return has_goblin and has_standard
+
+
 def _log_strong_builder(
     date_str: str,
     n_candidates: int,
@@ -13882,11 +14306,14 @@ def _log_strong_builder(
     pick_mode: str = "goblin",
 ) -> None:
     mode = str(pick_mode or "goblin").strip().lower()
-    label = (
-        "STD_PROB"
-        if mode in ("standard_prob", "standard_high_prob", "std_prob")
-        else ("STANDARD" if mode in ("standard", "std") else "GOBLIN")
-    )
+    if mode in ("mixed", "mix", "goblin_standard", "goblin_std"):
+        label = "MIXED"
+    elif mode in ("standard_prob", "standard_high_prob", "std_prob"):
+        label = "STD_PROB"
+    elif mode in ("standard", "std"):
+        label = "STANDARD"
+    else:
+        label = "GOBLIN"
     print(
         f"[strong-builder/{label}] {date_str}: {n_candidates} candidate legs, "
         f"{len(tickets)} STRONG tickets built"
@@ -13953,18 +14380,20 @@ def build_strong_tickets(
     pick_mode: str = "goblin",
 ) -> list[dict]:
     """
-    Build power tickets from Goblin HOT, Standard HOT, or Standard high-prob legs.
+    Build power tickets from Goblin HOT, Standard HOT, mixed, or Standard high-prob legs.
 
     pick_mode:
       - goblin: Goblin + Tier A/B + HOT (production STRONG)
       - standard: Standard + Tier A/B + HOT (legacy shadow mirror)
       - standard_prob: Standard A/B with direction probability floors (O/U; no HOT req)
+      - mixed: Goblin HOT ∪ Standard HOT; each slip must include both pick types
 
     Prefers longer unique-player slips (6 → 5 → 4 → 3 → 2). By default exhausts
     the unique-player pool (all gate-passing combos) instead of stopping at the
     global --max-tickets board budget.
     """
     mode = str(pick_mode or "goblin").strip().lower()
+    is_mixed = mode in ("mixed", "mix", "goblin_standard", "goblin_std")
     prepared = _prepare_strong_builder_pool(df)
     candidates = _strong_candidate_legs(prepared, pick_mode=mode)
     rolling_hr = _load_strong_player_rolling_hr()
@@ -14063,6 +14492,8 @@ def build_strong_tickets(
                 continue
             if not _strong_combo_players_ok(rows, rolling_hr):
                 continue
+            if is_mixed and not _ticket_rows_have_goblin_and_standard(rows):
+                continue
 
             leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
             cmult, caudit = _correlation_multiplier_and_audit(rows)
@@ -14075,12 +14506,18 @@ def build_strong_tickets(
             hrs = [float(r.get("hit_rate", 0.5) or 0.5) for r in rows]
             rss = [float(r.get("rank_score", 0.0) or 0.0) for r in rows]
             sport_label = next(iter(sports)) if len(sports) == 1 else "MIX"
-            if mode in ("standard_prob", "standard_high_prob", "std_prob"):
+            if is_mixed:
+                pick_label = "Mixed"
+                pool_policy = "goblin_standard_mixed"
+            elif mode in ("standard_prob", "standard_high_prob", "std_prob"):
                 pick_label = "Standard"
+                pool_policy = "standard_high_prob"
             elif mode in ("standard", "std"):
                 pick_label = "Standard"
+                pool_policy = "standard_hot"
             else:
                 pick_label = "Goblin"
+                pool_policy = "goblin_hot"
 
             tickets.append(
                 {
@@ -14100,11 +14537,7 @@ def build_strong_tickets(
                     "sport": sport_label,
                     "strong_builder": True,
                     "strong_builder_pick": pick_label,
-                    "pool_policy": (
-                        "standard_high_prob"
-                        if mode in ("standard_prob", "standard_high_prob", "std_prob")
-                        else ("standard_hot" if pick_label == "Standard" else "goblin_hot")
-                    ),
+                    "pool_policy": pool_policy,
                     "correlation_multiplier": cmult,
                     "correlation_audit": caudit,
                     "leg_prob_sources": ",".join(
@@ -18477,18 +18910,41 @@ def main():
             exhaust_pool=True,
             player_ticket_counts=counters["player_ticket_counts"],
             date_str=str(args.date),
+            pick_mode="goblin",
         )
+        strong_insert_at = 0
         if strong_tickets:
             # One Excel/web group per length so the board shows STRONG 6-Leg, 5-Leg, …
-            for i, (strong_display, strong_bucket, nl) in enumerate(
-                split_strong_tickets_by_leg_count(strong_tickets)
-            ):
+            strong_buckets = split_strong_tickets_by_leg_count(strong_tickets, mixed=False)
+            for i, (strong_display, strong_bucket, nl) in enumerate(strong_buckets):
                 strong_sname = _excel_ticket_sheet_title_unique(strong_display, wb.sheetnames)
                 write_ticket_sheet(
                     wb, strong_bucket, strong_sname, C["hdr_mix"], label=strong_display
                 )
-                all_ticket_groups.insert(i, (strong_display, strong_bucket, None))
+                all_ticket_groups.insert(strong_insert_at + i, (strong_display, strong_bucket, None))
                 _group_counts_by_size[strong_display][int(nl)] += len(strong_bucket)
+            strong_insert_at += len(strong_buckets)
+        # Separate Mix board: ≥1 Goblin HOT + ≥1 Standard HOT per slip (not blended into Goblin STRONG).
+        if STRONG_MIX_ENABLED:
+            mix_tickets = build_strong_tickets(
+                strong_df,
+                max_tickets=None,
+                exhaust_pool=True,
+                # Independent cap so Mix is not starved by pure Goblin STRONG.
+                player_ticket_counts={},
+                date_str=str(args.date),
+                pick_mode="mixed",
+            )
+            if mix_tickets:
+                for i, (mix_display, mix_bucket, nl) in enumerate(
+                    split_strong_tickets_by_leg_count(mix_tickets, mixed=True)
+                ):
+                    mix_sname = _excel_ticket_sheet_title_unique(mix_display, wb.sheetnames)
+                    write_ticket_sheet(
+                        wb, mix_bucket, mix_sname, C["hdr_mix"], label=mix_display
+                    )
+                    all_ticket_groups.insert(strong_insert_at + i, (mix_display, mix_bucket, None))
+                    _group_counts_by_size[mix_display][int(nl)] += len(mix_bucket)
 
     if getattr(args, "probability_ladder", True):
         ladder_stack_70 = bool(getattr(args, "ladder_stack_70", LADDER_STACK_70_DEFAULT)) or bool(
@@ -18966,14 +19422,32 @@ def main():
                 pool_fn=lambda f: pool(f, for_win_rate=True),
                 graded_analysis=_load_graded_analysis(),
             )
+            _std_shadow_frames = [
+                nba1q,
+                nba,
+                nba1h,
+                wnba,
+                mlb,
+                soccer,
+                tennis,
+                nhl,
+            ]
+            _emit_strong_standard_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_mix_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
             _emit_strong_standard_prob_shadow_payload(
-                frames=[
-                    nba1q,
-                    nba,
-                    nba1h,
-                    wnba,
-                    mlb,
-                ],
+                frames=_std_shadow_frames,
                 date_str=str(args.date),
                 thresholds=thresholds,
                 bankroll=max(0.0, float(args.bankroll)),
@@ -19096,14 +19570,32 @@ def main():
                 pool_fn=lambda f: pool(f, for_win_rate=True),
                 graded_analysis=_load_graded_analysis(),
             )
+            _std_shadow_frames = [
+                nba1q,
+                nba,
+                nba1h,
+                wnba,
+                mlb,
+                soccer,
+                tennis,
+                nhl,
+            ]
+            _emit_strong_standard_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_mix_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
             _emit_strong_standard_prob_shadow_payload(
-                frames=[
-                    nba1q,
-                    nba,
-                    nba1h,
-                    wnba,
-                    mlb,
-                ],
+                frames=_std_shadow_frames,
                 date_str=str(args.date),
                 thresholds=thresholds,
                 bankroll=max(0.0, float(args.bankroll)),

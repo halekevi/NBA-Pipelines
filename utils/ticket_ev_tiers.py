@@ -235,10 +235,25 @@ def _slip_p_win(ticket: Mapping[str, Any]) -> float | None:
     return None
 
 
-def _leg_strong_quality_fail_reason(leg: Mapping[str, Any]) -> str | None:
+def _ticket_allows_strong_standard_hot(ticket: Mapping[str, Any]) -> bool:
+    """STRONG Mix slips may use Standard HOT A/B alongside Goblin HOT."""
+    pick = str(ticket.get("strong_builder_pick") or "").strip().lower()
+    if pick == "mixed":
+        return True
+    policy = str(ticket.get("pool_policy") or "").strip().lower()
+    return policy in ("goblin_standard_mixed", "mixed", "goblin_standard")
+
+
+def _leg_strong_quality_fail_reason(
+    leg: Mapping[str, Any],
+    *,
+    allow_standard_hot: bool = False,
+) -> str | None:
     """Return goblin/tier/streak when leg fails STRONG quality; None if leg passes."""
     pick_type = str(leg.get("pick_type") or "").lower()
-    if "goblin" not in pick_type:
+    is_goblin = "goblin" in pick_type
+    is_standard = ("standard" in pick_type) and not is_goblin
+    if not is_goblin and not (allow_standard_hot and is_standard):
         return "goblin"
     tier = str(leg.get("tier") or "").upper()
     if tier not in ("A", "B"):
@@ -249,19 +264,28 @@ def _leg_strong_quality_fail_reason(leg: Mapping[str, Any]) -> str | None:
     return None
 
 
-def all_legs_strong_quality(legs: Sequence[Mapping[str, Any]]) -> bool:
-    """Every leg must be Goblin, Tier A/B, and HOT streak."""
+def all_legs_strong_quality(
+    legs: Sequence[Mapping[str, Any]],
+    *,
+    allow_standard_hot: bool = False,
+) -> bool:
+    """Every leg must be Goblin (or Standard when allowed), Tier A/B, and HOT streak."""
     if not legs:
         return False
     for leg in legs:
         if not isinstance(leg, dict):
             return False
-        if _leg_strong_quality_fail_reason(leg):
+        if _leg_strong_quality_fail_reason(leg, allow_standard_hot=allow_standard_hot):
             return False
     return True
 
 
-def _track_strong_leg_quality(legs: Sequence[object], gate_stats: MutableMapping[str, int]) -> bool:
+def _track_strong_leg_quality(
+    legs: Sequence[object],
+    gate_stats: MutableMapping[str, int],
+    *,
+    allow_standard_hot: bool = False,
+) -> bool:
     """Record per-leg failure counts; return True when all legs pass STRONG quality."""
     ok = True
     for leg in legs or []:
@@ -270,7 +294,7 @@ def _track_strong_leg_quality(legs: Sequence[object], gate_stats: MutableMapping
             gate_stats["failed_tier"] = gate_stats.get("failed_tier", 0) + 1
             ok = False
             continue
-        reason = _leg_strong_quality_fail_reason(leg)
+        reason = _leg_strong_quality_fail_reason(leg, allow_standard_hot=allow_standard_hot)
         if reason:
             key = f"failed_{reason}"
             gate_stats[key] = gate_stats.get(key, 0) + 1
@@ -307,10 +331,11 @@ def _demote_strong_recommendation(
     if n >= 6 and p_win < STRONG_MIN_P_WIN_6LEG:
         return "OK"
     legs = [leg for leg in (ticket.get("legs") or []) if isinstance(leg, dict)]
+    allow_std = _ticket_allows_strong_standard_hot(ticket)
     if gate_stats is not None:
-        if not _track_strong_leg_quality(legs, gate_stats):
+        if not _track_strong_leg_quality(legs, gate_stats, allow_standard_hot=allow_std):
             return "OK"
-    elif not all_legs_strong_quality(legs):
+    elif not all_legs_strong_quality(legs, allow_standard_hot=allow_std):
         return "OK"
     return rec
 
@@ -431,6 +456,7 @@ def apply_slate_ev_tier_recommendations(
         "min_p_win_6leg": STRONG_MIN_P_WIN_6LEG,
         "allow_cross_sport": STRONG_ALLOW_CROSS_SPORT,
         "require_goblin": True,
+        "allow_standard_hot_on_mix": True,
         "require_tier_ab": True,
         "require_hot_streak": True,
     }

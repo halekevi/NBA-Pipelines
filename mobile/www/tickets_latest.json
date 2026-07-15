@@ -22054,9 +22054,9 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*6.00 - 1.0",
             "model_min_payout_x": 6.0,
-            "display_min_x": 1.8
+            "display_min_x": 6.0
           },
-          "display_min_x": 1.8,
+          "display_min_x": 6.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.258716,
@@ -22506,9 +22506,9 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*6.00 - 1.0",
             "model_min_payout_x": 6.0,
-            "display_min_x": 1.8
+            "display_min_x": 6.0
           },
-          "display_min_x": 1.8,
+          "display_min_x": 6.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.258716,
@@ -22950,9 +22950,9 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*6.00 - 1.0",
             "model_min_payout_x": 6.0,
-            "display_min_x": 1.8
+            "display_min_x": 6.0
           },
-          "display_min_x": 1.8,
+          "display_min_x": 6.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.258716,
@@ -23394,9 +23394,9 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*6.00 - 1.0",
             "model_min_payout_x": 6.0,
-            "display_min_x": 1.8
+            "display_min_x": 6.0
           },
-          "display_min_x": 1.8,
+          "display_min_x": 6.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.258716,
@@ -23850,9 +23850,9 @@
             "payout_source": "mix_grid_average",
             "ev_formula": "EV = P(all)*6.00 - 1.0",
             "model_min_payout_x": 6.0,
-            "display_min_x": 1.8
+            "display_min_x": 6.0
           },
-          "display_min_x": 1.8,
+          "display_min_x": 6.0,
           "p_win": 0.373248,
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.258716,

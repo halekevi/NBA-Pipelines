@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-14 17:40:39 UTC",
-  "date": "2026-07-14",
-  "tennis_date": "2026-07-15",
+  "generated_at": "2026-07-15 09:54:56 UTC",
+  "date": "2026-07-15",
+  "tennis_date": "2026-07-16",
   "filters": {
     "tiers": "A,B",
     "min_hit_rate": 0.72,
@@ -54,6 +54,7 @@
     "min_p_win_6leg": 0.08,
     "allow_cross_sport": false,
     "require_goblin": true,
+    "allow_standard_hot_on_mix": true,
     "require_tier_ab": true,
     "require_hot_streak": true
   },

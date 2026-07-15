@@ -1496,10 +1496,10 @@ if ($env:PROPORACLE_SKIP_GRADES_GIT_PUSH -ne "1") {
             $teLongRel = "ui_runner/templates/ticket_eval_long_parlay_$Date.html"
             $teHighRel = "ui_runner/templates/ticket_eval_high_leg_$Date.html"
             $seRel = "ui_runner/templates/slate_eval_$Date.html"
-            if (Test-Path $TeHtml) { git add -- $teRel 2>$null | Out-Null }
-            if (Test-Path $TeLongHtml) { git add -- $teLongRel 2>$null | Out-Null }
-            if (Test-Path $TeHighHtml) { git add -- $teHighRel 2>$null | Out-Null }
-            if (Test-Path $SeHtml) { git add -- $seRel 2>$null | Out-Null }
+            if (Test-Path $TeHtml) { git add -f -- $teRel 2>$null | Out-Null }
+            if (Test-Path $TeLongHtml) { git add -f -- $teLongRel 2>$null | Out-Null }
+            if (Test-Path $TeHighHtml) { git add -f -- $teHighRel 2>$null | Out-Null }
+            if (Test-Path $SeHtml) { git add -f -- $seRel 2>$null | Out-Null }
             git diff --cached --quiet
             if ($LASTEXITCODE -ne 0) {
                 git commit -m "data: ticket eval + slate eval grades $Date"

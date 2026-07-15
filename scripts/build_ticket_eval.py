@@ -3446,12 +3446,32 @@ def write_ticket_eval_slate_json(manual_props: list[dict[str, Any]], slate_date:
     return TICKET_EVAL_SLATE_JSON
 
 
-def _ticket_grade_payout_html(oc: dict[str, Any], esc) -> str:
+def _ticket_grade_payout_html(
+    oc: dict[str, Any],
+    esc,
+    *,
+    group_name: str = "",
+    ticket: dict[str, Any] | None = None,
+    leg_grades: list[str] | None = None,
+) -> str:
     """HTML block: predicted vs actual payout (under graded ticket legs)."""
+    grades = list(leg_grades or [])
+    # Never show "awaiting" when every leg already has a HIT/MISS/VOID grade.
+    if oc.get("pending") and grades and "UNGRADED" not in grades:
+        if ticket is not None:
+            oc = _ticket_eval_money_outcome(group_name, grades, ticket)
+            ticket["_money_outcome"] = oc
+        else:
+            oc = {**oc, "pending": False}
     if oc.get("pending"):
+        pending_msg = (
+            "Payout model: awaiting all leg grades"
+            if (not grades or "UNGRADED" in grades)
+            else "Payout model: could not settle slip"
+        )
         return (
             '<div class="ticket-grade-payout">'
-            '<div class="grade-payout-pending">Payout model: awaiting all leg grades</div>'
+            f'<div class="grade-payout-pending">{esc(pending_msg)}</div>'
             "</div>"
         )
     if oc.get("omit_payout_block"):
@@ -4233,7 +4253,13 @@ def _build_html(
                     parts.append(f'<div class="leg-extra{miss_cell}">{_fmt_num(edge)}</div>')
                     parts.append("</div>")
 
-                parts.append(_ticket_grade_payout_html(oc, esc))
+                parts.append(_ticket_grade_payout_html(
+                    oc,
+                    esc,
+                    group_name=gname,
+                    ticket=t,
+                    leg_grades=leg_grades,
+                ))
                 parts.append("</article>")
                 if has_data_warning:
                     parts.append('<div class="ticket-warning-note">⚠ NBA1Q stats based on limited Q1 history - use with caution</div>')

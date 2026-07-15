@@ -2174,12 +2174,12 @@ if ($MonthlyRetrain) {
 
 # =============================================================================
 # Late slate refresh — PrizePicks posts NBA props mid-morning (often ~10–11 ET).
-# 7AM daily may have a thin NBA board; scripts\run_nba_late_fetch.ps1 (11AM task) re-fetches
-# NBA (append) plus NHL/Soccer/MLB (overwrite), then full pipeline -SkipFetch (see schtasks below).
+# 7AM daily may have a thin NBA board; scripts\run_nba_late_fetch.ps1 (Refresh 9AM /
+# 1030AM / 1PM) re-fetches NBA (append) plus other sports, then full pipeline -SkipFetch.
 # If you run run_daily.ps1 manually after ~10:00 local, the same multi-sport refresh runs here.
 # =============================================================================
-# Register once (working form — no nested quotes needed when path has no spaces):
-# schtasks /Create /TN "PropORACLE_NBA_LateFetch" /TR "powershell.exe -ExecutionPolicy Bypass -NoProfile -File <REPO>\scripts\run_nba_late_fetch.ps1" /SC DAILY /ST 11:00 /F
+# Optional standalone (prefer Register_Daily_Task Refresh 1030AM):
+# schtasks /Create /TN "PropORACLE_NBA_LateFetch" /TR "powershell.exe -ExecutionPolicy Bypass -NoProfile -File <REPO>\scripts\run_nba_late_fetch.ps1" /SC DAILY /ST 10:30 /F
 # =============================================================================
 $NowHour = (Get-Date).Hour
 $refreshRunning = $false
@@ -2357,8 +2357,8 @@ if ($NowHour -ge 10) {
     }
 }
 else {
-    Write-Host "[NBA_LATE_FETCH] Hour=$NowHour < 10, skipping NBA re-fetch (use 11AM task: PropORACLE_NBA_LateFetch)" -ForegroundColor DarkGray
-    Write-Log "[NBA_LATE_FETCH] Hour=$NowHour < 10: skipped (scheduled late fetch runs separately)"
+    Write-Host "[NBA_LATE_FETCH] Hour=$NowHour < 10, skipping NBA re-fetch (use Refresh 1030AM / 1PM)" -ForegroundColor DarkGray
+    Write-Log "[NBA_LATE_FETCH] Hour=$NowHour < 10: skipped (scheduled refresh handles late fetch)"
 }
 
 # =============================================================================

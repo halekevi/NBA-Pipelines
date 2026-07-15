@@ -55,7 +55,8 @@ $names = @(
     "PropOracle - Grader 1AM",
     "PropOracle - Daily 7AM",
     "PropOracle - Refresh 9AM",
-    "PropOracle - Refresh 11AM",
+    "PropOracle - Refresh 1030AM",
+    "PropOracle - Refresh 1PM",
     "PropORACLE Daily Pipeline",
     "PropORACLE_AllSports_Daily",
     "PropORACLE_NBA_LateFetch"

@@ -1,6 +1,6 @@
 #requires -Version 5.1
 <#
-  Mid-day line-move refresh (scheduled 9 AM, 11 AM, 1 PM ET).
+  Mid-day line-move refresh (scheduled 9 AM, 10:30 AM, 1 PM ET).
   - log_prop_snapshot PRE/POST captures added/removed props vs prior state
   - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
     combined slate / ticket_eval before rerun so line movement is visible

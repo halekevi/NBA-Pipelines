@@ -3,8 +3,8 @@
 .SYNOPSIS
   Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with -SkipFetch.
 .NOTES
-  Scheduled via PropOracle - Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
-  Legacy PropORACLE_NBA_LateFetch task should be removed (duplicate of Refresh 11AM).
+  Scheduled via PropOracle - Refresh 9AM / 1030AM / 1PM (run_refresh_with_log.ps1).
+  Legacy PropORACLE_NBA_LateFetch / Refresh 11AM tasks should be removed.
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>

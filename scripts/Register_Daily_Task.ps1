@@ -7,7 +7,6 @@
 #   - 7:00 AM  initial daily pipeline (full multi-sport; tennis refresh)
 #   - 9:00 AM  refresh + add/remove diff log
 #   - 10:30 AM refresh + add/remove diff log (pre-line-move ticket build)
-#   - 11:00 AM refresh + add/remove diff log
 #   - 1:00 PM  refresh + add/remove diff log
 #
 # Run elevated from the repo you want tasks to use (e.g. H:\...\PropORACLE\scripts).
@@ -30,15 +29,16 @@ foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script7, $ScriptRefresh)) 
     }
 }
 
-# Legacy duplicate at 7:00 — same work as PropOracle - Daily 7AM (run_daily_7am.ps1 → run_daily.ps1).
-$LegacyDuplicate7Am = @(
-    "PropORACLE Daily Pipeline"
+# Legacy tasks to remove (superseded by Daily 7AM / dropped Refresh 11AM).
+$LegacyTasksToRemove = @(
+    "PropORACLE Daily Pipeline",
+    "PropOracle - Refresh 11AM"
 )
-foreach ($legacy in $LegacyDuplicate7Am) {
+foreach ($legacy in $LegacyTasksToRemove) {
     $existing = Get-ScheduledTask -TaskName $legacy -ErrorAction SilentlyContinue
     if ($existing) {
         Unregister-ScheduledTask -TaskName $legacy -Confirm:$false
-        Write-Host "Removed legacy duplicate task: $legacy" -ForegroundColor Yellow
+        Write-Host "Removed legacy task: $legacy" -ForegroundColor Yellow
     }
 }
 
@@ -124,13 +124,6 @@ Register-PropTask `
     -ExtraArgs "-RunLabel 1030AM"
 
 Register-PropTask `
-    -TaskName "PropOracle - Refresh 11AM" `
-    -Description "Refresh props, update outputs, and log added/removed props." `
-    -ScriptPath $ScriptRefresh `
-    -At "11:00" `
-    -ExtraArgs "-RunLabel 11AM"
-
-Register-PropTask `
     -TaskName "PropOracle - Refresh 1PM" `
     -Description "Refresh props, update outputs, and log added/removed props." `
     -ScriptPath $ScriptRefresh `
@@ -147,7 +140,6 @@ foreach ($eg in $EveningGraderTasks) {
 Write-Host "  - PropOracle - Daily 7AM"
 Write-Host "  - PropOracle - Refresh 9AM"
 Write-Host "  - PropOracle - Refresh 1030AM"
-Write-Host "  - PropOracle - Refresh 11AM"
 Write-Host "  - PropOracle - Refresh 1PM"
 Write-Host ""
 Write-Host "Quick checks:"

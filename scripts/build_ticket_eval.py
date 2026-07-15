@@ -3233,6 +3233,8 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
                 min_legs = int(m_leg.group(1))
             except (TypeError, ValueError):
                 min_legs = 0
+        # PrizePicks: never keep a 1-leg slip after hygiene drops (STRONG titles often omit "N-Leg").
+        min_legs = max(min_legs, 2)
         filtered_tickets: list[dict[str, Any]] = []
         seen_ticket_signatures: set[str] = set()
         for t in g.get("tickets") or []:
@@ -3251,7 +3253,7 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
                 legs.append(leg)
             if not legs:
                 continue
-            if min_legs and len(legs) < min_legs:
+            if len(legs) < min_legs:
                 print(
                     f"[WARN] Dropping partial ticket in {gname}: "
                     f"{len(legs)} legs < required {min_legs}",
@@ -3978,6 +3980,14 @@ def _build_html(
                 if not oc and outcome_map:
                     # Legacy fallback (should be unused once _money_outcome is set).
                     oc = outcome_map.get((gname, tno, id(t))) or {}
+                # If map collision left a stale pending outcome but legs are fully graded, recompute.
+                if (
+                    (not oc or oc.get("pending"))
+                    and leg_grades
+                    and "UNGRADED" not in leg_grades
+                ):
+                    oc = _ticket_eval_money_outcome(gname, leg_grades, t)
+                    t["_money_outcome"] = oc
 
                 h = leg_grades.count("HIT")
                 m = leg_grades.count("MISS")

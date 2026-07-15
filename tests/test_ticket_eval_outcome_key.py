@@ -57,3 +57,70 @@ def test_duplicate_ticket_no_outcomes_stay_on_ticket_object():
     # Old broken key would overwrite; per-ticket storage must keep both.
     assert t_win["_money_outcome"]["result"] in ("WIN", "SWEEP")
     assert t_loss["_money_outcome"]["result"] == "LOSS"
+
+
+def test_filter_drops_one_leg_strong_after_hygiene():
+    from build_ticket_eval import _filter_payload_groups
+
+    payload = {
+        "date": "2026-07-13",
+        "pool_mode": "goblin_only_3leg",
+        "groups": [
+            {
+                "group_name": "STRONG Goblin HOT",
+                "tickets": [
+                    {
+                        "ticket_no": 1,
+                        "power_payout": 1.06,
+                        "flex_payout": 1.06,
+                        "legs": [
+                            {
+                                "sport": "WNBA",
+                                "player": "Olivia Miles",
+                                "prop_type": "Rebounds",
+                                "direction": "OVER",
+                                "line": 2.5,
+                                "pick_type": "Goblin",
+                            },
+                            {
+                                # Dropped: goblin/power boards disallow steals.
+                                "sport": "WNBA",
+                                "player": "Someone",
+                                "prop_type": "Steals",
+                                "direction": "OVER",
+                                "line": 0.5,
+                                "pick_type": "Goblin",
+                            },
+                        ],
+                    },
+                    {
+                        "ticket_no": 2,
+                        "power_payout": 1.5,
+                        "flex_payout": 1.5,
+                        "legs": [
+                            {
+                                "sport": "WNBA",
+                                "player": "Olivia Miles",
+                                "prop_type": "Rebounds",
+                                "direction": "OVER",
+                                "line": 2.5,
+                                "pick_type": "Goblin",
+                            },
+                            {
+                                "sport": "WNBA",
+                                "player": "Allisha Gray",
+                                "prop_type": "Assists",
+                                "direction": "OVER",
+                                "line": 1.5,
+                                "pick_type": "Goblin",
+                            },
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+    out = _filter_payload_groups(payload)
+    tix = (out.get("groups") or [{}])[0].get("tickets") or []
+    assert len(tix) == 1
+    assert len(tix[0]["legs"]) == 2

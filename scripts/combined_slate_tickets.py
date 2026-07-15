@@ -19790,6 +19790,8 @@ _SPORT_ACCENT: dict[str, str] = {
     "NBA1H":  "#1ABC9C",
     "CROSS":  "#C77DFF",
     "MIX":    "#C77DFF",
+    # STRONG builder boards (not a sport) — gold, distinct from WNBA pink.
+    "STRONG": "#D4AF37",
 }
 
 _PICK_COLOR: dict[str, str] = {
@@ -20109,6 +20111,9 @@ def _sport_accent(sport: str) -> str:
 def _group_sport(group_name: str, tickets: list | None = None) -> str:
     """Infer sport from group name for accent colouring; fall back to dominant leg sport."""
     name = (group_name or "").upper().replace("\u00a0", " ")
+    # STRONG builder buckets first (else WNBA/SOCCER leg sport paints them pink/green).
+    if name.startswith("STRONG") or " STRONG " in f" {name} ":
+        return "STRONG"
     if "NBA/CBB" in name or "NBA+CBB" in name or "NBA-CBB" in name:
         return "CROSS"
     if name.startswith("CROSS") or name.startswith("MIX"):
@@ -20138,6 +20143,7 @@ _TICKET_GROUP_SPORT_SORT_ORDER: dict[str, int] = {
     "NHL": 9,
     "SOCCER": 10,
     "TENNIS": 11,
+    "STRONG": 12,
     "CROSS": 10_000,
     "MIX": 10_000,
 }

@@ -27,6 +27,30 @@ def test_money_outcome_all_hit_is_win_for_power_style_group():
     assert float(oc.get("actual_payout") or 0) > 0
 
 
+def test_power_goblin_all_hit_uses_scraped_min_not_classic_sweep():
+    """3-leg Goblin Power must not grade Actual at Fantasy 6x when min lock is ~1.6x."""
+    gname = "WNBA 3-Leg Goblin"
+    gs = ["HIT", "HIT", "HIT"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 1.76,
+        "flex_payout": 0.88,
+        "display_min_x": 1.6,
+        "legs": [{}, {}, {}],
+        "payout": {
+            "payout": 1.6,
+            "min_guarantee": 1.6,
+            "display_min_x": 1.6,
+            "sweep_payout": 6.0,
+        },
+    }
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    actual = float(oc.get("actual_payout") or 0)
+    assert abs(actual - 1.6) < 1e-9
+    assert abs(float(oc.get("entry_10_return") or 0) - 16.0) < 1e-6
+
+
 def test_duplicate_ticket_no_outcomes_stay_on_ticket_object():
     """Simulate map collision that used to paint ALL-HIT slips as LOSS."""
     gname = "WNBA 3-Leg Goblin"

@@ -1391,6 +1391,8 @@ EVAL_TRACK_LABELS: dict[str, str] = {
     "long_parlay": "Long Parlays (5-6 leg)",
     "high_leg_hr": "High Leg HR",
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
+    "strong_standard_shadow": "STRONG Standard HOT Shadow",
+    "strong_mix_shadow": "STRONG Mix Shadow (Goblin+Standard HOT)",
 }
 
 
@@ -2592,6 +2594,54 @@ def find_winrate_goblin_opt3_shadow_payload_path(
     return None
 
 
+def find_strong_standard_shadow_payload_path(
+    arg_date: str, override: Path | None = None
+) -> Path | None:
+    if override is not None:
+        return override if override.is_file() else None
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_strong_standard_{arg_date}.json",
+        REPO_ROOT / "ui_runner" / "data" / "strong_standard_shadow_latest.json",
+        TEMPLATES_DIR / "strong_standard_shadow_latest.json",
+    ):
+        if jp.is_file():
+            if jp.name.endswith("_latest.json"):
+                try:
+                    with jp.open(encoding="utf-8") as f:
+                        hdr = json.load(f)
+                    if str(hdr.get("date") or "")[:10] == arg_date:
+                        return jp
+                except (OSError, json.JSONDecodeError, TypeError):
+                    pass
+            else:
+                return jp
+    return None
+
+
+def find_strong_mix_shadow_payload_path(
+    arg_date: str, override: Path | None = None
+) -> Path | None:
+    if override is not None:
+        return override if override.is_file() else None
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_strong_mix_{arg_date}.json",
+        REPO_ROOT / "ui_runner" / "data" / "strong_mix_shadow_latest.json",
+        TEMPLATES_DIR / "strong_mix_shadow_latest.json",
+    ):
+        if jp.is_file():
+            if jp.name.endswith("_latest.json"):
+                try:
+                    with jp.open(encoding="utf-8") as f:
+                        hdr = json.load(f)
+                    if str(hdr.get("date") or "")[:10] == arg_date:
+                        return jp
+                except (OSError, json.JSONDecodeError, TypeError):
+                    pass
+            else:
+                return jp
+    return None
+
+
 def _normalize_eval_track(raw: str | None) -> str:
     t = str(raw or "graded_main").strip().lower()
     if t in ("main", "graded_main"):
@@ -2607,6 +2657,22 @@ def _normalize_eval_track(raw: str | None) -> str:
         "opt3_shadow",
     ):
         return "winrate_goblin_opt3_shadow"
+    if t in (
+        "strong_standard_shadow",
+        "strong-standard-shadow",
+        "strong_standard_hot",
+        "strong-standard-hot",
+        "std_strong_shadow",
+    ):
+        return "strong_standard_shadow"
+    if t in (
+        "strong_mix_shadow",
+        "strong-mix-shadow",
+        "strong_mix",
+        "strong-mix",
+        "mix_shadow",
+    ):
+        return "strong_mix_shadow"
     return "graded_main"
 
 
@@ -3047,9 +3113,23 @@ def _load_tickets(path: Path, arg_date: str) -> dict[str, Any]:
         return json.load(f)
 
 
-def _group_is_strong_shipped(group_name: str) -> bool:
-    """STRONG builder groups: legacy 'STRONG Goblin HOT' or 'STRONG N-Leg'."""
+def _group_is_strong_standard_hot(group_name: str) -> bool:
+    """Shadow STRONG Standard HOT groups (exact or with N-Leg suffix)."""
     n = str(group_name or "").strip()
+    return bool(re.match(r"^STRONG Standard HOT(\s+\d+-Leg)?$", n, re.I))
+
+
+def _group_is_strong_mix(group_name: str) -> bool:
+    """STRONG Mix board / shadow groups."""
+    n = str(group_name or "").strip()
+    return bool(re.match(r"^STRONG Mix(\s+\d+-Leg)?$", n, re.I))
+
+
+def _group_is_strong_shipped(group_name: str) -> bool:
+    """STRONG builder groups: legacy HOT, N-Leg, or Mix N-Leg."""
+    n = str(group_name or "").strip()
+    if _group_is_strong_mix(n):
+        return True
     return bool(
         re.match(r"^STRONG(\s+Goblin\s+HOT|\s+\d+-Leg)$", n, re.I)
     )
@@ -3078,6 +3158,17 @@ def _group_is_high_prob_main_shipped(group_name: str) -> bool:
 
 
 def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
+    if pool_mode in ("strong_standard_shadow", "strong_standard_hot") and _group_is_strong_standard_hot(
+        group_name
+    ):
+        return True
+    if pool_mode in ("strong_mix_shadow", "strong_mix") and _group_is_strong_mix(group_name):
+        return True
+    if _group_is_strong_standard_hot(group_name):
+        # Always allow the shadow group name when present (track-local JSON).
+        return True
+    if _group_is_strong_mix(group_name):
+        return True
     if pool_mode == "high_prob_std_gob" and _group_is_high_prob_main_shipped(group_name):
         return True
     if pool_mode == "goblin_only_3leg" and _group_is_goblin_only_3leg_shipped(group_name):
@@ -3142,6 +3233,8 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
                 min_legs = int(m_leg.group(1))
             except (TypeError, ValueError):
                 min_legs = 0
+        # PrizePicks: never keep a 1-leg slip after hygiene drops (STRONG titles often omit "N-Leg").
+        min_legs = max(min_legs, 2)
         filtered_tickets: list[dict[str, Any]] = []
         seen_ticket_signatures: set[str] = set()
         for t in g.get("tickets") or []:
@@ -3160,7 +3253,7 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
                 legs.append(leg)
             if not legs:
                 continue
-            if min_legs and len(legs) < min_legs:
+            if len(legs) < min_legs:
                 print(
                     f"[WARN] Dropping partial ticket in {gname}: "
                     f"{len(legs)} legs < required {min_legs}",
@@ -3197,6 +3290,66 @@ def _filter_payload_groups(payload: dict[str, Any], debug: bool = False) -> dict
     out: dict[str, Any] = {"date": payload.get("date"), "groups": out_groups}
     if pool_mode:
         out["pool_mode"] = pool_mode
+    # Collapse duplicate group_name sections (e.g. five "WNBA 3-Leg Goblin" boards)
+    # and renumber ticket_no uniquely within each merged group for display/grading.
+    out = _coalesce_groups_and_renumber(out)
+    return out
+
+
+def _coalesce_groups_and_renumber(payload: dict[str, Any]) -> dict[str, Any]:
+    """Merge identical group titles and assign unique ticket_no per group (1..n)."""
+    merged: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        gname = str(g.get("group_name") or "Group").strip() or "Group"
+        if gname not in merged:
+            merged[gname] = {"group_name": gname, "tickets": []}
+            order.append(gname)
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict):
+                merged[gname]["tickets"].append(t)
+    groups_out: list[dict[str, Any]] = []
+    for gname in order:
+        g = merged[gname]
+        tickets_in = g.get("tickets") or []
+        seen: set[str] = set()
+        tickets: list[dict[str, Any]] = []
+        for t in tickets_in:
+            legs = t.get("legs") or []
+            sig_items: list[str] = []
+            for leg in legs:
+                if not isinstance(leg, dict):
+                    continue
+                sig_items.append(
+                    "|".join(
+                        [
+                            str(leg.get("sport") or "").strip().upper(),
+                            _norm_player_name(str(leg.get("player") or "")),
+                            _prop_match_key_from_display(str(leg.get("prop_type") or "")),
+                            str(leg.get("direction") or "").strip().upper(),
+                            str(leg.get("line")),
+                            str(leg.get("team") or "").strip().upper(),
+                            str(leg.get("opp") or "").strip().upper(),
+                        ]
+                    )
+                )
+            sig = "||".join(sorted(sig_items))
+            if sig and sig in seen:
+                continue
+            if sig:
+                seen.add(sig)
+            tickets.append(t)
+        for i, t in enumerate(tickets, start=1):
+            if "_orig_ticket_no" not in t:
+                t["_orig_ticket_no"] = t.get("ticket_no")
+            t["ticket_no"] = i
+        g["tickets"] = tickets
+        if tickets:
+            groups_out.append(g)
+    out = dict(payload)
+    out["groups"] = groups_out
     return out
 
 
@@ -3293,12 +3446,32 @@ def write_ticket_eval_slate_json(manual_props: list[dict[str, Any]], slate_date:
     return TICKET_EVAL_SLATE_JSON
 
 
-def _ticket_grade_payout_html(oc: dict[str, Any], esc) -> str:
+def _ticket_grade_payout_html(
+    oc: dict[str, Any],
+    esc,
+    *,
+    group_name: str = "",
+    ticket: dict[str, Any] | None = None,
+    leg_grades: list[str] | None = None,
+) -> str:
     """HTML block: predicted vs actual payout (under graded ticket legs)."""
+    grades = list(leg_grades or [])
+    # Never show "awaiting" when every leg already has a HIT/MISS/VOID grade.
+    if oc.get("pending") and grades and "UNGRADED" not in grades:
+        if ticket is not None:
+            oc = _ticket_eval_money_outcome(group_name, grades, ticket)
+            ticket["_money_outcome"] = oc
+        else:
+            oc = {**oc, "pending": False}
     if oc.get("pending"):
+        pending_msg = (
+            "Payout model: awaiting all leg grades"
+            if (not grades or "UNGRADED" in grades)
+            else "Payout model: could not settle slip"
+        )
         return (
             '<div class="ticket-grade-payout">'
-            '<div class="grade-payout-pending">Payout model: awaiting all leg grades</div>'
+            f'<div class="grade-payout-pending">{esc(pending_msg)}</div>'
             "</div>"
         )
     if oc.get("omit_payout_block"):
@@ -3445,9 +3618,15 @@ def _build_html(
         tno = t.get("ticket_no", "?")
         t["_leg_grades_cache"] = gs
         if not gs:
-            outcome_map[(gname, tno)] = {"pending": True}
+            oc = {"pending": True}
+            t["_money_outcome"] = oc
+            # Keep outcome_map for back-compat lookups, but ticket_no is NOT unique
+            # across identical group names (many boards reuse #1, #2, …).
+            outcome_map[(gname, tno, id(t))] = oc
             continue
-        outcome_map[(gname, tno)] = _ticket_eval_money_outcome(gname, gs, t)
+        oc = _ticket_eval_money_outcome(gname, gs, t)
+        t["_money_outcome"] = oc
+        outcome_map[(gname, tno, id(t))] = oc
         if all(x == "HIT" for x in gs):
             perfect += 1
         if any(x == "UNGRADED" for x in gs):
@@ -3493,8 +3672,7 @@ def _build_html(
         gs = t.get("_leg_grades_cache") or []
         if not gs or any(x == "UNGRADED" for x in gs) or all(x == "VOID" for x in gs):
             continue
-        gname = str(t.get("_group_name") or "Group")
-        oc = outcome_map.get((gname, t.get("ticket_no", "?")), {})
+        oc = t.get("_money_outcome") or {}
         if oc.get("pending"):
             continue
         pay_summary_rows.append(oc)
@@ -3878,7 +4056,18 @@ def _build_html(
                 fp = t.get("flex_payout")
                 legs = t.get("legs") or []
                 leg_grades = list(t.get("_leg_grades_cache") or [])
-                oc = outcome_map.get((gname, tno), {})
+                oc = t.get("_money_outcome") or {}
+                if not oc and outcome_map:
+                    # Legacy fallback (should be unused once _money_outcome is set).
+                    oc = outcome_map.get((gname, tno, id(t))) or {}
+                # If map collision left a stale pending outcome but legs are fully graded, recompute.
+                if (
+                    (not oc or oc.get("pending"))
+                    and leg_grades
+                    and "UNGRADED" not in leg_grades
+                ):
+                    oc = _ticket_eval_money_outcome(gname, leg_grades, t)
+                    t["_money_outcome"] = oc
 
                 h = leg_grades.count("HIT")
                 m = leg_grades.count("MISS")
@@ -4064,7 +4253,13 @@ def _build_html(
                     parts.append(f'<div class="leg-extra{miss_cell}">{_fmt_num(edge)}</div>')
                     parts.append("</div>")
 
-                parts.append(_ticket_grade_payout_html(oc, esc))
+                parts.append(_ticket_grade_payout_html(
+                    oc,
+                    esc,
+                    group_name=gname,
+                    ticket=t,
+                    leg_grades=leg_grades,
+                ))
                 parts.append("</article>")
                 if has_data_warning:
                     parts.append('<div class="ticket-warning-note">⚠ NBA1Q stats based on limited Q1 history - use with caution</div>')
@@ -4925,10 +5120,13 @@ def main() -> int:
             "high_leg_hr",
             "win_rate",
             "winrate_goblin_opt3_shadow",
+            "strong_standard_shadow",
+            "strong_mix_shadow",
         ),
         help=(
             "Ticket track: graded_main (2-4 leg, default), long_parlay (5-6 leg), "
-            "high_leg_hr (win-rate panel), or winrate_goblin_opt3_shadow (Goblin Tier A shadow)."
+            "high_leg_hr (win-rate panel), winrate_goblin_opt3_shadow (Goblin Tier A shadow), "
+            "strong_standard_shadow (STRONG Standard HOT), or strong_mix_shadow (Goblin+Standard HOT)."
         ),
     )
     args = ap.parse_args()
@@ -4975,6 +5173,28 @@ def main() -> int:
                 print(
                     "ERROR: No opt3 shadow ticket payload found "
                     "(combined_slate_tickets_winrate_goblin_opt3_{date}.json)."
+                )
+            return 1
+    elif eval_track == "strong_standard_shadow":
+        tpath = find_strong_standard_shadow_payload_path(arg_date, override=override_path)
+        if not tpath:
+            if override_raw:
+                print(f"ERROR: STRONG Standard HOT shadow file not found: {override_raw}")
+            else:
+                print(
+                    "ERROR: No STRONG Standard HOT shadow payload found "
+                    "(combined_slate_tickets_strong_standard_{date}.json)."
+                )
+            return 1
+    elif eval_track == "strong_mix_shadow":
+        tpath = find_strong_mix_shadow_payload_path(arg_date, override=override_path)
+        if not tpath:
+            if override_raw:
+                print(f"ERROR: STRONG Mix shadow file not found: {override_raw}")
+            else:
+                print(
+                    "ERROR: No STRONG Mix shadow payload found "
+                    "(combined_slate_tickets_strong_mix_{date}.json)."
                 )
             return 1
     else:
@@ -5032,6 +5252,8 @@ def main() -> int:
         "long_parlay": f"ticket_eval_long_parlay_{arg_date}.html",
         "high_leg_hr": f"ticket_eval_high_leg_{arg_date}.html",
         "winrate_goblin_opt3_shadow": f"ticket_eval_winrate_goblin_opt3_{arg_date}.html",
+        "strong_standard_shadow": f"ticket_eval_strong_standard_{arg_date}.html",
+        "strong_mix_shadow": f"ticket_eval_strong_mix_{arg_date}.html",
     }.get(eval_track, f"ticket_eval_{arg_date}.html")
     out_dated = TEMPLATES_DIR / dated_name
     try:
@@ -5056,6 +5278,16 @@ def main() -> int:
         print(f"  WARN: could not refresh sport_breakdown.json: {e}")
 
     print(f"Wrote {out_dated}")
+    mobile_www = REPO_ROOT / "mobile" / "www"
+    if mobile_www.is_dir():
+        try:
+            import shutil
+
+            mobile_dst = mobile_www / dated_name
+            shutil.copy2(out_dated, mobile_dst)
+            print(f"  Mobile copy -> {mobile_dst}")
+        except OSError as e:
+            print(f"  WARN: mobile copy failed: {e}")
     print("  (Serve /tickets from tickets_latest.json; graded view: Grades → Ticket evaluation.)")
 
     if args.debug_ungraded:

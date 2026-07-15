@@ -1423,6 +1423,60 @@ if (Test-Path $TicketEvalBuilderScript) {
             Run-Py "Compare Win-Rate Goblin Opt3 Shadow vs Baseline" $Root $CompareOpt3Script @("--from", $Date, "--to", $Date)
         }
     }
+
+    # STRONG Standard HOT shadow — separate validation track, never production main.
+    $StdStrongShadowJson = Join-Path $Root "ui_runner\data\combined_slate_tickets_strong_standard_$Date.json"
+    if (Test-Path $StdStrongShadowJson) {
+        $TeStdStrongOut = Join-Path $TemplatesDir "ticket_eval_strong_standard_$Date.html"
+        $TeStdStrongArgs = @(
+            "--date", $Date,
+            "--track", "strong_standard_shadow",
+            "--tickets", $StdStrongShadowJson,
+            "--out", $TeStdStrongOut
+        )
+        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
+            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
+                $t = $gd.Trim()
+                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
+                    $TeStdStrongArgs += @("--game-date", $t)
+                }
+            }
+        }
+        Run-Py "Build STRONG Standard HOT Shadow Ticket Eval" $Root $TicketEvalBuilderScript $TeStdStrongArgs
+        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeStdStrongOut)) {
+            Copy-Item -LiteralPath $TeStdStrongOut -Destination (Join-Path $MobileWwwDir "ticket_eval_strong_standard_$Date.html") -Force -ErrorAction SilentlyContinue
+            Write-Host "[GRADER] Mobile copy: ticket_eval_strong_standard_$Date.html -> mobile\www\" -ForegroundColor DarkGray
+        }
+        $GradeStdStrongScript = Join-Path $Root "scripts\grade_strong_builder_tickets.py"
+        if (Test-Path $GradeStdStrongScript) {
+            Run-Py "Grade STRONG Standard HOT Shadow" $Root $GradeStdStrongScript @("--date", $Date)
+        }
+    }
+
+    # STRONG Mix shadow (Goblin+Standard HOT) — separate validation track, never production main.
+    $MixStrongShadowJson = Join-Path $Root "ui_runner\data\combined_slate_tickets_strong_mix_$Date.json"
+    if (Test-Path $MixStrongShadowJson) {
+        $TeMixStrongOut = Join-Path $TemplatesDir "ticket_eval_strong_mix_$Date.html"
+        $TeMixStrongArgs = @(
+            "--date", $Date,
+            "--track", "strong_mix_shadow",
+            "--tickets", $MixStrongShadowJson,
+            "--out", $TeMixStrongOut
+        )
+        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
+            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
+                $t = $gd.Trim()
+                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
+                    $TeMixStrongArgs += @("--game-date", $t)
+                }
+            }
+        }
+        Run-Py "Build STRONG Mix Shadow Ticket Eval" $Root $TicketEvalBuilderScript $TeMixStrongArgs
+        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeMixStrongOut)) {
+            Copy-Item -LiteralPath $TeMixStrongOut -Destination (Join-Path $MobileWwwDir "ticket_eval_strong_mix_$Date.html") -Force -ErrorAction SilentlyContinue
+            Write-Host "[GRADER] Mobile copy: ticket_eval_strong_mix_$Date.html -> mobile\www\" -ForegroundColor DarkGray
+        }
+    }
 }
 else {
     Write-Host "Skipping ticket eval build (build_ticket_eval.py not found)." -ForegroundColor Yellow
@@ -1442,10 +1496,10 @@ if ($env:PROPORACLE_SKIP_GRADES_GIT_PUSH -ne "1") {
             $teLongRel = "ui_runner/templates/ticket_eval_long_parlay_$Date.html"
             $teHighRel = "ui_runner/templates/ticket_eval_high_leg_$Date.html"
             $seRel = "ui_runner/templates/slate_eval_$Date.html"
-            if (Test-Path $TeHtml) { git add -- $teRel 2>$null | Out-Null }
-            if (Test-Path $TeLongHtml) { git add -- $teLongRel 2>$null | Out-Null }
-            if (Test-Path $TeHighHtml) { git add -- $teHighRel 2>$null | Out-Null }
-            if (Test-Path $SeHtml) { git add -- $seRel 2>$null | Out-Null }
+            if (Test-Path $TeHtml) { git add -f -- $teRel 2>$null | Out-Null }
+            if (Test-Path $TeLongHtml) { git add -f -- $teLongRel 2>$null | Out-Null }
+            if (Test-Path $TeHighHtml) { git add -f -- $teHighRel 2>$null | Out-Null }
+            if (Test-Path $SeHtml) { git add -f -- $seRel 2>$null | Out-Null }
             git diff --cached --quiet
             if ($LASTEXITCODE -ne 0) {
                 git commit -m "data: ticket eval + slate eval grades $Date"

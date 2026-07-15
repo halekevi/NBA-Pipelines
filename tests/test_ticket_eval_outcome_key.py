@@ -36,7 +36,7 @@ def test_power_goblin_all_hit_uses_scraped_min_not_classic_sweep():
         "power_payout": 1.76,
         "flex_payout": 0.88,
         "display_min_x": 1.6,
-        "legs": [{}, {}, {}],
+        "legs": [{"pick_type": "Goblin"}, {"pick_type": "Goblin"}, {"pick_type": "Goblin"}],
         "payout": {
             "payout": 1.6,
             "min_guarantee": 1.6,
@@ -49,6 +49,70 @@ def test_power_goblin_all_hit_uses_scraped_min_not_classic_sweep():
     actual = float(oc.get("actual_payout") or 0)
     assert abs(actual - 1.6) < 1e-9
     assert abs(float(oc.get("entry_10_return") or 0) - 16.0) < 1e-6
+
+
+def test_power_goblin_5leg_rejects_fantasy_20x_when_min_lock_exists():
+    """Long Goblin parlays must not Actual at Standard 20x when scrape/min is ~4.5x."""
+    gname = "WNBA Goblin 5-Leg #1"
+    gs = ["HIT"] * 5
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 4.37,
+        "flex_payout": 2.18,
+        "legs": [{"pick_type": "Goblin"} for _ in range(5)],
+        "payout": {
+            "payout": 4.5,
+            "min_guarantee": 4.5,
+            "display_min_x": 20.0,  # poisoned Standard tier must not win
+            "sweep_payout": 20.0,
+        },
+    }
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    actual = float(oc.get("actual_payout") or 0)
+    assert abs(actual - 4.5) < 1e-9
+    assert abs(float(oc.get("predicted_payout") or 0) - 4.5) < 1e-9
+
+
+def test_power_goblin_6leg_rejects_fantasy_37_5x():
+    gname = "WNBA Goblin 6-Leg #1"
+    gs = ["HIT"] * 6
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 5.59,
+        "flex_payout": 3.49,
+        "legs": [{"pick_type": "Goblin"} for _ in range(6)],
+        "payout": {
+            "payout": 5.59,
+            "min_guarantee": 5.59,
+            "sweep_payout": 37.5,
+            "first_place": 40.0,
+        },
+    }
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    assert abs(float(oc.get("actual_payout") or 0) - 5.59) < 1e-9
+
+
+def test_flex_all_hit_uses_min_guarantee_not_sweep():
+    """Flex all-hit must also lock to scraped min-guarantee (site policy)."""
+    gname = "WNBA 5-Leg Flex"
+    gs = ["HIT"] * 5
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 10.0,
+        "flex_payout": 2.0,
+        "legs": [{"pick_type": "Standard"} for _ in range(5)],
+        "payout": {
+            "payout": 2.15,
+            "min_guarantee": 2.15,
+            "display_min_x": 2.15,
+            "sweep_payout": 10.0,
+        },
+    }
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    assert abs(float(oc.get("actual_payout") or 0) - 2.15) < 1e-9
 
 
 def test_duplicate_ticket_no_outcomes_stay_on_ticket_object():

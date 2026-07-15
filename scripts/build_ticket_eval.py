@@ -1129,6 +1129,92 @@ def _safe_float_ticket(x: Any, default: float | None = None) -> float | None:
         return default
 
 
+# Fantasy Standard Power all-hit tiers (never use these for Goblin/Demon Actual when a
+# smaller scraped/model min lock exists — they poisoned long-parlay Grades Actuals).
+_FANTASY_STANDARD_POWER_SWEEP: dict[int, tuple[float, ...]] = {
+    2: (3.0,),
+    3: (6.0,),
+    4: (10.0,),
+    5: (20.0,),
+    6: (37.5, 40.0),
+}
+
+
+def _ticket_has_goblin_or_demon_legs(ticket: dict[str, Any]) -> bool:
+    for leg in ticket.get("legs") or []:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or "").strip().lower()
+        if pt.startswith("goblin") or pt.startswith("demon"):
+            return True
+    return False
+
+
+def _looks_like_fantasy_standard_power_sweep(n_legs: int, mult: float) -> bool:
+    try:
+        n = int(n_legs)
+        x = float(mult)
+    except (TypeError, ValueError):
+        return False
+    for tier in _FANTASY_STANDARD_POWER_SWEEP.get(n, ()):
+        if abs(x - float(tier)) < 0.051:
+            return True
+    return False
+
+
+def _locked_min_guarantee_multiplier(
+    payd: dict[str, Any],
+    ticket: dict[str, Any],
+    banner_fallback: float,
+    n_legs: int = 0,
+) -> float:
+    """
+    Locked board multiplier for Power **and** Flex cash on the site/Grades.
+
+    Always the scraped / min-guarantee rate — never Fantasy ``sweep_payout`` /
+    ``first_place`` jackpots (6× / 10× / 20× / 37.5× / 40×), which wrongly inflated
+    Goblin Actuals on long parlays.
+
+    Preference:
+      1. scrape locks: power_min_x, display_min_x
+      2. payout / min_guarantee / min_payout_x
+      3. ticket banner (power_payout or flex_payout)
+    """
+    raw: list[float] = []
+    for src in (
+        payd.get("power_min_x"),
+        ticket.get("power_min_x"),
+        payd.get("display_min_x"),
+        ticket.get("display_min_x"),
+        payd.get("payout"),
+        payd.get("min_guarantee"),
+        payd.get("min_payout_x"),
+        ticket.get("min_payout_x"),
+        banner_fallback if banner_fallback and banner_fallback > 0 else None,
+    ):
+        v = _safe_float_ticket(src)
+        if v is not None and float(v) > 0:
+            raw.append(float(v))
+    if not raw:
+        return 0.0
+
+    has_alt = _ticket_has_goblin_or_demon_legs(ticket)
+    for cand in raw:
+        if (
+            has_alt
+            and n_legs > 0
+            and _looks_like_fantasy_standard_power_sweep(n_legs, cand)
+            and any(
+                (c < cand - 0.5)
+                and not _looks_like_fantasy_standard_power_sweep(n_legs, c)
+                for c in raw
+            )
+        ):
+            continue
+        return float(cand)
+    return float(raw[0])
+
+
 def _power_all_hit_multiplier(
     payd: dict[str, Any],
     ticket: dict[str, Any],
@@ -1136,24 +1222,10 @@ def _power_all_hit_multiplier(
     min_x: float,
     sweep_x: float,
 ) -> float:
-    """
-    Locked Power / Goblin all-hit multiplier.
-
-    Prefer scraped board lock (display_min_x / min_guarantee) over legacy Fantasy
-    ``sweep_payout`` / first_place defaults (often 6x on 3-leg Goblin boards).
-    """
-    display_min = _safe_float_ticket(payd.get("display_min_x")) or _safe_float_ticket(
-        ticket.get("display_min_x")
-    )
-    for cand in (
-        display_min,
-        min_x if min_x > 0 else None,
-        banner_pow if banner_pow > 0 else None,
-        sweep_x if sweep_x > 0 else None,
-    ):
-        if cand is not None and float(cand) > 0:
-            return float(cand)
-    return 0.0
+    """Backward-compatible alias — sweep_x is ignored; min-guarantee lock only. """
+    _ = (min_x, sweep_x)  # kept for call-site compatibility
+    n = len(ticket.get("legs") or [])
+    return _locked_min_guarantee_multiplier(payd, ticket, banner_pow, n_legs=n)
 
 
 def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: dict[str, Any]) -> dict[str, Any]:
@@ -1235,46 +1307,74 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             css = "win"
             void_paid_as_power = True
         elif v > 0:
-            # Flex with voids: scale flex payout to remaining-leg tier.
+            # Flex with voids: scale flex payout to remaining-leg tier, then lock to min-guarantee.
             mult, kind = _effective_flex_multiplier(legs_for_payout, leg_grades, banner_flex, banner_pow, n)
-            actual = float(mult if mult is not None else 0.0)
-            if kind == "sweep":
-                result = "SWEEP"
-                emoji = "🏆"
-                css = "sweep"
-            elif kind == "min_guarantee":
-                result = "MIN GUARANTEE"
-                emoji = "🛡️"
-                css = "min_guarantee"
+            banner_fb = float(banner_flex) if banner_flex > 0 else float(banner_pow)
+            locked = _locked_min_guarantee_multiplier(payd, ticket, banner_fb, n_legs=n)
+            if kind in ("sweep", "min_guarantee") and locked > 0:
+                actual = float(locked)
+                result = "WIN" if kind == "sweep" else "MIN GUARANTEE"
+                emoji = "✅" if kind == "sweep" else "🛡️"
+                css = "win" if kind == "sweep" else "min_guarantee"
             else:
-                result = "LOSS"
-                emoji = "❌"
-                css = "loss"
+                actual = float(mult if mult is not None else 0.0)
+                if kind == "sweep":
+                    result = "SWEEP"
+                    emoji = "🏆"
+                    css = "sweep"
+                elif kind == "min_guarantee":
+                    result = "MIN GUARANTEE"
+                    emoji = "🛡️"
+                    css = "min_guarantee"
+                else:
+                    result = "LOSS"
+                    emoji = "❌"
+                    css = "loss"
         elif all_hit:
-            result = "SWEEP"
-            emoji = "🏆"
-            css = "sweep"
-            actual = float(sweep_x) if sweep_x > 0 else float(banner_pow if banner_pow > 0 else min_x)
+            # Site policy: Flex all-hit also locks to scraped min-guarantee (never Fantasy sweep).
+            result = "WIN"
+            emoji = "✅"
+            css = "win"
+            banner_fb = float(banner_flex) if banner_flex > 0 else float(banner_pow)
+            actual = float(
+                _locked_min_guarantee_multiplier(payd, ticket, banner_fb, n_legs=n)
+                or (min_x if min_x > 0 else banner_fb)
+            )
         else:
             result = "MIN GUARANTEE"
             emoji = "🛡️"
             css = "min_guarantee"
-            actual = float(min_x)
+            banner_fb = float(banner_flex) if banner_flex > 0 else float(banner_pow)
+            actual = float(
+                _locked_min_guarantee_multiplier(payd, ticket, banner_fb, n_legs=n)
+                or (min_x if min_x > 0 else 0.0)
+            )
     else:
         # Power Play / Goblin: every effective (non-void) leg correct.
-        # All-hit pays the locked power / scraped min-guarantee — never classic
-        # first_place sweep_payout (often stale 6x for 3-leg) when a Goblin rate exists.
+        # All-hit always pays scraped / min-guarantee — never Fantasy sweep_payout.
         result = "WIN"
         emoji = "✅"
         css = "win"
         if v > 0:
-            eff_pow = _effective_power_multiplier(legs_for_payout, leg_grades, banner_pow, n)
-            actual = float(eff_pow if eff_pow is not None else 0.0)
+            # Prefer locked min scaled only when void helpers return nothing usable.
+            locked = _locked_min_guarantee_multiplier(payd, ticket, banner_pow, n_legs=n)
+            if locked > 0:
+                actual = float(locked)
+            else:
+                eff_pow = _effective_power_multiplier(legs_for_payout, leg_grades, banner_pow, n)
+                actual = float(eff_pow if eff_pow is not None else 0.0)
             void_paid_as_power = True
         else:
-            actual = float(_power_all_hit_multiplier(payd, ticket, banner_pow, min_x, sweep_x))
+            actual = float(
+                _locked_min_guarantee_multiplier(payd, ticket, banner_pow, n_legs=n)
+                or (min_x if min_x > 0 else (banner_pow if banner_pow > 0 else 0.0))
+            )
 
-    pred_pay = _safe_float_ticket(payd.get("payout")) or _safe_float_ticket(payd.get("min_guarantee"))
+    # Predicted matches Actual policy: min-guarantee lock (never Fantasy sweep).
+    banner_pred = float(banner_flex) if flex and banner_flex > 0 else float(banner_pow)
+    pred_pay = _locked_min_guarantee_multiplier(payd, ticket, banner_pred, n_legs=n) or None
+    if pred_pay is None or pred_pay <= 0:
+        pred_pay = float(min_x) if min_x > 0 else None
     if pred_pay is None or pred_pay <= 0:
         if flex and banner_flex > 0:
             pred_pay = float(banner_flex)
@@ -1282,9 +1382,6 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             pred_pay = float(banner_pow)
         else:
             pred_pay = None
-    # XLSX-only tickets: flex sweep pays the power-board multiplier; show that as predicted, not the 1-miss floor.
-    if not payd and flex and paid and all_hit and banner_pow > 0:
-        pred_pay = float(banner_pow)
     pred_ev = _safe_float_ticket(payd.get("ev"))
     if pred_ev is None:
         pred_ev = _safe_float_ticket(ticket.get("est_ev"))

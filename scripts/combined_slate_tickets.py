@@ -1859,9 +1859,10 @@ def build_ticket_payout_json(group_name: str, ticket_rows: list) -> dict[str, An
     """
     Empirical payout + EV block for tickets_latest.json / UI.
 
-    ``payout`` / ``min_guarantee`` are the primary min-guarantee multipliers.
-    ``sweep_payout`` is the all-legs-hit upside multiplier ("jackpot").
-    On any error, returns None (caller stores null in JSON).
+    Site/app policy: ``payout`` / ``min_guarantee`` / ``display_min_x`` are the locked
+    board multipliers for Power **and** Flex. ``sweep_payout`` is kept for audit only and
+    for Power is forced equal to the min-guarantee (PP Power pays one rate — never Fantasy
+    Standard jackpot stubs like 6×/20×/40× written over Goblin floors).
     """
     if not ticket_rows:
         return None
@@ -1886,7 +1887,10 @@ def build_ticket_payout_json(group_name: str, ticket_rows: list) -> dict[str, An
         return None
     try:
         mg = float(ev_result["min_guarantee"])
-        sweep = float(ev_result["first_place_payout"])
+        # Site/app policy: Power and Flex both lock the published multiplier to min-guarantee.
+        # Modeled Fantasy all-hit (first_place) is retained only under audit_all_hit_x.
+        audit_all_hit = float(ev_result["first_place_payout"])
+        sweep = float(mg)
         paw = float(ev_result["p_all_win"])
         return {
             "ticket_type": tt,
@@ -1902,9 +1906,10 @@ def build_ticket_payout_json(group_name: str, ticket_rows: list) -> dict[str, An
             "entry_10_to_win_guarantee": round(10 * mg, 2),
             "entry_20_to_win_guarantee": round(20 * mg, 2),
             "sweep_payout": sweep,
-            "sweep_payout_x": ev_result.get("sweep_payout_x", sweep),
+            "sweep_payout_x": sweep,
+            "audit_all_hit_x": audit_all_hit,
             "entry_10_to_win_sweep": round(10 * sweep, 2),
-            "payout_confidence_score": round(sweep * paw, 4),
+            "payout_confidence_score": round(mg * paw, 4),
             "payout_source": ev_result.get("payout_source", "calibrated"),
             "ev_formula": ev_result.get("ev_formula", ""),
         }
@@ -20212,19 +20217,27 @@ def _slip_display_payout_multiplier(
     payout: dict | None, ticket: dict, group: dict
 ) -> float | None:
     """
-    Headline all-hit multiplier for slip UI (not min-guarantee / goblin discount factor).
-    Prefer sweep_payout, then ticket/group power/flex, then payout.payout fallback.
+    Headline multiplier for slip UI — always the scraped / min-guarantee lock.
+
+    Never prefer Fantasy ``sweep_payout`` jackpots (poisoned Goblin 6×/20×/40×).
     """
     if isinstance(payout, dict):
-        sp = payout.get("sweep_payout")
-        if sp is not None:
-            try:
-                v = float(sp)
-                if math.isfinite(v) and v > 0:
-                    return v
-            except (TypeError, ValueError):
-                pass
-    for k in ("power_payout", "flex_payout"):
+        for k in (
+            "power_min_x",
+            "display_min_x",
+            "payout",
+            "min_guarantee",
+            "min_payout_x",
+        ):
+            v = payout.get(k)
+            if v is not None:
+                try:
+                    vf = float(v)
+                    if math.isfinite(vf) and vf > 0:
+                        return vf
+                except (TypeError, ValueError):
+                    pass
+    for k in ("display_min_x", "power_min_x", "min_payout_x", "power_payout", "flex_payout"):
         v = ticket.get(k)
         if v is None:
             v = group.get(k)
@@ -20235,16 +20248,6 @@ def _slip_display_payout_multiplier(
                     return vf
             except (TypeError, ValueError):
                 pass
-    if isinstance(payout, dict):
-        for k in ("payout", "min_guarantee"):
-            v = payout.get(k)
-            if v is not None:
-                try:
-                    vf = float(v)
-                    if math.isfinite(vf) and vf > 0:
-                        return vf
-                except (TypeError, ValueError):
-                    pass
     return None
 
 

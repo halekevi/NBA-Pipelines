@@ -54,10 +54,14 @@ nav.snav .nav-accent {
   border-color: transparent !important;
 }
 
-.snav-links li a.active,
 .snav-links a.active {
   background: linear-gradient(180deg, rgba(212, 175, 55, 0.12), rgba(212, 175, 55, 0.04)) !important;
-  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.15), 0 8px 24px rgba(212, 175, 55, 0.06) !important;
+  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.15) !important;
+}
+
+.snav-links li a.active::after {
+  bottom: 8px !important;
+  box-shadow: 0 0 10px var(--accent, #d4af37) !important;
 }
 
 nav.snav .live-pill,

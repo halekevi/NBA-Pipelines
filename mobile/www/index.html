@@ -140,28 +140,33 @@ body::after{content:'';position:fixed;inset:0;
 .nav-brand .oracle-word{font-weight:800;color:var(--accent-gold);}
 .snav-name{font-family:'Inter',sans-serif;font-size:22px;letter-spacing:1px;color:var(--text-primary);font-weight:700;}
 .snav-name span{color:var(--accent-gold);}
-.snav-links{display:flex;align-items:stretch;list-style:none;flex:1;gap:4px;}
-.snav-links li a{display:flex;align-items:center;gap:10px;padding:0 20px;height:72px;font-family:"Inter",sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#7a9ac8;text-decoration:none;border-bottom:2px solid transparent;transition:color .2s,border-color .2s,background .2s;position:relative;}
+.snav-links{display:flex;align-items:stretch;list-style:none;flex:1;gap:4px;margin:0;padding:0;}
+.snav-links li{display:flex;align-items:center;margin:0;padding:0;list-style:none;}
+.snav-links li a{display:flex;align-items:center;justify-content:center;gap:10px;padding:0 20px;height:72px;box-sizing:border-box;font-family:"Inter",sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;color:#7a9ac8;text-decoration:none;border-bottom:2px solid transparent;transition:color .2s,border-color .2s,background .2s;position:relative;}
 .snav-links li a:hover{color:var(--text);background:rgba(255,255,255,.02);}
-.snav-links li a.active{color:var(--accent);border-bottom-color:var(--accent);}
-.snav-links li a.active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent),0 0 24px rgba(212,175,55,.5);}
+.snav-links li a.active{color:var(--accent);border-bottom-color:var(--accent);background:linear-gradient(180deg,rgba(212,175,55,.12),rgba(212,175,55,.04));box-shadow:inset 0 0 0 1px rgba(212,175,55,.15);}
+.snav-links li a.active::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);pointer-events:none;}
 .snav-links li:nth-child(1) a:hover{color:var(--cyan);}
 .snav-links li:nth-child(2) a:hover{color:var(--accent);}
 .snav-links li:nth-child(3) a:hover{color:var(--purple);}
 .snav-links li:nth-child(4) a:hover{color:var(--green);}
 .snav-links li:nth-child(5) a:hover{color:var(--amber);}
-.ni{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s, box-shadow .2s;}
-.snav-links li a:hover .ni{transform:scale(1.1) translateY(-1px);}
+.ni{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0;transition:box-shadow .2s;transform:none;}
+.snav-links li a:hover .ni{transform:none;}
+.snav-links li a .ni svg{display:block;width:14px;height:14px;flex-shrink:0;}
 .ni-ctrl {background:rgba(127,199,217,.08); border:1px solid rgba(127,199,217,.2); color:var(--cyan);}
 .ni-slate{background:rgba(212,175,55,.08);  border:1px solid rgba(212,175,55,.2);  color:var(--accent);}
 .ni-tick {background:rgba(183,168,255,.08);border:1px solid rgba(183,168,255,.2);color:var(--purple);}
 .ni-grade{background:rgba(0,255,170,.08); border:1px solid rgba(0,255,170,.2);  color:var(--green);}
+.ni-income{background:rgba(0,255,170,.08); border:1px solid rgba(0,255,170,.2);  color:var(--green);}
 .ni-pay  {background:rgba(255,192,107,.08); border:1px solid rgba(255,192,107,.2);  color:var(--amber);}
 .snav-links li a:hover .ni-ctrl {box-shadow:0 0 10px rgba(127,199,217,.25);}
 .snav-links li a:hover .ni-slate{box-shadow:0 0 10px rgba(212,175,55,.25);}
 .snav-links li a:hover .ni-tick {box-shadow:0 0 10px rgba(183,168,255,.25);}
-.snav-links li a:hover .ni-grade{box-shadow:0 0 10px rgba(0,255,170,.25);}
+.snav-links li a:hover .ni-grade,
+.snav-links li a:hover .ni-income{box-shadow:0 0 10px rgba(0,255,170,.25);}
 .snav-links li a:hover .ni-pay  {box-shadow:0 0 10px rgba(255,192,107,.25);}
+.ni-pay svg{transform:scaleY(-1);transform-origin:50% 50%;}
 .snav-right{display:flex;align-items:center;gap:16px;margin-left:auto;}
 .live-pill{font-family:"Inter",sans-serif;font-weight:600;font-size:10px;letter-spacing:1.5px;padding:6px 16px;border-radius:100px;border:1px solid rgba(46,204,113,.3);color:var(--green);background:rgba(46,204,113,.06);display:flex;align-items:center;gap:8px;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s ease-in-out infinite;}
@@ -464,7 +469,7 @@ body{
 }
 .snav,.mobile-menu{backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);}
 .snav-links a,.mobile-menu a{border-color:transparent!important;}
-.snav-links a.active{background:linear-gradient(180deg,rgba(212,175,55,.12),rgba(212,175,55,.04));box-shadow:inset 0 0 0 1px rgba(212,175,55,.15),0 8px 24px rgba(212,175,55,.06);}
+.snav-links a.active{background:linear-gradient(180deg,rgba(212,175,55,.12),rgba(212,175,55,.04));box-shadow:inset 0 0 0 1px rgba(212,175,55,.15);}
 .live-pill{background:rgba(4,20,10,0.6);backdrop-filter:blur(12px) saturate(180%);border:1px solid rgba(125,255,203,.18);box-shadow:inset 0 0 20px rgba(125,255,203,.04);}
 .shell{padding-top:clamp(18px,3vw,28px);position:relative;z-index:2;width:var(--po-content-width);max-width:var(--po-content-max);margin-inline:auto;padding-inline:0;box-sizing:border-box;}
 .hero::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 82% 24%,rgba(127,199,217,.15),transparent 24%),radial-gradient(circle at 18% 88%,rgba(212,175,55,.08),transparent 26%);z-index:-1;}
@@ -1117,7 +1122,7 @@ body > nav.snav.glass-card {
     <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
     <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
     <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
     <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
@@ -3946,6 +3951,9 @@ async function refreshStatus() {
   applyStatusCard("cfb",      d.cfb?.slate,      "CFB Slate");
   applyStatusCard("nhl",      d.nhl?.slate,      "NHL Slate", statusOpts("nhl"));
   applyStatusCard("soccer",   d.soccer?.slate,   "Soccer Slate", statusOpts("soccer"));
+  const soccerVal = document.getElementById("sc-soccer-val");
+  const soccerMd = d.soccer_match_day;
+  if (soccerVal && soccerMd && d.soccer?.slate?.exists) soccerVal.textContent = soccerMd;
   applyStatusCard("mlb",      d.mlb?.slate,      "MLB Slate", statusOpts("mlb"));
   applyStatusCard("nfl",      d.nfl?.slate,      "NFL Slate", statusOpts("nfl"));
   applyStatusCard("tennis",   d.tennis?.slate,   "Tennis Slate", statusOpts("tennis"));
@@ -5691,10 +5699,15 @@ function sortSlateDynamic(sport, key) {
         console.warn("deferred loadSlateData:", e2);
       }
     };
-    if (typeof window.requestIdleCallback === "function") {
-      window.requestIdleCallback(warmFullSlate, { timeout: 4000 });
-    } else {
-      window.setTimeout(warmFullSlate, 2500);
+    const skipHeavyCombinedSlate =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
+    if (!skipHeavyCombinedSlate) {
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(warmFullSlate, { timeout: 4000 });
+      } else {
+        window.setTimeout(warmFullSlate, 2500);
+      }
     }
   } catch (e) {
     console.error("home slate UI boot:", e);

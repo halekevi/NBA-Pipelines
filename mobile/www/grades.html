@@ -14,7 +14,6 @@
 <link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260714pe"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap');
 :root{
   --bg-main:#050505;
   --glass-bg:rgba(20,20,20,0.6);
@@ -289,29 +288,33 @@ body::after{
 .nav-brand .oracle-upper{text-transform:uppercase;font-weight:800;}
 .nav-brand .oracle-word{font-weight:800;color:var(--accent-gold);}
 .snav-brand{display:flex;align-items:center;gap:14px;text-decoration:none;margin-right:48px;flex-shrink:0;}
-.snav-links{display:flex;align-items:stretch;list-style:none;flex:1;gap:4px;}
-.snav-links li a{display:flex;align-items:center;gap:10px;padding:0 20px;height:72px;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;color:#7a9ac8;text-decoration:none;border-bottom:2px solid transparent;transition:color .2s,border-color .2s,background .2s;position:relative;}
+.snav-links{display:flex;align-items:stretch;list-style:none;flex:1;gap:4px;margin:0;padding:0;}
+.snav-links li{display:flex;align-items:center;margin:0;padding:0;list-style:none;}
+.snav-links li a{display:flex;align-items:center;justify-content:center;gap:10px;padding:0 20px;height:72px;box-sizing:border-box;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;color:#7a9ac8;text-decoration:none;border-bottom:2px solid transparent;transition:color .2s,border-color .2s,background .2s;position:relative;}
 .snav-links li a:hover{color:var(--text);background:rgba(255,255,255,.02);}
-.snav-links li a.active{color:var(--accent);border-bottom-color:var(--accent);}
-.snav-links li a.active{background:linear-gradient(180deg,rgba(212,160,23,.14),rgba(212,160,23,.05));box-shadow:inset 0 0 0 1px rgba(212,160,23,.18),0 8px 24px rgba(212,160,23,.08);}
-.snav-links li a.active::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent),0 0 22px rgba(212,160,23,.45);}
+.snav-links li a.active{color:var(--accent);border-bottom-color:var(--accent);background:linear-gradient(180deg,rgba(212,160,23,.14),rgba(212,160,23,.05));box-shadow:inset 0 0 0 1px rgba(212,160,23,.18);}
+.snav-links li a.active::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);pointer-events:none;}
 .snav-links li:nth-child(1) a:hover{color:var(--cyan);}
 .snav-links li:nth-child(2) a:hover{color:var(--accent);}
 .snav-links li:nth-child(3) a:hover{color:var(--purple);}
 .snav-links li:nth-child(4) a:hover{color:var(--green);}
 .snav-links li:nth-child(5) a:hover{color:var(--amber);}
-.ni{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s,box-shadow .2s;}
-.snav-links li a:hover .ni{transform:scale(1.1) translateY(-1px);}
+.ni{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0;transition:box-shadow .2s;transform:none;}
+.snav-links li a:hover .ni{transform:none;}
+.snav-links li a .ni svg{display:block;width:14px;height:14px;flex-shrink:0;}
 .ni-ctrl{background:rgba(127,199,217,.08);border:1px solid rgba(127,199,217,.2);color:var(--cyan);}
 .ni-slate{background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.22);color:var(--accent);}
 .ni-tick{background:rgba(183,168,255,.08);border:1px solid rgba(183,168,255,.2);color:var(--purple);}
 .ni-grade{background:rgba(57,255,110,.08);border:1px solid rgba(57,255,110,.22);color:var(--green);}
+.ni-income{background:rgba(57,255,110,.08);border:1px solid rgba(57,255,110,.22);color:var(--green);}
 .ni-pay{background:rgba(255,192,107,.08);border:1px solid rgba(255,192,107,.2);color:var(--amber);}
 .snav-links li a:hover .ni-ctrl{box-shadow:0 0 10px rgba(127,199,217,.25);}
 .snav-links li a:hover .ni-slate{box-shadow:0 0 10px rgba(212,160,23,.3);}
 .snav-links li a:hover .ni-tick{box-shadow:0 0 10px rgba(183,168,255,.25);}
-.snav-links li a:hover .ni-grade{box-shadow:0 0 10px rgba(57,255,110,.25);}
+.snav-links li a:hover .ni-grade,
+.snav-links li a:hover .ni-income{box-shadow:0 0 10px rgba(57,255,110,.25);}
 .snav-links li a:hover .ni-pay{box-shadow:0 0 10px rgba(255,192,107,.25);}
+.ni-pay svg{transform:scaleY(-1);transform-origin:50% 50%;}
 .snav-right{display:flex;align-items:center;gap:14px;margin-left:auto;}
 .live-pill{font-family:'Inter',sans-serif;font-weight:600;font-size:10px;letter-spacing:1.5px;padding:6px 16px;border-radius:100px;border:1px solid rgba(46,204,113,.3);color:var(--green);background:rgba(46,204,113,.06);display:flex;align-items:center;gap:8px;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#9fd8a7;box-shadow:0 0 8px #9fd8a7;animation:blink 2s ease-in-out infinite;}
@@ -1609,8 +1612,9 @@ select option,
 }
 
 </style>
+<link rel="stylesheet" href="static/site-nav-unified.css?v=20260715navalign1"/>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260525shell98"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260715perf1"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
 </head>
 <body class="page-grades">
@@ -1640,8 +1644,8 @@ select option,
   <ul class="snav-links nav-links" id="nav-links">
     <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
     <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
-    <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="grades.html" class="active" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
+    <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
     <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
@@ -1665,7 +1669,7 @@ select option,
 <div class="mobile-menu" id="mobile-menu">
   <a href="index.html" class="">🏠 Home</a>
   <a href="tickets.html" class="">🎟 Tickets</a>
-  <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
+  <a href="grades.html" class="active" title="Ticket evaluation hub">✏️ Grades</a>
   <a href="income.html" class="">📈 Income</a>
   <a href="payout.html" class="">💰 Payouts</a>
 </div>
@@ -2321,6 +2325,14 @@ function gradesFetchSignal(ms) {
   let lastScrollY = 0;
   let lastActiveKey = '';
 
+  function gradesMobileScrollHub() {
+    try {
+      return window.matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+    } catch (_e) {
+      return false;
+    }
+  }
+  window.gradesMobileScrollHub = gradesMobileScrollHub;
   function getToolbarEl() {
     return (
       document.getElementById('iframe-shell-toolbar') ||
@@ -2425,8 +2437,10 @@ function gradesFetchSignal(ms) {
     }
 
     bindWin(window);
-    bindWin(document.getElementById('grade-frame')?.contentWindow);
-    bindWin(document.getElementById('ticket-frame')?.contentWindow);
+    if (!gradesMobileScrollHub()) {
+      bindWin(document.getElementById('grade-frame')?.contentWindow);
+      bindWin(document.getElementById('ticket-frame')?.contentWindow);
+    }
   };
 })();
 
@@ -4571,6 +4585,30 @@ function switchTab(tab) {
     hideGradesHubLoadOverlay();
     const esP = document.getElementById('empty-state');
     if (esP) esP.hidden = true;
+  } else if (tab === 'slate') {
+    hideGradesHubLoadOverlay();
+    const esS = document.getElementById('empty-state');
+    if (esS) esS.hidden = true;
+    const ds = currentDateStr || gradesEl('date-jump')?.value || yesterdayStr();
+    const gf = document.getElementById('grade-frame');
+    const src = String((gf && (gf.getAttribute('src') || gf.src)) || '').trim();
+    const srcBlank = !src || /^about:blank/i.test(src);
+    const pending = gf && (gf.dataset.pendingSlateDate || srcBlank);
+    if (pending || !slateIframeDocLooksReady(gf && gf.contentDocument)) {
+      loadDate(ds);
+    } else {
+      requestAnimationFrame(function () {
+        try {
+          syncGradeFrameHeight(gf);
+          setupGradeFrameAutoHeight(gf);
+        } catch (_eSl) {}
+      });
+    }
+    setTimeout(() => {
+      try {
+        window.setupGradesBarsScrollHide();
+      } catch (_e) {}
+    }, 0);
   } else if (tab === 'tickets') {
     hideGradesHubLoadOverlay();
     hideGradesTicketTabStageOverlays();
@@ -4792,14 +4830,29 @@ function injectTicketEvalHeightReporter(doc) {
     '})();';
 }
 
+const __ticketEvalProbeCache = Object.create(null);
+
 async function probeTicketEval(dateStr) {
+  if (!dateStr) return false;
+  if (__ticketEvalProbeCache[dateStr] != null) return __ticketEvalProbeCache[dateStr];
   const url = ticketEvalUrl(dateStr);
   try {
-    const res = await fetch(url, { method: 'GET', cache: 'no-cache', signal: gradesFetchSignal(20000) });
-    if (!res.ok) return false;
+    const head = await fetch(url, { method: 'HEAD', cache: 'no-cache', signal: gradesFetchSignal(8000) });
+    if (!head.ok) {
+      __ticketEvalProbeCache[dateStr] = false;
+      return false;
+    }
+    const res = await fetch(url, { method: 'GET', cache: 'force-cache', signal: gradesFetchSignal(20000) });
+    if (!res.ok) {
+      __ticketEvalProbeCache[dateStr] = false;
+      return false;
+    }
     const html = await res.text();
-    return ticketEvalHtmlLooksPopulated(html);
+    const ok = ticketEvalHtmlLooksPopulated(html);
+    __ticketEvalProbeCache[dateStr] = ok;
+    return ok;
   } catch (e) {
+    __ticketEvalProbeCache[dateStr] = false;
     return false;
   }
 }
@@ -5473,14 +5526,18 @@ function applyTicketFrameHeightPx(frame, h) {
 }
 
 /** Parent hub scrolls; size iframe to full document height (incl. collapsed sport buckets). */
-function measureGradesIframeDocHeight(doc, frame) {
+function measureGradesIframeDocHeight(doc, frame, explicitHeight) {
   if (!doc || !doc.body) return 0;
+  if (explicitHeight && Number(explicitHeight) > 0) {
+    return Math.ceil(Number(explicitHeight) + 24);
+  }
   const html = doc.documentElement;
   const body = doc.body;
+  const mobileHub = typeof window.gradesMobileScrollHub === 'function' && window.gradesMobileScrollHub();
   let prevFrameHeight = null;
   let prevFramePriority = '';
   try {
-    if (frame) {
+    if (frame && !mobileHub) {
       prevFrameHeight = frame.style.getPropertyValue('height');
       prevFramePriority = frame.style.getPropertyPriority('height') || '';
       frame.style.setProperty('height', '10000px', 'important');
@@ -5527,16 +5584,31 @@ function measureGradesIframeDocHeight(doc, frame) {
   return Math.ceil(h + 24);
 }
 
+var __gradesTicketHeightResyncTimer = null;
 function scheduleTicketFrameHeightResync(frame) {
   if (!frame) return;
-  [100, 350, 900, 2200].forEach(function (ms) {
-    setTimeout(function () {
-      try {
-        if (activeTab !== 'tickets') return;
-        syncTicketFrameHeight(frame);
-      } catch (_e) {}
-    }, ms);
-  });
+  if (__gradesTicketHeightResyncTimer != null) {
+    clearTimeout(__gradesTicketHeightResyncTimer);
+  }
+  __gradesTicketHeightResyncTimer = setTimeout(function () {
+    __gradesTicketHeightResyncTimer = null;
+    try {
+      if (activeTab !== 'tickets') return;
+      syncTicketFrameHeight(frame);
+    } catch (_e) {}
+  }, 150);
+}
+
+function debounceGradesFrameHeight(fn, waitMs) {
+  let timer = null;
+  return function debounced() {
+    const args = arguments;
+    if (timer != null) clearTimeout(timer);
+    timer = setTimeout(function () {
+      timer = null;
+      fn.apply(null, args);
+    }, waitMs || 120);
+  };
 }
 
 function syncGradeFrameHeight(frame) {
@@ -5560,9 +5632,10 @@ function setupGradeFrameAutoHeight(frame) {
   try {
     const doc = frame.contentDocument;
     if (!doc || !doc.body) return;
-    const ro = new ResizeObserver(function () {
+    const debounced = debounceGradesFrameHeight(function () {
       syncGradeFrameHeight(frame);
-    });
+    }, 120);
+    const ro = new ResizeObserver(debounced);
     ro.observe(doc.body);
     ro.observe(doc.documentElement);
     window.__gradesSlateResizeObs = ro;
@@ -5589,9 +5662,10 @@ function setupTicketFrameAutoHeight(frame) {
   try {
     const doc = frame.contentDocument;
     if (!doc || !doc.body) return;
-    const ro = new ResizeObserver(function () {
+    const debounced = debounceGradesFrameHeight(function () {
       syncTicketFrameHeight(frame);
-    });
+    }, 120);
+    const ro = new ResizeObserver(debounced);
     ro.observe(doc.body);
     ro.observe(doc.documentElement);
     window.__gradesTicketResizeObs = ro;
@@ -5730,6 +5804,29 @@ function loadDate(dateStr){
 
   renderPills();
 
+  const dj = gradesEl('date-jump');
+  if (dj) dj.value = dateStr;
+
+  if (activeTab === 'tickets') {
+    loadTicketEval(dateStr);
+  }
+  if (activeTab === 'props') {
+    loadGradesProps(dateStr);
+  }
+  refreshControlsSummary();
+
+  /* Defer heavy slate iframe until Slate tab is active (Props/Ticket/Players first paint). */
+  if (activeTab !== 'slate') {
+    try {
+      frame.dataset.pendingSlateDate = dateStr;
+    } catch (_pd) {}
+    if (overlay) overlay.classList.add('hidden');
+    return;
+  }
+  try {
+    delete frame.dataset.pendingSlateDate;
+  } catch (_pd2) {}
+
   const url = slateEvalUrl(dateStr);
 
   // Set iframe src
@@ -5829,21 +5926,12 @@ function loadDate(dateStr){
               finishGradesSlateLoadUI();
             }
           }
-        }, 50);
+        }, 200);
         frame.src = url;
       }
     }
   });
 
-  const dj = gradesEl('date-jump');
-  if (dj) dj.value = dateStr;
-
-  if (activeTab === 'tickets') {
-    loadTicketEval(dateStr);
-  }
-  if (activeTab === 'props') {
-    loadGradesProps(dateStr);
-  }
   refreshControlsSummary();
 }
 
@@ -5909,32 +5997,39 @@ window.addEventListener('pageshow', function (ev) {
   syncEmptyStateDateHints(yest);
   const dj0 = gradesEl('date-jump');
   if (dj0) dj0.value = yest;
-  // Optimistic load so the hub is not blank while report_dates is scanned.
-  try {
-    loadDate(yest);
-  } catch (_earlyLoad) {}
 
   const params = new URLSearchParams(window.location.search);
   const qpDateRaw = (params.get('date') || '').trim().slice(0, 10);
   const qpDate = /^\d{4}-\d{2}-\d{2}$/.test(qpDateRaw) ? qpDateRaw : '';
   const qpTab = (params.get('tab') || '').trim().toLowerCase();
+  let initialTab = qpTab;
+  if (!initialTab || !['slate', 'tickets', 'props', 'players'].includes(initialTab)) {
+    try {
+      initialTab = (localStorage.getItem('grades-active-tab') || 'slate').trim().toLowerCase();
+    } catch (_eLs) {
+      initialTab = 'slate';
+    }
+  }
+  if (!['slate', 'tickets', 'props', 'players'].includes(initialTab)) initialTab = 'slate';
+  activeTab = initialTab;
+  try {
+    window.__gradesActiveTab = initialTab;
+  } catch (_eTabBoot) {}
+  syncGradesTabStage(initialTab);
+
+  // Optimistic load — skips slate iframe when landing on Props/Ticket/Players.
+  try {
+    loadDate(yest);
+  } catch (_earlyLoad) {}
 
   function finishInitGradesUi() {
     setTimeout(() => {
       try {
         window.setupGradesBarsScrollHide();
       } catch (_e) {}
-      let startTab = qpTab;
-      if (!startTab) {
+      if (initialTab !== 'slate') {
         try {
-          startTab = (localStorage.getItem('grades-active-tab') || '').trim().toLowerCase();
-        } catch (_eLs) {
-          startTab = '';
-        }
-      }
-      if (startTab === 'tickets' || startTab === 'props' || startTab === 'players' || startTab === 'slate') {
-        try {
-          switchTab(startTab);
+          switchTab(initialTab);
         } catch (_e2) {}
       }
     }, 0);

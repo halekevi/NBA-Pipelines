@@ -220,6 +220,8 @@ def leg_grade_for_ticket_eval(
         return r
 
     g = (grade_col or "").strip().upper()
+    if g in ("PENDING", "UNGRADED", "OPEN"):
+        return "UNGRADED"
     if g in ("HIT", "WIN", "W", "1", "TRUE", "YES"):
         return "HIT"
     if g in ("MISS", "LOSS", "L", "0", "FALSE", "NO"):
@@ -227,14 +229,26 @@ def leg_grade_for_ticket_eval(
     if g in ("VOID", "PUSH", "N/A", "NA"):
         vn = str(void_note or "").strip().upper()
         if actual is None or line is None:
-            if not vn or vn in ("NO_ACTUAL", "MISSING_ACTUAL", "PENDING", "TBD", "UNKNOWN"):
+            if not vn or vn in (
+                "NO_ACTUAL",
+                "MISSING_ACTUAL",
+                "PENDING",
+                "TBD",
+                "UNKNOWN",
+            ):
                 return "UNGRADED"
         else:
             try:
                 a = float(actual)
                 ln = float(line)
                 if not (math.isnan(a) or math.isnan(ln)):
-                    if not vn or vn in ("NO_ACTUAL", "MISSING_ACTUAL", "PENDING", "TBD", "UNKNOWN"):
+                    if not vn or vn in (
+                        "NO_ACTUAL",
+                        "MISSING_ACTUAL",
+                        "PENDING",
+                        "TBD",
+                        "UNKNOWN",
+                    ):
                         return "UNGRADED"
             except (TypeError, ValueError):
                 pass

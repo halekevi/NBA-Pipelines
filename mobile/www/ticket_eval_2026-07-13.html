@@ -310,12 +310,12 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">MLB TKT WIN RATE</div></div>
 <div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">NHL TKT WIN RATE</div></div>
 <div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">SOCCER TKT WIN RATE</div></div>
-<div class="sum-item sum-item-pending-sport" title="1 ticket slip still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">TENNIS TKT WIN RATE<span class="sum-lab-badge">1 pending</span></div></div>
+<div class="sum-item sum-item-pending-sport"><div class="sum-val pend">—</div><div class="sum-lab">TENNIS TKT WIN RATE</div></div>
 <div class="sum-item"><div class="sum-val">83.3%</div><div class="sum-lab">ALL GENERATED WIN RATE</div></div>
 <div class="sum-item"><div class="sum-val green">39</div><div class="sum-lab">HITS</div></div>
 <div class="sum-item"><div class="sum-val red">3</div><div class="sum-lab">MISSES</div></div>
-<div class="sum-item"><div class="sum-val void">0</div><div class="sum-lab">VOID/PUSH</div></div>
-<div class="sum-item"><div class="sum-val pend">3</div><div class="sum-lab">UNGRADED</div></div>
+<div class="sum-item"><div class="sum-val void">3</div><div class="sum-lab">VOID/PUSH</div></div>
+<div class="sum-item"><div class="sum-val pend">0</div><div class="sum-lab">UNGRADED</div></div>
 <div class="sum-item"><div class="sum-val">15</div><div class="sum-lab">PERFECT TICKETS</div></div>
 <div class="sum-item"><div class="sum-val green">15</div><div class="sum-lab">PAID TIX</div></div>
 <div class="sum-item"><div class="sum-val red">3</div><div class="sum-lab">NO PAYOUT</div></div>
@@ -325,7 +325,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </div></div>
 <div class="wrap ticket-eval-main">
 <p class="slate-kicker">SLATE DATE · 2026-07-13</p>
-<p class="meta-muted" style="margin:4px 0 8px;line-height:1.5">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-07-13/graded_*.xlsx</code>. <strong>Ticket hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (3 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-07-13/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-07-13/</code> before rebuilding this page. </p>
+<p class="meta-muted" style="margin:4px 0 8px;line-height:1.5">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-07-13/graded_*.xlsx</code>. <strong>Ticket hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss.</p>
 <div class="ticket-sections-wrap">
 <details class="ticket-bucket sb-wnba">
 <summary><span class="ticket-bucket-title">WNBA</span><span class="ticket-bucket-meta">1 sections · 7 tickets</span></summary>
@@ -589,40 +589,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">WNBA 3-Leg Goblin</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 1.57× · FLEX 0.79×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-pend">Moise Kouame</div>
+<div class="pl-void">Moise Kouame<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">MOISE KOUAME vs NUNO BORGES</div></div>
 <div class="leg-extra">6.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">9.1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-pend">Viktoriya Tomova</div>
+<div class="pl-void">Viktoriya Tomova<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">VIKTORIYA TOMOVA vs BARBORA KREJCIKOVA</div></div>
 <div class="leg-extra">4.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">5.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-pend">Jerome Kym</div>
+<div class="pl-void">Jerome Kym<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">JEROME KYM vs DYLAN DIETRICH</div></div>
 <div class="leg-extra">20.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">16.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 </div></details>

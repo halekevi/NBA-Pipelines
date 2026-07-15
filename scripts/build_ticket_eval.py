@@ -526,12 +526,14 @@ def _canon_grade_raw(row: dict[str, Any]) -> str:
 
 
 def _canon_void_note(row: dict[str, Any]) -> str:
-    """Grader diagnostic (e.g. POSTPONED, NO_ACTUAL) from workbook row."""
+    """Grader diagnostic (e.g. POSTPONED, NO_ACTUAL, PENDING) from workbook row."""
     for k in (
         "void_reason_grade",
         "void reason grade",
         "void_reason",
         "void reason",
+        # Soccer grader historically stores the void/pending cause in ``reason``.
+        "reason",
     ):
         if k not in row:
             continue
@@ -539,7 +541,26 @@ def _canon_void_note(row: dict[str, Any]) -> str:
         if v is None or (isinstance(v, float) and pd.isna(v)):
             continue
         s = str(v).strip()
-        if s:
+        if not s:
+            continue
+        # Ignore narrative / recommendation prose accidentally stored in reason.
+        su = s.upper()
+        if su in (
+            "HIT",
+            "MISS",
+            "PUSH",
+            "WIN",
+            "LOSS",
+            "PENDING",
+            "NO_DATA",
+            "NO_ACTUAL",
+            "MISSING_ACTUAL",
+            "DNP",
+            "POSTPONED",
+            "VOID",
+            "TBD",
+            "UNKNOWN",
+        ) or su.startswith("NO_") or su.startswith("PENDING"):
             return s
     return ""
 

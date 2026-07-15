@@ -126,20 +126,160 @@ def _combo_player_parts(player: str) -> list[str]:
     return [p.strip() for p in raw.split("+") if p.strip()]
 
 
+# PrizePicks national / club labels → ESPN boxscore abbreviations in actuals CSV.
+_SOCCER_TEAM_ALIASES: dict[str, str] = {
+    "FRA": "FRA",
+    "FRANCE": "FRA",
+    "ESP": "ESP",
+    "SPAIN": "ESP",
+    "ARG": "ARG",
+    "ARGENTINA": "ARG",
+    "ENG": "ENG",
+    "ENGLAND": "ENG",
+    "USA": "USA",
+    "UNITED STATES": "USA",
+    "USMNT": "USA",
+    "MEX": "MEX",
+    "MEXICO": "MEX",
+    "BRA": "BRA",
+    "BRAZIL": "BRA",
+    "POR": "POR",
+    "PORTUGAL": "POR",
+    "GER": "GER",
+    "GERMANY": "GER",
+    "ITA": "ITA",
+    "ITALY": "ITA",
+    "NED": "NED",
+    "NETHERLANDS": "NED",
+    "HOLLAND": "NED",
+    "BEL": "BEL",
+    "BELGIUM": "BEL",
+    "CRC": "CRC",
+    "COSTA RICA": "CRC",
+    "CAN": "CAN",
+    "CANADA": "CAN",
+    "JPN": "JPN",
+    "JAPAN": "JPN",
+    "KOR": "KOR",
+    "SOUTH KOREA": "KOR",
+    "KOREA REPUBLIC": "KOR",
+    "AUS": "AUS",
+    "AUSTRALIA": "AUS",
+    "KSA": "KSA",
+    "SAUDI ARABIA": "KSA",
+    "MAR": "MAR",
+    "MOROCCO": "MAR",
+    "CRO": "CRO",
+    "CROATIA": "CRO",
+    "SUI": "SUI",
+    "SWITZERLAND": "SUI",
+    "URU": "URU",
+    "URUGUAY": "URU",
+    "COL": "COL",
+    "COLOMBIA": "COL",
+    "CHI": "CHI",
+    "CHILE": "CHI",
+    "ECU": "ECU",
+    "ECUADOR": "ECU",
+    "SEN": "SEN",
+    "SENEGAL": "SEN",
+    "GHA": "GHA",
+    "GHANA": "GHA",
+    "CMR": "CMR",
+    "CAMEROON": "CMR",
+    "NGA": "NGA",
+    "NIGERIA": "NGA",
+    "WAL": "WAL",
+    "WALES": "WAL",
+    "SCO": "SCO",
+    "SCOTLAND": "SCO",
+    "IRL": "IRL",
+    "IRELAND": "IRL",
+    "POL": "POL",
+    "POLAND": "POL",
+    "DEN": "DEN",
+    "DENMARK": "DEN",
+    "SWE": "SWE",
+    "SWEDEN": "SWE",
+    "NOR": "NOR",
+    "NORWAY": "NOR",
+    "UKR": "UKR",
+    "UKRAINE": "UKR",
+    "TUR": "TUR",
+    "TURKEY": "TUR",
+    "TÜRKIYE": "TUR",
+}
+
+
+def _normalize_soccer_team_token(team: str) -> str:
+    """Map slate team tokens (``FRANCE``) to ESPN actuals abbrevs (``FRA``)."""
+    raw = str(team or "").strip().upper()
+    if raw in ("", "—", "-", "NAN", "NONE"):
+        return ""
+    return _SOCCER_TEAM_ALIASES.get(raw, raw)
+
+
 def _combo_team_parts(team: str, n_players: int) -> list[str]:
     """Align team tokens with combo arms (``BEL/USA`` → one team per player)."""
     if n_players <= 1:
-        return [str(team or "").strip().upper()]
+        return [_normalize_soccer_team_token(team)]
     raw = str(team or "").strip()
     if raw in ("", "—", "-", "nan", "None", "NONE"):
         return [""] * n_players
     if "/" in raw:
-        parts = [p.strip().upper() for p in raw.split("/") if p.strip()]
+        parts = [_normalize_soccer_team_token(p) for p in raw.split("/") if p.strip()]
         if len(parts) >= n_players:
             return parts[:n_players]
         if len(parts) == 1:
             return parts * n_players
-    return [raw.upper()] * n_players
+        # Pad/truncate to arm count
+        while len(parts) < n_players:
+            parts.append(parts[-1] if parts else "")
+        return parts[:n_players]
+    tok = _normalize_soccer_team_token(raw)
+    return [tok] * n_players
+
+
+def _soccer_teams_in_actuals_lut(lut: dict[tuple[str, str, str], float]) -> set[str]:
+    return {str(k[2]).strip().upper() for k in lut if k[2]}
+
+
+def _soccer_missing_actual_reason(
+    lut: dict[tuple[str, str, str], float],
+    player: str,
+    prop_type: str,
+    team: str = "",
+) -> str:
+    """
+    Classify why an actual is missing.
+
+    PENDING — at least one arm's team has no completed boxscore in today's actuals
+    (common on World Cup multi-nation combos before a later kickoff).
+    NO_DATA — every unresolved arm already had a chance to post (team present)
+    but the player/prop still did not resolve.
+    """
+    parts = _combo_player_parts(player) or [str(player or "").strip()]
+    teams = _combo_team_parts(team, len(parts))
+    seen = _soccer_teams_in_actuals_lut(lut)
+    arm_reasons: list[str] = []
+    for pname, tm in zip(parts, teams):
+        v = lookup_soccer_actual(lut, pname, prop_type, tm)
+        if not pd.isna(v):
+            continue
+        pl = _norm_soccer_player(pname)
+        player_seen = bool(pl) and any(k[0] == pl for k in lut)
+        if tm and tm not in seen:
+            arm_reasons.append("PENDING")
+        elif not player_seen:
+            arm_reasons.append("PENDING")
+        else:
+            arm_reasons.append("NO_DATA")
+    if not arm_reasons:
+        return "NO_DATA"
+    # One unfinished nation keeps the whole combo open.
+    if any(r == "PENDING" for r in arm_reasons):
+        return "PENDING"
+    return "NO_DATA"
 
 
 def normalize_soccer_slate_columns(slate: pd.DataFrame) -> pd.DataFrame:
@@ -319,7 +459,7 @@ def lookup_soccer_actual(
     pl = _norm_soccer_player(player)
     raw = str(prop_type or "")
     pr = _norm_soccer_prop(re.sub(r"\(combo\)", "", raw, flags=re.I).strip())
-    tm = str(team or "").strip().upper()
+    tm = _normalize_soccer_team_token(team)
     if not pl or not pr:
         return np.nan
     for alt in _soccer_prop_aliases(pr):
@@ -344,7 +484,7 @@ def lookup_soccer_minutes(
     team: str = "",
 ) -> float | None:
     pl = _norm_soccer_player(player)
-    tm = str(team or "").strip().upper()
+    tm = _normalize_soccer_team_token(team)
     if not pl:
         return None
     if (pl, tm) in minutes_lut:
@@ -789,13 +929,19 @@ def main() -> None:
             legacy_push += 1
 
         # Forward-safe grading policy:
-        # - Missing actual remains VOID.
+        # - Missing actual: PENDING when an arm's team has not posted yet
+        #   (e.g. Mbappé+Yamal+Messi before ARG kickoff); otherwise VOID/NO_DATA.
         # - actual==0 is a valid observed stat and should grade by direction/line.
-        # - Only mark VOID when feed explicitly says 0 minutes played.
+        # - Only mark DNP VOID when feed explicitly says 0 minutes played.
         if pd.isna(actual):
-            result, edge = "VOID", np.nan
-            void_reason = "NO_DATA"
-            no_data_void_rows += 1
+            void_reason = _soccer_missing_actual_reason(
+                actuals_lut, player, prop_type, team
+            )
+            if void_reason == "PENDING":
+                result, edge = "PENDING", np.nan
+            else:
+                result, edge = "VOID", np.nan
+                no_data_void_rows += 1
         elif minutes_played is not None and float(minutes_played) <= 0:
             result, edge = "VOID", np.nan
             void_reason = "DNP"
@@ -828,6 +974,7 @@ def main() -> None:
             "def_tier": def_tier,
             "result": result,
             "reason": void_reason,
+            "void_reason_grade": void_reason,
             "edge": edge,
             "ml_prob": _slate_ml_prob_soccer(slate_row),
             "confidence_score": confidence,

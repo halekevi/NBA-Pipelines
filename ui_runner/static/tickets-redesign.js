@@ -2,13 +2,14 @@
   if (!document.body.classList.contains('page-tickets')) return;
 
   var SPORT_COLORS = {
-    NBA: '#3B82F6', WNBA: '#9333EA', MLB: '#EF4444',
-    NHL: '#06B6D4', Tennis: '#22C55E', Soccer: '#F97316',
-    CBB: '#F59E0B', NFL: '#6366F1'
+    NBA: '#3B82F6', WNBA: '#FF8AC6', MLB: '#EF4444',
+    NHL: '#06B6D4', Tennis: '#22C55E', Soccer: '#7DFF6B',
+    CBB: '#F59E0B', NFL: '#6366F1', STRONG: '#D4AF37'
   };
 
   function sportFromTitle(title) {
     var t = (title || '').toUpperCase();
+    if (t.indexOf('STRONG') !== -1) return 'STRONG';
     if (t.indexOf('WNBA') !== -1) return 'WNBA';
     if (t.indexOf('NBA') !== -1) return 'NBA';
     if (t.indexOf('MLB') !== -1) return 'MLB';

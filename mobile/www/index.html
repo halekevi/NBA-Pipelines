@@ -1088,8 +1088,8 @@ body > nav.snav.glass-card {
 
 </style>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260525shell98"/>
-<link rel="stylesheet" href="static/matchup-edge.css?v=20260528"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260716slatecards1"/>
+<link rel="stylesheet" href="static/matchup-edge.css?v=20260716me1"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
 </head>
@@ -5342,20 +5342,20 @@ function renderSlateTable(sport) {
     const rankStr = r.rank_score != null ? r.rank_score.toFixed(2) : '—';
     const timeStr = formatGameTimeDisplay(r.game_time);
     return `<tr class="slate-row-clickable" data-slate-idx="${rowIdx}">
-      <td><span class="tier-badge ${tierCls}">${r.tier || '?'}</span>${confDotHtml(r)}</td>
-      <td class="slate-rank-cell">${rankStr}</td>
-      <td style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}</td>
-      <td style="color:var(--muted);" title="${r.team || ''}">${r.team || '—'}</td>
-      <td style="color:var(--muted);" title="${r.opp || ''}">${r.opp || '—'}</td>
-      <td style="color:var(--text);">${r.prop || '—'}</td>
-      <td class="slate-pick-type-cell ${pickCls}">${r.pick_type || '—'}</td>
-      <td style="font-family:'Inter',sans-serif;">${r.line != null ? r.line : '—'}</td>
-      <td class="${dirCls}">${dirSym} ${r.dir || '—'}</td>
-      <td class="${edgeCls}" style="font-family:'Inter',sans-serif;font-weight:700;">${edgeStr}</td>
-      <td style="color:var(--cyan);font-family:'Inter',sans-serif;">${hitStr}</td>
-      <td style="color:var(--green);font-family:'Inter',sans-serif;">${l5o}</td>
-      <td style="color:var(--amber);font-family:'Inter',sans-serif;">${l5u}</td>
-      <td class="slate-time-cell">${timeStr}</td>
+      <td class="scol-tier"><span class="tier-badge ${tierCls}">${r.tier || '?'}</span>${confDotHtml(r)}</td>
+      <td class="scol-rank slate-rank-cell">${rankStr}</td>
+      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}</td>
+      <td class="scol-team" style="color:var(--muted);" title="${r.team || ''}">${r.team || '—'}</td>
+      <td class="scol-opp" style="color:var(--muted);" title="${r.opp || ''}">${r.opp || '—'}</td>
+      <td class="scol-prop" style="color:var(--text);">${r.prop || '—'}</td>
+      <td class="scol-type slate-pick-type-cell ${pickCls}">${r.pick_type || '—'}</td>
+      <td class="scol-line" style="font-family:'Inter',sans-serif;">${r.line != null ? r.line : '—'}</td>
+      <td class="scol-dir ${dirCls}">${dirSym} ${r.dir || '—'}</td>
+      <td class="scol-edge ${edgeCls}" style="font-family:'Inter',sans-serif;font-weight:700;">${edgeStr}</td>
+      <td class="scol-hit" style="color:var(--cyan);font-family:'Inter',sans-serif;">${hitStr}</td>
+      <td class="scol-l5o" style="color:var(--green);font-family:'Inter',sans-serif;">${l5o}</td>
+      <td class="scol-l5u" style="color:var(--amber);font-family:'Inter',sans-serif;">${l5u}</td>
+      <td class="scol-time slate-time-cell">${timeStr}</td>
     </tr>`;
   };
 

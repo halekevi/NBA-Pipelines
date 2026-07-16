@@ -321,3 +321,110 @@
   color: var(--muted2);
   font-size: 11px;
 }
+
+/* Mobile / tablet: stack controls, larger touch targets, card-like leader rows */
+@media (max-width: 900px) {
+  .me-controls,
+  .wnba-me-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .me-field,
+  .wnba-me-field {
+    min-width: 0;
+    width: 100%;
+    flex: 1 1 auto;
+  }
+  .me-field select,
+  .wnba-me-field select,
+  .me-find,
+  .wnba-me-find {
+    min-height: 44px;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+  .me-find-row,
+  .wnba-me-find-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .me-find-row .me-find,
+  .wnba-me-find-row .wnba-me-find,
+  .me-find-row .wnba-me-find,
+  .wnba-me-find-row .me-find {
+    width: 100%;
+    text-align: center;
+  }
+  .me-cards,
+  .wnba-me-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .me-table-wrap,
+  .wnba-me-table-wrap {
+    overflow-x: visible;
+  }
+  .me-table,
+  .wnba-me-table,
+  .me-table tbody,
+  .wnba-me-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .me-table thead,
+  .wnba-me-table thead {
+    display: none;
+  }
+  .me-table tbody tr,
+  .wnba-me-table tbody tr {
+    display: block;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .me-table tbody td,
+  .wnba-me-table tbody td {
+    display: none;
+    border: none;
+    padding: 0;
+    white-space: normal;
+  }
+  /* Cols: Player, Pos, Avg, Game score, Edge vs opp, Notes — show P0 */
+  .me-table tbody td:nth-child(1),
+  .wnba-me-table tbody td:nth-child(1) {
+    display: block;
+    font-weight: 650;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .me-table tbody td:nth-child(5),
+  .wnba-me-table tbody td:nth-child(5) {
+    display: block;
+    margin-bottom: 4px;
+  }
+  .me-table tbody td:nth-child(6),
+  .wnba-me-table tbody td:nth-child(6) {
+    display: block;
+    font-size: 11px;
+    color: var(--muted2, #8b8b99);
+    line-height: 1.4;
+  }
+  .me-table tbody td:nth-child(2),
+  .wnba-me-table tbody td:nth-child(2),
+  .me-table tbody td:nth-child(3),
+  .wnba-me-table tbody td:nth-child(3) {
+    display: inline;
+    font-size: 11px;
+    color: var(--muted, rgba(255, 255, 255, 0.75));
+    margin-right: 8px;
+  }
+  .me-table tbody td:nth-child(3)::before,
+  .wnba-me-table tbody td:nth-child(3)::before {
+    content: "Avg ";
+  }
+}

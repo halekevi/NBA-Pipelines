@@ -2,7 +2,7 @@
 """
 cbb_step6_rank_props.py  (v3 — under-direction fixes)
 -------------------------------------------------------
-Ranks CBB props using the same signal set as NBA step7:
+Ranks CBB/WCBB props using the same signal set as NBA step7:
   - Weighted projection blend: last5 (50%) + last10 (30%) + season (20%)
   - Direction-aware avg_vs_line signal
   - Blended hit rate (last5 50% + last10 50%)
@@ -10,8 +10,9 @@ Ranks CBB props using the same signal set as NBA step7:
   - Prop-type weight  (same table as NBA)
   - Bayesian prop hit-rate prior  (same table as NBA)
   - Reliability multiplier  (consistent with NBA)
+  - Tier A–D via shared assign_tier_column (play-side ml_prob for Standard)
 
-Input : step5b_with_stats_cbb.csv  (or any step5b_cbb.csv)
+Input : step5b_with_stats_cbb.csv  (or wcbb step5b → sport=wcbb)
 Output: step6_ranked_props_cbb.xlsx + optional CSV
 """
 
@@ -34,6 +35,11 @@ if str(_repo_root_cbb) not in sys.path:
     sys.path.insert(0, str(_repo_root_cbb))
 from utils.cbb_tourney_metadata import CBB_TOURNEY_2026
 from utils.defense_tiers import def_tier_from_overall_rank
+from utils.group_rank_tier import (
+    assign_tier_column,
+    print_tier_distribution_by_pick_direction_group,
+    report_goblin_demon_standard_line_fill,
+)
 from utils.hit_tracking_columns import attach_hit_tracking_columns, resolve_sport_code
 from utils.optional_ml_context import optional_context_features
 
@@ -589,6 +595,14 @@ def _cbb_meta_adjust_ml_prob(
 
 def _apply_ml_blend(out: pd.DataFrame, existing_score: pd.Series, source_hint: str = "") -> tuple[pd.Series, pd.Series, pd.Series]:
     root = Path(__file__).resolve().parents[4]
+    try:
+        from prop_model_runtime import skip_prop_model_inference, skip_prop_model_log
+
+        if skip_prop_model_inference():
+            skip_prop_model_log("CBB")
+            return pd.Series(np.nan, index=out.index), pd.Series(np.nan, index=out.index), existing_score.copy()
+    except Exception:
+        pass
     source_key = str(source_hint).lower()
     model_keys = ["cbb"]
     if "wcbb" in source_key:
@@ -1146,8 +1160,7 @@ def main():
     ).values
 
     out["rank_score"] = out["final_score"]
-    out["tier"]       = out["rank_score"].apply(
-        lambda x: _tier(x) if not (isinstance(x, float) and np.isnan(x)) else "D")
+    # Tier from shared play-side ml_prob assigner (after final_bet_direction below).
 
     # Canonical fields for cross-sport quality checks and combined tooling.
     if "opp" not in out.columns:
@@ -1170,6 +1183,14 @@ def main():
     final_dir = np.where(forced.eq(1), "OVER",
                 np.where(out["edge"] >= 0, "OVER", "UNDER"))
     out["final_bet_direction"] = final_dir
+    out["bet_direction"] = final_dir
+    out["recommended_side"] = final_dir
+
+    # Shared Standard/Goblin/Demon tiering (play-side ml_prob for Standard OVER/UNDER).
+    _tier_sport = "wcbb" if is_wcbb_slate else "cbb"
+    out["tier"] = assign_tier_column(out, sport=_tier_sport)
+    report_goblin_demon_standard_line_fill(out, f"[{_tier_sport.upper()} step6]")
+    print_tier_distribution_by_pick_direction_group(out, label=f"[{_tier_sport.upper()} step6]")
 
     for _efe_anc in Path(__file__).resolve().parents:
         if (_efe_anc / "scripts" / "edge_feature_engineering.py").is_file():
@@ -1179,10 +1200,9 @@ def main():
             break
     from edge_feature_engineering import apply_ticket_eligibility_voids, build_feature_vector  # noqa: E402
 
-    if "recommended_side" not in out.columns:
-        out["recommended_side"] = out["final_bet_direction"]
-    out = build_feature_vector(out, "CBB")
-    out = apply_ticket_eligibility_voids(out, "CBB")
+    _void_sport = "WCBB" if is_wcbb_slate else "CBB"
+    out = build_feature_vector(out, _void_sport)
+    out = apply_ticket_eligibility_voids(out, _void_sport)
     elig_mask = out["eligible"].astype(int).eq(1)
 
     # ── Clean up temp columns ─────────────────────────────────────────────────

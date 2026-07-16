@@ -60,6 +60,19 @@ SPORT_STANDARD_DIRECTION_CUTS: dict[str, dict[str, tuple[float, float, float]]] 
         "OVER": (0.45, 0.35, 0.25),
         "UNDER": (0.45, 0.35, 0.25),
     },
+    # CBB/WCBB/CFB ML is capped (~0.80) and compressed vs NBA defaults.
+    "cbb": {
+        "OVER": (0.70, 0.62, 0.55),
+        "UNDER": (0.58, 0.52, 0.48),
+    },
+    "wcbb": {
+        "OVER": (0.70, 0.62, 0.55),
+        "UNDER": (0.58, 0.52, 0.48),
+    },
+    "cfb": {
+        "OVER": (0.70, 0.62, 0.55),
+        "UNDER": (0.58, 0.52, 0.48),
+    },
     # MLB standard probabilities are compressed vs NBA-scale outputs.
     "mlb": {
         "OVER": (0.58, 0.52, 0.47),

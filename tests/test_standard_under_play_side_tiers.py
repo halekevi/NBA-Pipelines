@@ -65,3 +65,25 @@ def test_default_under_cuts_on_raw_play_side_ml():
     # Default UNDER A-cut 0.58 — raw 0.65 is A; flipped 0.35 would have been D.
     assert _tier_from_group("standard", "UNDER", 0.65, 1.5, None, sport="nba") == "A"
     assert _tier_from_group("standard", "UNDER", 0.35, 1.5, None, sport="nba") == "D"
+
+
+def test_cbb_wcbb_cfb_standard_under_uses_direction_cuts():
+    for sport in ("cbb", "wcbb", "cfb"):
+        assert _resolve_standard_direction_cuts(sport, "UNDER") == SPORT_STANDARD_DIRECTION_CUTS[sport][
+            "UNDER"
+        ]
+        assert _tier_from_group("standard", "UNDER", 0.65, 1.5, None, sport=sport) == "A"
+        # Would be D only under the old (1 - ml) flip.
+        assert _tier_from_group("standard", "UNDER", 0.60, 1.5, None, sport=sport) == "A"
+
+
+def test_assign_tier_column_cbb_standard_under():
+    df = pd.DataFrame(
+        [
+            {"pick_type": "Standard", "direction": "UNDER", "ml_prob": 0.66, "prop_type": "Points"},
+            {"pick_type": "Standard", "direction": "OVER", "ml_prob": 0.71, "prop_type": "Points"},
+        ]
+    )
+    assert list(assign_tier_column(df, sport="cbb")) == ["A", "A"]
+    assert list(assign_tier_column(df, sport="wcbb")) == ["A", "A"]
+    assert list(assign_tier_column(df, sport="cfb")) == ["A", "A"]

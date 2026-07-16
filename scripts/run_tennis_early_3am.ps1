@@ -7,7 +7,8 @@
   - Pulls latest main (Railway tracks origin/main).
   - Runs run_pipeline.ps1 -TennisOnly for Eastern today (same-day tennis_date).
   - Combined slate / web tickets refresh after tennis; pipeline push publishes JSON.
-  - Full multi-sport daily remains at 7:00 AM (run_daily_7am.ps1).
+  - First full multi-sport daily is at 5:00 AM (run_daily_5am.ps1).
+  - 7:00 AM is a line-move update refresh (run_daily_7am.ps1 → run_refresh_with_log).
 
   Register via scripts\Register_Daily_Task.ps1 (task: PropOracle - Tennis Early 3AM).
 #>

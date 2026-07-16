@@ -1,4 +1,12 @@
 #requires -Version 5.1
+<#
+.SYNOPSIS
+  [SUPERSEDED] Former standalone 5:00 AM grader.
+
+.NOTES
+  Grading is now part of PropOracle - Daily 5AM (run_daily_5am.ps1 → run_daily.ps1).
+  Register_Daily_Task.ps1 unregisters PropOracle - Grader 5AM.
+#>
 param()
 
 $ErrorActionPreference = "Continue"

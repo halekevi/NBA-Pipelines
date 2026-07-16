@@ -1,17 +1,21 @@
 #requires -Version 5.1
+<#
+.SYNOPSIS
+  Scheduled 7:00 AM line-move update: git pull main, then mid-day-style refresh.
+
+.NOTES
+  First full multi-sport fetch is PropOracle - Daily 5AM (run_daily_5am.ps1).
+  This task mirrors 9AM / 11AM / 1PM via run_refresh_with_log.ps1 → run_nba_late_fetch.ps1.
+  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 7AM".
+#>
 param()
 
 $ErrorActionPreference = "Continue"
 $Root = Split-Path $PSScriptRoot -Parent
-$Daily = Join-Path $Root "scripts\run_daily.ps1"
-$Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"
+$Refresh = Join-Path $Root "scripts\run_refresh_with_log.ps1"
 
-if (-not (Test-Path $Daily)) {
-    Write-Error "Missing daily script: $Daily"
-    exit 1
-}
-if (-not (Test-Path $Snapshot)) {
-    Write-Error "Missing prop snapshot script: $Snapshot"
+if (-not (Test-Path $Refresh)) {
+    Write-Error "Missing refresh script: $Refresh"
     exit 1
 }
 
@@ -30,49 +34,42 @@ function Get-MainWorktreeRoot {
     return $null
 }
 
-# Railway tracks origin/main. Prefer running daily on the main worktree when this
+# Railway tracks origin/main. Prefer running refresh on the main worktree when this
 # checkout is a feature branch (main may already be locked in PropORACLE_main_cp).
 $branch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
 $mainWt = Get-MainWorktreeRoot
 if ($branch -ne "main") {
-    if ($mainWt -and (Test-Path -LiteralPath (Join-Path $mainWt "scripts\run_daily.ps1"))) {
-        Write-Host "[7AM DAILY] On '$branch' — running daily inside main worktree: $mainWt" -ForegroundColor Yellow
+    if ($mainWt -and (Test-Path -LiteralPath (Join-Path $mainWt "scripts\run_refresh_with_log.ps1"))) {
+        Write-Host "[7AM UPDATE] On '$branch' — running refresh inside main worktree: $mainWt" -ForegroundColor Yellow
         $Root = $mainWt
-        $Daily = Join-Path $Root "scripts\run_daily.ps1"
-        $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"
+        $Refresh = Join-Path $Root "scripts\run_refresh_with_log.ps1"
         Set-Location $Root
     }
     else {
-        Write-Host "[7AM DAILY] On '$branch' — switching to main for Railway freshness..." -ForegroundColor Yellow
+        Write-Host "[7AM UPDATE] On '$branch' — switching to main for Railway freshness..." -ForegroundColor Yellow
         git checkout main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "[7AM DAILY] FAILED: cannot checkout main (locked by another worktree or WIP). Abort." -ForegroundColor Red
+            Write-Host "[7AM UPDATE] FAILED: cannot checkout main (locked by another worktree or WIP). Abort." -ForegroundColor Red
             exit 1
         }
     }
 }
 
-Write-Host "[7AM DAILY] Pulling latest repository (main)..." -ForegroundColor Cyan
+Write-Host "[7AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
 git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[7AM DAILY] git pull failed (exit $LASTEXITCODE)" -ForegroundColor Red
+    Write-Host "[7AM UPDATE] git pull failed (exit $LASTEXITCODE)" -ForegroundColor Red
     exit $LASTEXITCODE
 }
 
-Write-Host "[7AM DAILY] Running run_daily.ps1 (-SkipGrader)..." -ForegroundColor Cyan
-& pwsh -NoProfile -File $Daily -SkipGrader
-$dailyExit = $LASTEXITCODE
+Write-Host "[7AM UPDATE] Running line-move refresh (RunLabel 7AM)..." -ForegroundColor Cyan
+& pwsh -NoProfile -File $Refresh -RunLabel "7AM"
+$refreshExit = $LASTEXITCODE
 
-Write-Host "[7AM DAILY] Logging fetched prop snapshot..." -ForegroundColor Cyan
-& pwsh -NoProfile -File $Snapshot -Label "7AM DAILY POST" -CompareToState -WriteState
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[7AM DAILY] Snapshot logging failed" -ForegroundColor Yellow
+if ($refreshExit -ne 0) {
+    Write-Host "[7AM UPDATE] Refresh failed (exit $refreshExit)" -ForegroundColor Red
+    exit $refreshExit
 }
 
-if ($dailyExit -ne 0) {
-    Write-Host "[7AM DAILY] run_daily failed (exit $dailyExit)" -ForegroundColor Red
-    exit $dailyExit
-}
-
-Write-Host "[7AM DAILY] Complete" -ForegroundColor Green
+Write-Host "[7AM UPDATE] Complete" -ForegroundColor Green
 exit 0

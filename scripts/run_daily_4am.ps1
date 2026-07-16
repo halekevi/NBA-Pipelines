@@ -1,11 +1,11 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Scheduled 4:00 AM full daily run: git pull, run_daily.ps1 (grade yesterday + today's pipeline), prop snapshot.
+  [SUPERSEDED] Former 4:00 AM full daily run.
 
 .NOTES
-  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 4AM".
-  Unlike 7AM (-SkipGrader), this runs the full daily flow including STEP A grader.
+  Replaced by scripts\run_daily_5am.ps1 (PropOracle - Daily 5AM).
+  Kept for manual one-offs only; Register_Daily_Task.ps1 unregisters Daily 4AM.
 #>
 param()
 

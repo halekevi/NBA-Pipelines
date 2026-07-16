@@ -55,13 +55,15 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 
 import argparse
+import re
+import unicodedata
 import warnings
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
-import re
+
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
@@ -106,6 +108,8 @@ POSITION_THRESHOLDS = {
 
 def _norm_soccer_player(name: str) -> str:
     s = str(name or "").lower().strip().replace(".", " ")
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
     s = re.sub(r"\s+", " ", s)
     parts = [x for x in s.split(" ") if x]
     for suf in ("jr", "sr", "ii", "iii", "iv", "v"):

@@ -22,7 +22,7 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
-from tennis_shared import iter_scoreboard_matches, norm_key, norm_tennis_prop
+from tennis_shared import iter_scoreboard_matches, norm_key, norm_key_candidates, norm_tennis_prop
 from scripts.l10_streak_utils import enrich_graded_l10_columns
 
 VALID_TENNIS_PROPS = {"aces", "double_faults", "games_won", "sets_won", "match_total_games"}
@@ -286,7 +286,6 @@ def main() -> None:
     skipped_non_tennis = 0
     for _, r in slate.iterrows():
         player = str(r.get("player", "")).strip()
-        pk = norm_key(player)
         prop_raw = str(r.get("prop_type", "")).strip()
         pnorm = norm_tennis_prop(prop_raw)
         if pnorm not in VALID_TENNIS_PROPS:
@@ -298,12 +297,18 @@ def main() -> None:
             line = float(r.get("line", "") or r.get("Line", ""))
         except (TypeError, ValueError):
             line = float("nan")
-        stats = by_player_day.get(pk) if pk else None
+        stats = None
+        matched_pk = ""
+        for pk in norm_key_candidates(player):
+            if pk in by_player_day:
+                stats = by_player_day[pk]
+                matched_pk = pk
+                break
         actual = None
         if stats is not None and ak:
             actual = stats.get(ak)
         res, note, void_reason = _grade(direction, line, actual)
-        note_out = note or ("" if pk in by_player_day else "PLAYER_OR_DATE_NOT_FOUND")
+        note_out = note or ("" if matched_pk else "PLAYER_OR_DATE_NOT_FOUND")
         rows.append(
             {
                 "player": player,

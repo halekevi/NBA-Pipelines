@@ -240,6 +240,19 @@ def _is_prop_level_row(r: dict) -> bool:
     return False
 
 
+def _is_unresolvable_missing_data_void(row: dict) -> bool:
+    """True for NO_DATA voids (stat/match not in feed) — exclude from Grades UI."""
+    vr = str(
+        row.get("void_reason")
+        or row.get("Void Reason")
+        or row.get("void_reason_grade")
+        or row.get("reason")
+        or ""
+    ).strip().upper()
+    res = str(row.get("Result") or row.get("result") or "").strip().upper()
+    return "NO_DATA" in vr or res == "NO_DATA"
+
+
 def _filter_prop_level_rows(rows: list[dict]) -> list[dict]:
     out: list[dict] = []
     for r in rows:
@@ -247,6 +260,8 @@ def _filter_prop_level_rows(rows: list[dict]) -> list[dict]:
             continue
         vr = r.get("void_reason") or r.get("Void Reason") or r.get("void_reason_grade")
         if is_unplayable_for_grading(vr):
+            continue
+        if _is_unresolvable_missing_data_void(r):
             continue
         out.append(r)
     return out
@@ -497,6 +512,8 @@ def prop_row_for_api(
     if is_unplayable_for_grading(
         row.get("void_reason") or row.get("Void Reason") or row.get("void_reason_grade")
     ):
+        return None
+    if _is_unresolvable_missing_data_void(row):
         return None
 
     def _pick(*keys: str) -> str:

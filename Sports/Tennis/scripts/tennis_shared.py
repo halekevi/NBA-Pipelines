@@ -91,6 +91,20 @@ def norm_key(s: str) -> str:
     return t
 
 
+def norm_key_candidates(s: str) -> list[str]:
+    """Primary key plus given/family flip (ESPN often uses Family Given)."""
+    k = norm_key(s)
+    if not k:
+        return []
+    out = [k]
+    parts = k.split()
+    if len(parts) >= 2:
+        flipped = parts[-1] + " " + " ".join(parts[:-1])
+        if flipped not in out:
+            out.append(flipped)
+    return out
+
+
 # Alias for Sackmann / step4 history (same normalization as ESPN rankings).
 _norm_key = norm_key
 

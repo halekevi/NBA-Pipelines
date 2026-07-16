@@ -24,10 +24,10 @@
     },
     {
       "sport": "WNBA",
-      "decided": 43649,
-      "paid": 19598,
-      "win_rate": 0.4489908130770464,
-      "net_dollars": -44530.0
+      "decided": 44339,
+      "paid": 20014,
+      "win_rate": 0.4513859130787794,
+      "net_dollars": -43110.0
     },
     {
       "sport": "MLB",
@@ -38,17 +38,17 @@
     },
     {
       "sport": "SOCCER",
-      "decided": 95513,
-      "paid": 16936,
-      "win_rate": 0.17731617685550657,
-      "net_dollars": -616410.0
+      "decided": 95868,
+      "paid": 17007,
+      "win_rate": 0.1774001752409563,
+      "net_dollars": -618540.0
     },
     {
       "sport": "TENNIS",
-      "decided": 16222,
-      "paid": 4226,
-      "win_rate": 0.26051041795093083,
-      "net_dollars": -77700.0
+      "decided": 19045,
+      "paid": 4848,
+      "win_rate": 0.2545550013126805,
+      "net_dollars": -93490.0
     },
     {
       "sport": "NHL",
@@ -133,10 +133,10 @@
     {
       "sport": "WNBA",
       "month": "2026-07",
-      "decided": 4210,
-      "paid": 2391,
-      "win_rate": 0.5679334916864608,
-      "net_dollars": 5720.0
+      "decided": 4900,
+      "paid": 2807,
+      "win_rate": 0.5728571428571428,
+      "net_dollars": 7140.0
     },
     {
       "sport": "WNBA",
@@ -197,10 +197,10 @@
     {
       "sport": "SOCCER",
       "month": "2026-07",
-      "decided": 7561,
-      "paid": 1277,
-      "win_rate": 0.1688930035709562,
-      "net_dollars": -50070.0
+      "decided": 7916,
+      "paid": 1348,
+      "win_rate": 0.17028802425467407,
+      "net_dollars": -52200.0
     },
     {
       "sport": "SOCCER",
@@ -237,10 +237,10 @@
     {
       "sport": "TENNIS",
       "month": "2026-07",
-      "decided": 321,
-      "paid": 65,
-      "win_rate": 0.20249221183800623,
-      "net_dollars": -1910.0
+      "decided": 3144,
+      "paid": 687,
+      "win_rate": 0.21851145038167938,
+      "net_dollars": -17700.0
     },
     {
       "sport": "TENNIS",
@@ -300,6 +300,6 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=140:mt=1783933795806655900",
-  "updated_at": "2026-07-13T11:03:22Z"
+  "signature": "n=142:mt=1784163986673524900",
+  "updated_at": "2026-07-16T01:22:25Z"
 }

@@ -372,11 +372,14 @@ def filter_soccer_slate_by_date(slate: pd.DataFrame, date_str: str) -> pd.DataFr
         if ts.notna().sum() == 0:
             print("[Soccer Grader] No parseable Game Time — using full slate.")
             return slate
+        # Do not grade tomorrow's PP slate under today's date (caused Jul-14
+        # Messi combos / FRA-ESP props to appear on Jul-13 Grades).
         print(
             f"[Soccer Grader] Date filter {date_str}: 0 rows on that day "
-            f"({int(ts.notna().sum())} rows had other dates) — using full slate."
+            f"({int(ts.notna().sum())} rows had other dates) — empty slate "
+            f"(no full-slate fallback)."
         )
-        return slate
+        return slate.iloc[0:0].copy()
     print(f"[Soccer Grader] Date filter {date_str}: {int(mask.sum())}/{len(slate)} rows")
     return slate.loc[mask].copy()
 
@@ -988,27 +991,30 @@ def main() -> None:
     
     graded_df = pd.DataFrame(graded)
     print(f"  Graded: {len(graded_df)}")
-    decided = graded_df[graded_df["result"].isin(["HIT", "MISS", "PUSH"])]
-    decided_hits = int((decided["result"] == "HIT").sum())
-    decided_n = int(len(decided))
-    curr_hr = (decided_hits / decided_n * 100) if decided_n else 0.0
-    legacy_n = legacy_hits + legacy_miss + legacy_push
-    legacy_hr = (legacy_hits / legacy_n * 100) if legacy_n else 0.0
-    print(f"  Hit rate now: {curr_hr:.1f}% ({decided_hits}/{decided_n})")
-    print(f"  Est pre-fix hit rate: {legacy_hr:.1f}% ({legacy_hits}/{legacy_n})")
-    print(f"  no_data->VOID rows: {no_data_void_rows}")
-    
-    # Analytics
-    print("[Soccer Grader] Running analytics...")
     if graded_df.empty:
+        print("  Hit rate now: n/a (empty slate after date filter)")
+        print("  Est pre-fix hit rate: n/a")
+        print("  no_data->VOID rows: 0")
         league_edges = pd.DataFrame()
         position_plays = pd.DataFrame()
         recommendations = pd.DataFrame()
     else:
+        decided = graded_df[graded_df["result"].isin(["HIT", "MISS", "PUSH"])]
+        decided_hits = int((decided["result"] == "HIT").sum())
+        decided_n = int(len(decided))
+        curr_hr = (decided_hits / decided_n * 100) if decided_n else 0.0
+        legacy_n = legacy_hits + legacy_miss + legacy_push
+        legacy_hr = (legacy_hits / legacy_n * 100) if legacy_n else 0.0
+        print(f"  Hit rate now: {curr_hr:.1f}% ({decided_hits}/{decided_n})")
+        print(f"  Est pre-fix hit rate: {legacy_hr:.1f}% ({legacy_hits}/{legacy_n})")
+        print(f"  no_data->VOID rows: {no_data_void_rows}")
+
+        # Analytics
+        print("[Soccer Grader] Running analytics...")
         league_edges = SoccerAnalytics.identify_league_edges(graded_df)
         position_plays = SoccerAnalytics.identify_position_plays(graded_df)
         recommendations = SoccerAnalytics.generate_recommendations(graded_df, position_plays)
-    
+
     # Output
     print("[Soccer Grader] Saving results...")
     

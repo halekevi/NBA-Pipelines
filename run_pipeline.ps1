@@ -22,6 +22,7 @@
 #    .\run_pipeline.ps1 -ForceWNBA           # Include WNBA in full parallel run before season start (QA)
 #    .\run_pipeline.ps1 -CombinedOnly          # Re-run combined + web tickets (multi-sport /tickets JSON)
 #    .\run_pipeline.ps1 -CombinedOnly -WebEvOnly   # Stricter /tickets: positive-EV gate only (+ Tennis bypass)
+#    .\run_pipeline.ps1 -CombinedOnly -TicketGenStarts 16 -SkipLivePayoutCapture  # Mid-day fast rebuild
 #    After tickets: live PP payout scrape via CDP (scripts\run_live_payout_capture.ps1) unless -SkipLivePayoutCapture
 #    .\run_pipeline.ps1 -SkipFetch             # Skip step1 fetch for whatever sport(s) run
 #    .\run_pipeline.ps1 -NBAOnly -SkipFetch    # NBA steps 2-8 + Combined
@@ -45,8 +46,10 @@
 # ENTRY POINTS
 #   Full daily run  : scripts\run_daily.ps1 [-Date YYYY-MM-DD]
 #     STEP C calls  : run_pipeline.ps1 -Date $Today -ForceAll -SkipCombined -SkipPush
-#     STEP D calls  : run_pipeline.ps1 -Date $Today -CombinedOnly -DQWarnOnly
-#   Manual rebuild  : .\run_pipeline.ps1 -Date YYYY-MM-DD [-CombinedOnly]
+#     STEP D calls  : run_pipeline.ps1 -Date $Today -CombinedOnly -DQWarnOnly -SkipLivePayoutCapture
+#                     (CDP once in STEP D-payout)
+#   Mid-day rebuild : scripts\run_fast_rebuild.ps1 [-CombinedOnly | -MLBOnly | …]
+#   Manual rebuild  : .\run_pipeline.ps1 -Date YYYY-MM-DD [-CombinedOnly] [-TicketGenStarts N]
 #
 # ============================================================
 param(
@@ -76,6 +79,8 @@ param(
     [switch]$RunPayoutEngine,
     # After combined tickets: CDP scrape MAIN/STRONG power_min_x onto tickets_latest (default on when CDP up).
     [switch]$SkipLivePayoutCapture,
+    # Combined ticket candidate search starts (default 64 AM publish; use 8-16 for mid-day rebuilds).
+    [int]$TicketGenStarts = 0,
     # Skip Soccer defense refresh network fetch (use cached cache\soccer_defense_summary.csv).
     [switch]$SkipDefenseRefresh,
     # Used by scripts/run_daily.ps1 to execute sport pipelines in STEP C
@@ -1265,7 +1270,15 @@ function Run-Combined {
 
     # Keep strict date checks for NBA-family slates so /tickets never shows yesterday as today.
     # --also-win-rate: emit tickets_winrate_latest.json in the same process (no 2nd Python launch).
-    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts 64 --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
+    # TicketGenStarts: 0 → env PROPORACLE_TICKET_GEN_STARTS → default 64 (AM). Mid-day: pass 8-16.
+    $ticketStarts = 64
+    if ($TicketGenStarts -gt 0) {
+        $ticketStarts = [Math]::Max(1, $TicketGenStarts)
+    } elseif ($env:PROPORACLE_TICKET_GEN_STARTS -match '^\d+$' -and [int]$env:PROPORACLE_TICKET_GEN_STARTS -gt 0) {
+        $ticketStarts = [int]$env:PROPORACLE_TICKET_GEN_STARTS
+    }
+    Write-Host "  [combined] ticket-gen-starts=$ticketStarts" -ForegroundColor DarkGray
+    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts $ticketStarts --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
     if (-not $WebEvOnly) {
         $CombinedArgs += " --no-web-ev-gate"
     }

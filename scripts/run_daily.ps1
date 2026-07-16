@@ -6,7 +6,7 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate → (D-payout) live CDP payout scrape + verify outstanding ticket floors / mixΔ (scripts/run_live_payout_capture.ps1; also runs inside Run-Combined) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture; CDP once in D-payout) → (D-payout) live CDP payout scrape + verify outstanding ticket floors / mixΔ (scripts/run_live_payout_capture.ps1) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
          Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 7AM update refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
@@ -1149,8 +1149,9 @@ if ($script:PipelineFailed) {
     try {
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
         # SkipDailyGrader: yesterday already graded in STEP A; avoid a second full run_grader pass.
+        # SkipLivePayoutCapture: CDP runs once in STEP D-payout (avoid duplicate scrape after Combined).
         # grading handled by STEP A (run_grader.ps1) — not the post-pipeline grader here
-        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader
+        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader -SkipLivePayoutCapture
         $ce = $LASTEXITCODE
         # Success = combined Excel exists; exit code may be non-zero if only ticket_eval HTML failed (non-fatal)
         if (Test-Path $combinedOut) {
@@ -1181,8 +1182,8 @@ if ($script:PipelineFailed) {
 
 # =============================================================================
 # STEP D-payout — Live PrizePicks payout capture after tickets (shared helper)
-# Primary path is also Run-Combined in run_pipeline.ps1; this step is the
-# safety net when Combined already ran with CDP down / skip, or for re-runs.
+# Daily STEP D passes -SkipLivePayoutCapture so CDP runs once here (not also inside
+# Run-Combined). Manual .\run_pipeline.ps1 -CombinedOnly still scrapes unless skipped.
 # Idempotent: skips full scrape if payout_capture_<date>.json already has n_ok>0,
 # then still runs verify_ticket_payout_rates (fills missing live floors + reports Δ gaps).
 # =============================================================================

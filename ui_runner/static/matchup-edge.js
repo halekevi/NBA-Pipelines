@@ -357,7 +357,15 @@
     const teams = (data.teams || [])
       .filter((t) => {
         const ab = normAbbr(t?.slate_abbr || t?.def_key);
-        return !teamsWithBlocks.size || teamsWithBlocks.has(ab);
+        if (!ab) return false;
+        // Prefer clubs that actually have leader blocks (tonight's slate).
+        if (teamsWithBlocks.size && !teamsWithBlocks.has(ab)) return false;
+        // Drop idle clubs with no opponent when matchup map is present.
+        const mu = (data.matchups || {})[ab] || (data.matchups || {})[t?.slate_abbr] || {};
+        const hasOpp = Boolean(mu.opponent_slate || mu.opponent_name);
+        if (teamsWithBlocks.size) return true;
+        if (Object.keys(data.matchups || {}).length) return hasOpp;
+        return true;
       })
       .slice()
       .sort((a, b) => {

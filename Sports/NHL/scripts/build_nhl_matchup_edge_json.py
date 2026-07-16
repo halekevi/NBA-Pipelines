@@ -75,6 +75,8 @@ def _slate_team(abbr: str) -> str:
 
 
 def _load_defense(path: Path) -> pd.DataFrame:
+    if not path.is_file():
+        raise FileNotFoundError(f"Missing NHL defense file: {path}")
     d = pd.read_csv(path, encoding="utf-8-sig")
     d["def_key"] = d["team"].astype(str).str.upper().map(defense_team_key)
     d["slate_abbr"] = d["def_key"]

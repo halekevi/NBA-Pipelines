@@ -492,17 +492,28 @@ def _def_row_for_team(cfg: SportMatchupConfig, def_lookup: dict[str, dict], team
     return None
 
 
-def _resolve_wnba_slate(slate_path: Path | None) -> Path:
-    if slate_path and slate_path.is_file():
-        return slate_path
-    for c in (
-        _REPO_ROOT / "ui_runner/templates/slate_sport_wnba.json",
-        _REPO_ROOT / "mobile/www/slate_sport_wnba.json",
-        _REPO_ROOT / "Sports/WNBA/step8_wnba_direction.csv",
-    ):
+def _pick_first_nonempty_slate(cands: list[Path], *, fallback: Path) -> Path:
+    """Skip empty published JSON shells (rows:[]) so we do not block real step8/pipeline files."""
+    for c in cands:
+        if c.is_file() and _slate_row_count(c) > 0:
+            return c
+    for c in cands:
         if c.is_file():
             return c
-    return _REPO_ROOT / "ui_runner/templates/slate_sport_wnba.json"
+    return fallback
+
+
+def _resolve_wnba_slate(slate_path: Path | None) -> Path:
+    if slate_path and slate_path.is_file() and _slate_row_count(slate_path) > 0:
+        return slate_path
+    return _pick_first_nonempty_slate(
+        [
+            _REPO_ROOT / "ui_runner/templates/slate_sport_wnba.json",
+            _REPO_ROOT / "mobile/www/slate_sport_wnba.json",
+            _REPO_ROOT / "Sports/WNBA/step8_wnba_direction.csv",
+        ],
+        fallback=_REPO_ROOT / "ui_runner/templates/slate_sport_wnba.json",
+    )
 
 
 def _infer_leader_slice(p: dict) -> str:
@@ -580,16 +591,16 @@ def _build_wnba_matchup_payload(slate_path: Path | None) -> dict[str, Any]:
 
 
 def _resolve_nba_slate(slate_path: Path | None) -> Path:
-    if slate_path and slate_path.is_file():
+    if slate_path and slate_path.is_file() and _slate_row_count(slate_path) > 0:
         return slate_path
-    for cand in (
-        _REPO_ROOT / "ui_runner/templates/slate_sport_nba.json",
-        _REPO_ROOT / "mobile/www/slate_sport_nba.json",
-        _REPO_ROOT / "Sports/NBA/data/outputs/step8_all_direction.csv",
-    ):
-        if cand.is_file():
-            return cand
-    return _REPO_ROOT / "ui_runner/templates/slate_sport_nba.json"
+    return _pick_first_nonempty_slate(
+        [
+            _REPO_ROOT / "ui_runner/templates/slate_sport_nba.json",
+            _REPO_ROOT / "mobile/www/slate_sport_nba.json",
+            _REPO_ROOT / "Sports/NBA/data/outputs/step8_all_direction.csv",
+        ],
+        fallback=_REPO_ROOT / "ui_runner/templates/slate_sport_nba.json",
+    )
 
 
 def _build_nba_matchup_payload(slate_path: Path | None) -> dict[str, Any]:
@@ -612,18 +623,18 @@ def _build_nba_matchup_payload(slate_path: Path | None) -> dict[str, Any]:
 
 
 def _resolve_nhl_slate(slate_path: Path | None) -> Path:
-    if slate_path and slate_path.is_file():
+    if slate_path and slate_path.is_file() and _slate_row_count(slate_path) > 0:
         return slate_path
     nhl = _REPO_ROOT / "Sports" / "NHL"
-    for cand in (
-        _REPO_ROOT / "ui_runner/templates/slate_sport_nhl.json",
-        _REPO_ROOT / "mobile/www/slate_sport_nhl.json",
-        nhl / "step8_nhl_direction_clean.csv",
-        nhl / "step8_nhl_direction_clean.xlsx",
-    ):
-        if cand.is_file():
-            return cand
-    return _REPO_ROOT / "ui_runner/templates/slate_sport_nhl.json"
+    return _pick_first_nonempty_slate(
+        [
+            _REPO_ROOT / "ui_runner/templates/slate_sport_nhl.json",
+            _REPO_ROOT / "mobile/www/slate_sport_nhl.json",
+            nhl / "step8_nhl_direction_clean.csv",
+            nhl / "step8_nhl_direction_clean.xlsx",
+        ],
+        fallback=_REPO_ROOT / "ui_runner/templates/slate_sport_nhl.json",
+    )
 
 
 def _build_nhl_matchup_payload(slate_path: Path | None) -> dict[str, Any]:
@@ -636,28 +647,42 @@ def _build_nhl_matchup_payload(slate_path: Path | None) -> dict[str, Any]:
     spec.loader.exec_module(mod)
 
     nhl = _REPO_ROOT / "Sports" / "NHL"
+    defense_path = nhl / "cache/nhl_defense_summary.csv"
+    if not defense_path.is_file():
+        return {
+            "sport": "nhl",
+            "display_name": "NHL",
+            "error": f"Defense file missing (off-season or not refreshed): {defense_path}",
+            "teams": [],
+            "categories": [],
+            "matchups": {},
+            "players_by_team_cat": {},
+        }
     slate_file = _resolve_nhl_slate(slate_path)
     return mod.build_payload(
         db_path=_REPO_ROOT / "data/cache/proporacle_ref.db",
-        defense_path=nhl / "cache/nhl_defense_summary.csv",
+        defense_path=defense_path,
         top3_path=nhl / "data/nhl_top3_vs_defense.csv",
         slate_path=slate_file,
     )
 
 
 def _resolve_mlb_slate(slate_path: Path | None) -> Path:
-    if slate_path is not None and slate_path.is_file():
+    """Tonight's published MLB board only.
+
+    Empty `slate_sport_mlb.json` (rows:[]) must NOT fall through to season-wide step8 —
+    that recreates idle 30-team panels with blank OPP. Soft-fail empty instead.
+    """
+    if slate_path is not None and slate_path.is_file() and _slate_row_count(slate_path) > 0:
         return slate_path
-    mlb = _REPO_ROOT / "Sports" / "MLB"
-    for cand in (
+    ui = [
         _REPO_ROOT / "ui_runner/templates/slate_sport_mlb.json",
         _REPO_ROOT / "mobile/www/slate_sport_mlb.json",
-        mlb / "step8_mlb_direction.csv",
-        mlb / "outputs/step8_mlb_direction.csv",
-    ):
-        if cand.is_file():
-            return cand
-    return _REPO_ROOT / "ui_runner/templates/slate_sport_mlb.json"
+    ]
+    for c in ui:
+        if c.is_file() and _slate_row_count(c) > 0:
+            return c
+    return ui[0]
 
 
 def _build_mlb_hitter_matchup_payload(slate_path: Path | None) -> dict[str, Any]:
@@ -946,8 +971,17 @@ def publish_payload(payload: dict[str, Any], sport: str, repo_root: Path | None 
     if sport in ("nba1h", "nba1q"):
         targets.append(root / "Sports/NBA/data" / f"{sport}_matchup_edge.json")
     text = json.dumps(payload, indent=2)
+    errors: list[str] = []
     for p in targets:
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(text, encoding="utf-8")
-        paths.append(p)
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(text, encoding="utf-8")
+            paths.append(p)
+        except OSError as e:
+            # Windows lock / invalid secondary path must not abort UI publish.
+            errors.append(f"{p}: {e}")
+    if not paths:
+        raise OSError(f"Failed to publish {sport} matchup edge: {'; '.join(errors)}")
+    if errors:
+        print(f"[{sport}] WARN: partial publish ({len(paths)}/{len(targets)}): {errors[0]}", flush=True)
     return paths

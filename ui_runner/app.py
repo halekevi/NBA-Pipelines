@@ -6352,5 +6352,31 @@ def dashboard_income_legacy_redirect():
     return redirect("/income", code=302)
 
 
+# Mobile-bundle style *.html paths → Flask routes (bookmarks + old Grades nav links).
+@app.get("/income.html")
+def page_income_html_alias():
+    return redirect("/income", code=302)
+
+
+@app.get("/payout.html")
+def page_payout_html_alias():
+    return redirect("/payout", code=302)
+
+
+@app.get("/grades.html")
+def page_grades_html_alias():
+    return redirect("/grades", code=302)
+
+
+@app.get("/tickets.html")
+def page_tickets_html_alias():
+    return redirect("/tickets", code=302)
+
+
+@app.get("/index.html")
+def page_index_html_alias():
+    return redirect("/", code=302)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8787, debug=False)

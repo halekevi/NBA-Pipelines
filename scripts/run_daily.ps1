@@ -1704,7 +1704,16 @@ if (Test-Path $meScript) {
     try {
         & py -3.14 -X utf8 $meScript --sport all
         if ($LASTEXITCODE -ne 0) {
-            Write-Log "STEP D-ME - Matchup edge rebuild: WARN (exit $LASTEXITCODE)"
+            Write-Log "STEP D-ME - Matchup edge rebuild: WARN (exit $LASTEXITCODE) — retrying active summer sports"
+            foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
+                & py -3.14 -X utf8 $meScript --sport $meSport
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $LASTEXITCODE)"
+                }
+                else {
+                    Write-Log "STEP D-ME - Matchup edge ($meSport): OK"
+                }
+            }
         }
         else {
             Write-Log "STEP D-ME - Matchup edge rebuild: OK"

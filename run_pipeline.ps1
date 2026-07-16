@@ -1306,9 +1306,16 @@ function Run-Combined {
         }
         # Keep Matchup Edge JSON in lockstep with combined slate/ticket publish.
         # Includes WNBA (slate_sport_wnba.json) — must run after --write-web writes all slate_sport_*.json.
+        # Per-sport failures (e.g. NHL off-season) must not abort MLB/WNBA/Tennis publish.
         $okMatchupEdge = Run-Step "Build Matchup Edge JSON (all sports)" $Root ".\scripts\build_matchup_edge_json.py" "--sport all"
         if (-not $okMatchupEdge) {
-            Write-Host "  [matchup-edge] WARN: build_matchup_edge_json.py failed; existing matchup JSON may be stale." -ForegroundColor Yellow
+            Write-Host "  [matchup-edge] WARN: full build failed — retrying active summer sports individually..." -ForegroundColor Yellow
+            foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
+                $meOk = Run-Step "Build Matchup Edge ($meSport)" $Root ".\scripts\build_matchup_edge_json.py" "--sport $meSport"
+                if (-not $meOk) {
+                    Write-Host "  [matchup-edge] WARN: $meSport still failed; panel may be stale." -ForegroundColor Yellow
+                }
+            }
         }
         $datedCombinedPath = Join-Path $OutDir "combined_slate_tickets_$Date.xlsx"
         # REMOVED: HHmmss snapshot caused resolver ambiguity in build_ticket_eval.py.

@@ -220,6 +220,24 @@ def build_payload(
     matchups_raw = _norm_matchups(tonight_matchups(slate_rows, team_key="team", opp_key="opp"))
     if not matchups_raw and slate_rows:
         matchups_raw = _norm_matchups(tonight_matchups(slate_rows, team_key="team", opp_key="opp_team"))
+    # Fail closed: never publish all-30 idle clubs with blank OPP when tonight's board is missing.
+    if not matchups_raw:
+        return {
+            "sport": "mlb",
+            "display_name": "MLB",
+            "matchup_mode": "team",
+            "prop_scope": "hitter",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "error": (
+                f"No tonight MLB slate matchups (empty or missing board): {slate_path}. "
+                "Publish slate_sport_mlb.json via MLB pipeline / --write-web."
+            ),
+            "teams": [],
+            "categories": CATEGORIES,
+            "matchups": {},
+            "players_by_team_cat": {},
+            "edge_legend": {},
+        }
     pp_by_player = build_slate_pp_lookup(slate_rows, CATEGORIES, team_normalize=_slate_team)
     slate_team_by_player, pos_by_player, roster_by_team = _slate_roster_maps(slate_path)
 
@@ -250,10 +268,10 @@ def build_payload(
     logs["team_slate"] = _assign_player_teams(logs, slate_team_by_player=slate_team_by_player, season=season)
     logs = logs[logs["team_slate"].astype(str).str.len() > 0]
 
-    teams_meta: list[dict] = []
+    teams_meta_all: list[dict] = []
     for r in defense.itertuples(index=False):
         sp_era = getattr(r, "SP_ERA", np.nan)
-        teams_meta.append(
+        teams_meta_all.append(
             {
                 "def_key": r.def_key,
                 "slate_abbr": r.slate_abbr,
@@ -263,6 +281,13 @@ def build_payload(
                 "sp_era": float(sp_era) if pd.notna(sp_era) else None,
             }
         )
+
+    # When tonight's slate is known, only publish clubs on the board (no idle ATH-style shells).
+    if matchups_raw:
+        slate_abs = {str(k).upper() for k in matchups_raw.keys()}
+        teams_meta = [t for t in teams_meta_all if str(t["slate_abbr"]).upper() in slate_abs]
+    else:
+        teams_meta = teams_meta_all
 
     matchups_ui: dict[str, dict] = {}
     for t in teams_meta:
@@ -300,14 +325,20 @@ def build_payload(
         agg = agg[agg["games"] >= MIN_GAMES]
 
         for team_slate, grp in agg.groupby("team_slate", sort=False):
+            # Tonight's slate only — never emit idle clubs (empty OPP / all NEUTRAL).
+            if matchups_raw and str(team_slate).upper() not in matchups_raw:
+                continue
             roster = roster_by_team.get(str(team_slate).upper())
             if roster:
                 grp = grp[grp["PLAYER_NORM"].astype(str).map(_norm_name).isin(roster)]
             if grp.empty:
                 continue
+            # Require a real opponent when we have tonight's map.
+            mu_ui = matchups_ui.get(team_slate, {})
+            if matchups_raw and not str(mu_ui.get("opponent_slate") or "").strip():
+                continue
             top = grp.nlargest(TOP_N, "season_avg")
             bottom = grp.nsmallest(BOTTOM_N, "season_avg")
-            mu_ui = matchups_ui.get(team_slate, {})
             opp_slate = mu_ui.get("opponent_slate", "")
             opp_rank = mu_ui.get("opponent_def_rank")
             opp_tier = mu_ui.get("opponent_def_tier", "")
@@ -423,15 +454,26 @@ def build_payload(
 
 
 def _resolve_slate(slate: Path | None) -> Path:
-    if slate is not None and slate.exists():
+    """Tonight's published board only; skip empty rows:[] shells."""
+    def _rows(p: Path) -> int:
+        try:
+            if p.suffix.lower() == ".json":
+                raw = json.loads(p.read_text(encoding="utf-8-sig"))
+                rows = raw.get("rows") or raw.get("picks") or (raw if isinstance(raw, list) else [])
+                return int(len(rows))
+            if p.suffix.lower() == ".csv":
+                return max(sum(1 for _ in p.open(encoding="utf-8-sig")) - 1, 0)
+        except Exception:
+            return 0
+        return 0
+
+    if slate is not None and slate.exists() and _rows(slate) > 0:
         return slate
     for cand in (
         _REPO / "ui_runner/templates/slate_sport_mlb.json",
         _REPO / "mobile/www/slate_sport_mlb.json",
-        _MLB / "step8_mlb_direction.csv",
-        _MLB / "outputs/step8_mlb_direction.csv",
     ):
-        if cand.exists():
+        if cand.exists() and _rows(cand) > 0:
             return cand
     return _REPO / "ui_runner/templates/slate_sport_mlb.json"
 

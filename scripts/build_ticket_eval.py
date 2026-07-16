@@ -2654,23 +2654,27 @@ def _ticket_json_has_ticket_groups(path: Path) -> bool:
 def find_ticket_payload_path(
     arg_date: str, override: Path | None = None
 ) -> Path | None:
-    """Resolve combined slate: high-prob MAIN JSON when present; else non-empty dated JSON; else workbook."""
+    """Resolve combined slate for Grades ticket eval.
+
+    Prefer the issued ``combined_slate_tickets_{date}.xlsx`` (full Standard/Goblin
+    N-Leg tabs). High-prob MAIN JSON is a filtered ship pool and omits many
+    Standard 2-Leg slips — using it alone left yesterday's tickets UNGRADED/empty.
+    """
     if override is not None:
         p = override.expanduser().resolve()
         return p if p.is_file() else None
+    wb = find_ticket_json(arg_date, override=None)
+    if wb is not None:
+        return wb
     goblin_json = find_goblin_only_3leg_ticket_json(arg_date)
     if goblin_json is not None:
         return goblin_json
-    # Prefer dated JSON with real tickets over workbook shells that only have slate tabs.
     for jp in (
         REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
         REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
     ):
         if jp.is_file() and _ticket_json_has_ticket_groups(jp):
             return jp
-    wb = find_ticket_json(arg_date, override=None)
-    if wb is not None:
-        return wb
     for jp in (
         REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
         REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
@@ -3409,13 +3413,17 @@ def _filter_payload_groups(
                 legs.append(leg)
             if not legs:
                 continue
+            orig_n = len(t.get("legs") or [])
             if len(legs) < min_legs:
-                print(
-                    f"[WARN] Dropping partial ticket in {gname}: "
-                    f"{len(legs)} legs < required {min_legs}",
-                    flush=True,
-                )
-                continue
+                # Drop only true partials (hygiene removed legs). Keep complete slips that
+                # were mis-bucketed under a higher N-Leg group name (common in MAIN JSON).
+                if len(legs) < orig_n or len(legs) < 2:
+                    print(
+                        f"[WARN] Dropping partial ticket in {gname}: "
+                        f"{len(legs)} legs < required {min_legs}",
+                        flush=True,
+                    )
+                    continue
             # No duplicate players (combo arms count): Carla×2 props, Maignan combo+solo, etc.
             # Historical Grade rebuilds can pass drop_duplicate_players=False to keep issued slips.
             if drop_duplicate_players:

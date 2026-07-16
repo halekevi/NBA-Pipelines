@@ -4,9 +4,10 @@
   Mid-day / iterative rebuild wrapper around run_pipeline.ps1 (faster defaults).
 
 .DESCRIPTION
-  Skips live CDP payout by default (run scripts\run_live_payout_capture.ps1 when you need floors),
-  uses fewer ticket-gen starts (default 16 vs AM 64), and defaults to -SkipFetch when a sport
+  Uses fewer ticket-gen starts (default 16 vs AM 64), and defaults to -SkipFetch when a sport
   flag is set so step2–8 rebuild from existing step1.
+  Live PrizePicks payout scrape runs after tickets (fingerprint skip if unchanged).
+  Pass -SkipLivePayoutCapture for offline rebuilds without CDP.
 
 .EXAMPLE
   # Tickets only from on-disk step8s (fastest)
@@ -16,7 +17,7 @@
   .\scripts\run_fast_rebuild.ps1 -MLBOnly
   .\scripts\run_fast_rebuild.ps1 -WNBAOnly -SkipFetch:$false   # force step1 re-fetch
 
-  # Full parallel sports from cache + combined (still heavy; no CDP)
+  # Full parallel sports from cache + combined
   .\scripts\run_fast_rebuild.ps1 -AllSports -TicketGenStarts 8
 
 .NOTES
@@ -40,8 +41,8 @@ param(
     # Default on for sport rebuilds; CombinedOnly ignores fetch. Pass -SkipFetch:$false to re-fetch.
     [switch]$SkipFetch = $true,
     [int]$TicketGenStarts = 16,
-    # Default: skip CDP (pair with D-payout or run_live_payout_capture.ps1 later).
-    [switch]$SkipLivePayoutCapture = $true,
+    # Default: run live CDP payout after tickets (skips CDP when ticket fingerprint unchanged).
+    [switch]$SkipLivePayoutCapture,
     [switch]$IncludeLivePayout,
     [switch]$SkipDailyGrader = $true,
     [switch]$SkipPush = $true,

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import random
@@ -2446,6 +2447,99 @@ def _leg_sig_key(legs: list[dict] | None) -> str:
     return "||".join(sorted(p for p in parts if p and p != "|||"))
 
 
+def main_strong_tickets_fingerprint(tickets_path: Path | str) -> dict[str, Any]:
+    """Stable hash of MAIN/STRONG slip identities (ticket_id + leg_sig).
+
+    Used to skip PrizePicks CDP re-scrape when an update run regenerates the same
+    ticket set and every slip already has a live min-guarantee floor.
+    """
+    path = Path(tickets_path)
+    if not path.is_file():
+        return {
+            "fingerprint": "",
+            "n_slips": 0,
+            "n_missing_live": 0,
+            "n_live": 0,
+            "tickets_path": str(path),
+        }
+    data = json.loads(path.read_text(encoding="utf-8"))
+    rows: list[str] = []
+    n_live = 0
+    n_missing = 0
+    for g in data.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            raw_legs = t.get("legs") if isinstance(t.get("legs"), list) else []
+            if len(raw_legs) < 2:
+                continue
+            tid = str(t.get("ticket_id") or "").strip()
+            sig = _leg_sig_key(raw_legs)
+            rows.append(f"{tid}\t{sig}")
+            if _ticket_already_has_live_cdp(t):
+                n_live += 1
+            else:
+                n_missing += 1
+    rows_sorted = sorted(rows)
+    digest = hashlib.sha256("\n".join(rows_sorted).encode("utf-8")).hexdigest()
+    return {
+        "fingerprint": digest,
+        "n_slips": len(rows_sorted),
+        "n_missing_live": n_missing,
+        "n_live": n_live,
+        "tickets_path": str(path),
+        "date": str(data.get("date") or "")[:10],
+    }
+
+
+def capture_skip_decision(
+    tickets_path: Path | str,
+    capture_path: Path | str | None = None,
+) -> dict[str, Any]:
+    """Decide whether a live CDP scrape can be skipped for this ticket set."""
+    fp_info = main_strong_tickets_fingerprint(tickets_path)
+    prior_fp = ""
+    prior_n_ok = 0
+    cap = Path(capture_path) if capture_path else None
+    if cap is not None and cap.is_file():
+        try:
+            prior = json.loads(cap.read_text(encoding="utf-8"))
+            prior_fp = str(prior.get("tickets_fingerprint") or "").strip()
+            summary = prior.get("summary") if isinstance(prior.get("summary"), dict) else {}
+            prior_n_ok = int(summary.get("n_ok") or 0)
+        except Exception:
+            prior_fp = ""
+            prior_n_ok = 0
+    unchanged = bool(fp_info["fingerprint"]) and fp_info["fingerprint"] == prior_fp
+    skip_scrape = bool(
+        unchanged
+        and int(fp_info.get("n_missing_live") or 0) == 0
+        and int(fp_info.get("n_slips") or 0) > 0
+    )
+    return {
+        **fp_info,
+        "prior_fingerprint": prior_fp,
+        "prior_n_ok": prior_n_ok,
+        "unchanged": unchanged,
+        "skip_scrape": skip_scrape,
+        "reason": (
+            "tickets_unchanged_all_live"
+            if skip_scrape
+            else (
+                "missing_live_floors"
+                if int(fp_info.get("n_missing_live") or 0) > 0
+                else (
+                    "tickets_changed"
+                    if fp_info["fingerprint"] and fp_info["fingerprint"] != prior_fp
+                    else "no_slips_or_no_prior"
+                )
+            )
+        ),
+    }
+
+
 def write_payout_patch_and_apply_to_tickets(
     *,
     tickets_path: Path,
@@ -2795,6 +2889,7 @@ def capture_tickets_from_board(
     if gentle:
         delay_sec = max(float(delay_sec), 2.0)
     slips = load_main_strong_tickets(tickets_path, only_missing_live=only_missing_live)
+    fp_info = main_strong_tickets_fingerprint(tickets_path)
     if not slips:
         reason = (
             "missing-live pool empty (all have live_cdp)"
@@ -2802,20 +2897,43 @@ def capture_tickets_from_board(
             else "no slips"
         )
         print(f"[PAYOUT] No MAIN/STRONG slips to scrape in {tickets_path} ({reason})")
+        date_str = (
+            str(date_override or "").strip()[:10]
+            or str(fp_info.get("date") or "")[:10]
+            or datetime.utcnow().strftime("%Y-%m-%d")
+        )
+        prior_slips: list[dict] = []
+        prior_summary: dict[str, Any] = {}
+        if output_path.is_file():
+            try:
+                prior = json.loads(output_path.read_text(encoding="utf-8"))
+                if isinstance(prior.get("slips"), list):
+                    prior_slips = [s for s in prior["slips"] if isinstance(s, dict)]
+                if isinstance(prior.get("summary"), dict):
+                    prior_summary = dict(prior["summary"])
+            except Exception:
+                prior_slips = []
+                prior_summary = {}
         payload = {
-            "date": str(date_override or "")[:10],
+            "date": date_str,
             "generated_at": datetime.utcnow().isoformat() + "Z",
             "tickets_path": str(tickets_path),
+            "tickets_fingerprint": fp_info.get("fingerprint") or "",
+            "fingerprint_n_slips": int(fp_info.get("n_slips") or 0),
+            "fingerprint_n_missing_live": int(fp_info.get("n_missing_live") or 0),
             "fields": fields,
             "primary_field": "power_min_x",
             "only_missing_live": bool(only_missing_live),
-            "slips": [],
+            "slips": prior_slips if only_missing_live else [],
             "summary": {
-                "n_ok": 0,
-                "n_failed": 0,
-                "n_partial": 0,
-                "n_total": 0,
-                "n_skipped_live": 0,
+                "n_ok": int(prior_summary.get("n_ok") or 0) if only_missing_live else 0,
+                "n_failed": int(prior_summary.get("n_failed") or 0) if only_missing_live else 0,
+                "n_partial": int(prior_summary.get("n_partial") or 0) if only_missing_live else 0,
+                "n_total": int(prior_summary.get("n_total") or len(prior_slips))
+                if only_missing_live
+                else 0,
+                "n_skipped_live": int(fp_info.get("n_live") or 0),
+                "skipped_reason": reason,
             },
         }
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -3028,9 +3146,13 @@ def capture_tickets_from_board(
         "generated_at": datetime.utcnow().isoformat() + "Z",
         "cdp_url": cdp_url,
         "tickets_path": str(tickets_path),
+        "tickets_fingerprint": fp_info.get("fingerprint") or "",
+        "fingerprint_n_slips": int(fp_info.get("n_slips") or 0),
+        "fingerprint_n_missing_live": int(fp_info.get("n_missing_live") or 0),
         "fields": fields,
         "primary_field": "power_min_x",
         "entry_amount": entry_amount,
+        "only_missing_live": bool(only_missing_live),
         "slips": captured,
         "summary": {
             "n_total": len(captured),
@@ -3039,6 +3161,7 @@ def capture_tickets_from_board(
             "n_failed": n_failed,
             "n_strong": sum(1 for s in captured if s.get("slip_type") == "strong"),
             "n_main": sum(1 for s in captured if s.get("slip_type") == "main"),
+            "n_skipped_live": int(fp_info.get("n_live") or 0) if only_missing_live else 0,
         },
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -4205,6 +4328,14 @@ def main():
         help="With --tickets: scrape only slips that do not already have payout_source=live_cdp.",
     )
     ap.add_argument(
+        "--check-unchanged",
+        action="store_true",
+        help=(
+            "With --tickets: print JSON skip decision (fingerprint vs prior capture) and exit. "
+            "No CDP. Used by run_live_payout_capture.ps1 to avoid re-fetching unchanged tickets."
+        ),
+    )
+    ap.add_argument(
         "--gentle",
         action="store_true",
         help="With --tickets: slower pacing between slips (less DataDome pressure).",
@@ -4305,6 +4436,10 @@ def main():
         if not date_override:
             m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
             date_override = m.group(1) if m else ""
+        if bool(getattr(args, "check_unchanged", False)):
+            decision = capture_skip_decision(tickets_path, output_path)
+            print(json.dumps(decision, indent=2, ensure_ascii=False))
+            raise SystemExit(0)
         raise SystemExit(
             capture_tickets_from_board(
                 tickets_path=tickets_path,

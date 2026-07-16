@@ -142,3 +142,47 @@ def test_preserve_and_upsert_heal_empty_patch(tmp_path, monkeypatch):
         )
     )
     assert "d|STRONG|1" in patch2["by_ticket_id"]
+
+
+def test_tickets_fingerprint_stable_and_skip_when_unchanged(tmp_path):
+    date = "2026-07-16"
+    tickets_path = tmp_path / "tickets.json"
+    live = _payload(
+        date,
+        [
+            _ticket("d|STRONG|1", 2.6, "live_cdp", line=1.5),
+            _ticket("d|MAIN|2", 3.1, "live_cdp", line=2.5),
+        ],
+    )
+    tickets_path.write_text(json.dumps(live), encoding="utf-8")
+    fp1 = cpd.main_strong_tickets_fingerprint(tickets_path)
+    fp2 = cpd.main_strong_tickets_fingerprint(tickets_path)
+    assert fp1["fingerprint"]
+    assert fp1["fingerprint"] == fp2["fingerprint"]
+    assert fp1["n_slips"] == 2
+    assert fp1["n_missing_live"] == 0
+
+    capture_path = tmp_path / "payout_capture.json"
+    capture_path.write_text(
+        json.dumps(
+            {
+                "date": date,
+                "tickets_fingerprint": fp1["fingerprint"],
+                "summary": {"n_ok": 2},
+            }
+        ),
+        encoding="utf-8",
+    )
+    decision = cpd.capture_skip_decision(tickets_path, capture_path)
+    assert decision["unchanged"] is True
+    assert decision["skip_scrape"] is True
+    assert decision["reason"] == "tickets_unchanged_all_live"
+
+    # New slip without live floor → must scrape
+    live["groups"][0]["tickets"].append(_ticket("d|STRONG|3", 2.0, "fallback_estimate"))
+    tickets_path.write_text(json.dumps(live), encoding="utf-8")
+    decision2 = cpd.capture_skip_decision(tickets_path, capture_path)
+    assert decision2["unchanged"] is False
+    assert decision2["skip_scrape"] is False
+    assert decision2["n_missing_live"] >= 1
+    assert decision2["reason"] in ("tickets_changed", "missing_live_floors")

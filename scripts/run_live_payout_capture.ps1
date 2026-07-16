@@ -12,6 +12,10 @@
 #       when CDP is up; rebuilds SG Δ rate card after fills.
 #    Optional: -IncludeMixGrid for once/day rate-card calibration (separate from tickets)
 #
+#  Skip re-fetch: if today's ticket fingerprint matches the prior capture AND every
+#  MAIN/STRONG slip already has payout_source=live_cdp, CDP is skipped (unless -Force).
+#  When tickets change, only slips missing live floors are scraped (--only-missing-live).
+#
 #  Usage:
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -Force
@@ -184,18 +188,33 @@ try {
     }
 
     $skippedFullCapture = $false
-    # Idempotent: skip full re-scrape when today's capture already has live floors (unless -Force).
-    # Verify still runs so missing slips / outstanding Δ recipes get filled.
-    if (-not $Force -and (Test-Path -LiteralPath $payoutOut)) {
+    $onlyMissingLive = $true
+    # Skip CDP when ticket set fingerprint is unchanged AND every slip already has live_cdp.
+    # Otherwise scrape only slips missing live floors (unless -Force → full re-scrape).
+    if (-not $Force) {
         try {
-            $prior = Get-Content -LiteralPath $payoutOut -Raw | ConvertFrom-Json
-            $priorOk = 0
-            if ($null -ne $prior.summary) { $priorOk = [int]($prior.summary.n_ok) }
-            if ($priorOk -gt 0) {
-                Write-Host "  [PAYOUT] already have live capture n_ok=$priorOk ($payoutOut) -- skip full scrape (verify may still fill missing)" -ForegroundColor DarkGray
-                $skippedFullCapture = $true
+            $checkRaw = & py -3.14 -X utf8 $payoutScript `
+                --tickets $TicketsPath `
+                --output $payoutOut `
+                --date $Date `
+                --check-unchanged
+            if ($LASTEXITCODE -eq 0 -and $checkRaw) {
+                $check = ($checkRaw | Out-String) | ConvertFrom-Json
+                $fpShort = ""
+                if ($check.fingerprint) { $fpShort = [string]$check.fingerprint; if ($fpShort.Length -gt 12) { $fpShort = $fpShort.Substring(0, 12) } }
+                Write-Host ("  [PAYOUT] fingerprint={0} slips={1} missing_live={2} unchanged={3} reason={4}" -f `
+                    $fpShort, $check.n_slips, $check.n_missing_live, $check.unchanged, $check.reason) -ForegroundColor DarkGray
+                if ($check.skip_scrape -eq $true) {
+                    Write-Host "  [PAYOUT] tickets unchanged + all live_cdp -- skip CDP re-fetch (verify may still audit)" -ForegroundColor DarkGray
+                    $skippedFullCapture = $true
+                }
             }
-        } catch { }
+        } catch {
+            Write-Host "  [PAYOUT] WARN: fingerprint check failed ($($_.Exception.Message)); will scrape missing" -ForegroundColor Yellow
+        }
+    } else {
+        $onlyMissingLive = $false
+        Write-Host "  [PAYOUT] -Force: full re-scrape (including slips that already have live_cdp)" -ForegroundColor Cyan
     }
 
     $capExit = 0
@@ -213,6 +232,7 @@ try {
         if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
         if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
         if ($Gentle) { $ticketArgs += "--gentle" }
+        if ($onlyMissingLive) { $ticketArgs += "--only-missing-live" }
         & py @ticketArgs
         $capExit = $LASTEXITCODE
 

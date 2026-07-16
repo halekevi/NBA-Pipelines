@@ -200,9 +200,11 @@ def _has_matchup_context(row: pd.Series, def_tier: str) -> bool:
         return True
     if pd.notna(pd.to_numeric(row.get("def_boost_hist"), errors="coerce")):
         return True
-    if int(pd.to_numeric(row.get("top3_weak_overperformer"), errors="coerce") or 0) == 1:
+    weak = pd.to_numeric(row.get("top3_weak_overperformer"), errors="coerce")
+    if pd.notna(weak) and int(weak) == 1:
         return True
-    if int(pd.to_numeric(row.get("top3_elite_fader"), errors="coerce") or 0) == 1:
+    fade = pd.to_numeric(row.get("top3_elite_fader"), errors="coerce")
+    if pd.notna(fade) and int(fade) == 1:
         return True
     return False
 
@@ -211,8 +213,10 @@ def _matchup_aligned(row: pd.Series, direction: str, def_tier: str) -> bool:
     if not _has_matchup_context(row, def_tier):
         return True
     over = direction == "OVER"
-    weak_over = int(pd.to_numeric(row.get("top3_weak_overperformer"), errors="coerce") or 0) == 1
-    elite_fade = int(pd.to_numeric(row.get("top3_elite_fader"), errors="coerce") or 0) == 1
+    weak_raw = pd.to_numeric(row.get("top3_weak_overperformer"), errors="coerce")
+    fade_raw = pd.to_numeric(row.get("top3_elite_fader"), errors="coerce")
+    weak_over = pd.notna(weak_raw) and int(weak_raw) == 1
+    elite_fade = pd.notna(fade_raw) and int(fade_raw) == 1
     top_rank = pd.to_numeric(row.get("team_top3_rank"), errors="coerce")
     bot_rank = pd.to_numeric(row.get("team_bottom3_rank"), errors="coerce")
     boost = pd.to_numeric(row.get("def_boost_hist"), errors="coerce")

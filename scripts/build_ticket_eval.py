@@ -1533,7 +1533,9 @@ def _append_grade_history(record: dict[str, Any]) -> None:
 EVAL_TRACK_LABELS: dict[str, str] = {
     "graded_main": "Graded Main Slate (high-prob Std+Gob)",
     "high_prob_std_gob": "High-prob Standard+Goblin MAIN (shipped tickets)",
+    "goblin_only": "Goblin-only MAIN board",
     "goblin_only_3leg": "Goblin-only 3-leg MAIN (legacy / shadow)",
+    "standard_only": "Standard-only MAIN board (UNDER + elite OVER)",
     "long_parlay": "Long Parlays (5-6 leg)",
     "high_leg_hr": "High Leg HR",
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
@@ -2620,7 +2622,7 @@ def _ticket_json_matches_date(path: Path, arg_date: str) -> bool:
 
 def find_goblin_only_3leg_ticket_json(arg_date: str) -> Path | None:
     """Shipped MAIN pool JSON (high_prob_std_gob or legacy goblin_only_3leg)."""
-    preferred_modes = ("high_prob_std_gob", "goblin_only_3leg")
+    preferred_modes = ("high_prob_std_gob", "goblin_only", "goblin_only_3leg", "standard_only")
     for jp in (
         REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
         REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
@@ -3326,7 +3328,12 @@ def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
         return True
     if pool_mode == "high_prob_std_gob" and _group_is_high_prob_main_shipped(group_name):
         return True
-    if pool_mode == "goblin_only_3leg" and _group_is_goblin_only_3leg_shipped(group_name):
+    if pool_mode in ("goblin_only", "goblin_only_3leg") and _group_is_goblin_only_3leg_shipped(
+        group_name
+    ):
+        return True
+    if pool_mode == "standard_only" and _group_is_high_prob_main_shipped(group_name):
+        # Standard-only board uses "{Sport} N-Leg Standard" (and STRONG) names.
         return True
     # Older dated JSON may omit filters.pool_mode but still ship STRONG / N-Leg Goblin groups.
     if not pool_mode and (
@@ -3902,7 +3909,12 @@ def _build_html(
     roi_pct = (100.0 * total_net_10 / (10 * n_pay)) if n_pay else 0.0
 
     pool_mode = _payload_pool_mode(payload)
-    if eval_track == "graded_main" and pool_mode in ("high_prob_std_gob", "goblin_only_3leg"):
+    if eval_track == "graded_main" and pool_mode in (
+        "high_prob_std_gob",
+        "goblin_only",
+        "goblin_only_3leg",
+        "standard_only",
+    ):
         display_track = pool_mode
     else:
         display_track = eval_track
@@ -4002,7 +4014,9 @@ def _build_html(
         "long_parlay": "Long Parlay Ticket Eval (5-6 leg)",
         "high_leg_hr": "High Leg HR Ticket Eval",
         "high_prob_std_gob": "High-prob Standard+Goblin MAIN Ticket Eval",
+        "goblin_only": "Goblin-only MAIN Ticket Eval",
         "goblin_only_3leg": "Goblin-only 3-leg MAIN Ticket Eval (legacy)",
+        "standard_only": "Standard-only MAIN Ticket Eval",
     }.get(display_track, "Ticket Eval (high-prob Std+Gob)")
     parts: list[str] = [
         "<!DOCTYPE html>",

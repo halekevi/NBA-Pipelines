@@ -5105,6 +5105,26 @@ def _row_hot_l10_streak(row_d: dict) -> bool:
     return False
 
 
+def _standard_over_elite_ok(row_d: dict) -> bool:
+    """
+    High-bar Standard OVER gate (Jul 14: unrestricted Std OVER ~12% leg HR).
+
+    Require Tier A + directional HOT L10 + stack_70 (HR/L5/matchup/consistency).
+    UNDER Standards do not use this gate.
+    """
+    tier = str(row_d.get("tier") or "").strip().upper()
+    if tier != "A":
+        return False
+    if not _row_hot_l10_streak(row_d):
+        return False
+    try:
+        if not stack_70_eligible_row(row_d):
+            return False
+    except Exception:
+        return False
+    return True
+
+
 def _graded_analysis_row_boost(row_d: dict, ctx: dict[str, Any]) -> float:
     """Higher = prefer leg in win-rate pool / anchor picks."""
     boost = 0.0
@@ -5285,6 +5305,8 @@ def _row_win_rate_eligible(
     graded_ctx: dict[str, Any] | None = None,
     goblin_tier_a_only: bool = False,
     goblin_only: bool = False,
+    standard_only: bool = False,
+    qualify_standard: bool = True,
 ) -> bool:
     if isinstance(row, pd.Series):
         row_d = row.to_dict()
@@ -5298,10 +5320,17 @@ def _row_win_rate_eligible(
     tier = str(row_d.get("tier") or "").strip().upper()
     if not goblin_direction_ok(row_d):
         return False
+    if goblin_only and standard_only:
+        return False
     if goblin_only:
         if pt != "goblin":
             return False
         if goblin_tier_a_only and tier != "A":
+            return False
+    elif standard_only:
+        if "standard" not in pt or "goblin" in pt:
+            return False
+        if tier not in ("A", "B"):
             return False
     elif pt == "goblin":
         if goblin_tier_a_only and tier != "A":
@@ -5334,6 +5363,19 @@ def _row_win_rate_eligible(
         return False
     if _winrate_leg_bench_risk(row_d):
         return False
+
+    # Qualified Standard: sport/direction hygiene + higher OVER floor + elite OVER stack.
+    if qualify_standard and ("standard" in pt) and ("goblin" not in pt):
+        if not _standard_high_prob_leg_allowed(row_d):
+            return False
+        std_floor = _standard_direction_floor(row_d)
+        if leg_prob < float(std_floor):
+            return False
+        direction = str(
+            row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+        ).strip().upper()
+        if direction == "OVER" and not _standard_over_elite_ok(row_d):
+            return False
     return True
 
 
@@ -5402,14 +5444,28 @@ def _row_standard_high_prob_eligible(
         min_composite_hr=float(min_composite_hr),
         graded_ctx=graded_ctx,
         goblin_only=False,
+        standard_only=True,
+        qualify_standard=True,
     ):
-        return False
-    if not _standard_high_prob_leg_allowed(row_d):
         return False
     # Prefer realized / modeled strength: require floor after resolve.
     if _leg_prob_for_p_win_from_mapping(row_d) < floor:
         return False
     return True
+
+
+def _normalize_main_pool_mode(pool_mode: str | None) -> str:
+    """Canonical MAIN pool_mode: high_prob_std_gob | goblin_only | standard_only."""
+    m = str(pool_mode or "").strip().lower()
+    if m in ("", "mixed", "main"):
+        return MAIN_POOL_MODE
+    if m in ("goblin_only_3leg", "goblin_only"):
+        return MAIN_POOL_MODE_GOBLIN
+    if m == MAIN_POOL_MODE_STANDARD:
+        return MAIN_POOL_MODE_STANDARD
+    if m == MAIN_POOL_MODE:
+        return MAIN_POOL_MODE
+    return MAIN_POOL_MODE
 
 
 def _winrate_ticket_same_game_bench_stack(ticket: dict) -> bool:
@@ -5480,6 +5536,7 @@ def _filter_win_rate_pool(
     graded_ctx: dict[str, Any] | None = None,
     goblin_tier_a_only: bool = False,
     goblin_only: bool = False,
+    standard_only: bool = False,
 ) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
@@ -5492,6 +5549,7 @@ def _filter_win_rate_pool(
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
             goblin_only=goblin_only,
+            standard_only=standard_only,
         ):
             out_rows.append(r.to_dict())
     if not out_rows:
@@ -5541,6 +5599,7 @@ def _count_win_rate_eligible_legs(
     graded_ctx: dict[str, Any],
     goblin_tier_a_only: bool,
     goblin_only: bool,
+    standard_only: bool = False,
 ) -> int:
     total = 0
     for _, raw_df in sport_frames:
@@ -5551,6 +5610,7 @@ def _count_win_rate_eligible_legs(
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
             goblin_only=goblin_only,
+            standard_only=standard_only,
         )
         if wr_df is not None and not wr_df.empty:
             total += len(wr_df)
@@ -5568,16 +5628,23 @@ def build_win_rate_ticket_groups(
     goblin_tier_a_only: bool = False,
     goblin_only: bool = False,
     goblin_only_3leg: bool = False,
+    standard_only: bool = False,
 ) -> list[tuple[str, list, None]]:
     """Build win-rate slips sorted by p_win (3-leg primary; 4-leg only under strict gates)."""
     max_legs = max(2, min(4, int(max_legs)))
     graded_ctx = _graded_analysis_context(graded_analysis)
     goblin_only_3leg = bool(goblin_only_3leg)
+    standard_only = bool(standard_only)
     if goblin_only_3leg:
         goblin_only = True
         max_legs = min(max_legs, MAIN_GRADED_MAX_LEGS)
-    # Production MAIN + Goblin-only shadows prefer 3-leg; opt3 Tier-A shadow stays freer mix.
-    prefer_three_leg = bool(goblin_only_3leg) or (not bool(goblin_tier_a_only))
+    if standard_only:
+        goblin_only = False
+        max_legs = min(max_legs, MAIN_GRADED_MAX_LEGS)
+    # Production MAIN + Goblin/Standard-only boards prefer 3-leg; opt3 Tier-A shadow stays freer mix.
+    prefer_three_leg = (
+        bool(goblin_only_3leg) or bool(standard_only) or (not bool(goblin_tier_a_only))
+    )
 
     frames_by_sport: dict[str, pd.DataFrame] = {}
     for label, raw_df in sport_frames:
@@ -5595,6 +5662,7 @@ def build_win_rate_ticket_groups(
         graded_ctx=graded_ctx,
         goblin_tier_a_only=goblin_tier_a_only,
         goblin_only=goblin_only,
+        standard_only=standard_only,
     )
     thin_pool = eligible_total < int(MAIN_THIN_POOL_MIN_LEGS)
     if prefer_three_leg:
@@ -5608,8 +5676,8 @@ def build_win_rate_ticket_groups(
 
     candidates: list[dict] = []
     anchor = None
-    # opt3 / Goblin-only shadows skip the HOT anchor (includes Std/B); high-prob MAIN uses it.
-    if not goblin_tier_a_only and not goblin_only:
+    # Goblin/Standard-only + opt3 shadows skip the HOT Goblin anchor; mixed MAIN uses it.
+    if not goblin_tier_a_only and not goblin_only and not standard_only:
         anchor = build_win_rate_anchor_ticket(
             frames_by_sport,
             min_leg_prob=min_leg_prob,
@@ -5630,6 +5698,7 @@ def build_win_rate_ticket_groups(
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
             goblin_only=goblin_only,
+            standard_only=standard_only,
         )
         if wr_df is None or len(wr_df) < 2:
             continue
@@ -6962,6 +7031,16 @@ MAIN_FOUR_LEG_MIN_LEG_PROB = 0.70
 MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
 # High-prob MAIN: Goblin + Standard A/B, multi-sport, 3-leg primary (not Goblin-only).
 MAIN_POOL_MODE = "high_prob_std_gob"
+MAIN_POOL_MODE_GOBLIN = "goblin_only"
+MAIN_POOL_MODE_STANDARD = "standard_only"
+MAIN_POOL_MODES = frozenset(
+    {
+        MAIN_POOL_MODE,
+        MAIN_POOL_MODE_GOBLIN,
+        MAIN_POOL_MODE_STANDARD,
+        "goblin_only_3leg",  # legacy alias → goblin_only
+    }
+)
 LONG_PARLAY_MIN_LEGS = 5
 LONG_PARLAY_MAX_LEGS = 6
 
@@ -7311,18 +7390,50 @@ def build_graded_main_win_rate_payload(
     max_tickets: int | None = None,
     goblin_tier_a_only: bool = False,
     goblin_only_3leg: bool = False,
+    pool_mode: str | None = None,
     ticket_track: str = "graded_main",
     payload_mode: str | None = None,
     policy_tag: str | None = None,
 ) -> dict:
-    """Build main graded track from win-rate builder (Standard+Goblin high-prob, 3-leg primary)."""
+    """Build MAIN graded track from win-rate builder (mixed / goblin_only / standard_only)."""
     # Main graded leg cap is independent of --max-ticket-legs (workbook/EV builder knob).
     wr_max_legs = max(MAIN_GRADED_MIN_LEGS, int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS))
     wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
     wr_max_tickets = int(max_tickets or MAIN_MAX_SLIPS)
-    # Legacy opt3 / explicit Goblin-only shadow still supported.
-    use_goblin_only_3leg = bool(goblin_only_3leg) and not goblin_tier_a_only
-    use_high_prob = (not use_goblin_only_3leg) and (not goblin_tier_a_only)
+
+    # Resolve pool mode: explicit pool_mode wins; legacy goblin_only_3leg / opt3 flags still work.
+    requested = str(pool_mode or "").strip().lower()
+    if goblin_tier_a_only:
+        mode = MAIN_POOL_MODE_GOBLIN
+        use_goblin_only = True
+        use_standard_only = False
+        use_goblin_only_3leg = False
+        use_high_prob = False
+    elif requested in ("goblin_only", "goblin_only_3leg") or (
+        bool(goblin_only_3leg) and not requested
+    ):
+        # Prefer 3-leg build for all Goblin-only boards; keep legacy label only when requested.
+        use_legacy_goblin_label = requested == "goblin_only_3leg" or (
+            bool(goblin_only_3leg) and not requested
+        )
+        mode = "goblin_only_3leg" if use_legacy_goblin_label else MAIN_POOL_MODE_GOBLIN
+        use_goblin_only = True
+        use_standard_only = False
+        use_goblin_only_3leg = True
+        use_high_prob = False
+    elif requested == MAIN_POOL_MODE_STANDARD:
+        mode = MAIN_POOL_MODE_STANDARD
+        use_goblin_only = False
+        use_standard_only = True
+        use_goblin_only_3leg = False
+        use_high_prob = True
+    else:
+        mode = MAIN_POOL_MODE
+        use_goblin_only = False
+        use_standard_only = False
+        use_goblin_only_3leg = False
+        use_high_prob = True
+
     wr_groups = build_win_rate_ticket_groups(
         sport_frames,
         min_leg_prob=wr_min_prob,
@@ -7331,22 +7442,26 @@ def build_graded_main_win_rate_payload(
         max_tickets=wr_max_tickets,
         graded_analysis=graded_analysis,
         goblin_tier_a_only=goblin_tier_a_only,
-        goblin_only=use_goblin_only_3leg or goblin_tier_a_only,
+        goblin_only=use_goblin_only,
         goblin_only_3leg=use_goblin_only_3leg,
+        standard_only=use_standard_only,
     )
     filters_out = dict(thresholds or {})
     filters_out["max_ticket_legs"] = wr_max_legs
     filters_out["main_min_leg_prob"] = wr_min_prob
+    filters_out["pool_mode"] = mode
     if goblin_tier_a_only:
         filters_out["goblin_tier_a_only"] = True
-    if use_goblin_only_3leg:
+    if use_goblin_only:
         filters_out["goblin_only"] = True
         filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
-        filters_out["pool_mode"] = "goblin_only_3leg"
-    elif use_high_prob:
+    if use_standard_only:
+        filters_out["standard_only"] = True
+        filters_out["allow_standard"] = True
+        filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
+    if use_high_prob and not use_standard_only:
         filters_out["goblin_only"] = False
         filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
-        filters_out["pool_mode"] = MAIN_POOL_MODE
         filters_out["allow_standard"] = True
     payload = ticket_groups_to_payload(
         wr_groups,
@@ -7370,19 +7485,23 @@ def build_graded_main_win_rate_payload(
     payload["main_season_lead_days"] = int(MAIN_SEASON_LEAD_DAYS)
     payload["main_min_leg_prob"] = wr_min_prob
     payload["main_min_ml_prob_leg"] = MAIN_MIN_ML_PROB_LEG
+    payload["pool_mode"] = mode
     if policy_tag:
         payload["policy_tag"] = str(policy_tag)
     if goblin_tier_a_only:
         payload["goblin_tier_a_only"] = True
         payload["shadow_track"] = True
-    if use_goblin_only_3leg:
+    if use_goblin_only:
         payload["goblin_only"] = True
-        payload["pool_mode"] = "goblin_only_3leg"
         payload["main_default_legs"] = MAIN_DEFAULT_LEGS
         payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
-    elif use_high_prob:
+    if use_standard_only:
+        payload["standard_only"] = True
+        payload["allow_standard"] = True
+        payload["main_default_legs"] = MAIN_DEFAULT_LEGS
+        payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
+    if use_high_prob and not use_standard_only:
         payload["goblin_only"] = False
-        payload["pool_mode"] = MAIN_POOL_MODE
         payload["main_default_legs"] = MAIN_DEFAULT_LEGS
         payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
         payload["allow_standard"] = True
@@ -7585,6 +7704,81 @@ def _emit_winrate_mlb_goblin_shadow_payload(
         f"{n_shadow} slips (production main unchanged)"
     )
     _write_winrate_mlb_goblin_shadow_snapshot(shadow, date_str)
+
+
+def _write_main_pool_mode_snapshot(payload: dict, date_str: str, pool_mode: str) -> None:
+    """Persist a MAIN board sidecar (goblin_only / standard_only) next to mixed export."""
+    mode = _normalize_main_pool_mode(pool_mode)
+    if mode not in (MAIN_POOL_MODE_GOBLIN, MAIN_POOL_MODE_STANDARD):
+        return
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_{mode}_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_{mode}_latest.json",
+    )
+    filtered = filter_main_high_prob_payload(payload)
+    _write_json_file(dated, filtered)
+    _write_json_file(latest, filtered)
+    n_slips = sum(len(g.get("tickets") or []) for g in filtered.get("groups") or [])
+    print(f"  [OK] MAIN {mode} JSON -> {dated} ({n_slips} slips)")
+
+
+def _emit_main_pool_mode_sidecars(
+    *,
+    nba1q,
+    nba,
+    nba1h,
+    wnba,
+    mlb,
+    soccer,
+    tennis,
+    nhl,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    pool_fn,
+    graded_analysis: dict | None,
+) -> None:
+    """Build + write goblin_only and standard_only MAIN boards alongside mixed MAIN."""
+    wr_frames = _main_track_wr_sport_frames(
+        nba1q=nba1q,
+        nba=nba,
+        nba1h=nba1h,
+        wnba=wnba,
+        mlb=mlb,
+        soccer=soccer,
+        tennis=tennis,
+        nhl=nhl,
+        pool_fn=pool_fn,
+        slate_date=str(date_str or ""),
+    )
+    for mode, track in (
+        (MAIN_POOL_MODE_GOBLIN, "graded_main_goblin_only"),
+        (MAIN_POOL_MODE_STANDARD, "graded_main_standard_only"),
+    ):
+        payload = build_graded_main_win_rate_payload(
+            wr_frames,
+            date_str,
+            thresholds,
+            bankroll=bankroll,
+            curve_stake_usd=curve_stake_usd,
+            graded_analysis=graded_analysis,
+            pool_mode=mode,
+            ticket_track=track,
+            payload_mode=track,
+            policy_tag=mode,
+        )
+        n = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+        print(f"  [main-track] {mode} board: {n} slips")
+        _write_main_pool_mode_snapshot(payload, date_str, mode)
 
 
 def _write_long_parlay_ticket_snapshot(payload: dict, date_str: str) -> None:
@@ -8135,10 +8329,12 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
     4-leg only when every leg clears the strict Tier-A HOT floor.
     Drops Demon / banned props / excluded sports.
     """
-    mode = str(payload.get("pool_mode") or "")
-    if mode not in (MAIN_POOL_MODE, "goblin_only_3leg"):
+    mode_raw = str(payload.get("pool_mode") or "").strip().lower()
+    if mode_raw and mode_raw not in MAIN_POOL_MODES:
         return payload
-    goblin_only = mode == "goblin_only_3leg" or bool(payload.get("goblin_only"))
+    mode = _normalize_main_pool_mode(mode_raw)
+    goblin_only = mode == MAIN_POOL_MODE_GOBLIN or bool(payload.get("goblin_only"))
+    standard_only = mode == MAIN_POOL_MODE_STANDARD or bool(payload.get("standard_only"))
     out = dict(payload)
     new_groups: list[dict] = []
     for g in out.get("groups") or []:
@@ -8175,6 +8371,8 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
                 continue
             if goblin_only and not all("goblin" in p for p in picks):
                 continue
+            if standard_only and not all(("standard" in p) and ("goblin" not in p) for p in picks):
+                continue
             if not all(("goblin" in p) or ("standard" in p) for p in picks):
                 continue
             if n >= 4 and not _ticket_passes_main_four_leg_gate(legs):
@@ -8187,7 +8385,11 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
         ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(kept[0], ng))
         new_groups.append(ng)
     out["groups"] = new_groups
-    out["pool_mode"] = mode or MAIN_POOL_MODE
+    # Preserve legacy label when the payload already used it.
+    if mode_raw == "goblin_only_3leg":
+        out["pool_mode"] = "goblin_only_3leg"
+    else:
+        out["pool_mode"] = mode or MAIN_POOL_MODE
     return out
 
 
@@ -19473,6 +19675,22 @@ def main():
                 pool_fn=lambda f: pool(f, for_win_rate=True),
                 graded_analysis=_load_graded_analysis(),
             )
+            _emit_main_pool_mode_sidecars(
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                mlb=mlb,
+                soccer=soccer,
+                tennis=tennis,
+                nhl=nhl,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
             _emit_winrate_mlb_goblin_shadow_payload(
                 mlb=mlb,
                 date_str=str(args.date),
@@ -19614,6 +19832,22 @@ def main():
                 nba=nba,
                 nba1h=nba1h,
                 wnba=wnba,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            _emit_main_pool_mode_sidecars(
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                mlb=mlb,
+                soccer=soccer,
+                tennis=tennis,
+                nhl=nhl,
                 date_str=str(args.date),
                 thresholds=thresholds,
                 bankroll=max(0.0, float(args.bankroll)),

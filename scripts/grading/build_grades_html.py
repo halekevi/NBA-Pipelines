@@ -252,6 +252,27 @@ def _filter_prop_level_rows(rows: list[dict]) -> list[dict]:
     return out
 
 
+def _graded_bundle_is_no_actual_shell(rows: list[dict]) -> bool:
+    """True when a graded sport file has no HIT/MISS and is dominated by NO_ACTUAL voids.
+
+    Typical of MLB All-Star / off-day grading with empty actuals — keep it out of Prop Evaluation.
+    """
+    if not rows:
+        return True
+    decided = 0
+    no_actual = 0
+    for r in rows:
+        res = str(r.get("Result") or r.get("result") or "").strip().upper()
+        vr = str(r.get("void_reason") or r.get("Void Reason") or "").strip().upper()
+        if res in ("HIT", "MISS", "WIN", "LOSS", "LOSE"):
+            decided += 1
+        if "NO_ACTUAL" in vr or res == "NO_ACTUAL":
+            no_actual += 1
+    if decided > 0:
+        return False
+    return no_actual >= max(1, int(0.75 * len(rows)))
+
+
 def load_graded(path: Path, sport: str = "") -> list[dict]:
     """
     Load graded workbook rows for Prop Evaluation / HTML.
@@ -2846,6 +2867,11 @@ def main() -> None:
                         help="Path to soccer_graded_*.xlsx")
     parser.add_argument("--mlb", type=str, default="",
                         help="Path to graded_mlb_*.xlsx")
+    parser.add_argument(
+        "--skip-mlb",
+        action="store_true",
+        help="Do not auto-detect or include MLB graded workbook (e.g. All-Star / off-day shells).",
+    )
     parser.add_argument("--wnba", type=str, default="",
                         help="Path to graded_wnba_*.xlsx or wnba_graded_*.xlsx")
     parser.add_argument("--tennis", type=str, default="",
@@ -2924,7 +2950,9 @@ def main() -> None:
             print(f"  Auto-detected Soccer: {soccer_path}")
 
     mlb_path: Path | None = None
-    if args.mlb:
+    if args.skip_mlb:
+        print("  Skipping MLB (--skip-mlb)")
+    elif args.mlb:
         mlb_path = Path(args.mlb).resolve()
         if not mlb_path.exists():
             print(f"  WARNING: MLB file not found: {mlb_path}")
@@ -3015,6 +3043,13 @@ def main() -> None:
         print(f"  Loading MLB: {mlb_path.name} ...", end="", flush=True)
         mlb_rows = load_graded(mlb_path, "mlb")
         print(f" {len(mlb_rows):,} rows")
+        if _graded_bundle_is_no_actual_shell(mlb_rows):
+            print(
+                "  Skipping MLB: graded workbook is a NO_ACTUAL shell "
+                "(0 decided / off-day or empty actuals)."
+            )
+            mlb_rows = []
+            mlb_path = None
 
     wnba_rows: list[dict] = []
     if wnba_path:

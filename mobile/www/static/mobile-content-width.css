@@ -1524,8 +1524,8 @@ nav.snav .mobile-menu a {
     }
 }
 
-/* ── Home slate: mobile/tablet card rows + toolbar scroll (v20260716slatecards) ── */
-@media (max-width: 900px) {
+/* ── Home slate: mobile/tablet card rows + toolbar scroll (v20260716slatecards2) ── */
+@media (max-width: 1200px) {
   /* Filter pills: horizontal scroll strip (search stays full width via grid override undo). */
   .slate-expand .slate-toolbar {
     display: flex !important;
@@ -1573,7 +1573,7 @@ nav.snav .mobile-menu a {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
   /* Cardify fixed-schema sport tables (not combined dynamic). */
   .slate-expand .slate-table-wrap {
     overflow-x: visible !important;
@@ -1736,8 +1736,8 @@ nav.snav .mobile-menu a {
   }
 }
 
-/* Tablet landscape: slightly roomier cards */
-@media (min-width: 600px) and (max-width: 900px) {
+/* Larger tablets: slightly roomier cards */
+@media (min-width: 600px) and (max-width: 1200px) {
   .slate-expand .slate-table:not(#st-combined) tbody tr.slate-row-clickable {
     padding: 14px 16px 12px !important;
   }

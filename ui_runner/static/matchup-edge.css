@@ -322,8 +322,8 @@
   font-size: 11px;
 }
 
-/* Mobile / tablet: stack controls, larger touch targets, card-like leader rows */
-@media (max-width: 900px) {
+/* Mobile / tablet (incl. wide tablets ≤1200px): stack controls, larger touch targets, card-like leader rows */
+@media (max-width: 1200px) {
   .me-controls,
   .wnba-me-controls {
     flex-direction: column;

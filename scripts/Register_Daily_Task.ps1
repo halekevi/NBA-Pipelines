@@ -3,11 +3,14 @@
 #  PropOracle automation scheduler:
 #   - 3:00 AM  light tennis fetch + ticket rebuild (same-day early board)
 #   - 5:00 AM  first full daily (grade yesterday + multi-sport fetch + web)
-#   - 7:00 PM–1:00 AM  grader every hour (yesterday; games finishing)
+#   - 7:00 PM-1:00 AM  grader every hour (yesterday; games finishing)
 #   - 7:00 AM  line-move update refresh (same path as mid-day refreshes)
 #   - 9:00 AM  refresh + add/remove diff log
 #   - 11:00 AM refresh + add/remove diff log
 #   - 1:00 PM  refresh + add/remove diff log
+#
+# Each task opens a VISIBLE PowerShell console (cmd start /wait) so you can
+# watch progress. Requires "Run only when user is logged on".
 #
 # Run elevated from the repo you want tasks to use (e.g. H:\...\PropORACLE\scripts).
 # Re-running replaces tasks so paths stay in sync after moving the clone off OneDrive.
@@ -28,7 +31,9 @@ if (-not $PowerShellExe) {
     exit 1
 }
 Write-Host "Registering tasks with: $PowerShellExe" -ForegroundColor Cyan
+Write-Host "Windows: visible console via cmd.exe start /wait" -ForegroundColor Cyan
 
+$CmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
 $Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_daily_5am.ps1"
 $ScriptEvening = Join-Path $PipelineRoot "scripts\run_grader_evening.ps1"
@@ -66,8 +71,18 @@ function Register-PropTask {
         [string]$ExtraArgs = ""
     )
 
-    $arg = "-NonInteractive -ExecutionPolicy Bypass -File `"$ScriptPath`" $ExtraArgs"
-    $action  = New-ScheduledTaskAction -Execute $PowerShellExe -Argument $arg
+    # Visible console: cmd "start /wait" opens a titled PowerShell window on the desktop.
+    # Do NOT use -WindowStyle Hidden or redirect stdout (that hides the UI).
+    $extra = $ExtraArgs.Trim()
+    $psArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`""
+    if ($extra) { $psArgs = "$psArgs $extra" }
+    $cmdArg = "/c start `"$TaskName`" /wait `"$PowerShellExe`" $psArgs"
+
+    $action = New-ScheduledTaskAction `
+        -Execute $CmdExe `
+        -Argument $cmdArg `
+        -WorkingDirectory $PipelineRoot
+
     $trigger = New-ScheduledTaskTrigger -Daily -At $At
     $settings = New-ScheduledTaskSettingsSet `
         -ExecutionTimeLimit (New-TimeSpan -Hours 4) `
@@ -75,7 +90,15 @@ function Register-PropTask {
         -RestartInterval (New-TimeSpan -Minutes 15) `
         -StartWhenAvailable `
         -RunOnlyIfNetworkAvailable `
+        -AllowStartIfOnBatteries `
+        -DontStopIfGoingOnBatteries `
         -MultipleInstances IgnoreNew
+
+    # Interactive = show UI when user is logged on (required for visible window).
+    $principal = New-ScheduledTaskPrincipal `
+        -UserId $env:USERNAME `
+        -LogonType Interactive `
+        -RunLevel Limited
 
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
     Register-ScheduledTask `
@@ -84,23 +107,25 @@ function Register-PropTask {
         -Action $action `
         -Trigger $trigger `
         -Settings $settings `
-        -RunLevel Limited `
+        -Principal $principal `
         -Force | Out-Null
+
+    Write-Host "  Registered: $TaskName @ $At (visible window)" -ForegroundColor DarkGray
 }
 
 Register-PropTask `
     -TaskName "PropOracle - Tennis Early 3AM" `
-    -Description "Light tennis fetch + ticket rebuild for same-day early-AM board (pre ~4:00 ET tips)." `
+    -Description "Light tennis fetch + ticket rebuild for same-day early-AM board (pre ~4:00 ET tips). Opens visible PowerShell." `
     -ScriptPath $Script3 `
     -At "03:00"
 
 Register-PropTask `
     -TaskName "PropOracle - Daily 5AM" `
-    -Description "First full daily: grade yesterday, multi-sport fetch, combined slate/web publish." `
+    -Description "First full daily: grade yesterday, multi-sport fetch, combined slate/web publish. Opens visible PowerShell." `
     -ScriptPath $Script5 `
     -At "05:00"
 
-# Evening: hourly 7:00 PM – 1:00 AM local time (yesterday slate; pick up late results)
+# Evening: hourly 7:00 PM - 1:00 AM local time (yesterday slate; pick up late results)
 $EveningGraderTasks = @(
     @{ Name = "PropOracle - Grader 7PM";  At = "19:00" },
     @{ Name = "PropOracle - Grader 8PM";  At = "20:00" },
@@ -113,40 +138,40 @@ $EveningGraderTasks = @(
 foreach ($eg in $EveningGraderTasks) {
     Register-PropTask `
         -TaskName $eg.Name `
-        -Description "Hourly evening grader: pull latest, run grader for yesterday." `
+        -Description "Hourly evening grader: pull latest, run grader for yesterday. Opens visible PowerShell." `
         -ScriptPath $ScriptEvening `
         -At $eg.At
 }
 
 Register-PropTask `
     -TaskName "PropOracle - Daily 7AM" `
-    -Description "Line-move update refresh after 5AM full daily (same path as mid-day refreshes)." `
+    -Description "Line-move update refresh after 5AM full daily (same path as mid-day refreshes). Opens visible PowerShell." `
     -ScriptPath $Script7 `
     -At "07:00"
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 9AM" `
-    -Description "Refresh props, update outputs, and log added/removed props." `
+    -Description "Refresh props, update outputs, and log added/removed props. Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "09:00" `
     -ExtraArgs "-RunLabel 9AM"
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 11AM" `
-    -Description "Mid-morning line-move refresh: re-fetch + rebuild tickets." `
+    -Description "Mid-morning line-move refresh: re-fetch + rebuild tickets. Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "11:00" `
     -ExtraArgs "-RunLabel 11AM"
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 1PM" `
-    -Description "Refresh props, update outputs, and log added/removed props." `
+    -Description "Refresh props, update outputs, and log added/removed props. Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "13:00" `
     -ExtraArgs "-RunLabel 1PM"
 
 Write-Host ""
-Write-Host "Scheduler tasks registered." -ForegroundColor Green
+Write-Host "Scheduler tasks registered (visible PowerShell windows)." -ForegroundColor Green
 Write-Host "  - PropOracle - Tennis Early 3AM"
 Write-Host "  - PropOracle - Daily 5AM"
 foreach ($eg in $EveningGraderTasks) {
@@ -161,3 +186,5 @@ Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 7AM' | Select LastRunTime, LastTaskResult, NextRunTime"
+Write-Host ""
+Write-Host "Manual catchup (visible window):  pwsh -File scripts\Launch_Daily_5AM_Visible.ps1" -ForegroundColor Cyan

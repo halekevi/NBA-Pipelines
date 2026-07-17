@@ -2835,6 +2835,32 @@ def page_payout_examples():
     return redirect("/payout?tab=composer", code=302)
 
 
+@app.get("/api/payout/ladder-summary")
+def api_payout_ladder_summary():
+    """Compact mix + delta coverage for the Rates & Ladder tab on /payout."""
+    rows = _read_payout_ladder_rows()
+    quality = _ladder_quality_stats(rows)
+    summary = _summarize_ladder_rows(rows, by_delta=False)
+    # Keep the embedded table short — prefer live-backed / denser mixes first.
+    trimmed = sorted(
+        summary,
+        key=lambda r: (
+            -int(r.get("live_cdp_samples") or 0),
+            -int(r.get("samples") or 0),
+            int(r.get("n_legs") or 0),
+        ),
+    )[:40]
+    return jsonify(
+        {
+            "ok": True,
+            "total_rows": len(rows),
+            "live_cdp_rows": int(quality.get("live_cdp") or 0),
+            "mix_rows": trimmed,
+            "full_table_url": "/payout/ladder",
+        }
+    )
+
+
 @app.get("/api/payout/rate-cards")
 def api_payout_rate_cards():
     """JSON deck for /payout Rate cards tab (scripts/build_payout_rate_cards.py)."""

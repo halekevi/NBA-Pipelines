@@ -25,6 +25,9 @@
 #  Exit codes:
 #    0  = capture attempted (ok or soft-fail / CDP skip)
 #    1  = hard error (script missing, etc.)
+#
+#  Midday refreshes (7/9/11AM/1PM) skip live CDP payout; that runs in 5AM STEP D-payout
+#  or via a manual run of this script. Single-flight lock prevents dual scrapers.
 # ============================================================
 param(
     [Parameter(Mandatory = $false)]
@@ -65,6 +68,37 @@ $rateCardOut = Join-Path $Root "data\reports\payout_rate_card.json"
 $ticketsLatest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
 $mobileTickets = Join-Path $Root "mobile\www\tickets_latest.json"
 $verifyScript = Join-Path $Root "scripts\verify_ticket_payout_rates.py"
+$lockDir = Join-Path $Root "data\cache"
+$lockFile = Join-Path $lockDir "payout_capture.lock"
+$lockTtlHours = 6
+$script:PayoutLockHeld = $false
+
+function Clear-PayoutCaptureLock {
+    if ($script:PayoutLockHeld -and (Test-Path -LiteralPath $lockFile)) {
+        Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
+        $script:PayoutLockHeld = $false
+    }
+}
+
+if (-not (Test-Path -LiteralPath $lockDir)) {
+    New-Item -ItemType Directory -Path $lockDir -Force | Out-Null
+}
+if (Test-Path -LiteralPath $lockFile) {
+    $lockAge = (Get-Date) - (Get-Item -LiteralPath $lockFile).LastWriteTime
+    $lockContent = (Get-Content -LiteralPath $lockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if (-not $lockContent) { $lockContent = "<unknown>" }
+    if ($lockAge.TotalHours -lt $lockTtlHours -and -not $Force) {
+        Write-Host "  [PAYOUT] SKIP — another capture is running ($lockContent)" -ForegroundColor Yellow
+        Write-Host "  [PAYOUT] Lock age: $([int]$lockAge.TotalMinutes) min (TTL $($lockTtlHours)h). Pass -Force only to clear a dead lock." -ForegroundColor Yellow
+        exit 0
+    }
+    Write-Host "  [PAYOUT] Clearing stale lock ($([int]$lockAge.TotalMinutes) min old)" -ForegroundColor DarkGray
+    Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
+}
+Set-Content -LiteralPath $lockFile -Value ("$Date | PID $PID | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $Root")
+$script:PayoutLockHeld = $true
+$env:PROPORACLE_PAYOUT_LOCK_HELD = "1"
+Write-Host "  [PAYOUT] Lock acquired" -ForegroundColor DarkGray
 
 if (-not $TicketsPath) {
     $TicketsPath = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
@@ -286,6 +320,7 @@ try {
     Write-Host "  [PAYOUT] WARN: $($_.Exception.Message)" -ForegroundColor Yellow
 } finally {
     Pop-Location
+    Clear-PayoutCaptureLock
 }
 
 exit 0

@@ -1,10 +1,13 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with -SkipFetch.
+  Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with
+  -SkipFetch -SkipLivePayoutCapture (no live PrizePicks CDP payout scrape).
 .NOTES
   Scheduled via PropOracle - Refresh 9AM / 1030AM / 1PM (run_refresh_with_log.ps1).
   Legacy PropORACLE_NBA_LateFetch / Refresh 11AM tasks should be removed.
+  First full fetch is Daily 5AM; these refreshes are line-move updates.
+  Live payout CDP belongs to 5AM STEP D-payout or scripts\run_live_payout_capture.ps1.
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>
@@ -322,7 +325,9 @@ if (-not (Test-Path $pipeScript)) {
     exit 1
 }
 
-Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -Date $PipeDate..."
+Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -Date $PipeDate..."
+# Midday refreshes must NOT start live CDP payout scrape — that belongs to 5AM STEP D-payout
+# (or a manual .\scripts\run_live_payout_capture.ps1). Otherwise 9AM/11AM hang for hours.
 if ($NoOverwrite) {
     $preserveTargets = @(
         (Join-Path $Root "outputs\$PipeDate\combined_slate_tickets_$PipeDate.xlsx"),
@@ -343,7 +348,7 @@ if ($NoOverwrite) {
         Preserve-ExistingFile -Path $pt -Reason "pre-LATE_FETCH pipeline snapshot"
     }
 }
-& pwsh -NoProfile -File $pipeScript -SkipFetch -Date $PipeDate
+& pwsh -NoProfile -File $pipeScript -SkipFetch -SkipLivePayoutCapture -Date $PipeDate
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[LATE_FETCH] Pipeline failed (exit $LASTEXITCODE)" -ForegroundColor Red
     exit 1

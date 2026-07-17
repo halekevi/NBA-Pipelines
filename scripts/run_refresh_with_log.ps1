@@ -4,6 +4,8 @@
   - log_prop_snapshot PRE/POST captures added/removed props vs prior state
   - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
     combined slate / ticket_eval before rerun so line movement is visible
+  - Does NOT run live PrizePicks payout CDP (5AM D-payout / manual only)
+  First full multi-sport fetch of the day is PropOracle - Daily 5AM (run_daily_5am.ps1).
 #>
 param(
     [string]$RunLabel = "9AM"

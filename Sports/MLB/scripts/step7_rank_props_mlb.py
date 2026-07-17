@@ -129,7 +129,7 @@ _PROP_WEIGHTS = {
     "rbi":             0.99,
     "walks":           1.02,
     "stolen_bases":    1.01,
-    "singles":         1.03,
+    "singles":         0.82,   # demoted: long-term OVER HR ~33–42% (was 1.03 / prior 0.56)
     "doubles":         0.95,
     "triples":         0.80,   # very rare, high variance
     "home_runs":       0.85,   # HR very high variance
@@ -163,7 +163,9 @@ _PROP_HIT_RATE_PRIOR = {
     "rbi":             0.535,
     "walks":           0.540,
     "stolen_bases":    0.530,
-    "singles":         0.560,
+    # Singles OVER grades poorly in live history (graded_analysis ~32.7% n=770;
+    # reliability micro ~42% / low ~13%). Prior was 0.560 and inflated ranks.
+    "singles":         0.400,
     "doubles":         0.500,
     "triples":         0.450,
     "home_runs":       0.470,
@@ -179,6 +181,7 @@ def _prop_hit_rate_prior(prop_norm: str, direction: str) -> float:
         if key == "home_runs":      return 0.630
         if key == "hits_allowed":   return 0.570
         if key == "triples":        return 0.670
+        if key == "singles":        return 0.550  # UNDER OK; OVER is the weak side
         if key == "hitter_strikeouts":
             return 0.580
         return float(1.0 - base)

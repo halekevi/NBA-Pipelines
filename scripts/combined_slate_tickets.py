@@ -14221,7 +14221,7 @@ STRONG_BUILDER_MLB_PROPS_NORM: frozenset[str] = frozenset(
         "total bases",
         "totalbases",
         "strikeouts",
-        "singles",
+        # singles removed — long-term OVER hit rate too weak for STRONG core
         "pitches thrown",
         "pitchesthrown",
         "pitching outs",

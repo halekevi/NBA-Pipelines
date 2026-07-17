@@ -1181,10 +1181,9 @@ if ($script:PipelineFailed) {
 
 # =============================================================================
 # STEP D-payout — Live PrizePicks payout capture after tickets (shared helper)
-# Primary path is also Run-Combined in run_pipeline.ps1; this step is the
-# safety net when Combined already ran with CDP down / skip, or for re-runs.
-# Idempotent: skips full scrape if payout_capture_<date>.json already has n_ok>0,
-# then still runs verify_ticket_payout_rates (fills missing live floors + reports Δ gaps).
+# Daily STEP D passes -SkipLivePayoutCapture so CDP runs once here (MAIN scrape).
+# Midday refreshes call the same helper with -UpdateOnly (only missing live_cdp).
+# Idempotent: skips CDP if fingerprint unchanged + all live_cdp; else --only-missing-live.
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"

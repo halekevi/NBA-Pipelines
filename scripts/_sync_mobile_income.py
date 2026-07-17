@@ -49,8 +49,18 @@ content = re.sub(
     content,
 )
 content = re.sub(
+    r'(<script id="income-sport-all-data" type="application/json">)[\s\S]*?(</script>)',
+    r"\1[]\2",
+    content,
+)
+content = re.sub(
+    r'(<script id="income-sport-daily-data" type="application/json">)[\s\S]*?(</script>)',
+    r"\1[]\2",
+    content,
+)
+content = re.sub(
     r'(<tbody id="sport-breakdown-tbody">)[\s\S]*?(</tbody>)',
-    r'\1<tr><td colspan="4" class="empty-note" style="text-align:left">Loading…</td></tr>\2',
+    r"\1\2",
     content,
 )
 if bnav and "mobile-bottom-nav" not in content:
@@ -86,46 +96,19 @@ bootstrap = r"""
         }).filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date));
       }
 
-      function renderSports(payload) {
-        const body = document.getElementById('sport-breakdown-tbody');
-        const rows = (payload && Array.isArray(payload.rows) ? payload.rows : [])
-          .filter((r) => Number(r.decided || 0) > 0);
-        if (!body) return;
-        if (!rows.length) {
-          body.innerHTML = '<tr><td colspan="4" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>';
-          return;
-        }
-        const maxAbs = Math.max(...rows.map((r) => Math.abs(Number(r.net_dollars) || 0)), 1);
-        body.innerHTML = rows.map((r) => {
-          const decided = Number(r.decided || 0);
-          const paid = Number(r.paid || 0);
-          const winRate = decided > 0 ? (paid / decided) * 100 : 0;
-          const net = Number(r.net_dollars || 0);
-          const w = Math.max(4, (Math.abs(net) / maxAbs) * 100).toFixed(1);
-          const cls = net > 0 ? 'num-pos' : (net < 0 ? 'num-neg' : '');
-          const barCls = net >= 0 ? 'pos' : 'neg';
-          const money = (net < 0 ? '-$' : '$') + Math.abs(net).toFixed(2);
-          return (
-            '<tr data-net="' + net + '"><td>' + String(r.sport || '') + '</td><td>' + decided +
-            '</td><td>' + winRate.toFixed(1) + '%</td><td><div class="sport-net-cell"><span class="' +
-            cls + '">' + money + '</span><div class="sport-bar-track"><div class="sport-bar ' +
-            barCls + '" style="width:' + w + '%"></div></div></div></td></tr>'
-          );
-        }).join('');
-      }
-
       Promise.all([
         fetch(HISTORY_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
         fetch(SPORT_BREAKDOWN_URL, { cache: 'no-store' })
-          .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [] }))
-          .catch(() => ({ rows: [], monthly_rows: [] })),
+          .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [], daily_rows: [] }))
+          .catch(() => ({ rows: [], monthly_rows: [], daily_rows: [] })),
       ]).then(([hist, sport]) => {
-        renderSports(sport);
         const daily = parseRows(hist);
         const monthly = Array.isArray(sport.monthly_rows) ? sport.monthly_rows : [];
+        const sportAll = Array.isArray(sport.rows) ? sport.rows : [];
+        const sportDaily = Array.isArray(sport.daily_rows) ? sport.daily_rows : [];
         const boot = () => {
           if (typeof window.__proporacleIncomeBoot === 'function') {
-            window.__proporacleIncomeBoot(daily, monthly);
+            window.__proporacleIncomeBoot(daily, monthly, sportAll, sportDaily);
             return true;
           }
           return false;

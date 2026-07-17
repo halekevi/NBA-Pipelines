@@ -340,19 +340,19 @@ def _merged_combined_rows_for_mobile(sports_payload: dict) -> list:
 
 def _build_mobile_sport_breakdown(templates_dir):
     from utils.income_sport_breakdown import (
-        build_from_graded_props,
-        build_monthly_from_graded_props,
+        build_sport_breakdown_bundle,
         graded_props_signature,
     )
 
-    rows = build_from_graded_props(templates_dir, stake_per_pick=10.0)
-    monthly_rows = build_monthly_from_graded_props(templates_dir, stake_per_pick=10.0)
+    bundle = build_sport_breakdown_bundle(templates_dir, stake_per_pick=10.0)
     return {
         "ok": True,
-        "rows": rows,
-        "monthly_rows": monthly_rows,
+        "rows": bundle["rows"],
+        "monthly_rows": bundle["monthly_rows"],
+        "daily_rows": bundle["daily_rows"],
         "source": "graded_props_json",
         "signature": graded_props_signature(templates_dir),
+        "note": "Pick-level HIT/MISS at flat stake — not ticket P&L.",
     }
 
 
@@ -683,46 +683,19 @@ async function fetch_smart(localPath) {
         }).filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date));
       }
 
-      function renderSports(payload) {
-        const body = document.getElementById('sport-breakdown-tbody');
-        const rows = (payload && Array.isArray(payload.rows) ? payload.rows : [])
-          .filter((r) => Number(r.decided || 0) > 0);
-        if (!body) return;
-        if (!rows.length) {
-          body.innerHTML = '<tr><td colspan="4" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>';
-          return;
-        }
-        const maxAbs = Math.max(...rows.map((r) => Math.abs(Number(r.net_dollars) || 0)), 1);
-        body.innerHTML = rows.map((r) => {
-          const decided = Number(r.decided || 0);
-          const paid = Number(r.paid || 0);
-          const winRate = decided > 0 ? (paid / decided) * 100 : 0;
-          const net = Number(r.net_dollars || 0);
-          const w = Math.max(4, (Math.abs(net) / maxAbs) * 100).toFixed(1);
-          const cls = net > 0 ? 'num-pos' : (net < 0 ? 'num-neg' : '');
-          const barCls = net >= 0 ? 'pos' : 'neg';
-          const money = (net < 0 ? '-$' : '$') + Math.abs(net).toFixed(2);
-          return (
-            '<tr data-net="' + net + '"><td>' + String(r.sport || '') + '</td><td>' + decided +
-            '</td><td>' + winRate.toFixed(1) + '%</td><td><div class="sport-net-cell"><span class="' +
-            cls + '">' + money + '</span><div class="sport-bar-track"><div class="sport-bar ' +
-            barCls + '" style="width:' + w + '%"></div></div></div></td></tr>'
-          );
-        }).join('');
-      }
-
       Promise.all([
         fetch(HISTORY_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
         fetch(SPORT_BREAKDOWN_URL, { cache: 'no-store' })
-          .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [] }))
-          .catch(() => ({ rows: [], monthly_rows: [] })),
+          .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [], daily_rows: [] }))
+          .catch(() => ({ rows: [], monthly_rows: [], daily_rows: [] })),
       ]).then(([hist, sport]) => {
-        renderSports(sport);
         const daily = parseRows(hist);
         const monthly = Array.isArray(sport.monthly_rows) ? sport.monthly_rows : [];
+        const sportAll = Array.isArray(sport.rows) ? sport.rows : [];
+        const sportDaily = Array.isArray(sport.daily_rows) ? sport.daily_rows : [];
         const boot = () => {
           if (typeof window.__proporacleIncomeBoot === 'function') {
-            window.__proporacleIncomeBoot(daily, monthly);
+            window.__proporacleIncomeBoot(daily, monthly, sportAll, sportDaily);
             return true;
           }
           return false;

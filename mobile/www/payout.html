@@ -1007,10 +1007,39 @@ body::before{
 
 <div id="app">
 
+<style>
+  .payout-subnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);}
+  .payout-subnav-back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.1);color:#d4af37;text-decoration:none;font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
+  .payout-subnav-back:hover{background:rgba(212,175,55,.18);}
+  .payout-subnav-sep{width:1px;height:22px;background:rgba(255,255,255,.12);flex-shrink:0;}
+  .payout-subnav-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;}
+  .payout-subnav-links a{text-decoration:none;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid transparent;}
+  .payout-subnav-links a:hover{color:rgba(255,255,255,.95);background:rgba(255,255,255,.04);}
+  .payout-subnav-links a.active{color:#d4af37;border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.1);}
+  .payout-subnav-tools{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}
+  .payout-subnav-tools a{text-decoration:none;color:rgba(127,199,217,.95);font-size:11px;letter-spacing:.04em;padding:6px 10px;border-radius:8px;border:1px solid rgba(127,199,217,.28);background:rgba(127,199,217,.06);}
+  .payout-subnav-tools a:hover{background:rgba(127,199,217,.12);}
+  .payout-subnav-tools a.active{color:#7fc7d9;border-color:rgba(127,199,217,.5);background:rgba(127,199,217,.14);}
+  @media (max-width:720px){.payout-subnav-sep{display:none;}.payout-subnav-tools{margin-left:0;width:100%;}}
+</style>
+<nav class="payout-subnav" aria-label="Payouts sections">
+    <div class="payout-subnav-links">
+    <a href="payout.html" class="active">Calculator</a>
+    <a href="payout.html?tab=composer">Composer</a>
+    <a href="payout.html?tab=log">Log Lines</a>
+    <a href="payout.html?tab=cards">Rate Cards</a>
+  </div>
+  <div class="payout-subnav-tools">
+    <a href="payout_log.html">Ladder Log</a>
+    <a href="payout_ladder.html">Ladder Table</a>
+  </div>
+</nav>
+
+
 <!-- ── HERO ── -->
 <div class="hero">
   <h1>💰 Payout <span>Calculator</span></h1>
-  <div class="hero-sub">EV ANALYSIS &nbsp;·&nbsp; LINE LOGGER &nbsp;·&nbsp; RATE CARDS</div>
+  <div class="hero-sub">Build slips, log lines, and check rate cards. Ladder tools are linked below.</div>
 </div>
 
 <!-- ── TABS ── -->
@@ -1110,9 +1139,6 @@ body::before{
     <div class="btn-row">
       <button class="btn btn-accent" type="button" onclick="runComposerPredict()">▶ Predict</button>
       <button class="btn btn-ghost" type="button" onclick="composerReset()">✕ Clear</button>
-      <a class="btn btn-ghost" href="payout_log.html">📷 Ladder Log</a>
-      <a class="btn btn-ghost" href="payout_ladder.html">🧱 Ladder Table</a>
-      <a class="btn btn-ghost" href="payout_examples.html">🗂 Examples</a>
     </div>
     <div id="composer-msg" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
   </div>
@@ -1267,11 +1293,33 @@ let logEntries=loadLog();
 function switchTab(id,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
+  const panel=document.getElementById('tab-'+id);
+  if(panel)panel.classList.add('active');
+  if(btn)btn.classList.add('active');
+  else {
+    const order=['calc','composer','log','cards'];
+    const i=order.indexOf(id);
+    const btns=document.querySelectorAll('.tab-bar .tab-btn');
+    if(i>=0&&btns[i])btns[i].classList.add('active');
+  }
   if(id==='log'){renderLogTable();updateLogCount();}
   if(id==='cards')renderRateCards(false);
+  try {
+    const u=new URL(window.location.href);
+    if(id==='calc') u.searchParams.delete('tab');
+    else u.searchParams.set('tab', id);
+    history.replaceState({}, '', u.pathname + u.search + u.hash);
+  } catch(_e) {}
 }
+function _bootPayoutTabFromUrl(){
+  try {
+    const tab = new URLSearchParams(window.location.search).get('tab') || '';
+    const map = { calc:'calc', calculator:'calc', composer:'composer', log:'log', loglines:'log', cards:'cards', rates:'cards' };
+    const id = map[String(tab).toLowerCase()] || 'calc';
+    if (id !== 'calc') goTab(id);
+  } catch(_e) {}
+}
+document.addEventListener('DOMContentLoaded', _bootPayoutTabFromUrl);
 function goTab(id){
   const order=['calc','composer','log','cards'],i=order.indexOf(id);
   const btns=document.querySelectorAll('.tab-bar .tab-btn');
@@ -1753,6 +1801,7 @@ function renderGoblinDiscountTable(){
       Model fallback: <code style="font-size:10px">factor = max(0.2, 1 − 0.110×Δ)</code>${when}${srcPath}.
     </div>`;
   };
+  // Bake last-known live 2L 1G ladder so the tab is useful even if API is cold.
   const baked=new Map([
     [0.5,{min_x:2.8,vs_std:(2.8/3)-1,dpu:(1-2.8/3)/0.5,source:'live_cdp',status:'observed'}],
     [1,{min_x:2.6,vs_std:(2.6/3)-1,dpu:(1-2.6/3)/1,source:'live_cdp',status:'observed'}],

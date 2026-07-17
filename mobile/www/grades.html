@@ -1633,7 +1633,6 @@ select option,
 
 
 
-
 <nav class="snav glass-card">
   <div class="nav-accent"></div>
   <a class="snav-brand" href="index.html">
@@ -2070,12 +2069,12 @@ select option,
 //
 /* Absolute /grades/… paths: page URL is /grades (no trailing slash), so relative
    slate_eval_….html resolves to /slate_eval_….html (404) instead of /grades/…. */
-const REPORT_URL_TEMPLATE = 'slate_eval_{date}.html';
+const REPORT_URL_TEMPLATE = '/grades/slate_eval_{date}.html';
 /** Every load gets a unique URL so iframe/browsers/CDNs cannot serve a stale slate_eval after deploy. */
 function slateEvalUrl(dateStr) {
   return REPORT_URL_TEMPLATE.replace('{date}', dateStr) + '?cb=' + Date.now();
 }
-const TICKET_EVAL_URL_TEMPLATE = 'ticket_eval_{date}.html';
+const TICKET_EVAL_URL_TEMPLATE = '/grades/ticket_eval_{date}.html';
 const TICKET_EVAL_LONG_PARLAY_URL_TEMPLATE = '/grades/ticket_eval_long_parlay_{date}.html';
 /** Keep ticket iframe fresh too (prevents stale/blank cache edge-cases after deploy). */
 function ticketEvalUrl(dateStr) {
@@ -2213,157 +2212,58 @@ function ticketEvalSportRank(label) {
 
 /** Insert missing pipeline win-rate columns on older baked ticket_eval HTML. */
 function ensureTicketEvalSportStatsBar(doc) {
-  polishTicketEvalHeader(doc);
-}
-
-/** Clean cluttered ticket-eval header for Grades hub (works on already-baked HTML). */
-function polishTicketEvalHeader(doc) {
   if (!doc) return;
-  if (doc.documentElement.dataset.teHeaderPolished === '1') return;
-  doc.documentElement.dataset.teHeaderPolished = '1';
-
-  const bar = doc.querySelector('.stats-bar');
-  const row = bar && bar.querySelector('.sum-row');
-  if (row) {
-    const items = Array.from(row.querySelectorAll(':scope > .sum-item'));
-    const byLab = {};
-    items.forEach(function (item) {
-      const labEl = item.querySelector('.sum-lab');
-      if (!labEl) return;
-      const raw = String(labEl.textContent || '').replace(/\s+/g, ' ').trim();
-      const base = raw.replace(/\d+\s*pending/i, '').trim();
-      byLab[base] = item;
+  const row = doc.querySelector('.stats-bar .sum-row');
+  if (!row) return;
+  const items = Array.from(row.querySelectorAll('.sum-item'));
+  let head = null;
+  let allGen = null;
+  const bySport = {};
+  const tail = [];
+  items.forEach(function (item) {
+    const lab = (item.querySelector('.sum-lab') || {}).textContent.trim();
+    if (lab === 'TICKET HIT RATE') {
+      head = item;
+      return;
+    }
+    if (lab === 'ALL GENERATED WIN RATE') {
+      allGen = item;
+      return;
+    }
+    const m = lab.match(/^(.+?) TKT WIN RATE$/);
+    if (m) {
+      bySport[m[1].trim().toUpperCase()] = item;
+      return;
+    }
+    tail.push(item);
+  });
+  if (!head || !allGen) return;
+  const frag = doc.createDocumentFragment();
+  frag.appendChild(head);
+  TICKET_EVAL_SPORT_ORDER.forEach(function (sport) {
+    if (bySport[sport]) {
+      frag.appendChild(bySport[sport]);
+      delete bySport[sport];
+    } else {
+      const el = doc.createElement('div');
+      el.className = 'sum-item';
+      el.innerHTML =
+        '<div class="sum-val pend">—</div><div class="sum-lab">' +
+        sport +
+        ' TKT WIN RATE</div>';
+      frag.appendChild(el);
+    }
+  });
+  Object.keys(bySport)
+    .sort()
+    .forEach(function (sport) {
+      frag.appendChild(bySport[sport]);
     });
-
-    const hitItem = byLab['TICKET HIT RATE'] || byLab['Hit rate'];
-    const allGen = byLab['ALL GENERATED WIN RATE'];
-    if (hitItem && allGen) {
-      const hv = (hitItem.querySelector('.sum-val') || {}).textContent;
-      const av = (allGen.querySelector('.sum-val') || {}).textContent;
-      if (String(hv || '').trim() === String(av || '').trim()) {
-        allGen.style.display = 'none';
-        allGen.classList.add('sum-item-dup-hidden');
-      }
-    }
-
-    items.forEach(function (item) {
-      const labEl = item.querySelector('.sum-lab');
-      const valEl = item.querySelector('.sum-val');
-      if (!labEl || !valEl) return;
-      const lab = String(labEl.textContent || '').replace(/\s+/g, ' ').trim();
-      const val = String(valEl.textContent || '').trim();
-      const hasBadge = !!item.querySelector('.sum-lab-badge');
-      const isSport =
-        /TKT WIN RATE$/i.test(lab) ||
-        (/WIN RATE$/i.test(lab) && !/^(TICKET HIT RATE|Hit rate|ALL GENERATED WIN RATE)$/i.test(lab));
-      if (isSport && (val === '—' || val === '-') && !hasBadge) {
-        item.style.display = 'none';
-        item.classList.add('sum-item-empty-hidden');
-        return;
-      }
-      // Friendlier short labels on baked ALL-CAPS cells
-      const map = {
-        'TICKET HIT RATE': 'Hit rate',
-        'ALL GENERATED WIN RATE': 'All generated',
-        'PERFECT TICKETS': 'Perfect',
-        'PAID TIX': 'Paid',
-        'NO PAYOUT': 'No payout',
-        'VOID/PUSH': 'Void / push',
-        'UNGRADED': 'Ungraded',
-        'HITS': 'Hits',
-        'MISSES': 'Misses',
-        'TOTAL LEGS': 'Total legs',
-        'NET @ $10/TKT': 'Net @ $10',
-        'ROI (FLAT $10)': 'ROI',
-      };
-      Object.keys(map).forEach(function (k) {
-        if (lab === k || lab.indexOf(k) === 0) {
-          const badge = labEl.querySelector('.sum-lab-badge');
-          labEl.textContent = map[k];
-          if (badge) labEl.appendChild(badge);
-        }
-      });
-      if (/TKT WIN RATE$/i.test(lab)) {
-        const sport = lab.replace(/\s*TKT WIN RATE$/i, '').trim();
-        const badge = labEl.querySelector('.sum-lab-badge');
-        labEl.textContent = sport + ' win rate';
-        if (badge) labEl.appendChild(badge);
-      }
-    });
-
-    // Regroup into Results / Legs when still a single flat row (older HTML).
-    if (!bar.querySelector('.sum-row-results') && items.length > 6) {
-      const resultsLabs = /hit rate|win rate|paid|no payout|perfect|net @|roi|all generated/i;
-      const legsLabs = /^(hits|misses|void|ungraded|total legs)/i;
-      const results = [];
-      const legs = [];
-      const other = [];
-      items.forEach(function (item) {
-        if (item.classList.contains('sum-item-empty-hidden') || item.classList.contains('sum-item-dup-hidden')) {
-          return;
-        }
-        if (item.style.display === 'none') return;
-        const lab = String((item.querySelector('.sum-lab') || {}).textContent || '').trim();
-        if (legsLabs.test(lab)) legs.push(item);
-        else if (resultsLabs.test(lab)) results.push(item);
-        else other.push(item);
-      });
-      if (results.length && legs.length) {
-        const mkRow = function (cls, label, kids) {
-          const r = doc.createElement('div');
-          r.className = 'sum-row ' + cls;
-          const lab = doc.createElement('div');
-          lab.className = 'sum-row-label';
-          lab.textContent = label;
-          r.appendChild(lab);
-          kids.forEach(function (k) { r.appendChild(k); });
-          return r;
-        };
-        bar.replaceChildren(
-          mkRow('sum-row-results', 'Results', results.concat(other)),
-          mkRow('sum-row-legs', 'Legs', legs)
-        );
-      }
-    }
-  }
-
-  // Collapse the long grading help blurb under a summary toggle.
-  const wrap = doc.querySelector('.wrap.ticket-eval-main');
-  if (wrap) {
-    const meta = wrap.querySelector(':scope > p.meta-muted');
-    if (meta && !meta.closest('details.grade-eval-help')) {
-      const details = doc.createElement('details');
-      details.className = 'grade-eval-help';
-      const sum = doc.createElement('summary');
-      sum.textContent = 'How these grades work';
-      details.appendChild(sum);
-      meta.parentNode.insertBefore(details, meta);
-      details.appendChild(meta);
-      meta.style.margin = '8px 0 0';
-    }
-  }
-
-  // Inject compact header CSS once per iframe doc.
-  if (!doc.getElementById('te-header-polish-css')) {
-    const style = doc.createElement('style');
-    style.id = 'te-header-polish-css';
-    style.textContent =
-      '.stats-bar .sum-row{display:flex!important;flex-wrap:wrap!important;gap:12px 18px!important;' +
-      'align-items:flex-start!important;justify-content:flex-start!important;}' +
-      '.stats-bar .sum-row + .sum-row{margin-top:12px!important;padding-top:12px!important;' +
-      'border-top:1px solid rgba(255,255,255,.06)!important;}' +
-      '.stats-bar .sum-row-label{flex:0 0 100%!important;font-size:10px!important;letter-spacing:1.4px!important;' +
-      'text-transform:uppercase!important;color:rgba(255,255,255,.45)!important;font-weight:700!important;margin:0 0 2px!important;}' +
-      '.stats-bar .sum-item{align-items:flex-start!important;min-width:72px!important;max-width:10.5em!important;}' +
-      '.stats-bar .sum-lab{font-family:Inter,system-ui,sans-serif!important;font-size:11px!important;letter-spacing:.15px!important;' +
-      'text-transform:none!important;text-align:left!important;font-weight:600!important;line-height:1.25!important;}' +
-      '.grade-eval-summary-line2{display:flex!important;flex-wrap:wrap!important;gap:8px!important;}' +
-      '.grade-eval-help{margin:4px 0 10px!important;}' +
-      '.grade-eval-help>summary{cursor:pointer;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;list-style:none;}' +
-      '.grade-eval-help>summary::-webkit-details-marker{display:none;}' +
-      '.grade-eval-help[open]>summary{margin-bottom:6px;color:rgba(255,255,255,.75);}';
-    (doc.head || doc.documentElement).appendChild(style);
-  }
+  frag.appendChild(allGen);
+  tail.forEach(function (item) {
+    frag.appendChild(item);
+  });
+  row.replaceChildren(frag);
 }
 
 function scheduleTicketFrameBucketDefaults(frame) {
@@ -6524,73 +6424,6 @@ window.addEventListener('resize', () => {
         const live = await _origFetch(input, init);
         if (live && live.ok) return live;
       } catch (_eProps) {}
-      const ds = _dateParamFrom(urlStr);
-      const j = await _loadGradedPropsByDate(ds);
-      const props = Array.isArray(j && j.props) ? j.props : [];
-      let nHit = 0, nMiss = 0;
-      props.forEach((p) => {
-        const ru = String((p && p.result) || '').toUpperCase();
-        if (ru === 'HIT') nHit += 1;
-        else if (ru === 'MISS') nMiss += 1;
-      });
-      return _jsonResp({ ok: true, props: props, n_hit: nHit, n_miss: nMiss, n: props.length, n_returned: props.length, truncated: false });
-    }
-    return _origFetch(input, init);
-  };
-})();
-</script>
-
-
-<script>
-(function () {
-  const _origFetch = window.fetch.bind(window);
-  function _jsonResp(obj) {
-    return new Response(JSON.stringify(obj), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-  function _dateParamFrom(urlStr) {
-    try {
-      const u = new URL(urlStr, window.location.href);
-      return u.searchParams.get('date') || '';
-    } catch (_e) { return ''; }
-  }
-  function _extractDate(raw) {
-    const m = String(raw || '').match(/\d{4}-\d{2}-\d{2}/);
-    return m ? m[0] : '';
-  }
-  async function _loadGradedPropsByDate(ds) {
-    const d = _extractDate(ds);
-    if (!d) return null;
-    const file = `graded_props_${d}.json`;
-    const r = await _origFetch(file, { cache: 'no-store' });
-    if (!r.ok) return null;
-    return r.json();
-  }
-  window.fetch = async function (input, init) {
-    const urlStr = (typeof input === 'string') ? input : (input && input.url ? input.url : String(input || ''));
-    const path = urlStr.replace(window.location.origin, '');
-
-    if (path.includes('/api/grades/report_dates')) {
-      return _origFetch('grades_report_dates.json', init);
-    }
-    if (path.includes('/api/grades/insights')) {
-      return _jsonResp({ calibration: [], clv_by_sport: [], edge_bucket_hit_rate: [], clv_by_prop_type: [], clv_by_tier: [] });
-    }
-    if (path.includes('/api/grades/archive_dates')) {
-      return _origFetch('grades_archive_dates.json', init);
-    }
-    if (path.includes('/api/grade-history')) {
-      return _origFetch('data/grade_history.json', init);
-    }
-    if (path.includes('/api/graded-props')) {
-      const ds = _dateParamFrom(urlStr);
-      const j = await _loadGradedPropsByDate(ds);
-      if (j) return _jsonResp(j);
-      return _jsonResp({ ok: true, date: _extractDate(ds), props: [], source: 'mobile_bundle_missing' });
-    }
-    if (path.includes('/api/grades/props')) {
       const ds = _dateParamFrom(urlStr);
       const j = await _loadGradedPropsByDate(ds);
       const props = Array.isArray(j && j.props) ? j.props : [];

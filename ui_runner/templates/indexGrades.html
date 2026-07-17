@@ -306,6 +306,13 @@ body::after{
 .ni-slate{background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.22);color:var(--accent);}
 .ni-tick{background:rgba(183,168,255,.08);border:1px solid rgba(183,168,255,.2);color:var(--purple);}
 .ni-grade{background:rgba(57,255,110,.08);border:1px solid rgba(57,255,110,.22);color:var(--green);}
+/* Active Grades link: match gold eval-tab chrome (not neon green icon frame). */
+.snav-links li a.active .ni-grade{
+  background:rgba(212,160,23,.12);
+  border-color:rgba(212,160,23,.4);
+  color:var(--accent-gold);
+  box-shadow:0 0 12px rgba(212,160,23,.22);
+}
 .ni-income{background:rgba(57,255,110,.08);border:1px solid rgba(57,255,110,.22);color:var(--green);}
 .ni-pay{background:rgba(255,192,107,.08);border:1px solid rgba(255,192,107,.2);color:var(--amber);}
 .snav-links li a:hover .ni-ctrl{box-shadow:0 0 10px rgba(127,199,217,.25);}
@@ -313,6 +320,7 @@ body::after{
 .snav-links li a:hover .ni-tick{box-shadow:0 0 10px rgba(183,168,255,.25);}
 .snav-links li a:hover .ni-grade,
 .snav-links li a:hover .ni-income{box-shadow:0 0 10px rgba(57,255,110,.25);}
+.snav-links li a.active:hover .ni-grade{box-shadow:0 0 14px rgba(212,160,23,.3);}
 .snav-links li a:hover .ni-pay{box-shadow:0 0 10px rgba(255,192,107,.25);}
 .ni-pay svg{transform:scaleY(-1);transform-origin:50% 50%;}
 .snav-right{display:flex;align-items:center;gap:14px;margin-left:auto;}
@@ -345,8 +353,8 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .dpill{font-size:12px;letter-spacing:.5px;padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.42);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
 .dpill:hover{color:var(--text);border-color:var(--bd2);background:rgba(255,255,255,0.07);}
 .dpill.active{color:var(--accent-gold);border-color:rgba(212,160,23,0.55);background:rgba(212,160,23,0.15);box-shadow:0 0 18px rgba(212,160,23,0.14);}
-.dpill .dpill-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:none;}
-.dpill.active .dpill-dot{display:block;box-shadow:0 0 8px var(--green);}
+.dpill .dpill-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-gold);display:none;}
+.dpill.active .dpill-dot{display:block;box-shadow:0 0 8px rgba(212,160,23,.55);}
 .date-sep{width:1px;height:24px;background:rgba(255,255,255,0.1);flex-shrink:0;}
 .date-nav-btn{flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid var(--glass-panel-border);background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);color:rgba(255,255,255,0.45);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;}
 .date-nav-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);}
@@ -2602,7 +2610,7 @@ function ensureGradesToolbarStylesInFrame(doc) {
   const link = doc.createElement('link');
   link.id = 'grades-iframe-toolbar-link';
   link.rel = 'stylesheet';
-    link.href='static/grades-iframe-toolbar.css?v=20260619home';
+    link.href='static/grades-iframe-toolbar.css?v=20260717goldchrome';
   doc.head.appendChild(link);
 }
 
@@ -3510,31 +3518,33 @@ function polishSlateSportSummaries(doc) {
 
 function autoOpenPreferredSlateSport(doc) {
   if (!doc) return;
-  const sports = Array.from(
+  const all = Array.from(
     doc.querySelectorAll(
       '.main > details.sport-collapsible, .main > details.grades-sport-bucket'
     )
-  ).filter((d) => {
+  );
+  if (!all.length) return;
+  const combined = all.filter((d) => {
     const t =
       d.querySelector(':scope > summary .sport-label')?.textContent ||
       d.querySelector(':scope > summary > span:first-child')?.textContent ||
       '';
-    return !_slateSportIsCombined(t);
+    return _slateSportIsCombined(t);
   });
-  if (!sports.length) return;
   let remembered = '';
   try {
     remembered = sessionStorage.getItem('grades-open-sport') || '';
   } catch (_e) {}
-  let target = remembered ? sports.find((d) => d.id === remembered) : null;
-  if (!target) target = sports[0];
-  sports.forEach((d) => {
-    d.open = d === target;
+  let target = remembered ? all.find((d) => d.id === remembered) : null;
+  // Fresh load: prefer All Sports (no neon sport chip), matching Prop/Ticket quiet chrome.
+  if (!target) target = combined[0] || null;
+  all.forEach((d) => {
+    d.open = Boolean(target) && d === target;
   });
   const nav = doc.querySelector('.slate-sport-jump');
-  if (nav && target) {
+  if (nav) {
     nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
-      b.classList.toggle('active', b.dataset.target === target.id);
+      b.classList.toggle('active', Boolean(target) && b.dataset.target === target.id);
     });
   }
 }

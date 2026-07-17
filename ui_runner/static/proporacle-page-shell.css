@@ -85,12 +85,19 @@ body::after{
 .ni-ctrl {background:rgba(127,199,217,.08); border:1px solid rgba(127,199,217,.2); color:#7fc7d9;}
 .ni-tick {background:rgba(183,168,255,.08);border:1px solid rgba(183,168,255,.2);color:#8f7ab8;}
 .ni-grade{background:rgba(0,255,170,.08); border:1px solid rgba(0,255,170,.2);  color:#9fd8a7;}
+.snav-links li a.active .ni-grade{
+  background:rgba(212,175,55,.12);
+  border-color:rgba(212,175,55,.4);
+  color:var(--accent,#d4af37);
+  box-shadow:0 0 12px rgba(212,175,55,.22);
+}
 .ni-income{background:rgba(0,255,170,.08); border:1px solid rgba(0,255,170,.2);  color:#9fd8a7;}
 .ni-pay  {background:rgba(255,192,107,.08); border:1px solid rgba(255,192,107,.2);  color:#c89a4a;}
 .snav-links li a:hover .ni-ctrl {box-shadow:0 0 10px rgba(127,199,217,.25);}
 .snav-links li a:hover .ni-tick {box-shadow:0 0 10px rgba(183,168,255,.25);}
 .snav-links li a:hover .ni-grade,
 .snav-links li a:hover .ni-income{box-shadow:0 0 10px rgba(0,255,170,.25);}
+.snav-links li a.active:hover .ni-grade{box-shadow:0 0 14px rgba(212,175,55,.3);}
 .snav-links li a:hover .ni-pay  {box-shadow:0 0 10px rgba(255,192,107,.25);}
 /* Payouts nav glyph: path reads as a reversed “p” until flipped vertically. */
 .ni-pay svg{transform:scaleY(-1);transform-origin:50% 50%;}

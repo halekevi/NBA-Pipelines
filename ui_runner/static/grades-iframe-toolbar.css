@@ -184,13 +184,13 @@ header:has(.grades-hub-toolbar-host) .grades-hub-toolbar-host {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--green, #39ff6e);
+  background: var(--gold, #f0a500);
   display: none;
 }
 
 .dpill.active .dpill-dot {
   display: block;
-  box-shadow: 0 0 8px var(--green, #39ff6e);
+  box-shadow: 0 0 8px rgba(240, 165, 0, 0.55);
 }
 
 .date-sep {

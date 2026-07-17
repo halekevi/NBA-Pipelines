@@ -6363,6 +6363,12 @@ def page_payout_html_alias():
     return redirect("/payout", code=302)
 
 
+@app.get("/payouts")
+def page_payouts_plural_alias():
+    """Nav label is 'Payouts'; people type /payouts — map to the real /payout route."""
+    return redirect("/payout", code=302)
+
+
 @app.get("/grades.html")
 def page_grades_html_alias():
     return redirect("/grades", code=302)

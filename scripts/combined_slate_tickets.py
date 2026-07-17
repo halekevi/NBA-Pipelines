@@ -4031,6 +4031,7 @@ MLB_MAX_LEGS = 4
 MLB_PITCHING_OVER_ONLY_PROPS = {"strikeouts", "hits allowed"}
 
 _MLB_POSTPONED_TEAMS_CACHE: dict[str, set[str]] = {}
+_WNBA_POSTPONED_TEAMS_CACHE: dict[str, set[str]] = {}
 
 
 def _mlb_postponed_teams_for_slate(date_str: str) -> set[str]:
@@ -4066,6 +4067,56 @@ def _mlb_postponed_exclusion_mask(df: pd.DataFrame, slate_date: str) -> pd.Serie
     mlb = df["sport"].astype(str).str.upper().eq("MLB")
     team_col = df.get("team", pd.Series("", index=df.index)).astype(str).str.upper().str.strip()
     return mlb & team_col.isin({t.upper() for t in teams})
+
+
+def _wnba_postponed_teams_for_slate(date_str: str) -> set[str]:
+    """Teams with a postponed/canceled WNBA game on ``date_str`` (ESPN scoreboard)."""
+    key = str(date_str or "").strip()[:10]
+    if not key:
+        return set()
+    if key in _WNBA_POSTPONED_TEAMS_CACHE:
+        return _WNBA_POSTPONED_TEAMS_CACHE[key]
+    abbrs: set[str] = set()
+    try:
+        import sys as _sys
+        from pathlib import Path as _Path
+
+        _scripts = _Path(__file__).resolve().parent
+        if str(_scripts) not in _sys.path:
+            _sys.path.insert(0, str(_scripts))
+        from wnba_postponed import wnba_postponed_team_abbrs_for_date
+
+        abbrs = set(wnba_postponed_team_abbrs_for_date(key))
+    except Exception as exc:
+        _log_slate.debug("WNBA postponed lookup failed for %s: %s", key, exc)
+    _WNBA_POSTPONED_TEAMS_CACHE[key] = abbrs
+    return abbrs
+
+
+def _wnba_postponed_exclusion_mask(df: pd.DataFrame, slate_date: str) -> pd.Series:
+    if df is None or df.empty or "sport" not in df.columns:
+        return pd.Series(dtype=bool)
+    teams = _wnba_postponed_teams_for_slate(slate_date)
+    if not teams:
+        return pd.Series(False, index=df.index)
+    wnba = df["sport"].astype(str).str.upper().eq("WNBA")
+    team_col = df.get("team", pd.Series("", index=df.index)).astype(str).str.upper().str.strip()
+    # Match whole-token team codes inside combo fields (DAL/NYL).
+    up_teams = {t.upper() for t in teams}
+
+    def _hit(team_raw: str) -> bool:
+        s = str(team_raw or "").upper()
+        if not s:
+            return False
+        if s in up_teams:
+            return True
+        for tok in s.replace("|", "/").replace(",", "/").split("/"):
+            t = tok.strip()
+            if t in up_teams:
+                return True
+        return False
+
+    return wnba & team_col.map(_hit)
 
 # Tennis: short slips only (max 3 legs). Relaxed per-leg floors vs NBA — no graded PP history yet.
 MAX_LEGS_TENNIS = 3
@@ -17828,6 +17879,11 @@ def main():
         if post_n:
             filtered_df = filtered_df[~post_mask].copy()
             print(f"  [pool] Excluded {post_n} MLB legs (postponed/canceled game on slate date)")
+        wnba_post_mask = _wnba_postponed_exclusion_mask(filtered_df, str(args.date)[:10])
+        wnba_post_n = int(wnba_post_mask.sum())
+        if wnba_post_n:
+            filtered_df = filtered_df[~wnba_post_mask].copy()
+            print(f"  [pool] Excluded {wnba_post_n} WNBA legs (postponed/canceled game on slate date)")
         if excluded and "prop_type" in filtered_df.columns:
             filtered_df = filtered_df[
                 ~filtered_df["prop_type"].astype(str).str.lower().isin(excluded)
@@ -18162,6 +18218,9 @@ def main():
             post_mask = _mlb_postponed_exclusion_mask(relaxed, str(args.date)[:10])
             if int(post_mask.sum()):
                 relaxed = relaxed[~post_mask].copy()
+            wnba_post_mask = _wnba_postponed_exclusion_mask(relaxed, str(args.date)[:10])
+            if int(wnba_post_mask.sum()):
+                relaxed = relaxed[~wnba_post_mask].copy()
             if excluded and "prop_type" in relaxed.columns:
                 relaxed = relaxed[
                     ~relaxed["prop_type"].astype(str).str.lower().isin(excluded)

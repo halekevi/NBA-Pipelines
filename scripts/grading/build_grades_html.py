@@ -507,6 +507,8 @@ def prop_row_for_api(
     shadow_ticket_keys: set[tuple[str, ...]] | None = None,
     live_id_map: dict[tuple[str, ...], str] | None = None,
     shadow_id_map: dict[tuple[str, ...], str] | None = None,
+    slate_date: str = "",
+    wnba_postponed_labels: dict[str, str] | None = None,
 ) -> dict[str, str] | None:
     """One flat dict per prop row for the Prop Evaluation tab."""
     if is_unplayable_for_grading(
@@ -646,6 +648,32 @@ def prop_row_for_api(
             void_reason = "NO_DATA"
         elif not vr_up:
             void_reason = "NO_DATA"
+    # WNBA: postponed/canceled games show up as NO_ACTUAL — relabel from ESPN schedule.
+    if result == "VOID" and sport_up == "WNBA":
+        try:
+            import sys
+
+            _scripts = ROOT_DIR / "scripts"
+            if str(_scripts) not in sys.path:
+                sys.path.insert(0, str(_scripts))
+            from wnba_postponed import relabel_void_reason_if_postponed
+
+            team_val = str(_pick("team", "Team", "TEAM") or "")
+            opp_val = str(_pick("opp_team", "Opp", "opp", "opponent", "Opponent") or "")
+            iso = str(slate_date or "").strip()[:10]
+            if not iso:
+                iso = str(_pick("graded_at", "Graded At", "date", "Date") or "").strip()[:10]
+            void_reason = relabel_void_reason_if_postponed(
+                sport=sport_up,
+                team=team_val,
+                opp_team=opp_val,
+                void_reason=str(void_reason or ""),
+                result=result,
+                iso_date=iso,
+                team_labels=wnba_postponed_labels,
+            )
+        except Exception:
+            pass
     # Normalize pick_type labels so downstream analytics don't split by casing/spelling.
     pt_raw = str(pick_type or "").strip().lower()
     if pt_raw in ("goblin",):
@@ -796,6 +824,24 @@ def export_graded_props_json(
         pass
 
     props: list[dict[str, str]] = []
+    wnba_ppd: dict[str, str] = {}
+    try:
+        import sys
+
+        _scripts = ROOT_DIR / "scripts"
+        if str(_scripts) not in sys.path:
+            sys.path.insert(0, str(_scripts))
+        from wnba_postponed import wnba_postponed_team_labels_for_date
+
+        wnba_ppd = wnba_postponed_team_labels_for_date(date_str)
+        if wnba_ppd:
+            print(
+                f"  [graded_props] WNBA postponed teams on {date_str}: "
+                f"{', '.join(sorted(wnba_ppd))}"
+            )
+    except Exception as exc:
+        print(f"  [graded_props] WNBA postponed lookup skipped: {exc}")
+
     for sport, rows in bundles:
         for row in rows:
             p = prop_row_for_api(
@@ -805,6 +851,8 @@ def export_graded_props_json(
                 shadow_ticket_keys=shadow_keys,
                 live_id_map=live_id_map,
                 shadow_id_map=shadow_id_map,
+                slate_date=date_str,
+                wnba_postponed_labels=wnba_ppd,
             )
             if p:
                 props.append(p)

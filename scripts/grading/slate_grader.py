@@ -1737,6 +1737,14 @@ def main():
         df['actual']=np.nan; df['result_sign']=0
         print('  No actuals — PENDING slate')
 
+    if args.sport == "WNBA":
+        try:
+            from wnba_postponed import apply_wnba_postponed_void_labels
+
+            apply_wnba_postponed_void_labels(df, args.date)
+        except Exception as exc:
+            print(f"  [WNBA] postponed relabel skipped: {exc}")
+
     df = _recompute_standard_tiers_from_directional_ml_prob(df, args.sport)
     df = enrich_graded_l10_columns(df, line_col="line")
 

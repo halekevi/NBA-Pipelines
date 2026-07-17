@@ -8,10 +8,12 @@ Read-only: builds/clears slips and reads multipliers; never submits entries.
 from __future__ import annotations
 
 import argparse
+import atexit
 import csv
 import hashlib
 import json
 import math
+import os
 import random
 import re
 import sys
@@ -29,6 +31,73 @@ ROOT = Path(__file__).resolve().parent.parent
 SAMPLES_DIR = ROOT / "data" / "payout_samples"
 PAYOUT_LADDER_LIVE_CDP_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
 DEBUG_DIR = ROOT / "data" / "debug"
+PAYOUT_LOCK_PATH = ROOT / "data" / "cache" / "payout_capture.lock"
+PAYOUT_LOCK_TTL_HOURS = 6.0
+_PAYOUT_LOCK_HELD_BY_US = False
+
+
+def _release_payout_capture_lock() -> None:
+    """Drop lock file only if this process created it."""
+    global _PAYOUT_LOCK_HELD_BY_US
+    if not _PAYOUT_LOCK_HELD_BY_US:
+        return
+    try:
+        if PAYOUT_LOCK_PATH.is_file():
+            PAYOUT_LOCK_PATH.unlink()
+    except OSError:
+        pass
+    _PAYOUT_LOCK_HELD_BY_US = False
+
+
+def _acquire_payout_capture_lock(*, force: bool = False) -> None:
+    """Single-flight guard for direct `collect_payout_data.py` CDP runs.
+
+    When `run_live_payout_capture.ps1` already holds the lock it sets
+    PROPORACLE_PAYOUT_LOCK_HELD=1 so nested Python does not double-lock / self-block.
+    """
+    global _PAYOUT_LOCK_HELD_BY_US
+    if str(os.environ.get("PROPORACLE_PAYOUT_LOCK_HELD") or "").strip() in (
+        "1",
+        "true",
+        "TRUE",
+        "yes",
+    ):
+        return
+    PAYOUT_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    if PAYOUT_LOCK_PATH.is_file() and not force:
+        age_h = (time.time() - PAYOUT_LOCK_PATH.stat().st_mtime) / 3600.0
+        try:
+            content = PAYOUT_LOCK_PATH.read_text(encoding="utf-8", errors="replace").splitlines()
+            who = (content[0] if content else "").strip() or "<unknown>"
+        except OSError:
+            who = "<unknown>"
+        if age_h < PAYOUT_LOCK_TTL_HOURS:
+            print(
+                f"[PAYOUT] SKIP — another capture is running ({who}); "
+                f"lock age={int(age_h * 60)} min (TTL {int(PAYOUT_LOCK_TTL_HOURS)}h). "
+                "Unset lock or pass --force-lock only for a dead lock."
+            )
+            raise SystemExit(0)
+        print(f"[PAYOUT] Clearing stale lock ({int(age_h * 60)} min old)")
+        try:
+            PAYOUT_LOCK_PATH.unlink()
+        except OSError:
+            pass
+    elif PAYOUT_LOCK_PATH.is_file() and force:
+        print("[PAYOUT] --force-lock: clearing existing lock")
+        try:
+            PAYOUT_LOCK_PATH.unlink()
+        except OSError:
+            pass
+    stamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    PAYOUT_LOCK_PATH.write_text(
+        f"python | PID {os.getpid()} | {stamp} | {ROOT}\n",
+        encoding="utf-8",
+    )
+    _PAYOUT_LOCK_HELD_BY_US = True
+    atexit.register(_release_payout_capture_lock)
+    print("[PAYOUT] Lock acquired (python)")
+
 
 VALID_PROP_KEYWORDS = [
     "Points",
@@ -1703,7 +1772,8 @@ def add_leg(
                     want_pick=pick_type,
                     want_line=line,
                     require_line=bool(require_line),
-                    max_clicks=14,
+                    # Cap swaps — 14 re-parses of 60+ cards is what makes captures run hours.
+                    max_clicks=6 if require_line else 10,
                 )
                 cards = get_all_cards(frame)
                 target = _resolve_ticket_leg_card(
@@ -1814,25 +1884,29 @@ def add_leg(
                 print(f"[LOOKUP] name-click fallback failed: {e}")
 
         print(f"[PAYOUT] SKIP: {player} not found on board")
-        try:
-            DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-            ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            shot = DEBUG_DIR / f"lookup_fail_{_safe_name(player)}_{ts}.png"
-            page.screenshot(path=str(shot), full_page=True)
-            print(f"[LOOKUP] Failure screenshot saved: {shot}")
-        except Exception as se:
-            print(f"[LOOKUP] Screenshot failed: {se}")
+        # Full-page screenshots are slow (~1–3s) and flood disk during long captures.
+        # Opt in with PAYOUT_DEBUG=1 when diagnosing a single miss.
+        if str(os.environ.get("PAYOUT_DEBUG") or "").strip() in ("1", "true", "TRUE", "yes"):
+            try:
+                DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+                ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+                shot = DEBUG_DIR / f"lookup_fail_{_safe_name(player)}_{ts}.png"
+                page.screenshot(path=str(shot), full_page=False)
+                print(f"[LOOKUP] Failure screenshot saved: {shot}")
+            except Exception as se:
+                print(f"[LOOKUP] Screenshot failed: {se}")
         return False
     except Exception as e:
         print(f"[PAYOUT] SKIP: {player} not found on board ({e})")
-        try:
-            DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-            ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            shot = DEBUG_DIR / f"lookup_fail_{_safe_name(player)}_{ts}.png"
-            page.screenshot(path=str(shot), full_page=True)
-            print(f"[LOOKUP] Failure screenshot saved: {shot}")
-        except Exception:
-            pass
+        if str(os.environ.get("PAYOUT_DEBUG") or "").strip() in ("1", "true", "TRUE", "yes"):
+            try:
+                DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+                ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+                shot = DEBUG_DIR / f"lookup_fail_{_safe_name(player)}_{ts}.png"
+                page.screenshot(path=str(shot), full_page=False)
+                print(f"[LOOKUP] Failure screenshot saved: {shot}")
+            except Exception:
+                pass
         return False
 
 
@@ -4341,6 +4415,11 @@ def main():
         help="With --tickets: slower pacing between slips (less DataDome pressure).",
     )
     ap.add_argument(
+        "--force-lock",
+        action="store_true",
+        help="Clear a stuck payout_capture.lock before CDP scrape (direct Python runs only).",
+    )
+    ap.add_argument(
         "--rebuild-patch-from-tickets",
         default="",
         help=(
@@ -4403,6 +4482,7 @@ def main():
         raise SystemExit(0)
 
     if bool(getattr(args, "mix_grid", False)):
+        _acquire_payout_capture_lock(force=bool(getattr(args, "force_lock", False)))
         date_str = str(args.date or "").strip()[:10] or datetime.utcnow().strftime("%Y-%m-%d")
         out = (
             Path(str(args.output).strip())
@@ -4410,16 +4490,19 @@ def main():
             else ROOT / "data" / "reports" / f"payout_mix_grid_{date_str}.json"
         )
         max_slips = int(args.max_slips) if int(args.max_slips) > 0 else int(args.max_cases)
-        raise SystemExit(
-            run_mix_grid_capture(
-                date_str=date_str,
-                cdp_url=args.cdp_url,
-                max_slips=max_slips,
-                delay_sec=float(args.delay_sec),
-                entry_amount=float(args.entry_amount),
-                output_path=out,
+        try:
+            raise SystemExit(
+                run_mix_grid_capture(
+                    date_str=date_str,
+                    cdp_url=args.cdp_url,
+                    max_slips=max_slips,
+                    delay_sec=float(args.delay_sec),
+                    entry_amount=float(args.entry_amount),
+                    output_path=out,
+                )
             )
-        )
+        finally:
+            _release_payout_capture_lock()
 
     if str(args.tickets or "").strip():
         tickets_path = Path(str(args.tickets).strip())
@@ -4440,284 +4523,291 @@ def main():
             decision = capture_skip_decision(tickets_path, output_path)
             print(json.dumps(decision, indent=2, ensure_ascii=False))
             raise SystemExit(0)
-        raise SystemExit(
-            capture_tickets_from_board(
-                tickets_path=tickets_path,
-                output_path=output_path,
-                fields=fields,
-                cdp_url=args.cdp_url,
-                entry_amount=float(args.entry_amount),
-                max_cases=int(args.max_cases),
-                delay_sec=float(args.delay_sec),
-                write_back=not bool(getattr(args, "no_write_back", False)),
-                date_override=date_override,
-                strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
-                only_missing_live=bool(getattr(args, "only_missing_live", False)),
-                gentle=bool(getattr(args, "gentle", False)),
+        _acquire_payout_capture_lock(force=bool(getattr(args, "force_lock", False)))
+        try:
+            raise SystemExit(
+                capture_tickets_from_board(
+                    tickets_path=tickets_path,
+                    output_path=output_path,
+                    fields=fields,
+                    cdp_url=args.cdp_url,
+                    entry_amount=float(args.entry_amount),
+                    max_cases=int(args.max_cases),
+                    delay_sec=float(args.delay_sec),
+                    write_back=not bool(getattr(args, "no_write_back", False)),
+                    date_override=date_override,
+                    strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
+                    only_missing_live=bool(getattr(args, "only_missing_live", False)),
+                    gentle=bool(getattr(args, "gentle", False)),
+                )
             )
-        )
+        finally:
+            _release_payout_capture_lock()
 
-    legs = load_nba_legs(top_n=40)
-    if len(legs) < 5:
-        raise RuntimeError("Not enough NBA candidate legs to build test matrix.")
-    std_line_map = build_standard_line_map(legs)
+    _acquire_payout_capture_lock(force=bool(getattr(args, "force_lock", False)))
+    try:
+        legs = load_nba_legs(top_n=40)
+        if len(legs) < 5:
+            raise RuntimeError("Not enough NBA candidate legs to build test matrix.")
+        std_line_map = build_standard_line_map(legs)
 
-    p, browser, context, page = connect_existing_browser(args.cdp_url)
-    page.wait_for_timeout(500)
-    captures: dict[str, float] = {}
-    current_key = {"value": ""}
+        p, browser, context, page = connect_existing_browser(args.cdp_url)
+        page.wait_for_timeout(500)
+        captures: dict[str, float] = {}
+        current_key = {"value": ""}
 
-    def on_response(resp):
-        if "entries" in resp.url or "entry" in resp.url:
+        def on_response(resp):
+            if "entries" in resp.url or "entry" in resp.url:
+                try:
+                    body = resp.json()
+                    mult = extract_multiplier_from_any(body)
+                    if mult is not None and current_key["value"]:
+                        captures[current_key["value"]] = mult
+                except Exception:
+                    pass
+
+        page.on("response", on_response)
+
+        out_rows: list[dict] = []
+        ts_now = datetime.utcnow().isoformat()
+        saved_records = 0
+        skipped_records = 0
+
+        try:
+            frame = find_prizepicks_frame(page)
+            ensure_popular_filter(frame, page)
+            dismiss_modal(frame, page)
+            cards = expand_card_pool(frame, page)
+            if not cards:
+                print("[FATAL] No cards parsed — check board state")
+                DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+                page.screenshot(path=str(DEBUG_DIR / "fatal_no_cards.png"), full_page=True)
+                return
+
+            cards, floor_filtered = _reclassify_cards_with_std_map(cards, std_line_map)
+            print(f"[CARDS] After 0.5-line filter: {len(cards)}")
+            print(f"[CARDS] Floor props filtered out (line <= 0.5): {floor_filtered}")
+
+            standard = [
+                c
+                for c in cards
+                if c["pick_type"] == "standard"
+                and float(pd.to_numeric(c.get("line"), errors="coerce") or 0.0) >= 3.0
+            ]
+            goblins = []
+            demons = []
+            for c in cards:
+                line_val = float(pd.to_numeric(c.get("line"), errors="coerce") or 0.0)
+                std_line = c.get("standard_line")
+                is_distance_goblin = (
+                    std_line is not None and std_line > 0 and line_val < float(std_line) * 0.8
+                )
+                is_distance_demon = (
+                    std_line is not None and std_line > 0 and line_val > float(std_line) * 1.3
+                )
+                if c.get("pick_type") == "goblin" or is_distance_goblin:
+                    goblins.append(c)
+                if c.get("pick_type") == "demon" or is_distance_demon:
+                    demons.append(c)
+
+            std_sample = ", ".join(
+                [f"{c['player']} {c['line']} {c['prop_type']}" for c in standard[:3]]
+            ) or "none"
+            gob_sample = ", ".join(
+                [
+                    (
+                        f"{c['player']} {c['line']} {c['prop_type']} "
+                        f"(std={c.get('standard_line')}, dist={c.get('line_distance')})"
+                    )
+                    for c in goblins[:3]
+                ]
+            ) or "none"
+            print(f"[CARDS] Standard legs (line >= 3.0): {len(standard)}")
+            print(f"  Sample: {std_sample}")
+            print(f"[CARDS] Goblin legs (line < std*0.8): {len(goblins)}")
+            print(f"  Sample: {gob_sample}")
+            goblins_avail = len(goblins) > 0
+            demons_avail = len(demons) > 0
+            print(f"[POOL] Standard={len(standard)} Goblin={len(goblins)} Demon={len(demons)}")
+
+            test_cases = build_payout_test_matrix(
+                standard,
+                goblins,
+                demons,
+                std_line_map=std_line_map,
+            )
+            print(f"[MATRIX] {len(test_cases)} test cases planned")
+            print("\n=== TEST MATRIX ===")
+            for i, tc in enumerate(test_cases):
+                n_legs_tc = len(tc["legs"])
+                n_gob_tc = sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "goblin")
+                n_dem_tc = sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "demon")
+                print(
+                    f"  {i + 1}. {tc['label']} | n_legs={n_legs_tc} | "
+                    f"n_gob={n_gob_tc} | n_dem={n_dem_tc} | ticket_type={tc['ticket_type']}"
+                )
+            print(f"Total: {len(test_cases)} cases\n")
+
+            max_cases = max(1, int(args.max_cases))
+            counts = {k: 0 for k in MIN_SAMPLES}
+            cases_run = 0
+            test_idx = 0
+            case_cursor = 0
+            seen_combos: set[str] = set()
+
+            while cases_run < max_cases:
+                if all_targets_met(counts, goblins_avail, demons_avail):
+                    print("[TARGETS] All MIN_SAMPLES satisfied.")
+                    break
+                tc = test_cases[case_cursor % len(test_cases)] if test_cases else None
+                case_cursor += 1
+                if tc is None:
+                    break
+                test_idx += 1
+                case_players = [f"{l['card']['player']} {l['card']['prop_type']}" for l in tc["legs"]]
+                print(
+                    f"[CASE {test_idx}/{len(test_cases)}] {tc['label']} | "
+                    f"legs={case_players}"
+                )
+                print(
+                    f"[TARGETS] std={counts['all_standard']}/{MIN_SAMPLES['all_standard']} "
+                    f"gob={counts['has_goblin']}/{MIN_SAMPLES['has_goblin']} "
+                    f"dem={counts['has_demon']}/{MIN_SAMPLES['has_demon']} "
+                    f"flex={counts['flex']}/{MIN_SAMPLES['flex']}"
+                )
+                try:
+                    frame = soft_reset(frame, page)
+                    dismiss_modal(frame, page)
+                    set_ticket_type(frame, tc["ticket_type"])
+                    clear_slip(frame)
+                    _, frame = verify_slip_empty(frame, page)
+                    dismiss_modal(frame, page)
+                    ok = click_case_legs_with_filter_switches(frame, page, tc)
+                    if not ok:
+                        print("  [SKIP] Leg click sequence failed")
+                        clear_slip(frame)
+                        _, frame = verify_slip_empty(frame, page)
+                        dismiss_modal(frame, page)
+                        cases_run += 1
+                        continue
+                    frame.wait_for_timeout(1000)
+                    slip = read_slip(
+                        frame,
+                        n_legs=len(tc["legs"]),
+                        ticket_type=tc["ticket_type"],
+                    )
+                    if slip.get("has_slip"):
+                        n_selected = slip.get("n_selected")
+                        if n_selected is not None and int(n_selected) != len(tc["legs"]):
+                            print(f"  [SKIP] n_selected={n_selected} != n_legs={len(tc['legs'])}")
+                            skipped_records += 1
+                            clear_slip(frame)
+                            _, frame = verify_slip_empty(frame, page)
+                            dismiss_modal(frame, page)
+                            frame.wait_for_timeout(600)
+                            cases_run += 1
+                            continue
+                        combo_key = (
+                            f"{len(tc['legs'])}L_"
+                            f"{sum(1 for l in tc['legs'] if l['card']['pick_type'] == 'goblin')}G_"
+                            f"{sum(1 for l in tc['legs'] if l['card']['pick_type'] == 'demon')}D_"
+                            f"{tc['ticket_type']}"
+                        )
+                        if combo_key in seen_combos:
+                            print(f"  [SKIP] Duplicate combo: {combo_key}")
+                            skipped_records += 1
+                            clear_slip(frame)
+                            _, frame = verify_slip_empty(frame, page)
+                            dismiss_modal(frame, page)
+                            frame.wait_for_timeout(600)
+                            cases_run += 1
+                            continue
+                        legs_payload = []
+                        for leg in tc["legs"]:
+                            c = leg["card"]
+                            std_line = std_line_map.get((_norm(c["player"]), _norm(c["prop_type"])))
+                            dist = abs(float(c["line"]) - float(std_line)) if std_line is not None else None
+                            legs_payload.append({
+                                "player": c["player"],
+                                "prop_type": c["prop_type"],
+                                "line": c["line"],
+                                "pick_type": c["pick_type"],
+                                "direction": leg["direction"].lower(),
+                                "pp_id": "",
+                                "standard_line": std_line,
+                                "line_distance": dist,
+                            })
+                        rec = {
+                            "timestamp": ts_now,
+                            "ticket_type": tc["ticket_type"],
+                            "n_legs": len(tc["legs"]),
+                            "legs": json.dumps(legs_payload, ensure_ascii=False),
+                            "n_goblins": sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "goblin"),
+                            "n_demons": sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "demon"),
+                            "n_standard": sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "standard"),
+                            "displayed_multiplier": slip.get("displayed_multiplier"),
+                            "first_place_payout": slip.get("first_place_payout"),
+                            "min_guarantee_payout": slip.get("min_guarantee_payout"),
+                            "min_guarantee_hits_required": slip.get("min_guarantee_hits_required"),
+                            "flex_first_place": slip.get("flex_first_place"),
+                            "flex_miss_1": slip.get("flex_miss_1"),
+                            "entry_amount": float(slip.get("entry_amount") or args.entry_amount),
+                            "to_win_amount": slip.get("to_win"),
+                            "raw_slip_section": slip.get("raw_slip_section"),
+                        }
+                        valid, reason = is_valid_record(rec)
+                        if not valid:
+                            print(f"  [SKIP] Bad record: {reason}")
+                            if "min_g" in reason:
+                                print("  [DEBUG SLIP TEXT]:")
+                                print((rec.get("raw_slip_section") or "not captured")[:400])
+                            skipped_records += 1
+                        else:
+                            seen_combos.add(combo_key)
+                            out_rows.append(rec)
+                            bump_counts_from_record(counts, rec)
+                            saved_records += 1
+                            print(
+                                "  [RECORDED] "
+                                f"mult={rec['displayed_multiplier']} "
+                                f"first={rec['first_place_payout']} "
+                                f"min_g={rec['min_guarantee_payout']} "
+                                f"towin={rec['to_win_amount']}"
+                            )
+                    else:
+                        print("  [NO SLIP] Slip panel not detected")
+                    clear_slip(frame)
+                    _, frame = verify_slip_empty(frame, page)
+                    dismiss_modal(frame, page)
+                    frame.wait_for_timeout(600)
+                except Exception as e:
+                    print(f"  [ERROR] {e}")
+                    try:
+                        clear_slip(frame)
+                        _, frame = verify_slip_empty(frame, page)
+                        dismiss_modal(frame, page)
+                    except Exception:
+                        pass
+                cases_run += 1
+        finally:
             try:
-                body = resp.json()
-                mult = extract_multiplier_from_any(body)
-                if mult is not None and current_key["value"]:
-                    captures[current_key["value"]] = mult
+                browser.close()
+            except Exception:
+                pass
+            try:
+                p.stop()
             except Exception:
                 pass
 
-    page.on("response", on_response)
-
-    out_rows: list[dict] = []
-    ts_now = datetime.utcnow().isoformat()
-    saved_records = 0
-    skipped_records = 0
-
-    try:
-        frame = find_prizepicks_frame(page)
-        ensure_popular_filter(frame, page)
-        dismiss_modal(frame, page)
-        cards = expand_card_pool(frame, page)
-        if not cards:
-            print("[FATAL] No cards parsed — check board state")
-            DEBUG_DIR.mkdir(parents=True, exist_ok=True)
-            page.screenshot(path=str(DEBUG_DIR / "fatal_no_cards.png"), full_page=True)
-            return
-
-        cards, floor_filtered = _reclassify_cards_with_std_map(cards, std_line_map)
-        print(f"[CARDS] After 0.5-line filter: {len(cards)}")
-        print(f"[CARDS] Floor props filtered out (line <= 0.5): {floor_filtered}")
-
-        standard = [
-            c
-            for c in cards
-            if c["pick_type"] == "standard"
-            and float(pd.to_numeric(c.get("line"), errors="coerce") or 0.0) >= 3.0
-        ]
-        goblins = []
-        demons = []
-        for c in cards:
-            line_val = float(pd.to_numeric(c.get("line"), errors="coerce") or 0.0)
-            std_line = c.get("standard_line")
-            is_distance_goblin = (
-                std_line is not None and std_line > 0 and line_val < float(std_line) * 0.8
-            )
-            is_distance_demon = (
-                std_line is not None and std_line > 0 and line_val > float(std_line) * 1.3
-            )
-            if c.get("pick_type") == "goblin" or is_distance_goblin:
-                goblins.append(c)
-            if c.get("pick_type") == "demon" or is_distance_demon:
-                demons.append(c)
-
-        std_sample = ", ".join(
-            [f"{c['player']} {c['line']} {c['prop_type']}" for c in standard[:3]]
-        ) or "none"
-        gob_sample = ", ".join(
-            [
-                (
-                    f"{c['player']} {c['line']} {c['prop_type']} "
-                    f"(std={c.get('standard_line')}, dist={c.get('line_distance')})"
-                )
-                for c in goblins[:3]
-            ]
-        ) or "none"
-        print(f"[CARDS] Standard legs (line >= 3.0): {len(standard)}")
-        print(f"  Sample: {std_sample}")
-        print(f"[CARDS] Goblin legs (line < std*0.8): {len(goblins)}")
-        print(f"  Sample: {gob_sample}")
-        goblins_avail = len(goblins) > 0
-        demons_avail = len(demons) > 0
-        print(f"[POOL] Standard={len(standard)} Goblin={len(goblins)} Demon={len(demons)}")
-
-        test_cases = build_payout_test_matrix(
-            standard,
-            goblins,
-            demons,
-            std_line_map=std_line_map,
-        )
-        print(f"[MATRIX] {len(test_cases)} test cases planned")
-        print("\n=== TEST MATRIX ===")
-        for i, tc in enumerate(test_cases):
-            n_legs_tc = len(tc["legs"])
-            n_gob_tc = sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "goblin")
-            n_dem_tc = sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "demon")
-            print(
-                f"  {i + 1}. {tc['label']} | n_legs={n_legs_tc} | "
-                f"n_gob={n_gob_tc} | n_dem={n_dem_tc} | ticket_type={tc['ticket_type']}"
-            )
-        print(f"Total: {len(test_cases)} cases\n")
-
-        max_cases = max(1, int(args.max_cases))
-        counts = {k: 0 for k in MIN_SAMPLES}
-        cases_run = 0
-        test_idx = 0
-        case_cursor = 0
-        seen_combos: set[str] = set()
-
-        while cases_run < max_cases:
-            if all_targets_met(counts, goblins_avail, demons_avail):
-                print("[TARGETS] All MIN_SAMPLES satisfied.")
-                break
-            tc = test_cases[case_cursor % len(test_cases)] if test_cases else None
-            case_cursor += 1
-            if tc is None:
-                break
-            test_idx += 1
-            case_players = [f"{l['card']['player']} {l['card']['prop_type']}" for l in tc["legs"]]
-            print(
-                f"[CASE {test_idx}/{len(test_cases)}] {tc['label']} | "
-                f"legs={case_players}"
-            )
-            print(
-                f"[TARGETS] std={counts['all_standard']}/{MIN_SAMPLES['all_standard']} "
-                f"gob={counts['has_goblin']}/{MIN_SAMPLES['has_goblin']} "
-                f"dem={counts['has_demon']}/{MIN_SAMPLES['has_demon']} "
-                f"flex={counts['flex']}/{MIN_SAMPLES['flex']}"
-            )
-            try:
-                frame = soft_reset(frame, page)
-                dismiss_modal(frame, page)
-                set_ticket_type(frame, tc["ticket_type"])
-                clear_slip(frame)
-                _, frame = verify_slip_empty(frame, page)
-                dismiss_modal(frame, page)
-                ok = click_case_legs_with_filter_switches(frame, page, tc)
-                if not ok:
-                    print("  [SKIP] Leg click sequence failed")
-                    clear_slip(frame)
-                    _, frame = verify_slip_empty(frame, page)
-                    dismiss_modal(frame, page)
-                    cases_run += 1
-                    continue
-                frame.wait_for_timeout(1000)
-                slip = read_slip(
-                    frame,
-                    n_legs=len(tc["legs"]),
-                    ticket_type=tc["ticket_type"],
-                )
-                if slip.get("has_slip"):
-                    n_selected = slip.get("n_selected")
-                    if n_selected is not None and int(n_selected) != len(tc["legs"]):
-                        print(f"  [SKIP] n_selected={n_selected} != n_legs={len(tc['legs'])}")
-                        skipped_records += 1
-                        clear_slip(frame)
-                        _, frame = verify_slip_empty(frame, page)
-                        dismiss_modal(frame, page)
-                        frame.wait_for_timeout(600)
-                        cases_run += 1
-                        continue
-                    combo_key = (
-                        f"{len(tc['legs'])}L_"
-                        f"{sum(1 for l in tc['legs'] if l['card']['pick_type'] == 'goblin')}G_"
-                        f"{sum(1 for l in tc['legs'] if l['card']['pick_type'] == 'demon')}D_"
-                        f"{tc['ticket_type']}"
-                    )
-                    if combo_key in seen_combos:
-                        print(f"  [SKIP] Duplicate combo: {combo_key}")
-                        skipped_records += 1
-                        clear_slip(frame)
-                        _, frame = verify_slip_empty(frame, page)
-                        dismiss_modal(frame, page)
-                        frame.wait_for_timeout(600)
-                        cases_run += 1
-                        continue
-                    legs_payload = []
-                    for leg in tc["legs"]:
-                        c = leg["card"]
-                        std_line = std_line_map.get((_norm(c["player"]), _norm(c["prop_type"])))
-                        dist = abs(float(c["line"]) - float(std_line)) if std_line is not None else None
-                        legs_payload.append({
-                            "player": c["player"],
-                            "prop_type": c["prop_type"],
-                            "line": c["line"],
-                            "pick_type": c["pick_type"],
-                            "direction": leg["direction"].lower(),
-                            "pp_id": "",
-                            "standard_line": std_line,
-                            "line_distance": dist,
-                        })
-                    rec = {
-                        "timestamp": ts_now,
-                        "ticket_type": tc["ticket_type"],
-                        "n_legs": len(tc["legs"]),
-                        "legs": json.dumps(legs_payload, ensure_ascii=False),
-                        "n_goblins": sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "goblin"),
-                        "n_demons": sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "demon"),
-                        "n_standard": sum(1 for l in tc["legs"] if l["card"]["pick_type"] == "standard"),
-                        "displayed_multiplier": slip.get("displayed_multiplier"),
-                        "first_place_payout": slip.get("first_place_payout"),
-                        "min_guarantee_payout": slip.get("min_guarantee_payout"),
-                        "min_guarantee_hits_required": slip.get("min_guarantee_hits_required"),
-                        "flex_first_place": slip.get("flex_first_place"),
-                        "flex_miss_1": slip.get("flex_miss_1"),
-                        "entry_amount": float(slip.get("entry_amount") or args.entry_amount),
-                        "to_win_amount": slip.get("to_win"),
-                        "raw_slip_section": slip.get("raw_slip_section"),
-                    }
-                    valid, reason = is_valid_record(rec)
-                    if not valid:
-                        print(f"  [SKIP] Bad record: {reason}")
-                        if "min_g" in reason:
-                            print("  [DEBUG SLIP TEXT]:")
-                            print((rec.get("raw_slip_section") or "not captured")[:400])
-                        skipped_records += 1
-                    else:
-                        seen_combos.add(combo_key)
-                        out_rows.append(rec)
-                        bump_counts_from_record(counts, rec)
-                        saved_records += 1
-                        print(
-                            "  [RECORDED] "
-                            f"mult={rec['displayed_multiplier']} "
-                            f"first={rec['first_place_payout']} "
-                            f"min_g={rec['min_guarantee_payout']} "
-                            f"towin={rec['to_win_amount']}"
-                        )
-                else:
-                    print("  [NO SLIP] Slip panel not detected")
-                clear_slip(frame)
-                _, frame = verify_slip_empty(frame, page)
-                dismiss_modal(frame, page)
-                frame.wait_for_timeout(600)
-            except Exception as e:
-                print(f"  [ERROR] {e}")
-                try:
-                    clear_slip(frame)
-                    _, frame = verify_slip_empty(frame, page)
-                    dismiss_modal(frame, page)
-                except Exception:
-                    pass
-            cases_run += 1
+        date_tag = datetime.utcnow().strftime("%Y-%m-%d")
+        out_csv = SAMPLES_DIR / f"payout_log_{date_tag}.csv"
+        append_rows_csv(out_csv, out_rows)
+        print(f"[PAYOUT] Collected samples: {len(out_rows)}")
+        print(f"[PAYOUT] Saved -> {out_csv}")
+        print(f"[PAYOUT] Saved records: {saved_records} | Skipped records: {skipped_records}")
     finally:
-        try:
-            browser.close()
-        except Exception:
-            pass
-        try:
-            p.stop()
-        except Exception:
-            pass
-
-    date_tag = datetime.utcnow().strftime("%Y-%m-%d")
-    out_csv = SAMPLES_DIR / f"payout_log_{date_tag}.csv"
-    append_rows_csv(out_csv, out_rows)
-    print(f"[PAYOUT] Collected samples: {len(out_rows)}")
-    print(f"[PAYOUT] Saved -> {out_csv}")
-    print(f"[PAYOUT] Saved records: {saved_records} | Skipped records: {skipped_records}")
+        _release_payout_capture_lock()
 
 
 if __name__ == "__main__":
     main()
-

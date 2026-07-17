@@ -2214,7 +2214,7 @@ if ($NowHour -ge 10) {
     }
     else {
         Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
-        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch)"
+        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch -SkipLivePayoutCapture)"
 
     $NBADir = Join-Path $SportsRoot "NBA"
     $lateNbaOutDir = Join-Path $Root "outputs\$Today\nba"
@@ -2351,9 +2351,10 @@ if ($NowHour -ge 10) {
 
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
         if (Test-Path $pipeScript) {
-            & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -SkipFetch
+            # Midday/late fetch must not start live CDP payout (5AM D-payout / manual only).
+            & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -SkipFetch -SkipLivePayoutCapture
             if ($LASTEXITCODE -eq 0) {
-                Write-Log "[NBA_LATE_FETCH] OK (full pipeline -SkipFetch)"
+                Write-Log "[NBA_LATE_FETCH] OK (full pipeline -SkipFetch -SkipLivePayoutCapture)"
             }
             else {
                 Write-Warning "[NBA_LATE_FETCH] pipeline exited $LASTEXITCODE"

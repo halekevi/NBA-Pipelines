@@ -412,8 +412,8 @@
         <div class="toolbar" role="group" aria-label="Date range">
           <button type="button" class="chip" data-range="7">7d</button>
           <button type="button" class="chip" data-range="14">14d</button>
-          <button type="button" class="chip active" data-range="30">30d</button>
-          <button type="button" class="chip" data-range="all">All</button>
+          <button type="button" class="chip" data-range="30">30d</button>
+          <button type="button" class="chip active" data-range="all">All</button>
         </div>
       </div>
       <div id="cum-chart" class="chart-host" aria-label="Cumulative profit and loss chart">
@@ -463,13 +463,8 @@
         <div class="panel-head">
           <div>
             <h2>Sport Breakdown</h2>
-            <p class="panel-note" id="sport-scope-note">
-              Pick universe HIT/MISS at $10 flat — not ticket P&amp;L. Matches the range chips above.
-            </p>
+            <p class="panel-note">Pick-level totals · $10 flat · zero-activity hidden</p>
           </div>
-        </div>
-        <div class="panel-note" style="margin:-2px 0 10px;padding:8px 10px;border-radius:8px;border:1px solid rgba(212,175,55,0.22);background:rgba(212,175,55,0.06);color:rgba(255,255,255,0.82)">
-          Ticket book is the scoreboard (cards + Daily P&amp;L). This table is every graded prop in range — historic pick rates can look red while tickets are green.
         </div>
         <div class="tbl-scroll tall">
           <table class="tbl" aria-label="Sport breakdown totals">
@@ -481,7 +476,23 @@
                 <th>Net $</th>
               </tr>
             </thead>
-            <tbody id="sport-breakdown-tbody"></tbody>
+            <tbody id="sport-breakdown-tbody">
+              {% for r in sport_rows if r.decided > 0 %}
+              <tr data-net="{{ r.net_dollars }}">
+                <td>{{ r.sport }}</td>
+                <td>{{ r.decided }}</td>
+                <td>{{ '%.1f%%'|format((r.win_rate or 0) * 100) }}</td>
+                <td>
+                  <div class="sport-net-cell">
+                    <span class="{{ 'num-pos' if r.net_dollars >= 0 else 'num-neg' }}">${{ '%.2f'|format(r.net_dollars) }}</span>
+                    <div class="sport-bar-track" aria-hidden="true"><div class="sport-bar {{ 'pos' if r.net_dollars >= 0 else 'neg' }}" data-bar></div></div>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
 
@@ -505,18 +516,12 @@
 
   <script id="income-daily-data" type="application/json">{{ daily_rows | tojson }}</script>
   <script id="income-monthly-data" type="application/json">{{ sport_monthly_rows | tojson }}</script>
-  <script id="income-sport-all-data" type="application/json">{{ sport_rows | tojson }}</script>
-  <script id="income-sport-daily-data" type="application/json">{{ sport_daily_rows | tojson }}</script>
 
   <script src="/static/site-nav-chrome.js?v=20260412" defer></script>
   <script defer>
     (function () {
       let dailyRaw = JSON.parse(document.getElementById('income-daily-data').textContent || '[]');
       let monthlyRaw = JSON.parse(document.getElementById('income-monthly-data').textContent || '[]');
-      let sportAllRaw = [];
-      let sportDailyRaw = [];
-      try { sportAllRaw = JSON.parse(document.getElementById('income-sport-all-data').textContent || '[]'); } catch (_e) {}
-      try { sportDailyRaw = JSON.parse(document.getElementById('income-sport-daily-data').textContent || '[]'); } catch (_e) {}
 
       const TRACK_LABEL = {
         graded_main: 'MAIN',
@@ -533,7 +538,7 @@
 
       const PAGE = 40;
       let dailyMode = 'rollup';
-      let rangeDays = '30';
+      let rangeDays = 'all';
       let dailyShown = PAGE;
       let chartSeries = [];
 
@@ -798,68 +803,6 @@
         });
       }
 
-      function aggregateSportRows() {
-        if (rangeDays === 'all' || !sportDailyRaw.length) {
-          return (sportAllRaw || []).filter((r) => (Number(r.decided) || 0) > 0);
-        }
-        const cut = cutoffDate();
-        const map = new Map();
-        sportDailyRaw.forEach((r) => {
-          const d = String(r.date || '');
-          if (cut && d < cut) return;
-          const sp = String(r.sport || '');
-          if (!sp) return;
-          let agg = map.get(sp);
-          if (!agg) {
-            agg = { sport: sp, decided: 0, paid: 0, net_dollars: 0 };
-            map.set(sp, agg);
-          }
-          agg.decided += Number(r.decided) || 0;
-          agg.paid += Number(r.paid) || 0;
-          agg.net_dollars += Number(r.net_dollars) || 0;
-        });
-        return Array.from(map.values())
-          .map((a) => {
-            a.net_dollars = Math.round(a.net_dollars * 100) / 100;
-            a.win_rate = a.decided > 0 ? a.paid / a.decided : null;
-            return a;
-          })
-          .filter((a) => a.decided > 0)
-          .sort((a, b) => Math.abs(b.net_dollars) - Math.abs(a.net_dollars));
-      }
-
-      function renderSports() {
-        const body = document.getElementById('sport-breakdown-tbody');
-        const note = document.getElementById('sport-scope-note');
-        if (!body) return;
-        const rows = aggregateSportRows();
-        if (note) {
-          note.textContent = rangeDays === 'all'
-            ? 'All-time pick universe HIT/MISS at $10 flat — not ticket P&L.'
-            : `Last ${rangeDays} days · pick universe HIT/MISS at $10 flat — not ticket P&L.`;
-        }
-        if (!rows.length) {
-          body.innerHTML = '<tr><td colspan="4" class="empty-note" style="text-align:left">No decided props in this range.</td></tr>';
-          return;
-        }
-        body.innerHTML = rows.map((r) => {
-          const net = Number(r.net_dollars) || 0;
-          const wr = r.win_rate == null ? '—' : pct((Number(r.win_rate) || 0) * 100);
-          return `<tr data-net="${net}">
-            <td>${r.sport}</td>
-            <td>${r.decided}</td>
-            <td>${wr}</td>
-            <td>
-              <div class="sport-net-cell">
-                <span class="${numCls(net)}">${money(net)}</span>
-                <div class="sport-bar-track" aria-hidden="true"><div class="sport-bar ${net >= 0 ? 'pos' : 'neg'}" data-bar></div></div>
-              </div>
-            </td>
-          </tr>`;
-        }).join('');
-        paintSportBars();
-      }
-
       function renderMonthly() {
         const host = document.getElementById('sport-month-block');
         const sel = document.getElementById('month-sport-filter');
@@ -874,14 +817,11 @@
           });
         }
         const filter = sel ? String(sel.value || 'all') : 'all';
-        const cut = cutoffDate();
         const bySport = new Map();
         monthlyRaw.forEach((r) => {
           const sp = String(r.sport || '');
           if (!sp) return;
           if (filter !== 'all' && sp !== filter) return;
-          const month = String(r.month || '');
-          if (cut && month && month < cut.slice(0, 7)) return;
           if (!bySport.has(sp)) bySport.set(sp, []);
           bySport.get(sp).push(r);
         });
@@ -923,8 +863,6 @@
           rangeDays = btn.getAttribute('data-range') || 'all';
           document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('active', b === btn));
           renderDaily(true);
-          renderSports();
-          renderMonthly();
           drawChart();
         });
       });
@@ -982,15 +920,13 @@
         if (netSub) netSub.textContent = 'ROI ' + pct(roi) + ' · ' + tickets + ' tickets';
       }
 
-      function boot(daily, monthly, sportAll, sportDaily) {
+      function boot(daily, monthly) {
         if (Array.isArray(daily)) dailyRaw = daily;
         if (Array.isArray(monthly)) monthlyRaw = monthly;
-        if (Array.isArray(sportAll)) sportAllRaw = sportAll;
-        if (Array.isArray(sportDaily)) sportDailyRaw = sportDaily;
         applySummaryFromDaily(
           [...dailyRaw].sort((a, b) => String(a.date).localeCompare(String(b.date)))
         );
-        renderSports();
+        paintSportBars();
         renderDaily(true);
         renderMonthly();
         drawChart();
@@ -999,7 +935,7 @@
       window.__proporacleIncomeBoot = boot;
 
       document.addEventListener('DOMContentLoaded', () => {
-        boot(dailyRaw, monthlyRaw, sportAllRaw, sportDailyRaw);
+        boot(dailyRaw, monthlyRaw);
       });
     })();
   </script>

@@ -6219,11 +6219,7 @@ _SPORT_BREAKDOWN_MEM: dict[str, Any] = {}
 
 def _load_sport_breakdown_bundle(*, stake_per_pick: float = 10.0) -> dict[str, list[dict[str, Any]]]:
     """Fast path for /income: read sport_breakdown.json; avoid per-request xlsx/props scans."""
-    empty: dict[str, list[dict[str, Any]]] = {
-        "rows": _empty_sport_breakdown_rows(),
-        "monthly_rows": [],
-        "daily_rows": [],
-    }
+    empty = {"rows": _empty_sport_breakdown_rows(), "monthly_rows": []}
     sig = graded_props_signature(TEMPLATES_DIR)
     force = os.environ.get("INCOME_REBUILD_SPORT", "").strip().lower() in ("1", "true", "yes", "on")
     if force:
@@ -6239,8 +6235,7 @@ def _load_sport_breakdown_bundle(*, stake_per_pick: float = 10.0) -> dict[str, l
     cached = read_cached_payload(BASE_DIR, TEMPLATES_DIR, expected_signature=sig)
     if cached is None:
         cached = read_cached_payload(BASE_DIR, TEMPLATES_DIR)
-    # Require monthly + daily so Income range chips can filter sport rates.
-    if cached and (not cached.get("monthly_rows") or not cached.get("daily_rows")):
+    if cached and (not cached.get("monthly_rows")):
         cached = None
     if cached:
         _SPORT_BREAKDOWN_MEM["sig"] = sig
@@ -6292,7 +6287,6 @@ def page_income():
         chart_points=Markup(json.dumps(cum_points)),
         sport_rows=sport_bundle["rows"],
         sport_monthly_rows=sport_bundle["monthly_rows"],
-        sport_daily_rows=sport_bundle.get("daily_rows") or [],
     )
 
 

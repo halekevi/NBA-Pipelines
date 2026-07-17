@@ -658,169 +658,82 @@ async function fetch_smart(localPath) {
     (function () {
       const HISTORY_URL = 'data/grade_history.json?v=20260522pnl';
       const SPORT_BREAKDOWN_URL = 'sport_breakdown.json?v=20260522pnl';
-      const fmtMoney = (n) => (Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00');
-      const fmtPct = (n) => (Number.isFinite(n) ? `${n.toFixed(1)}%` : '0.0%');
-      const clsFor = (n, pos = 'num-pos', neg = 'num-neg') => (n > 0 ? pos : (n < 0 ? neg : ''));
 
       function parseRows(raw) {
         const rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.runs) ? raw.runs : []);
-        return rows
-          .map((r) => {
-            const tickets = Number(r.n_tickets ?? r.tickets ?? 0);
-            const wins = Number(r.wins ?? 0);
-            const guarantees = Number(r.guarantees ?? 0);
-            const losses = Number(r.losses ?? 0);
-            const decided = Math.max(0, wins + losses);
-            const paid = Math.max(0, wins + guarantees);
-            // net_per_10 is per-ticket avg ($-per-$10-stake). Multiply by tickets to get day total.
-            const net = (r.net_dollars != null)
-              ? Number(r.net_dollars)
-              : (r.net_per_10 != null ? tickets * Number(r.net_per_10) : 0);
-            const roi = Number(r.roi_pct ?? ((tickets > 0) ? (net / (tickets * 10) * 100) : 0));
-            return {
-              date: String(r.date || ''),
-              tickets, wins, guarantees, losses, decided, paid,
-              net, roi
-            };
-          })
-          .filter((r) => /^\\d{4}-\\d{2}-\\d{2}$/.test(r.date))
-          .sort((a, b) => a.date.localeCompare(b.date));
+        return rows.map((r) => {
+          const tickets = Number(r.n_tickets ?? r.tickets ?? 0);
+          const wins = Number(r.wins ?? 0);
+          const guarantees = Number(r.guarantees ?? 0);
+          const losses = Number(r.losses ?? 0);
+          const decided = Math.max(0, Number(r.decided ?? (wins + losses)));
+          const paid = Math.max(0, Number(r.paid ?? (wins + guarantees)));
+          const net = (r.net_dollars != null)
+            ? Number(r.net_dollars)
+            : (r.net_per_10 != null ? tickets * Number(r.net_per_10) : 0);
+          const roi = Number(r.roi_pct ?? ((tickets > 0) ? (net / (tickets * 10) * 100) : 0));
+          return {
+            date: String(r.date || ''),
+            track: String(r.track || r.source || 'graded_main'),
+            tickets, wins, guarantees, losses, decided, paid,
+            void_loss_ct: Number(r.void_loss_ct || 0),
+            net_dollars: net,
+            roi_pct: roi,
+          };
+        }).filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date));
       }
 
-      function render(rowsAsc) {
-        const rowsDesc = [...rowsAsc].reverse();
-        const totalTickets = rowsAsc.reduce((s, r) => s + r.tickets, 0);
-        const totalDecided = rowsAsc.reduce((s, r) => s + r.decided, 0);
-        const totalPaid = rowsAsc.reduce((s, r) => s + r.paid, 0);
-        const totalNet = rowsAsc.reduce((s, r) => s + r.net, 0);
-        const winRate = totalDecided > 0 ? (totalPaid / totalDecided) * 100 : 0;
-        const roi = totalTickets > 0 ? (totalNet / (totalTickets * 10)) * 100 : 0;
-
-        let streak = '—';
-        let streakLen = 0;
-        let streakSign = 0;
-        for (let i = rowsAsc.length - 1; i >= 0; i--) {
-          const sign = rowsAsc[i].net > 0 ? 1 : (rowsAsc[i].net < 0 ? -1 : 0);
-          if (sign === 0) continue;
-          if (streakSign === 0) { streakSign = sign; streakLen = 1; continue; }
-          if (sign === streakSign) streakLen += 1; else break;
-        }
-        if (streakLen > 0) streak = `${streakSign > 0 ? 'W' : 'L'}${streakLen}`;
-
-        const sumVals = document.querySelectorAll('.summary-grid .sum-value');
-        if (sumVals.length >= 5) {
-          sumVals[0].textContent = String(totalTickets);
-          sumVals[1].textContent = `${winRate.toFixed(1)}% (${totalPaid}/${totalDecided})`;
-          sumVals[2].textContent = fmtMoney(totalNet);
-          sumVals[2].className = `sum-value ${clsFor(totalNet, 'sum-pos', 'sum-neg')}`;
-          sumVals[3].textContent = fmtPct(roi);
-          sumVals[3].className = `sum-value ${clsFor(roi, 'sum-pos', 'sum-neg')}`;
-          sumVals[4].textContent = streak;
-        }
-
-        const dailyBody = document.querySelectorAll('.panel .tbl tbody')[0];
-        if (dailyBody) {
-          dailyBody.innerHTML = rowsDesc.map((r) => `
-            <tr>
-              <td>${r.date}</td>
-              <td>${r.tickets}</td>
-              <td>${r.wins}</td>
-              <td>${r.losses}</td>
-              <td>${r.guarantees}</td>
-              <td class="${clsFor(r.net)}">${fmtMoney(r.net)}</td>
-              <td class="${clsFor(r.roi)}">${fmtPct(r.roi)}</td>
-            </tr>
-          `).join('');
-        }
-
-        const emptyNote = document.querySelector('.empty-note');
-        if (emptyNote) emptyNote.style.display = rowsAsc.length ? 'none' : '';
-
-        const pts = [];
-        let cum = 0;
-        for (const r of rowsAsc) { cum += r.net; pts.push({ date: r.date, cum_net: Number(cum.toFixed(2)) }); }
-        const host = document.getElementById('cum-chart');
-        if (!host) return;
-        if (!pts.length) {
-          host.innerHTML = '<div class="empty-note">No cumulative data available yet.</div>';
+      function renderSports(payload) {
+        const body = document.getElementById('sport-breakdown-tbody');
+        const rows = (payload && Array.isArray(payload.rows) ? payload.rows : [])
+          .filter((r) => Number(r.decided || 0) > 0);
+        if (!body) return;
+        if (!rows.length) {
+          body.innerHTML = '<tr><td colspan="4" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>';
           return;
         }
-        if (typeof Plotly !== 'undefined') {
-          Plotly.newPlot('cum-chart', [{
-            x: pts.map(p => p.date),
-            y: pts.map(p => p.cum_net),
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#7fc7d9', width: 3 },
-            marker: { size: 6, color: '#d4af37' },
-            hovertemplate: '%{x}<br>$%{y:.2f}<extra></extra>'
-          }], {
-            autosize: true,
-            margin: { t: 14, r: 20, b: 42, l: 58 },
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(255,255,255,0.02)',
-            font: { color: 'rgba(255,255,255,0.85)' },
-            xaxis: { title: '', gridcolor: 'rgba(255,255,255,0.06)' },
-            yaxis: { title: '$', tickprefix: '$', gridcolor: 'rgba(255,255,255,0.06)', zerolinecolor: 'rgba(255,255,255,0.15)' }
-          }, { displayModeBar: false, responsive: true });
-        } else {
-          host.innerHTML = '<div class="empty-note">Chart could not load (network or CDN blocked). Daily table still works.</div>';
-        }
+        const maxAbs = Math.max(...rows.map((r) => Math.abs(Number(r.net_dollars) || 0)), 1);
+        body.innerHTML = rows.map((r) => {
+          const decided = Number(r.decided || 0);
+          const paid = Number(r.paid || 0);
+          const winRate = decided > 0 ? (paid / decided) * 100 : 0;
+          const net = Number(r.net_dollars || 0);
+          const w = Math.max(4, (Math.abs(net) / maxAbs) * 100).toFixed(1);
+          const cls = net > 0 ? 'num-pos' : (net < 0 ? 'num-neg' : '');
+          const barCls = net >= 0 ? 'pos' : 'neg';
+          const money = (net < 0 ? '-$' : '$') + Math.abs(net).toFixed(2);
+          return (
+            '<tr data-net="' + net + '"><td>' + String(r.sport || '') + '</td><td>' + decided +
+            '</td><td>' + winRate.toFixed(1) + '%</td><td><div class="sport-net-cell"><span class="' +
+            cls + '">' + money + '</span><div class="sport-bar-track"><div class="sport-bar ' +
+            barCls + '" style="width:' + w + '%"></div></div></div></td></tr>'
+          );
+        }).join('');
       }
 
-      function renderSportBreakdown(payload) {
-        const body = document.getElementById('sport-breakdown-tbody');
-        const monthlyBody = document.getElementById('sport-monthly-breakdown-tbody');
-        const rows = payload && Array.isArray(payload.rows) ? payload.rows : [];
-        const monthlyRows = payload && Array.isArray(payload.monthly_rows) ? payload.monthly_rows : [];
-        if (body) {
-          body.innerHTML = rows.map((r) => {
-            const decided = Number(r.decided || 0);
-            const paid = Number(r.paid || 0);
-            const winRate = decided > 0 ? (paid / decided) * 100 : NaN;
-            const net = Number(r.net_dollars || 0);
-            const winText = Number.isFinite(winRate) ? `${winRate.toFixed(1)}%` : '—';
-            return `
-              <tr>
-                <td>${String(r.sport || '')}</td>
-                <td>${decided}</td>
-                <td>${paid}</td>
-                <td>${winText}</td>
-                <td class="${clsFor(net)}">${fmtMoney(net)}</td>
-              </tr>
-            `;
-          }).join('');
+      Promise.all([
+        fetch(HISTORY_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+        fetch(SPORT_BREAKDOWN_URL, { cache: 'no-store' })
+          .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [] }))
+          .catch(() => ({ rows: [], monthly_rows: [] })),
+      ]).then(([hist, sport]) => {
+        renderSports(sport);
+        const daily = parseRows(hist);
+        const monthly = Array.isArray(sport.monthly_rows) ? sport.monthly_rows : [];
+        const boot = () => {
+          if (typeof window.__proporacleIncomeBoot === 'function') {
+            window.__proporacleIncomeBoot(daily, monthly);
+            return true;
+          }
+          return false;
+        };
+        if (!boot()) {
+          let tries = 0;
+          const t = setInterval(() => {
+            if (boot() || ++tries > 80) clearInterval(t);
+          }, 50);
         }
-        if (monthlyBody) {
-          monthlyBody.innerHTML = monthlyRows.map((r) => {
-            const decided = Number(r.decided || 0);
-            const paid = Number(r.paid || 0);
-            const winRate = decided > 0 ? (paid / decided) * 100 : NaN;
-            const net = Number(r.net_dollars || 0);
-            const winText = Number.isFinite(winRate) ? `${winRate.toFixed(1)}%` : '—';
-            return `
-              <tr>
-                <td>${String(r.sport || '')}</td>
-                <td>${String(r.month || '')}</td>
-                <td>${decided}</td>
-                <td>${paid}</td>
-                <td>${winText}</td>
-                <td class="${clsFor(net)}">${fmtMoney(net)}</td>
-              </tr>
-            `;
-          }).join('');
-        }
-      }
-
-      fetch(HISTORY_URL, { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : []))
-        .then((raw) => render(parseRows(raw)))
-        .catch(() => render([]));
-
-      fetch(SPORT_BREAKDOWN_URL, { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [] }))
-        .then((j) => renderSportBreakdown(j))
-        .catch(() => renderSportBreakdown({ rows: [], monthly_rows: [] }));
+      });
     })();
   </script>
 """

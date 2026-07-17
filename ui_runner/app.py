@@ -2831,8 +2831,8 @@ def page_payout_ladder():
 
 @app.get("/payout/examples")
 def page_payout_examples():
-    # Examples tab was unused/empty; keep route as redirect into Composer.
-    return redirect("/payout?tab=composer", code=302)
+    # Examples tab was unused/empty; keep route as redirect into Builder composition mode.
+    return redirect("/payout?mode=composer", code=302)
 
 
 @app.get("/api/payout/ladder-summary")

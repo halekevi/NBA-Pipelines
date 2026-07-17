@@ -89,14 +89,12 @@
   }
 </style>
 <nav class="payout-subnav" aria-label="Payouts sections">
-  {% if payout_section not in ('calc', 'composer', 'loglines', 'cards') %}
-  <a class="payout-subnav-back" href="/payout">&larr; Back to Calculator</a>
+  {% if payout_section not in ('calc', 'cards') %}
+  <a class="payout-subnav-back" href="/payout">&larr; Back to Builder</a>
   <span class="payout-subnav-sep" aria-hidden="true"></span>
   {% endif %}
   <div class="payout-subnav-links">
-    <a href="/payout" class="{{ 'active' if payout_section == 'calc' else '' }}">Calculator</a>
-    <a href="/payout?tab=composer" class="{{ 'active' if payout_section == 'composer' else '' }}">Composer</a>
-    <a href="/payout?tab=log" class="{{ 'active' if payout_section == 'loglines' else '' }}">Log Lines</a>
+    <a href="/payout" class="{{ 'active' if payout_section in ('calc', 'composer', 'loglines') else '' }}">Builder</a>
     <a href="/payout?tab=cards" class="{{ 'active' if payout_section == 'cards' else '' }}">Rates &amp; Ladder</a>
   </div>
   <div class="payout-subnav-tools">

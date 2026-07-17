@@ -1608,8 +1608,9 @@ def _empty_sport_ticket_summary() -> dict[str, dict[str, int]]:
 
 def _sum_sport_win_rate_html(
     sport: str, pct: float | None, *, pending_ticket_slips: int = 0
-) -> str:
-    lab = f"{sport} TKT WIN RATE"
+) -> str | None:
+    """Return a sports KPI cell, or None when empty (no rate and no pending slips)."""
+    lab = sport  # short sport label; row context is already "win rate" via Hit rate sibling
     tip = ""
     if pending_ticket_slips > 0 and pct is None:
         plural = "s" if pending_ticket_slips != 1 else ""
@@ -1621,12 +1622,12 @@ def _sum_sport_win_rate_html(
     title_attr = f' title="{tip}"' if tip else ""
     if pct is not None:
         return (
-            f'<div class="sum-item"><div class="sum-val">{pct:.1f}%</div>'
+            f'<div class="sum-item sum-item-sport"><div class="sum-val">{pct:.1f}%</div>'
             f'<div class="sum-lab">{lab}</div></div>'
         )
-    badge = ""
-    if pending_ticket_slips > 0:
-        badge = f'<span class="sum-lab-badge">{pending_ticket_slips} pending</span>'
+    if pending_ticket_slips <= 0:
+        return None
+    badge = f'<span class="sum-lab-badge">{pending_ticket_slips} pending</span>'
     return (
         f'<div class="sum-item sum-item-pending-sport"{title_attr}>'
         f'<div class="sum-val pend">—</div>'
@@ -3844,12 +3845,16 @@ def _build_html(
         return (100.0 * w / d) if d > 0 else None
 
     sport_win_rate_lines = [
-        _sum_sport_win_rate_html(
-            sport,
-            _ticket_win_rate_pct(sport),
-            pending_ticket_slips=int(sport_ticket_pending.get(sport, 0)),
+        line
+        for line in (
+            _sum_sport_win_rate_html(
+                sport,
+                _ticket_win_rate_pct(sport),
+                pending_ticket_slips=int(sport_ticket_pending.get(sport, 0)),
+            )
+            for sport in TICKET_EVAL_SPORT_ORDER
         )
-        for sport in TICKET_EVAL_SPORT_ORDER
+        if line
     ]
 
     _print_ticket_ev_percentiles(tickets_flat)
@@ -3961,18 +3966,16 @@ def _build_html(
         )
         grade_eval_summary_html = (
             '<div class="grade-eval-summary">'
-            f'<div class="grade-eval-summary-line1">Date: {json_date} · {esc(track_label)} · {n_pay} tickets graded</div>'
+            f'<div class="grade-eval-summary-line1">{esc(track_label)} · {json_date} · {n_pay} tickets</div>'
             '<div class="grade-eval-summary-line2">'
-            f'<span>✅ Wins: {wins_ct}</span>'
-            f'<span>🛡️ Guarantees: {guar_ct}</span>'
-            f'<span>❌ Losses: {loss_ct}{loss_subnote_html}</span>'
+            f'<span class="ges-pill ges-win">Wins {wins_ct}</span>'
+            f'<span class="ges-pill ges-guar">Guarantees {guar_ct}</span>'
+            f'<span class="ges-pill ges-loss">Losses {loss_ct}{loss_subnote_html}</span>'
+            f'<span class="ges-pill ges-rate">{win_rate_pct:.0f}% win rate</span>'
+            f'<span class="ges-pill ges-ev">Avg EV {avg_ev_s}</span>'
             "</div>"
-            '<div class="grade-eval-summary-line3">'
-            f"Win rate (W+🛡️): {win_rate_pct:.0f}%"
-            f" · Avg EV at entry: {avg_ev_s}"
-            "</div>"
-            f'<div class="grade-eval-summary-line4">Total: {net_sign}${net_abs:.2f} net on ${total_staked:.0f} staked '
-            f"(${10}/ticket flat) — {net_word}</div>"
+            f'<div class="grade-eval-summary-line4">{net_sign}${net_abs:.2f} net on ${total_staked:.0f} '
+            f"($10 flat) — {net_word}</div>"
             "</div>"
         )
     else:
@@ -4035,18 +4038,32 @@ def _build_html(
         "border-radius:16px 16px 0 0;box-shadow:none;}"
         "body.ticket-eval-page .grade-eval-summary:has(+ .stats-bar)+.stats-bar{margin-top:-1px;border-top:none;"
         "border-radius:0 0 18px 18px;padding-top:11px;box-shadow:0 8px 32px rgba(0,0,0,.35);}",
-        ".sum-row{display:flex;flex-wrap:wrap;gap:18px 36px;align-items:center;justify-content:center;}",
-        ".sum-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:88px;}",
+        ".sum-row{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-start;justify-content:flex-start;}",
+        ".sum-row + .sum-row{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);}",
+        ".sum-row-label{flex:0 0 100%;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;"
+        "color:var(--muted);font-weight:700;margin:0 0 2px;opacity:.85;}",
+        ".sum-item{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:76px;}",
         ".sum-item-pending-sport{cursor:help;}",
         ".sum-lab-badge{display:block;font-size:9px;line-height:1.15;color:var(--pending);opacity:.96;"
         "margin-top:3px;font-weight:600;text-transform:none;letter-spacing:0;}",
-        ".sum-val{font-family:'Inter',sans-serif;font-size:clamp(22px,2.6vw,30px);font-weight:700;color:var(--gold);text-shadow:0 0 20px rgba(240,165,0,.25);}",
+        ".sum-val{font-family:'Inter',sans-serif;font-size:clamp(20px,2.4vw,28px);font-weight:700;color:var(--gold);text-shadow:0 0 20px rgba(240,165,0,.25);}",
         ".sum-val.green{color:var(--green);text-shadow:0 0 14px rgba(57,255,110,.35);}",
         ".sum-val.red{color:var(--red);text-shadow:0 0 14px rgba(255,77,77,.35);}",
         ".sum-val.pend{color:var(--pending);text-shadow:none;}",
         ".sum-val.void{color:var(--gold2);text-shadow:none;}",
-        ".sum-val-sm{font-size:clamp(18px,2.1vw,24px)!important;}",
-        ".sum-lab{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2.2px;color:var(--muted);text-align:center;line-height:1.2;max-width:11em;}",
+        ".sum-val-sm{font-size:clamp(17px,2vw,22px)!important;}",
+        ".sum-lab{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.2px;color:var(--muted);text-align:left;line-height:1.25;max-width:12em;font-weight:600;text-transform:none;}",
+        ".ges-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;"
+        "border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);font-size:12px;font-weight:600;}",
+        ".ges-win{color:var(--green);border-color:rgba(57,255,110,.25);}",
+        ".ges-guar{color:#7ec8ff;border-color:rgba(126,200,255,.25);}",
+        ".ges-loss{color:var(--red);border-color:rgba(255,77,77,.25);}",
+        ".ges-rate,.ges-ev{color:rgba(255,255,255,.82);}",
+        ".grade-eval-help{margin:4px 0 10px;}",
+        ".grade-eval-help>summary{cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none;}",
+        ".grade-eval-help>summary::-webkit-details-marker{display:none;}",
+        ".grade-eval-help[open]>summary{margin-bottom:6px;color:rgba(255,255,255,.75);}",
+        ".grade-eval-help .meta-muted{margin:0;line-height:1.55;font-size:12px;}",
         ".wrap.ticket-eval-main{width:100%;max-width:min(1920px,98vw);margin:0 auto;padding:2px clamp(14px,2.5vw,32px) 0;}",
         ".ticket-sections-wrap{padding-top:2px;}",
         "details.ticket-bucket{margin:0 0 10px;}",
@@ -4143,7 +4160,7 @@ def _build_html(
         "line-height:1.55;color:var(--text);}",
         ".grade-eval-summary-empty{color:var(--muted);font-size:12px;}",
         ".grade-eval-summary-line1{font-weight:700;color:var(--gold);margin-bottom:6px;}",
-        ".grade-eval-summary-line2{display:flex;flex-wrap:wrap;gap:12px 22px;margin-bottom:4px;}",
+        ".grade-eval-summary-line2{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}",
         ".grade-eval-subnote{color:var(--muted);font-size:11px;}",
         ".grade-eval-summary-line3{color:var(--muted);margin-bottom:4px;}",
         ".grade-eval-summary-line4{color:var(--cyan);font-weight:600;}",
@@ -4187,34 +4204,37 @@ def _build_html(
         _render_site_nav_grades_active(),
         grade_eval_summary_html,
         '<div class="stats-bar">',
-        '<div class="sum-row">',
-        f'<div class="sum-item"><div class="sum-val">{ticket_pct:.1f}%</div><div class="sum-lab">TICKET HIT RATE</div></div>',
+        '<div class="sum-row sum-row-results">',
+        '<div class="sum-row-label">Results</div>',
+        f'<div class="sum-item"><div class="sum-val">{ticket_pct:.1f}%</div><div class="sum-lab">Hit rate</div></div>',
         *sport_win_rate_lines,
-        f'<div class="sum-item"><div class="sum-val">{ticket_pct:.1f}%</div><div class="sum-lab">ALL GENERATED WIN RATE</div></div>',
-
-        f'<div class="sum-item"><div class="sum-val green">{hits}</div><div class="sum-lab">HITS</div></div>',
-        f'<div class="sum-item"><div class="sum-val red">{misses}</div><div class="sum-lab">MISSES</div></div>',
-        f'<div class="sum-item"><div class="sum-val void">{voids}</div><div class="sum-lab">VOID/PUSH</div></div>',
-        f'<div class="sum-item"><div class="sum-val pend">{ungraded}</div><div class="sum-lab">UNGRADED</div></div>',
-        f'<div class="sum-item"><div class="sum-val">{perfect}</div><div class="sum-lab">PERFECT TICKETS</div></div>',
-        f'<div class="sum-item"><div class="sum-val green">{money_wins}</div><div class="sum-lab">PAID TIX</div></div>',
-        f'<div class="sum-item"><div class="sum-val red">{money_losses}</div><div class="sum-lab">NO PAYOUT</div></div>',
-        f'<div class="sum-item"><div class="sum-val sum-val-sm">{total_net_10:+.2f}</div><div class="sum-lab">NET @ $10/TKT</div></div>'
+        f'<div class="sum-item"><div class="sum-val green">{money_wins}</div><div class="sum-lab">Paid</div></div>',
+        f'<div class="sum-item"><div class="sum-val red">{money_losses}</div><div class="sum-lab">No payout</div></div>',
+        f'<div class="sum-item"><div class="sum-val">{perfect}</div><div class="sum-lab">Perfect</div></div>',
+        f'<div class="sum-item"><div class="sum-val sum-val-sm">{total_net_10:+.2f}</div><div class="sum-lab">Net @ $10</div></div>'
         if n_pay
-        else '<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">NET @ $10/TKT</div></div>',
-        f'<div class="sum-item"><div class="sum-val sum-val-sm">{roi_pct:.1f}%</div><div class="sum-lab">ROI (FLAT $10)</div></div>'
+        else '<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">Net @ $10</div></div>',
+        f'<div class="sum-item"><div class="sum-val sum-val-sm">{roi_pct:.1f}%</div><div class="sum-lab">ROI</div></div>'
         if n_pay
-        else '<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">ROI (FLAT $10)</div></div>',
-        f'<div class="sum-item"><div class="sum-val sum-val-sm">{total_legs}</div><div class="sum-lab">TOTAL LEGS</div></div>',
+        else '<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">ROI</div></div>',
+        "</div>",
+        '<div class="sum-row sum-row-legs">',
+        '<div class="sum-row-label">Legs</div>',
+        f'<div class="sum-item"><div class="sum-val green">{hits}</div><div class="sum-lab">Hits</div></div>',
+        f'<div class="sum-item"><div class="sum-val red">{misses}</div><div class="sum-lab">Misses</div></div>',
+        f'<div class="sum-item"><div class="sum-val void">{voids}</div><div class="sum-lab">Void / push</div></div>',
+        f'<div class="sum-item"><div class="sum-val pend">{ungraded}</div><div class="sum-lab">Ungraded</div></div>',
+        f'<div class="sum-item"><div class="sum-val sum-val-sm">{total_legs}</div><div class="sum-lab">Total legs</div></div>',
         "</div></div>",
         '<div class="wrap ticket-eval-main">',
         f'<p class="slate-kicker">SLATE DATE · {json_date}</p>',
-        '<p class="meta-muted" style="margin:4px 0 8px;line-height:1.5">'
+        '<details class="grade-eval-help"><summary>How these grades work</summary>',
+        '<p class="meta-muted">'
         "Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · "
         f"<strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/{json_date}/graded_*.xlsx</code>. "
-        "<strong>Ticket hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). "
+        "<strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). "
         "Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss."
-        f"{ungraded_note_html}</p>",
+        f"{ungraded_note_html}</p></details>",
     ]
     parts.append('<div class="ticket-sections-wrap">')
 

@@ -14,7 +14,20 @@
 # ============================================================
 
 $PipelineRoot = Split-Path -Parent $PSScriptRoot
-$PowerShellExe = (Get-Command powershell.exe).Source
+# Prefer pwsh (UTF-8 / PS7). Windows PowerShell 5.1 mis-parses UTF-8 em-dashes in wrappers.
+$PowerShellExe = $null
+foreach ($cand in @(
+    (Get-Command pwsh.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source),
+    "$env:ProgramFiles\PowerShell\7\pwsh.exe",
+    (Get-Command powershell.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source)
+)) {
+    if ($cand -and (Test-Path -LiteralPath $cand)) { $PowerShellExe = $cand; break }
+}
+if (-not $PowerShellExe) {
+    Write-Error "No pwsh.exe/powershell.exe found"
+    exit 1
+}
+Write-Host "Registering tasks with: $PowerShellExe" -ForegroundColor Cyan
 
 $Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_daily_5am.ps1"

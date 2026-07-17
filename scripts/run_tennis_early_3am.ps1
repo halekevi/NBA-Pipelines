@@ -54,14 +54,14 @@ $branch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
 $mainWt = Get-MainWorktreeRoot
 if ($branch -ne "main") {
     if ($mainWt -and (Test-Path -LiteralPath (Join-Path $mainWt "run_pipeline.ps1"))) {
-        Write-Host "[3AM TENNIS] On '$branch' — running inside main worktree: $mainWt" -ForegroundColor Yellow
+        Write-Host "[3AM TENNIS] On '$branch' - running inside main worktree: $mainWt" -ForegroundColor Yellow
         $Root = $mainWt
         $Pipeline = Join-Path $Root "run_pipeline.ps1"
         $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"
         Set-Location $Root
     }
     else {
-        Write-Host "[3AM TENNIS] On '$branch' — switching to main for Railway freshness..." -ForegroundColor Yellow
+        Write-Host "[3AM TENNIS] On '$branch' - switching to main for Railway freshness..." -ForegroundColor Yellow
         git checkout main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         if ($LASTEXITCODE -ne 0) {
             Write-Host "[3AM TENNIS] FAILED: cannot checkout main. Abort." -ForegroundColor Red
@@ -70,11 +70,25 @@ if ($branch -ne "main") {
     }
 }
 
+$LogsDir = Join-Path $Root "logs"
+if (-not (Test-Path -LiteralPath $LogsDir)) {
+    New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+}
+$WrapperLog = Join-Path $LogsDir ("task_3am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+try { Start-Transcript -Path $WrapperLog -Append | Out-Null } catch { }
+
 Write-Host "[3AM TENNIS] Pulling latest repository (main)..." -ForegroundColor Cyan
+$stashOut = git stash push -u -m "proporacle-3am-pre-pull-$(Get-Date -Format 'yyyyMMdd_HHmmss')" 2>&1
+$stashOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[3AM TENNIS] git pull failed (exit $LASTEXITCODE)" -ForegroundColor Red
-    exit $LASTEXITCODE
+$pullExit = $LASTEXITCODE
+if ("$stashOut" -notmatch 'No local changes to save') {
+    git stash pop 2>&1 | ForEach-Object { Write-Host "    stash pop: $_" -ForegroundColor DarkGray }
+}
+if ($pullExit -ne 0) {
+    Write-Host "[3AM TENNIS] git pull failed (exit $pullExit)" -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
+    exit $pullExit
 }
 
 $Today = Get-PropOracleEasternTodayYmd
@@ -96,8 +110,10 @@ if (Test-Path $Snapshot) {
 
 if ($pipeExit -ne 0) {
     Write-Host "[3AM TENNIS] run_pipeline -TennisOnly failed (exit $pipeExit)" -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
     exit $pipeExit
 }
 
 Write-Host "[3AM TENNIS] Complete" -ForegroundColor Green
+try { Stop-Transcript | Out-Null } catch { }
 exit 0

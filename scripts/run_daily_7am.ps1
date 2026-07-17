@@ -40,13 +40,13 @@ $branch = (git rev-parse --abbrev-ref HEAD 2>$null | Out-String).Trim()
 $mainWt = Get-MainWorktreeRoot
 if ($branch -ne "main") {
     if ($mainWt -and (Test-Path -LiteralPath (Join-Path $mainWt "scripts\run_refresh_with_log.ps1"))) {
-        Write-Host "[7AM UPDATE] On '$branch' — running refresh inside main worktree: $mainWt" -ForegroundColor Yellow
+        Write-Host "[7AM UPDATE] On '$branch' - running refresh inside main worktree: $mainWt" -ForegroundColor Yellow
         $Root = $mainWt
         $Refresh = Join-Path $Root "scripts\run_refresh_with_log.ps1"
         Set-Location $Root
     }
     else {
-        Write-Host "[7AM UPDATE] On '$branch' — switching to main for Railway freshness..." -ForegroundColor Yellow
+        Write-Host "[7AM UPDATE] On '$branch' - switching to main for Railway freshness..." -ForegroundColor Yellow
         git checkout main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
         if ($LASTEXITCODE -ne 0) {
             Write-Host "[7AM UPDATE] FAILED: cannot checkout main (locked by another worktree or WIP). Abort." -ForegroundColor Red

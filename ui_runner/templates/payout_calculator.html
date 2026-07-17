@@ -970,7 +970,7 @@ body::before{
 <!-- ── HERO ── -->
 <div class="hero">
   <h1>💰 Payout <span>Calculator</span></h1>
-  <div class="hero-sub">Build slips, log lines, and check rate cards. Ladder tools are in the strip above.</div>
+  <div class="hero-sub">Build slips, log lines, and check rates. Use Ladder Log for screenshot OCR from phone or desktop.</div>
 </div>
 
 <!-- ── TABS ── -->
@@ -978,7 +978,7 @@ body::before{
   <button class="tab-btn active" onclick="switchTab('calc',this)">⚡ Calculator</button>
   <button class="tab-btn" onclick="switchTab('composer',this)">🧩 Ticket Composer</button>
   <button class="tab-btn" onclick="switchTab('log',this)">📋 Log Lines <span class="badge-count" id="log-count">0</span></button>
-  <button class="tab-btn" onclick="switchTab('cards',this)">🃏 Rate cards</button>
+  <button class="tab-btn" onclick="switchTab('cards',this)">🃏 Rates &amp; Ladder</button>
 </div>
 
 <!-- ═══════════ TAB 1: CALCULATOR ═══════════ -->
@@ -1070,7 +1070,10 @@ body::before{
     <div class="btn-row">
       <button class="btn btn-accent" type="button" onclick="runComposerPredict()">▶ Predict</button>
       <button class="btn btn-ghost" type="button" onclick="composerReset()">✕ Clear</button>
+      <a class="btn btn-ghost" href="/payout/log" title="Screenshot OCR from phone or desktop">📷 Ladder Log</a>
+      <button class="btn btn-ghost" type="button" onclick="goTab('cards')" title="Baselines + live ladder coverage">🃏 Rates &amp; Ladder</button>
     </div>
+    <p class="hint" style="margin-top:8px">Ladder Log = upload a PrizePicks screenshot (phone or desktop). Rates &amp; Ladder = baseline cards plus live coverage by mix.</p>
     <div id="composer-msg" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
   </div>
   <div class="card cyan" id="composer-results" style="display:none">
@@ -1171,13 +1174,18 @@ body::before{
   </div>
 </div>
 
-<!-- ═══════════ TAB 3: RATE CARDS (JSON dictionary) ═══════════ -->
+<!-- ═══════════ TAB 3: RATES & LADDER ═══════════ -->
 <div id="tab-cards" class="tab-panel">
   <div class="card accent">
-    <div class="card-title">🃏 Payout rate cards</div>
-    <p class="hint">Quick-reference deck from <code style="font-size:10px;opacity:.85">data/payout_rate_cards.json</code> — same baselines as the calculator / grader. Regenerate after updating coefficients: <code style="font-size:10px;opacity:.85">python scripts/build_payout_rate_cards.py</code></p>
-    <p class="hint" style="margin-top:10px">To capture <strong>live payout and flex guarantee rates</strong>, use <strong>Log Lines</strong>: enter the app’s sweep multiplier (and optional min guarantee on Flex), then enable “append to server CSV” if you want rows in <code style="font-size:10px;opacity:.85">data/payout_observations.csv</code> for refitting <code style="font-size:10px;opacity:.85">payout_formula_coefficients.json</code>.</p>
-    <div id="rate-cards-mount"><div class="hint" style="padding:20px 0">Open this tab to load the dictionary.</div></div>
+    <div class="card-title">🃏 Rates &amp; Ladder</div>
+    <p class="hint">Baseline rate cards for the calculator, plus live ladder coverage by S/G/D mix. Capture new rows via <strong>Ladder Log</strong> (screenshot OCR).</p>
+    <div class="btn-row" style="margin-bottom:12px">
+      <a class="btn btn-ghost" href="/payout/log">📷 Ladder Log (screenshot)</a>
+      <a class="btn btn-ghost" href="/payout/ladder">🧱 Full ladder table</a>
+    </div>
+    <div id="ladder-mix-mount"><div class="hint" style="padding:12px 0">Open this tab to load ladder coverage…</div></div>
+    <div class="section-divider" style="margin:16px 0 10px">RATE CARDS</div>
+    <div id="rate-cards-mount"><div class="hint" style="padding:12px 0">Open this tab to load the dictionary.</div></div>
     <div style="margin-top:14px">
       <div class="section-divider" style="margin-bottom:10px">GOBLIN DISCOUNT BY Δ (FROM STANDARD)</div>
       <div id="goblin-discount-mount"><div class="hint" style="padding:8px 0">Loading Δ discount table...</div></div>
@@ -1234,7 +1242,7 @@ function switchTab(id,btn){
     if(i>=0&&btns[i])btns[i].classList.add('active');
   }
   if(id==='log'){renderLogTable();updateLogCount();}
-  if(id==='cards')renderRateCards(false);
+  if(id==='cards'){renderRateCards(false);renderLadderMix(false);}
   try {
     const u=new URL(window.location.href);
     if(id==='calc') u.searchParams.delete('tab');
@@ -1417,6 +1425,62 @@ function paintRateCards(data){
   root.appendChild(intro);
   root.appendChild(grid);
   renderGoblinDiscountTable();
+}
+function renderLadderMix(force){
+  const root=document.getElementById('ladder-mix-mount');
+  if(!root)return;
+  if(!force&&window.__ladderMixCache){paintLadderMix(window.__ladderMixCache);return;}
+  if(window.__ladderMixInFlight&&!force)return;
+  window.__ladderMixInFlight=true;
+  root.innerHTML='<div class="hint" style="padding:12px 0">Loading ladder coverage…</div>';
+  fetch('/api/payout/ladder-summary').then(r=>{
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    window.__ladderMixInFlight=false;
+    window.__ladderMixCache=data;
+    paintLadderMix(data);
+  }).catch(e=>{
+    window.__ladderMixInFlight=false;
+    window.__ladderMixCache=null;
+    root.innerHTML='<div class="hint" style="color:var(--red)">Could not load ladder: '+_escapeRateCardHtml(e.message)+'</div>'+
+      '<div style="margin-top:10px"><button type="button" class="btn btn-accent" onclick="renderLadderMix(true)">Retry</button></div>';
+  });
+}
+function paintLadderMix(data){
+  const root=document.getElementById('ladder-mix-mount');
+  if(!root)return;
+  const rows=Array.isArray(data&&data.mix_rows)?data.mix_rows:[];
+  const total=Number(data&&data.total_rows)||0;
+  const live=Number(data&&data.live_cdp_rows)||0;
+  if(!rows.length){
+    root.innerHTML='<div class="hint">No ladder rows yet. Use <a href="/payout/log" style="color:var(--accent)">Ladder Log</a> to capture screenshots.</div>';
+    return;
+  }
+  const body=rows.map(r=>{
+    const samples=Number(r.samples)||0;
+    const liveN=Number(r.live_cdp_samples)||0;
+    const avg=Number(r.avg_payout_x);
+    const src=String(r.rate_source||'')==='live_cdp'?'LIVE':'HIST';
+    const sparse=samples<5?' style="opacity:.75"':'';
+    return '<tr'+sparse+'>'+
+      '<td style="text-align:left">'+_escapeRateCardHtml(r.n_legs)+'</td>'+
+      '<td style="text-align:left">'+_escapeRateCardHtml(r.leg_composition)+'</td>'+
+      '<td>'+samples+'</td>'+
+      '<td>'+liveN+'</td>'+
+      '<td>'+src+'</td>'+
+      '<td>'+(Number.isFinite(avg)?avg.toFixed(2)+'x':'—')+'</td>'+
+      '</tr>';
+  }).join('');
+  root.innerHTML=
+    '<div class="hint" style="margin-bottom:8px">Showing top '+rows.length+' mixes · '+total+' logged rows · '+live+' live CDP. '+
+    '<a href="/payout/ladder" style="color:var(--cyan)">Open full table</a></div>'+
+    '<div class="tbl-scroll" style="max-height:280px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:10px">'+
+    '<table class="tbl" style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr>'+
+    '<th style="text-align:left;padding:6px 8px">Legs</th><th style="text-align:left;padding:6px 8px">Mix</th>'+
+    '<th style="padding:6px 8px">Samples</th><th style="padding:6px 8px">Live</th><th style="padding:6px 8px">Src</th><th style="padding:6px 8px">Avg X</th>'+
+    '</tr></thead><tbody>'+body+'</tbody></table></div>';
 }
 function renderRateCards(force){
   const root=document.getElementById('rate-cards-mount');

@@ -194,6 +194,10 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .tab-btn{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:2px;padding:10px 16px;cursor:pointer;color:var(--muted);border:1px solid transparent;background:rgba(255,255,255,0.02);border-radius:10px;transition:all .15s;text-transform:uppercase;}
 .tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.10);}
 .tab-btn.active{color:var(--accent);background:rgba(212,175,55,0.10);border-color:rgba(212,175,55,0.32);box-shadow:0 0 18px rgba(212,175,55,0.12),inset 0 -1px 0 rgba(212,175,55,0.5);}
+.chip{appearance:none;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:11px;letter-spacing:0.04em;cursor:pointer;}
+.chip:hover{border-color:rgba(255,255,255,0.22);color:var(--text);}
+.chip.active{border-color:rgba(212,175,55,0.45);background:rgba(212,175,55,0.1);color:var(--accent);}
+#tab-log{display:none!important;}
 .tab-panel{display:none;}.tab-panel.active{display:block;}
 
 /* ── Payout rate card deck (/api/payout/rate-cards) ── */
@@ -947,7 +951,7 @@ body::before{
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
 <link rel="stylesheet" href="static/site-nav-unified.css?v=20260408"/>
 </head>
-<body>
+<body class="page-payout">
 <!-- Liquid Glass Orbs -->
 <div class="orb-1" style="position:fixed;top:-12%;left:-6%;width:560px;height:560px;background:radial-gradient(circle,rgba(127,199,217,0.18) 0%,transparent 70%);filter:blur(120px);z-index:0;pointer-events:none;animation:orbP1 20s ease-in-out infinite alternate;"></div>
 <div class="orb-1" style="position:fixed;top:30%;right:-8%;width:700px;height:700px;background:radial-gradient(circle,rgba(212,175,55,0.09) 0%,transparent 70%);filter:blur(120px);z-index:0;pointer-events:none;animation:orbP2 24s ease-in-out infinite alternate;"></div>
@@ -1007,54 +1011,139 @@ body::before{
 
 <div id="app">
 
+
 <style>
-  .payout-subnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);}
-  .payout-subnav-back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.1);color:#d4af37;text-decoration:none;font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
-  .payout-subnav-back:hover{background:rgba(212,175,55,.18);}
-  .payout-subnav-sep{width:1px;height:22px;background:rgba(255,255,255,.12);flex-shrink:0;}
-  .payout-subnav-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;}
-  .payout-subnav-links a{text-decoration:none;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid transparent;}
-  .payout-subnav-links a:hover{color:rgba(255,255,255,.95);background:rgba(255,255,255,.04);}
-  .payout-subnav-links a.active{color:#d4af37;border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.1);}
-  .payout-subnav-tools{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}
-  .payout-subnav-tools a{text-decoration:none;color:rgba(127,199,217,.95);font-size:11px;letter-spacing:.04em;padding:6px 10px;border-radius:8px;border:1px solid rgba(127,199,217,.28);background:rgba(127,199,217,.06);}
-  .payout-subnav-tools a:hover{background:rgba(127,199,217,.12);}
-  .payout-subnav-tools a.active{color:#7fc7d9;border-color:rgba(127,199,217,.5);background:rgba(127,199,217,.14);}
-  @media (max-width:720px){.payout-subnav-sep{display:none;}.payout-subnav-tools{margin-left:0;width:100%;}}
+  .payout-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    background: rgba(255,255,255,.03);
+  }
+  .payout-subnav-back {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,175,55,.35);
+    background: rgba(212,175,55,.1);
+    color: var(--accent, #d4af37);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .page-payout-ladder .payout-subnav-back { display: inline-flex; }
+  .payout-subnav-back:hover { background: rgba(212,175,55,.18); }
+  .payout-subnav-sep {
+    display: none;
+    width: 1px;
+    height: 22px;
+    background: rgba(255,255,255,.12);
+    flex-shrink: 0;
+  }
+  .page-payout-ladder .payout-subnav-sep { display: block; }
+  .payout-subnav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+  }
+  .payout-subnav-links a {
+    text-decoration: none;
+    color: rgba(255,255,255,.72);
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .payout-subnav-links a:hover {
+    color: rgba(255,255,255,.95);
+    background: rgba(255,255,255,.04);
+  }
+  .payout-subnav-links a.active,
+  .page-payout:not([data-payout-tab="cards"]) .payout-subnav-links a[data-section="builder"],
+  .page-payout[data-payout-tab="cards"] .payout-subnav-links a[data-section="cards"],
+  .page-payout-log .payout-subnav-links a[data-section="ladder_log"] {
+    color: var(--accent, #d4af37);
+    border-color: rgba(212,175,55,.35);
+    background: rgba(212,175,55,.1);
+  }
+  .payout-subnav-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .payout-subnav-tools a {
+    text-decoration: none;
+    color: rgba(127,199,217,.95);
+    font-size: 11px;
+    letter-spacing: .04em;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(127,199,217,.28);
+    background: rgba(127,199,217,.06);
+  }
+  .payout-subnav-tools a:hover { background: rgba(127,199,217,.12); }
+  .payout-subnav-tools a.active,
+  .page-payout-ladder .payout-subnav-tools a[data-section="ladder_table"] {
+    color: #7fc7d9;
+    border-color: rgba(127,199,217,.5);
+    background: rgba(127,199,217,.14);
+  }
+  @media (max-width: 720px) {
+    .payout-subnav-sep { display: none !important; }
+    .payout-subnav-tools { margin-left: 0; width: 100%; }
+  }
 </style>
 <nav class="payout-subnav" aria-label="Payouts sections">
-    <div class="payout-subnav-links">
-    <a href="payout.html" class="active">Calculator</a>
-    <a href="payout.html?tab=composer">Composer</a>
-    <a href="payout.html?tab=log">Log Lines</a>
-    <a href="payout.html?tab=cards">Rates &amp; Ladder</a>
+  <a class="payout-subnav-back" href="payout.html">&larr; Back to Builder</a>
+  <span class="payout-subnav-sep" aria-hidden="true"></span>
+  <div class="payout-subnav-links">
+    <a href="payout.html" data-section="builder">Builder</a>
+    <a href="payout_log.html" data-section="ladder_log">Ladder Log</a>
+    <a href="payout.html?tab=cards" data-section="cards">Rates &amp; Ladder</a>
   </div>
   <div class="payout-subnav-tools">
-    <a href="payout_log.html">Ladder Log</a>
-    <a href="payout_ladder.html">Ladder Table</a>
+    <a href="payout_ladder.html" data-section="ladder_table">Full table</a>
   </div>
 </nav>
 
 
 <!-- ── HERO ── -->
 <div class="hero">
-  <h1>💰 Payout <span>Calculator</span></h1>
-  <div class="hero-sub">Build slips, log lines, and check rates. Use Ladder Log for screenshot OCR from phone or desktop.</div>
+  <h1>💰 Payout <span>Tools</span></h1>
+  <div class="hero-sub">Build an EV slip or composition ticket, capture ladder rows from screenshots, and check rates.</div>
 </div>
 
 <!-- ── TABS ── -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('calc',this)">⚡ Calculator</button>
-  <button class="tab-btn" onclick="switchTab('composer',this)">🧩 Ticket Composer</button>
-  <button class="tab-btn" onclick="switchTab('log',this)">📋 Log Lines <span class="badge-count" id="log-count">0</span></button>
+  <button class="tab-btn active" onclick="switchTab('calc',this)">⚡ Builder</button>
+  <a class="tab-btn" href="payout_log.html" style="text-decoration:none;display:inline-flex;align-items:center">📷 Ladder Log</a>
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 Rates &amp; Ladder</button>
 </div>
 
-<!-- ═══════════ TAB 1: CALCULATOR ═══════════ -->
+<!-- ═══════════ TAB 1: BUILDER (EV + Composition) ═══════════ -->
 <div id="tab-calc" class="tab-panel active">
+  <div class="toolbar" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+    <button type="button" class="chip active" data-builder-mode="ev" onclick="setBuilderMode('ev',this)">EV Slip</button>
+    <button type="button" class="chip" data-builder-mode="composer" onclick="setBuilderMode('composer',this)">Composition</button>
+  </div>
+
+  <div id="builder-mode-ev">
   <div class="card accent">
     <div class="card-title">💰 Slip Builder + EV</div>
-    <p class="hint hint-compact">Add legs, set lines + hit %, enter the multiplier PrizePicks shows, then Calculate EV.</p>
+    <p class="hint hint-compact">Add legs, set lines + hit %, enter the multiplier PrizePicks shows, then Calculate EV. Screenshot import works on phone or desktop.</p>
 
     <div class="builder-toolbar">
       <div class="field"><label>PLATFORM</label>
@@ -1123,13 +1212,12 @@ body::before{
     </div>
     <div class="result-notes" id="r-notes"></div>
   </div>
-</div>
+  </div><!-- /builder-mode-ev -->
 
-<!-- ═══════════ TAB 1B: TICKET COMPOSER ═══════════ -->
-<div id="tab-composer" class="tab-panel">
+  <div id="builder-mode-composer" style="display:none">
   <div class="card accent">
-    <div class="card-title">🧩 Ticket Composer</div>
-    <p class="hint">Build composition-only tickets for payout prediction. Each leg has <strong>pick type</strong>, <strong>delta</strong> (units from standard), and <strong>direction</strong>.</p>
+    <div class="card-title">🧩 Composition Predict</div>
+    <p class="hint">Composition-only tickets for payout prediction. Each leg has <strong>pick type</strong>, <strong>delta</strong> (units from standard), and <strong>direction</strong>.</p>
     <div id="composer-legs"></div>
     <div class="add-leg-row">
       <button class="add-leg-btn standard" type="button" onclick="composerAddLeg('Standard')">⭐ + Standard</button>
@@ -1139,11 +1227,7 @@ body::before{
     <div class="btn-row">
       <button class="btn btn-accent" type="button" onclick="runComposerPredict()">▶ Predict</button>
       <button class="btn btn-ghost" type="button" onclick="composerReset()">✕ Clear</button>
-    <a class="btn btn-ghost" href="payout_log.html" title="Screenshot OCR from phone or desktop">📷 Ladder Log</a>
-      <button class="btn btn-ghost" type="button" onclick="goTab(\'cards\')" title="Baselines + live ladder coverage">🃏 Rates &amp; Ladder</button>
     </div>
-    <p class="hint" style="margin-top:8px">Ladder Log = upload a PrizePicks screenshot (phone or desktop). Rates &amp; Ladder = baseline cards plus live coverage by mix.</p>
-
     <div id="composer-msg" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
   </div>
   <div class="card cyan" id="composer-results" style="display:none">
@@ -1156,7 +1240,11 @@ body::before{
     </div>
     <div class="result-notes" id="composer-breakdown"></div>
   </div>
+  </div><!-- /builder-mode-composer -->
 </div>
+
+<!-- composer/log standalone panels removed from tab bar; log panel kept hidden for legacy JS -->
+<div id="tab-composer" class="tab-panel" style="display:none!important" aria-hidden="true"></div>
 
 <!-- ═══════════ TAB 2: LOG ═══════════ -->
 <div id="tab-log" class="tab-panel">
@@ -1244,19 +1332,17 @@ body::before{
   </div>
 </div>
 
-<!-- ═══════════ TAB 3: RATE CARDS (JSON dictionary) ═══════════ -->
+<!-- ═══════════ TAB 3: RATES & LADDER ═══════════ -->
 <div id="tab-cards" class="tab-panel">
   <div class="card accent">
     <div class="card-title">🃏 Rates &amp; Ladder</div>
-    <p class="hint">Quick-reference deck from <code style="font-size:10px;opacity:.85">data/payout_rate_cards.json</code> — same baselines as the calculator / grader. Regenerate after updating coefficients: <code style="font-size:10px;opacity:.85">python scripts/build_payout_rate_cards.py</code></p>
-    <p class="hint" style="margin-top:10px">To capture <strong>live payout and flex guarantee rates</strong>, use <strong>Log Lines</strong>: enter the app’s sweep multiplier (and optional min guarantee on Flex), then enable “append to server CSV” if you want rows in <code style="font-size:10px;opacity:.85">data/payout_observations.csv</code> for refitting <code style="font-size:10px;opacity:.85">payout_formula_coefficients.json</code>.</p>
+    <p class="hint">Baseline rate cards plus live ladder coverage by S/G/D mix. Capture new rows on the <strong>Ladder Log</strong> tab (screenshot OCR).</p>
     <div class="btn-row" style="margin-bottom:12px">
-      <a class="btn btn-ghost" href="payout_log.html">📷 Ladder Log (screenshot)</a>
       <a class="btn btn-ghost" href="payout_ladder.html">🧱 Full ladder table</a>
     </div>
     <div id="ladder-mix-mount"><div class="hint" style="padding:12px 0">Open this tab to load ladder coverage…</div></div>
     <div class="section-divider" style="margin:16px 0 10px">RATE CARDS</div>
-    <div id="rate-cards-mount"><div class="hint" style="padding:20px 0">Open this tab to load the dictionary.</div></div>
+    <div id="rate-cards-mount"><div class="hint" style="padding:12px 0">Open this tab to load the dictionary.</div></div>
     <div style="margin-top:14px">
       <div class="section-divider" style="margin-bottom:10px">GOBLIN DISCOUNT BY Δ (FROM STANDARD)</div>
       <div id="goblin-discount-mount"><div class="hint" style="padding:8px 0">Loading Δ discount table...</div></div>
@@ -1269,11 +1355,10 @@ body::before{
 <div id="modal-overlay" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-title" onclick="if(event.target===this)closePickModal()">
   <div class="modal-card" onclick="event.stopPropagation()">
     <h3 id="modal-title">Confirm imported picks</h3>
-    <p style="font-size:11px;color:var(--muted);line-height:1.6">Review JSON below. Apply replaces legs on the tab you chose. When the model returns <code style="font-size:10px">actual_payout_multiplier</code> / <code style="font-size:10px">flex_min_guarantee_multiplier</code>, those fill in Calculator and Log Lines payout fields.</p>
+    <p style="font-size:11px;color:var(--muted);line-height:1.6">Review JSON below. Apply replaces legs on the Builder EV slip. When the model returns <code style="font-size:10px">actual_payout_multiplier</code> / <code style="font-size:10px">flex_min_guarantee_multiplier</code>, those fill in the payout fields.</p>
     <pre id="modal-picks-json"></pre>
     <div class="modal-actions" style="flex-wrap:wrap;gap:8px">
-      <button type="button" class="btn btn-accent" onclick="confirmApplyImportedPicksCalc()">Apply to Calculator</button>
-      <button type="button" class="btn btn-accent" onclick="confirmApplyImportedPicksLog()">Apply to Log Lines</button>
+      <button type="button" class="btn btn-accent" onclick="confirmApplyImportedPicksCalc()">Apply to Builder</button>
       <button type="button" class="btn btn-ghost" onclick="closePickModal()">Cancel</button>
     </div>
   </div>
@@ -1301,40 +1386,83 @@ function saveLog(e){try{localStorage.setItem(STORE_KEY,JSON.stringify(e))}catch{
 let logEntries=loadLog();
 
 function switchTab(id,btn){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const requested = id;
+  if(requested==='log' || requested==='ladder_log' || requested==='ladder'){
+    window.location.href="payout_log.html";
+    return;
+  }
+  if(requested==='composer') id = 'calc';
+
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    if(p.id==='tab-composer' || p.id==='tab-log'){ p.classList.remove('active'); return; }
+    p.classList.remove('active');
+  });
+  document.querySelectorAll('.tab-bar .tab-btn').forEach(b=>b.classList.remove('active'));
   const panel=document.getElementById('tab-'+id);
   if(panel)panel.classList.add('active');
-  if(btn)btn.classList.add('active');
-  else {
-    const order=['calc','composer','log','cards'];
-    const i=order.indexOf(id);
-    const btns=document.querySelectorAll('.tab-bar .tab-btn');
-    if(i>=0&&btns[i])btns[i].classList.add('active');
-  }
-  if(id==='log'){renderLogTable();updateLogCount();}
-  if(id==='cards'){renderRateCards(false);if(typeof renderLadderMix==='function')renderLadderMix(false);}
+  const order=['calc','cards'];
+  const i=order.indexOf(id);
+  const btns=[...document.querySelectorAll('.tab-bar .tab-btn')].filter((el)=>el.tagName==='BUTTON');
+  if(btn && btn.classList && btn.tagName==='BUTTON') btn.classList.add('active');
+  else if(i>=0&&btns[i]) btns[i].classList.add('active');
+
+  if(id==='cards'){ renderRateCards(false); renderLadderMix(false); }
   try {
     const u=new URL(window.location.href);
     if(id==='calc') u.searchParams.delete('tab');
     else u.searchParams.set('tab', id);
+    if(requested==='composer') u.searchParams.set('mode','composer');
+    else if(id==='calc') u.searchParams.delete('mode');
     history.replaceState({}, '', u.pathname + u.search + u.hash);
   } catch(_e) {}
+  try {
+    if(id==='cards') document.body.setAttribute('data-payout-tab','cards');
+    else document.body.removeAttribute('data-payout-tab');
+  } catch(_e) {}
+  if(requested==='composer') setBuilderMode('composer');
+}
+function goTab(id){
+  if(id==='log' || id==='ladder' || id==='ladder_log'){
+    window.location.href="payout_log.html";
+    return;
+  }
+  if(id==='composer'){ switchTab('composer',null); return; }
+  const order=['calc','cards'],i=order.indexOf(id);
+  const btns=[...document.querySelectorAll('.tab-bar .tab-btn')].filter((el)=>el.tagName==='BUTTON');
+  if(i>=0&&btns[i])switchTab(id,btns[i]);
+  else switchTab(id,null);
+}
+function setBuilderMode(mode,btn){
+  const ev=document.getElementById('builder-mode-ev');
+  const comp=document.getElementById('builder-mode-composer');
+  if(ev)ev.style.display = mode==='composer' ? 'none' : '';
+  if(comp)comp.style.display = mode==='composer' ? '' : 'none';
+  document.querySelectorAll('[data-builder-mode]').forEach((b)=>b.classList.toggle('active', b.getAttribute('data-builder-mode')===mode));
+  if(btn)btn.classList.add('active');
+  try{
+    const u=new URL(window.location.href);
+    if(mode==='composer') u.searchParams.set('mode','composer');
+    else u.searchParams.delete('mode');
+    history.replaceState({}, '', u.pathname + u.search + u.hash);
+  }catch(_e){}
 }
 function _bootPayoutTabFromUrl(){
   try {
-    const tab = new URLSearchParams(window.location.search).get('tab') || '';
-    const map = { calc:'calc', calculator:'calc', composer:'composer', log:'log', loglines:'log', cards:'cards', rates:'cards' };
-    const id = map[String(tab).toLowerCase()] || 'calc';
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab') || '';
+    const mode = params.get('mode') || '';
+    const t = String(tab).toLowerCase();
+    if (t === 'log' || t === 'ladder_log' || t === 'ladder' || t === 'loglines') {
+      window.location.replace('payout_log.html');
+      return;
+    }
+    const map = { calc:'calc', calculator:'calc', builder:'calc', composer:'calc', cards:'cards', rates:'cards' };
+    const id = map[t] || 'calc';
     if (id !== 'calc') goTab(id);
+    if (t === 'composer' || String(mode).toLowerCase() === 'composer') setBuilderMode('composer');
   } catch(_e) {}
 }
 document.addEventListener('DOMContentLoaded', _bootPayoutTabFromUrl);
-function goTab(id){
-  const order=['calc','composer','log','cards'],i=order.indexOf(id);
-  const btns=document.querySelectorAll('.tab-bar .tab-btn');
-  if(i>=0&&btns[i])switchTab(id,btns[i]);
-}
 
 function composerAddLeg(pickType){
   composerLegs.push({ pick_type: pickType || 'Standard', delta: 0, direction: 'OVER' });
@@ -1354,8 +1482,7 @@ function composerLoadPrefill(){
     }));
     localStorage.removeItem('payout_composer_prefill');
     renderComposerLegs();
-    const btns=document.querySelectorAll('.tab-bar .tab-btn');
-    if(btns[1])switchTab('composer',btns[1]);
+    goTab('composer');
   }catch(_e){}
 }
 function composerRemoveLeg(i){
@@ -1489,41 +1616,62 @@ function paintRateCards(data){
   root.appendChild(grid);
   renderGoblinDiscountTable();
 }
-
 function renderLadderMix(force){
   const root=document.getElementById('ladder-mix-mount');
   if(!root)return;
   if(!force&&window.__ladderMixCache){paintLadderMix(window.__ladderMixCache);return;}
+  if(window.__ladderMixInFlight&&!force)return;
+  window.__ladderMixInFlight=true;
   root.innerHTML='<div class="hint" style="padding:12px 0">Loading ladder coverage…</div>';
   fetch('/api/payout/ladder-summary').then(r=>{
     if(!r.ok)throw new Error('HTTP '+r.status);
     return r.json();
   }).then(data=>{
+    window.__ladderMixInFlight=false;
     window.__ladderMixCache=data;
     paintLadderMix(data);
-  }).catch(()=>{
-    root.innerHTML='<div class="hint">Ladder coverage needs the live server. Open <a href="payout_ladder.html" style="color:var(--cyan)">full ladder table</a> or use Ladder Log.</div>';
+  }).catch(e=>{
+    window.__ladderMixInFlight=false;
+    window.__ladderMixCache=null;
+    root.innerHTML='<div class="hint" style="color:var(--red)">Could not load ladder: '+_escapeRateCardHtml(e.message)+'</div>'+
+      '<div style="margin-top:10px"><button type="button" class="btn btn-accent" onclick="renderLadderMix(true)">Retry</button></div>';
   });
 }
 function paintLadderMix(data){
   const root=document.getElementById('ladder-mix-mount');
   if(!root)return;
   const rows=Array.isArray(data&&data.mix_rows)?data.mix_rows:[];
+  const total=Number(data&&data.total_rows)||0;
+  const live=Number(data&&data.live_cdp_rows)||0;
   if(!rows.length){
-    root.innerHTML='<div class="hint">No ladder rows yet. Use <a href="payout_log.html" style="color:var(--accent)">Ladder Log</a>.</div>';
+    root.innerHTML='<div class="hint">No ladder rows yet. Use <a href="payout_log.html" style="color:var(--accent)">Ladder Log</a> to capture screenshots.</div>';
     return;
   }
-  const body=rows.slice(0,40).map(r=>{
+  const body=rows.map(r=>{
+    const samples=Number(r.samples)||0;
+    const liveN=Number(r.live_cdp_samples)||0;
     const avg=Number(r.avg_payout_x);
-    return '<tr><td style="text-align:left">'+String(r.n_legs||'')+'</td><td style="text-align:left">'+String(r.leg_composition||'')+
-      '</td><td>'+String(r.samples||0)+'</td><td>'+String(r.live_cdp_samples||0)+'</td><td>'+
-      (String(r.rate_source||'')==='live_cdp'?'LIVE':'HIST')+'</td><td>'+(Number.isFinite(avg)?avg.toFixed(2)+'x':'—')+'</td></tr>';
+    const src=String(r.rate_source||'')==='live_cdp'?'LIVE':'HIST';
+    const sparse=samples<5?' style="opacity:.75"':'';
+    return '<tr'+sparse+'>'+
+      '<td style="text-align:left">'+_escapeRateCardHtml(r.n_legs)+'</td>'+
+      '<td style="text-align:left">'+_escapeRateCardHtml(r.leg_composition)+'</td>'+
+      '<td>'+samples+'</td>'+
+      '<td>'+liveN+'</td>'+
+      '<td>'+src+'</td>'+
+      '<td>'+(Number.isFinite(avg)?avg.toFixed(2)+'x':'—')+'</td>'+
+      '</tr>';
   }).join('');
-  root.innerHTML='<div class="hint" style="margin-bottom:8px"><a href="payout_ladder.html" style="color:var(--cyan)">Open full table</a></div>'+
-    '<div style="max-height:280px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:10px">'+
-    '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th style="text-align:left;padding:6px 8px">Legs</th><th style="text-align:left;padding:6px 8px">Mix</th><th style="padding:6px 8px">Samples</th><th style="padding:6px 8px">Live</th><th style="padding:6px 8px">Src</th><th style="padding:6px 8px">Avg X</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+  root.innerHTML=
+    '<div class="hint" style="margin-bottom:8px">Showing top '+rows.length+' mixes · '+total+' logged rows · '+live+' live CDP. '+
+    '<a href="payout_ladder.html" style="color:var(--cyan)">Open full table</a></div>'+
+    '<div class="tbl-scroll" style="max-height:280px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:10px">'+
+    '<table class="tbl" style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr>'+
+    '<th style="text-align:left;padding:6px 8px">Legs</th><th style="text-align:left;padding:6px 8px">Mix</th>'+
+    '<th style="padding:6px 8px">Samples</th><th style="padding:6px 8px">Live</th><th style="padding:6px 8px">Src</th><th style="padding:6px 8px">Avg X</th>'+
+    '</tr></thead><tbody>'+body+'</tbody></table></div>';
 }
-
 function renderRateCards(force){
   const root=document.getElementById('rate-cards-mount');
   if(!root)return;
@@ -1531,7 +1679,7 @@ function renderRateCards(force){
   if(_rateCardsInFlight&&!force)return;
   _rateCardsInFlight=true;
   root.innerHTML='<div class="hint" style="padding:16px 0">Loading rate cards…</div>';
-  fetch('payout_rate_cards.json', { cache: 'no-store' }).then(r=>{
+  fetch('/api/payout/rate-cards').then(r=>{
     if(!r.ok)throw new Error('HTTP '+r.status+(r.status===404?' — run python scripts/build_payout_rate_cards.py':''));
     return r.json();
   }).then(data=>{
@@ -2582,16 +2730,16 @@ function confirmApplyImportedPicksCalc(){
   goTab('calc');
 }
 function confirmApplyImportedPicksLog(){
-  if(_pendingImportedPicks)applyPicksToLog(_pendingImportedPicks,_pendingImportedMeta);
+  // Log Lines tab removed — apply to Builder EV slip instead.
+  if(_pendingImportedPicks)applyPicksToCalc(_pendingImportedPicks,_pendingImportedMeta);
   closePickModal();
-  goTab('log');
+  goTab('calc');
 }
 document.addEventListener('paste',e=>{
-  const tCalc=document.getElementById('tab-calc'),tLog=document.getElementById('tab-log');
+  const tCalc=document.getElementById('tab-calc');
   const onCalc=tCalc&&tCalc.classList.contains('active');
-  const onLog=tLog&&tLog.classList.contains('active');
-  if(!onCalc&&!onLog)return;
-  _screenshotImportTarget=onLog?'log':'calc';
+  if(!onCalc)return;
+  _screenshotImportTarget='calc';
   const items=e.clipboardData&&e.clipboardData.items;
   if(!items)return;
   for(let i=0;i<items.length;i++){

@@ -80,8 +80,18 @@
   {% set nav_active = 'payout' %}
   {% include '_site_nav.html' %}
   <main class="wrap">
-    {% set payout_section = 'ladder_log' %}
     {% include '_payout_subnav.html' %}
+    <style>
+      .tab-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:16px;}
+      .tab-btn{font-family:inherit;font-size:11px;letter-spacing:2px;padding:10px 16px;cursor:pointer;color:rgba(255,255,255,.65);border:1px solid transparent;background:rgba(255,255,255,0.02);border-radius:10px;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;}
+      .tab-btn:hover{color:#f4f7ff;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.10);}
+      .tab-btn.active{color:var(--accent,#d4af37);background:rgba(212,175,55,0.10);border-color:rgba(212,175,55,0.32);}
+    </style>
+    <div class="tab-bar" role="tablist" aria-label="Payout tools">
+      <a class="tab-btn" href="/payout">⚡ Builder</a>
+      <a class="tab-btn active" href="/payout/log" aria-current="page">📷 Ladder Log</a>
+      <a class="tab-btn" href="/payout?tab=cards">🃏 Rates &amp; Ladder</a>
+    </div>
     <section class="card">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
         <div class="title" style="margin:0">Payout Ladder Logger</div>

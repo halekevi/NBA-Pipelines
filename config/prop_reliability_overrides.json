@@ -39,6 +39,22 @@
       "line_bucket": "mid",
       "status": "UNRELIABLE",
       "note": "Known NHL SOG mapping artifact window"
+    },
+    {
+      "sport": "MLB",
+      "prop_type": "singles",
+      "direction": "OVER",
+      "line_bucket": "micro",
+      "status": "UNRELIABLE",
+      "note": "Long-term Singles OVER micro HR ~42% (n~9.8k); demote from ticket pool"
+    },
+    {
+      "sport": "MLB",
+      "prop_type": "singles",
+      "direction": "OVER",
+      "line_bucket": "low",
+      "status": "UNRELIABLE",
+      "note": "Long-term Singles OVER low HR ~13% (n~5.9k); demote from ticket pool"
     }
   ]
 }

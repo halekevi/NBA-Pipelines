@@ -9,9 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "ui_runner" / "templates" / "dashboard_income.html"
 DST = ROOT / "mobile" / "www" / "income.html"
 OLD = DST
+GRADES = ROOT / "mobile" / "www" / "grades.html"
 
 src = SRC.read_text(encoding="utf-8")
 old = OLD.read_text(encoding="utf-8") if OLD.exists() else ""
+if '<nav class="snav"' not in old and GRADES.exists():
+    old = GRADES.read_text(encoding="utf-8")
 
 nav_m = re.search(r'(<nav class="snav"[\s\S]*?</nav>)', old)
 bnav_m = re.search(r'(<nav class="mobile-bottom-nav"[\s\S]*?</nav>)', old)

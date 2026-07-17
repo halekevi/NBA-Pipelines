@@ -49,11 +49,42 @@ def _month_from_graded_props_file(fp: Path, payload: dict[str, Any] | None) -> s
     return ""
 
 
-def _empty_sport_stats() -> dict[str, dict[str, float]]:
-    return {s: {"decided": 0.0, "paid": 0.0, "net": 0.0} for s in SPORT_BREAKDOWN_ORDER}
+def build_from_graded_props(
+    templates_dir: Path,
+    *,
+    stake_per_pick: float = 10.0,
+) -> list[dict[str, Any]]:
+    stats: dict[str, dict[str, float]] = {
+        s: {"decided": 0.0, "paid": 0.0, "net": 0.0} for s in SPORT_BREAKDOWN_ORDER
+    }
+    for fp in sorted(templates_dir.glob("graded_props_*.json")):
+        try:
+            payload = json.loads(fp.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        props = payload.get("props") if isinstance(payload, dict) else None
+        if not isinstance(props, list):
+            continue
+        for row in props:
+            if not isinstance(row, dict):
+                continue
+            sp = normalize_sport_label(row.get("sport"))
+            if sp not in stats:
+                continue
+            result = str(row.get("result") or "").strip().upper()
+            if result in {"", "NO_ACTUAL", "PENDING", "VOID", "PUSH"}:
+                continue
+            is_hit = result == "HIT"
+            is_miss = result == "MISS"
+            if not is_hit and not is_miss:
+                continue
+            stats[sp]["decided"] += 1.0
+            if is_hit:
+                stats[sp]["paid"] += 1.0
+                stats[sp]["net"] += stake_per_pick
+            else:
+                stats[sp]["net"] -= stake_per_pick
 
-
-def _rows_from_stats(stats: dict[str, dict[str, float]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for sp in SPORT_BREAKDOWN_ORDER:
         decided = int(stats[sp]["decided"])
@@ -71,54 +102,28 @@ def _rows_from_stats(stats: dict[str, dict[str, float]]) -> list[dict[str, Any]]
     return out
 
 
-def _apply_prop_result(
-    bucket: dict[str, float],
-    *,
-    is_hit: bool,
-    stake_per_pick: float,
-) -> None:
-    bucket["decided"] += 1.0
-    if is_hit:
-        bucket["paid"] += 1.0
-        bucket["net"] += stake_per_pick
-    else:
-        bucket["net"] -= stake_per_pick
-
-
-def build_sport_breakdown_bundle(
+def build_monthly_from_graded_props(
     templates_dir: Path,
     *,
     stake_per_pick: float = 10.0,
-) -> dict[str, list[dict[str, Any]]]:
-    """
-    Single pass over graded_props_*.json → all-time rows, monthly rows, and
-    per-day sport rows (for Income range chips).
-    """
-    all_stats = _empty_sport_stats()
-    month_stats: dict[tuple[str, str], dict[str, float]] = {}
-    day_stats: dict[tuple[str, str], dict[str, float]] = {}
-
+) -> list[dict[str, Any]]:
+    stats: dict[tuple[str, str], dict[str, float]] = {}
     for fp in sorted(templates_dir.glob("graded_props_*.json")):
         try:
             payload = json.loads(fp.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        if not isinstance(payload, dict):
+        month = _month_from_graded_props_file(fp, payload if isinstance(payload, dict) else None)
+        if not month:
             continue
-        props = payload.get("props")
+        props = payload.get("props") if isinstance(payload, dict) else None
         if not isinstance(props, list):
             continue
-        m = _GRADED_PROPS_DATE_RE.match(fp.name)
-        day = m.group(1) if m else str(payload.get("date") or "").strip()[:10]
-        if len(day) < 10:
-            day = ""
-        month = day[:7] if day else _month_from_graded_props_file(fp, payload)
-
         for row in props:
             if not isinstance(row, dict):
                 continue
             sp = normalize_sport_label(row.get("sport"))
-            if sp not in all_stats:
+            if sp not in SPORT_BREAKDOWN_ORDER:
                 continue
             result = str(row.get("result") or "").strip().upper()
             if result in {"", "NO_ACTUAL", "PENDING", "VOID", "PUSH"}:
@@ -127,77 +132,35 @@ def build_sport_breakdown_bundle(
             is_miss = result == "MISS"
             if not is_hit and not is_miss:
                 continue
-            _apply_prop_result(all_stats[sp], is_hit=is_hit, stake_per_pick=stake_per_pick)
-            if month:
-                mb = month_stats.setdefault((sp, month), {"decided": 0.0, "paid": 0.0, "net": 0.0})
-                _apply_prop_result(mb, is_hit=is_hit, stake_per_pick=stake_per_pick)
-            if day:
-                db = day_stats.setdefault((sp, day), {"decided": 0.0, "paid": 0.0, "net": 0.0})
-                _apply_prop_result(db, is_hit=is_hit, stake_per_pick=stake_per_pick)
+            key = (sp, month)
+            bucket = stats.setdefault(key, {"decided": 0.0, "paid": 0.0, "net": 0.0})
+            bucket["decided"] += 1.0
+            if is_hit:
+                bucket["paid"] += 1.0
+                bucket["net"] += stake_per_pick
+            else:
+                bucket["net"] -= stake_per_pick
 
     sport_rank = {sp: idx for idx, sp in enumerate(SPORT_BREAKDOWN_ORDER)}
-    monthly_rows: list[dict[str, Any]] = []
-    for (sp, month), bucket in month_stats.items():
+    out: list[dict[str, Any]] = []
+    for (sp, month), bucket in stats.items():
         decided = int(bucket["decided"])
         if decided <= 0:
             continue
         paid = int(bucket["paid"])
-        monthly_rows.append(
+        win_rate = paid / decided
+        out.append(
             {
                 "sport": sp,
                 "month": month,
                 "decided": decided,
                 "paid": paid,
-                "win_rate": paid / decided,
+                "win_rate": win_rate,
                 "net_dollars": round(float(bucket["net"]), 2),
             }
         )
-    monthly_rows.sort(
-        key=lambda r: (sport_rank.get(str(r["sport"]), 99), -int(str(r["month"]).replace("-", "")))
-    )
-
-    daily_rows: list[dict[str, Any]] = []
-    for (sp, day), bucket in day_stats.items():
-        decided = int(bucket["decided"])
-        if decided <= 0:
-            continue
-        paid = int(bucket["paid"])
-        daily_rows.append(
-            {
-                "sport": sp,
-                "date": day,
-                "decided": decided,
-                "paid": paid,
-                "win_rate": paid / decided,
-                "net_dollars": round(float(bucket["net"]), 2),
-            }
-        )
-    daily_rows.sort(
-        key=lambda r: (str(r["date"]), sport_rank.get(str(r["sport"]), 99)),
-        reverse=True,
-    )
-
-    return {
-        "rows": _rows_from_stats(all_stats),
-        "monthly_rows": monthly_rows,
-        "daily_rows": daily_rows,
-    }
-
-
-def build_from_graded_props(
-    templates_dir: Path,
-    *,
-    stake_per_pick: float = 10.0,
-) -> list[dict[str, Any]]:
-    return build_sport_breakdown_bundle(templates_dir, stake_per_pick=stake_per_pick)["rows"]
-
-
-def build_monthly_from_graded_props(
-    templates_dir: Path,
-    *,
-    stake_per_pick: float = 10.0,
-) -> list[dict[str, Any]]:
-    return build_sport_breakdown_bundle(templates_dir, stake_per_pick=stake_per_pick)["monthly_rows"]
+    out.sort(key=lambda r: (sport_rank.get(str(r["sport"]), 99), -int(str(r["month"]).replace("-", ""))))
+    return out
 
 
 def cache_paths(repo_root: Path, templates_dir: Path) -> list[Path]:
@@ -213,21 +176,15 @@ def write_cache(
     rows: list[dict[str, Any]],
     *,
     monthly_rows: list[dict[str, Any]] | None = None,
-    daily_rows: list[dict[str, Any]] | None = None,
     source: str = "graded_props_json",
 ) -> Path | None:
     payload = {
         "ok": True,
         "rows": rows,
         "monthly_rows": monthly_rows if monthly_rows is not None else [],
-        "daily_rows": daily_rows if daily_rows is not None else [],
         "source": source,
         "signature": graded_props_signature(templates_dir),
         "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "note": (
-            "Pick-level HIT/MISS at flat stake — not ticket P&L. "
-            "Use daily_rows with a date window for recent rates."
-        ),
     }
     text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
     written: Path | None = None
@@ -262,14 +219,7 @@ def read_cached_payload(
         monthly_rows = raw.get("monthly_rows")
         if not isinstance(monthly_rows, list):
             monthly_rows = []
-        daily_rows = raw.get("daily_rows")
-        if not isinstance(daily_rows, list):
-            daily_rows = []
-        return {
-            "rows": list(raw["rows"]),
-            "monthly_rows": list(monthly_rows),
-            "daily_rows": list(daily_rows),
-        }
+        return {"rows": list(raw["rows"]), "monthly_rows": list(monthly_rows)}
     return None
 
 
@@ -291,12 +241,7 @@ def refresh_cache(
     *,
     stake_per_pick: float = 10.0,
 ) -> dict[str, list[dict[str, Any]]]:
-    bundle = build_sport_breakdown_bundle(templates_dir, stake_per_pick=stake_per_pick)
-    write_cache(
-        repo_root,
-        templates_dir,
-        bundle["rows"],
-        monthly_rows=bundle["monthly_rows"],
-        daily_rows=bundle["daily_rows"],
-    )
-    return bundle
+    rows = build_from_graded_props(templates_dir, stake_per_pick=stake_per_pick)
+    monthly_rows = build_monthly_from_graded_props(templates_dir, stake_per_pick=stake_per_pick)
+    write_cache(repo_root, templates_dir, rows, monthly_rows=monthly_rows)
+    return {"rows": rows, "monthly_rows": monthly_rows}

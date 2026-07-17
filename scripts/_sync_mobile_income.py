@@ -9,14 +9,22 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "ui_runner" / "templates" / "dashboard_income.html"
 DST = ROOT / "mobile" / "www" / "income.html"
 OLD = DST
+GRADES = ROOT / "mobile" / "www" / "grades.html"
 
 src = SRC.read_text(encoding="utf-8")
 old = OLD.read_text(encoding="utf-8") if OLD.exists() else ""
+if '<nav class="snav' not in old and GRADES.exists():
+    old = GRADES.read_text(encoding="utf-8")
 
-nav_m = re.search(r'(<nav class="snav"[\s\S]*?</nav>)', old)
+nav_m = re.search(
+    r'(<nav class="snav[\s\S]*?</nav>\s*(?:<div class="mobile-menu"[\s\S]*?</div>)?)',
+    old,
+)
 bnav_m = re.search(r'(<nav class="mobile-bottom-nav"[\s\S]*?</nav>)', old)
 nav = nav_m.group(1) if nav_m else ""
 bnav = bnav_m.group(1) if bnav_m else ""
+if nav:
+    nav = re.sub(r'(href="income\.html" class=")[^"]*(")', r"\1active\2", nav)
 
 content = src
 content = re.sub(r"\{\%\s*set nav_active = 'income'\s*\%\}", "", content)

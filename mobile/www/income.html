@@ -28,17 +28,17 @@
     }
     .hero {
       margin: 4px 0 12px;
-      padding: 12px clamp(12px, 2vw, 18px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(16px) saturate(170%);
-      -webkit-backdrop-filter: blur(16px) saturate(170%);
+      padding: 14px clamp(12px, 2vw, 20px);
+      border: 1px solid rgba(212, 175, 55, 0.18);
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(212, 175, 55, 0.07), transparent 42%),
+        rgba(255, 255, 255, 0.03);
     }
     .hero h1 {
       margin: 0;
-      font-size: clamp(26px, 3.6vw, 38px);
-      letter-spacing: 0.02em;
+      font-size: clamp(28px, 3.8vw, 40px);
+      letter-spacing: 0.04em;
       color: var(--accent, #d4af37);
       font-family: "Bebas Neue", sans-serif;
     }
@@ -51,16 +51,29 @@
     }
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      grid-template-columns: 1.35fr repeat(4, minmax(100px, 1fr));
       gap: 8px;
       margin-bottom: 12px;
     }
     .sum-card {
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
+      border-radius: 12px;
       background: rgba(255, 255, 255, 0.035);
-      padding: 10px 10px 8px;
-      min-height: 64px;
+      padding: 12px 12px 10px;
+      min-height: 72px;
+      transition: border-color .15s, background .15s;
+    }
+    .sum-card.featured {
+      border-color: rgba(69, 211, 136, 0.28);
+      background:
+        linear-gradient(160deg, rgba(69, 211, 136, 0.1), transparent 55%),
+        rgba(255, 255, 255, 0.04);
+    }
+    .sum-card.featured.sum-card-neg {
+      border-color: rgba(255, 127, 127, 0.28);
+      background:
+        linear-gradient(160deg, rgba(255, 127, 127, 0.1), transparent 55%),
+        rgba(255, 255, 255, 0.04);
     }
     .sum-label {
       font-size: 10px;
@@ -73,6 +86,11 @@
       font-size: clamp(16px, 2.1vw, 22px);
       font-weight: 700;
       line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+    .sum-card.featured .sum-value {
+      font-size: clamp(22px, 2.8vw, 30px);
+      letter-spacing: -0.02em;
     }
     .sum-sub {
       margin-top: 2px;
@@ -83,9 +101,9 @@
     .sum-neg { color: #ff7f7f; }
     .panel {
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      border-radius: 14px;
       background: rgba(255, 255, 255, 0.03);
-      padding: 10px 12px 12px;
+      padding: 12px 14px 14px;
       margin-bottom: 12px;
     }
     .panel-head {
@@ -94,7 +112,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .panel h2 {
       margin: 0;
@@ -133,25 +151,77 @@
       color: var(--accent, #d4af37);
     }
     .chart-host {
+      position: relative;
       width: 100%;
-      min-height: 240px;
+      height: min(280px, 42vh);
+      min-height: 200px;
     }
+    .chart-host svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    .chart-host .grid line {
+      stroke: rgba(255, 255, 255, 0.06);
+      stroke-width: 1;
+    }
+    .chart-host .zero {
+      stroke: rgba(255, 255, 255, 0.18);
+      stroke-dasharray: 4 4;
+    }
+    .chart-host .area {
+      fill: url(#pnlFill);
+      opacity: 0.9;
+    }
+    .chart-host .line {
+      fill: none;
+      stroke: #7fc7d9;
+      stroke-width: 2.5;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+    .chart-host .dot {
+      fill: #d4af37;
+      stroke: rgba(5, 5, 15, 0.9);
+      stroke-width: 1.5;
+      opacity: 0;
+      transition: opacity .12s;
+    }
+    .chart-host .dot.on { opacity: 1; }
+    .chart-tip {
+      position: absolute;
+      pointer-events: none;
+      z-index: 3;
+      display: none;
+      padding: 6px 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(10, 12, 18, 0.94);
+      font-size: 11px;
+      line-height: 1.35;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    .chart-tip strong { color: var(--accent, #d4af37); }
     .tbl-scroll {
-      max-height: min(520px, 62vh);
+      max-height: min(480px, 58vh);
       overflow: auto;
       border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 8px;
+      border-radius: 10px;
+      contain: content;
     }
-    .tbl-scroll.tall { max-height: min(360px, 48vh); }
+    .tbl-scroll.tall { max-height: min(320px, 42vh); }
     table.tbl {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
+      font-variant-numeric: tabular-nums;
     }
     .tbl th,
     .tbl td {
-      padding: 6px 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       text-align: right;
       white-space: nowrap;
     }
@@ -159,15 +229,14 @@
       position: sticky;
       top: 0;
       z-index: 2;
-      background: rgba(12, 14, 22, 0.96);
-      backdrop-filter: blur(8px);
+      background: rgba(10, 12, 18, 0.97);
       font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted, rgba(255, 255, 255, 0.68));
     }
     .tbl tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
-    .tbl tbody tr:hover td { background: rgba(212, 175, 55, 0.04); }
+    .tbl tbody tr:hover td { background: rgba(212, 175, 55, 0.045); }
     .tbl td:first-child,
     .tbl th:first-child { text-align: left; }
     .num-pos { color: #45d388; }
@@ -175,9 +244,22 @@
     .cell-sub {
       display: block;
       margin-top: 1px;
-      color: var(--muted, rgba(255, 255, 255, 0.68));
+      color: var(--muted, rgba(255, 255, 255, 0.62));
       font-size: 10px;
       line-height: 1.15;
+    }
+    .void-pill {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(200, 154, 74, 0.35);
+      color: #c89a4a;
+      vertical-align: middle;
+      white-space: nowrap;
     }
     .track-pill {
       display: inline-block;
@@ -232,8 +314,52 @@
     .sport-month-block summary:hover { background: rgba(255, 255, 255, 0.03); }
     .sport-month-block .tbl-scroll { border: none; border-radius: 0; max-height: 280px; }
     .hide-guarantees .col-g { display: none; }
-    @media (max-width: 1020px) {
-      .summary-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    .tbl-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .tbl-footer .meta {
+      font-size: 11px;
+      color: var(--muted, rgba(255, 255, 255, 0.65));
+    }
+    .sport-net-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      min-width: 110px;
+    }
+    .sport-bar-track {
+      width: min(140px, 18vw);
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+    .sport-bar {
+      height: 100%;
+      border-radius: 999px;
+      max-width: 100%;
+    }
+    .sport-bar.pos { background: #45d388; }
+    .sport-bar.neg { background: #ff7f7f; }
+    .layout-split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+      gap: 12px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) {
+      .layout-split { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      .sum-card.featured { grid-column: 1 / -1; }
+    }
+    @media (max-width: 560px) {
+      .summary-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -242,49 +368,6 @@
   <div class="grain-layer" aria-hidden="true"></div>
   
   
-
-
-<nav class="snav glass-card">
-  <div class="nav-accent"></div>
-  <a class="snav-brand" href="index.html">
-    <div class="hybrid-logo">
-      <img src="static/proporacle-logo-v3.png?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
-      <span class="nav-brand brand-wordmark"><span class="wb-first">Prop</span><span class="oracle-word gold-shimmer">Oracle</span></span>
-    </div>
-  </a>
-  <ul class="snav-links nav-links" id="nav-links">
-    <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
-    <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
-    <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
-    <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
-  </ul>
-  <div class="snav-right">
-    <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
-      <span class="tt-icon tt-moon">🌙</span>
-      <span class="tt-icon tt-sun" style="display:none">☀️</span>
-    </button>
-    <div class="nav-live-cluster">
-      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; </div>
-      <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
-        <div class="nav-slate-date" id="slate-date">—</div>
-        <div class="nav-sync-line">
-          <span id="nav-local-datetime" class="nav-local-datetime">—</span>
-        </div>
-      </div>
-    </div>
-  </div>
-  <button class="hamburger" type="button" id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
-</nav>
-
-<div class="mobile-menu" id="mobile-menu">
-  <a href="index.html" class="">🏠 Home</a>
-  <a href="tickets.html" class="">🎟 Tickets</a>
-  <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
-  <a href="income.html" class="">📈 Income</a>
-  <a href="payout.html" class="">💰 Payouts</a>
-</div>
-
 
   <main class="income-wrap">
     <div id="income-stale-banner" style="display:none" class="stale-banner">
@@ -296,9 +379,10 @@
     </section>
 
     <section class="summary-grid" id="income-summary">
-      <div class="sum-card">
-        <div class="sum-label">Total Tickets</div>
-        <div class="sum-value" data-k="tickets"></div>
+      <div class="sum-card featured ">
+        <div class="sum-label">Net P&amp;L</div>
+        <div class="sum-value " data-k="net">$</div>
+        <div class="sum-sub">ROI  ·  tickets</div>
       </div>
       <div class="sum-card">
         <div class="sum-label">Win Rate</div>
@@ -306,123 +390,122 @@
         <div class="sum-sub" data-k="winrate-sub">/</div>
       </div>
       <div class="sum-card">
-        <div class="sum-label">Net P&amp;L</div>
-        <div class="sum-value " data-k="net">$</div>
+        <div class="sum-label">Tickets</div>
+        <div class="sum-value" data-k="tickets"></div>
       </div>
       <div class="sum-card">
         <div class="sum-label">ROI</div>
         <div class="sum-value " data-k="roi"></div>
       </div>
       <div class="sum-card">
-        <div class="sum-label">Current Streak</div>
+        <div class="sum-label">Streak</div>
         <div class="sum-value" data-k="streak"></div>
       </div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Cumulative P&amp;L ($)</h2>
-        <p class="panel-note" id="chart-scope-note">All tracks (additive)</p>
-      </div>
-      <div id="cum-chart" class="chart-host"></div>
-    </section>
-
-    <section class="panel" id="daily-panel">
-      <div class="panel-head">
         <div>
-          <h2>Daily P&amp;L</h2>
-          <p class="panel-note">Default rolls tracks into one row per date. Expand to see MAIN / Long / Goblin separately.</p>
+          <h2>Cumulative P&amp;L</h2>
+          <p class="panel-note" id="chart-scope-note">Day rollup · all tracks</p>
         </div>
-        <div class="toolbar" role="group" aria-label="Daily view mode">
-          <button type="button" class="chip active" data-daily-mode="rollup">By day</button>
-          <button type="button" class="chip" data-daily-mode="tracks">By track</button>
+        <div class="toolbar" role="group" aria-label="Date range">
+          <button type="button" class="chip" data-range="7">7d</button>
+          <button type="button" class="chip" data-range="14">14d</button>
+          <button type="button" class="chip" data-range="30">30d</button>
+          <button type="button" class="chip active" data-range="all">All</button>
         </div>
       </div>
-      
-      <div class="tbl-scroll" id="daily-wrap">
-        <table class="tbl" id="daily-tbl" aria-label="Daily P and L table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Tickets</th>
-              <th>Wins</th>
-              <th>Losses</th>
-              <th class="col-g">Guarantees</th>
-              <th>Net $</th>
-              <th>Day ROI%</th>
-            </tr>
-          </thead>
-          <tbody id="daily-pnl-tbody"></tbody>
-        </table>
+      <div id="cum-chart" class="chart-host" aria-label="Cumulative profit and loss chart">
+        <div class="chart-tip" id="chart-tip"></div>
       </div>
-      
-      <div class="empty-note">No rows found in <code>grade_history.json</code>.</div>
-      
     </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <div>
-          <h2>Sport Breakdown</h2>
-          <p class="panel-note">Pick-level totals from graded props ($10 flat stake). Zero-activity sports hidden.</p>
+    <div class="layout-split">
+      <section class="panel" id="daily-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Daily P&amp;L</h2>
+            <p class="panel-note">Tracks rolled into one row per date. Expand mode for MAIN / Long / Goblin.</p>
+          </div>
+          <div class="toolbar" role="group" aria-label="Daily view mode">
+            <button type="button" class="chip active" data-daily-mode="rollup">By day</button>
+            <button type="button" class="chip" data-daily-mode="tracks">By track</button>
+          </div>
         </div>
-      </div>
-      <div class="tbl-scroll tall">
-        <table class="tbl" aria-label="Sport breakdown totals">
-          <thead>
-            <tr>
-              <th>Sport</th>
-              <th>Decided</th>
-              <th>Paid</th>
-              <th>Win%</th>
-              <th>Net $</th>
-            </tr>
-          </thead>
-          <tbody id="sport-breakdown-tbody">
-            
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td class="">$</td>
-            </tr>
-            
-            <tr><td colspan="5" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>
-            
-          </tbody>
-        </table>
-      </div>
+        
+        <div class="tbl-scroll" id="daily-wrap">
+          <table class="tbl" id="daily-tbl" aria-label="Daily P and L table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Tickets</th>
+                <th>Wins</th>
+                <th>Losses</th>
+                <th class="col-g">Guarantees</th>
+                <th>Net $</th>
+                <th>Day ROI%</th>
+              </tr>
+            </thead>
+            <tbody id="daily-pnl-tbody"></tbody>
+          </table>
+        </div>
+        <div class="tbl-footer">
+          <span class="meta" id="daily-meta"></span>
+          <button type="button" class="chip" id="daily-more" style="display:none">Show more</button>
+        </div>
+        
+        <div class="empty-note">No rows found in <code>grade_history.json</code>.</div>
+        
+      </section>
 
-      <div class="panel-head" style="margin-top:14px">
-        <h2 style="font-size:14px">By Month</h2>
-        <div class="toolbar">
-          <label class="panel-note" for="month-sport-filter">Sport</label>
-          <select id="month-sport-filter" class="chip" style="border-radius:8px;padding:5px 8px;background:rgba(255,255,255,0.04);color:inherit">
-            <option value="all">All</option>
-          </select>
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Sport Breakdown</h2>
+            <p class="panel-note">Pick-level totals · $10 flat · zero-activity hidden</p>
+          </div>
         </div>
-      </div>
-      
-      <div class="sport-month-block" id="sport-month-block"></div>
-      
-      <div class="empty-note">No monthly sport data yet.</div>
-      
-    </section>
+        <div class="tbl-scroll tall">
+          <table class="tbl" aria-label="Sport breakdown totals">
+            <thead>
+              <tr>
+                <th>Sport</th>
+                <th>Decided</th>
+                <th>Win%</th>
+                <th>Net $</th>
+              </tr>
+            </thead>
+            <tbody id="sport-breakdown-tbody"><tr><td colspan="4" class="empty-note" style="text-align:left">Loading…</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="panel-head" style="margin-top:14px">
+          <h2 style="font-size:14px">By Month</h2>
+          <div class="toolbar">
+            <label class="panel-note" for="month-sport-filter">Sport</label>
+            <select id="month-sport-filter" class="chip" style="border-radius:8px;padding:5px 8px;background:rgba(255,255,255,0.04);color:inherit">
+              <option value="all">All</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="sport-month-block" id="sport-month-block"></div>
+        
+        <div class="empty-note">No monthly sport data yet.</div>
+        
+      </section>
+    </div>
   </main>
 
-  <script id="income-daily-data" type="application/json"></script>
-  <script id="income-monthly-data" type="application/json"></script>
-  <script id="income-chart-data" type="application/json"></script>
+  <script id="income-daily-data" type="application/json">[]</script>
+  <script id="income-monthly-data" type="application/json">[]</script>
 
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" defer></script>
   <script src="static/site-nav-chrome.js?v=20260412" defer></script>
   <script defer>
     (function () {
-      const dailyRaw = JSON.parse(document.getElementById('income-daily-data').textContent || '[]');
-      const monthlyRaw = JSON.parse(document.getElementById('income-monthly-data').textContent || '[]');
-      let chartPoints = [];
-      try { chartPoints = JSON.parse(document.getElementById('income-chart-data').textContent || '[]'); } catch (_e) { chartPoints = []; }
+      let dailyRaw = JSON.parse(document.getElementById('income-daily-data').textContent || '[]');
+      let monthlyRaw = JSON.parse(document.getElementById('income-monthly-data').textContent || '[]');
 
       const TRACK_LABEL = {
         graded_main: 'MAIN',
@@ -437,7 +520,11 @@
         legacy: 'legacy',
       };
 
+      const PAGE = 40;
       let dailyMode = 'rollup';
+      let rangeDays = 'all';
+      let dailyShown = PAGE;
+      let chartSeries = [];
 
       function money(n) {
         const v = Number(n) || 0;
@@ -482,75 +569,222 @@
         }).sort((a, b) => b.date.localeCompare(a.date));
       }
 
-      function renderDaily() {
+      function cutoffDate() {
+        if (rangeDays === 'all') return null;
+        const n = Number(rangeDays) || 0;
+        if (n <= 0) return null;
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() - (n - 1));
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+      }
+
+      function filterByRange(rows) {
+        const cut = cutoffDate();
+        if (!cut) return rows;
+        return rows.filter((r) => String(r.date || '') >= cut);
+      }
+
+      function rowHtml(r) {
+        const trackHtml = dailyMode === 'tracks'
+          ? `<span class="track-pill ${trackClass(r.track)}">${trackLabel(r.track)}</span>`
+          : (r.tracks > 1 ? `<span class="cell-sub">${r.tracks} tracks</span>` : '');
+        const voidHtml = (Number(r.void_loss_ct) || 0) > 0
+          ? `<span class="void-pill" title="Voided legs counted as losses">${r.void_loss_ct} void</span>`
+          : '';
+        return `<tr>
+          <td>${r.date}${trackHtml}</td>
+          <td>${r.tickets}</td>
+          <td>${r.wins}</td>
+          <td>${r.losses}${voidHtml}</td>
+          <td class="col-g">${r.guarantees || 0}</td>
+          <td class="${numCls(r.net_dollars)}">${money(r.net_dollars)}</td>
+          <td class="${numCls(r.roi_pct)}">${pct(r.roi_pct)}</td>
+        </tr>`;
+      }
+
+      function renderDaily(resetPage) {
         const tbody = document.getElementById('daily-pnl-tbody');
         const wrap = document.getElementById('daily-wrap');
         const tbl = document.getElementById('daily-tbl');
+        const more = document.getElementById('daily-more');
+        const meta = document.getElementById('daily-meta');
         if (!tbody) return;
-        const rows = dailyMode === 'rollup'
+        if (resetPage) dailyShown = PAGE;
+
+        let rows = dailyMode === 'rollup'
           ? rollupDays(dailyRaw)
           : [...dailyRaw].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(a.track).localeCompare(String(b.track)));
+        rows = filterByRange(rows);
 
         const showG = rows.some((r) => (Number(r.guarantees) || 0) > 0);
         if (tbl) tbl.classList.toggle('hide-guarantees', !showG);
 
-        tbody.innerHTML = rows.map((r) => {
-          const trackHtml = dailyMode === 'tracks'
-            ? `<span class="track-pill ${trackClass(r.track)}">${trackLabel(r.track)}</span>`
-            : (r.tracks > 1 ? `<span class="cell-sub">${r.tracks} tracks</span>` : '');
-          const voidHtml = (Number(r.void_loss_ct) || 0) > 0
-            ? `<span class="cell-sub">(incl. ${r.void_loss_ct} void-loss)</span>`
-            : '';
-          return `<tr>
-            <td>${r.date}${trackHtml}</td>
-            <td>${r.tickets}</td>
-            <td>${r.wins}</td>
-            <td>${r.losses}${voidHtml}</td>
-            <td class="col-g">${r.guarantees || 0}</td>
-            <td class="${numCls(r.net_dollars)}">${money(r.net_dollars)}</td>
-            <td class="${numCls(r.roi_pct)}">${pct(r.roi_pct)}</td>
-          </tr>`;
-        }).join('');
-        if (wrap) wrap.scrollTop = 0;
+        const slice = rows.slice(0, dailyShown);
+        tbody.innerHTML = slice.map(rowHtml).join('');
+        if (meta) {
+          meta.textContent = rows.length
+            ? `Showing ${slice.length} of ${rows.length} rows`
+            : 'No rows in this range';
+        }
+        if (more) {
+          const hasMore = slice.length < rows.length;
+          more.style.display = hasMore ? '' : 'none';
+          more.textContent = hasMore ? `Show more (${rows.length - slice.length} left)` : 'Show more';
+        }
+        if (wrap && resetPage) wrap.scrollTop = 0;
+      }
+
+      function moneyCompact(n) {
+        const v = Number(n) || 0;
+        const abs = Math.abs(v);
+        const sign = v < 0 ? '-' : '';
+        if (abs >= 1000) return sign + '$' + (abs / 1000).toFixed(abs >= 10000 ? 0 : 1) + 'k';
+        return sign + '$' + abs.toFixed(0);
       }
 
       function drawChart() {
         const host = document.getElementById('cum-chart');
+        const tip = document.getElementById('chart-tip');
         if (!host) return;
-        if (typeof Plotly === 'undefined') {
-          host.innerHTML = '<div class="empty-note">Chart could not load (network or CDN blocked).</div>';
-          return;
-        }
-        // Prefer rolled-up day series so the curve matches "By day" table.
-        const rolled = rollupDays(dailyRaw).slice().reverse();
-        const x = rolled.map((p) => p.date);
+
+        const rolled = filterByRange(rollupDays(dailyRaw)).slice().reverse();
         let cum = 0;
-        const y = rolled.map((p) => {
+        chartSeries = rolled.map((p) => {
           cum += Number(p.net_dollars) || 0;
-          return Math.round(cum * 100) / 100;
+          return { date: p.date, y: Math.round(cum * 100) / 100, day: Number(p.net_dollars) || 0 };
         });
-        if (!x.length) {
-          host.innerHTML = '<div class="empty-note">No cumulative data available yet.</div>';
+
+        const note = document.getElementById('chart-scope-note');
+        if (note) {
+          note.textContent = rangeDays === 'all'
+            ? 'Day rollup · all tracks'
+            : `Last ${rangeDays} days · all tracks`;
+        }
+
+        if (!chartSeries.length) {
+          host.querySelectorAll('svg').forEach((n) => n.remove());
+          if (!host.querySelector('.empty-note')) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-note';
+            empty.textContent = 'No cumulative data in this range.';
+            host.appendChild(empty);
+          }
+          if (tip) tip.style.display = 'none';
           return;
         }
-        const note = document.getElementById('chart-scope-note');
-        if (note) note.textContent = 'Day rollup (all tracks summed per date)';
-        Plotly.newPlot('cum-chart', [{
-          x, y,
-          type: 'scatter',
-          mode: 'lines+markers',
-          line: { color: '#7fc7d9', width: 3 },
-          marker: { size: 5, color: '#d4af37' },
-          hovertemplate: '%{x}<br>$%{y:.2f}<extra></extra>',
-        }], {
-          autosize: true,
-          margin: { t: 10, r: 16, b: 36, l: 52 },
-          paper_bgcolor: 'rgba(0,0,0,0)',
-          plot_bgcolor: 'rgba(255,255,255,0.02)',
-          font: { color: 'rgba(255,255,255,0.85)', size: 11 },
-          xaxis: { title: '', gridcolor: 'rgba(255,255,255,0.06)' },
-          yaxis: { title: '$', tickprefix: '$', gridcolor: 'rgba(255,255,255,0.06)', zerolinecolor: 'rgba(255,255,255,0.15)' },
-        }, { displayModeBar: false, responsive: true });
+        host.querySelectorAll('.empty-note').forEach((n) => n.remove());
+
+        const w = Math.max(host.clientWidth || 640, 280);
+        const h = Math.max(host.clientHeight || 240, 180);
+        const pad = { t: 16, r: 16, b: 28, l: 48 };
+        const iw = w - pad.l - pad.r;
+        const ih = h - pad.t - pad.b;
+        const ys = chartSeries.map((p) => p.y);
+        let yMin = Math.min(0, ...ys);
+        let yMax = Math.max(0, ...ys);
+        if (yMin === yMax) { yMin -= 1; yMax += 1; }
+        const yPad = (yMax - yMin) * 0.08;
+        yMin -= yPad;
+        yMax += yPad;
+
+        const xAt = (i) => pad.l + (chartSeries.length === 1 ? iw / 2 : (i / (chartSeries.length - 1)) * iw);
+        const yAt = (v) => pad.t + ((yMax - v) / (yMax - yMin)) * ih;
+
+        const pts = chartSeries.map((p, i) => `${xAt(i).toFixed(1)},${yAt(p.y).toFixed(1)}`);
+        const lineD = pts.map((p, i) => (i ? 'L' : 'M') + p).join(' ');
+        const areaD = lineD
+          + ` L${xAt(chartSeries.length - 1).toFixed(1)},${yAt(0).toFixed(1)}`
+          + ` L${xAt(0).toFixed(1)},${yAt(0).toFixed(1)} Z`;
+
+        const ticks = 4;
+        let grid = '';
+        let labels = '';
+        for (let i = 0; i <= ticks; i++) {
+          const v = yMin + ((yMax - yMin) * i) / ticks;
+          const y = yAt(v);
+          grid += `<line x1="${pad.l}" x2="${w - pad.r}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+          labels += `<text x="${pad.l - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end" fill="rgba(255,255,255,0.55)" font-size="10">${moneyCompact(v)}</text>`;
+        }
+        const zeroY = yAt(0);
+        const xLabels = [];
+        const labelIdx = [0, Math.floor((chartSeries.length - 1) / 2), chartSeries.length - 1]
+          .filter((v, i, a) => a.indexOf(v) === i);
+        labelIdx.forEach((i) => {
+          xLabels.push(`<text x="${xAt(i).toFixed(1)}" y="${h - 8}" text-anchor="middle" fill="rgba(255,255,255,0.55)" font-size="10">${chartSeries[i].date.slice(5)}</text>`);
+        });
+
+        const dots = chartSeries.map((p, i) =>
+          `<circle class="dot" data-i="${i}" cx="${xAt(i).toFixed(1)}" cy="${yAt(p.y).toFixed(1)}" r="3.5"/>`
+        ).join('');
+
+        let svg = host.querySelector('svg');
+        if (!svg) {
+          svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          host.insertBefore(svg, tip || null);
+        }
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.setAttribute('preserveAspectRatio', 'none');
+        svg.innerHTML = `
+          <defs>
+            <linearGradient id="pnlFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#7fc7d9" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#7fc7d9" stop-opacity="0.02"/>
+            </linearGradient>
+          </defs>
+          <g class="grid">${grid}</g>
+          <line class="zero" x1="${pad.l}" x2="${w - pad.r}" y1="${zeroY.toFixed(1)}" y2="${zeroY.toFixed(1)}"/>
+          <path class="area" d="${areaD}"/>
+          <path class="line" d="${lineD}"/>
+          ${dots}
+          ${labels}
+          ${xLabels.join('')}
+          <rect class="hit" x="${pad.l}" y="${pad.t}" width="${iw}" height="${ih}" fill="transparent"/>
+        `;
+
+        const hit = svg.querySelector('.hit');
+        const showTip = (i, clientX) => {
+          if (!tip || i < 0 || i >= chartSeries.length) return;
+          svg.querySelectorAll('.dot').forEach((d) => d.classList.toggle('on', Number(d.getAttribute('data-i')) === i));
+          const p = chartSeries[i];
+          tip.innerHTML = `<strong>${p.date}</strong><br>Cum ${money(p.y)} · Day ${money(p.day)}`;
+          tip.style.display = 'block';
+          const rect = host.getBoundingClientRect();
+          const left = Math.min(Math.max(8, clientX - rect.left + 12), rect.width - 140);
+          tip.style.left = left + 'px';
+          tip.style.top = '12px';
+        };
+        const hideTip = () => {
+          if (tip) tip.style.display = 'none';
+          svg.querySelectorAll('.dot.on').forEach((d) => d.classList.remove('on'));
+        };
+        const onMove = (evt) => {
+          const rect = svg.getBoundingClientRect();
+          const x = evt.clientX - rect.left;
+          const t = (x - pad.l) / Math.max(iw, 1);
+          const i = Math.round(Math.min(1, Math.max(0, t)) * (chartSeries.length - 1));
+          showTip(i, evt.clientX);
+        };
+        hit.addEventListener('mousemove', onMove);
+        hit.addEventListener('mouseleave', hideTip);
+        hit.addEventListener('touchstart', (e) => {
+          if (!e.touches[0]) return;
+          onMove(e.touches[0]);
+        }, { passive: true });
+      }
+
+      function paintSportBars() {
+        const rows = [...document.querySelectorAll('#sport-breakdown-tbody tr[data-net]')];
+        if (!rows.length) return;
+        const maxAbs = Math.max(...rows.map((tr) => Math.abs(Number(tr.getAttribute('data-net')) || 0)), 1);
+        rows.forEach((tr) => {
+          const net = Number(tr.getAttribute('data-net')) || 0;
+          const bar = tr.querySelector('[data-bar]');
+          if (bar) bar.style.width = Math.max(4, (Math.abs(net) / maxAbs) * 100).toFixed(1) + '%';
+        });
       }
 
       function renderMonthly() {
@@ -605,36 +839,93 @@
         btn.addEventListener('click', () => {
           dailyMode = btn.getAttribute('data-daily-mode') || 'rollup';
           document.querySelectorAll('[data-daily-mode]').forEach((b) => b.classList.toggle('active', b === btn));
-          renderDaily();
+          renderDaily(true);
         });
       });
+      document.querySelectorAll('[data-range]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          rangeDays = btn.getAttribute('data-range') || 'all';
+          document.querySelectorAll('[data-range]').forEach((b) => b.classList.toggle('active', b === btn));
+          renderDaily(true);
+          drawChart();
+        });
+      });
+      const moreBtn = document.getElementById('daily-more');
+      if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          dailyShown += PAGE;
+          renderDaily(false);
+        });
+      }
       const monthSel = document.getElementById('month-sport-filter');
       if (monthSel) monthSel.addEventListener('change', renderMonthly);
 
-      function whenPlotlyReady(fn) {
-        if (typeof Plotly !== 'undefined') { fn(); return; }
-        let tries = 0;
-        const timer = setInterval(() => {
-          tries += 1;
-          if (typeof Plotly !== 'undefined') { clearInterval(timer); fn(); }
-          else if (tries > 240) { clearInterval(timer); fn(); }
-        }, 25);
+      let resizeTimer = 0;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawChart, 120);
+      });
+
+      function applySummaryFromDaily(rowsAsc) {
+        const tickets = rowsAsc.reduce((s, r) => s + (Number(r.tickets) || 0), 0);
+        const decided = rowsAsc.reduce((s, r) => s + (Number(r.decided) || ((Number(r.wins) || 0) + (Number(r.losses) || 0))), 0);
+        const paid = rowsAsc.reduce((s, r) => s + (Number(r.paid) || ((Number(r.wins) || 0) + (Number(r.guarantees) || 0))), 0);
+        const net = rowsAsc.reduce((s, r) => s + (Number(r.net_dollars != null ? r.net_dollars : r.net) || 0), 0);
+        const winRate = decided > 0 ? (paid / decided) * 100 : null;
+        const roi = tickets > 0 ? (net / (tickets * 10)) * 100 : 0;
+        let streak = '—';
+        let streakLen = 0;
+        let streakSign = 0;
+        for (let i = rowsAsc.length - 1; i >= 0; i--) {
+          const n = Number(rowsAsc[i].net_dollars != null ? rowsAsc[i].net_dollars : rowsAsc[i].net) || 0;
+          const sign = n > 0 ? 1 : (n < 0 ? -1 : 0);
+          if (sign === 0) continue;
+          if (streakSign === 0) { streakSign = sign; streakLen = 1; continue; }
+          if (sign === streakSign) streakLen += 1; else break;
+        }
+        if (streakLen > 0) streak = (streakSign > 0 ? 'W' : 'L') + streakLen;
+
+        const set = (k, text, cls) => {
+          const el = document.querySelector(`[data-k="${k}"]`);
+          if (!el) return;
+          el.textContent = text;
+          if (cls !== undefined) el.className = ('sum-value ' + (cls || '')).trim();
+        };
+        const featured = document.querySelector('.sum-card.featured');
+        if (featured) featured.classList.toggle('sum-card-neg', net < 0);
+        set('net', money(net), numCls(net).replace('num-', 'sum-'));
+        set('winrate', winRate == null ? '—' : winRate.toFixed(1) + '%');
+        const sub = document.querySelector('[data-k="winrate-sub"]');
+        if (sub) sub.textContent = decided > 0 ? (paid + '/' + decided) : '';
+        set('tickets', String(tickets));
+        set('roi', pct(roi), numCls(roi).replace('num-', 'sum-'));
+        set('streak', streak);
+        const netSub = document.querySelector('.sum-card.featured .sum-sub');
+        if (netSub) netSub.textContent = 'ROI ' + pct(roi) + ' · ' + tickets + ' tickets';
       }
 
-      document.addEventListener('DOMContentLoaded', () => {
-        renderDaily();
+      function boot(daily, monthly) {
+        if (Array.isArray(daily)) dailyRaw = daily;
+        if (Array.isArray(monthly)) monthlyRaw = monthly;
+        applySummaryFromDaily(
+          [...dailyRaw].sort((a, b) => String(a.date).localeCompare(String(b.date)))
+        );
+        paintSportBars();
+        renderDaily(true);
         renderMonthly();
-        whenPlotlyReady(drawChart);
-      });
-      window.addEventListener('resize', () => {
-        const el = document.getElementById('cum-chart');
-        if (typeof Plotly !== 'undefined' && el && el.querySelector('.js-plotly-plot')) Plotly.Plots.resize(el);
+        drawChart();
+      }
+
+      window.__proporacleIncomeBoot = boot;
+
+      document.addEventListener('DOMContentLoaded', () => {
+        boot(dailyRaw, monthlyRaw);
       });
     })();
   </script>
   <script>
     (function () {
-      fetch('/income/health')
+      Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
         .then((r) => r.json())
         .then((j) => {
           if (!j || j.status === 'ok') return;
@@ -651,169 +942,82 @@
     (function () {
       const HISTORY_URL = 'data/grade_history.json?v=20260522pnl';
       const SPORT_BREAKDOWN_URL = 'sport_breakdown.json?v=20260522pnl';
-      const fmtMoney = (n) => (Number.isFinite(n) ? `$${n.toFixed(2)}` : '$0.00');
-      const fmtPct = (n) => (Number.isFinite(n) ? `${n.toFixed(1)}%` : '0.0%');
-      const clsFor = (n, pos = 'num-pos', neg = 'num-neg') => (n > 0 ? pos : (n < 0 ? neg : ''));
 
       function parseRows(raw) {
         const rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.runs) ? raw.runs : []);
-        return rows
-          .map((r) => {
-            const tickets = Number(r.n_tickets ?? r.tickets ?? 0);
-            const wins = Number(r.wins ?? 0);
-            const guarantees = Number(r.guarantees ?? 0);
-            const losses = Number(r.losses ?? 0);
-            const decided = Math.max(0, wins + losses);
-            const paid = Math.max(0, wins + guarantees);
-            // net_per_10 is per-ticket avg ($-per-$10-stake). Multiply by tickets to get day total.
-            const net = (r.net_dollars != null)
-              ? Number(r.net_dollars)
-              : (r.net_per_10 != null ? tickets * Number(r.net_per_10) : 0);
-            const roi = Number(r.roi_pct ?? ((tickets > 0) ? (net / (tickets * 10) * 100) : 0));
-            return {
-              date: String(r.date || ''),
-              tickets, wins, guarantees, losses, decided, paid,
-              net, roi
-            };
-          })
-          .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date))
-          .sort((a, b) => a.date.localeCompare(b.date));
+        return rows.map((r) => {
+          const tickets = Number(r.n_tickets ?? r.tickets ?? 0);
+          const wins = Number(r.wins ?? 0);
+          const guarantees = Number(r.guarantees ?? 0);
+          const losses = Number(r.losses ?? 0);
+          const decided = Math.max(0, Number(r.decided ?? (wins + losses)));
+          const paid = Math.max(0, Number(r.paid ?? (wins + guarantees)));
+          const net = (r.net_dollars != null)
+            ? Number(r.net_dollars)
+            : (r.net_per_10 != null ? tickets * Number(r.net_per_10) : 0);
+          const roi = Number(r.roi_pct ?? ((tickets > 0) ? (net / (tickets * 10) * 100) : 0));
+          return {
+            date: String(r.date || ''),
+            track: String(r.track || r.source || 'graded_main'),
+            tickets, wins, guarantees, losses, decided, paid,
+            void_loss_ct: Number(r.void_loss_ct || 0),
+            net_dollars: net,
+            roi_pct: roi,
+          };
+        }).filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date));
       }
 
-      function render(rowsAsc) {
-        const rowsDesc = [...rowsAsc].reverse();
-        const totalTickets = rowsAsc.reduce((s, r) => s + r.tickets, 0);
-        const totalDecided = rowsAsc.reduce((s, r) => s + r.decided, 0);
-        const totalPaid = rowsAsc.reduce((s, r) => s + r.paid, 0);
-        const totalNet = rowsAsc.reduce((s, r) => s + r.net, 0);
-        const winRate = totalDecided > 0 ? (totalPaid / totalDecided) * 100 : 0;
-        const roi = totalTickets > 0 ? (totalNet / (totalTickets * 10)) * 100 : 0;
-
-        let streak = '—';
-        let streakLen = 0;
-        let streakSign = 0;
-        for (let i = rowsAsc.length - 1; i >= 0; i--) {
-          const sign = rowsAsc[i].net > 0 ? 1 : (rowsAsc[i].net < 0 ? -1 : 0);
-          if (sign === 0) continue;
-          if (streakSign === 0) { streakSign = sign; streakLen = 1; continue; }
-          if (sign === streakSign) streakLen += 1; else break;
-        }
-        if (streakLen > 0) streak = `${streakSign > 0 ? 'W' : 'L'}${streakLen}`;
-
-        const sumVals = document.querySelectorAll('.summary-grid .sum-value');
-        if (sumVals.length >= 5) {
-          sumVals[0].textContent = String(totalTickets);
-          sumVals[1].textContent = `${winRate.toFixed(1)}% (${totalPaid}/${totalDecided})`;
-          sumVals[2].textContent = fmtMoney(totalNet);
-          sumVals[2].className = `sum-value ${clsFor(totalNet, 'sum-pos', 'sum-neg')}`;
-          sumVals[3].textContent = fmtPct(roi);
-          sumVals[3].className = `sum-value ${clsFor(roi, 'sum-pos', 'sum-neg')}`;
-          sumVals[4].textContent = streak;
-        }
-
-        const dailyBody = document.querySelectorAll('.panel .tbl tbody')[0];
-        if (dailyBody) {
-          dailyBody.innerHTML = rowsDesc.map((r) => `
-            <tr>
-              <td>${r.date}</td>
-              <td>${r.tickets}</td>
-              <td>${r.wins}</td>
-              <td>${r.losses}</td>
-              <td>${r.guarantees}</td>
-              <td class="${clsFor(r.net)}">${fmtMoney(r.net)}</td>
-              <td class="${clsFor(r.roi)}">${fmtPct(r.roi)}</td>
-            </tr>
-          `).join('');
-        }
-
-        const emptyNote = document.querySelector('.empty-note');
-        if (emptyNote) emptyNote.style.display = rowsAsc.length ? 'none' : '';
-
-        const pts = [];
-        let cum = 0;
-        for (const r of rowsAsc) { cum += r.net; pts.push({ date: r.date, cum_net: Number(cum.toFixed(2)) }); }
-        const host = document.getElementById('cum-chart');
-        if (!host) return;
-        if (!pts.length) {
-          host.innerHTML = '<div class="empty-note">No cumulative data available yet.</div>';
+      function renderSports(payload) {
+        const body = document.getElementById('sport-breakdown-tbody');
+        const rows = (payload && Array.isArray(payload.rows) ? payload.rows : [])
+          .filter((r) => Number(r.decided || 0) > 0);
+        if (!body) return;
+        if (!rows.length) {
+          body.innerHTML = '<tr><td colspan="4" class="empty-note" style="text-align:left">No decided sport rows yet.</td></tr>';
           return;
         }
-        if (typeof Plotly !== 'undefined') {
-          Plotly.newPlot('cum-chart', [{
-            x: pts.map(p => p.date),
-            y: pts.map(p => p.cum_net),
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#7fc7d9', width: 3 },
-            marker: { size: 6, color: '#d4af37' },
-            hovertemplate: '%{x}<br>$%{y:.2f}<extra></extra>'
-          }], {
-            autosize: true,
-            margin: { t: 14, r: 20, b: 42, l: 58 },
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(255,255,255,0.02)',
-            font: { color: 'rgba(255,255,255,0.85)' },
-            xaxis: { title: '', gridcolor: 'rgba(255,255,255,0.06)' },
-            yaxis: { title: '$', tickprefix: '$', gridcolor: 'rgba(255,255,255,0.06)', zerolinecolor: 'rgba(255,255,255,0.15)' }
-          }, { displayModeBar: false, responsive: true });
-        } else {
-          host.innerHTML = '<div class="empty-note">Chart could not load (network or CDN blocked). Daily table still works.</div>';
-        }
+        const maxAbs = Math.max(...rows.map((r) => Math.abs(Number(r.net_dollars) || 0)), 1);
+        body.innerHTML = rows.map((r) => {
+          const decided = Number(r.decided || 0);
+          const paid = Number(r.paid || 0);
+          const winRate = decided > 0 ? (paid / decided) * 100 : 0;
+          const net = Number(r.net_dollars || 0);
+          const w = Math.max(4, (Math.abs(net) / maxAbs) * 100).toFixed(1);
+          const cls = net > 0 ? 'num-pos' : (net < 0 ? 'num-neg' : '');
+          const barCls = net >= 0 ? 'pos' : 'neg';
+          const money = (net < 0 ? '-$' : '$') + Math.abs(net).toFixed(2);
+          return (
+            '<tr data-net="' + net + '"><td>' + String(r.sport || '') + '</td><td>' + decided +
+            '</td><td>' + winRate.toFixed(1) + '%</td><td><div class="sport-net-cell"><span class="' +
+            cls + '">' + money + '</span><div class="sport-bar-track"><div class="sport-bar ' +
+            barCls + '" style="width:' + w + '%"></div></div></div></td></tr>'
+          );
+        }).join('');
       }
 
-      function renderSportBreakdown(payload) {
-        const body = document.getElementById('sport-breakdown-tbody');
-        const monthlyBody = document.getElementById('sport-monthly-breakdown-tbody');
-        const rows = payload && Array.isArray(payload.rows) ? payload.rows : [];
-        const monthlyRows = payload && Array.isArray(payload.monthly_rows) ? payload.monthly_rows : [];
-        if (body) {
-          body.innerHTML = rows.map((r) => {
-            const decided = Number(r.decided || 0);
-            const paid = Number(r.paid || 0);
-            const winRate = decided > 0 ? (paid / decided) * 100 : NaN;
-            const net = Number(r.net_dollars || 0);
-            const winText = Number.isFinite(winRate) ? `${winRate.toFixed(1)}%` : '—';
-            return `
-              <tr>
-                <td>${String(r.sport || '')}</td>
-                <td>${decided}</td>
-                <td>${paid}</td>
-                <td>${winText}</td>
-                <td class="${clsFor(net)}">${fmtMoney(net)}</td>
-              </tr>
-            `;
-          }).join('');
+      Promise.all([
+        fetch(HISTORY_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+        fetch(SPORT_BREAKDOWN_URL, { cache: 'no-store' })
+          .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [] }))
+          .catch(() => ({ rows: [], monthly_rows: [] })),
+      ]).then(([hist, sport]) => {
+        renderSports(sport);
+        const daily = parseRows(hist);
+        const monthly = Array.isArray(sport.monthly_rows) ? sport.monthly_rows : [];
+        const boot = () => {
+          if (typeof window.__proporacleIncomeBoot === 'function') {
+            window.__proporacleIncomeBoot(daily, monthly);
+            return true;
+          }
+          return false;
+        };
+        if (!boot()) {
+          let tries = 0;
+          const t = setInterval(() => {
+            if (boot() || ++tries > 80) clearInterval(t);
+          }, 50);
         }
-        if (monthlyBody) {
-          monthlyBody.innerHTML = monthlyRows.map((r) => {
-            const decided = Number(r.decided || 0);
-            const paid = Number(r.paid || 0);
-            const winRate = decided > 0 ? (paid / decided) * 100 : NaN;
-            const net = Number(r.net_dollars || 0);
-            const winText = Number.isFinite(winRate) ? `${winRate.toFixed(1)}%` : '—';
-            return `
-              <tr>
-                <td>${String(r.sport || '')}</td>
-                <td>${String(r.month || '')}</td>
-                <td>${decided}</td>
-                <td>${paid}</td>
-                <td>${winText}</td>
-                <td class="${clsFor(net)}">${fmtMoney(net)}</td>
-              </tr>
-            `;
-          }).join('');
-        }
-      }
-
-      fetch(HISTORY_URL, { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : []))
-        .then((raw) => render(parseRows(raw)))
-        .catch(() => render([]));
-
-      fetch(SPORT_BREAKDOWN_URL, { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : { rows: [], monthly_rows: [] }))
-        .then((j) => renderSportBreakdown(j))
-        .catch(() => renderSportBreakdown({ rows: [], monthly_rows: [] }));
+      });
     })();
   </script>
 

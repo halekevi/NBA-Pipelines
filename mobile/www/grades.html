@@ -5073,9 +5073,15 @@ function toDateStr(d){
   const dd = String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${dd}`;
 }
-function easternYmdFromUtcParts(y, m, d) {
-  const u = new Date(Date.UTC(y, m - 1, d));
-  return toDateStr(u);
+/** Format a civil Y-M-D from UTC calendar parts (no local-TZ shift). */
+function ymdFromUtcParts(y, m, d) {
+  return (
+    String(y) +
+    '-' +
+    String(m).padStart(2, '0') +
+    '-' +
+    String(d).padStart(2, '0')
+  );
 }
 function easternTodayStr() {
   return new Date().toLocaleDateString('en-CA', { timeZone: GRADES_REPORT_TZ });
@@ -5084,13 +5090,16 @@ function easternYesterdayStr() {
   const t = easternTodayStr();
   const parts = t.split('-').map(function (x) { return parseInt(x, 10); });
   if (parts.length !== 3 || parts.some(function (n) { return isNaN(n); })) {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return toDateStr(d);
+    // Fallback: ask the formatter for "now - 24h" in ET (not local getDate()).
+    const yest = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return yest.toLocaleDateString('en-CA', { timeZone: GRADES_REPORT_TZ });
   }
+  // Civil-date minus one day in UTC space, then format with UTC parts.
+  // Do NOT use local getFullYear/getMonth/getDate — UTC midnight becomes
+  // the previous evening in US timezones and off-by-ones the YESTERDAY pill.
   const u = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
   u.setUTCDate(u.getUTCDate() - 1);
-  return easternYmdFromUtcParts(u.getUTCFullYear(), u.getUTCMonth() + 1, u.getUTCDate());
+  return ymdFromUtcParts(u.getUTCFullYear(), u.getUTCMonth() + 1, u.getUTCDate());
 }
 function formatLabel(dateStr){
   const [y,m,d] = dateStr.split('-');

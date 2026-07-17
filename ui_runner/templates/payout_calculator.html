@@ -951,7 +951,7 @@ body::before{
 <link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260408"/>
 <link rel="stylesheet" href="/static/site-nav-unified.css?v=20260408"/>
 </head>
-<body>
+<body class="page-payout">
 <!-- Liquid Glass Orbs -->
 <div class="orb-1" style="position:fixed;top:-12%;left:-6%;width:560px;height:560px;background:radial-gradient(circle,rgba(127,199,217,0.18) 0%,transparent 70%);filter:blur(120px);z-index:0;pointer-events:none;animation:orbP1 20s ease-in-out infinite alternate;"></div>
 <div class="orb-1" style="position:fixed;top:30%;right:-8%;width:700px;height:700px;background:radial-gradient(circle,rgba(212,175,55,0.09) 0%,transparent 70%);filter:blur(120px);z-index:0;pointer-events:none;animation:orbP2 24s ease-in-out infinite alternate;"></div>
@@ -968,7 +968,6 @@ body::before{
 {% include '_site_nav.html' %}
 <div id="app">
 
-{% set payout_section = 'calc' %}
 {% include '_payout_subnav.html' %}
 
 <!-- ── HERO ── -->
@@ -980,16 +979,15 @@ body::before{
 <!-- ── TABS ── -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('calc',this)">⚡ Builder</button>
+  <a class="tab-btn" href="/payout/log" style="text-decoration:none;display:inline-flex;align-items:center">📷 Ladder Log</a>
   <button class="tab-btn" onclick="switchTab('cards',this)">🃏 Rates &amp; Ladder</button>
 </div>
 
-<!-- ═══════════ TAB 1: BUILDER (EV + Composition + Ladder Log) ═══════════ -->
+<!-- ═══════════ TAB 1: BUILDER (EV + Composition) ═══════════ -->
 <div id="tab-calc" class="tab-panel active">
   <div class="toolbar" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
     <button type="button" class="chip active" data-builder-mode="ev" onclick="setBuilderMode('ev',this)">EV Slip</button>
     <button type="button" class="chip" data-builder-mode="composer" onclick="setBuilderMode('composer',this)">Composition</button>
-    <span style="flex:1"></span>
-    <a class="btn btn-ghost" href="/payout/log" style="padding:6px 12px;font-size:12px" title="Screenshot OCR from phone or desktop">📷 Ladder Log</a>
   </div>
 
   <div id="builder-mode-ev">
@@ -1188,9 +1186,8 @@ body::before{
 <div id="tab-cards" class="tab-panel">
   <div class="card accent">
     <div class="card-title">🃏 Rates &amp; Ladder</div>
-    <p class="hint">Baseline rate cards plus live ladder coverage by S/G/D mix. Capture new rows with <strong>Ladder Log</strong> (screenshot OCR from Builder).</p>
+    <p class="hint">Baseline rate cards plus live ladder coverage by S/G/D mix. Capture new rows on the <strong>Ladder Log</strong> tab (screenshot OCR).</p>
     <div class="btn-row" style="margin-bottom:12px">
-      <a class="btn btn-ghost" href="/payout/log">📷 Ladder Log</a>
       <a class="btn btn-ghost" href="/payout/ladder">🧱 Full ladder table</a>
     </div>
     <div id="ladder-mix-mount"><div class="hint" style="padding:12px 0">Open this tab to load ladder coverage…</div></div>
@@ -1240,7 +1237,11 @@ let logEntries=loadLog();
 
 function switchTab(id,btn){
   const requested = id;
-  if(requested==='log' || requested==='composer') id = 'calc';
+  if(requested==='log' || requested==='ladder_log' || requested==='ladder'){
+    window.location.href='/payout/log';
+    return;
+  }
+  if(requested==='composer') id = 'calc';
 
   document.querySelectorAll('.tab-panel').forEach(p=>{
     if(p.id==='tab-composer' || p.id==='tab-log'){ p.classList.remove('active'); return; }
@@ -1251,8 +1252,8 @@ function switchTab(id,btn){
   if(panel)panel.classList.add('active');
   const order=['calc','cards'];
   const i=order.indexOf(id);
-  const btns=document.querySelectorAll('.tab-bar .tab-btn');
-  if(btn && btn.classList && btn.closest && btn.closest('.tab-bar')) btn.classList.add('active');
+  const btns=[...document.querySelectorAll('.tab-bar .tab-btn')].filter((el)=>el.tagName==='BUTTON');
+  if(btn && btn.classList && btn.tagName==='BUTTON') btn.classList.add('active');
   else if(i>=0&&btns[i]) btns[i].classList.add('active');
 
   if(id==='cards'){ renderRateCards(false); renderLadderMix(false); }
@@ -1261,21 +1262,23 @@ function switchTab(id,btn){
     if(id==='calc') u.searchParams.delete('tab');
     else u.searchParams.set('tab', id);
     if(requested==='composer') u.searchParams.set('mode','composer');
+    else if(id==='calc') u.searchParams.delete('mode');
     history.replaceState({}, '', u.pathname + u.search + u.hash);
   } catch(_e) {}
-  document.querySelectorAll('.payout-subnav-links a').forEach((a) => {
-    const href = a.getAttribute('href') || '';
-    const isCalc = id === 'calc' && (href === '/payout' || href.endsWith('/payout'));
-    const isTab = href.includes('tab=' + id);
-    a.classList.toggle('active', Boolean(isCalc || isTab));
-  });
+  try {
+    if(id==='cards') document.body.setAttribute('data-payout-tab','cards');
+    else document.body.removeAttribute('data-payout-tab');
+  } catch(_e) {}
   if(requested==='composer') setBuilderMode('composer');
 }
 function goTab(id){
-  if(id==='log'){ switchTab('calc',null); return; }
+  if(id==='log' || id==='ladder' || id==='ladder_log'){
+    window.location.href='/payout/log';
+    return;
+  }
   if(id==='composer'){ switchTab('composer',null); return; }
   const order=['calc','cards'],i=order.indexOf(id);
-  const btns=document.querySelectorAll('.tab-bar .tab-btn');
+  const btns=[...document.querySelectorAll('.tab-bar .tab-btn')].filter((el)=>el.tagName==='BUTTON');
   if(i>=0&&btns[i])switchTab(id,btns[i]);
   else switchTab(id,null);
 }
@@ -1298,10 +1301,15 @@ function _bootPayoutTabFromUrl(){
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab') || '';
     const mode = params.get('mode') || '';
-    const map = { calc:'calc', calculator:'calc', builder:'calc', composer:'calc', log:'calc', loglines:'calc', cards:'cards', rates:'cards' };
-    const id = map[String(tab).toLowerCase()] || 'calc';
+    const t = String(tab).toLowerCase();
+    if (t === 'log' || t === 'ladder_log' || t === 'ladder' || t === 'loglines') {
+      window.location.replace('/payout/log');
+      return;
+    }
+    const map = { calc:'calc', calculator:'calc', builder:'calc', composer:'calc', cards:'cards', rates:'cards' };
+    const id = map[t] || 'calc';
     if (id !== 'calc') goTab(id);
-    if (String(tab).toLowerCase()==='composer' || String(mode).toLowerCase()==='composer') setBuilderMode('composer');
+    if (t === 'composer' || String(mode).toLowerCase() === 'composer') setBuilderMode('composer');
   } catch(_e) {}
 }
 document.addEventListener('DOMContentLoaded', _bootPayoutTabFromUrl);

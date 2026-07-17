@@ -123,40 +123,130 @@
 </div>
 
   <main class="wrap">
-
+    
 <style>
-  .payout-subnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);}
-  .payout-subnav-back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.1);color:#d4af37;text-decoration:none;font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
-  .payout-subnav-back:hover{background:rgba(212,175,55,.18);}
-  .payout-subnav-sep{width:1px;height:22px;background:rgba(255,255,255,.12);flex-shrink:0;}
-  .payout-subnav-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;}
-  .payout-subnav-links a{text-decoration:none;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid transparent;}
-  .payout-subnav-links a:hover{color:rgba(255,255,255,.95);background:rgba(255,255,255,.04);}
-  .payout-subnav-links a.active{color:#d4af37;border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.1);}
-  .payout-subnav-tools{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}
-  .payout-subnav-tools a{text-decoration:none;color:rgba(127,199,217,.95);font-size:11px;letter-spacing:.04em;padding:6px 10px;border-radius:8px;border:1px solid rgba(127,199,217,.28);background:rgba(127,199,217,.06);}
-  .payout-subnav-tools a:hover{background:rgba(127,199,217,.12);}
-  .payout-subnav-tools a.active{color:#7fc7d9;border-color:rgba(127,199,217,.5);background:rgba(127,199,217,.14);}
-  @media (max-width:720px){.payout-subnav-sep{display:none;}.payout-subnav-tools{margin-left:0;width:100%;}}
+  .payout-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    background: rgba(255,255,255,.03);
+  }
+  .payout-subnav-back {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(212,175,55,.35);
+    background: rgba(212,175,55,.1);
+    color: var(--accent, #d4af37);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .page-payout-ladder .payout-subnav-back { display: inline-flex; }
+  .payout-subnav-back:hover { background: rgba(212,175,55,.18); }
+  .payout-subnav-sep {
+    display: none;
+    width: 1px;
+    height: 22px;
+    background: rgba(255,255,255,.12);
+    flex-shrink: 0;
+  }
+  .page-payout-ladder .payout-subnav-sep { display: block; }
+  .payout-subnav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+  }
+  .payout-subnav-links a {
+    text-decoration: none;
+    color: rgba(255,255,255,.72);
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .payout-subnav-links a:hover {
+    color: rgba(255,255,255,.95);
+    background: rgba(255,255,255,.04);
+  }
+  .payout-subnav-links a.active,
+  .page-payout:not([data-payout-tab="cards"]) .payout-subnav-links a[data-section="builder"],
+  .page-payout[data-payout-tab="cards"] .payout-subnav-links a[data-section="cards"],
+  .page-payout-log .payout-subnav-links a[data-section="ladder_log"] {
+    color: var(--accent, #d4af37);
+    border-color: rgba(212,175,55,.35);
+    background: rgba(212,175,55,.1);
+  }
+  .payout-subnav-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .payout-subnav-tools a {
+    text-decoration: none;
+    color: rgba(127,199,217,.95);
+    font-size: 11px;
+    letter-spacing: .04em;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(127,199,217,.28);
+    background: rgba(127,199,217,.06);
+  }
+  .payout-subnav-tools a:hover { background: rgba(127,199,217,.12); }
+  .payout-subnav-tools a.active,
+  .page-payout-ladder .payout-subnav-tools a[data-section="ladder_table"] {
+    color: #7fc7d9;
+    border-color: rgba(127,199,217,.5);
+    background: rgba(127,199,217,.14);
+  }
+  @media (max-width: 720px) {
+    .payout-subnav-sep { display: none !important; }
+    .payout-subnav-tools { margin-left: 0; width: 100%; }
+  }
 </style>
 <nav class="payout-subnav" aria-label="Payouts sections">
-  <a class="payout-subnav-back" href="payout.html">&larr; Back to Calculator</a>
+  <a class="payout-subnav-back" href="payout.html">&larr; Back to Builder</a>
   <span class="payout-subnav-sep" aria-hidden="true"></span>
   <div class="payout-subnav-links">
-    <a href="payout.html">Calculator</a>
-    <a href="payout.html?tab=composer">Composer</a>
-    <a href="payout.html?tab=log">Log Lines</a>
-    <a href="payout.html?tab=cards">Rate Cards</a>
+    <a href="payout.html" data-section="builder">Builder</a>
+    <a href="payout_log.html" data-section="ladder_log">Ladder Log</a>
+    <a href="payout.html?tab=cards" data-section="cards">Rates &amp; Ladder</a>
   </div>
   <div class="payout-subnav-tools">
-    <a href="payout_log.html" class="active">Ladder Log</a>
-    <a href="payout_ladder.html">Ladder Table</a>
+    <a href="payout_ladder.html" data-section="ladder_table">Full table</a>
   </div>
 </nav>
 
-
-<section class="card">
-      <div class="title">Payout Ladder Logger</div>
+    <style>
+      .tab-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.09);border-radius:16px;}
+      .tab-btn{font-family:inherit;font-size:11px;letter-spacing:2px;padding:10px 16px;cursor:pointer;color:rgba(255,255,255,.65);border:1px solid transparent;background:rgba(255,255,255,0.02);border-radius:10px;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;}
+      .tab-btn:hover{color:#f4f7ff;background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.10);}
+      .tab-btn.active{color:var(--accent,#d4af37);background:rgba(212,175,55,0.10);border-color:rgba(212,175,55,0.32);}
+    </style>
+    <div class="tab-bar" role="tablist" aria-label="Payout tools">
+      <a class="tab-btn" href="payout.html">⚡ Builder</a>
+      <a class="tab-btn active" href="payout_log.html" aria-current="page">📷 Ladder Log</a>
+      <a class="tab-btn" href="payout.html?tab=cards">🃏 Rates &amp; Ladder</a>
+    </div>
+    <section class="card">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <div class="title" style="margin:0">Payout Ladder Logger</div>
+        <a class="btn" href="payout.html" style="text-decoration:none;white-space:nowrap">&larr; Back to Builder</a>
+      </div>
       <p class="muted">Upload a PrizePicks screenshot, run Gemini OCR, review/edit extracted data, then save a row into <code>ui_runner/data/payout_ladder_log.csv</code>.</p>
     </section>
     <section class="card">

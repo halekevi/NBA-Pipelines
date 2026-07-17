@@ -504,13 +504,19 @@ def generate_bundle():
                 "/payout/ladder": "payout_ladder.html",
                 "/payout/examples": "payout_examples.html",
             }
-            for route, target in NAV_MAP.items():
+            # Longer routes first so /payout does not steal /payout/log.
+            for route, target in sorted(NAV_MAP.items(), key=lambda kv: -len(kv[0])):
                 content = re.sub(
-                    rf'href\s*=\s*(["\'])\s*{re.escape(route)}\s*\1',
-                    f'href="{target}"',
+                    rf'href\s*=\s*(["\'])\s*{re.escape(route)}((?:\?[^"\']*)?)\s*\1',
+                    lambda m, t=target: f'href="{t}{m.group(2)}"',
                     content,
-                    flags=re.IGNORECASE
+                    flags=re.IGNORECASE,
                 )
+            # JS navigations used by payout tabs (Ladder Log is its own page).
+            content = content.replace("'/payout/log'", "'payout_log.html'")
+            content = content.replace('"/payout/log"', '"payout_log.html"')
+            content = content.replace("'/payout?tab=cards'", "'payout.html?tab=cards'")
+            content = content.replace('"/payout?tab=cards"', '"payout.html?tab=cards"')
 
             # Mobile bundle runs from local files (not Railway routes).
             # Rewrite grades page report/API paths to local assets.

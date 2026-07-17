@@ -1,6 +1,5 @@
-{# Shared Payouts secondary nav. Set payout_section before include:
-   calc | composer | loglines | cards | ladder_log | ladder_table #}
-{% set payout_section = payout_section|default('calc') %}
+{# Shared Payouts secondary nav. Highlight via body class:
+   page-payout (+ data-payout-tab), page-payout-log, page-payout-ladder #}
 <style>
   .payout-subnav {
     display: flex;
@@ -14,7 +13,7 @@
     background: rgba(255,255,255,.03);
   }
   .payout-subnav-back {
-    display: inline-flex;
+    display: none;
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
@@ -28,13 +27,16 @@
     letter-spacing: .04em;
     white-space: nowrap;
   }
+  .page-payout-ladder .payout-subnav-back { display: inline-flex; }
   .payout-subnav-back:hover { background: rgba(212,175,55,.18); }
   .payout-subnav-sep {
+    display: none;
     width: 1px;
     height: 22px;
     background: rgba(255,255,255,.12);
     flex-shrink: 0;
   }
+  .page-payout-ladder .payout-subnav-sep { display: block; }
   .payout-subnav-links {
     display: flex;
     flex-wrap: wrap;
@@ -56,7 +58,10 @@
     color: rgba(255,255,255,.95);
     background: rgba(255,255,255,.04);
   }
-  .payout-subnav-links a.active {
+  .payout-subnav-links a.active,
+  .page-payout:not([data-payout-tab="cards"]) .payout-subnav-links a[data-section="builder"],
+  .page-payout[data-payout-tab="cards"] .payout-subnav-links a[data-section="cards"],
+  .page-payout-log .payout-subnav-links a[data-section="ladder_log"] {
     color: var(--accent, #d4af37);
     border-color: rgba(212,175,55,.35);
     background: rgba(212,175,55,.1);
@@ -78,27 +83,26 @@
     background: rgba(127,199,217,.06);
   }
   .payout-subnav-tools a:hover { background: rgba(127,199,217,.12); }
-  .payout-subnav-tools a.active {
+  .payout-subnav-tools a.active,
+  .page-payout-ladder .payout-subnav-tools a[data-section="ladder_table"] {
     color: #7fc7d9;
     border-color: rgba(127,199,217,.5);
     background: rgba(127,199,217,.14);
   }
   @media (max-width: 720px) {
-    .payout-subnav-sep { display: none; }
+    .payout-subnav-sep { display: none !important; }
     .payout-subnav-tools { margin-left: 0; width: 100%; }
   }
 </style>
 <nav class="payout-subnav" aria-label="Payouts sections">
-  {% if payout_section not in ('calc', 'cards') %}
   <a class="payout-subnav-back" href="/payout">&larr; Back to Builder</a>
   <span class="payout-subnav-sep" aria-hidden="true"></span>
-  {% endif %}
   <div class="payout-subnav-links">
-    <a href="/payout" class="{{ 'active' if payout_section in ('calc', 'composer', 'loglines') else '' }}">Builder</a>
-    <a href="/payout?tab=cards" class="{{ 'active' if payout_section == 'cards' else '' }}">Rates &amp; Ladder</a>
+    <a href="/payout" data-section="builder">Builder</a>
+    <a href="/payout/log" data-section="ladder_log">Ladder Log</a>
+    <a href="/payout?tab=cards" data-section="cards">Rates &amp; Ladder</a>
   </div>
   <div class="payout-subnav-tools">
-    <a href="/payout/log" class="{{ 'active' if payout_section == 'ladder_log' else '' }}">Ladder Log</a>
-    <a href="/payout/ladder" class="{{ 'active' if payout_section == 'ladder_table' else '' }}">Ladder Table</a>
+    <a href="/payout/ladder" data-section="ladder_table">Full table</a>
   </div>
 </nav>

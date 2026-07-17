@@ -128,8 +128,10 @@ function Get-WnbaStep1HttpArgs {
     param(
         [string]$OutCsv,
         [string]$SlateDate,
-        [int]$Max403Retries = 5
+        [int]$Max403Retries = 5,
+        [switch]$FailFast403
     )
+    $waves = if ($FailFast403) { 1 } else { 3 }
     $argsList = @(
         "--league_id", "3",
         "--game_mode", "pickem",
@@ -140,10 +142,11 @@ function Get-WnbaStep1HttpArgs {
         "--max_cooldowns", "3",
         "--jitter_seconds", "10.0",
         "--max_403_retries", "$Max403Retries",
-        "--first-page-waves", "3",
+        "--first-page-waves", "$waves",
         "--output", $OutCsv,
         "--date", $SlateDate
     )
+    if ($FailFast403) { $argsList += "--fail-fast-403" }
     if ($Quiet403) { $argsList += "--quiet-403" }
     return ($argsList -join " ")
 }
@@ -151,7 +154,8 @@ function Get-WnbaStep1HttpArgs {
 function Invoke-WnbaStep1Http {
     param(
         [string]$Label,
-        [string]$Impersonate = ""
+        [string]$Impersonate = "",
+        [switch]$FailFast403
     )
     $outCsv = Join-Path $WnbaRunOutDir "step1_wnba_props.csv"
     $savedImp = [string]$env:PROPORACLE_CURL_IMPERSONATE
@@ -161,8 +165,8 @@ function Invoke-WnbaStep1Http {
         $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
     }
     try {
-        $max403 = if ($Max403Retries -gt 0) { $Max403Retries } else { 5 }
-        $httpArgs = Get-WnbaStep1HttpArgs -OutCsv $outCsv -SlateDate $Date -Max403Retries $max403
+        $max403 = if ($Max403Retries -gt 0) { $Max403Retries } elseif ($FailFast403) { 2 } else { 5 }
+        $httpArgs = Get-WnbaStep1HttpArgs -OutCsv $outCsv -SlateDate $Date -Max403Retries $max403 -FailFast403:$FailFast403
         return (Run-Step $Label $WNBADir ".\step1_fetch_prizepicks.py" $httpArgs)
     } finally {
         if ($Impersonate) {
@@ -330,12 +334,21 @@ if (-not $SkipFetch) {
             $ok = Invoke-WnbaStep1Browser -CdpUrl $browserCdp -Label "WNBA Step 1 - Fetch PrizePicks (browser/CDP)"
         }
     } else {
+        # When CDP is up, keep HTTP brief (1-2 hard 403s) then fail over - skip chrome120 thrash.
+        $httpFailFast = $cdpReachable -and -not $HttpOnly
         if ($ok) {
-            $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP, chrome131)"
+            $httpLabel = if ($httpFailFast) {
+                "WNBA Step 1 - Fetch PrizePicks (HTTP fail-fast, chrome131)"
+            } else {
+                "WNBA Step 1 - Fetch PrizePicks (HTTP, chrome131)"
+            }
+            $ok = Invoke-WnbaStep1Http -Label $httpLabel -FailFast403:$httpFailFast
         }
-        if (-not $ok) {
+        if (-not $ok -and -not $httpFailFast) {
             Write-Host "  [WNBA step1] HTTP (chrome131) failed - retrying NBA API path (chrome120)..." -ForegroundColor Yellow
             $ok = Invoke-WnbaStep1HttpNbaFallback
+        } elseif (-not $ok -and $httpFailFast) {
+            Write-Host "  [WNBA step1] HTTP fail-fast exhausted - skipping chrome120 (CDP available)..." -ForegroundColor DarkYellow
         }
         if (-not $ok -and -not $HttpOnly -and -not $NoCdpFallback) {
             if ($cdpReachable) {

@@ -97,12 +97,40 @@ param(
     # Compatibility flag passed by run_daily combined-only invocation.
     # Intentionally no-op here; ticket quality warnings are handled inside downstream scripts.
     [switch]$DQWarnOnly,
+    # Seconds between parallel sport Start-Job launches (reduces PrizePicks stampede). 0 disables.
+    # Default 20; override with -FetchStaggerSeconds or env PROPORACLE_FETCH_STAGGER_SEC.
+    [int]$FetchStaggerSeconds = -1,
+    [switch]$NoFetchStagger,
     # Chrome CDP URL for WNBA step1 (PrizePicks); parallel WNBA job receives this explicitly (env may not propagate).
     [string]$WNBACdp = ""
 )
 
 $ErrorActionPreference = "Continue"
 $script:CombinedRanThisSession = $false
+
+# Parallel step1 stagger: avoid all sports hitting PrizePicks at once.
+if ($NoFetchStagger) {
+    $FetchStaggerSeconds = 0
+} elseif ($FetchStaggerSeconds -lt 0) {
+    $envStagger = "$($env:PROPORACLE_FETCH_STAGGER_SEC)".Trim()
+    if ($envStagger -match '^\d+$') {
+        $FetchStaggerSeconds = [int]$envStagger
+    } else {
+        $FetchStaggerSeconds = 20
+    }
+}
+$script:FetchJobsStarted = 0
+function Wait-FetchStagger {
+    if ($SkipFetch -or $FetchStaggerSeconds -le 0) {
+        $script:FetchJobsStarted++
+        return
+    }
+    if ($script:FetchJobsStarted -gt 0) {
+        Write-Host "  [fetch-stagger] pausing ${FetchStaggerSeconds}s before next sport job..." -ForegroundColor DarkCyan
+        Start-Sleep -Seconds $FetchStaggerSeconds
+    }
+    $script:FetchJobsStarted++
+}
 
 if (-not $OddsApiKey) {
     $OddsApiKey = [string]$env:ODDS_API_KEY
@@ -426,23 +454,52 @@ function Get-MlbStep1HttpArgList {
         [string]$PipelineDate,
         [string]$OutputPath,
         [switch]$Append,
-        [switch]$AllowNearestFuture
+        [switch]$AllowNearestFuture,
+        [switch]$FailFast403
     )
-    $list = @(
-        "--date", $PipelineDate,
-        "--output", $OutputPath,
-        "--per-page", "250",
-        "--max-pages", "10",
-        "--api-retries", "5",
-        "--api-session-waves", "3",
-        "--api-403-cooldown-after", "5",
-        "--api-403-cooldown-seconds", "90",
-        "--api-403-cooldown-jitter-min", "12",
-        "--api-403-cooldown-jitter-max", "40"
-    )
+    if ($FailFast403) {
+        $list = @(
+            "--date", $PipelineDate,
+            "--output", $OutputPath,
+            "--per-page", "250",
+            "--max-pages", "10",
+            "--api-retries", "2",
+            "--api-session-waves", "1",
+            "--api-403-cooldown-after", "1",
+            "--api-403-cooldown-seconds", "12",
+            "--api-403-cooldown-jitter-min", "2",
+            "--api-403-cooldown-jitter-max", "6"
+        )
+    } else {
+        $list = @(
+            "--date", $PipelineDate,
+            "--output", $OutputPath,
+            "--per-page", "250",
+            "--max-pages", "10",
+            "--api-retries", "5",
+            "--api-session-waves", "3",
+            "--api-403-cooldown-after", "5",
+            "--api-403-cooldown-seconds", "90",
+            "--api-403-cooldown-jitter-min", "12",
+            "--api-403-cooldown-jitter-max", "40"
+        )
+    }
     if ($Append) { $list += "--append" }
     if ($AllowNearestFuture) { $list += "--allow-nearest-future" }
     return $list
+}
+
+function Test-MlbCdpReachable {
+    param([string]$CdpUrl = "")
+    if (-not $CdpUrl) {
+        $CdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+    }
+    try {
+        $probe = Invoke-RestMethod -Uri "$CdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
+        return [bool]$probe
+    } catch {
+        return $false
+    }
 }
 
 function Invoke-MLBStep1Fetch {
@@ -458,7 +515,13 @@ function Invoke-MLBStep1Fetch {
         $env:PYTHONIOENCODING = "utf-8"
         $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"   # match WNBA — chrome120 hits DataDome 403
 
-        $httpArgs = Get-MlbStep1HttpArgList -PipelineDate $PipelineDate -OutputPath $OutputPath
+        $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+        $cdpReachable = Test-MlbCdpReachable -CdpUrl $cdpUrl
+        if ($cdpReachable) {
+            Write-Host "      [MLB] CDP up - using fail-fast HTTP (quick 403 exit -> CDP)" -ForegroundColor DarkCyan
+        }
+
+        $httpArgs = Get-MlbStep1HttpArgList -PipelineDate $PipelineDate -OutputPath $OutputPath -FailFast403:$cdpReachable
         $cmdHttpDisplay = "py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py $($httpArgs -join ' ')"
         Write-Host "        CMD: $cmdHttpDisplay" -ForegroundColor DarkGray
         $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @httpArgs 2>&1
@@ -474,13 +537,6 @@ function Invoke-MLBStep1Fetch {
         } else {
             Write-Host "      MLB HTTP fetch failed (exit $exit); falling back to CDP..." -ForegroundColor Yellow
         }
-
-        $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-        $cdpReachable = $false
-        try {
-            $probe = Invoke-RestMethod -Uri "$cdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
-            if ($probe) { $cdpReachable = $true }
-        } catch { $cdpReachable = $false }
 
         if ($cdpReachable) {
             $cmd0Display = "py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py --cdp $cdpUrl --date $PipelineDate --output $OutputPath"
@@ -2216,12 +2272,17 @@ $parallelLabel = if ($wnbaParallel) {
 }
 Write-Host $parallelLabel -ForegroundColor Magenta
 Write-Host ""
-Write-Host "  Starting all pipelines simultaneously..." -ForegroundColor Cyan
+if ($SkipFetch -or $FetchStaggerSeconds -le 0) {
+    Write-Host "  Starting all pipelines simultaneously..." -ForegroundColor Cyan
+} else {
+    Write-Host "  Starting sport pipelines with ${FetchStaggerSeconds}s fetch stagger..." -ForegroundColor Cyan
+}
 Write-Host ""
 
 # -- NBA Job ------------------------------------------------------------------
 $NBAJob = $null
 if (-not $NBAOffSeason) {
+Wait-FetchStagger
 $NBAJob = Start-Job -ScriptBlock {
     param($NBADir, $Date, $OddsApiKey, $SkipFetch, $RepoRoot, $NBARunOutDir, $OffSeason)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2406,6 +2467,7 @@ $NBAJob = Start-Job -ScriptBlock {
 # -- CBB Job ------------------------------------------------------------------
 $CBBJob = $null
 if ($CBB_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $CBBJob = Start-Job -ScriptBlock {
     param($CBBDir, $Date, $SkipFetch, $RepoRoot, $CBBRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2458,6 +2520,7 @@ $CBBJob = Start-Job -ScriptBlock {
 # -- CFB Job ------------------------------------------------------------------
 $CFBJob = $null
 if ($CFB_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $CFBJob = Start-Job -ScriptBlock {
     param($CFBDir, $Date, $SkipFetch, $RepoRoot, $CFBRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2525,6 +2588,7 @@ $NHLJob = $null
 if ($NHLOffSeason) {
     Write-Host "  [NHL] Off-season — paused until $NHL_SEASON_RESUME" -ForegroundColor DarkGray
 } else {
+Wait-FetchStagger
 $NHLJob = Start-Job -ScriptBlock {
     param($NHLDir, $SkipFetch, $RepoRoot, $Date, $NHLRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2690,6 +2754,7 @@ $NHLJob = Start-Job -ScriptBlock {
 }
 
 # -- Soccer Job ---------------------------------------------------------------
+Wait-FetchStagger
 $SoccerJob = Start-Job -ScriptBlock {
     param($SoccerDir, $Date, $SkipFetch, $RepoRoot, $SkipDefenseRefresh, $SoccerRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2785,6 +2850,7 @@ $SoccerJob = Start-Job -ScriptBlock {
 } -ArgumentList $SoccerDir, $Date, $SkipFetch, $Root, [bool]$SkipDefenseRefresh, $SoccerRunOutDir
 
 # -- Tennis Job ---------------------------------------------------------------
+Wait-FetchStagger
 $TennisJob = Start-Job -ScriptBlock {
     param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2845,6 +2911,7 @@ $TennisJob = Start-Job -ScriptBlock {
 } -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir
 
 # -- Golf Job (PGA — step1 → step2 → step4 → step5 → step7 → step8) -----------
+Wait-FetchStagger
 $GolfJob = Start-Job -ScriptBlock {
     param($GolfDir, $Date, $SkipFetch, $GolfRunOutDir, $RepoRoot)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2926,6 +2993,7 @@ $GolfJob = Start-Job -ScriptBlock {
 
 # -- MLB Job ------------------------------------------------------------------
 # MLB activated April 2026
+Wait-FetchStagger
 $MLBJob = Start-Job -ScriptBlock {
     param($MLBDir, $Date, $SkipFetch, $RepoRoot, $MLBRunOutDir, $MlbSeasonYear)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2964,20 +3032,36 @@ $MLBJob = Start-Job -ScriptBlock {
             [string]$PipelineDate,
             [string]$OutputPath,
             [switch]$Append,
-            [switch]$AllowNearestFuture
+            [switch]$AllowNearestFuture,
+            [switch]$FailFast403
         )
-        $list = @(
-            "--date", $PipelineDate,
-            "--output", $OutputPath,
-            "--per-page", "250",
-            "--max-pages", "10",
-            "--api-retries", "5",
-            "--api-session-waves", "3",
-            "--api-403-cooldown-after", "5",
-            "--api-403-cooldown-seconds", "90",
-            "--api-403-cooldown-jitter-min", "12",
-            "--api-403-cooldown-jitter-max", "40"
-        )
+        if ($FailFast403) {
+            $list = @(
+                "--date", $PipelineDate,
+                "--output", $OutputPath,
+                "--per-page", "250",
+                "--max-pages", "10",
+                "--api-retries", "2",
+                "--api-session-waves", "1",
+                "--api-403-cooldown-after", "1",
+                "--api-403-cooldown-seconds", "12",
+                "--api-403-cooldown-jitter-min", "2",
+                "--api-403-cooldown-jitter-max", "6"
+            )
+        } else {
+            $list = @(
+                "--date", $PipelineDate,
+                "--output", $OutputPath,
+                "--per-page", "250",
+                "--max-pages", "10",
+                "--api-retries", "5",
+                "--api-session-waves", "3",
+                "--api-403-cooldown-after", "5",
+                "--api-403-cooldown-seconds", "90",
+                "--api-403-cooldown-jitter-min", "12",
+                "--api-403-cooldown-jitter-max", "40"
+            )
+        }
         if ($Append) { $list += "--append" }
         if ($AllowNearestFuture) { $list += "--allow-nearest-future" }
         return $list
@@ -2991,7 +3075,17 @@ $MLBJob = Start-Job -ScriptBlock {
             $env:PYTHONIOENCODING = "utf-8"
             $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
 
-            $httpArgs = Get-MlbStep1HttpArgList-Job -PipelineDate $PipelineDate -OutputPath $OutputPath
+            $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+            $cdpReachable = $false
+            try {
+                $probe = Invoke-RestMethod -Uri "$cdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
+                if ($probe) { $cdpReachable = $true }
+            } catch { $cdpReachable = $false }
+            if ($cdpReachable) {
+                Write-Output "[MLB] CDP up - using fail-fast HTTP (quick 403 exit -> CDP)"
+            }
+
+            $httpArgs = Get-MlbStep1HttpArgList-Job -PipelineDate $PipelineDate -OutputPath $OutputPath -FailFast403:$cdpReachable
             Write-Output "        CMD: py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py $($httpArgs -join ' ')"
             $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @httpArgs 2>&1
             $exit = $LASTEXITCODE
@@ -3006,13 +3100,6 @@ $MLBJob = Start-Job -ScriptBlock {
             } else {
                 Write-Output "[MLB] HTTP failed (exit $exit); falling back to CDP"
             }
-
-            $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-            $cdpReachable = $false
-            try {
-                $probe = Invoke-RestMethod -Uri "$cdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
-                if ($probe) { $cdpReachable = $true }
-            } catch { $cdpReachable = $false }
 
             if ($cdpReachable) {
                 Write-Output "        CMD: py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py --cdp $cdpUrl --date $PipelineDate --output $OutputPath"
@@ -3206,6 +3293,7 @@ $MLBJob = Start-Job -ScriptBlock {
 # -- WNBA Job (parallel full run from $WNBA_SEASON_START; optional -ForceWNBA) ---
 $WNBAJob = $null
 if ($wnbaParallel) {
+    Wait-FetchStagger
     $WNBAJob = Start-Job -ScriptBlock {
         param($RepoRoot, $PipelineDate, $SkipFetchFlag, $WnbaCdp)
         $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -3237,6 +3325,7 @@ if ($wnbaParallel) {
 # -- NFL Job ------------------------------------------------------------------
 $NFLJob = $null
 if ($NFL_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $NFLJob = Start-Job -ScriptBlock {
     param($NFLDir, $Date, $SkipFetch, $RepoRoot, $DefenseSeason, $NFLRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"

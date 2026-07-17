@@ -393,6 +393,7 @@ def _fetch_one_page(
     forbidden_backoff_base: float,
     cooldowns_used: int,
     forbidden_retries: int,
+    fail_fast_403: bool = False,
 ) -> Tuple[bool, bool, int, int, List[dict], List[dict]]:
     """
     Returns (page_ok, stop_paging, cooldowns_used, forbidden_retries, new_data, new_included).
@@ -428,6 +429,10 @@ def _fetch_one_page(
                 session.cookies.clear()
             except Exception:
                 pass
+            # Cap exponential sleep so CDP failover is not delayed 5–15+ minutes.
+            backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
+            if fail_fast_403:
+                backoff = min(backoff, 12.0)
             if not _QUIET_403:
                 if forbidden_retries >= 2:
                     print(
@@ -440,12 +445,10 @@ def _fetch_one_page(
                         f"⏸️ 403 retry {forbidden_retries}/{max_403_retries} (page {page}): "
                         "same client fingerprint; cookies cleared only"
                     )
-                backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
                 print(f"⏸️ sleeping {backoff:.1f}s...")
             else:
                 if forbidden_retries >= 2:
                     _rotate_session_headers(session)
-                backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
             time.sleep(backoff)
             _warm_session(session)
             continue
@@ -482,6 +485,7 @@ def fetch_pages(
     max_403_retries: int = 5,
     forbidden_backoff_base: float = 15.0,
     first_page_waves: int = 3,
+    fail_fast_403: bool = False,
 ) -> Tuple[List[dict], List[dict]]:
     all_data: List[dict] = []
     all_included: List[dict] = []
@@ -493,6 +497,9 @@ def fetch_pages(
     _log_http_backend_once()
     session: Any | None = None
     waves = max(1, int(first_page_waves))
+    if fail_fast_403:
+        waves = min(waves, 1)
+        forbidden_backoff_base = min(float(forbidden_backoff_base), 6.0)
     page1_ok = False
 
     for wave in range(waves):
@@ -504,9 +511,9 @@ def fetch_pages(
         session = _new_http_session()
         _rotate_session_headers(session)
         if wave == 0:
-            time.sleep(random.uniform(3.0, 8.0))
+            time.sleep(random.uniform(1.0, 3.0) if fail_fast_403 else random.uniform(3.0, 8.0))
         else:
-            gap = random.uniform(12.0, 28.0)
+            gap = random.uniform(4.0, 8.0) if fail_fast_403 else random.uniform(12.0, 28.0)
             print(f"  [session-wave {wave + 1}/{waves}] New session after page-1 failure; pausing {gap:.0f}s…")
             time.sleep(gap)
         _warm_session(session)
@@ -526,6 +533,7 @@ def fetch_pages(
             forbidden_backoff_base=forbidden_backoff_base,
             cooldowns_used=cooldowns_used,
             forbidden_retries=forbidden_retries,
+            fail_fast_403=fail_fast_403,
         )
         if stop:
             stop_paging = True
@@ -563,6 +571,7 @@ def fetch_pages(
             forbidden_backoff_base=forbidden_backoff_base,
             cooldowns_used=cooldowns_used,
             forbidden_retries=forbidden_retries,
+            fail_fast_403=fail_fast_403,
         )
         if stop:
             stop_paging = True
@@ -839,6 +848,11 @@ def main():
         default=3,
         help="On repeated page-1 403/empty failure, discard session and retry with fresh TLS (NBA-style).",
     )
+    ap.add_argument(
+        "--fail-fast-403",
+        action="store_true",
+        help="Cap 403 backoff and session waves so callers can fail over to CDP quickly.",
+    )
     ap.add_argument("--min_rows",         type=int,   default=30)
     ap.add_argument("--min_teams",        type=int,   default=2)
     ap.add_argument("--date",             default=time.strftime("%Y-%m-%d"))
@@ -913,6 +927,7 @@ def main():
                 jitter_seconds=args.jitter_seconds,
                 max_403_retries=args.max_403_retries,
                 first_page_waves=args.first_page_waves,
+                fail_fast_403=bool(args.fail_fast_403),
             )
         except Exception as e:
             print(f"❌ FETCH_FAILED: HTTP fetch failed: {e}")

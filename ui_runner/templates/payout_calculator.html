@@ -964,10 +964,13 @@ body::before{
 {% include '_site_nav.html' %}
 <div id="app">
 
+{% set payout_section = 'calc' %}
+{% include '_payout_subnav.html' %}
+
 <!-- ── HERO ── -->
 <div class="hero">
   <h1>💰 Payout <span>Calculator</span></h1>
-  <div class="hero-sub">EV ANALYSIS &nbsp;·&nbsp; LINE LOGGER &nbsp;·&nbsp; RATE CARDS</div>
+  <div class="hero-sub">Build slips, log lines, and check rate cards. Ladder tools are in the strip above.</div>
 </div>
 
 <!-- ── TABS ── -->
@@ -1067,9 +1070,6 @@ body::before{
     <div class="btn-row">
       <button class="btn btn-accent" type="button" onclick="runComposerPredict()">▶ Predict</button>
       <button class="btn btn-ghost" type="button" onclick="composerReset()">✕ Clear</button>
-      <a class="btn btn-ghost" href="/payout/log">📷 Ladder Log</a>
-      <a class="btn btn-ghost" href="/payout/ladder">🧱 Ladder Table</a>
-      <a class="btn btn-ghost" href="/payout/examples">🗂 Examples</a>
     </div>
     <div id="composer-msg" style="font-size:11px;margin-top:8px;color:var(--muted)"></div>
   </div>
@@ -1224,16 +1224,46 @@ let logEntries=loadLog();
 function switchTab(id,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
+  const panel=document.getElementById('tab-'+id);
+  if(panel)panel.classList.add('active');
+  if(btn)btn.classList.add('active');
+  else {
+    const order=['calc','composer','log','cards'];
+    const i=order.indexOf(id);
+    const btns=document.querySelectorAll('.tab-bar .tab-btn');
+    if(i>=0&&btns[i])btns[i].classList.add('active');
+  }
   if(id==='log'){renderLogTable();updateLogCount();}
   if(id==='cards')renderRateCards(false);
+  try {
+    const u=new URL(window.location.href);
+    if(id==='calc') u.searchParams.delete('tab');
+    else u.searchParams.set('tab', id);
+    history.replaceState({}, '', u.pathname + u.search + u.hash);
+  } catch(_e) {}
+  // Keep shared subnav highlight in sync
+  document.querySelectorAll('.payout-subnav-links a').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    const isCalc = id === 'calc' && (href === '/payout' || href.endsWith('/payout'));
+    const isTab = href.includes('tab=' + id) || (id === 'log' && href.includes('tab=log'));
+    a.classList.toggle('active', Boolean(isCalc || isTab));
+  });
 }
 function goTab(id){
   const order=['calc','composer','log','cards'],i=order.indexOf(id);
   const btns=document.querySelectorAll('.tab-bar .tab-btn');
   if(i>=0&&btns[i])switchTab(id,btns[i]);
+  else switchTab(id,null);
 }
+function _bootPayoutTabFromUrl(){
+  try {
+    const tab = new URLSearchParams(window.location.search).get('tab') || '';
+    const map = { calc:'calc', calculator:'calc', composer:'composer', log:'log', loglines:'log', cards:'cards', rates:'cards' };
+    const id = map[String(tab).toLowerCase()] || 'calc';
+    if (id !== 'calc') goTab(id);
+  } catch(_e) {}
+}
+document.addEventListener('DOMContentLoaded', _bootPayoutTabFromUrl);
 
 function composerAddLeg(pickType){
   composerLegs.push({ pick_type: pickType || 'Standard', delta: 0, direction: 'OVER' });

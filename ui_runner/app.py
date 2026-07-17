@@ -2831,16 +2831,8 @@ def page_payout_ladder():
 
 @app.get("/payout/examples")
 def page_payout_examples():
-    p = PAYOUT_LADDER_EXAMPLES_PATH
-    payload: dict[str, Any]
-    if p.is_file():
-        try:
-            payload = json.loads(p.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            payload = {"generated_at": "", "examples": []}
-    else:
-        payload = {"generated_at": "", "examples": []}
-    return _grades_html_response("payout_examples.html", payload=payload)
+    # Examples tab was unused/empty; keep route as redirect into Composer.
+    return redirect("/payout?tab=composer", code=302)
 
 
 @app.get("/api/payout/rate-cards")

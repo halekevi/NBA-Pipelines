@@ -93,7 +93,7 @@
     <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
     <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
     <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
     <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
@@ -123,7 +123,39 @@
 </div>
 
   <main class="wrap">
-    <section class="card">
+
+<style>
+  .payout-subnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.03);}
+  .payout-subnav-back{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.1);color:#d4af37;text-decoration:none;font-size:12px;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
+  .payout-subnav-back:hover{background:rgba(212,175,55,.18);}
+  .payout-subnav-sep{width:1px;height:22px;background:rgba(255,255,255,.12);flex-shrink:0;}
+  .payout-subnav-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;}
+  .payout-subnav-links a{text-decoration:none;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid transparent;}
+  .payout-subnav-links a:hover{color:rgba(255,255,255,.95);background:rgba(255,255,255,.04);}
+  .payout-subnav-links a.active{color:#d4af37;border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.1);}
+  .payout-subnav-tools{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}
+  .payout-subnav-tools a{text-decoration:none;color:rgba(127,199,217,.95);font-size:11px;letter-spacing:.04em;padding:6px 10px;border-radius:8px;border:1px solid rgba(127,199,217,.28);background:rgba(127,199,217,.06);}
+  .payout-subnav-tools a:hover{background:rgba(127,199,217,.12);}
+  .payout-subnav-tools a.active{color:#7fc7d9;border-color:rgba(127,199,217,.5);background:rgba(127,199,217,.14);}
+  @media (max-width:720px){.payout-subnav-sep{display:none;}.payout-subnav-tools{margin-left:0;width:100%;}}
+</style>
+<nav class="payout-subnav" aria-label="Payouts sections">
+  <a class="payout-subnav-back" href="payout.html">&larr; Back to Calculator</a>
+  <span class="payout-subnav-sep" aria-hidden="true"></span>
+  <div class="payout-subnav-links">
+    <a href="payout.html">Calculator</a>
+    <a href="payout.html?tab=composer">Composer</a>
+    <a href="payout.html?tab=log">Log Lines</a>
+    <a href="payout.html?tab=cards">Rate Cards</a>
+  </div>
+  <div class="payout-subnav-tools">
+    <a href="payout_log.html" class="active">Ladder Log</a>
+    <a href="payout_ladder.html">Ladder Table</a>
+  </div>
+</nav>
+
+
+<section class="card">
       <div class="title">Payout Ladder Logger</div>
       <p class="muted">Upload a PrizePicks screenshot, run Gemini OCR, review/edit extracted data, then save a row into <code>ui_runner/data/payout_ladder_log.csv</code>.</p>
     </section>

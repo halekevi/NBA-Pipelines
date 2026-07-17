@@ -2,32 +2,32 @@
 # ============================================================
 #  Live PrizePicks payout capture (post-ticket step)
 #
-#  Runs after combined_slate_tickets writes MAIN/STRONG slips:
-#    1) CDP scrape of EACH generated MAIN/STRONG slip only → power_min_x
-#       (navigates to that slip's sport board; does not crawl unrelated leagues)
-#    2) Write payout_patch_<date>.json + write-back display_min_x
-#       (payout_source=live_cdp) onto combined + tickets_latest.json
-#    3) Verify outstanding ticket floors + mix/Δ coverage
-#       (scripts/verify_ticket_payout_rates.py). Fills missing live_cdp slips
-#       when CDP is up; rebuilds SG Δ rate card after fills.
-#    Optional: -IncludeMixGrid for once/day rate-card calibration (separate from tickets)
+#  Two-tier model:
+#    MAIN (5AM STEP D-payout): scrape all MAIN/STRONG slips missing live floors,
+#      then verify + rebuild rate card (-FillMissingTickets -RebuildRateCard).
+#    UPDATE (midday / manual default): same script, but only slips still missing
+#      payout_source=live_cdp (--only-missing-live). If fingerprint unchanged and
+#      everything already live_cdp → CDP skipped (seconds). Pass -Force only to
+#      re-scrape slips that already have live floors.
 #
-#  Skip re-fetch: if today's ticket fingerprint matches the prior capture AND every
-#  MAIN/STRONG slip already has payout_source=live_cdp, CDP is skipped (unless -Force).
-#  When tickets change, only slips missing live floors are scraped (--only-missing-live).
+#  Steps:
+#    1) CDP scrape of generated MAIN/STRONG slips → power_min_x
+#    2) Write payout_patch_<date>.json + write-back display_min_x
+#    3) Verify outstanding floors + mix/Δ (optional fill / rate-card rebuild)
+#    Optional: -IncludeMixGrid for once/day calibration (separate from tickets)
 #
 #  Usage:
-#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12
-#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -Force
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12                    # update
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -UpdateOnly         # same, explicit
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -Force              # full re-scrape
 #    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -IncludeMixGrid
-#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -FillMissingTickets -RebuildRateCard
+#    .\scripts\run_live_payout_capture.ps1 -Date 2026-07-12 -FillMissingTickets -RebuildRateCard  # main
 #
 #  Exit codes:
-#    0  = capture attempted (ok or soft-fail / CDP skip)
+#    0  = capture attempted (ok or soft-fail / CDP skip / lock held)
 #    1  = hard error (script missing, etc.)
 #
-#  Midday refreshes (7/9/11AM/1PM) skip live CDP payout; that runs in 5AM STEP D-payout
-#  or via a manual run of this script. Single-flight lock prevents dual scrapers.
+#  Single-flight lock prevents dual scrapers. Midday UPDATE bails if MAIN is running.
 # ============================================================
 param(
     [Parameter(Mandatory = $false)]
@@ -40,6 +40,8 @@ param(
     [switch]$SkipMixGrid,
     [switch]$NoWriteBack,
     [switch]$Force,
+    # Explicit incremental mode (default behavior without -Force). Skips mix-grid.
+    [switch]$UpdateOnly,
     # Default: exact line+Goblin only. Pass -AllowLineFallback to price moved proxies.
     [switch]$AllowLineFallback,
     # After capture: audit + optionally fill still-missing live floors / rebuild rate card.
@@ -72,6 +74,16 @@ $lockDir = Join-Path $Root "data\cache"
 $lockFile = Join-Path $lockDir "payout_capture.lock"
 $lockTtlHours = 6
 $script:PayoutLockHeld = $false
+
+# -UpdateOnly = incremental (never Force / never mix-grid). Apply before lock so we
+# do not clear another job's lock with -Force.
+if ($UpdateOnly) {
+    $SkipMixGrid = $true
+    if ($Force) {
+        Write-Host "  [PAYOUT] -UpdateOnly ignores -Force (incremental only)" -ForegroundColor Yellow
+        $Force = $false
+    }
+}
 
 function Clear-PayoutCaptureLock {
     if ($script:PayoutLockHeld -and (Test-Path -LiteralPath $lockFile)) {
@@ -172,10 +184,11 @@ function Invoke-PayoutVerify {
 }
 
 Write-Host ""
-Write-Host "[LIVE PAYOUT] Post-ticket PrizePicks scrape ($Date)" -ForegroundColor Magenta
-
+$payoutMode = if ($Force) { "MAIN (full re-scrape)" } elseif ($UpdateOnly) { "UPDATE (only-missing)" } else { "UPDATE (only-missing default)" }
+Write-Host "[LIVE PAYOUT] $payoutMode — PrizePicks scrape ($Date)" -ForegroundColor Magenta
 if (-not (Test-Path -LiteralPath $payoutScript)) {
     Write-Host "  [PAYOUT] ERROR: collect_payout_data.py missing" -ForegroundColor Red
+    Clear-PayoutCaptureLock
     exit 1
 }
 
@@ -187,6 +200,7 @@ if (-not $cdpUp) {
         Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
             -VerifyCdp $CdpUrl -DoFill:$false -DoRebuild:$RebuildRateCard.IsPresent -DoGentle:$false
     }
+    Clear-PayoutCaptureLock
     exit 0
 }
 
@@ -218,6 +232,7 @@ try {
             Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
                 -VerifyCdp $CdpUrl -DoFill:$false -DoRebuild:$RebuildRateCard.IsPresent -DoGentle:$Gentle.IsPresent
         }
+        Clear-PayoutCaptureLock
         exit 0
     }
 
@@ -310,9 +325,15 @@ try {
     }
 
     if (-not $SkipVerify) {
-        # Fill missing by default when CDP is up (covers prior partial captures).
-        $doFill = $FillMissingTickets -or $Force -or $cdpUp
-        $doRebuild = $RebuildRateCard -or $doFill
+        # MAIN / explicit fill: re-scrape gaps in verify. UPDATE: capture already did
+        # only-missing; avoid a second CDP pass unless -FillMissingTickets was passed.
+        if ($UpdateOnly) {
+            $doFill = $FillMissingTickets.IsPresent
+            $doRebuild = $RebuildRateCard.IsPresent -or ($nOk -gt 0)
+        } else {
+            $doFill = $FillMissingTickets -or $Force -or $cdpUp
+            $doRebuild = $RebuildRateCard -or $doFill
+        }
         Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
             -VerifyCdp $CdpUrl -DoFill:$doFill -DoRebuild:$doRebuild -DoGentle:$Gentle.IsPresent
     }

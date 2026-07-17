@@ -83,7 +83,10 @@
     {% set payout_section = 'ladder_log' %}
     {% include '_payout_subnav.html' %}
     <section class="card">
-      <div class="title">Payout Ladder Logger</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <div class="title" style="margin:0">Payout Ladder Logger</div>
+        <a class="btn" href="/payout" style="text-decoration:none;white-space:nowrap">&larr; Back to Builder</a>
+      </div>
       <p class="muted">Upload a PrizePicks screenshot, run Gemini OCR, review/edit extracted data, then save a row into <code>ui_runner/data/payout_ladder_log.csv</code>.</p>
     </section>
     <section class="card">

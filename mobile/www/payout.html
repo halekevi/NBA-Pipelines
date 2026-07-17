@@ -976,7 +976,7 @@ body::before{
     <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
     <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
     <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
     <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
@@ -1222,8 +1222,8 @@ body::before{
     <p class="hint" style="margin-top:10px">To capture <strong>live payout and flex guarantee rates</strong>, use <strong>Log Lines</strong>: enter the app’s sweep multiplier (and optional min guarantee on Flex), then enable “append to server CSV” if you want rows in <code style="font-size:10px;opacity:.85">data/payout_observations.csv</code> for refitting <code style="font-size:10px;opacity:.85">payout_formula_coefficients.json</code>.</p>
     <div id="rate-cards-mount"><div class="hint" style="padding:20px 0">Open this tab to load the dictionary.</div></div>
     <div style="margin-top:14px">
-      <div class="section-divider" style="margin-bottom:10px">GOBLIN DISCOUNT REFERENCE</div>
-      <div id="goblin-discount-mount"><div class="hint" style="padding:8px 0">Loading discount table...</div></div>
+      <div class="section-divider" style="margin-bottom:10px">GOBLIN DISCOUNT BY Δ (FROM STANDARD)</div>
+      <div id="goblin-discount-mount"><div class="hint" style="padding:8px 0">Loading Δ discount table...</div></div>
     </div>
   </div>
 </div>
@@ -1710,26 +1710,87 @@ function renderGoblinDiscountTable(){
   const host=document.getElementById('goblin-discount-mount');
   if(!host)return;
   const fm=x=>Number(x).toFixed(2)+'x';
-  const fp=x=>(x>=0?'+':'-')+Math.abs(x*100).toFixed(1)+'%';
-  const rows=[2,3,4,5,6].map(n=>{
-    const base=Number(PP_BASE[n]||0);
-    const one=base*Math.pow(1-GOBLIN_DISCOUNT_PER_UNIT,1);
-    const two=n>=2?base*Math.pow(1-GOBLIN_DISCOUNT_PER_UNIT,2):NaN;
-    const all=base*Math.pow(1-GOBLIN_DISCOUNT_PER_UNIT,n);
-    const d1=(one/base)-1,d2=(two/base)-1,da=(all/base)-1;
-    return `<tr>
-      <td style="text-align:left">${n}</td>
-      <td>${fm(base)}</td>
-      <td>${fm(one)} <span style="color:var(--muted)">(${fp(d1)})</span></td>
-      <td>${n>=2?`${fm(two)} <span style="color:var(--muted)">(${fp(d2)})</span>`:'—'}</td>
-      <td>${fm(all)} <span style="color:var(--muted)">(${fp(da)})</span></td>
-    </tr>`;
-  }).join('');
-  host.innerHTML=`<div style="overflow-x:auto"><table class="log-table" style="font-size:11px">
-    <thead><tr><th style="text-align:left">LEGS</th><th>STANDARD</th><th>1 GOBLIN</th><th>2 GOBLINS</th><th>ALL GOBLIN</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>
-  <div class="hint" style="margin-top:8px">Discount model uses <code style="font-size:10px">GOBLIN_DISCOUNT_PER_UNIT = 0.110</code> applied multiplicatively.</div>`;
+  const ff=x=>Number(x).toFixed(3);
+  const fp=x=>{
+    const v=Number(x)*100;
+    return (v>=0?'+':'')+v.toFixed(1)+'%';
+  };
+  const deltas=[0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6];
+  const paint=(liveByDelta, meta)=>{
+    const rows=deltas.map(d=>{
+      const modelF=Math.max(0.2,1-(GOBLIN_DISCOUNT_PER_UNIT*d));
+      const live=liveByDelta.get(d);
+      const liveCell=live
+        ? `${fm(live.min_x)} <span style="color:var(--muted)">(${fp(live.vs_std)})</span>`
+        : '—';
+      const dpuCell=live&&live.dpu!=null
+        ? `${(live.dpu*100).toFixed(1)}%/u`
+        : '—';
+      const src=live?(live.status==='observed'||live.source==='live_cdp'?'live':'est'):'';
+      return `<tr>
+        <td style="text-align:left">${d}</td>
+        <td>${ff(modelF)} <span style="color:var(--muted)">(${fp(modelF-1)})</span></td>
+        <td>${liveCell}</td>
+        <td>${dpuCell}</td>
+        <td style="color:var(--muted);font-size:10px">${src}</td>
+      </tr>`;
+    }).join('');
+    const when=meta&&meta.generated_at?` · card ${meta.generated_at}`:'';
+    const srcPath=meta&&meta.source_path?` · ${meta.source_path}`:'';
+    host.innerHTML=`<div style="overflow-x:auto"><table class="log-table" style="font-size:11px">
+      <thead><tr>
+        <th style="text-align:left">Δ (units off std)</th>
+        <th>MODEL FACTOR<br><span style="font-weight:400;color:var(--muted)">1−0.110×Δ</span></th>
+        <th>LIVE 2L · 1G<br><span style="font-weight:400;color:var(--muted)">Power min vs 3.00x</span></th>
+        <th>LIVE DISC / Δ</th>
+        <th>SRC</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div class="hint" style="margin-top:8px">
+      Discount is <strong>per goblin leg by line distance (Δ)</strong>, not a flat cut per goblin count.
+      Multiple goblins multiply factors (or sum live discount/unit × Δ).
+      Model fallback: <code style="font-size:10px">factor = max(0.2, 1 − 0.110×Δ)</code>${when}${srcPath}.
+    </div>`;
+  };
+  const baked=new Map([
+    [0.5,{min_x:2.8,vs_std:(2.8/3)-1,dpu:(1-2.8/3)/0.5,source:'live_cdp',status:'observed'}],
+    [1,{min_x:2.6,vs_std:(2.6/3)-1,dpu:(1-2.6/3)/1,source:'live_cdp',status:'observed'}],
+    [1.5,{min_x:2.1,vs_std:(2.1/3)-1,dpu:(1-2.1/3)/1.5,source:'live_cdp',status:'observed'}],
+    [2,{min_x:2.3,vs_std:(2.3/3)-1,dpu:(1-2.3/3)/2,source:'live_cdp',status:'observed'}],
+    [2.5,{min_x:3.0,vs_std:0,dpu:0,source:'live_cdp',status:'observed'}],
+    [3,{min_x:2.3,vs_std:(2.3/3)-1,dpu:(1-2.3/3)/3,source:'live_cdp',status:'observed'}],
+    [3.5,{min_x:2.0,vs_std:(2.0/3)-1,dpu:(1-2.0/3)/3.5,source:'live_cdp',status:'observed'}],
+    [4,{min_x:2.0,vs_std:(2.0/3)-1,dpu:(1-2.0/3)/4,source:'live_cdp',status:'observed'}],
+    [4.5,{min_x:2.0,vs_std:(2.0/3)-1,dpu:(1-2.0/3)/4.5,source:'live_cdp',status:'observed'}],
+    [5,{min_x:1.9,vs_std:(1.9/3)-1,dpu:(1-1.9/3)/5,source:'live_cdp',status:'observed'}],
+    [5.5,{min_x:1.88,vs_std:(1.88/3)-1,dpu:(1-1.88/3)/5.5,source:'extrapolated',status:'extrapolated'}],
+    [6,{min_x:1.9,vs_std:(1.9/3)-1,dpu:(1-1.9/3)/6,source:'live_cdp',status:'observed'}],
+  ]);
+  paint(baked,{generated_at:'baked'});
+  fetch('/api/payout/sg-delta-card').then(r=>{
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(data=>{
+    const live=new Map();
+    const base2=3.0;
+    (data.cells||[]).forEach(c=>{
+      if(Number(c.n_legs)!==2||Number(c.n_g)!==1)return;
+      const sig=String(c.goblin_delta_sig||'');
+      const d=Number(sig);
+      if(!Number.isFinite(d)||d<=0)return;
+      const minX=Number(c.power_min_x!=null?c.power_min_x:c.min_x);
+      if(!Number.isFinite(minX))return;
+      live.set(d,{
+        min_x:minX,
+        vs_std:(minX/base2)-1,
+        dpu:(1-(minX/base2))/d,
+        source:c.source||'',
+        status:c.status||'',
+      });
+    });
+    if(live.size)paint(live,{generated_at:data.generated_at||'',source_path:data.source_path||''});
+  }).catch(()=>{/* keep baked */});
 }
 
 /* ─── CALCULATOR ─── */

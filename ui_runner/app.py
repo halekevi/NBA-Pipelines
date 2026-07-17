@@ -2868,6 +2868,40 @@ def api_payout_rate_cards():
     return r
 
 
+@app.get("/api/payout/sg-delta-card")
+def api_payout_sg_delta_card():
+    """Standard+Goblin Power min by goblin Δ (line distance from standard)."""
+    candidates = [
+        BASE_DIR / "ui_runner" / "data" / "sg_delta_payout_rate_card_latest.json",
+        BASE_DIR / "data" / "reports" / "sg_delta_payout_rate_card_latest.json",
+    ]
+    reports = BASE_DIR / "data" / "reports"
+    if reports.is_dir():
+        candidates.extend(sorted(reports.glob("sg_delta_payout_rate_card_*.json"), reverse=True))
+    path = next((p for p in candidates if p.is_file()), None)
+    if path is None:
+        return (
+            jsonify(
+                {
+                    "error": "missing_file",
+                    "message": "No sg_delta_payout_rate_card*.json found.",
+                    "cells": [],
+                }
+            ),
+            404,
+        )
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        return jsonify({"error": "read_failed", "message": str(e), "cells": []}), 500
+    if isinstance(data, dict):
+        data = dict(data)
+        data.setdefault("source_path", str(path.relative_to(BASE_DIR)).replace("\\", "/"))
+    r = jsonify(data)
+    r.headers["Cache-Control"] = "public, max-age=120"
+    return r
+
+
 @app.post("/api/payout/estimate-mult")
 def api_payout_estimate_mult():
     """Estimated multiplier from shared Goblin/Demon curve (utils.goblin_demon_multiplier)."""

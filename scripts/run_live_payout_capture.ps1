@@ -3,12 +3,9 @@
 #  Live PrizePicks payout capture (post-ticket step)
 #
 #  Two-tier model:
-#    MAIN (PropOracle - Payout CDP @ 10:00): scrape all MAIN/STRONG slips missing live floors,
-#      then verify + rebuild rate card (-FillMissingTickets -RebuildRateCard).
-#    UPDATE (midday / manual default): same script, but only slips still missing
-#      payout_source=live_cdp (--only-missing-live). If fingerprint unchanged and
-#      everything already live_cdp → CDP skipped (seconds). Pass -Force only to
-#      re-scrape slips that already have live floors.
+#    MAIN (PropOracle - Payout CDP @ 11:00, after 10:30 refresh): scrape MAIN/STRONG
+#      slips missing live floors, then verify + rebuild rate card.
+#    UPDATE (8/9/10:30/1 refreshes): only slips still missing live_cdp.
 #    5AM daily does NOT run live CDP by default (pass -RunLivePayout to opt in).
 #
 #  Steps:

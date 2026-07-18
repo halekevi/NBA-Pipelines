@@ -5,8 +5,9 @@
 
 .NOTES
   First big multi-sport run of the day. Publishes fresh slate_latest / tickets for the home page.
-  Live PrizePicks CDP payout is NOT in this job — see PropOracle - Payout CDP (run_payout_cdp.ps1 @ 10:00).
-  3:00 AM remains light TennisOnly; 8:00 AM is a line-move update refresh (run_daily_8am.ps1).
+  Live PrizePicks CDP payout is NOT in this job — see PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00 after 10:30 refresh).
+  Refresh cadence: 8 / 9 / 10:30 / 1 (PP line moves often hit ~10:30–11).
+  3:00 AM remains light TennisOnly.
   Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 5AM".
 #>
 param()

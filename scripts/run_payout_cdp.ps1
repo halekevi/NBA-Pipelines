@@ -5,7 +5,8 @@
 
 .NOTES
   Separated from Daily 5AM so the slate can publish without waiting on Chrome.
-  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Payout CDP" @ 10:00.
+  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Payout CDP" @ 11:00
+  (after the 10:30 line-move refresh — PP often moves hard ~10:30–11).
   Midday refreshes still run -UpdateOnly for slips that remain missing live_cdp.
 #>
 param(

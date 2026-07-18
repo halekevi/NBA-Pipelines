@@ -6,7 +6,7 @@
 .NOTES
   Scheduled via PropOracle - Daily 8AM / Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
   First full fetch is Daily 5AM; these refreshes are line-move updates.
-  MAIN payout CDP is PropOracle - Payout CDP @ 10:00 (run_payout_cdp.ps1); midday only fills new/missing slips (-UpdateOnly).
+  MAIN payout CDP is PropOracle - Payout CDP @ 11:00 (after 10:30 refresh); midday only fills new/missing slips (-UpdateOnly).
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>
@@ -326,7 +326,7 @@ if (-not (Test-Path $pipeScript)) {
 
 Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -Date $PipeDate..."
 # Pipeline skips embedded CDP; after tickets we run an incremental payout UPDATE
-# (only slips missing live_cdp). MAIN full capture is PropOracle - Payout CDP @ 10:00.
+# (only slips missing live_cdp). MAIN full capture is PropOracle - Payout CDP @ 11:00 (after 10:30).
 if ($NoOverwrite) {
     $preserveTargets = @(
         (Join-Path $Root "outputs\$PipeDate\combined_slate_tickets_$PipeDate.xlsx"),

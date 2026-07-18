@@ -4,11 +4,12 @@
 #   - 3:00 AM  light tennis fetch + ticket rebuild (same-day early board)
 #   - 5:00 AM  first full daily (grade yesterday + multi-sport fetch + web; NO live CDP)
 #   - 7:00 PM-1:00 AM  grader every hour (yesterday; games finishing)
-#   - 8:00 AM  line-move update refresh
-#   - 9:00 AM  refresh + add/remove diff log
-#   - 10:00 AM live PrizePicks CDP payout capture (MAIN/STRONG floors)
-#   - 11:00 AM refresh + add/remove diff log
-#   - 1:00 PM  refresh + add/remove diff log
+#   - 8:00 AM  line-move refresh
+#   - 9:00 AM  line-move refresh
+#   - 10:30 AM line-move refresh (PP often moves lines hard ~10:30–11)
+#   - 11:00 AM live PrizePicks CDP MAIN floors (after 10:30 board settles)
+#   - 1:00 PM  line-move refresh
+#   Each refresh also runs only-missing CDP for new/changed slips.
 #
 # Each task opens ONE visible PowerShell console (direct pwsh.exe action).
 # Do NOT wrap with cmd.exe "start /wait" — that leaves an empty cmd.exe window
@@ -49,13 +50,13 @@ foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script8, $ScriptPayout, $S
     }
 }
 
-# Legacy tasks to remove (superseded by Daily 5AM / 8AM update).
+# Legacy tasks to remove (superseded schedule).
 $LegacyTasksToRemove = @(
     "PropORACLE Daily Pipeline",
-    "PropOracle - Refresh 1030AM",
     "PropOracle - Daily 4AM",
     "PropOracle - Grader 5AM",
-    "PropOracle - Daily 7AM"
+    "PropOracle - Daily 7AM",
+    "PropOracle - Refresh 11AM"
 )
 foreach ($legacy in $LegacyTasksToRemove) {
     $existing = Get-ScheduledTask -TaskName $legacy -ErrorAction SilentlyContinue
@@ -147,33 +148,33 @@ foreach ($eg in $EveningGraderTasks) {
 
 Register-PropTask `
     -TaskName "PropOracle - Daily 8AM" `
-    -Description "Line-move update refresh after 5AM full daily (same path as mid-day refreshes). Opens visible PowerShell." `
+    -Description "Line-move update refresh (8/9/10:30/1 cadence). Opens visible PowerShell." `
     -ScriptPath $Script8 `
     -At "08:00"
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 9AM" `
-    -Description "Refresh props, update outputs, and log added/removed props. Opens visible PowerShell." `
+    -Description "Line-move refresh (8/9/10:30/1 cadence). Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "09:00" `
     -ExtraArgs "-RunLabel 9AM"
 
 Register-PropTask `
-    -TaskName "PropOracle - Payout CDP" `
-    -Description "Live PrizePicks CDP capture of MAIN/STRONG ticket floors (separated from 5AM so slate publishes first). Opens visible PowerShell." `
-    -ScriptPath $ScriptPayout `
-    -At "10:00"
+    -TaskName "PropOracle - Refresh 1030AM" `
+    -Description "Line-move refresh at PP morning move window (~10:30–11). Opens visible PowerShell." `
+    -ScriptPath $ScriptRefresh `
+    -At "10:30" `
+    -ExtraArgs "-RunLabel 1030AM"
 
 Register-PropTask `
-    -TaskName "PropOracle - Refresh 11AM" `
-    -Description "Mid-morning line-move refresh: re-fetch + rebuild tickets. Opens visible PowerShell." `
-    -ScriptPath $ScriptRefresh `
-    -At "11:00" `
-    -ExtraArgs "-RunLabel 11AM"
+    -TaskName "PropOracle - Payout CDP" `
+    -Description "Live PrizePicks CDP MAIN/STRONG floors after 10:30 line-move refresh. Opens visible PowerShell." `
+    -ScriptPath $ScriptPayout `
+    -At "11:00"
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 1PM" `
-    -Description "Refresh props, update outputs, and log added/removed props. Opens visible PowerShell." `
+    -Description "Afternoon line-move refresh (8/9/10:30/1 cadence). Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "13:00" `
     -ExtraArgs "-RunLabel 1PM"
@@ -185,15 +186,16 @@ Write-Host "  - PropOracle - Daily 5AM (no live CDP)"
 foreach ($eg in $EveningGraderTasks) {
     Write-Host "  - $($eg.Name)"
 }
-Write-Host "  - PropOracle - Daily 8AM (update refresh)"
+Write-Host "  - PropOracle - Daily 8AM (refresh)"
 Write-Host "  - PropOracle - Refresh 9AM"
-Write-Host "  - PropOracle - Payout CDP (live floors @ 10:00)"
-Write-Host "  - PropOracle - Refresh 11AM"
+Write-Host "  - PropOracle - Refresh 1030AM (PP line-move window)"
+Write-Host "  - PropOracle - Payout CDP (MAIN floors @ 11:00, after 10:30)"
 Write-Host "  - PropOracle - Refresh 1PM"
 Write-Host ""
 Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM' | Select LastRunTime, LastTaskResult, NextRunTime"
+Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Refresh 1030AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Payout CDP' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host ""
 Write-Host "Manual catchup (visible window):  pwsh -File scripts\Launch_Daily_5AM_Visible.ps1" -ForegroundColor Cyan

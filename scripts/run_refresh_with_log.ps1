@@ -5,8 +5,9 @@
   - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
     combined slate / ticket_eval before rerun so line movement is visible
   - After rebuild: incremental payout UPDATE only (slips missing live_cdp);
-    MAIN full scrape is PropOracle - Payout CDP @ 10:00 (not 5AM)
+    MAIN full scrape is PropOracle - Payout CDP @ 11:00 (after 10:30 line-move refresh)
   First full multi-sport fetch of the day is PropOracle - Daily 5AM (run_daily_5am.ps1).
+  Refresh cadence: 8 / 9 / 10:30 / 1.
 #>
 param(
     [string]$RunLabel = "9AM"

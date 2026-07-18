@@ -8,7 +8,7 @@
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
          → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
-         Live PrizePicks CDP payout scrape is a separate scheduled task (PropOracle - Payout CDP @ 10:00)
+         Live PrizePicks CDP payout scrape is a separate scheduled task (PropOracle - Payout CDP @ 11:00)
          via scripts\run_payout_cdp.ps1 — not part of 5AM, so the board can publish without waiting on Chrome.
          Pass -RunLivePayout to opt back into STEP D-payout for a manual full daily.
          Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
@@ -50,7 +50,7 @@ param(
     [int]$TicketModelTopN = 10,
     # When set, run STEP D1 ticket-model dataset/train/eval (default off — use on retrain days).
     [switch]$RunTicketModels,
-    # Opt-in: run live PrizePicks CDP in this daily (default off — use PropOracle - Payout CDP @ 10AM).
+    # Opt-in: run live PrizePicks CDP in this daily (default off — use PropOracle - Payout CDP @ 11AM).
     [switch]$RunLivePayout
 )
 
@@ -1154,7 +1154,7 @@ if ($script:PipelineFailed) {
     try {
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
         # SkipDailyGrader: yesterday already graded in STEP A; avoid a second full run_grader pass.
-        # SkipLivePayoutCapture: live CDP is PropOracle - Payout CDP @ 10:00 (not Combined).
+        # SkipLivePayoutCapture: live CDP is PropOracle - Payout CDP @ 11:00 (not Combined).
         # grading handled by STEP A (run_grader.ps1) — not the post-pipeline grader here
         & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader -SkipLivePayoutCapture
         $ce = $LASTEXITCODE
@@ -1187,7 +1187,7 @@ if ($script:PipelineFailed) {
 
 # =============================================================================
 # STEP D-payout — Live PrizePicks payout capture (OPT-IN only)
-# Default: skipped. MAIN scrape is PropOracle - Payout CDP (run_payout_cdp.ps1 @ 10:00).
+# Default: skipped. MAIN scrape is PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00).
 # Midday refreshes still call run_live_payout_capture.ps1 -UpdateOnly for missing floors.
 # Pass -RunLivePayout for a one-shot full daily that includes CDP.
 # =============================================================================

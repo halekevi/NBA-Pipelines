@@ -1154,7 +1154,7 @@ if ($script:PipelineFailed) {
     try {
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
         # SkipDailyGrader: yesterday already graded in STEP A; avoid a second full run_grader pass.
-        # SkipLivePayoutCapture: CDP runs once in STEP D-payout (avoid duplicate scrape after Combined).
+        # SkipLivePayoutCapture: live CDP is PropOracle - Payout CDP @ 10:00 (not Combined).
         # grading handled by STEP A (run_grader.ps1) — not the post-pipeline grader here
         & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader -SkipLivePayoutCapture
         $ce = $LASTEXITCODE

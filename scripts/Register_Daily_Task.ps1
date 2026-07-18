@@ -4,7 +4,7 @@
 #   - 3:00 AM  light tennis fetch + ticket rebuild (same-day early board)
 #   - 5:00 AM  first full daily (grade yesterday + multi-sport fetch + web)
 #   - 7:00 PM-1:00 AM  grader every hour (yesterday; games finishing)
-#   - 7:00 AM  line-move update refresh (same path as mid-day refreshes)
+#   - 8:00 AM  line-move update refresh (same path as mid-day refreshes; was 7AM)
 #   - 9:00 AM  refresh + add/remove diff log
 #   - 11:00 AM refresh + add/remove diff log
 #   - 1:00 PM  refresh + add/remove diff log
@@ -37,22 +37,23 @@ Write-Host "Windows: one visible console (pwsh.exe directly; no cmd start wrappe
 $Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_daily_5am.ps1"
 $ScriptEvening = Join-Path $PipelineRoot "scripts\run_grader_evening.ps1"
-$Script7 = Join-Path $PipelineRoot "scripts\run_daily_7am.ps1"
+$Script8 = Join-Path $PipelineRoot "scripts\run_daily_8am.ps1"
 $ScriptRefresh = Join-Path $PipelineRoot "scripts\run_refresh_with_log.ps1"
 
-foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script7, $ScriptRefresh)) {
+foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script8, $ScriptRefresh)) {
     if (-not (Test-Path $s)) {
         Write-Error "Required script missing: $s"
         exit 1
     }
 }
 
-# Legacy tasks to remove (superseded by Daily 5AM / 7AM update).
+# Legacy tasks to remove (superseded by Daily 5AM / 8AM update).
 $LegacyTasksToRemove = @(
     "PropORACLE Daily Pipeline",
     "PropOracle - Refresh 1030AM",
     "PropOracle - Daily 4AM",
-    "PropOracle - Grader 5AM"
+    "PropOracle - Grader 5AM",
+    "PropOracle - Daily 7AM"
 )
 foreach ($legacy in $LegacyTasksToRemove) {
     $existing = Get-ScheduledTask -TaskName $legacy -ErrorAction SilentlyContinue
@@ -143,10 +144,10 @@ foreach ($eg in $EveningGraderTasks) {
 }
 
 Register-PropTask `
-    -TaskName "PropOracle - Daily 7AM" `
-    -Description "Line-move update refresh after 5AM full daily (same path as mid-day refreshes). Opens visible PowerShell." `
-    -ScriptPath $Script7 `
-    -At "07:00"
+    -TaskName "PropOracle - Daily 8AM" `
+    -Description "Line-move update refresh after 5AM full daily (same path as mid-day refreshes; 8:00 so 5AM usually finishes first). Opens visible PowerShell." `
+    -ScriptPath $Script8 `
+    -At "08:00"
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 9AM" `
@@ -176,7 +177,7 @@ Write-Host "  - PropOracle - Daily 5AM"
 foreach ($eg in $EveningGraderTasks) {
     Write-Host "  - $($eg.Name)"
 }
-Write-Host "  - PropOracle - Daily 7AM (update refresh)"
+Write-Host "  - PropOracle - Daily 8AM (update refresh)"
 Write-Host "  - PropOracle - Refresh 9AM"
 Write-Host "  - PropOracle - Refresh 11AM"
 Write-Host "  - PropOracle - Refresh 1PM"
@@ -184,6 +185,6 @@ Write-Host ""
 Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM' | Select LastRunTime, LastTaskResult, NextRunTime"
-Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 7AM' | Select LastRunTime, LastTaskResult, NextRunTime"
+Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 8AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host ""
 Write-Host "Manual catchup (visible window):  pwsh -File scripts\Launch_Daily_5AM_Visible.ps1" -ForegroundColor Cyan

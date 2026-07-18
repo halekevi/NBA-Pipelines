@@ -4,7 +4,7 @@
   Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with
   -SkipFetch -SkipLivePayoutCapture, then an incremental payout UPDATE (only-missing live floors).
 .NOTES
-  Scheduled via PropOracle - Daily 7AM / Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
+  Scheduled via PropOracle - Daily 8AM / Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
   First full fetch is Daily 5AM; these refreshes are line-move updates.
   MAIN payout CDP is 5AM STEP D-payout; midday only fills new/missing slips (-UpdateOnly).
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).

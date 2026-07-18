@@ -103,17 +103,17 @@ cd "H:\halek\ProfileFromC\Desktop\PropORACLE"
 .\scripts\Register_Daily_Task.ps1
 
 # Registered tasks:
-#  - PropOracle - Grader 5AM
-#  - PropOracle - Daily 7AM
+#  - PropOracle - Daily 5AM
+#  - PropOracle - Daily 8AM
 #  - PropOracle - Refresh 9AM
 #  - PropOracle - Refresh 11AM
-#  (9AM/11AM refresh runs scripts\run_nba_late_fetch.ps1 via run_refresh_with_log.ps1)
+#  (8AM/9AM/11AM refresh runs scripts\run_nba_late_fetch.ps1 via run_refresh_with_log.ps1)
 
 # Inspect what Windows will actually run (look for old OneDrive paths)
 schtasks /query /fo LIST /v | findstr /i "PropOracle PropORACLE"
 
-# Test one now
-Start-ScheduledTask -TaskName "PropOracle - Daily 7AM"
+# Manual kick
+Start-ScheduledTask -TaskName "PropOracle - Daily 8AM"
 
 # Check task status
 Get-ScheduledTask | Where-Object TaskName -like "PropOracle -*" | Select TaskName, State

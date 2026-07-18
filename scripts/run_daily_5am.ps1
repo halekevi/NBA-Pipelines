@@ -5,7 +5,7 @@
 
 .NOTES
   First big multi-sport run of the day. Publishes fresh slate_latest / tickets for the home page.
-  3:00 AM remains light TennisOnly; 7:00 AM is a line-move update refresh (run_daily_7am.ps1).
+  3:00 AM remains light TennisOnly; 8:00 AM is a line-move update refresh (run_daily_8am.ps1).
   Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 5AM".
 #>
 param()

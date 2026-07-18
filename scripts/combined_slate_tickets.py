@@ -19605,7 +19605,8 @@ def main():
         print(f"  [long-legs] added {len(final_long)} long-leg sheet(s) for leg sizes {long_leg_sizes}")
     elif long_leg_sizes and bool(args.write_web):
         print(
-            f"  [long-legs] skipped (--write-web default; main emission already has 4–6 leg tickets). "
+            f"  [long-legs] skipped (--write-web default; MAIN is ≤3-leg win-rate; "
+            f"5–6 stay on long_parlay sidecar). "
             f"Pass --long-leg-supplement to add the slow extra workbook pass for sizes {long_leg_sizes}."
         )
 

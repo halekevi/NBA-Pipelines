@@ -1733,8 +1733,8 @@ select option,
             </button>
           </div>
           <div class="ticket-track-bar" id="ticket-track-bar" hidden aria-label="Ticket evaluation track">
-            <button type="button" class="ticket-track-btn active" id="ticket-track-main" onclick="setTicketEvalTrack('main')">Main (2-leg, win-rate)</button>
-            <button type="button" class="ticket-track-btn" id="ticket-track-long" onclick="setTicketEvalTrack('long_parlay')">Long parlays (5-6)</button>
+            <button type="button" class="ticket-track-btn active" id="ticket-track-main" onclick="setTicketEvalTrack('main')">Main (≤3-leg, win-rate)</button>
+            <button type="button" class="ticket-track-btn" id="ticket-track-long" onclick="setTicketEvalTrack('long_parlay')">Long parlays (5-6, analysis)</button>
           </div>
         </div>
       </div>
@@ -4571,7 +4571,7 @@ function refreshControlsSummary() {
       titleEl.textContent =
         ticketEvalTrack === 'long_parlay'
           ? 'Long parlay ticket evaluation (5-6 leg)'
-          : 'Main ticket evaluation (2-leg NBA-family win-rate)';
+          : 'Main ticket evaluation (≤3-leg high-prob Std+Gob win-rate)';
     } else if (activeTab === 'props') titleEl.textContent = 'Prop evaluation';
     else titleEl.textContent = 'Slate evaluation';
   }
@@ -4579,7 +4579,7 @@ function refreshControlsSummary() {
   const ds = currentDateStr || gradesEl('date-jump')?.value || '';
   let tab = 'Slate';
   if (activeTab === 'tickets') {
-    tab = ticketEvalTrack === 'long_parlay' ? 'Long parlays (5-6)' : 'Main (2-leg, win-rate)';
+    tab = ticketEvalTrack === 'long_parlay' ? 'Long parlays (5-6, analysis)' : 'Main (≤3-leg, win-rate)';
   } else if (activeTab === 'props') tab = 'Props';
   if (
     activeTab === 'tickets' &&

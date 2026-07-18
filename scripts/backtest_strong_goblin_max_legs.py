@@ -81,7 +81,8 @@ def _run_variant(
         tickets = build_strong_tickets(
             df,
             max_legs=int(max_legs),
-            exhaust_pool=True,
+            max_tickets=40,
+            exhaust_pool=False,
             pick_mode="goblin",
             date_str=date_str,
         )

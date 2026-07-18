@@ -3,7 +3,8 @@
 WNBA postponed / canceled schedule helpers.
 
 When a slate game is postponed, boxscores never arrive and legs grade as VOID + NO_ACTUAL.
-Relabel those to POSTPONED (like MLB) so Grades/tickets show the real reason.
+Promote those to ``result=POSTPONED`` (with a POSTPONED void_reason label) so they never mix
+with actionable voids in Grades / Prop Eval.
 
 Uses ESPN scoreboard: site.api.espn.com/.../wnba/scoreboard?dates=YYYYMMDD
 """
@@ -159,7 +160,7 @@ def _team_tokens(team_raw: str) -> set[str]:
 
 def apply_wnba_postponed_void_labels(graded: pd.DataFrame, iso_date: str) -> int:
     """
-    Relabel VOID + NO_ACTUAL rows to POSTPONED when the row's team had a
+    Promote VOID + NO_ACTUAL rows to ``result=POSTPONED`` when the row's team had a
     postponed/canceled game on ``iso_date``. Returns count patched.
     """
     team_labels = wnba_postponed_team_labels_for_date(iso_date)
@@ -186,13 +187,12 @@ def apply_wnba_postponed_void_labels(graded: pd.DataFrame, iso_date: str) -> int
     actual_col = next((c for c in ("actual", "Actual", "actual_value") if c in graded.columns), None)
     patched = 0
     for idx in graded.index:
-        if str(graded.at[idx, result_col]).strip().upper() != "VOID":
+        res_u = str(graded.at[idx, result_col]).strip().upper()
+        if res_u not in ("VOID", "POSTPONED"):
             continue
         vr = str(graded.at[idx, vr_col] or "").strip().upper()
-        if vr and not vr.startswith("NO_ACTUAL"):
-            # Already labeled (DNP, PUSH, etc.) — leave alone
-            if "POSTPON" in vr:
-                continue
+        if vr and not vr.startswith("NO_ACTUAL") and "POSTPON" not in vr and "CANCEL" not in vr:
+            # Already labeled (DNP, etc.) — leave alone
             if vr not in ("", "NO_ACTUAL", "MISSING_ACTUAL", "PENDING"):
                 continue
         if actual_col is not None:
@@ -212,6 +212,7 @@ def apply_wnba_postponed_void_labels(graded: pd.DataFrame, iso_date: str) -> int
                     tokens |= _team_tokens(str(graded.at[idx, oc] or ""))
             hit = next((team_labels[t] for t in tokens if t in team_labels), None)
         if hit:
+            graded.at[idx, result_col] = "POSTPONED"
             graded.at[idx, vr_col] = hit
             # Keep void_reason in sync when both columns exist
             if vr_col != "void_reason" and "void_reason" in graded.columns:
@@ -222,7 +223,7 @@ def apply_wnba_postponed_void_labels(graded: pd.DataFrame, iso_date: str) -> int
     if patched:
         sample = next(iter(team_labels.values()), "POSTPONED")
         print(
-            f"  [WNBA] Set postponed void_reason on {patched} leg(s) "
+            f"  [WNBA] Set result=POSTPONED on {patched} leg(s) "
             f"({iso_date}; teams: {', '.join(sorted(team_labels))}; e.g. {sample!r})"
         )
     return patched
@@ -238,10 +239,11 @@ def relabel_void_reason_if_postponed(
     iso_date: str,
     team_labels: dict[str, str] | None = None,
 ) -> str:
-    """Lightweight per-row relabel for graded_props JSON export."""
+    """Lightweight per-row void_reason relabel for graded_props JSON export."""
     if str(sport or "").strip().upper() != "WNBA":
         return void_reason
-    if str(result or "").strip().upper() != "VOID":
+    res_u = str(result or "").strip().upper()
+    if res_u not in ("VOID", "POSTPONED"):
         return void_reason
     vr = str(void_reason or "").strip()
     vr_up = vr.upper()
@@ -257,3 +259,9 @@ def relabel_void_reason_if_postponed(
         if t in labels:
             return labels[t]
     return void_reason
+
+
+def is_postponed_void_reason(void_reason: str) -> bool:
+    """True when void_reason is a postponed/canceled schedule label."""
+    vr = str(void_reason or "").strip().upper()
+    return "POSTPON" in vr or vr.startswith("CANCEL")

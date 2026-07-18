@@ -82,5 +82,7 @@ def test_apply_dataframe_labels():
     finally:
         mod.wnba_postponed_team_labels_for_date = orig
     assert n == 1
+    assert str(df.loc[0, "result"]) == "POSTPONED"
     assert str(df.loc[0, "void_reason_grade"]).startswith("POSTPONED")
     assert df.loc[1, "void_reason_grade"] == "NO_ACTUAL"
+    assert df.loc[1, "result"] == "VOID"

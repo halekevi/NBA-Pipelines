@@ -7,6 +7,7 @@ Accepted void classes (configurable defaults):
 - NO_ACTUAL, NO_LINE — ``slate_grader.py`` / NBA+MLB Box Raw (missing box score, missing line)
 
 Pushes use ``result=PUSH`` (not ``result=VOID`` with ``void_reason=PUSH``).
+Postponed/canceled games use ``result=POSTPONED`` (not mixed into VOID).
 
 Anything else under result=VOID is reported as potentially unacceptable.
 """

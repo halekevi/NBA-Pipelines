@@ -12,14 +12,14 @@ sys.path.insert(0, str(ROOT))
 from utils.ticket_diversity import apply_diversity_filter  # noqa: E402
 
 
-def _t(tid: str, player: str, prop: str, line: float = 8.0) -> dict:
+def _t(tid: str, player: str, prop: str, line: float = 8.0, other: str = "Other Player") -> dict:
     return {
         "ticket_id": tid,
         "n_legs": 2,
         "base_ev": 1.0 if tid.endswith("a") else 0.5,
         "legs": [
             {"player": player, "prop_type": prop, "line": line, "direction": "OVER", "edge": 0.6},
-            {"player": "Other Player", "prop_type": "Points", "line": 20.5, "direction": "OVER", "edge": 0.55},
+            {"player": other, "prop_type": "Points", "line": 20.5, "direction": "OVER", "edge": 0.55},
         ],
     }
 
@@ -35,8 +35,8 @@ def test_player_prop_capped_at_one():
     }
     # Same player+prop, different lines — still one ticket only.
     tickets = [
-        _t("a", "Sabrina Ionescu", "Rebounds", 8.0),
-        _t("b", "Sabrina Ionescu", "Rebounds", 7.5),
+        _t("a", "Sabrina Ionescu", "Rebounds", 8.0, other="Player A"),
+        _t("b", "Sabrina Ionescu", "Rebounds", 7.5, other="Player B"),
     ]
     out = apply_diversity_filter(tickets, cfg)
     assert len(out) == 1
@@ -53,8 +53,8 @@ def test_different_props_allowed():
         "void_risk_min_sample": 0,
     }
     tickets = [
-        _t("a", "Sabrina Ionescu", "Rebounds", 8.0),
-        _t("b", "Sabrina Ionescu", "Assists", 5.5),
+        _t("a", "Sabrina Ionescu", "Rebounds", 8.0, other="Player A"),
+        _t("b", "Sabrina Ionescu", "Assists", 5.5, other="Player B"),
     ]
     out = apply_diversity_filter(tickets, cfg)
     assert len(out) == 2

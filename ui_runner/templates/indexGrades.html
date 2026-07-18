@@ -453,6 +453,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .props-filter-pill[data-filter="HIT"].active{background:#00ff88;border-color:#00ff88;color:#0a0a0f;}
 .props-filter-pill[data-filter="MISS"].active{background:#ff6b6b;border-color:#ff6b6b;color:#0a0a0f;}
 .props-filter-pill[data-filter="VOID"].active{background:var(--amber);border-color:var(--amber);color:#0a0a0f;}
+.props-filter-pill[data-filter="POSTPONED"].active{background:rgba(127,199,217,0.95);border-color:#7fc7d9;color:#0a0a0f;}
 .props-filter-pill[data-filter="DECIDED"].active{background:rgba(127,199,217,0.95);border-color:#7fc7d9;color:#0a0a0f;}
 .props-eval-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 .props-eval-view-toggle{display:inline-flex;gap:0;padding:3px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.22);}
@@ -1767,7 +1768,7 @@ select option,
         <div class="props-eval-head">
           <div>
             <h3 class="insights-card-title">Prop evaluation</h3>
-            <p class="insights-card-sub">Decided props load first (voids hidden). Switch filters or search to refine.</p>
+            <p class="insights-card-sub">Decided props load first. VOIDS hides postponed/canceled games (use POSTPONED to review those).</p>
           </div>
           <div class="props-eval-view-toggle" role="group" aria-label="Display density">
             <button type="button" class="props-view-btn active" id="props-view-list" data-view="list" aria-pressed="true">List</button>
@@ -1789,6 +1790,7 @@ select option,
               <button type="button" class="props-filter-pill" data-filter="HIT" aria-pressed="false">HITS</button>
               <button type="button" class="props-filter-pill" data-filter="MISS" aria-pressed="false">MISSES</button>
               <button type="button" class="props-filter-pill" data-filter="VOID" aria-pressed="false">VOIDS</button>
+              <button type="button" class="props-filter-pill" data-filter="POSTPONED" aria-pressed="false">POSTPONED</button>
               <button type="button" class="props-filter-pill" data-filter="" aria-pressed="false">ALL</button>
             </div>
           </div>
@@ -3964,12 +3966,21 @@ function propsEvalSportMatches(rowSport, filterSport) {
   if (fs === 'CBB' && rs === 'WCBB') return true;
   return false;
 }
+function propsEvalIsPostponedVoid(r) {
+  var vr = String((r && r.void_reason) || '').trim().toUpperCase();
+  if (vr.indexOf('POSTPON') >= 0 || vr.indexOf('CANCEL') >= 0) return true;
+  return false;
+}
 function propsEvalIsVoidResult(r) {
   var ru = String((r && r.result) || '').toUpperCase();
   if (ru === 'VOID') return true;
   if (ru === 'PUSH' || ru === 'CASH') return true;
   if (r && r.void_reason && String(r.void_reason).trim()) return true;
   return ru !== 'HIT' && ru !== 'MISS' && ru !== 'WIN' && ru !== 'LOSS' && ru !== 'LOSE' && ru !== '';
+}
+/** Actionable voids only — postponed/canceled games are resolved schedule outcomes. */
+function propsEvalIsActionableVoid(r) {
+  return propsEvalIsVoidResult(r) && !propsEvalIsPostponedVoid(r);
 }
 function propsEvalIsHit(r) {
   var ru = String((r && r.result) || '').toUpperCase();
@@ -4009,11 +4020,12 @@ function fillPropsSportFilter(rows) {
 function updatePropsEvalKpis(rows) {
   var el = document.getElementById('props-eval-kpis');
   if (!el) return;
-  var n = rows.length, hit = 0, miss = 0, voids = 0;
+  var n = rows.length, hit = 0, miss = 0, voids = 0, postponed = 0;
   for (var i = 0; i < n; i++) {
     var r = rows[i];
     if (propsEvalIsHit(r)) hit++;
     else if (propsEvalIsMiss(r)) miss++;
+    else if (propsEvalIsPostponedVoid(r)) postponed++;
     else if (propsEvalIsVoidResult(r)) voids++;
   }
   var decided = hit + miss;
@@ -4024,6 +4036,9 @@ function updatePropsEvalKpis(rows) {
     '<span class="props-kpi is-hit"><strong>' + hit + '</strong> hits</span>' +
     '<span class="props-kpi is-miss"><strong>' + miss + '</strong> misses</span>' +
     '<span class="props-kpi is-void"><strong>' + voids + '</strong> voids</span>' +
+    (postponed
+      ? '<span class="props-kpi" title="Postponed/canceled games (not counted as open voids)"><strong>' + postponed + '</strong> postponed</span>'
+      : '') +
     '<span class="props-kpi"><strong>' + rate + '</strong> decided HR</span>';
 }
 /** Team vs opponent; strips placeholders so we do not show "NYY vs —" when opp is missing in JSON. */
@@ -4337,7 +4352,8 @@ function applyPropsEvalFilters() {
     if (pickTypeF && pickTypeF !== 'NO_DEMON' && pt.indexOf(pickTypeF) < 0) continue;
     if (resF === 'HIT' && !propsEvalIsHit(r)) continue;
     if (resF === 'MISS' && !propsEvalIsMiss(r)) continue;
-    if (resF === 'VOID' && !propsEvalIsVoidResult(r)) continue;
+    if (resF === 'VOID' && !propsEvalIsActionableVoid(r)) continue;
+    if (resF === 'POSTPONED' && !propsEvalIsPostponedVoid(r)) continue;
     if (resF === 'DECIDED' && !(propsEvalIsHit(r) || propsEvalIsMiss(r))) continue;
     if (q && r._hay.indexOf(q) < 0) continue;
     filtered.push(r);
@@ -4347,22 +4363,26 @@ function applyPropsEvalFilters() {
     return String(a.player_name || '').localeCompare(String(b.player_name || ''), undefined, { sensitivity: 'base' });
   });
   renderPropsEvalCards(filtered);
-  var fHit = 0, fMiss = 0, fVoid = 0;
+  var fHit = 0, fMiss = 0, fVoid = 0, fPost = 0;
   for (var j = 0; j < filtered.length; j++) {
     var fr = filtered[j];
     if (propsEvalIsHit(fr)) fHit++;
     else if (propsEvalIsMiss(fr)) fMiss++;
+    else if (propsEvalIsPostponedVoid(fr)) fPost++;
     else if (propsEvalIsVoidResult(fr)) fVoid++;
   }
   const el = document.getElementById('props-eval-counts');
   if (el) {
     var note = '';
-    if (resF === 'DECIDED') note = ' · voids hidden';
+    if (resF === 'DECIDED') note = ' · voids/postponed hidden';
+    else if (resF === 'VOID') note = ' · postponed excluded';
+    else if (resF === 'POSTPONED') note = ' · postponed/canceled only';
     else if (pickTypeF === 'NO_DEMON') note = ' · demon excluded';
     else if (pickTypeF === 'DEMON') note = ' · demon only';
     else if (pickTypeF) note = ' · ' + pickTypeF.toLowerCase() + ' only';
     el.textContent = 'Showing ' + filtered.length + ' of ' + rows.length + ' loaded · ' +
-      fHit + ' hits, ' + fMiss + ' misses, ' + fVoid + ' voids' + note;
+      fHit + ' hits, ' + fMiss + ' misses, ' + fVoid + ' voids' +
+      (fPost ? (', ' + fPost + ' postponed') : '') + note;
   }
 }
 function mapGradedJsonToEvalRow(p) {

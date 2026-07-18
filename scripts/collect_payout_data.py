@@ -32,7 +32,7 @@ SAMPLES_DIR = ROOT / "data" / "payout_samples"
 PAYOUT_LADDER_LIVE_CDP_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
 DEBUG_DIR = ROOT / "data" / "debug"
 PAYOUT_LOCK_PATH = ROOT / "data" / "cache" / "payout_capture.lock"
-PAYOUT_LOCK_TTL_HOURS = 6.0
+PAYOUT_LOCK_TTL_HOURS = 2.0
 _PAYOUT_LOCK_HELD_BY_US = False
 
 
@@ -324,6 +324,12 @@ def connect_existing_browser(cdp_url: str, *, cdp_timeout_ms: int = 45_000):
             if "prizepicks" in (pg.url or "").lower():
                 page = pg
                 break
+        # Prevent Playwright ops from hanging forever when Chrome/CDP is half-dead.
+        try:
+            page.set_default_timeout(20_000)
+            page.set_default_navigation_timeout(45_000)
+        except Exception:
+            pass
         return p, browser, context, page
     except Exception as e:
         print("Could not attach to Chrome CDP (timed out or refused).")
@@ -355,7 +361,14 @@ def find_prizepicks_frame(page):
     """Find the frame that contains the actual projection board content."""
     for frame in page.frames:
         try:
-            text = frame.evaluate("() => (document.body && document.body.innerText) ? document.body.innerText : ''")
+            # Bound hung iframes — evaluate alone can idle forever on a dead CDP target.
+            frame.wait_for_function(
+                "() => !!(document.body && document.body.innerText)",
+                timeout=5_000,
+            )
+            text = frame.evaluate(
+                "() => (document.body && document.body.innerText) ? document.body.innerText : ''"
+            )
             if any(x in text for x in ["Turnovers", "Points", "Assists", "Rebounds", "More", "Less", "Popular"]):
                 print(f"[FRAME] Found content in frame: {frame.url}")
                 return frame
@@ -2949,6 +2962,7 @@ def capture_tickets_from_board(
     require_line: bool | None = None,
     gentle: bool = False,
     only_missing_live: bool = False,
+    max_runtime_sec: float = 0.0,
 ) -> int:
     """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts.
 
@@ -2957,11 +2971,14 @@ def capture_tickets_from_board(
     still requiring the badge (used by ladder live-board validation).
     gentle=True: human-paced delays + random cooloff between slips (less DataDome).
     only_missing_live=True: skip slips that already have payout_source=live_cdp.
+    max_runtime_sec>0: stop after wall-clock budget and save whatever was captured.
     """
     if require_line is None:
         require_line = bool(strict_lines)
     if gentle:
         delay_sec = max(float(delay_sec), 2.0)
+    deadline = (time.monotonic() + float(max_runtime_sec)) if float(max_runtime_sec or 0) > 0 else None
+    timed_out = False
     slips = load_main_strong_tickets(tickets_path, only_missing_live=only_missing_live)
     fp_info = main_strong_tickets_fingerprint(tickets_path)
     if not slips:
@@ -3033,11 +3050,14 @@ def capture_tickets_from_board(
         f"require_line={'on' if require_line else 'off'} "
         f"gentle={'on' if gentle else 'off'} "
         f"only_missing_live={'on' if only_missing_live else 'off'} "
-        f"delay={delay_sec:.1f}s)"
+        f"delay={delay_sec:.1f}s"
+        f"{f'; max_runtime={int(max_runtime_sec)}s' if deadline else ''})"
     )
 
     want_flex = "flex_min" in fields
+    print(f"[PAYOUT] attaching CDP {cdp_url} ...", flush=True)
     p, browser, context, page = connect_existing_browser(cdp_url)
+    print(f"[PAYOUT] CDP attached; page={page.url!r}", flush=True)
     page.wait_for_timeout(1500 if gentle else 500)
     captured: list[dict] = []
     n_ok = n_failed = n_partial = 0
@@ -3051,11 +3071,21 @@ def capture_tickets_from_board(
             active_sport = first_sport
             if gentle:
                 page.wait_for_timeout(int(random.uniform(2000, 4000)))
+        print("[PAYOUT] locating PrizePicks board frame ...", flush=True)
         frame = find_prizepicks_frame(page)
         ensure_popular_filter(frame, page)
         dismiss_modal(frame, page)
+        print("[PAYOUT] board ready — starting slips", flush=True)
 
         for i, slip in enumerate(slips_sorted, 1):
+            if deadline is not None and time.monotonic() >= deadline:
+                timed_out = True
+                print(
+                    f"[PAYOUT] max runtime reached after {i - 1}/{len(slips_sorted)} slips — "
+                    "saving partial capture",
+                    flush=True,
+                )
+                break
             if gentle and i > 1:
                 cool = random.uniform(2.5, 5.5)
                 print(f"[PAYOUT] gentle cooloff {cool:.1f}s before next slip...")
@@ -3227,6 +3257,8 @@ def capture_tickets_from_board(
         "primary_field": "power_min_x",
         "entry_amount": entry_amount,
         "only_missing_live": bool(only_missing_live),
+        "timed_out": bool(timed_out),
+        "max_runtime_sec": float(max_runtime_sec or 0),
         "slips": captured,
         "summary": {
             "n_total": len(captured),
@@ -3236,6 +3268,7 @@ def capture_tickets_from_board(
             "n_strong": sum(1 for s in captured if s.get("slip_type") == "strong"),
             "n_main": sum(1 for s in captured if s.get("slip_type") == "main"),
             "n_skipped_live": int(fp_info.get("n_live") or 0) if only_missing_live else 0,
+            "timed_out": bool(timed_out),
         },
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -3245,7 +3278,8 @@ def capture_tickets_from_board(
     print(f"[PAYOUT] Saved -> {output_path}")
     print(
         f"[PAYOUT] ok={n_ok} partial={n_partial} failed={n_failed} "
-        f"(primary field=power_min_x)"
+        f"(primary field=power_min_x"
+        f"{'; timed_out=1' if timed_out else ''})"
     )
     if write_back and captured:
         try:
@@ -3256,6 +3290,9 @@ def capture_tickets_from_board(
             )
         except Exception as e:
             print(f"[PAYOUT] WARN: write-back failed: {e}")
+    # Partial capture after budget is still success if anything landed.
+    if timed_out and (n_ok + n_partial) == 0 and captured:
+        return 1
     return 0 if (n_ok + n_partial) > 0 or not captured else 1
 
 
@@ -4415,6 +4452,15 @@ def main():
         help="With --tickets: slower pacing between slips (less DataDome pressure).",
     )
     ap.add_argument(
+        "--max-runtime-sec",
+        type=float,
+        default=0.0,
+        help=(
+            "With --tickets: wall-clock budget in seconds for the CDP scrape. "
+            "0 = no limit. Saves partial results when the budget is hit."
+        ),
+    )
+    ap.add_argument(
         "--force-lock",
         action="store_true",
         help="Clear a stuck payout_capture.lock before CDP scrape (direct Python runs only).",
@@ -4539,6 +4585,7 @@ def main():
                     strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
                     only_missing_live=bool(getattr(args, "only_missing_live", False)),
                     gentle=bool(getattr(args, "gentle", False)),
+                    max_runtime_sec=float(getattr(args, "max_runtime_sec", 0) or 0),
                 )
             )
         finally:

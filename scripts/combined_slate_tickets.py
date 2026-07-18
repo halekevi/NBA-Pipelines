@@ -5410,6 +5410,18 @@ def _row_win_rate_eligible(
     leg_prob = _leg_prob_for_p_win_from_mapping(row_d)
     if leg_prob < float(min_leg_prob):
         return False
+    # MLB Goblin OVER: higher floors — Jul 2026 miss anatomy + ml_prob overconfidence.
+    sport_early = str(row_d.get("sport") or "").strip().upper()
+    direction_early = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    if sport_early == "MLB" and pt == "goblin" and direction_early == "OVER":
+        prop_n = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
+        mlb_floor = float(MAIN_MLB_GOBLIN_MIN_LEG_PROB)
+        if prop_n in MAIN_MLB_GOBLIN_STRESS_PROP_NORMS:
+            mlb_floor = max(mlb_floor, float(MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB))
+        if leg_prob < mlb_floor:
+            return False
     # Goblin ml_prob is poorly calibrated (corr~0.06) — only enforce ml floor when
     # composite/hit-rate evidence is also below the MAIN leg floor.
     mlp = pd.to_numeric(row_d.get("ml_prob"), errors="coerce")
@@ -7078,15 +7090,35 @@ def _finalize_payload_l10_streaks(payload: dict) -> None:
     payload["cold_legs"] = sum(int(g.get("cold_legs") or 0) for g in (payload.get("groups") or []) if isinstance(g, dict))
 
 
-# Graded KPI split: main = high-prob Standard+Goblin 2–3 leg primary; long_parlay = 5–6.
+# Graded KPI split: main = high-prob Standard+Goblin 2–3 leg (profitability path);
+# long_parlay = 5–6 sidecar only (not injected into MAIN win-rate board).
 MAIN_GRADED_MIN_LEGS = 2
-MAIN_GRADED_MAX_LEGS = 4
+MAIN_GRADED_MAX_LEGS = max(2, min(4, int(os.getenv("PROPORACLE_MAIN_MAX_LEGS", "3"))))
 MAIN_DEFAULT_LEGS = 3
 MAIN_THIN_POOL_MIN_LEGS = 6
-# Legacy name kept for imports; 4-leg now uses leg_prob/composite floors below.
+# Legacy 4-leg path (only if PROPORACLE_MAIN_MAX_LEGS>=4): strict floors.
 MAIN_FOUR_LEG_MIN_ML_PROB = 0.70
 MAIN_FOUR_LEG_MIN_LEG_PROB = 0.70
 MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
+# MLB Goblin OVER dominates miss volume on long mixed boards — raise the bar.
+MAIN_MLB_GOBLIN_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_MIN_LEG_PROB", "0.68")
+)
+MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB", "0.72")
+)
+MAIN_MLB_GOBLIN_STRESS_PROP_NORMS: frozenset[str] = frozenset(
+    {
+        "hitsrunsrbis",
+        "hitsrunsrebis",
+        "hitrbis",
+        "totalbases",
+        "hits",
+        "hitterstrikeouts",
+        "batterstrikeouts",
+        "strikeouts",  # ambiguous label — treat as stressed on MLB Goblin OVER
+    }
+)
 # High-prob MAIN: Goblin + Standard A/B, multi-sport, 3-leg primary (not Goblin-only).
 MAIN_POOL_MODE = "high_prob_std_gob"
 MAIN_POOL_MODE_GOBLIN = "goblin_only"
@@ -14275,17 +14307,23 @@ STRONG_BUILDER_CORE_PROPS_NORM: frozenset[str] = frozenset(
 STRONG_BUILDER_MLB_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
     for x in (
-        "hits",
-        "total bases",
-        "totalbases",
-        "strikeouts",
-        # singles removed — long-term OVER hit rate too weak for STRONG core
+        # hits / total bases removed 2026-07-18 — dominate miss volume on OVER Goblin
+        "strikeouts",  # pitcher Ks preferred; hitter Ks still need leg_prob floor
         "pitches thrown",
         "pitchesthrown",
         "pitching outs",
         "pitchingouts",
+        "earned runs allowed",
+        "earnedrunsallowed",
+        "hits allowed",
+        "hitsallowed",
+        "walks allowed",
+        "walksallowed",
     )
 )
+# Min leg_prob for STRONG candidates (MLB Goblin OVER uses the higher floor).
+STRONG_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_STRONG_MIN_LEG_PROB", "0.65"))
+STRONG_MLB_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_STRONG_MLB_MIN_LEG_PROB", "0.70"))
 STRONG_BUILDER_SOCCER_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
     for x in ("shots", "shots on target", "shotsontarget", "goals")
@@ -14580,7 +14618,19 @@ def _strong_candidate_legs(
     if out.empty:
         return out
     keep_idx = [idx for idx in out.index if _strong_sport_leg_allowed(out.loc[idx])]
-    return out.loc[keep_idx].copy() if keep_idx else out.iloc[0:0].copy()
+    if not keep_idx:
+        return out.iloc[0:0].copy()
+    filtered: list = []
+    for idx in keep_idx:
+        row = out.loc[idx]
+        row_d = row.to_dict() if isinstance(row, pd.Series) else dict(row)
+        lp = _leg_prob_for_p_win_from_mapping(row_d)
+        sp = str(row_d.get("sport") or "").strip().upper()
+        floor = float(STRONG_MLB_MIN_LEG_PROB) if sp == "MLB" else float(STRONG_MIN_LEG_PROB)
+        if lp < floor:
+            continue
+        filtered.append(idx)
+    return out.loc[filtered].copy() if filtered else out.iloc[0:0].copy()
 
 
 def _strong_candidate_legs_standard(df: pd.DataFrame) -> pd.DataFrame:
@@ -14702,9 +14752,9 @@ def build_strong_tickets(
       - standard_prob: Standard A/B with direction probability floors (O/U; no HOT req)
       - mixed: Goblin HOT ∪ Standard HOT; each slip must include both pick types
 
-    Prefers longer unique-player slips (6 → 5 → 4 → 3 → 2). By default exhausts
-    the unique-player pool (all gate-passing combos) instead of stopping at the
-    global --max-tickets board budget.
+    Prefers shorter unique-player slips within max_legs (default 3 → 2). By default
+    exhausts the unique-player pool (all gate-passing combos) instead of stopping at
+    the global --max-tickets board budget.
     """
     mode = str(pick_mode or "goblin").strip().lower()
     is_mixed = mode in ("mixed", "mix", "goblin_standard", "goblin_std")
@@ -14747,7 +14797,7 @@ def build_strong_tickets(
     player_prop_counts_by_n: dict[int, Counter[str]] = defaultdict(Counter)
     # Exhaust mode: scan the full unique-player combo space (no early scan abort).
     # Non-exhaust: keep a bounded scan for latency.
-    # Longer first so 2-leg filler cannot starve 3–6 when a tiny soft cap is used.
+    # Longer-first within the cap so 2-leg filler cannot starve 3 when a soft cap is used.
     leg_order = list(range(max_legs_i, 1, -1))
 
     for n_legs in leg_order:
@@ -14762,7 +14812,7 @@ def build_strong_tickets(
             if do_exhaust
             else max(8_000, cap * 800)
         )
-        # Soft per-length quotas in exhaust mode so longer stacks share the board.
+        # Soft per-length quotas in exhaust mode.
         n_budget = cap
         if do_exhaust:
             if n_legs >= 6:
@@ -14772,9 +14822,9 @@ def build_strong_tickets(
             elif n_legs == 4:
                 n_budget = min(cap, len(tickets) + 15)
             elif n_legs == 3:
-                n_budget = min(cap, len(tickets) + 20)
+                n_budget = min(cap, len(tickets) + 30)
             else:
-                n_budget = min(cap, len(tickets) + 40)
+                n_budget = min(cap, len(tickets) + 50)
         prop_counts_n = player_prop_counts_by_n[int(n_legs)]
         scanned = 0
         for combo in itertools.combinations(pool_rows, n_legs):

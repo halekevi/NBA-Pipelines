@@ -9,8 +9,8 @@ STRONG is leg-count aware: percentile tiers are computed within each leg-count b
 so long parlays are not labeled STRONG just because they rank high among all slips.
 Additional gates demote STRONG→OK when p_win is too low for the leg count, when
 cross-sport (default: cross-sport cannot be STRONG), when length exceeds
-STRONG_MAX_LEGS (default 6), or when any leg fails Goblin + Tier A/B + HOT streak
-quality checks.
+STRONG_MAX_LEGS (default 3 — profitability prototype), or when any leg fails
+Goblin + Tier A/B + HOT streak quality checks.
 """
 from __future__ import annotations
 
@@ -42,16 +42,17 @@ TIER_EV_MIN_MARGINAL: float = 0.0
 
 MIN_SAMPLES_FOR_PERCENTILES: int = 8
 
-# STRONG favors high-conviction Goblin HOT slips up to 6 unique-player legs
-# (override via env). Absolute p_win floors must fall with length: 0.75^3≈0.42
-# before correlation, so a 3-leg floor of 0.42 was nearly unreachable after
-# density haircuts and starved longer slips (boards filled with 2-legs only).
-STRONG_MAX_LEGS: int = max(2, min(6, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "6"))))
-STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.33"))
-STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.28"))
-STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.22"))
-STRONG_MIN_P_WIN_5LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_5LEG", "0.12"))
-STRONG_MIN_P_WIN_6LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_6LEG", "0.08"))
+# STRONG favors high-conviction Goblin HOT slips. Default max 3 legs (Jul 2026
+# graded: ≤3 cleared ~70%+ ticket WR; 4–6 dragged the average). Override via
+# PROPORACLE_STRONG_MAX_LEGS (still capped at 6 for shadow/exhaust experiments).
+# p_win floors raised toward a ~70% ticket WR target; still below naive
+# independence (0.84^2 / 0.89^3) so HOT Goblin pools can clear them.
+STRONG_MAX_LEGS: int = max(2, min(6, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "3"))))
+STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.45"))
+STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.38"))
+STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.28"))
+STRONG_MIN_P_WIN_5LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_5LEG", "0.18"))
+STRONG_MIN_P_WIN_6LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_6LEG", "0.12"))
 STRONG_ALLOW_CROSS_SPORT: bool = os.getenv("PROPORACLE_STRONG_ALLOW_CROSS_SPORT", "0").strip().lower() not in (
     "0",
     "false",

@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-07-18",
+  "scope": "Remaining sport pipelines after MLB+WNBA scalar patch",
+  "window": "graded_props >= 2026-06-20 (Std+Gob; Demons excluded)",
+  "long_legs_visibility": {
+    "strong_main": "max 3 legs (profitability path)",
+    "sidecar": "combined_slate_tickets_long_parlay_*.json still built",
+    "ui": "Grades → Long parlays (5-6) tab (ticket_eval_long_parlay_{date}.html)",
+    "jul17_long_eval": {"tickets": 209, "win_rate": "15%", "note": "kept for visibility/analysis, not STRONG/MAIN"}
+  },
+  "active_summer_pipelines": {
+    "MLB": {
+      "status": "PATCHED_EARLIER",
+      "n_std_gob": 5398,
+      "mean_p": 0.748,
+      "hr": 0.567,
+      "gap": 0.181,
+      "auc": 0.518,
+      "action": "scalars already applied; MAIN/STRONG gates tightened"
+    },
+    "WNBA": {
+      "status": "PATCHED_EARLIER",
+      "n_std_gob": 2647,
+      "mean_p": 0.734,
+      "hr": 0.648,
+      "gap": 0.086,
+      "auc": 0.607,
+      "action": "scalars already applied"
+    },
+    "TENNIS": {
+      "status": "HEALTHY_LIGHT_PATCH",
+      "n_std_gob": 1221,
+      "mean_p": 0.362,
+      "hr": 0.354,
+      "gap": 0.008,
+      "auc": 0.832,
+      "note": "Best ranking among live sports; already nearly calibrated. Applied actual-target nudges only (not policy 0.50 inflate).",
+      "scalars_applied": {
+        "goblin_OVER": 0.963,
+        "standard_OVER": 0.9159,
+        "standard_UNDER": 1.4058
+      }
+    },
+    "SOCCER": {
+      "status": "UNDERCONFIDENT_PATCHED",
+      "n_std_gob": 114,
+      "mean_p": 0.339,
+      "hr": 0.482,
+      "gap": -0.144,
+      "auc": 0.637,
+      "action": "applied Goblin OVER scalar 0.25 → 1.81 (actual-target, not 0.65 policy which would overshoot to ~2.94)",
+      "caution": "n=95 Goblin OVER only — monitor next 2 weeks"
+    }
+  },
+  "offseason_or_no_recent_graded": {
+    "NBA": "no Std+Gob decided+ml rows in last ~40 graded files",
+    "NBA1H": "same",
+    "NBA1Q": "same",
+    "NHL": "same",
+    "CBB": "same",
+    "action": "keep existing scalars; recalibrate when season graded volume returns"
+  },
+  "recommendations": [
+    "Keep Long parlays (5-6) tab as analysis/visibility track — do not inject into STRONG/MAIN",
+    "Do not apply Tennis Goblin policy scalar inflate",
+    "Re-run this audit when NBA/NHL return",
+    "Soccer scalar is provisional (thin n)"
+  ]
+}

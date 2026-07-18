@@ -2,12 +2,34 @@
 
 ## Production model (do not replace casually)
 
-| Artifact | AUC (holdout) | Role |
-|----------|---------------|------|
-| `models/edge_model_unified_pre_enrichment.pkl` | **0.7546** | **Production** — keep until enrichment retrain wins |
-| `models/edge_model_unified.pkl` | 0.7371 | Manual retrain on empty enrichment features — **do not promote** |
+| Artifact | Holdout AUC | Role |
+|----------|-------------|------|
+| `models/edge_model_unified.pkl` | **0.7567** (trained 2026-06-13) | **Live production** — loaded by `edge_predict_utils.load_unified_edge_model` |
+| `models/edge_model_unified_pre_enrichment.pkl` | 0.7546 | Archive / fallback reference |
 
-Promotion gate: new model overall AUC **> 0.7546** on temporal holdout with enrichment columns **>10% fill** in `data/retrain_dataset.csv`.
+**Live health ≠ holdout.** Rolling graded AUC (Std+Gob, Jul 2026 window) is much weaker on MLB (~0.52–0.61) and WNBA (~0.54). Treat holdout AUC as a training check, not ticket trust.
+
+Promotion gate: new model overall holdout AUC **> 0.7567** on temporal holdout with enrichment columns **>10% fill** in `data/retrain_dataset.csv`, **and** rolling 30d graded AUC / calibration gap must not regress vs current live metrics in `data/model_performance_log.jsonl`.
+
+### 2026-07-18 scalar refresh (ticket-eligible)
+
+Re-fit linear scalars from graded props `min_date>=2026-06-20` (Demons excluded):
+
+- **MLB** Goblin OVER / Std OVER / Std UNDER — cut overconfidence (`mean ml_prob` was ~0.76 vs ~0.59 HR on Goblin OVER)
+- **WNBA** Goblin OVER / Std OVER / Std UNDER — mild recalibration
+- **Skipped Tennis Goblin** — already calibrated (~0.33 vs 0.32); policy target 0.50 would *inflate* probs
+- **Ticket cash models** remain shadow/`model_allowed: false` (overconfident cash bins)
+
+### 2026-07-18 ticket generation alignment
+
+| Knob | New default | Why |
+|------|-------------|-----|
+| `PROPORACLE_STRONG_MAX_LEGS` | **3** | Jul 17 STRONG ≤3 → ~73% ticket WR |
+| STRONG `min_p_win` 2/3 | **0.45 / 0.38** | Toward 70% ticket WR target |
+| `PROPORACLE_MAIN_MAX_LEGS` | **3** | Starve 4–6 on MAIN win-rate board |
+| MLB Goblin OVER MAIN floor | **0.68** (stress props **0.72**) | Miss concentration + overconfidence |
+| STRONG MLB props | Drop Hits / Total Bases | Same miss anatomy |
+| STRONG min leg_prob | **0.65** (MLB **0.70**) | Match calibrated reality |
 
 ## Calibration stack (inference order)
 

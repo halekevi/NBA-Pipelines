@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-07-18",
+  "question": "Is the ML stack actually working for ticket profitability?",
+  "verdict": "PARTIALLY — ranking helps on Tennis; calibration was failing on MLB (main ticket volume); ticket cash model correctly off",
+  "live_edge_model": {
+    "artifact": "models/edge_model_unified.pkl",
+    "trained_at": "2026-06-13",
+    "holdout_auc": 0.7567
+  },
+  "rolling_30d_track_model_performance": {
+    "TENNIS": {"auc": 0.845, "hr": 0.22, "calib_err": 0.071, "n": 2823, "status": "OK"},
+    "SOCCER": {"auc": 0.702, "hr": 0.206, "calib_err": 0.0, "n": 437, "status": "OK"},
+    "MLB": {"auc": 0.613, "hr": 0.262, "calib_err": 0.327, "n": 23271, "status": "OK_ALWAYS_ALLOW"},
+    "WNBA": {"auc": 0.543, "hr": 0.619, "calib_err": 0.14, "n": 3004, "status": "WARN"}
+  },
+  "jul_std_gob_only": {
+    "date_files": "2026-07-10..17",
+    "n": 9380,
+    "mean_ml_prob": 0.689,
+    "actual_hr": 0.561,
+    "gap": 0.128,
+    "auc": 0.589,
+    "by_sport": {
+      "MLB": {"n": 5398, "mean_p": 0.748, "hr": 0.567, "gap": 0.181, "auc": 0.518},
+      "WNBA": {"n": 2647, "mean_p": 0.734, "hr": 0.648, "gap": 0.086, "auc": 0.607},
+      "TENNIS": {"n": 1221, "mean_p": 0.362, "hr": 0.354, "gap": 0.008, "auc": 0.832},
+      "SOCCER": {"n": 114, "mean_p": 0.339, "hr": 0.482, "gap": -0.144, "auc": 0.637}
+    },
+    "mlb_goblin_over": {"n": 4262, "mean_p": 0.762, "hr": 0.588, "gap": 0.174},
+    "note": "Top bin [0.9,1.0) mean_p~0.99 but hr~0.58 — high-confidence overconfidence drives long-ticket failure"
+  },
+  "updates_applied": {
+    "track_model_performance": true,
+    "gate_recommendations_refreshed": true,
+    "ml_prob_scalars_patched": ["MLB goblin/standard", "WNBA goblin/standard"],
+    "ticket_generation": {
+      "STRONG_MAX_LEGS_default": 3,
+      "STRONG_min_p_win_2_3": [0.45, 0.38],
+      "MAIN_MAX_LEGS_default": 3,
+      "MLB_goblin_OVER_floor": 0.68,
+      "MLB_goblin_stress_props_floor": 0.72,
+      "STRONG_MLB_dropped_props": ["Hits", "Total Bases"],
+      "STRONG_min_leg_prob": 0.65,
+      "STRONG_MLB_min_leg_prob": 0.70
+    },
+    "skipped": ["TENNIS goblin scalar inflate", "ticket cash model promote", "full XGB retrain"]
+  },
+  "fits_70pct_ticket_logic": {
+    "exclude_demons": true,
+    "prefer_goblin_std": true,
+    "do_not_trust_raw_ml_prob_for_long_parlays": true,
+    "shorter_strong_books": true,
+    "mlb_needs_tighter_leg_floors_until_calib_closes": true
+  }
+}

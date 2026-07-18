@@ -152,8 +152,20 @@ def test_row_standard_high_prob_eligible_over_needs_higher_bar():
         "hit_rate": 0.64,
         "ml_prob": 0.64,
         "composite_hit_rate": 0.64,
+        "l10_streak": "HOT",
+        "l5_over": 4,
+        "l10_over": 7,
+        "l10_under": 3,
     }
-    strong_over = dict(weak_over, hit_rate=0.72, ml_prob=0.72, composite_hit_rate=0.72)
+    strong_over = dict(
+        weak_over,
+        hit_rate=0.72,
+        ml_prob=0.72,
+        composite_hit_rate=0.72,
+        l5_over=5,
+        l10_over=8,
+        l10_under=2,
+    )
     under_ok = {
         "sport": "WNBA",
         "pick_type": "Standard",
@@ -163,6 +175,10 @@ def test_row_standard_high_prob_eligible_over_needs_higher_bar():
         "hit_rate": 0.62,
         "ml_prob": 0.62,
         "composite_hit_rate": 0.62,
+        "l10_streak": "HOT",
+        "l5_under": 4,
+        "l10_over": 3,
+        "l10_under": 7,
     }
     assert not _row_standard_high_prob_eligible(weak_over)
     assert _row_standard_high_prob_eligible(strong_over)
@@ -332,6 +348,8 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "tier": "A",
                 "direction": "OVER",
                 "l10_streak": "HOT",
+                "hit_rate": 0.80,
+                "ml_prob": 0.80,
             },
             {
                 "sport": "MLB",
@@ -341,6 +359,19 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "tier": "A",
                 "direction": "OVER",
                 "l10_streak": "HOT",
+                "hit_rate": 0.80,
+                "ml_prob": 0.80,
+            },
+            {
+                "sport": "MLB",
+                "player": "Pitcher Two",
+                "prop_type": "Pitching Outs",
+                "pick_type": "Goblin",
+                "tier": "A",
+                "direction": "OVER",
+                "l10_streak": "HOT",
+                "hit_rate": 0.80,
+                "ml_prob": 0.80,
             },
             {
                 "sport": "WNBA",
@@ -350,6 +381,8 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "tier": "A",
                 "direction": "OVER",
                 "l10_streak": "HOT",
+                "hit_rate": 0.80,
+                "ml_prob": 0.80,
             },
             {
                 "sport": "WNBA",
@@ -359,13 +392,15 @@ def test_strong_candidate_legs_excludes_non_core_props():
                 "tier": "A",
                 "direction": "OVER",
                 "l10_streak": "HOT",
+                "hit_rate": 0.80,
+                "ml_prob": 0.80,
             },
         ]
     )
     out = _strong_candidate_legs(df)
-    assert len(out) == 2
     players = set(out["player"].astype(str))
-    assert players == {"Hitter One", "Scorer One"}
+    # Hits / HR / 3PT banned from STRONG core; pitching outs + WNBA points remain.
+    assert players == {"Pitcher Two", "Scorer One"}
 
 
 def test_build_strong_tickets_produces_labeled_slips():
@@ -375,7 +410,7 @@ def test_build_strong_tickets_produces_labeled_slips():
     assert t.get("strong_builder") is True
     # Sample pool only has 2 HOT Goblin players → 2-leg fallback.
     assert t.get("n_legs") == 2
-    assert float(t.get("est_win_prob") or 0) >= 0.33
+    assert float(t.get("est_win_prob") or 0) >= 0.45
     for row in t.get("rows") or []:
         assert "goblin" in str(row.get("pick_type", "")).lower()
         assert str(row.get("tier", "")).upper() in ("A", "B")
@@ -413,36 +448,51 @@ def test_build_strong_tickets_prefers_three_plus_legs_when_pool_allows():
     assert tickets
     lengths = sorted({int(t.get("n_legs") or 0) for t in tickets}, reverse=True)
     assert max(lengths) >= 3
-    # Board should lead with longer slips, not fill exclusively with 2-legs.
+    # Board should lead with longer slips within the max-legs cap (default 3).
     assert int(tickets[0].get("n_legs") or 0) >= 3
-    two_leg = sum(1 for t in tickets if int(t.get("n_legs") or 0) == 2)
-    longer = sum(1 for t in tickets if int(t.get("n_legs") or 0) >= 3)
-    assert longer >= two_leg
+    assert max(int(t.get("n_legs") or 0) for t in tickets) <= 3
 
 
-def test_build_strong_tickets_includes_five_and_six_legs():
-    tickets = build_strong_tickets(
-        _many_hot_goblin_df(8),
-        exhaust_pool=True,
-        date_str="2026-07-14",
-    )
-    assert tickets
-    lengths = {int(t.get("n_legs") or 0) for t in tickets}
-    assert 5 in lengths
-    assert 6 in lengths
-    assert int(tickets[0].get("n_legs") or 0) >= 5
+def test_build_strong_tickets_includes_five_and_six_legs_when_max_raised():
+    """Opt-in long STRONG (shadow/experiments) still works when max_legs=6."""
+    import utils.ticket_ev_tiers as _tet
+
+    old = _tet.STRONG_MAX_LEGS
+    old_cst = cst.STRONG_MAX_LEGS
+    try:
+        _tet.STRONG_MAX_LEGS = 6
+        cst.STRONG_MAX_LEGS = 6
+        tickets = build_strong_tickets(
+            _many_hot_goblin_df(8),
+            exhaust_pool=True,
+            max_legs=6,
+            date_str="2026-07-14",
+        )
+        assert tickets
+        lengths = {int(t.get("n_legs") or 0) for t in tickets}
+        assert 5 in lengths or 6 in lengths
+        assert max(lengths) >= 5
+    finally:
+        _tet.STRONG_MAX_LEGS = old
+        cst.STRONG_MAX_LEGS = old_cst
 
 
 def test_build_strong_tickets_exhausts_unique_player_pool():
-    # With exhaust on, a 5-player pool should yield many more slips than --max-tickets=3.
-    tickets = build_strong_tickets(
-        _many_hot_goblin_df(5),
-        max_tickets=3,
-        exhaust_pool=True,
-        date_str="2026-07-14",
-    )
-    assert len(tickets) > 3
-    assert any(int(t.get("n_legs") or 0) >= 3 for t in tickets)
+    # Exhaust + raised prop exposure yields more than a tiny soft board quota.
+    old_cap = cst.STRONG_MAX_TICKETS_PER_PLAYER_PROP
+    try:
+        cst.STRONG_MAX_TICKETS_PER_PLAYER_PROP = 99
+        tickets = build_strong_tickets(
+            _many_hot_goblin_df(5),
+            max_tickets=3,
+            exhaust_pool=True,
+            date_str="2026-07-14",
+        )
+        assert len(tickets) > 3
+        assert any(int(t.get("n_legs") or 0) >= 3 for t in tickets)
+        assert max(int(t.get("n_legs") or 0) for t in tickets) <= 3
+    finally:
+        cst.STRONG_MAX_TICKETS_PER_PLAYER_PROP = old_cap
 
 
 def test_split_strong_tickets_by_leg_count_orders_longest_first():

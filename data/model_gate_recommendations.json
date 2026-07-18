@@ -1,42 +1,34 @@
 {
   "MLB": {
     "gate": false,
-    "auc": 0.6585366988998119,
+    "auc": 0.6129789166638013,
     "reason": "OK (ALWAYS_ALLOW_SPORTS)"
-  },
-  "NBA": {
-    "gate": false,
-    "auc": 0.5791100391855901,
-    "reason": "OK (ALWAYS_ALLOW_SPORTS)"
-  },
-  "NBA1H": {
-    "gate": false,
-    "auc": 0.5178320610687023,
-    "reason": "OK"
-  },
-  "NBA1Q": {
-    "gate": false,
-    "auc": 0.6469298596552994,
-    "reason": "OK"
-  },
-  "NHL": {
-    "gate": false,
-    "auc": 0.6227276026535932,
-    "reason": "OK"
   },
   "SOCCER": {
     "gate": false,
-    "auc": 0.6271695554654882,
+    "auc": 0.7019212295869357,
     "reason": "OK"
   },
   "TENNIS": {
     "gate": false,
-    "auc": 0.6105760210782194,
+    "auc": 0.845219068795096,
     "reason": "OK"
   },
   "WNBA": {
     "gate": false,
-    "auc": 0.5699754990464904,
+    "auc": 0.5427567126355161,
     "reason": "OK"
+  },
+  "NBA1H": {
+    "consecutive_days_above_052": 8,
+    "rolling_30d_auc": 0.5261813537675607,
+    "rolling_7d_auc": null,
+    "inversion_flag": false,
+    "sample_n_30d": 56,
+    "sample_n_7d": 0,
+    "sample_n": 56,
+    "trend": "unknown",
+    "last_checked": "2026-07-13",
+    "gate": false
   }
 }

@@ -24,8 +24,9 @@ from edge_feature_engineering import (  # type: ignore
     fill_minutes_cv_median_by_sport,
 )
 
-# Shared with step7b_edge_score. Recalibrated 2026-06 via scripts/recalibrate_ml_prob_scalars.py.
-# SOCCER OVER slices use observed hit-rate targets (not 50% policy).
+# Shared with step7b_edge_score. Recalibrated 2026-07-18:
+#   MLB+WNBA (policy targets), SOCCER Goblin OVER + TENNIS (actual-target).
+# Demons excluded from ticket-eligible fits.
 ML_PROB_CALIBRATION_SCALARS: dict[tuple[str, str, str], float] = {
     ("NBA", "standard", "OVER"): 0.8187,
     ("NBA", "goblin", "OVER"): 0.8805,
@@ -34,19 +35,19 @@ ML_PROB_CALIBRATION_SCALARS: dict[tuple[str, str, str], float] = {
     ("NHL", "standard", "UNDER"): 0.7676,
     ("NHL", "goblin", "OVER"): 2.2124,
     ("NHL", "demon", "OVER"): 1.8855,
-    ("MLB", "standard", "OVER"): 0.9553,
-    ("MLB", "goblin", "OVER"): 1.0244,
+    ("MLB", "standard", "OVER"): 0.6606,
+    ("MLB", "goblin", "OVER"): 0.8527,
     ("MLB", "demon", "OVER"): 1.4152,
-    ("MLB", "standard", "UNDER"): 1.0285,
+    ("MLB", "standard", "UNDER"): 0.8002,
     ("SOCCER", "standard", "OVER"): 0.4675,
     # step7b replaces ml_prob via the unified edge model (independent of step7 prop_model).
-    ("SOCCER", "goblin", "OVER"): 0.25,
+    ("SOCCER", "goblin", "OVER"): 1.81,
     ("SOCCER", "demon", "OVER"): 2.121,
     ("SOCCER", "goblin", "UNDER"): 0.9423,
     ("SOCCER", "standard", "UNDER"): 1.6788,
-    ("WNBA", "standard", "OVER"): 0.7211,
-    ("WNBA", "standard", "UNDER"): 1.2274,
-    ("WNBA", "goblin", "OVER"): 0.7989,
+    ("WNBA", "standard", "OVER"): 0.7232,
+    ("WNBA", "standard", "UNDER"): 0.9031,
+    ("WNBA", "goblin", "OVER"): 0.8142,
     ("WNBA", "demon", "OVER"): 2.2358,
     ("CBB", "goblin", "OVER"): 0.8054,
     ("CBB", "standard", "OVER"): 0.9911,
@@ -56,9 +57,9 @@ ML_PROB_CALIBRATION_SCALARS: dict[tuple[str, str, str], float] = {
     ("NBA1Q", "standard", "UNDER"): 0.679,
     ("NBA1H", "standard", "OVER"): 0.5838,
     ("NBA1H", "standard", "UNDER"): 0.6275,
-    ("TENNIS", "goblin", "OVER"): 0.8407,
-    ("TENNIS", "standard", "OVER"): 0.9062,
-    ("TENNIS", "standard", "UNDER"): 1.3042,
+    ("TENNIS", "goblin", "OVER"): 0.963,
+    ("TENNIS", "standard", "OVER"): 0.9159,
+    ("TENNIS", "standard", "UNDER"): 1.4058,
 }
 
 _SLICE_CAL_PATH: Path | None = None

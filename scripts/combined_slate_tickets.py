@@ -14316,10 +14316,10 @@ STRONG_COSTACK_WEAK_THRESHOLD = 0.35
 STRONG_MAX_PLAYER_APPEARANCES_PER_SLATE = max(
     1, int(os.getenv("PROPORACLE_STRONG_MAX_PLAYER_APPS", "2"))
 )
-# Max times the same player+prop may appear among STRONG tickets of one length
-# (e.g. ≤2 uses in 6-leg slips, and again ≤2 in 5-leg slips, independently).
+# Max times the same player+prop may appear among ALL STRONG tickets (any length).
+# Default 1 so e.g. Ionescu rebounds lands on at most one STRONG slip.
 STRONG_MAX_TICKETS_PER_PLAYER_PROP = max(
-    1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "2"))
+    1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "1"))
 )
 
 
@@ -14736,8 +14736,8 @@ def build_strong_tickets(
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
-    # Counts are per leg-count so a prop can appear 2× in 6-legs and again 2× in 5-legs.
-    player_prop_counts_by_n: dict[int, Counter[str]] = defaultdict(Counter)
+    # Global across all leg lengths — same player+prop on at most N STRONG slips total.
+    player_prop_counts: Counter[str] = Counter()
     # Exhaust mode: scan the full unique-player combo space (no early scan abort).
     # Non-exhaust: keep a bounded scan for latency.
     # Longer first so 2-leg filler cannot starve 3–6 when a tiny soft cap is used.
@@ -14768,7 +14768,6 @@ def build_strong_tickets(
                 n_budget = min(cap, len(tickets) + 20)
             else:
                 n_budget = min(cap, len(tickets) + 40)
-        prop_counts_n = player_prop_counts_by_n[int(n_legs)]
         scanned = 0
         for combo in itertools.combinations(pool_rows, n_legs):
             scanned += 1
@@ -14795,7 +14794,7 @@ def build_strong_tickets(
                 continue
             if not _ticket_cap_can_add(rows, player_ticket_counts):
                 continue
-            if not _strong_player_prop_can_add(rows, prop_counts_n):
+            if not _strong_player_prop_can_add(rows, player_prop_counts):
                 continue
             if not _strong_combo_players_ok(rows, rolling_hr):
                 continue
@@ -14854,7 +14853,7 @@ def build_strong_tickets(
             )
             seen_keys.add(key)
             _ticket_cap_register(rows, player_ticket_counts)
-            _strong_player_prop_register(rows, prop_counts_n)
+            _strong_player_prop_register(rows, player_prop_counts)
 
     # Prefer longer slips in the final board ranking, then p_win.
     tickets.sort(

@@ -36,6 +36,15 @@ def _prop_token(leg: dict[str, Any]) -> str:
     return str(leg.get("prop_type", leg.get("prop", ""))).strip().lower()
 
 
+def _player_prop_token(leg: dict[str, Any]) -> str:
+    """Player+prop only (no line/direction) — e.g. ionescu::rebounds."""
+    player = _player_token(leg)
+    prop = _prop_token(leg)
+    if not player or not prop:
+        return ""
+    return f"{player}::{prop}"
+
+
 def _line_token(leg: dict[str, Any]) -> str:
     """Stable line key so 2.5, 2.50, and float 2.5 match for exposure counting."""
     for k in ("line", "played_line", "std_line", "standard_line"):
@@ -120,13 +129,15 @@ def apply_diversity_filter(candidate_tickets: list[dict[str, Any]], config: dict
 
     max_leg_exposure = max(1, _as_int(cfg.get("max_leg_exposure"), 2))
     max_player_exposure = max(1, _as_int(cfg.get("max_player_exposure"), 3))
+    # Default 1: same player+prop (e.g. Ionescu rebounds) on at most one ticket.
+    max_player_prop_exposure = max(1, _as_int(cfg.get("max_player_prop_exposure"), 1))
     void_risk_min_sample = max(0, _as_int(cfg.get("void_risk_min_sample"), 10))
     max_jaccard_overlap = max(0.0, min(1.0, _as_float(cfg.get("max_jaccard_overlap"), 0.5)))
     exposure_w = _as_float(cfg.get("exposure_penalty_weight"), 0.1)
     overlap_w = _as_float(cfg.get("overlap_penalty_weight"), 0.2)
     void_w = _as_float(cfg.get("void_penalty_weight"), 0.5)
 
-    prepared: list[tuple[dict[str, Any], float, set[str], set[str]]] = []
+    prepared: list[tuple[dict[str, Any], float, set[str], set[str], set[str]]] = []
     reasons = Counter()
     n_in = len(candidate_tickets or [])
 
@@ -154,16 +165,21 @@ def apply_diversity_filter(candidate_tickets: list[dict[str, Any]], config: dict
         # Initial adjusted score (for sorting only).
         leg_counts = Counter(_leg_token(leg) for leg in clean_rows)
         player_counts = Counter(_player_token(leg) for leg in clean_rows if _player_token(leg))
+        player_prop_counts = Counter(
+            _player_prop_token(leg) for leg in clean_rows if _player_prop_token(leg)
+        )
         dup_legs = sum(max(0, c - 1) for c in leg_counts.values())
         dup_players = sum(max(0, c - 1) for c in player_counts.values())
-        exposure_penalty = exposure_w * float(dup_legs + dup_players)
+        dup_player_props = sum(max(0, c - 1) for c in player_prop_counts.values())
+        exposure_penalty = exposure_w * float(dup_legs + dup_players + dup_player_props)
         overlap_penalty = overlap_w * 0.0
         void_penalty = void_w * float(void_count)
         adjusted = _ticket_base_ev(t) - exposure_penalty - overlap_penalty - void_penalty
 
         leg_set = set(leg_counts.keys())
         player_set = set(player_counts.keys())
-        prepared.append((t, adjusted, leg_set, player_set))
+        player_prop_set = set(player_prop_counts.keys())
+        prepared.append((t, adjusted, leg_set, player_set, player_prop_set))
 
     prepared.sort(key=lambda x: x[1], reverse=True)
 
@@ -171,8 +187,9 @@ def apply_diversity_filter(candidate_tickets: list[dict[str, Any]], config: dict
     accepted_leg_sets: list[set[str]] = []
     leg_exposure = Counter()
     player_exposure = Counter()
+    player_prop_exposure = Counter()
 
-    for ticket, _score, leg_set, player_set in prepared:
+    for ticket, _score, leg_set, player_set, player_prop_set in prepared:
         if any(leg_exposure[k] >= max_leg_exposure for k in leg_set):
             reasons["exposure_cap"] += 1
             reasons["exposure_leg_cap"] += 1
@@ -180,6 +197,10 @@ def apply_diversity_filter(candidate_tickets: list[dict[str, Any]], config: dict
         if any(player_exposure[p] >= max_player_exposure for p in player_set):
             reasons["exposure_cap"] += 1
             reasons["exposure_player_cap"] += 1
+            continue
+        if any(player_prop_exposure[pp] >= max_player_prop_exposure for pp in player_prop_set):
+            reasons["exposure_cap"] += 1
+            reasons["exposure_player_prop_cap"] += 1
             continue
 
         overlap_hit = False
@@ -201,6 +222,8 @@ def apply_diversity_filter(candidate_tickets: list[dict[str, Any]], config: dict
             leg_exposure[k] += 1
         for p in player_set:
             player_exposure[p] += 1
+        for pp in player_prop_set:
+            player_prop_exposure[pp] += 1
 
     _log.info(
         "[diversity] candidates=%d accepted=%d dropped=%d",
@@ -209,9 +232,12 @@ def apply_diversity_filter(candidate_tickets: list[dict[str, Any]], config: dict
         max(0, n_in - len(accepted)),
     )
     _log.info(
-        "[diversity] dropped: void_filter=%d exposure_cap=%d overlap=%d",
+        "[diversity] dropped: void_filter=%d exposure_cap=%d (leg=%d player=%d player_prop=%d) overlap=%d",
         int(reasons.get("void_filter", 0)),
         int(reasons.get("exposure_cap", 0)),
+        int(reasons.get("exposure_leg_cap", 0)),
+        int(reasons.get("exposure_player_cap", 0)),
+        int(reasons.get("exposure_player_prop_cap", 0)),
         int(reasons.get("overlap", 0)),
     )
     return accepted

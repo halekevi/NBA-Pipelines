@@ -15,6 +15,7 @@
 param()
 
 $ErrorActionPreference = "Continue"
+try { $Host.UI.RawUI.WindowTitle = "PropOracle - Tennis Early 3AM" } catch { }
 $Root = Split-Path $PSScriptRoot -Parent
 $Pipeline = Join-Path $Root "run_pipeline.ps1"
 $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"

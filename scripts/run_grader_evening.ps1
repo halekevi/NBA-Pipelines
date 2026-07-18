@@ -8,6 +8,7 @@ param()
 $ErrorActionPreference = "Continue"
 $Root = Split-Path $PSScriptRoot -Parent
 $Grader = Join-Path $Root "scripts\run_grader.ps1"
+try { $Host.UI.RawUI.WindowTitle = "PropOracle - Evening Grader" } catch { }
 
 if (-not (Test-Path $Grader)) {
     Write-Error "Missing grader script: $Grader"
@@ -24,7 +25,8 @@ if ($LASTEXITCODE -ne 0) {
 
 $gradeDate = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
 Write-Host "[EVENING GRADER] Running run_grader.ps1 -Date $gradeDate" -ForegroundColor Cyan
-& pwsh -NoProfile -File $Grader -Date $gradeDate
+# Stay in this console — do not spawn a second pwsh window.
+& $Grader -Date $gradeDate
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[EVENING GRADER] run_grader failed (exit $LASTEXITCODE)" -ForegroundColor Red
     exit $LASTEXITCODE

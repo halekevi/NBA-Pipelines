@@ -9,8 +9,9 @@
 #   - 11:00 AM refresh + add/remove diff log
 #   - 1:00 PM  refresh + add/remove diff log
 #
-# Each task opens a VISIBLE PowerShell console (cmd start /wait) so you can
-# watch progress. Requires "Run only when user is logged on".
+# Each task opens ONE visible PowerShell console (direct pwsh.exe action).
+# Do NOT wrap with cmd.exe "start /wait" — that leaves an empty cmd.exe window
+# plus a second titled window. Requires "Run only when user is logged on".
 #
 # Run elevated from the repo you want tasks to use (e.g. H:\...\PropORACLE\scripts).
 # Re-running replaces tasks so paths stay in sync after moving the clone off OneDrive.
@@ -31,9 +32,8 @@ if (-not $PowerShellExe) {
     exit 1
 }
 Write-Host "Registering tasks with: $PowerShellExe" -ForegroundColor Cyan
-Write-Host "Windows: visible console via cmd.exe start /wait" -ForegroundColor Cyan
+Write-Host "Windows: one visible console (pwsh.exe directly; no cmd start wrapper)" -ForegroundColor Cyan
 
-$CmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
 $Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_daily_5am.ps1"
 $ScriptEvening = Join-Path $PipelineRoot "scripts\run_grader_evening.ps1"
@@ -71,16 +71,15 @@ function Register-PropTask {
         [string]$ExtraArgs = ""
     )
 
-    # Visible console: cmd "start /wait" opens a titled PowerShell window on the desktop.
-    # Do NOT use -WindowStyle Hidden or redirect stdout (that hides the UI).
+    # One console only: Task Scheduler runs pwsh.exe with Interactive logon.
+    # (cmd.exe + "start /wait" used to leave an empty cmd window + a second titled window.)
     $extra = $ExtraArgs.Trim()
     $psArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`""
     if ($extra) { $psArgs = "$psArgs $extra" }
-    $cmdArg = "/c start `"$TaskName`" /wait `"$PowerShellExe`" $psArgs"
 
     $action = New-ScheduledTaskAction `
-        -Execute $CmdExe `
-        -Argument $cmdArg `
+        -Execute $PowerShellExe `
+        -Argument $psArgs `
         -WorkingDirectory $PipelineRoot
 
     $trigger = New-ScheduledTaskTrigger -Daily -At $At

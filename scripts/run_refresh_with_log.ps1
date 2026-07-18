@@ -13,6 +13,7 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
+try { $Host.UI.RawUI.WindowTitle = "PropOracle - Refresh $RunLabel" } catch { }
 $Root = Split-Path $PSScriptRoot -Parent
 $LateFetch = Join-Path $Root "scripts\run_nba_late_fetch.ps1"
 $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"

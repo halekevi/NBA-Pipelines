@@ -11,6 +11,7 @@
 param()
 
 $ErrorActionPreference = "Continue"
+try { $Host.UI.RawUI.WindowTitle = "PropOracle - Daily 5AM" } catch { }
 $Root = Split-Path $PSScriptRoot -Parent
 $Daily = Join-Path $Root "scripts\run_daily.ps1"
 $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"

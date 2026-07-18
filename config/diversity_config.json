@@ -7,5 +7,6 @@
   "exposure_penalty_weight": 0.25,
   "overlap_penalty_weight": 0.35,
   "void_penalty_weight": 0.5,
-  "enabled": true
+  "enabled": true,
+  "_comment_player_prop": "max_player_prop_exposure applies per section/group (STRONG 6-Leg, MLB Mixed, …), not across the whole slate"
 }

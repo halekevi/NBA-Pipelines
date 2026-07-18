@@ -2545,6 +2545,7 @@ def _load_diversity_config(path: str = DIVERSITY_CONFIG_PATH) -> dict[str, Any]:
     defaults: dict[str, Any] = {
         "max_leg_exposure": 4,
         "max_player_exposure": 8,
+        "max_player_prop_exposure": 1,
         "void_risk_min_sample": 10,
         "max_jaccard_overlap": 0.8,
         "exposure_penalty_weight": 0.1,
@@ -2572,32 +2573,38 @@ def _apply_diversity_filter_to_ticket_groups(
     all_ticket_groups: list[tuple[str, list[dict[str, Any]], Any]],
     config: dict[str, Any],
 ) -> list[tuple[str, list[dict[str, Any]], Any]]:
-    flat: list[dict[str, Any]] = []
-    for _gname, tickets, _bg in all_ticket_groups:
-        for t in (tickets or []):
-            if isinstance(t, dict):
-                flat.append(t)
+    """Apply diversity caps per section (group_name), not across the whole slate.
+
+    So e.g. Ionescu rebounds may appear once in STRONG 6-Leg and again in MLB Mixed,
+    but not on two slips inside the same section.
+    """
     n_before_groups = len(all_ticket_groups)
-    n_before_slips = len(flat)
+    n_before_slips = sum(len(tickets or []) for _g, tickets, _bg in all_ticket_groups)
     if n_before_slips == 0:
         _log_slate.info("[diversity] no candidate slips to filter")
         return all_ticket_groups
 
-    kept = apply_diversity_filter(flat, config)
-    kept_ids = {id(t) for t in kept}
-
     out: list[tuple[str, list[dict[str, Any]], Any]] = []
     dropped_groups = 0
     for group_name, tickets, bg in all_ticket_groups:
-        filtered = [t for t in (tickets or []) if id(t) in kept_ids]
-        if filtered:
-            out.append((group_name, filtered, bg))
+        flat = [t for t in (tickets or []) if isinstance(t, dict)]
+        if not flat:
+            dropped_groups += 1
+            continue
+        kept = apply_diversity_filter(flat, config)
+        if kept:
+            out.append((group_name, kept, bg))
         else:
             dropped_groups += 1
+            _log_slate.info(
+                "[diversity] section %r: %d -> 0 slips",
+                group_name,
+                len(flat),
+            )
 
     n_after_slips = sum(len(g[1]) for g in out)
     _log_slate.info(
-        "[diversity] groups %d -> %d (dropped %d), slips %d -> %d",
+        "[diversity] per-section groups %d -> %d (dropped %d), slips %d -> %d",
         n_before_groups,
         len(out),
         dropped_groups,
@@ -14316,8 +14323,8 @@ STRONG_COSTACK_WEAK_THRESHOLD = 0.35
 STRONG_MAX_PLAYER_APPEARANCES_PER_SLATE = max(
     1, int(os.getenv("PROPORACLE_STRONG_MAX_PLAYER_APPS", "2"))
 )
-# Max times the same player+prop may appear among ALL STRONG tickets (any length).
-# Default 1 so e.g. Ionescu rebounds lands on at most one STRONG slip.
+# Max times the same player+prop may appear among STRONG tickets of one length
+# (one section, e.g. STRONG 6-Leg). Default 1 — Ionescu rebounds once per section.
 STRONG_MAX_TICKETS_PER_PLAYER_PROP = max(
     1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "1"))
 )
@@ -14736,8 +14743,8 @@ def build_strong_tickets(
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
-    # Global across all leg lengths — same player+prop on at most N STRONG slips total.
-    player_prop_counts: Counter[str] = Counter()
+    # Counts are per leg-count section (STRONG 6-Leg vs 5-Leg, etc.).
+    player_prop_counts_by_n: dict[int, Counter[str]] = defaultdict(Counter)
     # Exhaust mode: scan the full unique-player combo space (no early scan abort).
     # Non-exhaust: keep a bounded scan for latency.
     # Longer first so 2-leg filler cannot starve 3–6 when a tiny soft cap is used.
@@ -14768,6 +14775,7 @@ def build_strong_tickets(
                 n_budget = min(cap, len(tickets) + 20)
             else:
                 n_budget = min(cap, len(tickets) + 40)
+        prop_counts_n = player_prop_counts_by_n[int(n_legs)]
         scanned = 0
         for combo in itertools.combinations(pool_rows, n_legs):
             scanned += 1
@@ -14794,7 +14802,7 @@ def build_strong_tickets(
                 continue
             if not _ticket_cap_can_add(rows, player_ticket_counts):
                 continue
-            if not _strong_player_prop_can_add(rows, player_prop_counts):
+            if not _strong_player_prop_can_add(rows, prop_counts_n):
                 continue
             if not _strong_combo_players_ok(rows, rolling_hr):
                 continue
@@ -14853,7 +14861,7 @@ def build_strong_tickets(
             )
             seen_keys.add(key)
             _ticket_cap_register(rows, player_ticket_counts)
-            _strong_player_prop_register(rows, player_prop_counts)
+            _strong_player_prop_register(rows, prop_counts_n)
 
     # Prefer longer slips in the final board ranking, then p_win.
     tickets.sort(

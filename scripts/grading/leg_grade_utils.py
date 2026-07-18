@@ -226,8 +226,11 @@ def leg_grade_for_ticket_eval(
         return "HIT"
     if g in ("MISS", "LOSS", "L", "0", "FALSE", "NO"):
         return "MISS"
-    if g in ("VOID", "PUSH", "N/A", "NA"):
+    if g in ("VOID", "PUSH", "N/A", "NA", "POSTPONED"):
         vn = str(void_note or "").strip().upper()
+        # Schedule postponed/canceled → settled void for ticket payout (not pending).
+        if g == "POSTPONED" or "POSTPON" in vn or vn.startswith("CANCEL"):
+            return "VOID"
         if actual is None or line is None:
             if not vn or vn in (
                 "NO_ACTUAL",

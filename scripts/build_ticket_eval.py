@@ -494,6 +494,7 @@ def _cell_looks_like_grade_outcome(s: str) -> bool:
         "L",
         "VOID",
         "PUSH",
+        "POSTPONED",
         "PENDING",
         "N/A",
         "NA",

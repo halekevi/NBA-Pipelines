@@ -16,8 +16,8 @@ Requires: pandas, openpyxl, requests (already used elsewhere in the repo).
 
 Postponed / canceled games: there is no game log row for that calendar date, so actuals stay
 empty. After grading, this script queries the MLB Stats API schedule and sets
-``void_reason_grade`` to ``POSTPONED`` for VOID + NO_ACTUAL legs whose ``team`` played in a
-postponed or canceled game that day (so Excel and ticket eval show why there is no stat).
+``result=POSTPONED`` (plus a POSTPONED ``void_reason_grade``) for VOID + NO_ACTUAL legs whose
+``team`` played in a postponed or canceled game that day — kept separate from actionable voids.
 
 **L5 / Hit% / stat_g1… columns on the step8 slate** come from the MLB pipeline’s cached game logs
 (``step4_attach_player_stats_mlb``), not from this grading fetch. This script only pulls the
@@ -148,7 +148,7 @@ def mlb_postponed_team_abbrs_for_date(iso_date: str) -> Set[str]:
 
 
 def _apply_mlb_postponed_void_labels(graded: pd.DataFrame, iso_date: str) -> None:
-    """Mark VOID+NO_ACTUAL rows when the team's game that day was PPD/canceled (schedule API)."""
+    """Promote VOID+NO_ACTUAL rows to result=POSTPONED when the team's game was PPD/canceled."""
     team_labels = mlb_postponed_team_labels_for_date(iso_date)
     if not team_labels:
         return
@@ -157,21 +157,26 @@ def _apply_mlb_postponed_void_labels(graded: pd.DataFrame, iso_date: str) -> Non
         return
     patched = 0
     for idx in graded.index:
-        if str(graded.at[idx, "result"]).strip().upper() != "VOID":
+        res_u = str(graded.at[idx, "result"]).strip().upper()
+        if res_u not in ("VOID", "POSTPONED"):
             continue
-        if str(graded.at[idx, "void_reason_grade"] or "").strip().upper() != "NO_ACTUAL":
+        vr_u = str(graded.at[idx, "void_reason_grade"] or "").strip().upper()
+        if vr_u not in ("NO_ACTUAL",) and "POSTPON" not in vr_u and "CANCEL" not in vr_u:
             continue
         act = graded.at[idx, "actual"]
         if act is not None and not (isinstance(act, float) and np.isnan(act)):
             continue
         t = str(graded.at[idx, "team"] or "").strip().upper()
         if t and t in team_labels:
+            graded.at[idx, "result"] = "POSTPONED"
             graded.at[idx, "void_reason_grade"] = team_labels[t]
+            if "void_reason" in graded.columns:
+                graded.at[idx, "void_reason"] = team_labels[t]
             patched += 1
     if patched:
         sample = next(iter(team_labels.values()), "POSTPONED")
         print(
-            f"  [MLB] Set postponed void_reason_grade on {patched} leg(s) "
+            f"  [MLB] Set result=POSTPONED on {patched} leg(s) "
             f"({iso_date}; teams: {', '.join(sorted(team_labels))}; e.g. {sample!r})"
         )
 

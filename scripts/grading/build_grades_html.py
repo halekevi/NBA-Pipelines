@@ -487,12 +487,14 @@ def _derive_soccer_pick_type(
 
 
 def _norm_result_display(row: dict) -> str:
-    r = _cell_str(row.get("Result") or row.get("Grade")).upper()
+    r = _cell_str(
+        row.get("Result") or row.get("result") or row.get("Grade") or row.get("grade")
+    ).upper()
     if r in ("HIT", "WIN", "1", "TRUE", "YES", "W"):
         return "HIT"
     if r in ("MISS", "LOSS", "0", "FALSE", "NO", "L"):
         return "MISS"
-    if r in ("VOID", "PUSH", "N/A"):
+    if r in ("VOID", "PUSH", "N/A", "POSTPONED"):
         return r
     if r:
         return r
@@ -629,6 +631,7 @@ def prop_row_for_api(
     actual_source_conflict = _pick("actual_source_conflict", "Actual Source Conflict", "actual source conflict")
     void_reason = _pick(
         "void_reason",
+        "void_reason_grade",
         "Void Reason",
         "void reason",
         "reason",
@@ -649,7 +652,7 @@ def prop_row_for_api(
         elif not vr_up:
             void_reason = "NO_DATA"
     # WNBA: postponed/canceled games show up as NO_ACTUAL — relabel from ESPN schedule.
-    if result == "VOID" and sport_up == "WNBA":
+    if result in ("VOID", "POSTPONED") and sport_up == "WNBA":
         try:
             import sys
 
@@ -674,6 +677,10 @@ def prop_row_for_api(
             )
         except Exception:
             pass
+    # Keep postponed/canceled schedule outcomes out of the VOID bucket.
+    vr_final = str(void_reason or "").strip().upper()
+    if result == "VOID" and ("POSTPON" in vr_final or vr_final.startswith("CANCEL")):
+        result = "POSTPONED"
     # Normalize pick_type labels so downstream analytics don't split by casing/spelling.
     pt_raw = str(pick_type or "").strip().lower()
     if pt_raw in ("goblin",):

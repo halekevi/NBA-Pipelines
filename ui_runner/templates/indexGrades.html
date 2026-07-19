@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="static/global-scrollbar.css?v=20260517platform"/>
 <link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260430schemapage"/>
+<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260719gradesm1"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260714pe"/>
 <style>
 :root{
@@ -246,9 +246,9 @@ body::after{
   box-sizing:border-box;
 }
 [data-theme="light"] .grades-hub-shell{
-  background:rgba(205,218,236,.92);
-  border-color:rgba(70,100,130,.18);
-  box-shadow:0 4px 20px rgba(15,45,80,.10);
+  background:linear-gradient(180deg,#ffffff 0%,#f5f9ff 100%);
+  border-color:rgba(140,180,215,.28);
+  box-shadow:0 6px 26px rgba(30,80,130,.08),inset 0 1px 0 rgba(255,255,255,.95);
 }
 .grades-hub-shell .date-bar,
 .grades-hub-shell .tabs-bar,
@@ -800,22 +800,52 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
     -webkit-backdrop-filter:none !important;
     background:rgba(6,8,18,0.94) !important;
   }
+  /* Date chrome: freeze label + prev/next; only pills scroll sideways. */
+  .date-bar{
+    overflow-x:hidden !important;
+    overflow-y:visible !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:6px !important;
+    min-width:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+  .date-bar-label{display:none !important;}
+  .date-bar-right{display:none !important;}
   .date-pills .dpill{
-    flex:0 0 auto;
-    max-width:none;
+    flex:0 0 auto !important;
+    max-width:none !important;
+    white-space:nowrap !important;
   }
   .date-pills{
+    flex:1 1 auto !important;
     flex-wrap:nowrap !important;
     overflow-x:auto !important;
+    overflow-y:hidden !important;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior-x:contain;
     scroll-snap-type:x proximity;
     gap:8px;
-    min-height:34px;
+    min-height:36px;
+    min-width:0 !important;
     align-items:center;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
   }
+  .date-pills::-webkit-scrollbar{display:none !important;}
   .date-pills .dpill.active{
     scroll-snap-align:center;
+  }
+  /* Tabs: never a sideways strip on phones — 2×2 grid owns layout ≤768. */
+  .tabs-bar{
+    overflow-x:visible !important;
+    overflow-y:visible !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    width:100% !important;
+    box-sizing:border-box !important;
   }
   .empty-state{
     z-index:8;
@@ -847,8 +877,12 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 .tab-label-full{display:inline;}
 .tab-label-short{display:none;}
 @media (max-width:1100px){
-  .tab-label-full{display:none;}
-  .tab-label-short{display:inline;}
+  .tab-label-full{display:none!important;}
+  .tab-label-short{display:inline!important;}
+}
+@media (max-width:900px),(pointer:coarse){
+  .tab-label-full{display:none!important;}
+  .tab-label-short{display:inline!important;}
 }
 .date-nav-btn:focus-visible,.date-go-btn:focus-visible,.dpill:focus-visible{
   outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;
@@ -927,8 +961,16 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 }
 @media(max-width:900px){
   .live-pill{display:none;}
-  .date-bar{margin-left:10px;margin-right:10px;overflow-x:auto;}
-  .tabs-bar{margin-left:10px;margin-right:10px;}
+  .date-bar{
+    margin-left:max(8px, env(safe-area-inset-left, 0px));
+    margin-right:max(8px, env(safe-area-inset-right, 0px));
+    overflow-x:hidden !important;
+  }
+  .tabs-bar{
+    margin-left:max(8px, env(safe-area-inset-left, 0px));
+    margin-right:max(8px, env(safe-area-inset-right, 0px));
+    overflow-x:visible !important;
+  }
 }
 /* Tablets / wider narrow viewports: one row × 4 (not used below 769px — 768 block is 2×2) */
 @media(max-width:900px) and (min-width:769px){
@@ -1535,8 +1577,9 @@ select option,
   background:rgba(255,243,200,0.95)!important;
 }
 [data-theme="light"] body.page-grades .iframe-shell-toolbar{
-  background:rgba(218,232,248,0.97)!important;
-  border-bottom-color:rgba(15,45,80,0.14)!important;
+  background:transparent!important;
+  border-bottom-color:transparent!important;
+  box-shadow:none!important;
 }
 [data-theme="light"] body.page-grades .grade-frame{
   background:#0a0a14;
@@ -1623,7 +1666,7 @@ select option,
 </style>
 <link rel="stylesheet" href="static/site-nav-unified.css?v=20260715navalign1"/>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260715perf1"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
 </head>
 <body class="page-grades">
@@ -2608,12 +2651,31 @@ function getOrCreateToolbarHost(doc) {
 }
 
 function ensureGradesToolbarStylesInFrame(doc) {
-  if (!doc || doc.getElementById('grades-iframe-toolbar-link')) return;
-  const link = doc.createElement('link');
-  link.id = 'grades-iframe-toolbar-link';
-  link.rel = 'stylesheet';
-    link.href='static/grades-iframe-toolbar.css?v=20260717goldchrome';
-  doc.head.appendChild(link);
+  if (!doc) return;
+  if (!doc.getElementById('grades-iframe-toolbar-link')) {
+    const link = doc.createElement('link');
+    link.id = 'grades-iframe-toolbar-link';
+    link.rel = 'stylesheet';
+    link.href = 'static/grades-iframe-toolbar.css?v=20260719gradesm2';
+    doc.head.appendChild(link);
+  }
+  // Inline critical labels/chrome so missing/cached CSS cannot show double tab text.
+  if (!doc.getElementById('grades-iframe-toolbar-critical')) {
+    const style = doc.createElement('style');
+    style.id = 'grades-iframe-toolbar-critical';
+    style.textContent = [
+      '.tab-label-full{display:inline}',
+      '.tab-label-short{display:none}',
+      '@media (max-width:1100px){.tab-label-full{display:none!important}.tab-label-short{display:inline!important}}',
+      '@media (max-width:900px),(pointer:coarse){',
+      '.tab-label-full{display:none!important}.tab-label-short{display:inline!important}',
+      '.date-bar-right,.date-bar-label{display:none!important}',
+      '.date-bar{overflow-x:hidden!important;flex-wrap:nowrap!important}',
+      '.date-pills{min-width:0!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}',
+      '}',
+    ].join('');
+    doc.head.appendChild(style);
+  }
 }
 
 function syncToolbarParentSlot() {
@@ -2664,6 +2726,16 @@ function bridgeGradesToolbarActionsToParent(frame) {
 
 function embedGradesToolbarInSlate(frame) {
   if (activeTab !== 'slate') return;
+  // Mobile: keep chrome in the parent hub so labels/Jump-To/date-pill CSS cannot drift
+  // when the toolbar is adopted into the slate iframe (also avoids double-label bugs).
+  if (gradesFrameMobileLayout()) {
+    restoreGradesToolbarToParent();
+    syncToolbarParentSlot();
+    try {
+      window.setupGradesBarsScrollHide();
+    } catch (_em) {}
+    return;
+  }
   const doc = frame?.contentDocument;
   if (!doc || !doc.body) return;
   bridgeGradesToolbarActionsToParent(frame);
@@ -2949,14 +3021,28 @@ function ensureFrameCollapseCss(doc) {
     }
     /* ≤960px inside slate doc: typography + chips (matches build_grades_html standalone slate). */
     @media (max-width:960px){
-      .table-wrap{
-        overflow-x:auto;
+      .table-wrap,
+      .matrix-table-wrap,
+      .grades-table-wrapper,
+      .pick-tier-split .table-wrap,
+      .two-col .table-wrap,
+      .three-col .table-wrap{
+        display:block !important;
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+        overflow-x:auto !important;
+        overflow-y:visible !important;
         -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+        scrollbar-width:thin;
       }
-      .table-wrap table{
-        min-width:0;
-        width:100%;
-        max-width:100%;
+      .table-wrap table,
+      .matrix-table-wrap table,
+      .grades-table-wrapper table{
+        width:max-content !important;
+        min-width:100% !important;
+        max-width:none !important;
       }
       .two-col.pick-tier-split .table-wrap table,
       .pick-tier-split .table-wrap table{min-width:0;}
@@ -3003,6 +3089,69 @@ function ensureFrameCollapseCss(doc) {
         word-break:normal;
         line-height:1.2;
       }
+      /* Top/Cold players — cards on phone (applies to already-built slate_eval HTML). */
+      .two-col > div > .table-wrap,
+      .player-record-table{
+        overflow:visible !important;
+      }
+      .two-col > div > .table-wrap table thead,
+      .player-record-table table thead{
+        display:none !important;
+      }
+      .two-col > div > .table-wrap table,
+      .two-col > div > .table-wrap table tbody,
+      .player-record-table table,
+      .player-record-table table tbody{
+        display:block !important;
+        width:100% !important;
+      }
+      .two-col > div > .table-wrap table tbody tr,
+      .player-record-table table tbody tr{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) auto auto auto minmax(64px,28%);
+        grid-template-areas:
+          "name name name name rate"
+          "team props dec hits misses";
+        gap:4px 8px;
+        align-items:center;
+        width:100% !important;
+        box-sizing:border-box;
+        margin:0 0 8px;
+        padding:10px 12px;
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:10px;
+        background:rgba(255,255,255,.03);
+        border-left:3px solid rgba(212,160,23,.35);
+      }
+      .two-col > div > .table-wrap table td,
+      .player-record-table table td{
+        border:none !important;
+        padding:0 !important;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        font-size:12px;
+      }
+      .two-col > div > .table-wrap table td:nth-child(1),
+      .player-record-table table td:nth-child(1){
+        grid-area:name;white-space:normal;font-size:14px;line-height:1.25;
+      }
+      .two-col > div > .table-wrap table td:nth-child(2),
+      .player-record-table table td:nth-child(2){grid-area:team;opacity:.72;font-size:11px}
+      .two-col > div > .table-wrap table td:nth-child(3),
+      .player-record-table table td:nth-child(3){grid-area:props;opacity:.72;font-size:11px}
+      .two-col > div > .table-wrap table td:nth-child(4),
+      .player-record-table table td:nth-child(4){grid-area:dec;font-variant-numeric:tabular-nums}
+      .two-col > div > .table-wrap table td:nth-child(5),
+      .player-record-table table td:nth-child(5){grid-area:hits;font-variant-numeric:tabular-nums}
+      .two-col > div > .table-wrap table td:nth-child(6),
+      .player-record-table table td:nth-child(6){grid-area:misses;font-variant-numeric:tabular-nums}
+      .two-col > div > .table-wrap table td:nth-child(7),
+      .player-record-table table td:nth-child(7){grid-area:rate;min-width:0}
+      .two-col > div > .table-wrap .rate-num,
+      .player-record-table .rate-num{display:none}
+      .two-col > div > .table-wrap .rate-bar-bg,
+      .player-record-table .rate-bar-bg{min-width:56px;height:8px}
     }
     /* Hub iframe is sized to its content height by syncGradeFrameHeight / syncTicketFrameHeight,
        so the OUTER (parent) page scrolls. The iframe document must NOT claim its own scroll
@@ -3440,7 +3589,10 @@ function _slateCleanSportMeta(raw) {
   return String(raw || '')
     .replace(/\s+/g, ' ')
     .replace(/TOTAL\s+PROPS/gi, 'props')
+    .replace(/props(\d)/gi, 'props · $1')
+    .replace(/props\s+(\d)/gi, 'props · $1')
     .replace(/\binsights\b/gi, '')
+    .replace(/\s*·\s*·\s*/g, ' · ')
     .trim();
 }
 
@@ -3580,10 +3732,18 @@ function injectSlateSportJumpNav(doc) {
       det.querySelector(':scope > summary .grades-sport-meta');
     const rateEl = det.querySelector(':scope > summary .sport-meta-rate');
     const title = _slateCleanSportTitle(titleEl?.textContent || `Sport ${idx + 1}`);
-    let meta = _slateCleanSportMeta(metaEl?.textContent || '');
+    let meta = '';
+    if (metaEl) {
+      // Drop nested rate chip so we don't print "31.9% · 31.9%".
+      const clone = metaEl.cloneNode(true);
+      clone.querySelectorAll('.sport-meta-rate').forEach((n) => n.remove());
+      meta = _slateCleanSportMeta(clone.textContent || '');
+    }
     if (rateEl && rateEl.textContent) {
       const rt = rateEl.textContent.trim();
-      meta = meta ? `${meta} · ${rt}` : rt;
+      if (rt && !meta.includes(rt)) {
+        meta = meta ? `${meta} · ${rt}` : rt;
+      }
     }
     const id = _slateSportAnchorId(title, idx);
     det.id = id;
@@ -5347,6 +5507,12 @@ function estimateDatePillWidth(dateStr){
 function computeVisibleReportDateCount(){
   const container = gradesEl('date-pills');
   if (!container) return MIN_REPORT_DATE_PILLS;
+  // Mobile: keep a scrollable strip of recent dates (fit-to-width truncates awkwardly).
+  try {
+    if (gradesFrameMobileLayout()) {
+      return Math.max(MIN_REPORT_DATE_PILLS, Math.min(availableDates.length, 12));
+    }
+  } catch (_mob) {}
   const rowWidth = container.clientWidth || 0;
   if (!rowWidth) return MIN_REPORT_DATE_PILLS;
   const gapPx = 10; // .date-pills gap
@@ -5784,9 +5950,26 @@ function syncGradeFrameHeight(frame) {
   try {
     const doc = frame.contentDocument;
     if (!doc || !doc.documentElement) return;
-    const h = measureGradesIframeDocHeight(doc, frame);
-    frame.style.height = Math.ceil(h) + 'px';
+    const h = Math.max(280, measureGradesIframeDocHeight(doc, frame));
+    const hPx = Math.ceil(h) + 'px';
+    frame.style.setProperty('height', hPx, 'important');
     frame.style.removeProperty('min-height');
+    frame.style.setProperty('position', 'relative', 'important');
+    // Stage must match iframe height — absolute/100% stage rules otherwise clip or leave voids.
+    const stage =
+      document.querySelector('.iframe-shell-stage[data-grades-tab="slate"]') ||
+      document.querySelector('.iframe-shell-stage');
+    if (stage) {
+      stage.style.setProperty('height', hPx, 'important');
+      stage.style.minHeight = '0';
+      stage.style.maxHeight = 'none';
+      stage.style.overflow = 'visible';
+    }
+    const shell = document.getElementById('grades-iframe-shell');
+    if (shell) {
+      shell.style.removeProperty('min-height');
+      shell.style.removeProperty('height');
+    }
     const gradesPage = document.querySelector('.grades-page');
     if (gradesPage) gradesPage.style.removeProperty('min-height');
   } catch (_e) {}

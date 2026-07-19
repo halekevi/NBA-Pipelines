@@ -9,9 +9,9 @@
 <meta property="og:title" content="PropOracle — Grades"/>
 <title>PropOracle — Grades</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="static/global-scrollbar.css?v=20260517platform"/>
+<link rel="stylesheet" href="static/global-scrollbar.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260430schemapage"/>
+<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260714pe"/>
 <style>
 :root{
@@ -246,9 +246,9 @@ body::after{
   box-sizing:border-box;
 }
 [data-theme="light"] .grades-hub-shell{
-  background:rgba(205,218,236,.92);
-  border-color:rgba(70,100,130,.18);
-  box-shadow:0 4px 20px rgba(15,45,80,.10);
+  background:linear-gradient(180deg,#ffffff 0%,#f5f9ff 100%);
+  border-color:rgba(140,180,215,.28);
+  box-shadow:0 6px 26px rgba(30,80,130,.08),inset 0 1px 0 rgba(255,255,255,.95);
 }
 .grades-hub-shell .date-bar,
 .grades-hub-shell .tabs-bar,
@@ -306,6 +306,13 @@ body::after{
 .ni-slate{background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.22);color:var(--accent);}
 .ni-tick{background:rgba(183,168,255,.08);border:1px solid rgba(183,168,255,.2);color:var(--purple);}
 .ni-grade{background:rgba(57,255,110,.08);border:1px solid rgba(57,255,110,.22);color:var(--green);}
+/* Active Grades link: match gold eval-tab chrome (not neon green icon frame). */
+.snav-links li a.active .ni-grade{
+  background:rgba(212,160,23,.12);
+  border-color:rgba(212,160,23,.4);
+  color:var(--accent-gold);
+  box-shadow:0 0 12px rgba(212,160,23,.22);
+}
 .ni-income{background:rgba(57,255,110,.08);border:1px solid rgba(57,255,110,.22);color:var(--green);}
 .ni-pay{background:rgba(255,192,107,.08);border:1px solid rgba(255,192,107,.2);color:var(--amber);}
 .snav-links li a:hover .ni-ctrl{box-shadow:0 0 10px rgba(127,199,217,.25);}
@@ -313,6 +320,7 @@ body::after{
 .snav-links li a:hover .ni-tick{box-shadow:0 0 10px rgba(183,168,255,.25);}
 .snav-links li a:hover .ni-grade,
 .snav-links li a:hover .ni-income{box-shadow:0 0 10px rgba(57,255,110,.25);}
+.snav-links li a.active:hover .ni-grade{box-shadow:0 0 14px rgba(212,160,23,.3);}
 .snav-links li a:hover .ni-pay{box-shadow:0 0 10px rgba(255,192,107,.25);}
 .ni-pay svg{transform:scaleY(-1);transform-origin:50% 50%;}
 .snav-right{display:flex;align-items:center;gap:14px;margin-left:auto;}
@@ -345,8 +353,8 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .dpill{font-size:12px;letter-spacing:.5px;padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.42);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
 .dpill:hover{color:var(--text);border-color:var(--bd2);background:rgba(255,255,255,0.07);}
 .dpill.active{color:var(--accent-gold);border-color:rgba(212,160,23,0.55);background:rgba(212,160,23,0.15);box-shadow:0 0 18px rgba(212,160,23,0.14);}
-.dpill .dpill-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:none;}
-.dpill.active .dpill-dot{display:block;box-shadow:0 0 8px var(--green);}
+.dpill .dpill-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-gold);display:none;}
+.dpill.active .dpill-dot{display:block;box-shadow:0 0 8px rgba(212,160,23,.55);}
 .date-sep{width:1px;height:24px;background:rgba(255,255,255,0.1);flex-shrink:0;}
 .date-nav-btn{flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid var(--glass-panel-border);background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);color:rgba(255,255,255,0.45);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;}
 .date-nav-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);}
@@ -445,6 +453,7 @@ nav.snav .live-pill,nav.snav .live-pill .live-pill-brand{text-transform:none !im
 .props-filter-pill[data-filter="HIT"].active{background:#00ff88;border-color:#00ff88;color:#0a0a0f;}
 .props-filter-pill[data-filter="MISS"].active{background:#ff6b6b;border-color:#ff6b6b;color:#0a0a0f;}
 .props-filter-pill[data-filter="VOID"].active{background:var(--amber);border-color:var(--amber);color:#0a0a0f;}
+.props-filter-pill[data-filter="POSTPONED"].active{background:rgba(127,199,217,0.95);border-color:#7fc7d9;color:#0a0a0f;}
 .props-filter-pill[data-filter="DECIDED"].active{background:rgba(127,199,217,0.95);border-color:#7fc7d9;color:#0a0a0f;}
 .props-eval-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
 .props-eval-view-toggle{display:inline-flex;gap:0;padding:3px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.22);}
@@ -791,22 +800,52 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
     -webkit-backdrop-filter:none !important;
     background:rgba(6,8,18,0.94) !important;
   }
+  /* Date chrome: freeze label + prev/next; only pills scroll sideways. */
+  .date-bar{
+    overflow-x:hidden !important;
+    overflow-y:visible !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:6px !important;
+    min-width:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+  .date-bar-label{display:none !important;}
+  .date-bar-right{display:none !important;}
   .date-pills .dpill{
-    flex:0 0 auto;
-    max-width:none;
+    flex:0 0 auto !important;
+    max-width:none !important;
+    white-space:nowrap !important;
   }
   .date-pills{
+    flex:1 1 auto !important;
     flex-wrap:nowrap !important;
     overflow-x:auto !important;
+    overflow-y:hidden !important;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior-x:contain;
     scroll-snap-type:x proximity;
     gap:8px;
-    min-height:34px;
+    min-height:36px;
+    min-width:0 !important;
     align-items:center;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
   }
+  .date-pills::-webkit-scrollbar{display:none !important;}
   .date-pills .dpill.active{
     scroll-snap-align:center;
+  }
+  /* Tabs: never a sideways strip on phones — 2×2 grid owns layout ≤768. */
+  .tabs-bar{
+    overflow-x:visible !important;
+    overflow-y:visible !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    width:100% !important;
+    box-sizing:border-box !important;
   }
   .empty-state{
     z-index:8;
@@ -838,8 +877,12 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 .tab-label-full{display:inline;}
 .tab-label-short{display:none;}
 @media (max-width:1100px){
-  .tab-label-full{display:none;}
-  .tab-label-short{display:inline;}
+  .tab-label-full{display:none!important;}
+  .tab-label-short{display:inline!important;}
+}
+@media (max-width:900px),(pointer:coarse){
+  .tab-label-full{display:none!important;}
+  .tab-label-short{display:inline!important;}
 }
 .date-nav-btn:focus-visible,.date-go-btn:focus-visible,.dpill:focus-visible{
   outline:2px solid rgba(240,165,0,0.55);outline-offset:2px;
@@ -918,8 +961,16 @@ html.page-grades-root body.page-grades[data-grades-active-tab="tickets"] .iframe
 }
 @media(max-width:900px){
   .live-pill{display:none;}
-  .date-bar{margin-left:10px;margin-right:10px;overflow-x:auto;}
-  .tabs-bar{margin-left:10px;margin-right:10px;}
+  .date-bar{
+    margin-left:max(8px, env(safe-area-inset-left, 0px));
+    margin-right:max(8px, env(safe-area-inset-right, 0px));
+    overflow-x:hidden !important;
+  }
+  .tabs-bar{
+    margin-left:max(8px, env(safe-area-inset-left, 0px));
+    margin-right:max(8px, env(safe-area-inset-right, 0px));
+    overflow-x:visible !important;
+  }
 }
 /* Tablets / wider narrow viewports: one row × 4 (not used below 769px — 768 block is 2×2) */
 @media(max-width:900px) and (min-width:769px){
@@ -1526,8 +1577,9 @@ select option,
   background:rgba(255,243,200,0.95)!important;
 }
 [data-theme="light"] body.page-grades .iframe-shell-toolbar{
-  background:rgba(218,232,248,0.97)!important;
-  border-bottom-color:rgba(15,45,80,0.14)!important;
+  background:transparent!important;
+  border-bottom-color:transparent!important;
+  box-shadow:none!important;
 }
 [data-theme="light"] body.page-grades .grade-frame{
   background:#0a0a14;
@@ -1612,10 +1664,10 @@ select option,
 }
 
 </style>
-<link rel="stylesheet" href="static/site-nav-unified.css?v=20260715navalign1"/>
-<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260715perf1"/>
-<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
+<link rel="stylesheet" href="static/site-nav-unified.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260719gradesm2"/>
 </head>
 <body class="page-grades">
 <!-- Ambient orbs — match Home (static, no drift animation) -->
@@ -1627,6 +1679,7 @@ select option,
 </style>
 <div class="mesh-bg" aria-hidden="true"></div>
 <div class="grain-layer" aria-hidden="true"></div>
+
 
 
 
@@ -1654,7 +1707,7 @@ select option,
       <span class="tt-icon tt-sun" style="display:none">☀️</span>
     </button>
     <div class="nav-live-cluster">
-      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; </div>
+      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; LIVE</div>
       <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
         <div class="nav-slate-date" id="slate-date">—</div>
         <div class="nav-sync-line">
@@ -1758,7 +1811,7 @@ select option,
         <div class="props-eval-head">
           <div>
             <h3 class="insights-card-title">Prop evaluation</h3>
-            <p class="insights-card-sub">Decided props load first (voids hidden). Switch filters or search to refine.</p>
+            <p class="insights-card-sub">Decided props load first. VOIDS hides postponed/canceled games (use POSTPONED to review those).</p>
           </div>
           <div class="props-eval-view-toggle" role="group" aria-label="Display density">
             <button type="button" class="props-view-btn active" id="props-view-list" data-view="list" aria-pressed="true">List</button>
@@ -1780,6 +1833,7 @@ select option,
               <button type="button" class="props-filter-pill" data-filter="HIT" aria-pressed="false">HITS</button>
               <button type="button" class="props-filter-pill" data-filter="MISS" aria-pressed="false">MISSES</button>
               <button type="button" class="props-filter-pill" data-filter="VOID" aria-pressed="false">VOIDS</button>
+              <button type="button" class="props-filter-pill" data-filter="POSTPONED" aria-pressed="false">POSTPONED</button>
               <button type="button" class="props-filter-pill" data-filter="" aria-pressed="false">ALL</button>
             </div>
           </div>
@@ -2069,12 +2123,12 @@ select option,
 //
 /* Absolute /grades/… paths: page URL is /grades (no trailing slash), so relative
    slate_eval_….html resolves to /slate_eval_….html (404) instead of /grades/…. */
-const REPORT_URL_TEMPLATE = '/grades/slate_eval_{date}.html';
+const REPORT_URL_TEMPLATE = 'slate_eval_{date}.html';
 /** Every load gets a unique URL so iframe/browsers/CDNs cannot serve a stale slate_eval after deploy. */
 function slateEvalUrl(dateStr) {
   return REPORT_URL_TEMPLATE.replace('{date}', dateStr) + '?cb=' + Date.now();
 }
-const TICKET_EVAL_URL_TEMPLATE = '/grades/ticket_eval_{date}.html';
+const TICKET_EVAL_URL_TEMPLATE = 'ticket_eval_{date}.html';
 const TICKET_EVAL_LONG_PARLAY_URL_TEMPLATE = '/grades/ticket_eval_long_parlay_{date}.html';
 /** Keep ticket iframe fresh too (prevents stale/blank cache edge-cases after deploy). */
 function ticketEvalUrl(dateStr) {
@@ -2212,58 +2266,157 @@ function ticketEvalSportRank(label) {
 
 /** Insert missing pipeline win-rate columns on older baked ticket_eval HTML. */
 function ensureTicketEvalSportStatsBar(doc) {
+  polishTicketEvalHeader(doc);
+}
+
+/** Clean cluttered ticket-eval header for Grades hub (works on already-baked HTML). */
+function polishTicketEvalHeader(doc) {
   if (!doc) return;
-  const row = doc.querySelector('.stats-bar .sum-row');
-  if (!row) return;
-  const items = Array.from(row.querySelectorAll('.sum-item'));
-  let head = null;
-  let allGen = null;
-  const bySport = {};
-  const tail = [];
-  items.forEach(function (item) {
-    const lab = (item.querySelector('.sum-lab') || {}).textContent.trim();
-    if (lab === 'TICKET HIT RATE') {
-      head = item;
-      return;
-    }
-    if (lab === 'ALL GENERATED WIN RATE') {
-      allGen = item;
-      return;
-    }
-    const m = lab.match(/^(.+?) TKT WIN RATE$/);
-    if (m) {
-      bySport[m[1].trim().toUpperCase()] = item;
-      return;
-    }
-    tail.push(item);
-  });
-  if (!head || !allGen) return;
-  const frag = doc.createDocumentFragment();
-  frag.appendChild(head);
-  TICKET_EVAL_SPORT_ORDER.forEach(function (sport) {
-    if (bySport[sport]) {
-      frag.appendChild(bySport[sport]);
-      delete bySport[sport];
-    } else {
-      const el = doc.createElement('div');
-      el.className = 'sum-item';
-      el.innerHTML =
-        '<div class="sum-val pend">—</div><div class="sum-lab">' +
-        sport +
-        ' TKT WIN RATE</div>';
-      frag.appendChild(el);
-    }
-  });
-  Object.keys(bySport)
-    .sort()
-    .forEach(function (sport) {
-      frag.appendChild(bySport[sport]);
+  if (doc.documentElement.dataset.teHeaderPolished === '1') return;
+  doc.documentElement.dataset.teHeaderPolished = '1';
+
+  const bar = doc.querySelector('.stats-bar');
+  const row = bar && bar.querySelector('.sum-row');
+  if (row) {
+    const items = Array.from(row.querySelectorAll(':scope > .sum-item'));
+    const byLab = {};
+    items.forEach(function (item) {
+      const labEl = item.querySelector('.sum-lab');
+      if (!labEl) return;
+      const raw = String(labEl.textContent || '').replace(/\s+/g, ' ').trim();
+      const base = raw.replace(/\d+\s*pending/i, '').trim();
+      byLab[base] = item;
     });
-  frag.appendChild(allGen);
-  tail.forEach(function (item) {
-    frag.appendChild(item);
-  });
-  row.replaceChildren(frag);
+
+    const hitItem = byLab['TICKET HIT RATE'] || byLab['Hit rate'];
+    const allGen = byLab['ALL GENERATED WIN RATE'];
+    if (hitItem && allGen) {
+      const hv = (hitItem.querySelector('.sum-val') || {}).textContent;
+      const av = (allGen.querySelector('.sum-val') || {}).textContent;
+      if (String(hv || '').trim() === String(av || '').trim()) {
+        allGen.style.display = 'none';
+        allGen.classList.add('sum-item-dup-hidden');
+      }
+    }
+
+    items.forEach(function (item) {
+      const labEl = item.querySelector('.sum-lab');
+      const valEl = item.querySelector('.sum-val');
+      if (!labEl || !valEl) return;
+      const lab = String(labEl.textContent || '').replace(/\s+/g, ' ').trim();
+      const val = String(valEl.textContent || '').trim();
+      const hasBadge = !!item.querySelector('.sum-lab-badge');
+      const isSport =
+        /TKT WIN RATE$/i.test(lab) ||
+        (/WIN RATE$/i.test(lab) && !/^(TICKET HIT RATE|Hit rate|ALL GENERATED WIN RATE)$/i.test(lab));
+      if (isSport && (val === '—' || val === '-') && !hasBadge) {
+        item.style.display = 'none';
+        item.classList.add('sum-item-empty-hidden');
+        return;
+      }
+      // Friendlier short labels on baked ALL-CAPS cells
+      const map = {
+        'TICKET HIT RATE': 'Hit rate',
+        'ALL GENERATED WIN RATE': 'All generated',
+        'PERFECT TICKETS': 'Perfect',
+        'PAID TIX': 'Paid',
+        'NO PAYOUT': 'No payout',
+        'VOID/PUSH': 'Void / push',
+        'UNGRADED': 'Ungraded',
+        'HITS': 'Hits',
+        'MISSES': 'Misses',
+        'TOTAL LEGS': 'Total legs',
+        'NET @ $10/TKT': 'Net @ $10',
+        'ROI (FLAT $10)': 'ROI',
+      };
+      Object.keys(map).forEach(function (k) {
+        if (lab === k || lab.indexOf(k) === 0) {
+          const badge = labEl.querySelector('.sum-lab-badge');
+          labEl.textContent = map[k];
+          if (badge) labEl.appendChild(badge);
+        }
+      });
+      if (/TKT WIN RATE$/i.test(lab)) {
+        const sport = lab.replace(/\s*TKT WIN RATE$/i, '').trim();
+        const badge = labEl.querySelector('.sum-lab-badge');
+        labEl.textContent = sport + ' win rate';
+        if (badge) labEl.appendChild(badge);
+      }
+    });
+
+    // Regroup into Results / Legs when still a single flat row (older HTML).
+    if (!bar.querySelector('.sum-row-results') && items.length > 6) {
+      const resultsLabs = /hit rate|win rate|paid|no payout|perfect|net @|roi|all generated/i;
+      const legsLabs = /^(hits|misses|void|ungraded|total legs)/i;
+      const results = [];
+      const legs = [];
+      const other = [];
+      items.forEach(function (item) {
+        if (item.classList.contains('sum-item-empty-hidden') || item.classList.contains('sum-item-dup-hidden')) {
+          return;
+        }
+        if (item.style.display === 'none') return;
+        const lab = String((item.querySelector('.sum-lab') || {}).textContent || '').trim();
+        if (legsLabs.test(lab)) legs.push(item);
+        else if (resultsLabs.test(lab)) results.push(item);
+        else other.push(item);
+      });
+      if (results.length && legs.length) {
+        const mkRow = function (cls, label, kids) {
+          const r = doc.createElement('div');
+          r.className = 'sum-row ' + cls;
+          const lab = doc.createElement('div');
+          lab.className = 'sum-row-label';
+          lab.textContent = label;
+          r.appendChild(lab);
+          kids.forEach(function (k) { r.appendChild(k); });
+          return r;
+        };
+        bar.replaceChildren(
+          mkRow('sum-row-results', 'Results', results.concat(other)),
+          mkRow('sum-row-legs', 'Legs', legs)
+        );
+      }
+    }
+  }
+
+  // Collapse the long grading help blurb under a summary toggle.
+  const wrap = doc.querySelector('.wrap.ticket-eval-main');
+  if (wrap) {
+    const meta = wrap.querySelector(':scope > p.meta-muted');
+    if (meta && !meta.closest('details.grade-eval-help')) {
+      const details = doc.createElement('details');
+      details.className = 'grade-eval-help';
+      const sum = doc.createElement('summary');
+      sum.textContent = 'How these grades work';
+      details.appendChild(sum);
+      meta.parentNode.insertBefore(details, meta);
+      details.appendChild(meta);
+      meta.style.margin = '8px 0 0';
+    }
+  }
+
+  // Inject compact header CSS once per iframe doc.
+  if (!doc.getElementById('te-header-polish-css')) {
+    const style = doc.createElement('style');
+    style.id = 'te-header-polish-css';
+    style.textContent =
+      '.stats-bar .sum-row{display:flex!important;flex-wrap:wrap!important;gap:12px 18px!important;' +
+      'align-items:flex-start!important;justify-content:flex-start!important;}' +
+      '.stats-bar .sum-row + .sum-row{margin-top:12px!important;padding-top:12px!important;' +
+      'border-top:1px solid rgba(255,255,255,.06)!important;}' +
+      '.stats-bar .sum-row-label{flex:0 0 100%!important;font-size:10px!important;letter-spacing:1.4px!important;' +
+      'text-transform:uppercase!important;color:rgba(255,255,255,.45)!important;font-weight:700!important;margin:0 0 2px!important;}' +
+      '.stats-bar .sum-item{align-items:flex-start!important;min-width:72px!important;max-width:10.5em!important;}' +
+      '.stats-bar .sum-lab{font-family:Inter,system-ui,sans-serif!important;font-size:11px!important;letter-spacing:.15px!important;' +
+      'text-transform:none!important;text-align:left!important;font-weight:600!important;line-height:1.25!important;}' +
+      '.grade-eval-summary-line2{display:flex!important;flex-wrap:wrap!important;gap:8px!important;}' +
+      '.grade-eval-help{margin:4px 0 10px!important;}' +
+      '.grade-eval-help>summary{cursor:pointer;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;list-style:none;}' +
+      '.grade-eval-help>summary::-webkit-details-marker{display:none;}' +
+      '.grade-eval-help[open]>summary{margin-bottom:6px;color:rgba(255,255,255,.75);}';
+    (doc.head || doc.documentElement).appendChild(style);
+  }
 }
 
 function scheduleTicketFrameBucketDefaults(frame) {
@@ -2498,12 +2651,31 @@ function getOrCreateToolbarHost(doc) {
 }
 
 function ensureGradesToolbarStylesInFrame(doc) {
-  if (!doc || doc.getElementById('grades-iframe-toolbar-link')) return;
-  const link = doc.createElement('link');
-  link.id = 'grades-iframe-toolbar-link';
-  link.rel = 'stylesheet';
-    link.href='static/grades-iframe-toolbar.css?v=20260619home';
-  doc.head.appendChild(link);
+  if (!doc) return;
+  if (!doc.getElementById('grades-iframe-toolbar-link')) {
+    const link = doc.createElement('link');
+    link.id = 'grades-iframe-toolbar-link';
+    link.rel = 'stylesheet';
+    link.href = 'static/grades-iframe-toolbar.css?v=20260719gradesm2';
+    doc.head.appendChild(link);
+  }
+  // Inline critical labels/chrome so missing/cached CSS cannot show double tab text.
+  if (!doc.getElementById('grades-iframe-toolbar-critical')) {
+    const style = doc.createElement('style');
+    style.id = 'grades-iframe-toolbar-critical';
+    style.textContent = [
+      '.tab-label-full{display:inline}',
+      '.tab-label-short{display:none}',
+      '@media (max-width:1100px){.tab-label-full{display:none!important}.tab-label-short{display:inline!important}}',
+      '@media (max-width:900px),(pointer:coarse){',
+      '.tab-label-full{display:none!important}.tab-label-short{display:inline!important}',
+      '.date-bar-right,.date-bar-label{display:none!important}',
+      '.date-bar{overflow-x:hidden!important;flex-wrap:nowrap!important}',
+      '.date-pills{min-width:0!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}',
+      '}',
+    ].join('');
+    doc.head.appendChild(style);
+  }
 }
 
 function syncToolbarParentSlot() {
@@ -2554,6 +2726,16 @@ function bridgeGradesToolbarActionsToParent(frame) {
 
 function embedGradesToolbarInSlate(frame) {
   if (activeTab !== 'slate') return;
+  // Mobile: keep chrome in the parent hub so labels/Jump-To/date-pill CSS cannot drift
+  // when the toolbar is adopted into the slate iframe (also avoids double-label bugs).
+  if (gradesFrameMobileLayout()) {
+    restoreGradesToolbarToParent();
+    syncToolbarParentSlot();
+    try {
+      window.setupGradesBarsScrollHide();
+    } catch (_em) {}
+    return;
+  }
   const doc = frame?.contentDocument;
   if (!doc || !doc.body) return;
   bridgeGradesToolbarActionsToParent(frame);
@@ -2839,14 +3021,28 @@ function ensureFrameCollapseCss(doc) {
     }
     /* ≤960px inside slate doc: typography + chips (matches build_grades_html standalone slate). */
     @media (max-width:960px){
-      .table-wrap{
-        overflow-x:auto;
+      .table-wrap,
+      .matrix-table-wrap,
+      .grades-table-wrapper,
+      .pick-tier-split .table-wrap,
+      .two-col .table-wrap,
+      .three-col .table-wrap{
+        display:block !important;
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
+        overflow-x:auto !important;
+        overflow-y:visible !important;
         -webkit-overflow-scrolling:touch;
+        overscroll-behavior-x:contain;
+        scrollbar-width:thin;
       }
-      .table-wrap table{
-        min-width:0;
-        width:100%;
-        max-width:100%;
+      .table-wrap table,
+      .matrix-table-wrap table,
+      .grades-table-wrapper table{
+        width:max-content !important;
+        min-width:100% !important;
+        max-width:none !important;
       }
       .two-col.pick-tier-split .table-wrap table,
       .pick-tier-split .table-wrap table{min-width:0;}
@@ -2893,6 +3089,69 @@ function ensureFrameCollapseCss(doc) {
         word-break:normal;
         line-height:1.2;
       }
+      /* Top/Cold players — cards on phone (applies to already-built slate_eval HTML). */
+      .two-col > div > .table-wrap,
+      .player-record-table{
+        overflow:visible !important;
+      }
+      .two-col > div > .table-wrap table thead,
+      .player-record-table table thead{
+        display:none !important;
+      }
+      .two-col > div > .table-wrap table,
+      .two-col > div > .table-wrap table tbody,
+      .player-record-table table,
+      .player-record-table table tbody{
+        display:block !important;
+        width:100% !important;
+      }
+      .two-col > div > .table-wrap table tbody tr,
+      .player-record-table table tbody tr{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) auto auto auto minmax(64px,28%);
+        grid-template-areas:
+          "name name name name rate"
+          "team props dec hits misses";
+        gap:4px 8px;
+        align-items:center;
+        width:100% !important;
+        box-sizing:border-box;
+        margin:0 0 8px;
+        padding:10px 12px;
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:10px;
+        background:rgba(255,255,255,.03);
+        border-left:3px solid rgba(212,160,23,.35);
+      }
+      .two-col > div > .table-wrap table td,
+      .player-record-table table td{
+        border:none !important;
+        padding:0 !important;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        font-size:12px;
+      }
+      .two-col > div > .table-wrap table td:nth-child(1),
+      .player-record-table table td:nth-child(1){
+        grid-area:name;white-space:normal;font-size:14px;line-height:1.25;
+      }
+      .two-col > div > .table-wrap table td:nth-child(2),
+      .player-record-table table td:nth-child(2){grid-area:team;opacity:.72;font-size:11px}
+      .two-col > div > .table-wrap table td:nth-child(3),
+      .player-record-table table td:nth-child(3){grid-area:props;opacity:.72;font-size:11px}
+      .two-col > div > .table-wrap table td:nth-child(4),
+      .player-record-table table td:nth-child(4){grid-area:dec;font-variant-numeric:tabular-nums}
+      .two-col > div > .table-wrap table td:nth-child(5),
+      .player-record-table table td:nth-child(5){grid-area:hits;font-variant-numeric:tabular-nums}
+      .two-col > div > .table-wrap table td:nth-child(6),
+      .player-record-table table td:nth-child(6){grid-area:misses;font-variant-numeric:tabular-nums}
+      .two-col > div > .table-wrap table td:nth-child(7),
+      .player-record-table table td:nth-child(7){grid-area:rate;min-width:0}
+      .two-col > div > .table-wrap .rate-num,
+      .player-record-table .rate-num{display:none}
+      .two-col > div > .table-wrap .rate-bar-bg,
+      .player-record-table .rate-bar-bg{min-width:56px;height:8px}
     }
     /* Hub iframe is sized to its content height by syncGradeFrameHeight / syncTicketFrameHeight,
        so the OUTER (parent) page scrolls. The iframe document must NOT claim its own scroll
@@ -3330,7 +3589,10 @@ function _slateCleanSportMeta(raw) {
   return String(raw || '')
     .replace(/\s+/g, ' ')
     .replace(/TOTAL\s+PROPS/gi, 'props')
+    .replace(/props(\d)/gi, 'props · $1')
+    .replace(/props\s+(\d)/gi, 'props · $1')
     .replace(/\binsights\b/gi, '')
+    .replace(/\s*·\s*·\s*/g, ' · ')
     .trim();
 }
 
@@ -3410,31 +3672,33 @@ function polishSlateSportSummaries(doc) {
 
 function autoOpenPreferredSlateSport(doc) {
   if (!doc) return;
-  const sports = Array.from(
+  const all = Array.from(
     doc.querySelectorAll(
       '.main > details.sport-collapsible, .main > details.grades-sport-bucket'
     )
-  ).filter((d) => {
+  );
+  if (!all.length) return;
+  const combined = all.filter((d) => {
     const t =
       d.querySelector(':scope > summary .sport-label')?.textContent ||
       d.querySelector(':scope > summary > span:first-child')?.textContent ||
       '';
-    return !_slateSportIsCombined(t);
+    return _slateSportIsCombined(t);
   });
-  if (!sports.length) return;
   let remembered = '';
   try {
     remembered = sessionStorage.getItem('grades-open-sport') || '';
   } catch (_e) {}
-  let target = remembered ? sports.find((d) => d.id === remembered) : null;
-  if (!target) target = sports[0];
-  sports.forEach((d) => {
-    d.open = d === target;
+  let target = remembered ? all.find((d) => d.id === remembered) : null;
+  // Fresh load: prefer All Sports (no neon sport chip), matching Prop/Ticket quiet chrome.
+  if (!target) target = combined[0] || null;
+  all.forEach((d) => {
+    d.open = Boolean(target) && d === target;
   });
   const nav = doc.querySelector('.slate-sport-jump');
-  if (nav && target) {
+  if (nav) {
     nav.querySelectorAll('.slate-sport-jump-btn').forEach((b) => {
-      b.classList.toggle('active', b.dataset.target === target.id);
+      b.classList.toggle('active', Boolean(target) && b.dataset.target === target.id);
     });
   }
 }
@@ -3468,10 +3732,18 @@ function injectSlateSportJumpNav(doc) {
       det.querySelector(':scope > summary .grades-sport-meta');
     const rateEl = det.querySelector(':scope > summary .sport-meta-rate');
     const title = _slateCleanSportTitle(titleEl?.textContent || `Sport ${idx + 1}`);
-    let meta = _slateCleanSportMeta(metaEl?.textContent || '');
+    let meta = '';
+    if (metaEl) {
+      // Drop nested rate chip so we don't print "31.9% · 31.9%".
+      const clone = metaEl.cloneNode(true);
+      clone.querySelectorAll('.sport-meta-rate').forEach((n) => n.remove());
+      meta = _slateCleanSportMeta(clone.textContent || '');
+    }
     if (rateEl && rateEl.textContent) {
       const rt = rateEl.textContent.trim();
-      meta = meta ? `${meta} · ${rt}` : rt;
+      if (rt && !meta.includes(rt)) {
+        meta = meta ? `${meta} · ${rt}` : rt;
+      }
     }
     const id = _slateSportAnchorId(title, idx);
     det.id = id;
@@ -3816,7 +4088,7 @@ function formatPlayerDisplay(name) {
 function propsEvalOutcomeRank(result) {
   var ru = String(result || '').toUpperCase();
   if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') return 0;
-  if (ru === 'VOID' || ru === 'PUSH' || ru === 'CASH') return 1;
+  if (ru === 'VOID' || ru === 'PUSH' || ru === 'CASH' || ru === 'POSTPONED') return 1;
   if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') return 2;
   return 3;
 }
@@ -3854,12 +4126,25 @@ function propsEvalSportMatches(rowSport, filterSport) {
   if (fs === 'CBB' && rs === 'WCBB') return true;
   return false;
 }
+function propsEvalIsPostponedVoid(r) {
+  var ru = String((r && r.result) || '').toUpperCase();
+  if (ru === 'POSTPONED') return true;
+  var vr = String((r && r.void_reason) || '').trim().toUpperCase();
+  if (vr.indexOf('POSTPON') >= 0 || vr.indexOf('CANCEL') >= 0) return true;
+  return false;
+}
 function propsEvalIsVoidResult(r) {
   var ru = String((r && r.result) || '').toUpperCase();
+  if (ru === 'POSTPONED') return false;
+  if (propsEvalIsPostponedVoid(r)) return false;
   if (ru === 'VOID') return true;
   if (ru === 'PUSH' || ru === 'CASH') return true;
   if (r && r.void_reason && String(r.void_reason).trim()) return true;
   return ru !== 'HIT' && ru !== 'MISS' && ru !== 'WIN' && ru !== 'LOSS' && ru !== 'LOSE' && ru !== '';
+}
+/** Actionable voids only — postponed/canceled games are resolved schedule outcomes. */
+function propsEvalIsActionableVoid(r) {
+  return propsEvalIsVoidResult(r) && !propsEvalIsPostponedVoid(r);
 }
 function propsEvalIsHit(r) {
   var ru = String((r && r.result) || '').toUpperCase();
@@ -3899,11 +4184,12 @@ function fillPropsSportFilter(rows) {
 function updatePropsEvalKpis(rows) {
   var el = document.getElementById('props-eval-kpis');
   if (!el) return;
-  var n = rows.length, hit = 0, miss = 0, voids = 0;
+  var n = rows.length, hit = 0, miss = 0, voids = 0, postponed = 0;
   for (var i = 0; i < n; i++) {
     var r = rows[i];
     if (propsEvalIsHit(r)) hit++;
     else if (propsEvalIsMiss(r)) miss++;
+    else if (propsEvalIsPostponedVoid(r)) postponed++;
     else if (propsEvalIsVoidResult(r)) voids++;
   }
   var decided = hit + miss;
@@ -3914,6 +4200,9 @@ function updatePropsEvalKpis(rows) {
     '<span class="props-kpi is-hit"><strong>' + hit + '</strong> hits</span>' +
     '<span class="props-kpi is-miss"><strong>' + miss + '</strong> misses</span>' +
     '<span class="props-kpi is-void"><strong>' + voids + '</strong> voids</span>' +
+    (postponed
+      ? '<span class="props-kpi" title="Postponed/canceled games (not counted as open voids)"><strong>' + postponed + '</strong> postponed</span>'
+      : '') +
     '<span class="props-kpi"><strong>' + rate + '</strong> decided HR</span>';
 }
 /** Team vs opponent; strips placeholders so we do not show "NYY vs —" when opp is missing in JSON. */
@@ -4162,6 +4451,7 @@ function buildPropEvalCardElement(r) {
   var rlbl = ru || '—';
   if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') { cls = 'hit'; rlbl = 'HIT'; }
   else if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') { cls = 'miss'; rlbl = 'MISS'; }
+  else if (propsEvalIsPostponedVoid(r) || ru === 'POSTPONED') { cls = 'other'; rlbl = 'POSTPONED'; }
   else if (ru === 'VOID') { cls = 'other'; rlbl = 'VOID'; }
   else if (ru === 'PUSH') { cls = 'other'; rlbl = 'PUSH'; }
   const dir = String(r.direction || '').toUpperCase();
@@ -4196,6 +4486,7 @@ function buildPropEvalRowElement(r) {
   var rlbl = ru || '—';
   if (ru === 'HIT' || ru === 'WIN' || ru === 'WIN_NO_MULT') { cls = 'hit'; rlbl = 'HIT'; }
   else if (ru === 'MISS' || ru === 'LOSS' || ru === 'LOSE') { cls = 'miss'; rlbl = 'MISS'; }
+  else if (propsEvalIsPostponedVoid(r) || ru === 'POSTPONED') { cls = 'other'; rlbl = 'POSTPONED'; }
   else if (ru === 'VOID') { cls = 'other'; rlbl = 'VOID'; }
   else if (ru === 'PUSH') { cls = 'other'; rlbl = 'PUSH'; }
   const dir = String(r.direction || '').toUpperCase();
@@ -4227,7 +4518,8 @@ function applyPropsEvalFilters() {
     if (pickTypeF && pickTypeF !== 'NO_DEMON' && pt.indexOf(pickTypeF) < 0) continue;
     if (resF === 'HIT' && !propsEvalIsHit(r)) continue;
     if (resF === 'MISS' && !propsEvalIsMiss(r)) continue;
-    if (resF === 'VOID' && !propsEvalIsVoidResult(r)) continue;
+    if (resF === 'VOID' && !propsEvalIsActionableVoid(r)) continue;
+    if (resF === 'POSTPONED' && !propsEvalIsPostponedVoid(r)) continue;
     if (resF === 'DECIDED' && !(propsEvalIsHit(r) || propsEvalIsMiss(r))) continue;
     if (q && r._hay.indexOf(q) < 0) continue;
     filtered.push(r);
@@ -4237,22 +4529,26 @@ function applyPropsEvalFilters() {
     return String(a.player_name || '').localeCompare(String(b.player_name || ''), undefined, { sensitivity: 'base' });
   });
   renderPropsEvalCards(filtered);
-  var fHit = 0, fMiss = 0, fVoid = 0;
+  var fHit = 0, fMiss = 0, fVoid = 0, fPost = 0;
   for (var j = 0; j < filtered.length; j++) {
     var fr = filtered[j];
     if (propsEvalIsHit(fr)) fHit++;
     else if (propsEvalIsMiss(fr)) fMiss++;
+    else if (propsEvalIsPostponedVoid(fr)) fPost++;
     else if (propsEvalIsVoidResult(fr)) fVoid++;
   }
   const el = document.getElementById('props-eval-counts');
   if (el) {
     var note = '';
-    if (resF === 'DECIDED') note = ' · voids hidden';
+    if (resF === 'DECIDED') note = ' · voids/postponed hidden';
+    else if (resF === 'VOID') note = ' · postponed excluded';
+    else if (resF === 'POSTPONED') note = ' · postponed/canceled only';
     else if (pickTypeF === 'NO_DEMON') note = ' · demon excluded';
     else if (pickTypeF === 'DEMON') note = ' · demon only';
     else if (pickTypeF) note = ' · ' + pickTypeF.toLowerCase() + ' only';
     el.textContent = 'Showing ' + filtered.length + ' of ' + rows.length + ' loaded · ' +
-      fHit + ' hits, ' + fMiss + ' misses, ' + fVoid + ' voids' + note;
+      fHit + ' hits, ' + fMiss + ' misses, ' + fVoid + ' voids' +
+      (fPost ? (', ' + fPost + ' postponed') : '') + note;
   }
 }
 function mapGradedJsonToEvalRow(p) {
@@ -5211,6 +5507,12 @@ function estimateDatePillWidth(dateStr){
 function computeVisibleReportDateCount(){
   const container = gradesEl('date-pills');
   if (!container) return MIN_REPORT_DATE_PILLS;
+  // Mobile: keep a scrollable strip of recent dates (fit-to-width truncates awkwardly).
+  try {
+    if (gradesFrameMobileLayout()) {
+      return Math.max(MIN_REPORT_DATE_PILLS, Math.min(availableDates.length, 12));
+    }
+  } catch (_mob) {}
   const rowWidth = container.clientWidth || 0;
   if (!rowWidth) return MIN_REPORT_DATE_PILLS;
   const gapPx = 10; // .date-pills gap
@@ -5648,9 +5950,26 @@ function syncGradeFrameHeight(frame) {
   try {
     const doc = frame.contentDocument;
     if (!doc || !doc.documentElement) return;
-    const h = measureGradesIframeDocHeight(doc, frame);
-    frame.style.height = Math.ceil(h) + 'px';
+    const h = Math.max(280, measureGradesIframeDocHeight(doc, frame));
+    const hPx = Math.ceil(h) + 'px';
+    frame.style.setProperty('height', hPx, 'important');
     frame.style.removeProperty('min-height');
+    frame.style.setProperty('position', 'relative', 'important');
+    // Stage must match iframe height — absolute/100% stage rules otherwise clip or leave voids.
+    const stage =
+      document.querySelector('.iframe-shell-stage[data-grades-tab="slate"]') ||
+      document.querySelector('.iframe-shell-stage');
+    if (stage) {
+      stage.style.setProperty('height', hPx, 'important');
+      stage.style.minHeight = '0';
+      stage.style.maxHeight = 'none';
+      stage.style.overflow = 'visible';
+    }
+    const shell = document.getElementById('grades-iframe-shell');
+    if (shell) {
+      shell.style.removeProperty('min-height');
+      shell.style.removeProperty('height');
+    }
     const gradesPage = document.querySelector('.grades-page');
     if (gradesPage) gradesPage.style.removeProperty('min-height');
   } catch (_e) {}

@@ -1,0 +1,895 @@
+{
+  "from_date": "2026-07-14",
+  "to_date": "2026-07-18",
+  "policies": [
+    "baseline_legacy",
+    "current_shipped",
+    "no_stack_reject",
+    "pitcher_only"
+  ],
+  "aggregate": {
+    "baseline_legacy": {
+      "built": 75,
+      "n_graded": 59,
+      "wins": 18,
+      "losses": 41,
+      "ungraded": 16,
+      "win_pct": 30.5,
+      "roi_flat10_3x": {
+        "staked": 590.0,
+        "pnl": -50.0,
+        "roi_pct": -8.5
+      },
+      "mlb_touching": {
+        "n_graded": 29,
+        "wins": 0,
+        "losses": 29,
+        "win_pct": 0.0
+      }
+    },
+    "current_shipped": {
+      "built": 75,
+      "n_graded": 56,
+      "wins": 32,
+      "losses": 24,
+      "ungraded": 19,
+      "win_pct": 57.1,
+      "roi_flat10_3x": {
+        "staked": 560.0,
+        "pnl": 400.0,
+        "roi_pct": 71.4
+      },
+      "mlb_touching": {
+        "n_graded": 26,
+        "wins": 14,
+        "losses": 12,
+        "win_pct": 53.8
+      }
+    },
+    "no_stack_reject": {
+      "built": 75,
+      "n_graded": 56,
+      "wins": 32,
+      "losses": 24,
+      "ungraded": 19,
+      "win_pct": 57.1,
+      "roi_flat10_3x": {
+        "staked": 560.0,
+        "pnl": 400.0,
+        "roi_pct": 71.4
+      },
+      "mlb_touching": {
+        "n_graded": 26,
+        "wins": 14,
+        "losses": 12,
+        "win_pct": 53.8
+      }
+    },
+    "pitcher_only": {
+      "built": 75,
+      "n_graded": 56,
+      "wins": 32,
+      "losses": 24,
+      "ungraded": 19,
+      "win_pct": 57.1,
+      "roi_flat10_3x": {
+        "staked": 560.0,
+        "pnl": 400.0,
+        "roi_pct": 71.4
+      },
+      "mlb_touching": {
+        "n_graded": 26,
+        "wins": 14,
+        "losses": 12,
+        "win_pct": 53.8
+      }
+    }
+  },
+  "by_day": [
+    {
+      "date": "2026-07-14",
+      "policies": {
+        "baseline_legacy": {
+          "policy": "baseline_legacy",
+          "built": 15,
+          "summary": {
+            "n_graded": 15,
+            "wins": 12,
+            "losses": 3,
+            "ungraded": 0,
+            "win_pct": 80.0
+          },
+          "roi_flat10": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 500.0,
+            "roi_pct": 333.3
+          },
+          "roi_flat10_3x": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 210.0,
+            "roi_pct": 140.0
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "current_shipped": {
+          "policy": "current_shipped",
+          "built": 15,
+          "summary": {
+            "n_graded": 15,
+            "wins": 12,
+            "losses": 3,
+            "ungraded": 0,
+            "win_pct": 80.0
+          },
+          "roi_flat10": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 500.0,
+            "roi_pct": 333.3
+          },
+          "roi_flat10_3x": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 210.0,
+            "roi_pct": 140.0
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "no_stack_reject": {
+          "policy": "no_stack_reject",
+          "built": 15,
+          "summary": {
+            "n_graded": 15,
+            "wins": 12,
+            "losses": 3,
+            "ungraded": 0,
+            "win_pct": 80.0
+          },
+          "roi_flat10": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 500.0,
+            "roi_pct": 333.3
+          },
+          "roi_flat10_3x": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 210.0,
+            "roi_pct": 140.0
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "pitcher_only": {
+          "policy": "pitcher_only",
+          "built": 15,
+          "summary": {
+            "n_graded": 15,
+            "wins": 12,
+            "losses": 3,
+            "ungraded": 0,
+            "win_pct": 80.0
+          },
+          "roi_flat10": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 500.0,
+            "roi_pct": 333.3
+          },
+          "roi_flat10_3x": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": 210.0,
+            "roi_pct": 140.0
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "policies": {
+        "baseline_legacy": {
+          "policy": "baseline_legacy",
+          "built": 15,
+          "summary": {
+            "n_graded": 1,
+            "wins": 1,
+            "losses": 0,
+            "ungraded": 14,
+            "win_pct": 100.0
+          },
+          "roi_flat10": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 90.0,
+            "roi_pct": 900.0
+          },
+          "roi_flat10_3x": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 20.0,
+            "roi_pct": 200.0
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 14,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "current_shipped": {
+          "policy": "current_shipped",
+          "built": 15,
+          "summary": {
+            "n_graded": 1,
+            "wins": 1,
+            "losses": 0,
+            "ungraded": 14,
+            "win_pct": 100.0
+          },
+          "roi_flat10": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 90.0,
+            "roi_pct": 900.0
+          },
+          "roi_flat10_3x": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 20.0,
+            "roi_pct": 200.0
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 14,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "no_stack_reject": {
+          "policy": "no_stack_reject",
+          "built": 15,
+          "summary": {
+            "n_graded": 1,
+            "wins": 1,
+            "losses": 0,
+            "ungraded": 14,
+            "win_pct": 100.0
+          },
+          "roi_flat10": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 90.0,
+            "roi_pct": 900.0
+          },
+          "roi_flat10_3x": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 20.0,
+            "roi_pct": 200.0
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 14,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "pitcher_only": {
+          "policy": "pitcher_only",
+          "built": 15,
+          "summary": {
+            "n_graded": 1,
+            "wins": 1,
+            "losses": 0,
+            "ungraded": 14,
+            "win_pct": 100.0
+          },
+          "roi_flat10": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 90.0,
+            "roi_pct": 900.0
+          },
+          "roi_flat10_3x": {
+            "n": 1,
+            "staked": 10.0,
+            "pnl": 20.0,
+            "roi_pct": 200.0
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 14,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-07-16",
+      "policies": {
+        "baseline_legacy": {
+          "policy": "baseline_legacy",
+          "built": 15,
+          "summary": {
+            "n_graded": 15,
+            "wins": 0,
+            "losses": 15,
+            "ungraded": 0,
+            "win_pct": 0.0
+          },
+          "roi_flat10": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": -150.0,
+            "roi_pct": -100.0
+          },
+          "roi_flat10_3x": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": -150.0,
+            "roi_pct": -100.0
+          },
+          "mlb_touching": {
+            "n": 15,
+            "summary": {
+              "n_graded": 15,
+              "wins": 0,
+              "losses": 15,
+              "ungraded": 0,
+              "win_pct": 0.0
+            },
+            "roi_flat10_3x": {
+              "n": 15,
+              "staked": 150.0,
+              "pnl": -150.0,
+              "roi_pct": -100.0
+            }
+          }
+        },
+        "current_shipped": {
+          "policy": "current_shipped",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 7,
+            "losses": 6,
+            "ungraded": 2,
+            "win_pct": 53.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 220.0,
+            "roi_pct": 169.2
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 80.0,
+            "roi_pct": 61.5
+          },
+          "mlb_touching": {
+            "n": 15,
+            "summary": {
+              "n_graded": 13,
+              "wins": 7,
+              "losses": 6,
+              "ungraded": 2,
+              "win_pct": 53.8
+            },
+            "roi_flat10_3x": {
+              "n": 13,
+              "staked": 130.0,
+              "pnl": 80.0,
+              "roi_pct": 61.5
+            }
+          }
+        },
+        "no_stack_reject": {
+          "policy": "no_stack_reject",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 7,
+            "losses": 6,
+            "ungraded": 2,
+            "win_pct": 53.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 220.0,
+            "roi_pct": 169.2
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 80.0,
+            "roi_pct": 61.5
+          },
+          "mlb_touching": {
+            "n": 15,
+            "summary": {
+              "n_graded": 13,
+              "wins": 7,
+              "losses": 6,
+              "ungraded": 2,
+              "win_pct": 53.8
+            },
+            "roi_flat10_3x": {
+              "n": 13,
+              "staked": 130.0,
+              "pnl": 80.0,
+              "roi_pct": 61.5
+            }
+          }
+        },
+        "pitcher_only": {
+          "policy": "pitcher_only",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 7,
+            "losses": 6,
+            "ungraded": 2,
+            "win_pct": 53.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 220.0,
+            "roi_pct": 169.2
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 80.0,
+            "roi_pct": 61.5
+          },
+          "mlb_touching": {
+            "n": 15,
+            "summary": {
+              "n_graded": 13,
+              "wins": 7,
+              "losses": 6,
+              "ungraded": 2,
+              "win_pct": 53.8
+            },
+            "roi_flat10_3x": {
+              "n": 13,
+              "staked": 130.0,
+              "pnl": 80.0,
+              "roi_pct": 61.5
+            }
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-07-17",
+      "policies": {
+        "baseline_legacy": {
+          "policy": "baseline_legacy",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 4,
+            "losses": 9,
+            "ungraded": 2,
+            "win_pct": 30.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 70.0,
+            "roi_pct": 53.8
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": -10.0,
+            "roi_pct": -7.7
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "current_shipped": {
+          "policy": "current_shipped",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 4,
+            "losses": 9,
+            "ungraded": 2,
+            "win_pct": 30.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 70.0,
+            "roi_pct": 53.8
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": -10.0,
+            "roi_pct": -7.7
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "no_stack_reject": {
+          "policy": "no_stack_reject",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 4,
+            "losses": 9,
+            "ungraded": 2,
+            "win_pct": 30.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 70.0,
+            "roi_pct": 53.8
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": -10.0,
+            "roi_pct": -7.7
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        },
+        "pitcher_only": {
+          "policy": "pitcher_only",
+          "built": 15,
+          "summary": {
+            "n_graded": 13,
+            "wins": 4,
+            "losses": 9,
+            "ungraded": 2,
+            "win_pct": 30.8
+          },
+          "roi_flat10": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": 70.0,
+            "roi_pct": 53.8
+          },
+          "roi_flat10_3x": {
+            "n": 13,
+            "staked": 130.0,
+            "pnl": -10.0,
+            "roi_pct": -7.7
+          },
+          "mlb_touching": {
+            "n": 0,
+            "summary": {
+              "n_graded": 0,
+              "wins": 0,
+              "losses": 0,
+              "ungraded": 0,
+              "win_pct": null
+            },
+            "roi_flat10_3x": {
+              "n": 0,
+              "staked": 0.0,
+              "pnl": 0.0,
+              "roi_pct": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-07-18",
+      "policies": {
+        "baseline_legacy": {
+          "policy": "baseline_legacy",
+          "built": 15,
+          "summary": {
+            "n_graded": 15,
+            "wins": 1,
+            "losses": 14,
+            "ungraded": 0,
+            "win_pct": 6.7
+          },
+          "roi_flat10": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": -50.0,
+            "roi_pct": -33.3
+          },
+          "roi_flat10_3x": {
+            "n": 15,
+            "staked": 150.0,
+            "pnl": -120.0,
+            "roi_pct": -80.0
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 14,
+              "wins": 0,
+              "losses": 14,
+              "ungraded": 0,
+              "win_pct": 0.0
+            },
+            "roi_flat10_3x": {
+              "n": 14,
+              "staked": 140.0,
+              "pnl": -140.0,
+              "roi_pct": -100.0
+            }
+          }
+        },
+        "current_shipped": {
+          "policy": "current_shipped",
+          "built": 15,
+          "summary": {
+            "n_graded": 14,
+            "wins": 8,
+            "losses": 6,
+            "ungraded": 1,
+            "win_pct": 57.1
+          },
+          "roi_flat10": {
+            "n": 14,
+            "staked": 140.0,
+            "pnl": 310.0,
+            "roi_pct": 221.4
+          },
+          "roi_flat10_3x": {
+            "n": 14,
+            "staked": 140.0,
+            "pnl": 100.0,
+            "roi_pct": 71.4
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 13,
+              "wins": 7,
+              "losses": 6,
+              "ungraded": 1,
+              "win_pct": 53.8
+            },
+            "roi_flat10_3x": {
+              "n": 13,
+              "staked": 130.0,
+              "pnl": 80.0,
+              "roi_pct": 61.5
+            }
+          }
+        },
+        "no_stack_reject": {
+          "policy": "no_stack_reject",
+          "built": 15,
+          "summary": {
+            "n_graded": 14,
+            "wins": 8,
+            "losses": 6,
+            "ungraded": 1,
+            "win_pct": 57.1
+          },
+          "roi_flat10": {
+            "n": 14,
+            "staked": 140.0,
+            "pnl": 310.0,
+            "roi_pct": 221.4
+          },
+          "roi_flat10_3x": {
+            "n": 14,
+            "staked": 140.0,
+            "pnl": 100.0,
+            "roi_pct": 71.4
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 13,
+              "wins": 7,
+              "losses": 6,
+              "ungraded": 1,
+              "win_pct": 53.8
+            },
+            "roi_flat10_3x": {
+              "n": 13,
+              "staked": 130.0,
+              "pnl": 80.0,
+              "roi_pct": 61.5
+            }
+          }
+        },
+        "pitcher_only": {
+          "policy": "pitcher_only",
+          "built": 15,
+          "summary": {
+            "n_graded": 14,
+            "wins": 8,
+            "losses": 6,
+            "ungraded": 1,
+            "win_pct": 57.1
+          },
+          "roi_flat10": {
+            "n": 14,
+            "staked": 140.0,
+            "pnl": 310.0,
+            "roi_pct": 221.4
+          },
+          "roi_flat10_3x": {
+            "n": 14,
+            "staked": 140.0,
+            "pnl": 100.0,
+            "roi_pct": 71.4
+          },
+          "mlb_touching": {
+            "n": 14,
+            "summary": {
+              "n_graded": 13,
+              "wins": 7,
+              "losses": 6,
+              "ungraded": 1,
+              "win_pct": 53.8
+            },
+            "roi_flat10_3x": {
+              "n": 13,
+              "staked": 130.0,
+              "pnl": 80.0,
+              "roi_pct": 61.5
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1663,7 +1663,7 @@ def player_table(rows: list[dict], top: bool, min_decided: int = 5, limit: int =
           <td class="right mono neg">{fmt_num(c['misses'])}</td>
           <td>{rate_bar_html(c['hit_rate'], hits=c['hits'], misses=c['misses'])}</td>
         </tr>"""
-    return f"""<div class="table-wrap"><table>
+    return f"""<div class="table-wrap player-record-table"><table>
       <thead><tr><th>PLAYER</th><th>TEAM</th><th>PROPS</th><th class="right">DEC</th><th class="right">H</th><th class="right">M</th><th>RATE</th></tr></thead>
       <tbody>{rows_html}</tbody>
     </table></div>"""
@@ -2262,8 +2262,8 @@ border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spa
 .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff;background:rgba(255,255,255,0.07)}
 .slate-sport-jump-btn.active{color:var(--gold);border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);box-shadow:0 0 14px rgba(240,165,0,0.12)}
 .slate-sport-jump-btn .sj-meta{opacity:0.7;font-size:11px}
-.sport-view-tabs{display:inline-flex;flex-wrap:wrap;gap:0;margin:0 0 14px;padding:3px;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:52px;z-index:30}
-.sport-view-tab{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 14px;min-height:34px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px}
+.sport-view-tabs{display:flex;flex-wrap:nowrap;gap:0;margin:0 0 14px;padding:3px;width:100%;max-width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:52px;z-index:30}
+.sport-view-tab{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 10px;min-height:34px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:13px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sport-view-tab:hover{color:rgba(255,255,255,0.9)}
 .sport-view-tab.active{color:#0a0a14;background:var(--gold);box-shadow:0 4px 14px rgba(240,165,0,0.25)}
 .sport-view-panel{display:none}
@@ -2426,6 +2426,8 @@ td{padding:8px 8px}
 .sport-label{font-size:28px}
 .logo-title{font-size:24px}
 .two-col.pick-tier-split{grid-template-columns:1fr!important;gap:18px!important}
+.sport-view-tabs{top:46px;width:100%;max-width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
+.sport-view-tab{padding:8px 6px;font-size:11px;letter-spacing:0.7px;flex:unset;width:100%;min-width:0;text-align:center}
 }
 /* Touch / hub iframe: BY PICK TYPE + BY TIER stack when viewport math is wrong (wide iframe on a phone). */
 @media(pointer:coarse){
@@ -2445,6 +2447,62 @@ td{padding:8px 8px}
 .two-col.pick-tier-split td:first-child,.two-col.pick-tier-split th:first-child{min-width:0}
 .two-col.pick-tier-split .table-wrap td{vertical-align:top}
 .two-col.pick-tier-split .table-wrap th{white-space:normal;word-break:normal;line-height:1.2}
+/* Top/Cold players: card rows instead of a 7-col squeeze. */
+.player-record-table,.two-col>.table-wrap,section .two-col .table-wrap{
+  overflow:visible!important;
+}
+.player-record-table table thead,
+.two-col > div > .table-wrap table thead{
+  display:none!important;
+}
+.player-record-table table,
+.player-record-table table tbody,
+.two-col > div > .table-wrap table,
+.two-col > div > .table-wrap table tbody{
+  display:block!important;width:100%!important;
+}
+.player-record-table table tr,
+.two-col > div > .table-wrap table tbody tr{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto auto minmax(64px,28%);
+  grid-template-areas:
+    "name name name name rate"
+    "team props dec hits misses";
+  gap:4px 8px;
+  align-items:center;
+  width:100%!important;
+  box-sizing:border-box;
+  margin:0 0 8px;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border-left:3px solid rgba(212,160,23,.35);
+}
+.player-record-table table td,
+.two-col > div > .table-wrap table td{
+  border:none!important;padding:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;
+}
+.player-record-table table td:nth-child(1),
+.two-col > div > .table-wrap table td:nth-child(1){grid-area:name;white-space:normal;font-size:14px;line-height:1.25}
+.player-record-table table td:nth-child(2),
+.two-col > div > .table-wrap table td:nth-child(2){grid-area:team;opacity:.72;font-size:11px}
+.player-record-table table td:nth-child(3),
+.two-col > div > .table-wrap table td:nth-child(3){grid-area:props;opacity:.72;font-size:11px}
+.player-record-table table td:nth-child(4),
+.two-col > div > .table-wrap table td:nth-child(4){grid-area:dec;font-variant-numeric:tabular-nums}
+.player-record-table table td:nth-child(5),
+.two-col > div > .table-wrap table td:nth-child(5){grid-area:hits;font-variant-numeric:tabular-nums}
+.player-record-table table td:nth-child(6),
+.two-col > div > .table-wrap table td:nth-child(6){grid-area:misses;font-variant-numeric:tabular-nums}
+.player-record-table table td:nth-child(7),
+.two-col > div > .table-wrap table td:nth-child(7){grid-area:rate;min-width:0}
+.player-record-table .rate-cell,
+.two-col > div > .table-wrap .rate-cell{gap:6px;width:100%}
+.player-record-table .rate-num,
+.two-col > div > .table-wrap .rate-num{display:none}
+.player-record-table .rate-bar-bg,
+.two-col > div > .table-wrap .rate-bar-bg{min-width:56px;height:8px}
 }
 th[data-sort-key]{cursor:pointer;user-select:none;position:relative;padding-right:1.35em}
 th[data-sort-key]:hover{color:var(--text)}

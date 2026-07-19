@@ -3328,14 +3328,17 @@ function ensureFrameCollapseCss(doc) {
     .slate-sport-jump-btn .sj-title{font-weight:600;}
     .slate-sport-jump-btn .sj-meta{opacity:0.72;font-size:11px;font-variant-numeric:tabular-nums;}
     .sport-view-tabs{
-      display:inline-flex;flex-wrap:wrap;gap:0;margin:0 0 14px;padding:3px;
+      display:flex;flex-wrap:nowrap;gap:0;margin:0 0 14px;padding:3px;
+      width:100%;max-width:100%;box-sizing:border-box;
       border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);
       position:sticky;top:52px;z-index:30;
     }
     .sport-view-tab{
       appearance:none;border:none;background:transparent;
-      color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 14px;min-height:34px;cursor:pointer;
-      font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px;
+      color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 10px;min-height:34px;cursor:pointer;
+      font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:13px;
+      flex:1 1 0;min-width:0;text-align:center;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
       transition:color .15s,background .15s;
     }
     .sport-view-tab:hover{color:rgba(255,255,255,0.9);}
@@ -3378,8 +3381,14 @@ function ensureFrameCollapseCss(doc) {
       .slate-day-glance-hint{width:100%;margin-left:0;}
       .slate-sport-jump{gap:6px;padding:6px 0 10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
       .slate-sport-jump-btn{flex:0 0 auto;white-space:nowrap;min-height:40px;padding:8px 12px;}
-      .sport-view-tabs{top:46px;width:100%;}
-      .sport-view-tab{padding:8px 12px;font-size:12px;flex:1 1 auto;text-align:center;}
+      .sport-view-tabs{
+        top:46px;width:100%;max-width:100%;
+        display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;
+      }
+      .sport-view-tab{
+        padding:8px 6px;font-size:11px;letter-spacing:0.7px;
+        flex:unset;width:100%;min-width:0;text-align:center;
+      }
       .sport-expand-hint{display:none;}
     }
   `;

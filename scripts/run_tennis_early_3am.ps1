@@ -79,17 +79,35 @@ $WrapperLog = Join-Path $LogsDir ("task_3am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-D
 try { Start-Transcript -Path $WrapperLog -Append | Out-Null } catch { }
 
 Write-Host "[3AM TENNIS] Pulling latest repository (main)..." -ForegroundColor Cyan
+# Never leave the tree in an unmerged state: abort if already conflicted, and only
+# stash-pop AFTER a successful pull. Stash-pop conflicts keep the stash and exit.
+$unmergedBefore = @(git ls-files -u 2>$null)
+if ($unmergedBefore.Count -gt 0) {
+    Write-Host "[3AM TENNIS] FAILED: unmerged paths block pull (resolve or reset first)." -ForegroundColor Red
+    $unmergedBefore | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+    try { Stop-Transcript | Out-Null } catch { }
+    exit 128
+}
 $stashOut = git stash push -u -m "proporacle-3am-pre-pull-$(Get-Date -Format 'yyyyMMdd_HHmmss')" 2>&1
 $stashOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+$didStash = ("$stashOut" -notmatch 'No local changes to save')
 git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 $pullExit = $LASTEXITCODE
-if ("$stashOut" -notmatch 'No local changes to save') {
-    git stash pop 2>&1 | ForEach-Object { Write-Host "    stash pop: $_" -ForegroundColor DarkGray }
-}
 if ($pullExit -ne 0) {
-    Write-Host "[3AM TENNIS] git pull failed (exit $pullExit)" -ForegroundColor Red
+    Write-Host "[3AM TENNIS] git pull failed (exit $pullExit); leaving pre-pull stash (if any) intact." -ForegroundColor Red
     try { Stop-Transcript | Out-Null } catch { }
     exit $pullExit
+}
+if ($didStash) {
+    git stash pop 2>&1 | ForEach-Object { Write-Host "    stash pop: $_" -ForegroundColor DarkGray }
+    $popExit = $LASTEXITCODE
+    $unmergedAfter = @(git ls-files -u 2>$null)
+    if ($popExit -ne 0 -or $unmergedAfter.Count -gt 0) {
+        Write-Host "[3AM TENNIS] FAILED: stash pop left conflicts; aborting before tennis (stash kept)." -ForegroundColor Red
+        $unmergedAfter | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        try { Stop-Transcript | Out-Null } catch { }
+        exit 128
+    }
 }
 
 $Today = Get-PropOracleEasternTodayYmd

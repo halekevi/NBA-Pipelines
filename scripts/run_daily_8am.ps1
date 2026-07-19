@@ -58,10 +58,30 @@ if ($branch -ne "main") {
 }
 
 Write-Host "[8AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
+$unmergedBefore = @(git ls-files -u 2>$null)
+if ($unmergedBefore.Count -gt 0) {
+    Write-Host "[8AM UPDATE] FAILED: unmerged paths block pull (resolve or reset first)." -ForegroundColor Red
+    $unmergedBefore | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+    exit 128
+}
+$stashOut = git stash push -u -m "proporacle-8am-pre-pull-$(Get-Date -Format 'yyyyMMdd_HHmmss')" 2>&1
+$stashOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+$didStash = ("$stashOut" -notmatch 'No local changes to save')
 git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[8AM UPDATE] git pull failed (exit $LASTEXITCODE)" -ForegroundColor Red
-    exit $LASTEXITCODE
+$pullExit = $LASTEXITCODE
+if ($pullExit -ne 0) {
+    Write-Host "[8AM UPDATE] git pull failed (exit $pullExit); leaving pre-pull stash (if any) intact." -ForegroundColor Red
+    exit $pullExit
+}
+if ($didStash) {
+    git stash pop 2>&1 | ForEach-Object { Write-Host "    stash pop: $_" -ForegroundColor DarkGray }
+    $popExit = $LASTEXITCODE
+    $unmergedAfter = @(git ls-files -u 2>$null)
+    if ($popExit -ne 0 -or $unmergedAfter.Count -gt 0) {
+        Write-Host "[8AM UPDATE] FAILED: stash pop left conflicts; aborting (stash kept)." -ForegroundColor Red
+        $unmergedAfter | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        exit 128
+    }
 }
 
 Write-Host "[8AM UPDATE] Running line-move refresh (RunLabel 8AM)..." -ForegroundColor Cyan

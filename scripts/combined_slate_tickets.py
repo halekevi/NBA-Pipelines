@@ -1166,6 +1166,7 @@ def _compute_power_min_guarantee(legs: list, n_legs: int) -> tuple[float, int]:
 
 
 # Live PP floors for UI when CDP / rate card unavailable (from mix-grid 2026-07-11).
+# Only used when PROPORACLE_REQUIRE_LIVE_PAYOUT=0 (legacy / offline backtests).
 MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
     # (n_legs, n_goblin) -> power_min_x
     (2, 0): 3.0,   # 2S
@@ -1175,6 +1176,17 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
     (3, 1): 4.75,  # 1G+2S
     (3, 2): 4.0,   # 2G+1S
 }
+
+
+def require_live_payout_display() -> bool:
+    """
+    When True (default), board display floors must come from live_cdp.
+    Mix-grid / model fallbacks are not stamped as display_min_x.
+    Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0 to restore legacy estimate floors.
+    """
+    raw = (os.getenv("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1").strip().lower()
+    return raw not in ("0", "false", "no", "off")
+
 
 
 def _load_live_composition_floors() -> dict[tuple[int, int], float]:
@@ -1260,16 +1272,32 @@ def _commit_display_min_x(ticket: dict, pay: dict, min_x: float, source: str) ->
     return ticket
 
 
+def _commit_pending_live_payout(ticket: dict, pay: dict) -> dict:
+    """No live CDP yet — do not invent mix/fallback display floors."""
+    pay = dict(pay) if isinstance(pay, dict) else {}
+    pay["payout_source"] = "pending_live"
+    pay.pop("display_min_x", None)
+    # Keep model_* for analytics only; clear board-facing floor.
+    ticket.pop("display_min_x", None)
+    ticket["payout"] = pay
+    return ticket
+
+
 def attach_display_min_x(ticket: dict) -> dict:
     """
-    Set payout.display_min_x + payout.payout_source with fallback hierarchy:
-      1. live_cdp (power_min_x from --tickets capture — scraped PP min guarantee)
-      2. rate_card (payout_rate_card.json + line_distance)
-      3. mix_grid_average (hardcoded 2G/1G+1S/2S floors)
-      4. fallback_estimate (model min_payout_x / power_payout)
+    Set payout.display_min_x + payout.payout_source.
 
-    Power EV is always recomputed as P(all) * display_min_x - 1 so the board
-    uses the scrape/rate-card min guarantee, not the modeled Standard sweep.
+    Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1):
+      1. live_cdp only
+      else pending_live (no fake floor)
+
+    Legacy (PROPORACLE_REQUIRE_LIVE_PAYOUT=0):
+      1. live_cdp
+      2. rate_card
+      3. mix_grid_average
+      4. fallback_estimate
+
+    Power EV is recomputed as P(all) * display_min_x - 1 when a live floor exists.
     """
     if not isinstance(ticket, dict):
         return ticket
@@ -1292,16 +1320,20 @@ def attach_display_min_x(ticket: dict) -> dict:
         keep = live_v if live_v is not None else disp_v
         if keep is not None:
             return _commit_display_min_x(ticket, pay, keep, "live_cdp")
-    if live_v is not None and src_now in ("", "live_cdp"):
-        # power_min_x present from capture even if source blank
-        disp = disp_v if disp_v is not None else live_v
+    if live_v is not None and src_now in ("", "live_cdp", "pending_live"):
+        # power_min_x present from capture even if source blank / pending
+        disp = disp_v if disp_v is not None and src_now == "live_cdp" else live_v
         return _commit_display_min_x(ticket, pay, float(disp), "live_cdp")
+
+    # Live-only board: stop here — no mix-grid / model fake floors.
+    if require_live_payout_display():
+        return _commit_pending_live_payout(ticket, pay)
 
     legs = _ticket_legs_for_display_payout(ticket)
     n = len(legs) or int(ticket.get("n_legs") or ticket.get("size") or 0)
     g_count = _count_goblin_legs(legs)
 
-    # 2) Live rate card
+    # 2) Live rate card (legacy path only)
     fitted = _load_live_payout_rate_card()
     if fitted and n >= 2 and legs:
         try:
@@ -2238,6 +2270,10 @@ def filter_web_tickets_for_ui(
     """Build /tickets JSON groups: optional positive-EV gate, then optional WEB_TICKET_TEMPLATE quotas."""
     groups_in = list(payload.get("groups") or [])
     win_rate_main = _is_win_rate_main_web_payload(payload)
+    # Win-rate MAIN (high_prob_std_gob) optimizes hit rate; EV/3x gates are for EV boards.
+    # Applying them here wiped Jul-18 STRONG slips (mult unset → payout_below_3x).
+    if win_rate_main:
+        require_positive_ev = False
     skip_payout_gate = win_rate_main and not require_positive_ev
     out_groups: list[dict] = []
     sport_candidates: dict[str, tuple[tuple[float, int, float], dict, str]] = {}
@@ -2260,6 +2296,10 @@ def filter_web_tickets_for_ui(
             kept = []
             for t in tickets_in:
                 if not isinstance(t, dict):
+                    continue
+                # STRONG builder slips stay on MAIN regardless of EV/3x display gates.
+                if t.get("strong_builder"):
+                    kept.append(t)
                     continue
                 if not _ticket_passes_positive_ev_gate(t):
                     if discard_tracker is not None:
@@ -3549,6 +3589,10 @@ MIN_WEB_DISPLAY_EST_WIN_PROB: float = 0.06
 # /tickets: hard floor for displayed/generated slip payout multipliers.
 MIN_WEB_PAYOUT_X: float = 3.0
 MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 2.0
+# MAIN web preference: show ≥2x when any qualify; keep <2x only if nothing hits the floor.
+MAIN_PREFERRED_MIN_PAYOUT_X: float = float(
+    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "2.0")
+)
 DEBUG_PAYOUT_DIAGNOSTIC: bool = os.getenv("PROPORACLE_DEBUG_PAYOUT", "false").lower() == "true"
 
 # /tickets page target volumes per sport after EV gate.
@@ -4961,24 +5005,85 @@ MAIN_BANNED_GOBLIN_PROP_NORMS: dict[str, frozenset[str]] = {
     "TENNIS": frozenset({"aces", "doublefaults", "doublefault"}),
     # Soccer Goblin OVER is not globally banned — soccer_allowed_leg keeps HQ OVER
     # (UNDER preferred) so Goblins ship like other sports.
+    # MLB: Jul-18 miss engine was Hits / TB / H+R+RBI Goblin OVER 0.5 on long tickets.
+    # Prefer pitcher props (same allowlist philosophy as STRONG).
+    "MLB": frozenset(
+        {
+            "hits",
+            "totalbases",
+            "hitsrunsrbis",
+            "hitsrunsrebis",
+            "hitrbis",
+            "runs",
+            "rbi",
+            "rbis",
+            "homeruns",
+            "hr",
+            "stolenbases",
+            "sb",
+            "doubles",
+            "singles",
+            "triples",
+            "hitterstrikeouts",
+            "batterstrikeouts",
+        }
+    ),
 }
+
+# MLB Goblin OVER props still allowed on MAIN (pitcher-centric).
+MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS: frozenset[str] = frozenset(
+    {
+        "strikeouts",  # pitcher Ks when not tagged hitter/batter
+        "pitchesthrown",
+        "pitchingouts",
+        "earnedrunsallowed",
+        "hitsallowed",
+        "walksallowed",
+        "outs",
+        "pitchingstrikeouts",
+    }
+)
 
 
 def _norm_main_prop_key(prop: object) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(prop or "").strip().lower())
 
 
+def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:
+    """True for MLB counting props that drove Jul-18 OVER 0.5 miss volume."""
+    if not prop_norm:
+        return False
+    if prop_norm in MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS:
+        return False
+    return prop_norm in MAIN_BANNED_GOBLIN_PROP_NORMS.get("MLB", frozenset())
+
+
 def _main_leg_prop_banned(row_d: dict) -> bool:
     """True when sport×pick×prop is a known low-HR MAIN ban."""
     sport = str(row_d.get("sport") or "").strip().upper()
     pick = str(row_d.get("pick_type") or "").strip().lower()
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
+    if sport == "MLB" and "goblin" in pick and direction == "OVER":
+        # Hard-ban hitter core Goblin OVERs (Hits/TB/HRRBI/…). Pitcher allowlist only.
+        if not prop:
+            return True
+        if prop in MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS:
+            return False
+        if prop in MAIN_BANNED_GOBLIN_PROP_NORMS.get("MLB", frozenset()):
+            return True
+        # Unknown MLB Goblin OVER prop: ban (fail closed toward pitcher-centric board).
+        return True
     if "goblin" not in pick:
         return False
     banned = MAIN_BANNED_GOBLIN_PROP_NORMS.get(sport)
     if not banned:
         return False
-    prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
     return bool(prop) and prop in banned
+
+
 # Cap per-leg factor in p_win product — l5_over_proxy can return 0.99 on hot streaks (artifact).
 MAX_LEG_PROB_FOR_P_WIN = 0.72
 # Deep bench legs: L5 "5/5 over" on 0.5 Goblin lines is not a trustworthy parlay factor.
@@ -5411,11 +5516,17 @@ def _row_win_rate_eligible(
     if leg_prob < float(min_leg_prob):
         return False
     # MLB Goblin OVER: higher floors — Jul 2026 miss anatomy + ml_prob overconfidence.
+    # (Hitter core Goblin OVERs are hard-banned in _main_leg_prop_banned.)
     sport_early = str(row_d.get("sport") or "").strip().upper()
     direction_early = str(
         row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
     ).strip().upper()
-    if sport_early == "MLB" and pt == "goblin" and direction_early == "OVER":
+    pt_l = pt
+    if sport_early == "MLB" and "standard" in pt_l and "goblin" not in pt_l:
+        # Jul-18 MLB Standard tickets ~4% WR — drop Standard OVER; allow UNDER only.
+        if direction_early == "OVER":
+            return False
+    if sport_early == "MLB" and pt_l == "goblin" and direction_early == "OVER":
         prop_n = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
         mlb_floor = float(MAIN_MLB_GOBLIN_MIN_LEG_PROB)
         if prop_n in MAIN_MLB_GOBLIN_STRESS_PROP_NORMS:
@@ -5557,6 +5668,48 @@ def _winrate_ticket_same_game_bench_stack(ticket: dict) -> bool:
     return False
 
 
+def _winrate_leg_is_mlb_hitter_prop(leg: dict) -> bool:
+    if str(leg.get("sport") or "").strip().upper() != "MLB":
+        return False
+    prop = _norm_main_prop_key(leg.get("prop_type") or leg.get("prop") or "")
+    return _main_mlb_prop_is_hitter_core(prop)
+
+
+def _winrate_ticket_mlb_same_game_hitter_stack(ticket: dict) -> bool:
+    """
+    Reject MAIN tickets with 2+ MLB hitter props from the same game (or same team).
+    Jul-18: correlated hitter OVER stacks died together on long MLB Goblin slips.
+    """
+    legs = [leg for leg in (ticket.get("legs") or ticket.get("rows") or []) if isinstance(leg, dict)]
+    mlb_hitters = [leg for leg in legs if _winrate_leg_is_mlb_hitter_prop(leg)]
+    if len(mlb_hitters) < 2:
+        return False
+    by_game: dict[str, int] = {}
+    by_team: dict[str, int] = {}
+    for leg in mlb_hitters:
+        team = str(leg.get("team") or "").strip().upper()
+        opp = str(leg.get("opp") or leg.get("opp_team") or "").strip().upper()
+        if team and opp:
+            gk = "|".join(sorted([team, opp]))
+            by_game[gk] = by_game.get(gk, 0) + 1
+        if team:
+            by_team[team] = by_team.get(team, 0) + 1
+    if any(n >= 2 for n in by_game.values()):
+        return True
+    if any(n >= 2 for n in by_team.values()):
+        return True
+    return False
+
+
+def _winrate_ticket_construction_reject(ticket: dict) -> bool:
+    """Hard construction rejects for MAIN/win-rate pick loop."""
+    if _winrate_ticket_same_game_bench_stack(ticket):
+        return True
+    if _winrate_ticket_mlb_same_game_hitter_stack(ticket):
+        return True
+    return False
+
+
 def _winrate_ticket_win_prob(ticket: dict) -> float:
     """Modeled probability ticket wins (power = all legs hit), not payout/cash EV."""
     for key in ("est_win_prob", "p_win", "combined_hit_prob_curve"):
@@ -5575,7 +5728,7 @@ def _winrate_ticket_win_prob(ticket: dict) -> float:
 def _winrate_ticket_rank_score(ticket: dict) -> float:
     """Panel/build sort: highest modeled win probability (not ticket_model_p_cash)."""
     v = _winrate_ticket_win_prob(ticket)
-    if _winrate_ticket_same_game_bench_stack(ticket):
+    if _winrate_ticket_construction_reject(ticket):
         v *= 0.85
     return v
 
@@ -5831,7 +5984,7 @@ def build_win_rate_ticket_groups(
                     continue
                 if not thin_pool and target_n == MAIN_GRADED_MIN_LEGS:
                     continue
-                if _winrate_ticket_same_game_bench_stack(t):
+                if _winrate_ticket_construction_reject(t):
                     continue
                 if any(_leg_dnp_risk(r) for r in rows):
                     continue
@@ -5853,7 +6006,7 @@ def build_win_rate_ticket_groups(
                 rows = [dict(r) for r in (t.get("rows") or [])]
                 if len(rows) != target_n:
                     continue
-                if _winrate_ticket_same_game_bench_stack(t):
+                if _winrate_ticket_construction_reject(t):
                     continue
                 if any(_leg_dnp_risk(r) for r in rows):
                     continue
@@ -5870,7 +6023,7 @@ def build_win_rate_ticket_groups(
     for t in candidates:
         if prefer_three_leg and not thin_pool and len(t.get("rows") or []) == MAIN_GRADED_MIN_LEGS:
             continue
-        if _winrate_ticket_same_game_bench_stack(t):
+        if _winrate_ticket_construction_reject(t):
             continue
         rows = [dict(r) for r in (t.get("rows") or [])]
         if not _ticket_passes_main_four_leg_gate(rows):
@@ -7316,7 +7469,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
             rec = str((pay or {}).get("recommendation") or "").strip().upper()
             if MAIN_REQUIRE_STRONG_OK and rec not in ("STRONG", "OK"):
                 continue
-            if _winrate_ticket_same_game_bench_stack(t):
+            if _winrate_ticket_construction_reject(t):
                 continue
             candidates.append((p_win, dict(t), g))
     candidates.sort(key=lambda x: (-x[0], str(x[2].get("group_name") or "")))
@@ -8480,6 +8633,103 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
         out["pool_mode"] = "goblin_only_3leg"
     else:
         out["pool_mode"] = mode or MAIN_POOL_MODE
+    return out
+
+
+def _ticket_board_payout_x(ticket: dict) -> float | None:
+    """Board min-guarantee multiplier (display_min_x), with payout-block fallbacks."""
+    if not isinstance(ticket, dict):
+        return None
+    pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
+    for raw in (
+        pay.get("display_min_x"),
+        ticket.get("display_min_x"),
+        pay.get("power_min_x"),
+        pay.get("min_guarantee"),
+        pay.get("min_payout_x"),
+        pay.get("payout"),
+    ):
+        v = _safe_positive_float(raw)
+        if v is not None:
+            return v
+    return None
+
+
+def _ticket_has_live_cdp_payout(ticket: dict) -> bool:
+    pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
+    src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if src == "live_cdp":
+        return True
+    return _safe_positive_float(pay.get("power_min_x")) is not None and src in ("", "live_cdp")
+
+
+def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
+    """
+    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 2.0).
+
+    STRONG builder slips always stay (even below the floor). Non-STRONG below-floor
+    slips are deferred when anything preferred (STRONG or ≥2x) remains.
+
+    When PROPORACLE_REQUIRE_LIVE_PAYOUT=1, non-STRONG without live_cdp are deferred.
+    """
+    floor = float(MAIN_PREFERRED_MIN_PAYOUT_X)
+    require_live = require_live_payout_display()
+    if floor <= 0 and not require_live:
+        return groups
+    preferred: list[dict] = []
+    n_keep = n_defer = 0
+    for g in groups:
+        if not isinstance(g, dict):
+            continue
+        keep_tickets: list[dict] = []
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            if t.get("strong_builder"):
+                keep_tickets.append(t)
+                n_keep += 1
+                continue
+            if require_live and not _ticket_has_live_cdp_payout(t):
+                n_defer += 1
+                continue
+            if floor <= 0:
+                keep_tickets.append(t)
+                n_keep += 1
+                continue
+            px = _ticket_board_payout_x(t)
+            if px is not None and px + 1e-9 >= floor:
+                keep_tickets.append(t)
+                n_keep += 1
+            else:
+                n_defer += 1
+        if keep_tickets:
+            ng = dict(g)
+            ng["tickets"] = keep_tickets
+            ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(keep_tickets[0], ng))
+            preferred.append(ng)
+    if preferred:
+        if n_defer:
+            print(
+                f"  [web] last filter: prefer ≥{floor:g}x"
+                f"{' + live_cdp' if require_live else ''} (STRONG always kept) — "
+                f"kept {n_keep} slips, deferred {n_defer}"
+            )
+        return preferred
+    return groups
+
+
+def prefer_main_min_payout_payload(payload: dict) -> dict:
+    """
+    Final MAIN/web filter: prefer ≥ MAIN_PREFERRED_MIN_PAYOUT_X; STRONG always kept.
+
+    Must run after display payouts are finalized so display_min_x is authoritative.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    out = dict(payload)
+    groups = list(out.get("groups") or [])
+    out["groups"] = _prefer_main_payout_floor_groups(groups)
+    out["preferred_min_payout_x"] = float(MAIN_PREFERRED_MIN_PAYOUT_X)
     return out
 
 
@@ -10260,6 +10510,8 @@ def write_web_outputs(
         apply_slate_ev_tier_recommendations(payload)
         _preserve_live_cdp_from_existing_web_json(payload, json_path)
         finalize_payload_display_payouts(payload)
+        if Path(str(json_filename or "tickets_latest.json")).name == "tickets_latest.json":
+            payload = prefer_main_min_payout_payload(payload)
         payload = _sanitize_for_json(payload)
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
@@ -10296,6 +10548,9 @@ def write_web_outputs(
     # Always harvest live floors from the file we are about to overwrite (same date).
     _preserve_live_cdp_from_existing_web_json(payload, json_path)
     finalize_payload_display_payouts(payload)
+    # Last filter: prefer ≥2x after all other gates + display floors are final.
+    if Path(str(json_filename or "tickets_latest.json")).name == "tickets_latest.json":
+        payload = prefer_main_min_payout_payload(payload)
     payload = _sanitize_for_json(payload)
     # Stamp run_id on live JSON when the full export already assigned one.
     if not payload.get("run_id"):
@@ -20976,7 +21231,7 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            if _winrate_ticket_same_game_bench_stack(t):
+            if _winrate_ticket_construction_reject(t):
                 continue
             if any(_winrate_leg_bench_risk(leg) for leg in (t.get("legs") or []) if isinstance(leg, dict)):
                 continue

@@ -64,12 +64,29 @@ def test_goblin_only_excludes_standard():
 
 
 def test_high_prob_allows_standard_ab():
-    std_a = _leg(pick_type="Standard", tier="A")
-    std_c = _leg(pick_type="Standard", tier="C")
+    # UNDER Standard skips the elite-OVER gate; still requires A/B tier.
+    std_a = _leg(pick_type="Standard", tier="A", direction="UNDER")
+    std_c = _leg(pick_type="Standard", tier="C", direction="UNDER")
     gob = _leg(pick_type="Goblin", tier="B")
     assert _row_win_rate_eligible(std_a, min_leg_prob=0.62, min_composite_hr=0.55)
     assert _row_win_rate_eligible(gob, min_leg_prob=0.62, min_composite_hr=0.55)
     assert not _row_win_rate_eligible(std_c, min_leg_prob=0.62, min_composite_hr=0.55)
+
+
+def test_mlb_standard_over_rejected_in_main_pool():
+    mlb_std_over = _leg(
+        sport="MLB",
+        pick_type="Standard",
+        tier="A",
+        direction="OVER",
+        prop_type="Hits",
+        composite_hit_rate=0.80,
+        hit_rate=0.80,
+        ml_prob=0.80,
+    )
+    assert not _row_win_rate_eligible(
+        mlb_std_over, min_leg_prob=0.62, min_composite_hr=0.55
+    )
 
 
 def test_four_leg_gate_requires_tier_a_hot_hr():

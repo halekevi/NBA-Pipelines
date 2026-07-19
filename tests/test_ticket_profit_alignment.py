@@ -27,29 +27,94 @@ def test_main_max_legs_default_is_three():
     assert cst.MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB >= 0.72
 
 
-def test_mlb_goblin_hits_need_stress_floor():
+def test_mlb_goblin_hits_banned_on_main():
+    """Jul-18 miss engine: Hits/TB Goblin OVER no longer eligible for MAIN."""
     row = {
         "sport": "MLB",
         "pick_type": "goblin",
         "tier": "A",
         "direction": "OVER",
         "prop_type": "Hits",
-        "composite_hit_rate": 0.69,
-        "hit_rate": 0.69,
-        "ml_prob": 0.69,
-        "l5_over": 4,
-        "l5_under": 1,
+        "composite_hit_rate": 0.85,
+        "hit_rate": 0.85,
+        "ml_prob": 0.85,
+        "l5_over": 5,
+        "l5_under": 0,
     }
-    # Below stress floor 0.72
+    assert cst._main_leg_prop_banned(row)
     assert not cst._row_win_rate_eligible(
         row, min_leg_prob=0.62, min_composite_hr=0.55
     )
+    row["prop_type"] = "Total Bases"
+    assert not cst._row_win_rate_eligible(
+        row, min_leg_prob=0.62, min_composite_hr=0.55
+    )
+    # Pitcher K Goblin OVER still allowed above MLB stress floor (strikeouts is stressed).
+    row["prop_type"] = "Strikeouts"
     row["composite_hit_rate"] = 0.73
     row["hit_rate"] = 0.73
     row["ml_prob"] = 0.73
+    assert not cst._main_leg_prop_banned(row)
     assert cst._row_win_rate_eligible(
         row, min_leg_prob=0.62, min_composite_hr=0.55
     )
+    # Pitching Outs allowed at base MLB Goblin floor 0.68.
+    row["prop_type"] = "Pitching Outs"
+    row["composite_hit_rate"] = 0.69
+    row["hit_rate"] = 0.69
+    row["ml_prob"] = 0.69
+    assert not cst._main_leg_prop_banned(row)
+    assert cst._row_win_rate_eligible(
+        row, min_leg_prob=0.62, min_composite_hr=0.55
+    )
+
+
+def test_mlb_standard_over_banned_on_main():
+    row = {
+        "sport": "MLB",
+        "pick_type": "standard",
+        "tier": "A",
+        "direction": "OVER",
+        "prop_type": "Hits",
+        "composite_hit_rate": 0.80,
+        "hit_rate": 0.80,
+        "ml_prob": 0.80,
+        "l5_over": 4,
+        "l5_under": 1,
+    }
+    assert not cst._row_win_rate_eligible(
+        row, min_leg_prob=0.62, min_composite_hr=0.55
+    )
+
+
+def test_mlb_same_game_hitter_stack_rejected():
+    ticket = {
+        "legs": [
+            {
+                "sport": "MLB",
+                "team": "NYY",
+                "opp": "BOS",
+                "prop_type": "Hits",
+                "player": "A",
+            },
+            {
+                "sport": "MLB",
+                "team": "NYY",
+                "opp": "BOS",
+                "prop_type": "Total Bases",
+                "player": "B",
+            },
+            {
+                "sport": "MLB",
+                "team": "LAD",
+                "opp": "SF",
+                "prop_type": "Strikeouts",
+                "player": "C",
+            },
+        ]
+    }
+    assert cst._winrate_ticket_mlb_same_game_hitter_stack(ticket)
+    assert cst._winrate_ticket_construction_reject(ticket)
 
 
 def test_strong_builder_excludes_mlb_hits_prop():

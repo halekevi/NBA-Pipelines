@@ -5677,8 +5677,10 @@ def _winrate_leg_is_mlb_hitter_prop(leg: dict) -> bool:
 
 def _winrate_ticket_mlb_same_game_hitter_stack(ticket: dict) -> bool:
     """
-    Reject MAIN tickets with 2+ MLB hitter props from the same game (or same team).
-    Jul-18: correlated hitter OVER stacks died together on long MLB Goblin slips.
+    Audit helper: 2+ MLB hitter props from the same game (or same team).
+
+    Not a hard MAIN reject — Jul 14–18 rebuild showed this gate adds no lift once
+    hitter Goblin OVER props are already banned at the leg pool.
     """
     legs = [leg for leg in (ticket.get("legs") or ticket.get("rows") or []) if isinstance(leg, dict)]
     mlb_hitters = [leg for leg in legs if _winrate_leg_is_mlb_hitter_prop(leg)]
@@ -5702,12 +5704,8 @@ def _winrate_ticket_mlb_same_game_hitter_stack(ticket: dict) -> bool:
 
 
 def _winrate_ticket_construction_reject(ticket: dict) -> bool:
-    """Hard construction rejects for MAIN/win-rate pick loop."""
-    if _winrate_ticket_same_game_bench_stack(ticket):
-        return True
-    if _winrate_ticket_mlb_same_game_hitter_stack(ticket):
-        return True
-    return False
+    """Hard construction rejects for MAIN/win-rate pick loop (bench correlation only)."""
+    return _winrate_ticket_same_game_bench_stack(ticket)
 
 
 def _winrate_ticket_win_prob(ticket: dict) -> float:

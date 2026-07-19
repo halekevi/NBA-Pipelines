@@ -146,7 +146,10 @@ POLICIES: dict[str, Any] = {
     "full_hitter_gob_over_ban": lambda f: not f["has_banned_gob_over"],
     "plus_mlb_std_over_ban": lambda f: (not f["has_banned_gob_over"])
     and (not f["has_mlb_std_over"]),
+    # Production after backtest: prop bans only (stack reject demoted to audit).
     "current_shipped": lambda f: (not f["has_banned_gob_over"])
+    and (not f["has_mlb_std_over"]),
+    "with_stack_reject": lambda f: (not f["has_banned_gob_over"])
     and (not f["has_mlb_std_over"])
     and (not f["sg_hitter_stack"]),
     "pitcher_only_mlb_legs": lambda f: (not f["has_any_mlb_hitter"])
@@ -567,7 +570,8 @@ def main() -> int:
             "narrow_hitter_gob_over_ban": "Drop tickets with Hits/TB/HRRBI/hitterK Goblin OVER",
             "full_hitter_gob_over_ban": "Drop tickets with any non-pitcher MLB Goblin OVER",
             "plus_mlb_std_over_ban": "Full hitter Goblin OVER ban + MLB Standard OVER ban",
-            "current_shipped": "Shipped rules: full ban + std OVER ban + same-game hitter stack reject",
+            "current_shipped": "Production: prop bans only (stack reject is audit-only)",
+            "with_stack_reject": "Prop bans + same-game hitter stack reject (ablation; no rebuild lift)",
             "pitcher_only_mlb_legs": "Stricter: no MLB hitter props at all + no MLB Standard OVER",
         },
         "aggregate": {

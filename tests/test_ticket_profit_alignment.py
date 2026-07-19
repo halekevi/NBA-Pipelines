@@ -87,7 +87,8 @@ def test_mlb_standard_over_banned_on_main():
     )
 
 
-def test_mlb_same_game_hitter_stack_rejected():
+def test_mlb_same_game_hitter_stack_is_audit_only():
+    """Stack detector still flags correlated hitters; construction no longer rejects on it."""
     ticket = {
         "legs": [
             {
@@ -114,7 +115,7 @@ def test_mlb_same_game_hitter_stack_rejected():
         ]
     }
     assert cst._winrate_ticket_mlb_same_game_hitter_stack(ticket)
-    assert cst._winrate_ticket_construction_reject(ticket)
+    assert not cst._winrate_ticket_construction_reject(ticket)
 
 
 def test_strong_builder_excludes_mlb_hits_prop():

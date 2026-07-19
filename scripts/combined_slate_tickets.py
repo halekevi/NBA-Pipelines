@@ -5084,6 +5084,45 @@ def _main_leg_prop_banned(row_d: dict) -> bool:
     return bool(prop) and prop in banned
 
 
+def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
+    """MLB Standard OVER — Jul-18 ~4–6% WR on graded boards."""
+    sport = str(row_d.get("sport") or "").strip().upper()
+    if sport != "MLB":
+        return False
+    pick = str(row_d.get("pick_type") or "").strip().lower()
+    if "standard" not in pick or "goblin" in pick:
+        return False
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    return direction == "OVER"
+
+
+def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
+    """
+    Shared hygiene for MAIN / FINAL / long-parlay builders:
+    banned MLB Goblin OVER props + MLB Standard OVER.
+    """
+    if isinstance(row_d, pd.Series):
+        row_d = row_d.to_dict()
+    else:
+        row_d = dict(row_d)
+    return _main_leg_prop_banned(row_d) or _leg_mlb_standard_over_banned(row_d)
+
+
+def _ticket_rows_mlb_construction_banned(rows: list) -> bool:
+    return any(
+        _leg_mlb_construction_banned(r if isinstance(r, dict) else dict(r))
+        for r in rows
+    )
+
+
+def _mlb_leg_sizes_capped(leg_sizes: list[int] | None) -> list[int]:
+    """MLB sheets never exceed MLB_MAX_LEGS (default 4)."""
+    sizes = list(leg_sizes) if leg_sizes is not None else list(TICKET_LEG_SIZES)
+    return [n for n in sizes if int(n) <= int(MLB_MAX_LEGS)]
+
+
 # Cap per-leg factor in p_win product — l5_over_proxy can return 0.99 on hot streaks (artifact).
 MAX_LEG_PROB_FOR_P_WIN = 0.72
 # Deep bench legs: L5 "5/5 over" on 0.5 Goblin lines is not a trustworthy parlay factor.
@@ -5477,7 +5516,8 @@ def _row_win_rate_eligible(
         row_d = dict(row)
     if graded_ctx and _row_in_avoid_slice(row_d, graded_ctx):
         return False
-    if _main_leg_prop_banned(row_d):
+    # Includes MLB Std OVER + MAIN banned Goblin props (MLB pitcher allowlist, Tennis, …).
+    if _leg_mlb_construction_banned(row_d):
         return False
     pt = str(row_d.get("pick_type") or "").strip().lower()
     tier = str(row_d.get("tier") or "").strip().upper()
@@ -5515,17 +5555,12 @@ def _row_win_rate_eligible(
     leg_prob = _leg_prob_for_p_win_from_mapping(row_d)
     if leg_prob < float(min_leg_prob):
         return False
-    # MLB Goblin OVER: higher floors — Jul 2026 miss anatomy + ml_prob overconfidence.
-    # (Hitter core Goblin OVERs are hard-banned in _main_leg_prop_banned.)
+    # MLB Goblin OVER: higher floors for remaining pitcher allowlist props.
     sport_early = str(row_d.get("sport") or "").strip().upper()
     direction_early = str(
         row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
     ).strip().upper()
     pt_l = pt
-    if sport_early == "MLB" and "standard" in pt_l and "goblin" not in pt_l:
-        # Jul-18 MLB Standard tickets ~4% WR — drop Standard OVER; allow UNDER only.
-        if direction_early == "OVER":
-            return False
     if sport_early == "MLB" and pt_l == "goblin" and direction_early == "OVER":
         prop_n = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
         mlb_floor = float(MAIN_MLB_GOBLIN_MIN_LEG_PROB)
@@ -7495,13 +7530,39 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
 
 def extract_long_parlay_payload(full_payload: dict) -> dict:
     """5–6 leg slips from the full EV export (separate grade track from main win-rate pool)."""
-    return filter_ticket_payload_by_leg_count(
+    long_p = filter_ticket_payload_by_leg_count(
         full_payload,
         min_legs=LONG_PARLAY_MIN_LEGS,
         max_legs=LONG_PARLAY_MAX_LEGS,
         ticket_track="long_parlay",
         payload_mode="long_parlay",
     )
+    return filter_payload_mlb_construction_hygiene(long_p)
+
+
+def filter_payload_mlb_construction_hygiene(payload: dict) -> dict:
+    """Drop slips that still carry banned MLB Goblin OVER / MLB Standard OVER legs."""
+    if not isinstance(payload, dict):
+        return payload
+    out = dict(payload)
+    new_groups: list[dict] = []
+    for g in out.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        kept: list[dict] = []
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            legs = [leg for leg in (t.get("legs") or t.get("rows") or []) if isinstance(leg, dict)]
+            if legs and _ticket_rows_mlb_construction_banned(legs):
+                continue
+            kept.append(t)
+        if kept:
+            ng = dict(g)
+            ng["tickets"] = kept
+            new_groups.append(ng)
+    out["groups"] = new_groups
+    return out
 
 
 def _main_track_wr_sport_frames(
@@ -8593,7 +8654,7 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
             n = len(legs)
             if n < MAIN_GRADED_MIN_LEGS or n > MAIN_GRADED_MAX_LEGS:
                 continue
-            if any(_main_leg_prop_banned(leg) for leg in legs):
+            if any(_leg_mlb_construction_banned(leg) for leg in legs):
                 continue
             leg_sports = {
                 str(leg.get("sport") or "").strip().upper()
@@ -13341,6 +13402,7 @@ class FunnelTracker:
         self.stage_order: list[str] = [
             "input",
             "after_prop_ban",
+            "after_mlb_construction_ban",
             "after_fantasy_score",
             "after_directional_l5_hr",
             "after_pick_type",
@@ -13524,6 +13586,12 @@ def filter_eligible(
     if "prop_type" in df.columns:
         prop_norm = df["prop_type"].apply(_norm_prop_label)
         _apply_gate(~prop_norm.isin(TICKET_EXCLUDED_PROPS), "prop_banned", "after_prop_ban")
+    # MLB construction hygiene (hitter Goblin OVER + Standard OVER) for FINAL/long/MAIN pools.
+    mlb_hygiene = df.apply(
+        lambda r: not _leg_mlb_construction_banned(r.to_dict()),
+        axis=1,
+    )
+    _apply_gate(mlb_hygiene, "mlb_construction_banned", "after_mlb_construction_ban")
     if "stat_coverage" in df.columns:
         cov = df["stat_coverage"].astype(str).str.strip().str.lower()
         _apply_gate(~cov.eq("unsupported"), "stat_coverage_unsupported", "after_stat_coverage")
@@ -15247,6 +15315,9 @@ def build_tickets(
         if not _ticket_players_unique(rows):
             continue
 
+        if _ticket_rows_mlb_construction_banned(rows):
+            continue
+
         key = frozenset(_leg_fp_tuple(r) for r in rows)
         if key in seen_ticket_keys:
             continue
@@ -15345,6 +15416,9 @@ def build_mixed_picktype_tickets(
             continue
 
         if not _ticket_players_unique(rows):
+            continue
+
+        if _ticket_rows_mlb_construction_banned(rows):
             continue
 
         key = frozenset(_leg_fp_tuple(r) for r in rows)
@@ -15621,8 +15695,9 @@ def build_final_web_ticket_groups(
     if mlb_pool is not None and len(mlb_pool):
         mlb_f = apply_filters(mlb_pool)
         mlb_mix, mlb_std, mlb_gob = _split_sg(mlb_f)
-        _add_mixed_std_gob(mlb_mix, "MLB")
-        _add_std_only(mlb_std, "MLB")
+        mlb_ls = _mlb_leg_sizes_capped(leg_sizes)
+        _add_mixed_std_gob(mlb_mix, "MLB", mlb_ls)
+        _add_std_only(mlb_std, "MLB", mlb_ls)
 
     mix_frames = [f for f in (nba_mix, cbb_mix, nhl_mix, soc_mix, ten_mix, mlb_mix) if len(f) > 0]
     if mix_frames:

@@ -87,6 +87,79 @@ def test_mlb_standard_over_banned_on_main():
     )
 
 
+def test_mlb_construction_ban_shared_across_builders():
+    hits_gob = {
+        "sport": "MLB",
+        "pick_type": "Goblin",
+        "direction": "OVER",
+        "prop_type": "Hits",
+    }
+    std_over = {
+        "sport": "MLB",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Hits",
+    }
+    pitcher = {
+        "sport": "MLB",
+        "pick_type": "Goblin",
+        "direction": "OVER",
+        "prop_type": "Pitching Outs",
+    }
+    assert cst._leg_mlb_construction_banned(hits_gob)
+    assert cst._leg_mlb_construction_banned(std_over)
+    assert not cst._leg_mlb_construction_banned(pitcher)
+    assert cst._mlb_leg_sizes_capped([2, 3, 4, 5, 6]) == [2, 3, 4]
+
+
+def test_filter_payload_mlb_construction_hygiene():
+    payload = {
+        "groups": [
+            {
+                "group_name": "MLB 5",
+                "tickets": [
+                    {
+                        "legs": [
+                            {
+                                "sport": "MLB",
+                                "pick_type": "Goblin",
+                                "direction": "OVER",
+                                "prop_type": "Hits",
+                            },
+                            {
+                                "sport": "MLB",
+                                "pick_type": "Goblin",
+                                "direction": "OVER",
+                                "prop_type": "Strikeouts",
+                            },
+                        ]
+                    },
+                    {
+                        "legs": [
+                            {
+                                "sport": "MLB",
+                                "pick_type": "Goblin",
+                                "direction": "OVER",
+                                "prop_type": "Strikeouts",
+                            },
+                            {
+                                "sport": "MLB",
+                                "pick_type": "Goblin",
+                                "direction": "OVER",
+                                "prop_type": "Pitching Outs",
+                            },
+                        ]
+                    },
+                ],
+            }
+        ]
+    }
+    out = cst.filter_payload_mlb_construction_hygiene(payload)
+    kept = out["groups"][0]["tickets"]
+    assert len(kept) == 1
+    assert kept[0]["legs"][0]["prop_type"] == "Strikeouts"
+
+
 def test_mlb_same_game_hitter_stack_is_audit_only():
     """Stack detector still flags correlated hitters; construction no longer rejects on it."""
     ticket = {

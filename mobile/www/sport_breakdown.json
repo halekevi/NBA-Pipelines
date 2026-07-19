@@ -24,17 +24,17 @@
     },
     {
       "sport": "WNBA",
-      "decided": 44827,
-      "paid": 20316,
-      "win_rate": 0.4532090035023535,
-      "net_dollars": -41950.0
+      "decided": 46350,
+      "paid": 21261,
+      "win_rate": 0.45870550161812296,
+      "net_dollars": -38280.0
     },
     {
       "sport": "MLB",
-      "decided": 426820,
-      "paid": 127935,
-      "win_rate": 0.29973993721006514,
-      "net_dollars": -1709500.0
+      "decided": 440502,
+      "paid": 131665,
+      "win_rate": 0.2988976213501868,
+      "net_dollars": -1771720.0
     },
     {
       "sport": "SOCCER",
@@ -45,10 +45,10 @@
     },
     {
       "sport": "TENNIS",
-      "decided": 19045,
-      "paid": 4848,
-      "win_rate": 0.2545550013126805,
-      "net_dollars": -93490.0
+      "decided": 19360,
+      "paid": 4987,
+      "win_rate": 0.25759297520661156,
+      "net_dollars": -93860.0
     },
     {
       "sport": "NHL",
@@ -133,10 +133,10 @@
     {
       "sport": "WNBA",
       "month": "2026-07",
-      "decided": 5388,
-      "paid": 3109,
-      "win_rate": 0.5770230141054195,
-      "net_dollars": 8300.0
+      "decided": 6911,
+      "paid": 4054,
+      "win_rate": 0.5866010707567646,
+      "net_dollars": 11970.0
     },
     {
       "sport": "WNBA",
@@ -157,10 +157,10 @@
     {
       "sport": "MLB",
       "month": "2026-07",
-      "decided": 69634,
-      "paid": 20491,
-      "win_rate": 0.2942671683373065,
-      "net_dollars": -286520.0
+      "decided": 83316,
+      "paid": 24221,
+      "win_rate": 0.2907124681933842,
+      "net_dollars": -348740.0
     },
     {
       "sport": "MLB",
@@ -237,10 +237,10 @@
     {
       "sport": "TENNIS",
       "month": "2026-07",
-      "decided": 3144,
-      "paid": 687,
-      "win_rate": 0.21851145038167938,
-      "net_dollars": -17700.0
+      "decided": 3459,
+      "paid": 826,
+      "win_rate": 0.23879734027175484,
+      "net_dollars": -18070.0
     },
     {
       "sport": "TENNIS",
@@ -300,5 +300,5 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=143:mt=1784189313415649100"
+  "signature": "n=146:mt=1784464856176286000"
 }

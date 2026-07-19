@@ -24,6 +24,7 @@
     },
     {
       "sport": "WNBA",
+<<<<<<< Updated upstream
       "decided": 46349,
       "paid": 21290,
       "win_rate": 0.4593410861075751,
@@ -35,6 +36,19 @@
       "paid": 133272,
       "win_rate": 0.29795501342532454,
       "net_dollars": -1807450.0
+=======
+      "decided": 46350,
+      "paid": 21261,
+      "win_rate": 0.45870550161812296,
+      "net_dollars": -38280.0
+    },
+    {
+      "sport": "MLB",
+      "decided": 440502,
+      "paid": 131665,
+      "win_rate": 0.2988976213501868,
+      "net_dollars": -1771720.0
+>>>>>>> Stashed changes
     },
     {
       "sport": "SOCCER",
@@ -45,10 +59,10 @@
     },
     {
       "sport": "TENNIS",
-      "decided": 19045,
-      "paid": 4848,
-      "win_rate": 0.2545550013126805,
-      "net_dollars": -93490.0
+      "decided": 19360,
+      "paid": 4987,
+      "win_rate": 0.25759297520661156,
+      "net_dollars": -93860.0
     },
     {
       "sport": "NHL",
@@ -133,10 +147,17 @@
     {
       "sport": "WNBA",
       "month": "2026-07",
+<<<<<<< Updated upstream
       "decided": 6910,
       "paid": 4083,
       "win_rate": 0.5908827785817655,
       "net_dollars": 12560.0
+=======
+      "decided": 6911,
+      "paid": 4054,
+      "win_rate": 0.5866010707567646,
+      "net_dollars": 11970.0
+>>>>>>> Stashed changes
     },
     {
       "sport": "WNBA",
@@ -157,10 +178,17 @@
     {
       "sport": "MLB",
       "month": "2026-07",
+<<<<<<< Updated upstream
       "decided": 90103,
       "paid": 25828,
       "win_rate": 0.2866497230946805,
       "net_dollars": -384470.0
+=======
+      "decided": 83316,
+      "paid": 24221,
+      "win_rate": 0.2907124681933842,
+      "net_dollars": -348740.0
+>>>>>>> Stashed changes
     },
     {
       "sport": "MLB",
@@ -237,10 +265,10 @@
     {
       "sport": "TENNIS",
       "month": "2026-07",
-      "decided": 3144,
-      "paid": 687,
-      "win_rate": 0.21851145038167938,
-      "net_dollars": -17700.0
+      "decided": 3459,
+      "paid": 826,
+      "win_rate": 0.23879734027175484,
+      "net_dollars": -18070.0
     },
     {
       "sport": "TENNIS",
@@ -300,6 +328,11 @@
     }
   ],
   "source": "graded_props_json",
+<<<<<<< Updated upstream
   "signature": "n=146:mt=1784437744625682600",
   "updated_at": "2026-07-19T05:16:17Z"
+=======
+  "signature": "n=146:mt=1784464856176286000",
+  "updated_at": "2026-07-19T12:52:01Z"
+>>>>>>> Stashed changes
 }

@@ -1679,7 +1679,7 @@ function renderRateCards(force){
   if(_rateCardsInFlight&&!force)return;
   _rateCardsInFlight=true;
   root.innerHTML='<div class="hint" style="padding:16px 0">Loading rate cards…</div>';
-  fetch('/api/payout/rate-cards').then(r=>{
+  fetch('payout_rate_cards.json', { cache: 'no-store' }).then(r=>{
     if(!r.ok)throw new Error('HTTP '+r.status+(r.status===404?' — run python scripts/build_payout_rate_cards.py':''));
     return r.json();
   }).then(data=>{

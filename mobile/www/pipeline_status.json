@@ -1,26 +1,43 @@
 {
   "nba": {
     "slate": {
+<<<<<<< Updated upstream
       "exists": true,
       "modified": "2026-07-19 14:58:44"
+=======
+      "exists": false,
+      "modified": ""
+>>>>>>> Stashed changes
     }
   },
   "nba1h": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   },
   "nba1q": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   },
   "cbb": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   },
   "cfb": {
@@ -32,19 +49,32 @@
   "nhl": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   },
   "soccer": {
     "slate": {
+<<<<<<< Updated upstream
       "exists": true,
       "modified": "2026-07-19 14:58:44"
+=======
+      "exists": false,
+      "modified": ""
+>>>>>>> Stashed changes
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   },
   "nfl": {
@@ -55,20 +85,33 @@
   },
   "tennis": {
     "slate": {
+<<<<<<< Updated upstream
       "exists": true,
       "modified": "2026-07-19 14:58:44"
+=======
+      "exists": false,
+      "modified": ""
+>>>>>>> Stashed changes
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   },
   "combined": {
     "slate": {
       "exists": true,
+<<<<<<< Updated upstream
       "modified": "2026-07-19 14:58:44"
+=======
+      "modified": "2026-07-19 13:51:44"
+>>>>>>> Stashed changes
     }
   }
 }

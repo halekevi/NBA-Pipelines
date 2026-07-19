@@ -1089,7 +1089,7 @@ body > nav.snav.glass-card {
 </style>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="static/mobile-content-width.css?v=20260716slatecards3"/>
-<link rel="stylesheet" href="static/matchup-edge.css?v=20260716me3"/>
+<link rel="stylesheet" href="static/matchup-edge.css?v=20260716me4"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260408"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
 </head>
@@ -2254,7 +2254,7 @@ body > nav.snav.glass-card {
   </details>
 
   <!-- HOT PLAYERS — consistency leaders on today's slate -->
-  <details class="home-cat" id="hot-players-cat">
+  <details class="home-cat" id="hot-players-cat" open>
     <summary><span class="home-cat-title">Hot <span>Players</span></span></summary>
     <div class="home-cat-body">
       <section class="hot-players-section" id="hot-players-section" style="display:none" aria-label="Hot players on today's slate">
@@ -2499,8 +2499,8 @@ body > nav.snav.glass-card {
     </div>
   </details>
 
-  <!-- TOP EDGES — collapsed by default to shorten page; expand when needed -->
-  <details class="home-cat" id="top-edges">
+  <!-- TOP EDGES — open by default so home cards are visible on first paint -->
+  <details class="home-cat" id="top-edges" open>
     <summary><span class="home-cat-title">Top <span>Edges</span></span></summary>
     <div class="home-cat-body">
   <div class="home-cat-flat" style="margin-bottom:12px;">
@@ -2532,7 +2532,7 @@ body > nav.snav.glass-card {
   </details>
 
   <!-- L5 STREAKS -->
-  <details class="home-cat">
+  <details class="home-cat" id="l5-streaks-cat" open>
     <summary><span class="home-cat-title">L5 <span>Streaks</span></span></summary>
     <div class="home-cat-body">
   <div class="home-cat-flat" style="margin-bottom:40px;">
@@ -2600,7 +2600,7 @@ body > nav.snav.glass-card {
 </div>
 
 <script src="static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="static/matchup-edge.js?v=20260604c" defer></script>
+<script src="static/matchup-edge.js?v=20260716me4" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -4477,6 +4477,23 @@ function renderEdges() {
   appendAll(gobO, og);
   if (us) appendUnderRows(underRows, us);
   wireEdgeCardExpandHandlers();
+  /* Hide empty bucket chrome so Top Edges doesn't look blank under full grids. */
+  const toggleBucket = (gridEl, hasCards) => {
+    if (!gridEl) return;
+    gridEl.hidden = !hasCards;
+    let label = gridEl.previousElementSibling;
+    while (label && label.classList && !label.classList.contains("edge-bucket-label") && !label.classList.contains("sub-header")) {
+      label = label.previousElementSibling;
+    }
+    if (label && label.classList.contains("edge-bucket-label")) label.hidden = !hasCards;
+  };
+  toggleBucket(os, stdO.length > 0);
+  toggleBucket(og, gobO.length > 0);
+  if (us) {
+    toggleBucket(us, underRows.length > 0);
+    const underHeader = us.parentElement && [...us.parentElement.querySelectorAll(".sub-header")].find((h) => /UNDER/i.test(h.textContent || ""));
+    if (underHeader) underHeader.hidden = underRows.length === 0;
+  }
   const emptyHost = document.getElementById("top-edges-empty");
   const anyCards = (stdO.length + gobO.length + underRows.length) > 0;
   if (!anyCards) {
@@ -5738,9 +5755,15 @@ function sortSlateDynamic(sport, key) {
   function collapseNonSlateSections() {
     const params = new URLSearchParams(window.location.search);
     const edgesDeepLink = params.get("section") === "edges";
+    /* Keep primary home data sections open — collapsing them made Hot Players /
+       Top Edges / L5 look empty even when cards had already loaded. */
+    const keepOpen = new Set(["slate-explorer", "hot-players-cat", "top-edges", "l5-streaks-cat"]);
+    if (edgesDeepLink) keepOpen.add("top-edges");
     document.querySelectorAll("details.home-cat").forEach((det) => {
-      if (det.id === "slate-explorer") return;
-      if (det.id === "top-edges" && edgesDeepLink) return;
+      if (keepOpen.has(det.id)) {
+        det.setAttribute("open", "");
+        return;
+      }
       det.removeAttribute("open");
     });
     document.getElementById("slate-explorer")?.setAttribute("open", "");

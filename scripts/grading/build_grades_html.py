@@ -2238,6 +2238,7 @@ header{background:transparent;border:none;border-radius:0;padding:12px 20px 0;di
 .date-badge{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2);background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spacing:1.5px}
 .main{max-width:none;width:100%;margin:0;padding:24px 20px;box-sizing:border-box}
+@media(max-width:768px){.main{padding:8px 12px 16px}}
 .sport-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;min-width:0}
 .sport-label{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;line-height:1;color:var(--gold);text-shadow:0 0 28px rgba(240,165,0,.18)}
 .sport-header-line{flex:1;min-width:80px;height:1px;background:rgba(255,255,255,0.08)}
@@ -2256,13 +2257,13 @@ border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spa
 .sport-collapsible>summary .sport-label::before{content:'▸ ';color:var(--gold)}
 .sport-collapsible[open]>summary .sport-label::before{content:'▾ '}
 .sport-collapsible .sport-section-body{padding-top:14px}
-.slate-sport-jump{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0 12px;margin:0 0 10px;background:rgba(10,10,20,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.slate-sport-jump{position:sticky;top:0;z-index:40;display:flex;flex-wrap:nowrap;gap:4px;align-items:center;padding:4px 0 6px;margin:0 0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgba(10,10,20,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
 .slate-sport-jump-label{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.6px;color:rgba(255,255,255,0.45);margin-right:4px}
-.slate-sport-jump-btn{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.72);border-radius:999px;padding:6px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
+.slate-sport-jump-btn{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.72);border-radius:999px;padding:5px 9px;min-height:36px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;white-space:nowrap}
 .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff;background:rgba(255,255,255,0.07)}
 .slate-sport-jump-btn.active{color:var(--gold);border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);box-shadow:0 0 14px rgba(240,165,0,0.12)}
 .slate-sport-jump-btn .sj-meta{opacity:0.7;font-size:11px}
-.sport-view-tabs{display:flex;flex-wrap:nowrap;gap:0;margin:0 0 14px;padding:3px;width:100%;max-width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:52px;z-index:30}
+.sport-view-tabs{display:flex;flex-wrap:nowrap;gap:0;margin:0 0 10px;padding:3px;width:100%;max-width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:0;z-index:30}
 .sport-view-tab{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 10px;min-height:34px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:13px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sport-view-tab:hover{color:rgba(255,255,255,0.9)}
 .sport-view-tab.active{color:#0a0a14;background:var(--gold);box-shadow:0 4px 14px rgba(240,165,0,0.25)}
@@ -2426,8 +2427,9 @@ td{padding:8px 8px}
 .sport-label{font-size:28px}
 .logo-title{font-size:24px}
 .two-col.pick-tier-split{grid-template-columns:1fr!important;gap:18px!important}
-.sport-view-tabs{top:46px;width:100%;max-width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
-.sport-view-tab{padding:8px 6px;font-size:11px;letter-spacing:0.7px;flex:unset;width:100%;min-width:0;text-align:center}
+.slate-sport-jump-label{display:none}
+.sport-view-tabs{top:0;width:100%;max-width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0}
+.sport-view-tab{padding:6px 8px;font-size:11px;letter-spacing:0.7px;flex:0 0 auto;min-width:0;min-height:36px;text-align:center}
 }
 /* Touch / hub iframe: BY PICK TYPE + BY TIER stack when viewport math is wrong (wide iframe on a phone). */
 @media(pointer:coarse){

@@ -1666,7 +1666,7 @@ select option,
 </style>
 <link rel="stylesheet" href="static/site-nav-unified.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260719gradesm2"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719vdense1"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260719gradesm2"/>
 </head>
 <body class="page-grades">
@@ -2656,7 +2656,7 @@ function ensureGradesToolbarStylesInFrame(doc) {
     const link = doc.createElement('link');
     link.id = 'grades-iframe-toolbar-link';
     link.rel = 'stylesheet';
-    link.href = 'static/grades-iframe-toolbar.css?v=20260719gradesm2';
+    link.href = 'static/grades-iframe-toolbar.css?v=20260719vdense1';
     doc.head.appendChild(link);
   }
   // Inline critical labels/chrome so missing/cached CSS cannot show double tab text.
@@ -3200,6 +3200,8 @@ function ensureFrameCollapseCss(doc) {
       margin-right:0;
       box-sizing:border-box;
       min-width:0;
+      padding-top:8px !important;
+      padding-bottom:12px !important;
       padding-left:max(14px, env(safe-area-inset-left, 0px)) !important;
       padding-right:max(14px, env(safe-area-inset-right, 0px)) !important;
     }
@@ -3328,10 +3330,10 @@ function ensureFrameCollapseCss(doc) {
     .slate-sport-jump-btn .sj-title{font-weight:600;}
     .slate-sport-jump-btn .sj-meta{opacity:0.72;font-size:11px;font-variant-numeric:tabular-nums;}
     .sport-view-tabs{
-      display:flex;flex-wrap:nowrap;gap:0;margin:0 0 14px;padding:3px;
+      display:flex;flex-wrap:nowrap;gap:0;margin:0 0 10px;padding:3px;
       width:100%;max-width:100%;box-sizing:border-box;
       border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);
-      position:sticky;top:52px;z-index:30;
+      position:sticky;top:0;z-index:30;
     }
     .sport-view-tab{
       appearance:none;border:none;background:transparent;
@@ -3379,15 +3381,16 @@ function ensureFrameCollapseCss(doc) {
     @media(max-width:768px){
       .slate-day-glance{padding:10px 12px;gap:8px 10px;}
       .slate-day-glance-hint{width:100%;margin-left:0;}
-      .slate-sport-jump{gap:6px;padding:6px 0 10px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
-      .slate-sport-jump-btn{flex:0 0 auto;white-space:nowrap;min-height:40px;padding:8px 12px;}
+      .slate-sport-jump{gap:4px;padding:4px 0 6px;margin:0 0 4px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+      .slate-sport-jump-btn{flex:0 0 auto;white-space:nowrap;min-height:36px;padding:5px 9px;}
+      .slate-sport-jump-label{display:none;}
       .sport-view-tabs{
-        top:46px;width:100%;max-width:100%;
-        display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;
+        top:0;width:100%;max-width:100%;
+        display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;
       }
       .sport-view-tab{
-        padding:8px 6px;font-size:11px;letter-spacing:0.7px;
-        flex:unset;width:100%;min-width:0;text-align:center;
+        padding:6px 8px;font-size:11px;letter-spacing:0.7px;
+        flex:0 0 auto;min-width:0;min-height:36px;text-align:center;
       }
       .sport-expand-hint{display:none;}
     }

@@ -10,7 +10,7 @@
   --po-mobile-bottom-bar-bg: rgba(12, 12, 20, 0.94);
   --po-mobile-bottom-bar-border: rgba(255, 255, 255, 0.12);
   --po-mobile-bottom-bar-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
-  --po-mobile-nav-clearance: calc(82px + env(safe-area-inset-bottom, 0px));
+  --po-mobile-nav-clearance: calc(64px + env(safe-area-inset-bottom, 0px));
   --po-mobile-body-pad-extra: calc(74px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -363,20 +363,37 @@ nav.snav.glass-card {
     margin-right: 0 !important;
   }
 
-  /* Horizontal scroll */
+  /* Horizontal scroll — pills strip only, not the whole date bar */
   .slate-table-wrap,
   .log-table-wrap,
   #combo-table-wrap,
-  .date-pills,
-  .date-bar,
-  .tabs-bar {
+  .date-pills {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
   }
 
-  /* Grades hub: tabs are equal-width flex cells — no sideways strip */
-  body.page-grades .iframe-shell-toolbar .tabs-bar {
+  body.page-grades .date-bar {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body.page-grades .date-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    min-width: 0 !important;
+  }
+
+  /* Grades hub: tabs are a 2×2 / 4-col grid — never a sideways strip */
+  body.page-grades .iframe-shell-toolbar .tabs-bar,
+  body.page-grades .tabs-bar {
     overflow-x: visible !important;
+    overflow-y: visible !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   body.page-tickets {
@@ -480,42 +497,23 @@ table.grades-table th {
 }
 
 @media (max-width: 768px) {
-  .grades-json-wrap .grades-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .grades-json-wrap table.grades-table {
-    min-width: 520px;
-  }
   /* Scoped: do not use global .hide-mobile (ticket legs use it differently). */
   .grades-json-wrap table.grades-table .hide-mobile {
     display: none !important;
   }
-  /* Explicit: Type / Tier columns (some layouts still showed label cells). */
   .grades-json-wrap table.grades-table th.gcol-type,
   .grades-json-wrap table.grades-table th.gcol-tier,
   .grades-json-wrap table.grades-table td.gcol-type,
   .grades-json-wrap table.grades-table td.gcol-tier {
     display: none !important;
   }
-}
 
-@media (max-width: 480px) {
-  .grades-json-wrap .grades-sport-summary {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px;
-  }
-  .grades-json-wrap .grades-sport-summary .grades-sport-card {
-    width: 100% !important;
-    min-width: 0;
-  }
-
+  /* Phone/tablet: card rows instead of a sideways table. */
   .grades-json-wrap .grades-table-wrapper {
     overflow-x: visible;
+    max-width: 100%;
   }
 
-  /* Grades cards: block layout (no CSS grid on tr/td — avoids invisible cells). */
   .grades-json-wrap table.grades-table,
   .grades-json-wrap table.grades-table tbody,
   .grades-json-wrap table.grades-table tr.grade-row {
@@ -627,12 +625,17 @@ table.grades-table th {
   .grades-json-wrap table.grades-table td.hide-mobile {
     display: none !important;
   }
-  /* Belt-and-suspenders: match unscoped selectors so nothing overrides card cells. */
-  .grades-json-wrap table.grades-table th.gcol-type,
-  .grades-json-wrap table.grades-table th.gcol-tier,
-  .grades-json-wrap table.grades-table td.gcol-type,
-  .grades-json-wrap table.grades-table td.gcol-tier {
-    display: none !important;
+}
+
+@media (max-width: 480px) {
+  .grades-json-wrap .grades-sport-summary {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+  }
+  .grades-json-wrap .grades-sport-summary .grades-sport-card {
+    width: 100% !important;
+    min-width: 0;
   }
 }
 
@@ -1141,16 +1144,16 @@ nav.snav .mobile-menu a {
     bottom: auto !important;
     left: auto !important;
     right: auto !important;
-    margin: 0 auto 12px auto !important;
+    margin: 0 auto 4px auto !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: flex-start !important;
     height: auto !important;
-    min-height: 56px !important;
+    min-height: 48px !important;
     max-height: none !important;
     /* Extra air below status bar / notch (safe-area + cushion) */
-    padding: calc(env(safe-area-inset-top, 0px) + 12px) max(12px, env(safe-area-inset-right, 0px)) 12px max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 6px) max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px)) !important;
     z-index: 220 !important;
     border-radius: 0 !important;
     box-sizing: border-box !important;
@@ -1338,6 +1341,17 @@ nav.snav .mobile-menu a {
     padding-bottom: 0 !important;
     margin-bottom: 0 !important;
   }
+
+  /* Grades: reclaim vertical chrome — date lives in the date-bar */
+  body.page-grades nav.snav .nav-datetime-block {
+    display: none !important;
+  }
+  body.page-grades .shell {
+    padding: 4px 0 0 !important;
+  }
+  body.page-grades .grades-hub-shell .iframe-shell-toolbar {
+    padding-bottom: 4px !important;
+  }
 }
 
 /* Grades: landscape — shorter tab bar; still reserve one clearance on the page column */
@@ -1507,20 +1521,52 @@ nav.snav .mobile-menu a {
 }
 
 
-/* ── Fix: Grades iframe min-height on mobile (v20260522gradesframe) ──
-   Ticket tab: hub JS sizes #ticket-frame to content — 80vh min-height left a dark void under KPIs. */
+/* ── Fix: Grades iframe height on mobile — size to content, not a fixed 80vh void ──
+   Hub JS (syncGradeFrameHeight / syncTicketFrameHeight) sets px heights from the slate/ticket doc.
+   A forced min-height:80vh left a dark empty band under short tickets and fought content height. */
 @media (max-width: 900px) {
     body.page-grades #grade-frame,
     body.page-grades iframe.grade-frame:not(#ticket-frame) {
-          min-height: 80vh !important;
+          min-height: 0 !important;
           height: auto !important;
+          position: relative !important;
     }
     body.page-grades .iframe-shell-stage:not([data-grades-tab="tickets"]) {
-          min-height: 80vh !important;
+          min-height: 0 !important;
+          height: auto !important;
+          overflow: visible !important;
     }
     body.page-grades .iframe-shell-stage[data-grades-tab="tickets"],
     body.page-grades #ticket-frame {
           min-height: 0 !important;
+    }
+    /* Props/tables: keep wide data scrollable inside the hub without page-level horiz spill. */
+    body.page-grades .grades-analytics-wrap,
+    body.page-grades #props-eval-panel,
+    body.page-grades #player-evaluator-panel {
+          overflow-x: hidden !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+    }
+    body.page-grades .props-eval-filter-row,
+    body.page-grades .props-eval-search-row,
+    body.page-grades .props-eval-kpis {
+          flex-wrap: wrap !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+    }
+    body.page-grades .insights-table-host {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow-x: auto !important;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+    }
+    body.page-grades .insights-table-host table {
+          width: max-content !important;
+          min-width: 100% !important;
+          max-width: none !important;
     }
 }
 

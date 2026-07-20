@@ -91,9 +91,15 @@ def test_no_actual_resolves_to_void_for_all_sports():
         ("MLB", "Bobby Witt Jr.", "KC", "Hits"),
         ("WNBA", "Caitlin Clark", "IND", "Points"),
         ("NBA", "LeBron James", "LAL", "Rebounds"),
+        ("NBA1H", "LeBron James", "LAL", "Points"),
+        ("NBA1Q", "LeBron James", "LAL", "Points"),
         ("NHL", "Connor McDavid", "EDM", "Hits"),
         ("SOCCER", "Lionel Messi", "MIA", "Shots"),
         ("TENNIS", "Carlos Alcaraz", "", "Aces"),
+        ("NFL", "Patrick Mahomes", "KC", "Passing Yards"),
+        ("CFB", "Caleb Williams", "USC", "Passing Yards"),
+        ("CBB", "Zach Edey", "PUR", "Points"),
+        ("WCBB", "Caitlin Clark", "IOWA", "Points"),
     ):
         leg = {"sport": sport, "player": player, "team": team, "prop_type": prop}
         assert (

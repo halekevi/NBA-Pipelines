@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-19T12:50:05.565313Z",
-  "days_tracked": 3,
+  "updated_at": "2026-07-20T09:16:01.294930Z",
+  "days_tracked": 4,
   "aggregate": {
     "hit": 0,
     "miss": 0,
@@ -12,6 +12,22 @@
   },
   "aggregate_hit_rate": null,
   "recent": [
+    {
+      "slate_date": "2026-07-19",
+      "graded_at": "2026-07-20T09:16:01.266508Z",
+      "summary": {
+        "hit": 0,
+        "miss": 0,
+        "void": 0,
+        "push": 0,
+        "pending": 0,
+        "no_match": 0,
+        "total": 0
+      },
+      "hit_rate": null,
+      "decided": 0,
+      "results": []
+    },
     {
       "slate_date": "2026-07-18",
       "graded_at": "2026-07-19T12:50:05.543702Z",
@@ -61,5 +77,5 @@
       "results": []
     }
   ],
-  "latest_graded_date": "2026-07-18"
+  "latest_graded_date": "2026-07-19"
 }

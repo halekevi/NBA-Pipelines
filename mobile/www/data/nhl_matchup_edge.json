@@ -1,9 +1,0 @@
-{
-  "sport": "nhl",
-  "display_name": "NHL",
-  "error": "Defense file missing (off-season or not refreshed): H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\NHL\\cache\\nhl_defense_summary.csv",
-  "teams": [],
-  "categories": [],
-  "matchups": {},
-  "players_by_team_cat": {}
-}

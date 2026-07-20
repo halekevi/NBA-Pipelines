@@ -70,7 +70,8 @@ def test_mlb_goblin_hits_banned_on_main():
 
 
 def test_mlb_standard_over_banned_on_main():
-    row = {
+    """Ledger-gated Standard props (Hits OVER) stay off MAIN; Singles OVER can pass gate."""
+    hits = {
         "sport": "MLB",
         "pick_type": "standard",
         "tier": "A",
@@ -83,7 +84,11 @@ def test_mlb_standard_over_banned_on_main():
         "l5_under": 1,
     }
     assert not cst._row_win_rate_eligible(
-        row, min_leg_prob=0.62, min_composite_hr=0.55
+        hits, min_leg_prob=0.62, min_composite_hr=0.55
+    )
+    assert cst._leg_standard_prop_direction_gated(hits)
+    assert not cst._leg_standard_prop_direction_gated(
+        {**hits, "prop_type": "Singles"}
     )
 
 

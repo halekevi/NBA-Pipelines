@@ -3073,11 +3073,24 @@ def soccer_allowed_leg(leg) -> bool:
         return pick in ("", "standard") or "standard" in pick
 
     if direction == "OVER":
-        # Jul-19 Standard OVER ~15% — ban Standard; Goblin OVER still HQ-gated.
+        # Standard OVER: prop×direction ledger gates (not a blanket Standard ban).
+        # Goblin OVER remains HQ-gated below.
         if "standard" in pick and "goblin" not in pick:
+            if _leg_standard_prop_direction_gated(row):
+                return False
+            # Non-gated Standard OVER still needs HQ floors when UNDER-preferred.
+        elif "goblin" not in pick and pick not in ("",):
             return False
-        if "goblin" not in pick and pick not in ("",):
-            return False
+        if "goblin" in pick or pick == "":
+            if SOCCER_UNDER_PREFERRED:
+                if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
+                    return False
+                if edge < float(SOCCER_OVER_MIN_EDGE):
+                    return False
+                if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
+                    return False
+            return "goblin" in pick or pick == ""
+        # Standard OVER that cleared prop gate: apply same HQ floors as Goblin OVER.
         if SOCCER_UNDER_PREFERRED:
             if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
                 return False
@@ -3085,7 +3098,7 @@ def soccer_allowed_leg(leg) -> bool:
                 return False
             if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
                 return False
-        return "goblin" in pick or pick == ""
+        return True
 
     return False
 
@@ -5056,6 +5069,78 @@ def _norm_main_prop_key(prop: object) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(prop or "").strip().lower())
 
 
+# Standard-only prop×direction gates from Jul 10–19 ticket_eval ledger.
+# Goblins stay mostly open (easier hit / lower payout); Standards carry payout upside
+# and need prop-level hygiene — not sport-wide OVER bans.
+# Keys: (sport, prop_norm, direction)
+_STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
+    {
+        # MLB
+        ("MLB", "totalbases", "OVER"),
+        ("MLB", "hits", "OVER"),
+        ("MLB", "earnedrunsallowed", "OVER"),
+        ("MLB", "hitsallowed", "OVER"),
+        ("MLB", "plateappearances", "UNDER"),
+        # WNBA
+        ("WNBA", "rebounds", "OVER"),
+        ("WNBA", "ptsrebsasts", "OVER"),
+        ("WNBA", "fgattempted", "UNDER"),
+        ("WNBA", "fieldgoalsattempted", "UNDER"),
+        # Soccer
+        ("SOCCER", "shotscombo", "OVER"),
+        ("SOC", "shotscombo", "OVER"),
+    }
+)
+_STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
+    {
+        # MLB — still issued historically but sub-48% Standard HR
+        ("MLB", "pitchesthrown", "OVER"),
+        ("MLB", "pitcherstrikeouts", "OVER"),
+        ("MLB", "hitsrunsrbis", "OVER"),
+        # WNBA
+        ("WNBA", "ptsrebs", "OVER"),
+        ("WNBA", "ptsasts", "OVER"),
+        ("WNBA", "assists", "UNDER"),
+        # Soccer
+        ("SOCCER", "shots", "OVER"),
+        ("SOC", "shots", "OVER"),
+    }
+)
+
+
+def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
+    sport = str(row_d.get("sport") or "").strip().upper()
+    pick = str(row_d.get("pick_type") or "").strip().lower()
+    if "standard" not in pick or "goblin" in pick:
+        return None
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    if direction not in ("OVER", "UNDER"):
+        return None
+    prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
+    if not prop:
+        return None
+    return (sport, prop, direction)
+
+
+def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
+    """
+    True when this Standard leg's sport×prop×direction is banned or hard-gated.
+
+    Goblin legs always return False here — payouts improve on Standards, so we
+    gate those props tightly while leaving easier Goblin hits alone.
+    """
+    if isinstance(row_d, pd.Series):
+        row_d = row_d.to_dict()
+    else:
+        row_d = dict(row_d)
+    key = _standard_prop_gate_key(row_d)
+    if key is None:
+        return False
+    return key in _STANDARD_PROP_GATE_BAN or key in _STANDARD_PROP_GATE_HARD
+
+
 def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:
     """True for MLB counting props that drove Jul-18 OVER 0.5 miss volume."""
     if not prop_norm:
@@ -5092,29 +5177,25 @@ def _main_leg_prop_banned(row_d: dict) -> bool:
 
 
 def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
-    """MLB Standard OVER — Jul-18 ~4–6% WR on graded boards."""
-    sport = str(row_d.get("sport") or "").strip().upper()
-    if sport != "MLB":
-        return False
-    pick = str(row_d.get("pick_type") or "").strip().lower()
-    if "standard" not in pick or "goblin" in pick:
-        return False
-    direction = str(
-        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
-    ).strip().upper()
-    return direction == "OVER"
+    """
+    Legacy name: MLB Standard OVER sport-wide ban removed.
+
+    Replaced by prop×direction Standard gates (Total Bases / Hits / ERA / …).
+    Kept as a thin wrapper so older call sites still compile.
+    """
+    return _leg_standard_prop_direction_gated(row_d)
 
 
 def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
     """
     Shared hygiene for MAIN / FINAL / long-parlay builders:
-    banned MLB Goblin OVER props + MLB Standard OVER.
+    banned MLB Goblin OVER props + Standard prop×direction ledger gates.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
     else:
         row_d = dict(row_d)
-    return _main_leg_prop_banned(row_d) or _leg_mlb_standard_over_banned(row_d)
+    return _main_leg_prop_banned(row_d) or _leg_standard_prop_direction_gated(row_d)
 
 
 def _ticket_rows_mlb_construction_banned(rows: list) -> bool:
@@ -5587,8 +5668,10 @@ def _row_win_rate_eligible(
     if _winrate_leg_bench_risk(row_d):
         return False
 
-    # Qualified Standard: sport/direction hygiene + higher OVER floor + elite OVER stack.
+    # Qualified Standard: prop×direction ledger + sport hygiene + OVER elite stack.
     if qualify_standard and ("standard" in pt) and ("goblin" not in pt):
+        if _leg_standard_prop_direction_gated(row_d):
+            return False
         if not _standard_high_prob_leg_allowed(row_d):
             return False
         std_floor = _standard_direction_floor(row_d)

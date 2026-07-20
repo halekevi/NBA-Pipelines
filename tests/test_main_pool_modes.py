@@ -93,7 +93,7 @@ def test_standard_over_requires_elite_gate():
 
 
 def test_soccer_standard_over_banned_under_allowed():
-    """Jul-19 Soccer Std OVER ~15% — ban Standard OVER; keep selective UNDER."""
+    """Soccer Shots OVER is hard-gated on Standard; UNDER stays allowed."""
     over = {
         "sport": "SOCCER",
         "pick_type": "Standard",
@@ -116,6 +116,47 @@ def test_soccer_standard_over_banned_under_allowed():
     }
     assert soccer_allowed_leg(over) is False
     assert soccer_allowed_leg(under) is True
+
+
+def test_standard_prop_gates_not_sport_wide():
+    """Goblins stay open; Standards gate by prop×direction (ledger)."""
+    from combined_slate_tickets import _leg_standard_prop_direction_gated
+
+    # Banned Standard prop
+    assert _leg_standard_prop_direction_gated(
+        {
+            "sport": "MLB",
+            "pick_type": "Standard",
+            "direction": "OVER",
+            "prop_type": "Total Bases",
+        }
+    )
+    # Keep-candidate Standard Singles OVER is NOT gated
+    assert not _leg_standard_prop_direction_gated(
+        {
+            "sport": "MLB",
+            "pick_type": "Standard",
+            "direction": "OVER",
+            "prop_type": "Singles",
+        }
+    )
+    # Same prop as Goblin is never Standard-gated
+    assert not _leg_standard_prop_direction_gated(
+        {
+            "sport": "WNBA",
+            "pick_type": "Goblin",
+            "direction": "OVER",
+            "prop_type": "Rebounds",
+        }
+    )
+    assert _leg_standard_prop_direction_gated(
+        {
+            "sport": "WNBA",
+            "pick_type": "Standard",
+            "direction": "OVER",
+            "prop_type": "Rebounds",
+        }
+    )
 
 
 def test_standard_direction_floors_by_sport():

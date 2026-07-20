@@ -69,8 +69,8 @@ def test_soccer_hq_over_goblin_allowed():
     )
 
 
-def test_soccer_standard_over_banned_even_if_hq():
-    """Standard OVER is banned outright; Goblin OVER remains the only OVER path."""
+def test_soccer_standard_shots_over_hard_gated_even_if_hq():
+    """Standard Shots OVER is hard-gated; Goblin OVER remains the HQ path."""
     assert not soccer_allowed_leg(
         {
             "sport": "SOCCER",
@@ -81,6 +81,21 @@ def test_soccer_standard_over_banned_even_if_hq():
             "abs_edge": max(0.25, SOCCER_OVER_MIN_EDGE),
             "ml_prob": 0.80,
             "leg_prob": 0.80,
+        }
+    )
+
+
+def test_soccer_standard_shots_combo_over_banned():
+    assert not soccer_allowed_leg(
+        {
+            "sport": "SOCCER",
+            "pick_type": "Standard",
+            "direction": "OVER",
+            "prop_type": "Shots (Combo)",
+            "hit_rate": 0.90,
+            "abs_edge": 0.30,
+            "ml_prob": 0.85,
+            "leg_prob": 0.85,
         }
     )
 

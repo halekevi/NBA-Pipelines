@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T13:21:16.197126+00:00",
+  "generated_at": "2026-07-20T21:15:03.908007+00:00",
   "reference": {
     "power_first_standard": {
       "2": 3.0,
@@ -65,7 +65,7 @@
   "fitted_file": {
     "model_type": "live_mix_grid_power_min_x",
     "fitted_from": "payout_rate_card.json",
-    "fitted_at": "2026-07-13T13:21:16.053021Z",
+    "fitted_at": "2026-07-20T21:15:03.646563Z",
     "n_observations": 0,
     "n_slips_in_capture": 0,
     "goblin_discount_per_unit": null,
@@ -78,47 +78,89 @@
     },
     "composition_floors": {
       "2L_2G": {
-        "n": 15,
-        "avg_min_x": 2.5667,
+        "n": 21,
+        "avg_min_x": 1.4333,
         "min_x_vals": [
-          2.1,
-          2.6,
-          2.1,
-          2.6,
-          2.8,
-          2.8,
-          2.2,
-          2.8,
-          2.6,
-          2.8,
-          2.6,
-          2.5,
-          2.8,
-          2.4,
-          2.8
+          1.4,
+          1.6,
+          1.4,
+          1.3,
+          1.5,
+          1.2,
+          1.2,
+          1.6,
+          1.4,
+          1.3,
+          1.2,
+          1.7,
+          1.6,
+          1.3,
+          1.3,
+          1.4,
+          1.3,
+          1.3,
+          1.7,
+          1.7,
+          1.7
         ],
-        "source": "data\\reports\\payout_capture_2026-07-12.json",
-        "source_date": "2026-07-12",
-        "updated_at": "2026-07-13T00:29:43.152844Z"
+        "source": "ticket_capture",
+        "source_date": "2026-07-20",
+        "updated_at": "2026-07-20T20:37:57.965092Z"
       },
       "3L_3G": {
-        "n": 5,
-        "avg_min_x": 3.56,
+        "n": 6,
+        "avg_min_x": 1.9833,
         "min_x_vals": [
-          2.9,
-          2.9,
-          3.0,
-          6.0,
-          3.0
+          2.2,
+          1.9,
+          2.2,
+          1.5,
+          2.2,
+          1.9
         ],
-        "source": "data\\reports\\payout_capture_2026-07-12.json",
-        "source_date": "2026-07-12",
-        "updated_at": "2026-07-13T00:29:43.152869Z"
+        "source": "ticket_capture",
+        "source_date": "2026-07-20",
+        "updated_at": "2026-07-20T20:37:57.965446Z"
+      },
+      "4L_4G": {
+        "n": 1,
+        "avg_min_x": 2.0,
+        "min_x_vals": [
+          2.0
+        ],
+        "source": "ticket_capture",
+        "source_date": "2026-07-15",
+        "updated_at": "2026-07-15T10:54:52.250349Z"
+      },
+      "5L_5G": {
+        "n": 3,
+        "avg_min_x": 2.7167,
+        "min_x_vals": [
+          2.3,
+          3.25,
+          2.6
+        ],
+        "source": "ticket_capture",
+        "source_date": "2026-07-15",
+        "updated_at": "2026-07-15T10:35:23.980322Z"
+      },
+      "6L_6G": {
+        "n": 1,
+        "avg_min_x": 3.75,
+        "min_x_vals": [
+          3.75
+        ],
+        "source": "ticket_capture",
+        "source_date": "2026-07-15",
+        "updated_at": "2026-07-15T10:35:23.980325Z"
       }
     },
     "composition_summary": {
-      "2L_2G": 2.5667,
-      "3L_3G": 3.56
+      "2L_2G": 1.4333,
+      "3L_3G": 1.9833,
+      "4L_4G": 2.0,
+      "5L_5G": 2.7167,
+      "6L_6G": 3.75
     },
     "notes": "composition_floors: live PrizePicks power_min_x by n_legs \u00d7 n_goblin (ticket + mix-grid). goblin_discount_per_unit: dev-bucket fit when line_distance available."
   },
@@ -291,8 +333,11 @@
       "title": "Live Goblin Min Guarantee floors (PrizePicks CDP)",
       "subtitle": "power_min_x by leg count \u00d7 Goblin count \u2014 from ticket + mix-grid captures",
       "bullets": [
-        "2L_2G: avg 2.5667\u00d7 (n=15, updated 2026-07-12)",
-        "3L_3G: avg 3.56\u00d7 (n=5, updated 2026-07-12)"
+        "2L_2G: avg 1.4333\u00d7 (n=21, updated 2026-07-20)",
+        "3L_3G: avg 1.9833\u00d7 (n=6, updated 2026-07-20)",
+        "4L_4G: avg 2.0\u00d7 (n=1, updated 2026-07-15)",
+        "5L_5G: avg 2.7167\u00d7 (n=3, updated 2026-07-15)",
+        "6L_6G: avg 3.75\u00d7 (n=1, updated 2026-07-15)"
       ]
     },
     {
@@ -301,11 +346,14 @@
       "title": "Live rate card (power_min_x)",
       "subtitle": "payout_rate_card.json",
       "bullets": [
-        "fitted_at: 2026-07-13T13:21:16.053021Z",
+        "fitted_at: 2026-07-20T21:15:03.646563Z",
         "n_observations (dev-bucket): 0",
         "n_slips_in_capture: 0",
-        "composition: 2L_2G: 2.5667\u00d7",
-        "composition: 3L_3G: 3.56\u00d7",
+        "composition: 2L_2G: 1.4333\u00d7",
+        "composition: 3L_3G: 1.9833\u00d7",
+        "composition: 4L_4G: 2.0\u00d7",
+        "composition: 5L_5G: 2.7167\u00d7",
+        "composition: 6L_6G: 3.75\u00d7",
         "composition_floors: live PrizePicks power_min_x by n_legs \u00d7 n_goblin (ticket + mix-grid). goblin_discount_per_unit: dev-bucket fit when line_distance available."
       ]
     }

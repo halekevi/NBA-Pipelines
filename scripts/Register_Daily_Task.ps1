@@ -172,6 +172,13 @@ Register-PropTask `
     -ScriptPath $ScriptPayout `
     -At "11:00"
 
+$ScriptPayoutUpdate = Join-Path $Root "scripts\run_payout_cdp_update.ps1"
+Register-PropTask `
+    -TaskName "PropOracle - Payout CDP Update" `
+    -Description "Afternoon UpdateOnly CDP fill for slips still missing live_cdp after ticket rebuilds. Opens visible PowerShell." `
+    -ScriptPath $ScriptPayoutUpdate `
+    -At "15:00"
+
 Register-PropTask `
     -TaskName "PropOracle - Refresh 1PM" `
     -Description "Afternoon line-move refresh (8/9/10:30/1 cadence). Opens visible PowerShell." `
@@ -190,6 +197,7 @@ Write-Host "  - PropOracle - Daily 8AM (refresh)"
 Write-Host "  - PropOracle - Refresh 9AM"
 Write-Host "  - PropOracle - Refresh 1030AM (PP line-move window)"
 Write-Host "  - PropOracle - Payout CDP (MAIN floors @ 11:00, after 10:30)"
+Write-Host "  - PropOracle - Payout CDP Update (missing live floors @ 15:00)"
 Write-Host "  - PropOracle - Refresh 1PM"
 Write-Host ""
 Write-Host "Quick checks:"
@@ -197,6 +205,8 @@ Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | 
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Refresh 1030AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Payout CDP' | Select LastRunTime, LastTaskResult, NextRunTime"
+Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Payout CDP Update' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host ""
 Write-Host "Manual catchup (visible window):  pwsh -File scripts\Launch_Daily_5AM_Visible.ps1" -ForegroundColor Cyan
 Write-Host "Manual payout CDP:              pwsh -File scripts\run_payout_cdp.ps1" -ForegroundColor Cyan
+Write-Host "Manual payout update:           pwsh -File scripts\run_payout_cdp_update.ps1" -ForegroundColor Cyan

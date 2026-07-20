@@ -221,6 +221,65 @@ function Test-CdpUp {
     }
 }
 
+function Test-PlaywrightCdpAttach {
+    param([string]$Url, [int]$TimeoutMs = 15000)
+    $py = @"
+from playwright.sync_api import sync_playwright
+import sys
+url = sys.argv[1]
+timeout_ms = int(sys.argv[2])
+try:
+    p = sync_playwright().start()
+    b = p.chromium.connect_over_cdp(url, timeout=timeout_ms)
+    n = len(b.contexts)
+    p.stop()
+    print('OK', n)
+    raise SystemExit(0)
+except Exception as e:
+    print('FAIL', type(e).__name__, str(e)[:180])
+    raise SystemExit(2)
+"@
+    try {
+        $out = & py -3.14 -c $py $Url $TimeoutMs 2>$null
+        $joined = ($out | Out-String).Trim()
+        if ($LASTEXITCODE -eq 0 -and $joined -match '^OK') {
+            Write-Host "  [PAYOUT] Playwright CDP attach OK ($joined)" -ForegroundColor DarkGray
+            return $true
+        }
+        Write-Host "  [PAYOUT] Playwright CDP attach failed: $joined" -ForegroundColor Yellow
+        return $false
+    } catch {
+        Write-Host "  [PAYOUT] Playwright CDP attach error: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+function Repair-WedgedPrizePicksCdp {
+    param([string]$Url)
+    Write-Host "  [PAYOUT] CDP HTTP is up but Playwright handshake is wedged — restarting PrizePicks debug Chrome..." -ForegroundColor Yellow
+    $launch = Join-Path $Root "scripts\launch_prizepicks_chrome_cdp.ps1"
+    if (-not (Test-Path -LiteralPath $launch)) {
+        Write-Host "  [PAYOUT] ERROR: missing $launch" -ForegroundColor Red
+        return $false
+    }
+    try {
+        Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -match 'remote-debugging-port=9222|\.pp_browser_profile|chrome_debug' } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds 2
+        & pwsh -NoProfile -File $launch -OpenBoard -LeagueId 2 | Out-Host
+        Start-Sleep -Seconds 5
+        if (-not (Test-CdpUp -Url $Url)) {
+            Write-Host "  [PAYOUT] ERROR: CDP still down after Chrome restart" -ForegroundColor Red
+            return $false
+        }
+        return (Test-PlaywrightCdpAttach -Url $Url -TimeoutMs 20000)
+    } catch {
+        Write-Host "  [PAYOUT] ERROR: Chrome restart failed ($($_.Exception.Message))" -ForegroundColor Red
+        return $false
+    }
+}
+
 function Invoke-PayoutVerify {
     param(
         [string]$VerifyRoot,
@@ -273,14 +332,24 @@ if (-not (Test-Path -LiteralPath $payoutScript)) {
 
 $cdpUp = Test-CdpUp -Url $CdpUrl
 if (-not $cdpUp) {
-    Write-Host "  [PAYOUT] CDP not running on $CdpUrl -- skip scrape (tickets keep board-avg / rate-card)" -ForegroundColor DarkGray
+    Write-Host "  [PAYOUT] CDP not running on $CdpUrl -- skip scrape (tickets stay pending_live / no fake floors)" -ForegroundColor DarkGray
     # Still audit so daily reports show outstanding gaps.
     if (-not $SkipVerify) {
         Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
             -VerifyCdp $CdpUrl -DoFill:$false -DoRebuild:$RebuildRateCard.IsPresent -DoGentle:$false
     }
     Clear-PayoutCaptureLock
-    exit 0
+    # Non-zero so schedulers / catchups notice live floors were not captured.
+    exit 2
+}
+
+# HTTP /json/version can look healthy while Playwright connect_over_cdp hangs (wedged browser target).
+if (-not (Test-PlaywrightCdpAttach -Url $CdpUrl)) {
+    if (-not (Repair-WedgedPrizePicksCdp -Url $CdpUrl)) {
+        Write-Host "  [PAYOUT] ERROR: cannot attach Playwright to CDP — abort capture" -ForegroundColor Red
+        Clear-PayoutCaptureLock
+        exit 2
+    }
 }
 
 Push-Location $Root

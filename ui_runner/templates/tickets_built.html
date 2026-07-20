@@ -13,22 +13,173 @@
 <style id="proporacle-critical-theme">
   html,body{margin:0;background:#05050f;color:#e8e8f0;font-family:Inter,system-ui,sans-serif;min-height:100vh;}
   body.page-tickets{background:#05050f;}
-  .snav,.legacy-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:rgba(20,20,20,.92);border-bottom:1px solid rgba(212,175,55,.2);}
-  .snav-links,.nav-links{display:flex;list-style:none;margin:0;padding:0;gap:8px;flex-wrap:wrap;}
-  .snav-links a,.nav-links a,.mobile-menu a{color:#e8e8f0;text-decoration:none;padding:8px 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+  /* Single-row shell nav — never wrap (half-screen / split view). */
+  .snav,.legacy-nav{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;padding:12px 20px;background:rgba(20,20,20,.92);border-bottom:1px solid rgba(212,175,55,.2);min-width:0;}
+  .snav-links,.nav-links{display:flex;list-style:none;margin:0;padding:0;gap:4px;flex-wrap:nowrap;min-width:0;}
+  .snav-links a,.nav-links a,.mobile-menu a{color:#e8e8f0;text-decoration:none;padding:8px 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
   .snav-links a.active,.nav-links a.active{color:#c8ff00;border-bottom:2px solid #c8ff00;}
   .mobile-menu{display:none;}
   .logo-icon{height:36px;width:auto;display:inline-block;}
   .mesh-bg,.grain-layer,.orb-1,.orb-2{pointer-events:none;}
 </style>
-<link rel="stylesheet" href="/static/proporacle-page-shell.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/proporacle-page-shell.css?v=20260720halfnav2"/>
 <link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260714theme1"/>
-<link rel="stylesheet" href="/static/site-nav-unified.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/site-nav-unified.css?v=20260720halfnav2"/>
 <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260714theme1"/>
-<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav2"/>
 <link rel="stylesheet" href="/static/tickets-built-content.css?v=20260714theme1"/>
-<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260714theme1"/>
+<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260720halfnav2"/>
 <link rel="stylesheet" href="/static/tickets-redesign.css?v=20260714theme1"/>
+{# Late override — must win over cached/critical wrap on half-screen desktops. #}
+<style id="proporacle-halfnav-fix">
+@media (min-width: 769px) {
+  nav.snav,
+  nav.snav.glass-card,
+  .snav {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-rows: 56px !important;
+    align-items: center !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    padding: 0 12px !important;
+    margin: 0.5rem auto 0.35rem !important;
+    gap: 0 8px !important;
+    overflow: hidden !important;
+    flex-wrap: unset !important;
+    width: 98% !important;
+    max-width: min(98vw, 2400px) !important;
+    box-sizing: border-box !important;
+  }
+  nav.snav > .nav-accent,
+  .snav > .nav-accent {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    height: 2px !important;
+    pointer-events: none !important;
+  }
+  nav.snav > .snav-brand,
+  .snav > .snav-brand {
+    grid-column: 1 !important;
+    margin-right: 0 !important;
+    min-width: 0 !important;
+  }
+  nav.snav > ul.snav-links,
+  nav.snav > ul#nav-links,
+  .snav > ul.snav-links {
+    grid-column: 2 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: 56px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    position: static !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  nav.snav > ul.snav-links::-webkit-scrollbar,
+  .snav > ul.snav-links::-webkit-scrollbar { display: none !important; }
+  nav.snav > ul.snav-links > li,
+  .snav > ul.snav-links > li {
+    flex: 0 0 auto !important;
+    height: 56px !important;
+  }
+  nav.snav > ul.snav-links > li > a,
+  .snav > ul.snav-links > li > a {
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    padding: 0 10px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+  }
+  nav.snav > .snav-right,
+  .snav > .snav-right {
+    grid-column: 3 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-left: 0 !important;
+    max-width: min(42vw, 420px) !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  nav.snav .nav-live-cluster,
+  .snav .nav-live-cluster {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  nav.snav .live-pill,
+  .snav .live-pill {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 4px 10px !important;
+    font-size: 9px !important;
+  }
+  nav.snav .nav-datetime-block,
+  .snav .nav-datetime-block {
+    min-width: 0 !important;
+    max-width: 11rem !important;
+    overflow: hidden !important;
+    padding-left: 8px !important;
+  }
+  nav.snav .nav-slate-date,
+  nav.snav .nav-sync-line,
+  nav.snav .nav-local-datetime,
+  .snav .nav-slate-date,
+  .snav .nav-sync-line,
+  .snav .nav-local-datetime {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+  nav.snav > .hamburger,
+  .snav > .hamburger { display: none !important; }
+}
+@media (min-width: 769px) and (max-width: 1200px) {
+  nav.snav .live-pill .live-pill-brand,
+  nav.snav .live-pill .live-pill-sep,
+  .snav .live-pill .live-pill-brand,
+  .snav .live-pill .live-pill-sep { display: none !important; }
+  nav.snav .brand-wordmark,
+  .snav .brand-wordmark { font-size: 14px !important; }
+  nav.snav .nav-datetime-block,
+  .snav .nav-datetime-block { max-width: 8.5rem !important; }
+}
+@media (min-width: 769px) and (max-width: 980px) {
+  nav.snav .brand-wordmark,
+  .snav .brand-wordmark { display: none !important; }
+  nav.snav .nav-sync-line,
+  .snav .nav-sync-line { display: none !important; }
+  nav.snav > ul.snav-links > li > a,
+  .snav > ul.snav-links > li > a { padding: 0 8px !important; }
+}
+</style>
 </head>
 <body class="page-tickets">
 <div class="orb-1" style="position:fixed;top:-12%;left:-6%;width:560px;height:560px;background:radial-gradient(circle,rgba(127,199,217,0.18) 0%,transparent 70%);filter:blur(120px);z-index:0;pointer-events:none;animation:orbP1 20s ease-in-out infinite alternate;"></div>

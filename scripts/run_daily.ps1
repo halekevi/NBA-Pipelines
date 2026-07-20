@@ -2238,19 +2238,75 @@ try {
 catch {
     $refreshRunning = $false
 }
-$refreshSoon = ($NowHour -ge 10)
+# Also honor a live refresh.lock (PID still running). Do NOT treat "hour >= 10" as
+# refreshSoon — that previously skipped inline late-fetch forever after 10:00 and
+# left the day empty when a scheduled refresh hung or soft-skipped.
+$refreshLockBlocks = $false
+try {
+    $dailyRefreshLock = Join-Path $Root "data\cache\refresh.lock"
+    if (Test-Path -LiteralPath $dailyRefreshLock) {
+        $lockLine = (Get-Content -LiteralPath $dailyRefreshLock -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $lockAgeMin = ((Get-Date) - (Get-Item -LiteralPath $dailyRefreshLock).LastWriteTime).TotalMinutes
+        $lockPid = $null
+        if ("$lockLine" -match 'PID\s+(\d+)') { $lockPid = [int]$Matches[1] }
+        $lockPidAlive = $false
+        if ($lockPid) {
+            $lockPidAlive = $null -ne (Get-Process -Id $lockPid -ErrorAction SilentlyContinue)
+        }
+        if ($lockPidAlive -and $lockAgeMin -lt 90) {
+            $refreshLockBlocks = $true
+        }
+        elseif (-not $lockPidAlive -or $lockAgeMin -ge 90) {
+            Remove-Item -LiteralPath $dailyRefreshLock -Force -ErrorAction SilentlyContinue
+            Write-Log "[NBA_LATE_FETCH] Cleared stale refresh.lock (alive=$lockPidAlive ageMin=$([int]$lockAgeMin))"
+        }
+    }
+}
+catch { }
+
+# Today's slate still empty / all no_slate → do not defer to a scheduled refresh that may
+# already have soft-skipped. Run inline late-fetch so tickets land.
+$todaySlateNeedsCatchup = $false
+try {
+    $slateStatusPath = Join-Path $Root "outputs\$Today\pipeline_slate_status.json"
+    $combinedTodayXlsx = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.xlsx"
+    if (-not (Test-Path -LiteralPath $combinedTodayXlsx)) {
+        $todaySlateNeedsCatchup = $true
+    }
+    elseif (Test-Path -LiteralPath $slateStatusPath) {
+        $ss = Get-Content -LiteralPath $slateStatusPath -Raw -ErrorAction Stop | ConvertFrom-Json
+        $active = @("mlb", "wnba", "soccer", "tennis")
+        $completeCount = 0
+        foreach ($sk in $active) {
+            if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $completeCount++ }
+        }
+        if ($completeCount -eq 0) { $todaySlateNeedsCatchup = $true }
+    }
+}
+catch {
+    $todaySlateNeedsCatchup = $true
+}
 
 if ($NowHour -ge 10) {
-    if ($refreshRunning -or $refreshSoon) {
+    # Only skip when a refresh is actually in flight. Never skip solely because hour>=10
+    # (that old refreshSoon bug deferred forever to hung/soft-skipped scheduled tasks).
+    if ($refreshRunning -or $refreshLockBlocks) {
         Write-Host "[LATE_FETCH] Skipping inline late-fetch — refresh task will handle it" -ForegroundColor DarkGray
         if ($refreshRunning) {
             Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled (a refresh task is currently running)"
         }
         else {
-            Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled after 10:00 (scheduled refresh handles late fetch)"
+            Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled (live refresh.lock)"
+        }
+        if ($todaySlateNeedsCatchup) {
+            Write-Log "[NBA_LATE_FETCH] WARN: today's slate still incomplete while refresh is running — will rely on refresh finish or next cadence"
         }
     }
     else {
+        if ($todaySlateNeedsCatchup) {
+            Write-Host "[LATE_FETCH] Today's slate still empty — running catchup late-fetch" -ForegroundColor Yellow
+            Write-Log "[NBA_LATE_FETCH] CATCHUP: slate incomplete; running inline late-fetch"
+        }
         Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
         Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch -SkipLivePayoutCapture)"
 

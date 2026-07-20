@@ -63,6 +63,13 @@ Write-Host "[LATE_FETCH] Starting full slate re-fetch $(Get-Date -Format 'yyyy-M
 $PipeDate = Resolve-PipelineSlateDate
 Write-Host "[LATE_FETCH] Pipeline slate date: $PipeDate" -ForegroundColor Cyan
 
+# Keep in sync with run_pipeline.ps1 summer off-season gates. Fetching off-season
+# boards burns retries on 403s and can hang the whole refresh cadence for hours.
+$NBA_SEASON_RESUME = "2026-10-01"
+$NHL_SEASON_RESUME = "2026-09-01"
+$NBAOffSeason = ([datetime]::ParseExact($PipeDate, "yyyy-MM-dd", $null) -lt [datetime]::ParseExact($NBA_SEASON_RESUME, "yyyy-MM-dd", $null))
+$NHLOffSeason = ([datetime]::ParseExact($PipeDate, "yyyy-MM-dd", $null) -lt [datetime]::ParseExact($NHL_SEASON_RESUME, "yyyy-MM-dd", $null))
+
 function Get-VersionedPath([string]$Path) {
     $dir = Split-Path -Parent $Path
     # Never drop *.bak_* next to live templates (Flask/OneDrive thrash).
@@ -150,41 +157,46 @@ if ($RunLabel) {
 }
 
 # NBA — append; dated output + legacy mirror
-Write-Host "[LATE_FETCH] Fetching NBA props (append)..."
-$NBADir = Join-Path $SportsRoot "NBA"
-$nbaRunOut = Ensure-RunOutDir -SportTag "nba"
-$nbaStep1 = Join-Path $nbaRunOut "step1_pp_props_today.csv"
-$nbaLegacy = Join-Path $NBADir "data\outputs\step1_pp_props_today.csv"
-$nbaArgs = @(
-    "--league_id", "7",
-    "--game_mode", "pickem",
-    "--per_page", "250",
-    "--max_pages", "3",
-    "--retries", "$MaxRetries",
-    "--sleep", "2.0",
-    "--cooldown_seconds", "180",
-    "--max_cooldowns", "4",
-    "--jitter_seconds", "14.0",
-    "--append",
-    "--date", $PipeDate,
-    "--allow-nearest-future",
-    "--output", $nbaStep1
-)
-Push-Location $NBADir
-try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_api.py" @nbaArgs
-}
-finally {
-    Pop-Location
-}
-if ($LASTEXITCODE -ne 0) {
-    [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
-}
-elseif ((Get-CsvDataRowCount -CsvPath $nbaStep1) -gt 0) {
-    Copy-Step1Mirror -Source $nbaStep1 -MirrorPath $nbaLegacy
+if ($NBAOffSeason) {
+    Write-Host "[LATE_FETCH] Skipping NBA fetch (off-season until $NBA_SEASON_RESUME)" -ForegroundColor DarkGray
 }
 else {
-    [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    Write-Host "[LATE_FETCH] Fetching NBA props (append)..."
+    $NBADir = Join-Path $SportsRoot "NBA"
+    $nbaRunOut = Ensure-RunOutDir -SportTag "nba"
+    $nbaStep1 = Join-Path $nbaRunOut "step1_pp_props_today.csv"
+    $nbaLegacy = Join-Path $NBADir "data\outputs\step1_pp_props_today.csv"
+    $nbaArgs = @(
+        "--league_id", "7",
+        "--game_mode", "pickem",
+        "--per_page", "250",
+        "--max_pages", "3",
+        "--retries", "$MaxRetries",
+        "--sleep", "2.0",
+        "--cooldown_seconds", "180",
+        "--max_cooldowns", "4",
+        "--jitter_seconds", "14.0",
+        "--append",
+        "--date", $PipeDate,
+        "--allow-nearest-future",
+        "--output", $nbaStep1
+    )
+    Push-Location $NBADir
+    try {
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_api.py" @nbaArgs
+    }
+    finally {
+        Pop-Location
+    }
+    if ($LASTEXITCODE -ne 0) {
+        [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
+    elseif ((Get-CsvDataRowCount -CsvPath $nbaStep1) -gt 0) {
+        Copy-Step1Mirror -Source $nbaStep1 -MirrorPath $nbaLegacy
+    }
+    else {
+        [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
 }
 
 # WNBA — full step1 fetch into dated folder (pipeline -SkipFetch reads this path)
@@ -206,23 +218,28 @@ else {
 }
 
 # NHL — append
-Write-Host "[LATE_FETCH] Fetching NHL props (append)..."
-$NHLDir = Join-Path $SportsRoot "NHL"
-$nhlRunOut = Ensure-RunOutDir -SportTag "nhl"
-$nhlStep1 = Join-Path $nhlRunOut "step1_nhl_props.csv"
-Push-Location $NHLDir
-try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--date" "$PipeDate" "--output" $nhlStep1 "--max-retries" "$MaxRetries"
+if ($NHLOffSeason) {
+    Write-Host "[LATE_FETCH] Skipping NHL fetch (off-season until $NHL_SEASON_RESUME)" -ForegroundColor DarkGray
 }
-finally {
-    Pop-Location
-}
-$nhlFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nhlStep1) -eq 0)
-if ($nhlFailed) {
-    [void](Resolve-Step1MorningFallback -Sport "NHL" -Step1Path $nhlStep1 -MaxRetries $MaxRetries -FetchFailed $true)
-}
-elseif ((Get-CsvDataRowCount -CsvPath $nhlStep1) -gt 0) {
-    Copy-Step1Mirror -Source $nhlStep1 -MirrorPath (Join-Path $NHLDir "outputs\step1_nhl_props.csv")
+else {
+    Write-Host "[LATE_FETCH] Fetching NHL props (append)..."
+    $NHLDir = Join-Path $SportsRoot "NHL"
+    $nhlRunOut = Ensure-RunOutDir -SportTag "nhl"
+    $nhlStep1 = Join-Path $nhlRunOut "step1_nhl_props.csv"
+    Push-Location $NHLDir
+    try {
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--date" "$PipeDate" "--output" $nhlStep1 "--max-retries" "$MaxRetries"
+    }
+    finally {
+        Pop-Location
+    }
+    $nhlFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nhlStep1) -eq 0)
+    if ($nhlFailed) {
+        [void](Resolve-Step1MorningFallback -Sport "NHL" -Step1Path $nhlStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
+    elseif ((Get-CsvDataRowCount -CsvPath $nhlStep1) -gt 0) {
+        Copy-Step1Mirror -Source $nhlStep1 -MirrorPath (Join-Path $NHLDir "outputs\step1_nhl_props.csv")
+    }
 }
 
 # Soccer

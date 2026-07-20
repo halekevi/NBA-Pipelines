@@ -20,7 +20,9 @@ $LateFetch = Join-Path $Root "scripts\run_nba_late_fetch.ps1"
 $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"
 $LockDir = Join-Path $Root "data\cache"
 $LockFile = Join-Path $LockDir "refresh.lock"
-$LockTTLHours = 4
+# Soft TTL: dead/hung holders must not block the rest of the day's cadence.
+# Previously a 4h TTL + exit 0 on skip made 10:30 look "successful" while 9AM was hung.
+$LockTTLMinutes = 90
 
 if (-not (Test-Path $LateFetch)) {
     Write-Error "Missing late fetch script: $LateFetch"
@@ -35,17 +37,65 @@ if (-not (Test-Path -LiteralPath $LockDir)) {
     New-Item -ItemType Directory -Path $LockDir -Force | Out-Null
 }
 
+function Test-TodaySlateNeedsCatchup {
+    $today = (Get-Date).ToString("yyyy-MM-dd")
+    try {
+        $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+        $etNow = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
+        if ($etNow.Hour -ge 20) {
+            $today = $etNow.Date.AddDays(1).ToString("yyyy-MM-dd")
+        }
+        else {
+            $today = $etNow.ToString("yyyy-MM-dd")
+        }
+    } catch { }
+    $combined = Join-Path $Root "outputs\$today\combined_slate_tickets_$today.xlsx"
+    if (-not (Test-Path -LiteralPath $combined)) { return $true }
+    $statusPath = Join-Path $Root "outputs\$today\pipeline_slate_status.json"
+    if (-not (Test-Path -LiteralPath $statusPath)) { return $true }
+    try {
+        $ss = Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json
+        $complete = 0
+        foreach ($sk in @("mlb", "wnba", "soccer", "tennis")) {
+            if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $complete++ }
+        }
+        return ($complete -eq 0)
+    } catch {
+        return $true
+    }
+}
+
 if (Test-Path -LiteralPath $LockFile) {
     $lockAge = (Get-Date) - (Get-Item -LiteralPath $LockFile).LastWriteTime
-    if ($lockAge.TotalHours -lt $LockTTLHours) {
-        $lockContent = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
-        if (-not $lockContent) { $lockContent = "<unknown owner>" }
+    $lockContent = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if (-not $lockContent) { $lockContent = "<unknown owner>" }
+    $lockPid = $null
+    if ("$lockContent" -match 'PID\s+(\d+)') { $lockPid = [int]$Matches[1] }
+    $lockPidAlive = $false
+    if ($lockPid) {
+        $lockPidAlive = $null -ne (Get-Process -Id $lockPid -ErrorAction SilentlyContinue)
+    }
+
+    $staleByAge = ($lockAge.TotalMinutes -ge $LockTTLMinutes)
+    $staleByDeadPid = ($lockPid -and -not $lockPidAlive)
+    if ($staleByAge -or $staleByDeadPid) {
+        $why = if ($staleByDeadPid) { "owner PID $lockPid not running" } else { "$([int]$lockAge.TotalMinutes) min old (TTL $LockTTLMinutes)" }
+        Write-Host "[REFRESH $RunLabel] Stale lock detected ($why) — clearing" -ForegroundColor Yellow
+        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
+    }
+    elseif ($lockPidAlive) {
+        $needsCatchup = Test-TodaySlateNeedsCatchup
         Write-Host "[REFRESH $RunLabel] SKIP — another refresh is running ($lockContent)" -ForegroundColor Yellow
-        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $($LockTTLHours * 60) min)" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $LockTTLMinutes min)" -ForegroundColor Yellow
+        if ($needsCatchup) {
+            # Non-zero so Task Scheduler LastResult is not a false success when the day is still empty.
+            Write-Host "[REFRESH $RunLabel] Today's slate still incomplete — exit 2 (not a soft success)" -ForegroundColor Yellow
+            exit 2
+        }
         exit 0
     }
     else {
-        Write-Host "[REFRESH $RunLabel] Stale lock detected ($([int]$lockAge.TotalHours)h old) — clearing" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Orphan lock without live PID — clearing" -ForegroundColor Yellow
         Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
     }
 }

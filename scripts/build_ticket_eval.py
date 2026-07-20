@@ -702,15 +702,15 @@ def _resolve_void_pending_if_injury_dnp(
         and (not vn or vn in _VOID_PENDING_VOID_NOTES)
     ):
         return "VOID"
-    # MLB provider feeds frequently leave some props with NO_ACTUAL after game close
-    # (especially pitcher markets when a listed starter never appears). Resolve these
-    # as VOID so ticket payout can settle instead of lingering in pending state.
+    # MLB provider feeds frequently leave props with NO_ACTUAL after game close
+    # (DNP / scratch / listed starter never appears). Resolve these as VOID so the
+    # slip settles PrizePicks-style: voided legs drop off and payout uses the
+    # reduced leg-count tier — not left pending and not scored as a miss.
     if (
         sport_u == "MLB"
-        and prop_u in {"pitcherstrikeouts", "pitchingouts", "pitchesthrown", "hitsallowed", "walksallowed"}
         and g in ("NO_ACTUAL", "VOID", "PUSH", "N/A", "NA", "")
         and not _finite_line_actual(actual, line_f)
-        and (not vn or vn in _VOID_PENDING_VOID_NOTES)
+        and (not vn or vn in _VOID_PENDING_VOID_NOTES or g == "NO_ACTUAL")
     ):
         return "VOID"
     dnp_keys = injury_dnp_by_sport.get(sport_u)
@@ -1294,10 +1294,13 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         emoji = "❌"
         css = "loss"
         actual = 0.0
+        # Voids alone are never a miss: if every remaining leg hit but <2 playable
+        # legs remain, the slip refunds / no-contests — do not label as LOSS.
         if m == 0 and v > 0:
             result = "VOID_LOSS"
-            emoji = "⚠"
-            css = "void_loss"
+            emoji = "○"
+            css = "void"
+            actual = 0.0
     elif flex:
         if v > 0 and (n - v) < 3:
             # Voids dropped flex below 3 legs — pay as void-aware power play.
@@ -1308,29 +1311,30 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             css = "win"
             void_paid_as_power = True
         elif v > 0:
-            # Flex with voids: scale flex payout to remaining-leg tier, then lock to min-guarantee.
-            mult, kind = _effective_flex_multiplier(legs_for_payout, leg_grades, banner_flex, banner_pow, n)
-            banner_fb = float(banner_flex) if banner_flex > 0 else float(banner_pow)
-            locked = _locked_min_guarantee_multiplier(payd, ticket, banner_fb, n_legs=n)
-            if kind in ("sweep", "min_guarantee") and locked > 0:
-                actual = float(locked)
-                result = "WIN" if kind == "sweep" else "MIN GUARANTEE"
-                emoji = "✅" if kind == "sweep" else "🛡️"
-                css = "win" if kind == "sweep" else "min_guarantee"
+            # Flex with voids: always scale to the remaining-leg tier (3→2, 6→5, …).
+            # Do not reuse the original-n scraped lock — that would ignore the drop.
+            mult, kind = _effective_flex_multiplier(
+                legs_for_payout, leg_grades, banner_flex, banner_pow, n
+            )
+            actual = float(mult if mult is not None else 0.0)
+            if kind == "sweep":
+                result = "WIN"
+                emoji = "✅"
+                css = "win"
+            elif kind == "min_guarantee":
+                result = "MIN GUARANTEE"
+                emoji = "🛡️"
+                css = "min_guarantee"
+            elif kind == "power":
+                result = "WIN"
+                emoji = "✅"
+                css = "win"
+                void_paid_as_power = True
             else:
-                actual = float(mult if mult is not None else 0.0)
-                if kind == "sweep":
-                    result = "SWEEP"
-                    emoji = "🏆"
-                    css = "sweep"
-                elif kind == "min_guarantee":
-                    result = "MIN GUARANTEE"
-                    emoji = "🛡️"
-                    css = "min_guarantee"
-                else:
-                    result = "LOSS"
-                    emoji = "❌"
-                    css = "loss"
+                result = "LOSS"
+                emoji = "❌"
+                css = "loss"
+                actual = 0.0
         elif all_hit:
             # Site policy: Flex all-hit also locks to scraped min-guarantee (never Fantasy sweep).
             result = "WIN"
@@ -1357,13 +1361,16 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         emoji = "✅"
         css = "win"
         if v > 0:
-            # Prefer locked min scaled only when void helpers return nothing usable.
-            locked = _locked_min_guarantee_multiplier(payd, ticket, banner_pow, n_legs=n)
-            if locked > 0:
-                actual = float(locked)
+            # Prefer void-aware reduced-tier multiplier (3-leg→2-leg, 6→5, …).
+            # Only fall back to a scrape lock keyed on the *effective* leg count.
+            eff_pow = _effective_power_multiplier(legs_for_payout, leg_grades, banner_pow, n)
+            if eff_pow is not None and eff_pow > 0:
+                actual = float(eff_pow)
             else:
-                eff_pow = _effective_power_multiplier(legs_for_payout, leg_grades, banner_pow, n)
-                actual = float(eff_pow if eff_pow is not None else 0.0)
+                locked = _locked_min_guarantee_multiplier(
+                    payd, ticket, banner_pow, n_legs=max(0, n - v)
+                )
+                actual = float(locked) if locked > 0 else 0.0
             void_paid_as_power = True
         else:
             actual = float(
@@ -1449,7 +1456,10 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         else:
             detail = f"{result} — all {n} legs correct"
     elif result == "VOID_LOSS" and n:
-        detail = f"Voided legs prevented payout ({h_show} hit, {m_show} miss, {v} void)"
+        detail = (
+            f"Refund / no contest — {v} void left {eff_legs} playable leg(s) "
+            f"(need ≥2); voids drop off the slip and are not misses"
+        )
     elif result == "LOSS" and n:
         if v > 0:
             detail = f"{result} ({h_show} hit, {m_show} miss, {v} void)"
@@ -1473,8 +1483,9 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         "net_10": net_10,
     }
     if result == "VOID_LOSS":
-        out["result_display"] = "VOID / NO ACTION"
-    if v > 0 and result in ("WIN", "SWEEP", "MIN GUARANTEE"):
+        out["result_display"] = "REFUND / NO CONTEST"
+        out["omit_payout_block"] = True
+    if v > 0 and result in ("WIN", "SWEEP", "MIN GUARANTEE", "VOID_LOSS"):
         out["void_dropped_legs"] = int(v)
         out["effective_legs"] = int(eff_legs)
         out["void_paid_as_power"] = bool(void_paid_as_power)
@@ -3832,6 +3843,13 @@ def _build_html(
         if all(x == "VOID" for x in gs):
             continue
         pays_money = _ticket_pays_money(gname, gs)
+        # Void-only reductions that leave <2 playable legs refund — not a ticket loss.
+        if (
+            not pays_money
+            and isinstance(oc, dict)
+            and oc.get("result") == "VOID_LOSS"
+        ):
+            continue
         bucket = _ticket_sport_bucket_for_money_summary(gname, legs)
         if bucket not in sport_ticket_summary:
             sport_ticket_summary[bucket] = {"wins": 0, "losses": 0}

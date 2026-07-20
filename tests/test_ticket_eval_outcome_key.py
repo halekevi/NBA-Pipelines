@@ -27,6 +27,86 @@ def test_money_outcome_all_hit_is_win_for_power_style_group():
     assert float(oc.get("actual_payout") or 0) > 0
 
 
+def test_power_void_pays_as_reduced_leg_tier_not_original_scrape():
+    """PrizePicks: void drops the leg; 3-leg with 1 void + 2 hits pays as 2-leg."""
+    from build_ticket_eval import _effective_power_multiplier  # noqa: E402
+
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "HIT", "VOID"]
+    legs = [{"pick_type": "Goblin"}, {"pick_type": "Goblin"}, {"pick_type": "Goblin"}]
+    banner = 6.0
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": banner,
+        "flex_payout": 3.0,
+        "legs": legs,
+        # Original 3-leg scrape must NOT win over reduced-tier math.
+        "payout": {"payout": 6.0, "min_guarantee": 6.0, "sweep_payout": 6.0},
+    }
+    assert _ticket_pays_money(gname, gs) is True
+    expected = _effective_power_multiplier(legs, gs, banner, 3)
+    assert expected is not None and expected < banner
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    assert oc.get("effective_legs") == 2
+    assert oc.get("void_dropped_legs") == 1
+    assert abs(float(oc.get("actual_payout") or 0) - float(expected)) < 1e-9
+
+
+def test_power_void_with_remaining_miss_is_loss_not_void_fail():
+    """A miss among remaining legs loses; the void itself is not the miss."""
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "MISS", "VOID"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 6.0,
+        "legs": [{"pick_type": "Goblin"}] * 3,
+        "payout": {"payout": 6.0},
+    }
+    assert _ticket_pays_money(gname, gs) is False
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "LOSS"
+
+
+def test_void_below_two_legs_is_refund_not_loss():
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "VOID", "VOID"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 6.0,
+        "legs": [{"pick_type": "Goblin"}] * 3,
+        "payout": {"payout": 6.0},
+    }
+    assert _ticket_pays_money(gname, gs) is False
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "VOID_LOSS"
+    assert "REFUND" in str(oc.get("result_display") or "")
+    assert float(oc.get("actual_payout") or 0) == 0.0
+
+
+def test_mlb_hitter_no_actual_resolves_to_void():
+    from build_ticket_eval import _resolve_void_pending_if_injury_dnp  # noqa: E402
+
+    leg = {
+        "sport": "MLB",
+        "player": "Bobby Witt Jr.",
+        "team": "KC",
+        "prop_type": "Hits",
+    }
+    assert (
+        _resolve_void_pending_if_injury_dnp(
+            "UNGRADED",
+            leg,
+            None,
+            0.5,
+            "VOID",
+            "NO_ACTUAL",
+            {},
+        )
+        == "VOID"
+    )
+
+
 def test_power_goblin_all_hit_uses_scraped_min_not_classic_sweep():
     """3-leg Goblin Power must not grade Actual at Fantasy 6x when min lock is ~1.6x."""
     gname = "WNBA 3-Leg Goblin"

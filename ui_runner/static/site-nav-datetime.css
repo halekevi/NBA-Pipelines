@@ -4,7 +4,7 @@
   align-items: center;
   gap: 14px;
   flex-shrink: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .nav-datetime-block {
   display: flex;
@@ -33,9 +33,10 @@
   line-height: 1.4;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0;
   max-width: min(78vw, 420px);
+  min-width: 0;
 }
 .nav-local-datetime {
   font-family: "Inter", ui-sans-serif, sans-serif;
@@ -74,4 +75,19 @@
   max-width: 44px !important;
   max-height: 44px !important;
   object-fit: contain !important;
+}
+
+/* Desktop/half-screen: force single-row shell nav (beats critical fallback wrap). */
+@media (min-width: 769px) {
+  nav.snav,
+  .snav {
+    flex-wrap: nowrap !important;
+  }
+  nav.snav .snav-links,
+  .snav-links {
+    flex-wrap: nowrap !important;
+  }
+  .nav-live-cluster {
+    flex-wrap: nowrap !important;
+  }
 }

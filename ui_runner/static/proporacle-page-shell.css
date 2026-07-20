@@ -55,7 +55,7 @@ body::after{
 }
 
 /* nav */
-.snav{position:sticky;top:1rem;z-index:200;background:rgba(20,20,20,0.6);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(212,175,55,0.15);box-shadow:0 1px 0 rgba(255,255,255,0.04),0 8px 32px rgba(0,0,0,0.4);padding:0 40px;display:flex;align-items:center;height:72px;gap:0;margin:1rem;border-radius:20px;transform:translateY(0);opacity:1;transition:transform .25s ease,opacity .2s ease;}
+.snav{position:sticky;top:1rem;z-index:200;background:rgba(20,20,20,0.6);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border:1px solid rgba(212,175,55,0.15);box-shadow:0 1px 0 rgba(255,255,255,0.04),0 8px 32px rgba(0,0,0,0.4);padding:0 40px;display:flex;align-items:center;flex-wrap:nowrap;min-width:0;height:72px;gap:0;margin:1rem;border-radius:20px;transform:translateY(0);opacity:1;transition:transform .25s ease,opacity .2s ease;}
 .snav.nav-hidden{transform:translateY(calc(-100% - 10px));opacity:.96;}
 .nav-accent{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,#c6ff00 15%,#7fc7d9 40%,#8f7ab8 65%,#c6ff00 85%,transparent 100%);opacity:.7;animation:accentShift 6s ease-in-out infinite alternate;}
 @keyframes accentShift{from{opacity:.5;filter:hue-rotate(0deg);}to{opacity:.9;filter:hue-rotate(20deg);}}
@@ -68,9 +68,9 @@ body::after{
 .snav-brand,.snav-brand .hybrid-logo{text-transform:none;}
 .nav-brand .oracle-upper{text-transform:uppercase;font-weight:800;color:#d4af37;}
 .nav-brand .oracle-word{font-weight:800;color:#d4af37;}
-.snav-links{display:flex;align-items:stretch;list-style:none;flex:1;gap:4px;margin:0;padding:0;}
+.snav-links{display:flex;align-items:stretch;list-style:none;flex:1;gap:4px;margin:0;padding:0;flex-wrap:nowrap;min-width:0;}
 .snav-links li{display:flex;align-items:center;margin:0;padding:0;list-style:none;}
-.snav-links li a{display:flex;align-items:center;justify-content:center;gap:10px;padding:0 20px;height:72px;box-sizing:border-box;font-family:"Inter",sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;color:rgba(255,255,255,0.95);text-decoration:none;border-bottom:2px solid transparent;border-radius:0;transition:color .2s,border-color .2s,background .2s;position:relative;}
+.snav-links li a{display:flex;align-items:center;justify-content:center;gap:10px;padding:0 20px;height:72px;box-sizing:border-box;font-family:"Inter",sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;line-height:1;color:rgba(255,255,255,0.95);text-decoration:none;border-bottom:2px solid transparent;border-radius:0;transition:color .2s,border-color .2s,background .2s;position:relative;white-space:nowrap;}
 .snav-links li a:hover{color:var(--text);background:rgba(255,255,255,.02);}
 .snav-links li a.active{color:var(--accent);border-bottom-color:var(--accent);background:linear-gradient(180deg,rgba(212,175,55,.12),rgba(212,175,55,.04));box-shadow:inset 0 0 0 1px rgba(212,175,55,.15);}
 .snav-links li a.active::after{content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);pointer-events:none;}
@@ -101,8 +101,8 @@ body::after{
 .snav-links li a:hover .ni-pay  {box-shadow:0 0 10px rgba(255,192,107,.25);}
 /* Payouts nav glyph: path reads as a reversed “p” until flipped vertically. */
 .ni-pay svg{transform:scaleY(-1);transform-origin:50% 50%;}
-.snav-right{display:flex;align-items:center;gap:16px;margin-left:auto;}
-.live-pill{font-family:"Inter",sans-serif;font-weight:600;font-size:10px;letter-spacing:1.5px;padding:6px 16px;border-radius:100px;border:1px solid rgba(46,204,113,.3);color:#9fd8a7;background:rgba(46,204,113,.06);display:flex;align-items:center;gap:8px;}
+.snav-right{display:flex;align-items:center;gap:16px;margin-left:auto;flex-shrink:0;flex-wrap:nowrap;}
+.live-pill{font-family:"Inter",sans-serif;font-weight:600;font-size:10px;letter-spacing:1.5px;padding:6px 16px;border-radius:100px;border:1px solid rgba(46,204,113,.3);color:#9fd8a7;background:rgba(46,204,113,.06);display:flex;align-items:center;gap:8px;white-space:nowrap;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#9fd8a7;box-shadow:0 0 8px #9fd8a7;animation:blink 2s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 a.snav-brand .brand-wordmark .wb-first,

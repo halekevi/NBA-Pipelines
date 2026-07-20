@@ -150,10 +150,10 @@ body::after{content:'';position:fixed;inset:0;
 .live-pill{font-family:"Inter",sans-serif;font-weight:600;font-size:10px;letter-spacing:1.5px;padding:6px 16px;border-radius:100px;border:1px solid rgba(46,204,113,.3);color:var(--green);background:rgba(46,204,113,.06);display:flex;align-items:center;gap:8px;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.nav-live-cluster{display:flex;align-items:center;gap:14px;flex-shrink:0;flex-wrap:wrap;}
+.nav-live-cluster{display:flex;align-items:center;gap:14px;flex-shrink:0;flex-wrap:nowrap;}
 .nav-datetime-block{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:4px 0;min-width:0;text-align:left;border-left:1px solid rgba(255,255,255,.1);padding-left:14px;margin-left:2px;}
 .nav-slate-date{font-family:'Inter',sans-serif;font-size:clamp(14px,1.25vw,17px);font-weight:500;color:rgba(255,255,255,.9);letter-spacing:.02em;line-height:1.25;}
-.nav-sync-line{font-size:clamp(12px,1.1vw,14px);color:var(--muted);line-height:1.4;display:flex;align-items:center;flex-wrap:wrap;gap:0;max-width:min(78vw,420px);}
+.nav-sync-line{font-size:clamp(12px,1.1vw,14px);color:var(--muted);line-height:1.4;display:flex;align-items:center;flex-wrap:nowrap;gap:0;max-width:min(78vw,420px);min-width:0;}
 .nav-local-datetime{font-family:'Inter',sans-serif;color:rgba(255,255,255,.55);letter-spacing:.02em;}
 .nav-clock{font-family:'Inter',sans-serif;color:rgba(255,255,255,.55);}
 .nav-sync-sep{opacity:.45;padding:0 5px;}
@@ -1069,7 +1069,7 @@ body > nav.snav.glass-card {
 <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="/static/mobile-content-width.css?v=20260716slatecards3"/>
 <link rel="stylesheet" href="/static/matchup-edge.css?v=20260716me4"/>
-<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260408"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
 <link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
 </head>
 <body>

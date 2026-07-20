@@ -10,8 +10,11 @@ param(
     [switch]$Execute
 )
 
-$Root   = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$NBADir = "$Root\NBA"
+# Script lives in scripts\; project root is the parent folder.
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$Root   = Split-Path -Parent $ScriptDir
+$NBADir = Join-Path $Root "Sports\NBA"
+if (-not (Test-Path $NBADir)) { $NBADir = Join-Path $Root "NBA" }
 $Date   = Get-Date -Format "yyyy-MM-dd"
 
 if (-not $Execute) {
@@ -110,6 +113,11 @@ Write-Host "[ 3 ] Loose files in outputs\ root (not in dated subfolder)" -Foregr
 Write-Host ""
 
 Get-ChildItem "$Root\outputs\*" -File -ErrorAction SilentlyContinue | ForEach-Object {
+    # Keep live "latest" contracts at outputs\ root (UI/API paths).
+    if ($_.Name -match '_latest\.(json|xlsx|html|csv)$' -or $_.Name -eq 'combo_table_latest.json') {
+        Write-Host "  [KEEP]   Live latest artifact: $($_.Name)" -ForegroundColor DarkCyan
+        return
+    }
     $matched = $_.Name -match "(\d{4}-\d{2}-\d{2})"
     if ($matched) {
         $fileDate = $Matches[1]

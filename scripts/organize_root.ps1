@@ -8,7 +8,9 @@
 # ============================================================
 param([switch]$Execute)
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Definition
+# Script lives in scripts\; project root is the parent folder.
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$Root = Split-Path -Parent $ScriptDir
 
 if (-not $Execute) {
     Write-Host ""

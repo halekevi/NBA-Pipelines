@@ -632,6 +632,36 @@ else {
 }
 
 # =============================================================================
+# STEP A1b-mlb — MAIN MLB construction expected vs actual (non-blocking)
+# =============================================================================
+$mlbConstructionCheck = Join-Path $Root "scripts\daily_main_mlb_construction_check.py"
+if (Test-Path $mlbConstructionCheck) {
+    Write-Log "STEP A1b-mlb - MAIN MLB construction check: START"
+    Push-Location $Root
+    try {
+        $from7 = (Get-Date).AddDays(-7).ToString("yyyy-MM-dd")
+        $toToday = (Get-Date).ToString("yyyy-MM-dd")
+        & py -3.14 -X utf8 $mlbConstructionCheck --from $from7 --to $toToday
+        $mc = $LASTEXITCODE
+        if ($mc -ne 0) {
+            Write-Log "STEP A1b-mlb - MAIN MLB construction check: WARN (exit $mc)"
+        }
+        else {
+            Write-Log "STEP A1b-mlb - MAIN MLB construction check: OK → data/reports/main_mlb_construction_daily_latest.json"
+        }
+    }
+    catch {
+        Write-Log "STEP A1b-mlb - MAIN MLB construction check: WARN ($($_.Exception.Message))"
+    }
+    finally {
+        Pop-Location
+    }
+}
+else {
+    Write-Log "STEP A1b-mlb - MAIN MLB construction check: SKIP (script missing)"
+}
+
+# =============================================================================
 # STEP A1c — Add CLV columns to graded workbooks (when odds columns exist)
 # =============================================================================
 $enrichClvScript = Join-Path $Root "scripts\enrich_graded_workbook_clv.py"

@@ -1,0 +1,464 @@
+{
+  "from_date": "2026-07-14",
+  "to_date": "2026-07-19",
+  "expected_main_wr_pct": 57.1,
+  "expected_note": "MAIN rebuild 2026-07-14\u21922026-07-18 (current_shipped)",
+  "aggregate_main": {
+    "raw": {
+      "wins": 215,
+      "losses": 195,
+      "ungraded": 34,
+      "n_graded": 410,
+      "win_pct": 52.4
+    },
+    "hygiene": {
+      "wins": 172,
+      "losses": 156,
+      "ungraded": 29,
+      "n_graded": 328,
+      "win_pct": 52.4
+    },
+    "gap_vs_expected_pp": -4.7,
+    "enough_sample": true
+  },
+  "by_day": [
+    {
+      "date": "2026-07-14",
+      "main": {
+        "path": "ui_runner\\data\\combined_slate_tickets_2026-07-14.json",
+        "n_tickets": 219,
+        "raw": {
+          "n_graded": 211,
+          "wins": 108,
+          "losses": 103,
+          "ungraded": 8,
+          "win_pct": 51.2
+        },
+        "hygiene": {
+          "n_graded": 211,
+          "wins": 108,
+          "losses": 103,
+          "ungraded": 8,
+          "win_pct": 51.2
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 219,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      },
+      "long_parlay": {
+        "path": "ui_runner\\data\\combined_slate_tickets_long_parlay_2026-07-14.json",
+        "n_tickets": 189,
+        "raw": {
+          "n_graded": 85,
+          "wins": 5,
+          "losses": 80,
+          "ungraded": 104,
+          "win_pct": 5.9
+        },
+        "hygiene": {
+          "n_graded": 85,
+          "wins": 5,
+          "losses": 80,
+          "ungraded": 104,
+          "win_pct": 5.9
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 189,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "main": {
+        "path": "ui_runner\\data\\combined_slate_tickets_2026-07-15.json",
+        "n_tickets": 50,
+        "raw": {
+          "n_graded": 38,
+          "wins": 20,
+          "losses": 18,
+          "ungraded": 12,
+          "win_pct": 52.6
+        },
+        "hygiene": {
+          "n_graded": 38,
+          "wins": 20,
+          "losses": 18,
+          "ungraded": 12,
+          "win_pct": 52.6
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 50,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      },
+      "long_parlay": {
+        "path": "ui_runner\\data\\combined_slate_tickets_long_parlay_2026-07-15.json",
+        "n_tickets": 178,
+        "raw": {
+          "n_graded": 59,
+          "wins": 11,
+          "losses": 48,
+          "ungraded": 119,
+          "win_pct": 18.6
+        },
+        "hygiene": {
+          "n_graded": 59,
+          "wins": 11,
+          "losses": 48,
+          "ungraded": 119,
+          "win_pct": 18.6
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 178,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      }
+    },
+    {
+      "date": "2026-07-16",
+      "main": {
+        "path": null,
+        "n_tickets": 0,
+        "raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 0,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      },
+      "long_parlay": {
+        "path": null,
+        "n_tickets": 0,
+        "raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 0,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      }
+    },
+    {
+      "date": "2026-07-17",
+      "main": {
+        "path": "ui_runner\\data\\combined_slate_tickets_2026-07-17.json",
+        "n_tickets": 105,
+        "raw": {
+          "n_graded": 96,
+          "wins": 70,
+          "losses": 26,
+          "ungraded": 9,
+          "win_pct": 72.9
+        },
+        "hygiene": {
+          "n_graded": 58,
+          "wins": 32,
+          "losses": 26,
+          "ungraded": 4,
+          "win_pct": 55.2
+        },
+        "mlb_raw": {
+          "n_graded": 39,
+          "wins": 39,
+          "losses": 0,
+          "ungraded": 5,
+          "win_pct": 100.0
+        },
+        "mlb_hygiene": {
+          "n_graded": 1,
+          "wins": 1,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": 100.0
+        },
+        "n_hygiene_kept": 62,
+        "n_mlb_raw": 44,
+        "n_mlb_hygiene": 1
+      },
+      "long_parlay": {
+        "path": "ui_runner\\data\\combined_slate_tickets_long_parlay_2026-07-17.json",
+        "n_tickets": 1327,
+        "raw": {
+          "n_graded": 1086,
+          "wins": 124,
+          "losses": 962,
+          "ungraded": 241,
+          "win_pct": 11.4
+        },
+        "hygiene": {
+          "n_graded": 198,
+          "wins": 22,
+          "losses": 176,
+          "ungraded": 168,
+          "win_pct": 11.1
+        },
+        "mlb_raw": {
+          "n_graded": 898,
+          "wins": 102,
+          "losses": 796,
+          "ungraded": 74,
+          "win_pct": 11.4
+        },
+        "mlb_hygiene": {
+          "n_graded": 10,
+          "wins": 0,
+          "losses": 10,
+          "ungraded": 1,
+          "win_pct": 0.0
+        },
+        "n_hygiene_kept": 366,
+        "n_mlb_raw": 972,
+        "n_mlb_hygiene": 11
+      }
+    },
+    {
+      "date": "2026-07-18",
+      "main": {
+        "path": "ui_runner\\data\\combined_slate_tickets_2026-07-18.json",
+        "n_tickets": 70,
+        "raw": {
+          "n_graded": 65,
+          "wins": 17,
+          "losses": 48,
+          "ungraded": 5,
+          "win_pct": 26.2
+        },
+        "hygiene": {
+          "n_graded": 21,
+          "wins": 12,
+          "losses": 9,
+          "ungraded": 5,
+          "win_pct": 57.1
+        },
+        "mlb_raw": {
+          "n_graded": 44,
+          "wins": 5,
+          "losses": 39,
+          "ungraded": 0,
+          "win_pct": 11.4
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 26,
+        "n_mlb_raw": 44,
+        "n_mlb_hygiene": 0
+      },
+      "long_parlay": {
+        "path": "ui_runner\\data\\combined_slate_tickets_long_parlay_2026-07-18.json",
+        "n_tickets": 1364,
+        "raw": {
+          "n_graded": 1080,
+          "wins": 107,
+          "losses": 973,
+          "ungraded": 284,
+          "win_pct": 9.9
+        },
+        "hygiene": {
+          "n_graded": 200,
+          "wins": 42,
+          "losses": 158,
+          "ungraded": 126,
+          "win_pct": 21.0
+        },
+        "mlb_raw": {
+          "n_graded": 916,
+          "wins": 74,
+          "losses": 842,
+          "ungraded": 164,
+          "win_pct": 8.1
+        },
+        "mlb_hygiene": {
+          "n_graded": 36,
+          "wins": 9,
+          "losses": 27,
+          "ungraded": 6,
+          "win_pct": 25.0
+        },
+        "n_hygiene_kept": 326,
+        "n_mlb_raw": 1080,
+        "n_mlb_hygiene": 42
+      }
+    },
+    {
+      "date": "2026-07-19",
+      "main": {
+        "path": "ui_runner\\data\\combined_slate_tickets_2026-07-19.json",
+        "n_tickets": 0,
+        "raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 0,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      },
+      "long_parlay": {
+        "path": "ui_runner\\data\\combined_slate_tickets_long_parlay_2026-07-19.json",
+        "n_tickets": 0,
+        "raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_raw": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "mlb_hygiene": {
+          "n_graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "ungraded": 0,
+          "win_pct": null
+        },
+        "n_hygiene_kept": 0,
+        "n_mlb_raw": 0,
+        "n_mlb_hygiene": 0
+      }
+    }
+  ]
+}

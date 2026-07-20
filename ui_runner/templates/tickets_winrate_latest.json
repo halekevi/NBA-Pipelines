@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20 16:33:58 UTC",
+  "generated_at": "2026-07-20 17:49:04 UTC",
   "date": "2026-07-20",
   "tennis_date": "2026-07-20",
   "filters": {
@@ -48,10 +48,11 @@
   "strong_tier_gates": {
     "max_legs": 3,
     "min_p_win_2leg": 0.45,
-    "min_p_win_3leg": 0.38,
+    "min_p_win_3leg": 0.4,
     "min_p_win_4leg": 0.28,
     "min_p_win_5leg": 0.18,
     "min_p_win_6leg": 0.12,
+    "max_leg_prob_for_p_win": 0.76,
     "allow_cross_sport": false,
     "require_goblin": true,
     "allow_standard_hot_on_mix": true,

@@ -451,6 +451,21 @@ def test_build_strong_tickets_prefers_three_plus_legs_when_pool_allows():
     # Board should lead with longer slips within the max-legs cap (default 3).
     assert int(tickets[0].get("n_legs") or 0) >= 3
     assert max(int(t.get("n_legs") or 0) for t in tickets) <= 3
+    three = [t for t in tickets if int(t.get("n_legs") or 0) == 3]
+    assert three
+    assert all(float(t.get("est_win_prob") or 0) >= 0.40 for t in three)
+
+
+def test_strong_win_prob_uses_raised_leg_cap_for_three_legs():
+    """L5/hit-rate legs at 0.75 clear 3-leg floor only under STRONG cap (not MAIN 0.72)."""
+    from utils.ticket_ev_tiers import STRONG_MAX_LEG_PROB_FOR_P_WIN, STRONG_MIN_P_WIN_3LEG
+
+    legs = [(0.75, "l5_over_proxy"), (0.75, "l5_over_proxy"), (0.75, "l5_over_proxy")]
+    main_ep = cst.win_prob(legs, 3)
+    strong_ep = cst.win_prob(legs, 3, max_leg_prob=float(STRONG_MAX_LEG_PROB_FOR_P_WIN))
+    assert main_ep < STRONG_MIN_P_WIN_3LEG  # 0.72^3 ≈ 0.373
+    assert strong_ep >= STRONG_MIN_P_WIN_3LEG
+    assert abs(strong_ep - (0.75**3)) < 1e-9
 
 
 def test_build_strong_tickets_includes_five_and_six_legs_when_max_raised():

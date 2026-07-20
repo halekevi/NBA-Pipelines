@@ -2,7 +2,7 @@
 
 Living one-pager for after a break. Update when something big ships (model promote, pool-mode change, sport season flip, experiment ship/kill). Not a C4 diagram.
 
-**As of:** 2026-07-20  
+**As of:** 2026-07-20 (STRONG 2+3 leg p_win floors / 0.76 leg ceiling)  
 **Ops overview (audiences + daily cadence):** [guides/DAILY_OPS_OVERVIEW.md](guides/DAILY_OPS_OVERVIEW.md)
 
 ---
@@ -15,7 +15,7 @@ Living one-pager for after a break. Update when something big ships (model promo
 | **Edge metadata** | `models/edge_model_metadata.json` | Points at the Jun-13 no-tennis artifact; slice isotonic refresh exists separately. |
 | **Jul 9 candidate** | `models/edge_model_candidate.pkl` | Evaluated; **production kept** (not promoted). |
 | **Active MAIN pool mode** | `high_prob_std_gob` (live filters) | Mixed Standard+Goblin high-prob MAIN; see `combined_slate_tickets` filters on latest tickets. Standard legs also use **prop×direction** gates (`_STANDARD_PROP_GATE_*`). |
-| **STRONG gate** | Rolling HR + player appearance cap | Exclude players with rolling HR &lt; 0.25 when n ≥ 20; max appearances per slate (env `PROPORACLE_STRONG_MAX_PLAYER_APPS`, default 2). |
+| **STRONG gate** | Rolling HR + player appearance cap; 2+3 leg p_win | Exclude players with rolling HR &lt; 0.25 when n ≥ 20; max appearances per slate (env `PROPORACLE_STRONG_MAX_PLAYER_APPS`, default 2). Ticket floors: 2-leg ≥ **0.45**, 3-leg ≥ **0.40**; STRONG per-leg p_win ceiling **0.76** (`PROPORACLE_STRONG_MAX_LEG_PROB`) so probable 3-legs can clear (MAIN stays on 0.72). |
 | **Ticket model** | `models/ticket_model*.pkl` | Registry refreshed 2026-07-09; combined AUC test ~0.67 (cash label). Secondary to edge model for day-to-day. |
 | **Next edge retrain** | **~2026-08-14** | ~2 months after Jun-13 promote; see **Aug 14 retrain pre-work** below. |
 | **Void settlement** | Reduced-slip (not miss) | `scripts/build_ticket_eval.py`: provider VOID / NO_ACTUAL → drop leg, pay reduced tier; &lt;2 playable → refund / no contest. |

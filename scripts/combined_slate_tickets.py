@@ -160,6 +160,7 @@ from utils.ticket_tier_defense_gates import (
 from utils.prop_signal_score import l10_streak_series
 from utils.ticket_ev_tiers import (
     STRONG_ALLOW_CROSS_SPORT,
+    STRONG_MAX_LEG_PROB_FOR_P_WIN,
     STRONG_MAX_LEGS,
     STRONG_MIN_P_WIN_2LEG,
     STRONG_MIN_P_WIN_3LEG,
@@ -4999,7 +5000,13 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
     return DEFAULT_LEG_PROB_FALLBACK, "fallback_const"
 
 
-def win_prob(leg_probs_with_source, _n_legs: int) -> float:
+def win_prob(
+    leg_probs_with_source,
+    _n_legs: int,
+    *,
+    max_leg_prob: float | None = None,
+) -> float:
+    """Independence product of leg probs. Optional max_leg_prob overrides source caps."""
     vals = []
     for p, src in leg_probs_with_source:
         try:
@@ -5007,7 +5014,10 @@ def win_prob(leg_probs_with_source, _n_legs: int) -> float:
                 continue
             if isinstance(p, float) and np.isnan(p):
                 continue
-            vals.append(_clip_prob(float(p), src))
+            if max_leg_prob is not None:
+                vals.append(float(np.clip(float(p), LEG_PROB_FLOOR, float(max_leg_prob))))
+            else:
+                vals.append(_clip_prob(float(p), src))
         except Exception:
             continue
     if not vals:
@@ -5246,11 +5256,20 @@ def _leg_l5_hit_prob_cap(row: pd.Series | dict) -> float:
     return MAX_L5_HIT_PROB_DEFAULT
 
 
-def _leg_prob_for_p_win_from_mapping(leg: dict | pd.Series) -> float:
+def _leg_prob_for_p_win_from_mapping(
+    leg: dict | pd.Series,
+    *,
+    max_leg_prob: float | None = None,
+) -> float:
     """P(win) leg factor: leg_prob_used → composite_hit_rate/hit_rate → ml_prob → 0.55 (capped)."""
     if isinstance(leg, pd.Series):
         leg = leg.to_dict()
-    cap = MAX_LEG_PROB_BENCH_SUPPORT if _winrate_leg_bench_risk(leg) else MAX_LEG_PROB_FOR_P_WIN
+    if _winrate_leg_bench_risk(leg):
+        cap = MAX_LEG_PROB_BENCH_SUPPORT
+    elif max_leg_prob is not None:
+        cap = float(max_leg_prob)
+    else:
+        cap = MAX_LEG_PROB_FOR_P_WIN
     for key in ("leg_prob_used", "composite_hit_rate", "hit_rate", "ml_prob"):
         raw = leg.get(key)
         if raw is None or raw == "":
@@ -5264,21 +5283,35 @@ def _leg_prob_for_p_win_from_mapping(leg: dict | pd.Series) -> float:
     return min(0.55, cap)
 
 
-def _compute_p_win_from_rows(rows: list) -> float:
+def _compute_p_win_from_rows(
+    rows: list,
+    *,
+    max_leg_prob: float | None = None,
+) -> float:
     p = 1.0
     for row in rows or []:
-        p *= _leg_prob_for_p_win_from_mapping(row)
+        p *= _leg_prob_for_p_win_from_mapping(row, max_leg_prob=max_leg_prob)
     return float(np.clip(p, 0.0, 1.0))
 
 
 def _enrich_slip_p_win_fields(slip: dict, *, mode: str = "ev") -> None:
+    # STRONG builder slips use a higher per-leg ceiling so probable 3-legs keep a
+    # consistent p_win on the board (MAIN stays on the global 0.72 cap).
+    strong_cap = (
+        float(STRONG_MAX_LEG_PROB_FOR_P_WIN)
+        if slip.get("strong_builder")
+        else None
+    )
     legs = slip.get("legs") or []
     if legs:
-        p_win = _compute_p_win_from_rows(legs)
+        p_win = _compute_p_win_from_rows(legs, max_leg_prob=strong_cap)
     else:
         rows = slip.get("rows") or []
-        p_win = _compute_p_win_from_rows(rows)
+        p_win = _compute_p_win_from_rows(rows, max_leg_prob=strong_cap)
     slip["p_win"] = round(p_win, 6)
+    # Keep builder est_win_prob when present; otherwise mirror p_win.
+    if slip.get("est_win_prob") is None and slip.get("strong_builder"):
+        slip["est_win_prob"] = round(p_win, 6)
     slip["expected_wins_per_100"] = round(p_win * 100, 1)
     slip["mode"] = mode
     if mode == "win_rate":
@@ -15286,7 +15319,14 @@ def build_strong_tickets(
 
             leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
             cmult, caudit = _correlation_multiplier_and_audit(rows)
-            ep = win_prob(leg_probs, n_legs) * cmult
+            ep = (
+                win_prob(
+                    leg_probs,
+                    n_legs,
+                    max_leg_prob=float(STRONG_MAX_LEG_PROB_FOR_P_WIN),
+                )
+                * cmult
+            )
             if ep < min_p_win:
                 continue
 

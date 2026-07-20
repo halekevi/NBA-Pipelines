@@ -1,14 +1,15 @@
 """
 Step 1 — Fetch PrizePicks Soccer Board
 HTTP first (curl_cffi chrome131 via shared API module), urllib fallback.
-PrizePicks soccer boards — club soccer plus FIFA World Cup (separate PP league_ids).
-Club leagues (EPL/MLS/etc.) appear inside league_id=82; World Cup has its own boards.
+Optional --cdp attaches to warmed Chrome (DataDome bypass) and fetches all boards
+in one session. --fail-fast keeps HTTP from burning 30–120+ minutes on 403 cooldowns.
 
 Usage:
     py step1_fetch_prizepicks_soccer.py --output s1_soccer_props.csv
     py step1_fetch_prizepicks_soccer.py --include_halves --output s1_soccer_props.csv
     py step1_fetch_prizepicks_soccer.py --no-world-cup   # skip WC boards when inactive
     py step1_fetch_prizepicks_soccer.py --league_id 82 --output s1_soccer_props.csv
+    py step1_fetch_prizepicks_soccer.py --cdp http://127.0.0.1:9222 --fail-fast
 """
 
 import argparse
@@ -28,6 +29,13 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from utils.prizepicks_http import fetch_pp_projections, make_pp_session, ensure_chrome131
+from utils.prizepicks_cdp import (
+    align_cdp_context_for_datadome,
+    cdp_board_ready,
+    connect_over_cdp,
+    fetch_projections_inpage,
+    pick_cdp_warmed_page,
+)
 from utils.step1_slate_date_filter import (
     apply_game_date_filter,
     no_props_log_line,
@@ -68,10 +76,17 @@ def _default_et_date_str() -> str:
     return datetime.now(ZoneInfo(DEFAULT_TZ)).date().isoformat()
 
 
-def _fetch_board_urllib(league_id: str, league_name: str, per_page: int = 250) -> tuple[list, list]:
+def _fetch_board_urllib(
+    league_id: str,
+    league_name: str,
+    per_page: int = 250,
+    *,
+    fail_fast: bool = False,
+) -> tuple[list, list]:
     """Legacy urllib fetch (both in_game flags) — fallback when curl_cffi fails."""
     all_data = []
     all_included = []
+    max_attempts = 1 if fail_fast else 3
 
     for in_game in ("false", "true"):
         url = (
@@ -82,10 +97,10 @@ def _fetch_board_urllib(league_id: str, league_name: str, per_page: int = 250) -
             f"&in_game={in_game}"
             f"&game_mode=pickem"
         )
-        for attempt in range(1, 4):
+        for attempt in range(1, max_attempts + 1):
             try:
                 req = urllib.request.Request(url, headers=HEADERS)
-                with urllib.request.urlopen(req, timeout=30) as resp:
+                with urllib.request.urlopen(req, timeout=20 if fail_fast else 30) as resp:
                     j = json.loads(resp.read())
                 data = j.get("data") or []
                 incl = j.get("included") or []
@@ -94,7 +109,7 @@ def _fetch_board_urllib(league_id: str, league_name: str, per_page: int = 250) -
                 print(f"    urllib in_game={in_game}: {len(data)} props")
                 break
             except urllib.error.HTTPError as e:
-                if e.code == 429:
+                if e.code == 429 and not fail_fast:
                     wait = 60 * attempt
                     print(f"    429 rate limit — waiting {wait}s (attempt {attempt})")
                     time.sleep(wait)
@@ -108,7 +123,14 @@ def _fetch_board_urllib(league_id: str, league_name: str, per_page: int = 250) -
     return all_data, all_included
 
 
-def fetch_board(league_id: str, league_name: str, per_page: int = 250, retries: int = 5) -> tuple[list, list]:
+def fetch_board(
+    league_id: str,
+    league_name: str,
+    per_page: int = 250,
+    retries: int = 5,
+    *,
+    fail_fast: bool = False,
+) -> tuple[list, list]:
     """Fetch props for a board — HTTP (curl_cffi) first, urllib fallback."""
     all_data: list = []
     all_included: list = []
@@ -128,12 +150,22 @@ def fetch_board(league_id: str, league_name: str, per_page: int = 250, retries: 
     http_ok = False
     try:
         ensure_chrome131()
-        data, included = fetch_pp_projections(
-            str(league_id),
-            per_page=per_page,
-            max_pages=10,
-            retries=retries,
-        )
+        # Fail-fast: one session wave, short gaps, no 90s DataDome cooldown windows.
+        kw: dict = {
+            "per_page": per_page,
+            "max_pages": 4 if fail_fast else 10,
+            "retries": max(1, min(retries, 2 if fail_fast else retries)),
+        }
+        if fail_fast:
+            kw.update(
+                first_page_waves=1,
+                forbid_cooldown_threshold=99,
+                forbid_max_cooldown_windows=0,
+                inter_page_delay=(0.4, 1.0),
+                session_jitter=(0.2, 0.8),
+                wave_gap_seconds=(0.5, 1.0),
+            )
+        data, included = fetch_pp_projections(str(league_id), **kw)
         if data:
             n = _extend(data, included)
             http_ok = True
@@ -142,8 +174,13 @@ def fetch_board(league_id: str, league_name: str, per_page: int = 250, retries: 
         print(f"    HTTP fetch failed ({type(e).__name__}: {e})")
 
     if not http_ok:
+        if fail_fast:
+            print(f"    Fail-fast: skipping urllib long-retry fallback for {league_name}")
+            return all_data, all_included
         print(f"    Falling back to urllib for {league_name}...")
-        return _fetch_board_urllib(league_id, league_name, per_page=per_page)
+        return _fetch_board_urllib(
+            league_id, league_name, per_page=per_page, fail_fast=fail_fast
+        )
 
     # Live in-game board supplement (not covered by fetch_pp_projections defaults)
     try:
@@ -156,7 +193,7 @@ def fetch_board(league_id: str, league_name: str, per_page: int = 250, retries: 
             f"&in_game=true"
             f"&game_mode=pickem"
         )
-        r = session.get(url, timeout=30)
+        r = session.get(url, timeout=15 if fail_fast else 30)
         if r.status_code == 200:
             j = r.json()
             n = _extend(j.get("data") or [], j.get("included") or [])
@@ -170,6 +207,68 @@ def fetch_board(league_id: str, league_name: str, per_page: int = 250, retries: 
         print(f"    in_game=true supplement skipped: {e}")
 
     return all_data, all_included
+
+
+def fetch_boards_via_cdp(
+    boards: list[tuple[str, str]],
+    *,
+    cdp_url: str,
+    per_page: int = 250,
+    attach_timeout_ms: int = 30_000,
+    request_timeout_ms: int = 25_000,
+) -> list[tuple[str, str, list, list]]:
+    """Fetch many soccer boards in one CDP session. Returns (lid, lname, data, included)."""
+    from playwright.sync_api import sync_playwright
+
+    results: list[tuple[str, str, list, list]] = []
+    primary_lid = boards[0][0] if boards else "82"
+    with sync_playwright() as p:
+        browser = connect_over_cdp(p, cdp_url, timeout_ms=attach_timeout_ms)
+        if not browser.contexts:
+            raise RuntimeError("CDP browser has no contexts; start Chrome with --remote-debugging-port.")
+        context = browser.contexts[0]
+        print("  Using browser context[0] (existing session / cookies).")
+        align_cdp_context_for_datadome(context)
+        opened_new = False
+        page = pick_cdp_warmed_page(context, primary_lid)
+        if page is not None:
+            print(f"  Reusing warmed PP tab: {page.url}")
+        else:
+            page = context.new_page()
+            opened_new = True
+            print("  No warmed PP tab found — opened new page (solve DataDome in Chrome if 403).")
+        page.set_default_timeout(max(30_000, int(request_timeout_ms) + 5_000))
+        if not cdp_board_ready(page, primary_lid):
+            board_url = f"https://app.prizepicks.com/board?league_id={primary_lid}"
+            page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_timeout(2000)
+            page.goto(board_url, wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_timeout(3000)
+        else:
+            try:
+                page.bring_to_front()
+            except Exception:
+                pass
+            page.wait_for_timeout(1000)
+
+        for lid, lname in boards:
+            print(f"\n  → {lname} (league_id={lid}) [CDP]")
+            data, included, status, url = fetch_projections_inpage(
+                page,
+                lid,
+                per_page=per_page,
+                request_timeout_ms=request_timeout_ms,
+            )
+            print(f"    [CDP] status={status} rows={len(data)} url={url}")
+            results.append((lid, lname, data, included))
+
+        if opened_new:
+            try:
+                page.close()
+            except Exception:
+                pass
+        browser.close()
+    return results
 
 
 def build_rows(data: list, included: list, league_name: str) -> list:
@@ -303,8 +402,25 @@ def main():
         dest="max_retries",
         help="HTTP retries per board fetch (default 5).",
     )
+    ap.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Short HTTP path: 1 session wave, no 90s 403 cooldowns, skip urllib long retries.",
+    )
+    ap.add_argument(
+        "--cdp",
+        default="",
+        help="Attach to Chrome DevTools (e.g. http://127.0.0.1:9222) and fetch boards in-page.",
+    )
+    ap.add_argument(
+        "--cdp-attach-timeout-ms",
+        type=int,
+        default=30_000,
+        help="CDP connect_over_cdp timeout in ms (default 30000; avoids Playwright 180s hang).",
+    )
     args = ap.parse_args()
     out_path = Path(args.output)
+    fail_fast = bool(args.fail_fast) or bool(str(args.cdp).strip())
 
     primary_id = str(args.league_id).strip() if args.league_id is not None else "82"
     if not primary_id.isdigit():
@@ -332,18 +448,46 @@ def main():
         _add_board("262", "SOCCERSZN")
 
     print(f"📡 Fetching PrizePicks Soccer | boards: {[n for _, n in boards_to_fetch]}")
+    if fail_fast:
+        print("  [mode] fail-fast HTTP (or CDP) — no long 403 cooldown stacks")
 
     all_rows = []
+    cdp_url = str(args.cdp or "").strip()
 
-    for lid, lname in boards_to_fetch:
-        print(f"\n  → {lname} (league_id={lid})")
-        data, included = fetch_board(lid, lname, retries=int(args.max_retries))
-        if data:
-            rows = build_rows(data, included, lname)
-            all_rows.extend(rows)
-            print(f"    ✓ {len(rows)} rows parsed")
-        else:
-            print(f"    ⚠️ No data for {lname} — may not be on the board today")
+    if cdp_url:
+        try:
+            cdp_results = fetch_boards_via_cdp(
+                boards_to_fetch,
+                cdp_url=cdp_url,
+                attach_timeout_ms=int(args.cdp_attach_timeout_ms),
+            )
+            for lid, lname, data, included in cdp_results:
+                if data:
+                    rows = build_rows(data, included, lname)
+                    all_rows.extend(rows)
+                    print(f"    ✓ {len(rows)} rows parsed")
+                else:
+                    print(f"    ⚠️ No data for {lname} — may not be on the board today")
+        except Exception as e:
+            print(f"❌ CDP soccer fetch failed ({type(e).__name__}: {e})")
+            print("   Falling back to fail-fast HTTP...")
+            cdp_url = ""
+
+    if not cdp_url:
+        for lid, lname in boards_to_fetch:
+            print(f"\n  → {lname} (league_id={lid})")
+            data, included = fetch_board(
+                lid,
+                lname,
+                retries=int(args.max_retries),
+                fail_fast=fail_fast,
+            )
+            if data:
+                rows = build_rows(data, included, lname)
+                all_rows.extend(rows)
+                print(f"    ✓ {len(rows)} rows parsed")
+            else:
+                print(f"    ⚠️ No data for {lname} — may not be on the board today")
 
     if not all_rows:
         print("\n❌ No soccer props fetched — nothing on the board right now.")

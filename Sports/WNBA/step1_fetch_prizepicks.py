@@ -642,7 +642,14 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
         cdp = (cdp_url or "").strip()
         if cdp:
             print(f"🌐 Connecting to existing Chrome via CDP: {cdp}")
-            browser = p.chromium.connect_over_cdp(cdp)
+            # Explicit timeout — Playwright default is 180s and can hang the whole refresh.
+            attach_ms = max(10_000, min(60_000, int(timeout_s) * 1000 if timeout_s and timeout_s < 60 else 30_000))
+            try:
+                from utils.prizepicks_cdp import connect_over_cdp as _connect_cdp
+
+                browser = _connect_cdp(p, cdp, timeout_ms=attach_ms)
+            except Exception:
+                browser = p.chromium.connect_over_cdp(cdp, timeout=attach_ms)
             if not browser.contexts:
                 raise RuntimeError("CDP browser has no contexts; start Chrome with --remote-debugging-port.")
             context = browser.contexts[0]
@@ -711,9 +718,23 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
             }"""
         )
 
-        # Live boards often only populate with in_game=true (pregame query returns 0).
-        payload = page.evaluate(
-            """async ({ leagueId }) => {
+        # Prefer AbortController-backed shared helper when available.
+        try:
+            from utils.prizepicks_cdp import fetch_projections_inpage as _fetch_inpage
+
+            data, included, status, url = _fetch_inpage(
+                page,
+                str(league_id),
+                per_page=250,
+                request_timeout_ms=max(
+                    15_000,
+                    min(45_000, int(timeout_s) * 1000 if timeout_s else 25_000),
+                ),
+            )
+            payload = {"data": data, "included": included, "status": status, "url": url}
+        except Exception:
+            payload = page.evaluate(
+                """async ({ leagueId }) => {
                 const hdrs = () => ({
                     "accept": "application/json, text/plain, */*",
                     "accept-language": (navigator.languages && navigator.languages.length)
@@ -728,8 +749,11 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                 ];
                 let best = { data: [], included: [], status: 0, url: '' };
                 for (const url of urls) {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 25000);
                     try {
-                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
+                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal });
+                        clearTimeout(timer);
                         if (!r.ok) {
                             if (!best.status) best = { data: [], included: [], status: r.status, url };
                             continue;
@@ -741,13 +765,14 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                         if (data.length > (best.data || []).length) best = cand;
                         if (data.length > 0) return cand;
                     } catch (e) {
+                        clearTimeout(timer);
                         if (!best.status) best = { data: [], included: [], status: 0, url, error: String(e) };
                     }
                 }
                 return best;
             }""",
-            {"leagueId": str(league_id)},
-        )
+                {"leagueId": str(league_id)},
+            )
         if cdp:
             if cdp_opened_new_page:
                 page.close()

@@ -121,10 +121,64 @@ function Get-CsvDataRowCount([string]$CsvPath) {
 function Resolve-LateFetchMaxRetries {
     param([string]$Label)
     $lbl = "$Label".Trim()
+    # Cap HTTP retries low — 5 boards × multi-wave 403 cooldowns was hanging Soccer
+    # (and blocking MLB) for 30–120+ minutes during morning refresh.
+    if ($lbl -match '^(MANUAL_FULL|MANUAL_RECOVERY)') { return 5 }
     if ($lbl -match '^(MANUAL_1800|MANUAL_1[3-9]|1PM|2PM|3PM)') { return 2 }
-    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM)') { return 3 }
-    return 5
+    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM|1030AM|8AM|MANUAL_CDP)') { return 2 }
+    return 2
 }
+
+function Test-LateFetchCdp {
+    param([string]$BaseUrl = "http://127.0.0.1:9222")
+    try {
+        $u = ($BaseUrl.TrimEnd("/")) + "/json/version"
+        $null = Invoke-RestMethod -Uri $u -TimeoutSec 2 -ErrorAction Stop
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function Stop-ProcessTree {
+    param([int]$ProcessId)
+    try {
+        Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.ParentProcessId -eq $ProcessId } |
+            ForEach-Object { Stop-ProcessTree -ProcessId ([int]$_.ProcessId) }
+    }
+    catch { }
+    try { Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+}
+
+function Invoke-TimedCommand {
+    param(
+        [string]$Label,
+        [string]$FilePath,
+        [string[]]$ArgumentList,
+        [string]$WorkingDirectory,
+        [int]$TimeoutSec
+    )
+    Write-Host "[LATE_FETCH] $Label (timeout ${TimeoutSec}s)..." -ForegroundColor DarkGray
+    $p = Start-Process -FilePath $FilePath `
+        -ArgumentList $ArgumentList `
+        -WorkingDirectory $WorkingDirectory `
+        -NoNewWindow -PassThru
+    if (-not $p) {
+        Write-Host "[LATE_FETCH] $Label failed to start" -ForegroundColor Red
+        return 1
+    }
+    $finished = $p.WaitForExit([Math]::Max(5, $TimeoutSec) * 1000)
+    if (-not $finished) {
+        Write-Host "[LATE_FETCH] $Label timed out after ${TimeoutSec}s — killing process tree" -ForegroundColor Yellow
+        Stop-ProcessTree -ProcessId $p.Id
+        try { $p.Refresh() } catch { }
+        return 124
+    }
+    return [int]$p.ExitCode
+}
+
 
 function Resolve-Step1MorningFallback {
     param(
@@ -152,8 +206,13 @@ function Resolve-Step1MorningFallback {
 
 $MaxRetries = Resolve-LateFetchMaxRetries -Label $RunLabel
 $Quiet403 = ($MaxRetries -le 2)
+$CdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+$CdpReachable = Test-LateFetchCdp -BaseUrl $CdpUrl
 if ($RunLabel) {
-    Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403" -ForegroundColor DarkGray
+    Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray
+}
+else {
+    Write-Host "[LATE_FETCH] max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray
 }
 
 # NBA — append; dated output + legacy mirror
@@ -204,11 +263,17 @@ Write-Host "[LATE_FETCH] Fetching WNBA props..."
 $wnbaPs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
 $wnbaStep1 = Join-Path (Ensure-RunOutDir -SportTag "wnba") "step1_wnba_props.csv"
 if (Test-Path -LiteralPath $wnbaPs1) {
-    $wnbaArgs = @("-Date", $PipeDate, "-Step1Only", "-Max403Retries", $MaxRetries)
+    $wnbaArgs = @("-NoProfile", "-File", $wnbaPs1, "-Date", $PipeDate, "-Step1Only", "-Max403Retries", "$MaxRetries")
     if ($Quiet403) { $wnbaArgs += "-Quiet403" }
-    if ($RunLabel -match '^MANUAL_CDP') { $wnbaArgs += "-CdpWhenListening" }
-    & pwsh -NoProfile -File $wnbaPs1 @wnbaArgs
-    $wnbaFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
+    # Prefer CDP whenever Chrome is listening — not only MANUAL_CDP labels.
+    # HTTP-first with high retries was hanging refreshes on DataDome.
+    if ($CdpReachable) {
+        $wnbaArgs += "-CdpWhenListening"
+        Write-Host "[LATE_FETCH] WNBA: CDP reachable — browser-first" -ForegroundColor DarkGray
+    }
+    $wnbaTimeout = if ($CdpReachable) { 240 } else { 180 }
+    $wnbaExit = Invoke-TimedCommand -Label "WNBA step1" -FilePath "pwsh" -ArgumentList $wnbaArgs -WorkingDirectory $Root -TimeoutSec $wnbaTimeout
+    $wnbaFailed = ($wnbaExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
     if ($wnbaFailed) {
         [void](Resolve-Step1MorningFallback -Sport "WNBA" -Step1Path $wnbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
     }
@@ -242,19 +307,23 @@ else {
     }
 }
 
-# Soccer
+# Soccer — CDP when available; otherwise fail-fast HTTP (never multi-board 90s cooldown stacks)
 Write-Host "[LATE_FETCH] Fetching Soccer props (append)..."
 $SoccerDir = Join-Path $SportsRoot "Soccer"
 $soccerRunOut = Ensure-RunOutDir -SportTag "soccer"
 $soccerStep1 = Join-Path $soccerRunOut "step1_soccer_props.csv"
-Push-Location $SoccerDir
-try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--date" "$PipeDate" "--output" $soccerStep1 "--max-retries" "$MaxRetries"
+$soccerArgs = @(
+    "-3.14", ".\scripts\step1_fetch_prizepicks_soccer.py",
+    "--append", "--date", "$PipeDate", "--output", $soccerStep1,
+    "--max-retries", "$MaxRetries", "--fail-fast"
+)
+if ($CdpReachable) {
+    $soccerArgs += @("--cdp", $CdpUrl)
+    Write-Host "[LATE_FETCH] Soccer: CDP reachable — in-page fetch" -ForegroundColor DarkGray
 }
-finally {
-    Pop-Location
-}
-$soccerFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $soccerStep1) -eq 0)
+$soccerTimeout = if ($CdpReachable) { 240 } else { 150 }
+$soccerExit = Invoke-TimedCommand -Label "Soccer step1" -FilePath "py" -ArgumentList $soccerArgs -WorkingDirectory $SoccerDir -TimeoutSec $soccerTimeout
+$soccerFailed = ($soccerExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $soccerStep1) -eq 0)
 if ($soccerFailed) {
     [void](Resolve-Step1MorningFallback -Sport "Soccer" -Step1Path $soccerStep1 -MaxRetries $MaxRetries -FetchFailed $true)
 }

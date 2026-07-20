@@ -707,7 +707,7 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
         page = None
         if use_cdp:
             print(f"🌐 Connecting to existing Chrome via CDP: {cdp}")
-            browser = p.chromium.connect_over_cdp(cdp)
+            browser = p.chromium.connect_over_cdp(cdp, timeout=30_000)
             if not browser.contexts:
                 raise RuntimeError("CDP browser has no contexts (is Chrome running with --remote-debugging-port?)")
             context = browser.contexts[0]

@@ -10,7 +10,8 @@ Everything assumes the **repository root** is the working directory for `run_pip
 |----------|------|
 | `run_pipeline.ps1` | Master multi-sport pipeline (NBA, CBB, NHL, MLB, Soccer, WNBA, combined tickets) |
 | `main.py` | WSGI shim: re-exports `app` from `ui_runner.app` |
-| `scripts\` | Shared Python utilities, graders, ML training, combined slate builder, ticket eval (`scripts\build_ticket_eval.py`), entries harvest (`capture_entries.py`) |
+| `scripts\` | Shared Python utilities, graders, ML training, combined slate builder, ticket eval (`scripts\build_ticket_eval.py`), entries harvest (`capture_entries.py`), daily/refresh orchestrators (`run_daily.ps1`, `run_refresh_with_log.ps1`, `run_nba_late_fetch.ps1`) |
+| `utils\` | Cross-sport Python helpers — PrizePicks HTTP (`prizepicks_http.py`) and **CDP in-page fetch** (`prizepicks_cdp.py`) used by Soccer/Tennis/WNBA/MLB step1 |
 | `docs\` | Doc index (`README.md`); hubs at root (`QUICK_START.md`, this file); grouped under `runbooks\`, `architecture\`, `guides\`, `ml\`, `changelogs\`, `diagrams\` |
 | `config\` | `requirements-pipeline.txt` (ML/grading/pipeline extra deps — not used by Docker/Railway) |
 | `pyproject.toml` | **Local only:** pytest + ruff settings (replaces root `pytest.ini` / `ruff.toml`). Deploy still uses `requirements.txt` + `Dockerfile` |
@@ -48,8 +49,9 @@ Each sport keeps its own steps, caches, and docs. **Paths are not uniform** — 
 | **CBB / WCBB** | `CBB\scripts\pipeline\` | Dated intermediates: `CBB\outputs\<yyyy-MM-dd>\step*.csv` / `step6_*.xlsx`; caches: `CBB\data\cache\` | Latest slates copied to **`CBB\step6_ranked_cbb.xlsx`** and **`CBB\step6_ranked_wcbb.xlsx`** for combine / UI |
 | **NHL** | `NHL\scripts\` | `NHL\outputs\step*.csv` / `step*.xlsx`, `NHL\cache\` (IDs, gamelog JSON, defense summary) | `NHL\outputs\step8_nhl_direction_clean.xlsx` (root path kept as fallback in some tools) |
 | **MLB** | `MLB\scripts\` | `MLB\outputs\` | Resolved by `Resolve-MLBCleanSlateFile` (several fallback paths under `MLB\`) |
-| **Soccer** | `Soccer\scripts\` | `Soccer\outputs\`, `Soccer\cache\` | `Soccer\outputs\step8_soccer_direction_clean.xlsx` |
-| **WNBA** | `WNBA\` (scripts at folder root) | WNBA step files in `WNBA\` | Season-gated; see `scripts\run_wnba_pipeline.ps1` |
+| **Soccer** | `Soccer\scripts\` | `Soccer\outputs\`, `Soccer\cache\` | `Soccer\outputs\step8_soccer_direction_clean.xlsx` (step1: `--cdp` / `--fail-fast`) |
+| **Tennis** | `Tennis\scripts\` | `outputs\<date>\tennis\`, sport root step8 copies | `step8_tennis_direction_clean.xlsx` (step1: `--cdp` / `--fail-fast`; league_id **5**) |
+| **WNBA** | `WNBA\` (scripts at folder root) + `scripts\run_wnba_pipeline.ps1` | `outputs\<date>\wnba\` | Season-gated; CDP browser-first when `:9222` listening |
 
 ## Root cleanup helpers (PowerShell)
 
@@ -82,4 +84,6 @@ Each sport keeps its own steps, caches, and docs. **Paths are not uniform** — 
 
 ## Single-line mental model
 
-**Root** = orchestration (`run_pipeline.ps1`, dated `outputs\`). **`<Sport>\`** = fetch → enrich → rank → direction → tickets. **`scripts\`** = cross-sport tools (combine, grade, validate, ML).
+**Root** = orchestration (`run_pipeline.ps1`, dated `outputs\`). **`<Sport>\`** = fetch → enrich → rank → direction → tickets. **`scripts\`** = cross-sport tools (combine, grade, validate, ML, daily/refresh). **`utils\prizepicks_cdp.py`** = shared DataDome bypass for step1 when Chrome CDP is warm.
+
+**Ops cadence overview:** [guides/DAILY_OPS_OVERVIEW.md](guides/DAILY_OPS_OVERVIEW.md).

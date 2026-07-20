@@ -6,13 +6,25 @@ This file defines the primary scripts to run and maintain. Prefer these over mac
 
 - `run_pipeline.ps1` - top-level daily orchestration entrypoint.
 - `scripts/run_daily.ps1` - core daily data pipeline (includes WNBA via `run_pipeline.ps1`; NFL/CBB are season/input-gated).
+- `scripts/run_daily_5am.ps1` - scheduled 5AM wrapper (main worktree pull + `run_daily.ps1`).
+- `scripts/run_tennis_early_3am.ps1` - early tennis light fetch + rebuild.
+- `scripts/run_refresh_with_log.ps1` - line-move refresh wrapper (lock + PRE/POST prop snapshot).
+- `scripts/run_nba_late_fetch.ps1` - multi-sport step1 append + pipeline `-SkipFetch` (CDP-first when `:9222` up; per-sport wall-clock timeouts).
 - `scripts/run_post_pipeline_grader.ps1` - post-pipeline grading follow-up.
+- `scripts/run_live_payout_capture.ps1` - live CDP MAIN floors (11:00 task; midday `-UpdateOnly`).
 
 ## Ticket generation and grading
 
-- `scripts/combined_slate_tickets.py` - canonical ticket generator.
+- `scripts/combined_slate_tickets.py` - canonical ticket generator (Standard prop×direction gates; MAIN pool modes).
 - `scripts/combined_ticket_grader.py` - canonical ticket grader.
+- `scripts/build_ticket_eval.py` - ticket eval HTML + void-aware reduced-slip settlement.
 - `scripts/run_grader.ps1` - canonical grader wrapper for daily/manual runs.
+
+## PrizePicks fetch helpers (DataDome)
+
+- `utils/prizepicks_http.py` - shared curl_cffi HTTP projections fetch.
+- `utils/prizepicks_cdp.py` - shared CDP attach + in-page `fetch()` (30s attach timeout, AbortController).
+- Sport step1 with `--cdp` / `--fail-fast`: Soccer, Tennis; WNBA via `run_wnba_pipeline.ps1 -CdpWhenListening`; MLB HTTP→CDP→Playwright.
 
 ## Backtest and model comparison
 
@@ -31,10 +43,14 @@ This file defines the primary scripts to run and maintain. Prefer these over mac
 - `scripts/run_wnba_pipeline.ps1` (steps 1–8 + **step7b** edge overlay like NBA, then step9 local tickets; writes `step8_wnba_direction_clean.xlsx` and copies to `WNBA/data/outputs/` for `Run-Combined`)
 - `scripts/run_wnba_grader.ps1`
 - `Soccer/scripts/run_soccer_pipeline.ps1`
-- `Tennis/scripts/tennis_light_pipeline.py`
+- `Tennis/scripts/step1_fetch_prizepicks_tennis.py` (CDP/fail-fast)
 
 ## Archival policy
 
 - Machine-specific script variants (for example `*-Travel-PC*`, `*-DESKTOP-*`) are archived under `archive/script_cleanup/`.
 - Backup files (`*.bak`) should not live beside canonical scripts; archive them or delete after validation.
 - When adding a new orchestrator, update this file and deprecate/repoint older entrypoints in the same change.
+
+## Related
+
+- Operator cadence / audiences: [../guides/DAILY_OPS_OVERVIEW.md](../guides/DAILY_OPS_OVERVIEW.md)

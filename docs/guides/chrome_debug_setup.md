@@ -45,9 +45,13 @@ Optional flags:
 
 ---
 
-## MLB step1 fetch over CDP (DataDome escape hatch)
+## Shared CDP step1 (DataDome escape hatch)
 
-Playwright can attach to Chrome you start yourself so you solve login or DataDome **once** in a real window; the fetch script then reuses that warm session (`connect_over_cdp`) instead of launching a cold browser.
+Playwright attaches to Chrome you start yourself so you solve login or DataDome **once** in a real window; sport step1 then reuses that warm session (`connect_over_cdp`) via `utils/prizepicks_cdp.py` (30s attach timeout).
+
+Summer sports with `--cdp` / `--fail-fast` (or WNBA `-CdpWhenListening`): **Soccer, Tennis, WNBA, MLB**. Late fetch prefers CDP when `:9222` answers. Full checklist: [DAILY_OPS_OVERVIEW.md](DAILY_OPS_OVERVIEW.md).
+
+### MLB step1 over CDP
 
 ### 1) Launch Chrome with your PrizePicks profile and a debug port
 

@@ -30,7 +30,7 @@ C4Context
 
   System_Ext(sb,     "Sportsbook APIs",   "Odds and lines feed")
   System_Ext(stats,  "Stats APIs",        "NBA / NHL / MLB / Soccer stats")
-  System_Ext(wt,     "WNBA / Tennis CDP", "Playwright stealth scrape")
+  System_Ext(wt,     "Chrome CDP :9222",  "In-page PrizePicks fetch (Soccer/Tennis/WNBA/MLB)")
   System_Ext(rail,   "Railway",           "Cloud hosting")
   System_Ext(pp,     "PrizePicks",        "Real-money entries (outside system)")
 
@@ -38,7 +38,7 @@ C4Context
   Rel(operator,  prop,  "Runs pipelines, grades, publishes",    "PS1 / HTTPS")
   Rel(prop,      sb,    "Fetches odds + lines")
   Rel(prop,      stats, "Fetches player + game stats")
-  Rel(prop,      wt,    "Scrapes slate data")
+  Rel(prop,      wt,    "CDP-first step1 when debug Chrome is warm")
   Rel(prop,      rail,  "Deployed on")
   Rel(bettor,    pp,    "Places entries (external)")
 ```
@@ -68,11 +68,11 @@ C4Container
 
   System_Ext(sb,    "Sportsbook APIs")
   System_Ext(stats, "Stats APIs")
-  System_Ext(wt,    "WNBA/Tennis CDP")
+  System_Ext(wt,    "Chrome CDP :9222")
 
   Rel(bettor,    web,      "Views picks, grades, income",   "HTTPS")
   Rel(bettor,    mob,      "Views top edges on mobile",     "HTTPS")
-  Rel(operator,  ps1,      "Triggers daily run",            "PowerShell")
+  Rel(operator,  ps1,      "Triggers daily + refresh tasks", "PowerShell / Task Scheduler")
   Rel(operator,  web,      "Monitors pipeline, views data", "HTTPS")
   Rel(web,       api,      "Reads props, grades, tickets",  "JSON / HTTP")
   Rel(mob,       api,      "Reads top edges, sparklines",   "JSON / HTTP")
@@ -82,7 +82,7 @@ C4Container
   Rel(pipeline,  cache,    "Writes step8 JSON output",      "File I/O")
   Rel(pipeline,  sb,       "Fetches odds + lines")
   Rel(pipeline,  stats,    "Fetches player + game stats")
-  Rel(pipeline,  wt,       "Scrapes WNBA / Tennis slate")
+  Rel(pipeline,  wt,       "CDP step1 for Soccer/Tennis/WNBA/MLB")
 ```
 
 ---
@@ -170,11 +170,12 @@ OTA bundle update   ──extends───►  Verify deploy / health
 | NBA1H | 0.4511 | — | ⚠ Below random on May slice — suppress or investigate |
 | NHL | 0.6905 | ~38% | ⚠ Low join rate — backfill 13 dates (Feb/Mar) |
 | Soccer | 0.7478 | — | Strong — Level 2 opponent context planned |
-| WNBA | 0.6954 | — | Chrome131 impersonation working |
-| Tennis | 0.6624 | ~4% | ⚠ Step8 coverage gaps May 19/24 — excluded from 2026-05-25 retrain |
+| WNBA | 0.6954 | — | CDP browser-first when `:9222` listening |
+| Tennis | 0.6624 | ~4% | Step1 `--cdp` / `--fail-fast`; excluded from Jun-13 tree retrain |
 
-**Overall model AUC:** 0.7743 (117,548 rows · `edge_model_unified.pkl` · 2026-05-25)
-**Backup:** `edge_model_unified_pre_retrain_2026-05-21.pkl`
+**Overall model AUC:** see [CURRENT_STATE.md](../CURRENT_STATE.md) (production artifact may differ from May-25 holdout numbers above).
+
+**Fetch note (2026-07-20):** Summer boards prefer **CDP-first** via `utils/prizepicks_cdp.py` when Chrome debug is warm; HTTP-only stacks hang on DataDome. Ops cadence: [guides/DAILY_OPS_OVERVIEW.md](../guides/DAILY_OPS_OVERVIEW.md).
 
 ---
 
@@ -188,7 +189,9 @@ OTA bundle update   ──extends───►  Verify deploy / health
 | `docs/diagrams/proporacle-use-cases.puml` | Full UML use case diagram (PlantUML) |
 | `docs/architecture/USE_CASE_DIAGRAM.md` | Use case catalog + render instructions |
 | `docs/PROJECT_LAYOUT.md` | Folder contracts |
+| `docs/guides/DAILY_OPS_OVERVIEW.md` | Audiences + scheduled program structure |
+| `utils/prizepicks_cdp.py` | Shared CDP attach + in-page projections fetch |
 | `utils/step8_edge_direction.py` | Canonical edge computation |
 | `utils/train_edge_model.py` | ML model retraining (`--temporal-split`) |
-| `utils/build_ticket_eval.py` | Ticket pool exhaustion + outcome eval |
-| `run_daily.ps1` | Full daily pipeline orchestration |
+| `scripts/build_ticket_eval.py` | Ticket eval + void-aware settlement |
+| `scripts/run_daily.ps1` | Full daily pipeline orchestration |

@@ -54,7 +54,7 @@ C4Container
 
     Container_Boundary(host, "Application host") {
         Container(flask, "PropORACLE Web App", "Python Flask (ui_runner/app.py)", "Pages: Home, Tickets, Grades, Income, Payout. APIs: slate, tickets, grades, pipeline run, mobile bundle")
-        Container(batch, "Pipeline & grader jobs", "PowerShell + Python subprocesses", "run_pipeline.ps1, run_daily.ps1, run_grader.ps1; also spawned by POST /api/run")
+        Container(batch, "Pipeline & grader jobs", "PowerShell + Python subprocesses", "run_daily.ps1, refresh/late_fetch, run_pipeline.ps1, run_grader.ps1; also spawned by POST /api/run")
     }
 
     Container_Boundary(data, "Published & persistent data") {
@@ -70,7 +70,7 @@ C4Container
     Rel(bettor, browser, "Uses")
     Rel(bettor, mobile, "Uses")
     Rel(operator, browser, "Runs pipelines from Home", "POST /api/run")
-    Rel(operator, batch, "Schedules daily run", "Task Scheduler / PowerShell")
+    Rel(operator, batch, "Schedules 5AM + refresh + payout CDP", "Task Scheduler / PowerShell")
 
     Rel(browser, flask, "HTTPS — pages + /api/*", "Same origin")
     Rel(mobile, flask, "Remote mode: same as browser", "HTTPS")
@@ -196,7 +196,8 @@ sequenceDiagram
         end
         Batch->>Artifacts: Write step outputs, combined tickets
     else Scheduled / desktop
-        Operator->>Batch: run_pipeline.ps1 / run_daily.ps1
+        Operator->>Batch: run_daily.ps1 (5AM) / run_refresh_with_log.ps1 (8–13) / payout CDP (11:00)
+        Note over Batch: Late fetch uses CDP-first when :9222 is up;<br/>per-sport wall-clock kills prevent hang cascades
         Batch->>Artifacts: Publish templates + outputs/
     end
 
@@ -247,5 +248,6 @@ Quick reference for the main nav tabs (see `ui_runner/templates/_site_nav.html`)
 
 - [USE_CASE_DIAGRAM.md](USE_CASE_DIAGRAM.md) — **UML use case diagram** (PlantUML + catalog)
 - [../PROJECT_LAYOUT.md](../PROJECT_LAYOUT.md) — folder contracts
+- [../guides/DAILY_OPS_OVERVIEW.md](../guides/DAILY_OPS_OVERVIEW.md) — audiences + daily program structure
 - [../guides/APP_SYSTEM_STATUS.md](../guides/APP_SYSTEM_STATUS.md) — pipeline flow (batch-centric)
 - [../../mobile/README.md](../../mobile/README.md) — bundled vs remote Android

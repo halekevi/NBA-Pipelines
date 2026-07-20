@@ -108,6 +108,22 @@ request succeeds.
 
 ---
 
+## Preferred summer path: Chrome CDP + fail-fast
+
+When HTTP stacks hang on DataDome (multi-board 90s cooldowns), use **CDP-first**:
+
+1. Keep Chrome on `--remote-debugging-port=9222` with a warmed PrizePicks board tab (see [chrome_debug_setup.md](chrome_debug_setup.md)).
+2. Shared helpers: `utils/prizepicks_cdp.py` (30s attach timeout, AbortController on in-page `fetch()`).
+3. Sport flags:
+   - Soccer / Tennis step1: `--cdp http://127.0.0.1:9222 --fail-fast`
+   - WNBA: `scripts/run_wnba_pipeline.ps1 -CdpWhenListening`
+   - MLB: HTTP → CDP → Playwright (attach timeout 30s)
+4. Late fetch (`scripts/run_nba_late_fetch.ps1`) probes CDP once, prefers CDP for WNBA/Soccer/Tennis, and applies **per-sport wall-clock kills** (~2.5–4 min) so one board cannot block the day.
+
+Ops checklist: [DAILY_OPS_OVERVIEW.md](DAILY_OPS_OVERVIEW.md).
+
+---
+
 ## Adding a New Sport Pipeline
 
 ### 1. Copy `step1_fetch_prizepicks_mlb.py` as your template
@@ -262,3 +278,6 @@ If challenges keep appearing: log into PP in real Chrome, close Chrome, re-run `
 | `Executable doesn't exist` Playwright error | Playwright updated, browser binary missing | Run `py -3.14 -m playwright install chromium` |
 | `league_id=X` skipped in logs | PP changed the URL structure for that sport | Check Network tab in DevTools for new URL pattern, update `CAPTURE_PATTERNS` |
 | Step1 works but rows=0 after prop filter | New prop type names from PP | Add to `TRACKABLE_PROPS` set and `PROP_NORM_MAP` in step2 |
+| Step1 hangs 30–120+ min on HTTP 403 | Multi-board retry / cooldown stack | Prefer `--cdp` + `--fail-fast`; late_fetch wall-clock kill |
+| `no_slate` after a successful CDP fetch | PrizePicks board is tomorrow-only | Normal for Soccer; check game dates, not fetch health |
+| CDP attach hangs forever | Old Playwright connect timeout | Shared helper caps attach ~30s; restart debug Chrome |

@@ -102,18 +102,19 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 cd "H:\halek\ProfileFromC\Desktop\PropORACLE"
 .\scripts\Register_Daily_Task.ps1
 
-# Registered tasks:
+# Registered tasks (see scripts\Register_Daily_Task.ps1):
+#  - PropOracle - Tennis Early 3AM
 #  - PropOracle - Daily 5AM
-#  - PropOracle - Daily 8AM
-#  - PropOracle - Refresh 9AM
-#  - PropOracle - Refresh 11AM
-#  (8AM/9AM/11AM refresh runs scripts\run_nba_late_fetch.ps1 via run_refresh_with_log.ps1)
+#  - PropOracle - Refresh 8AM / 9AM / 1030AM / 1PM  (run_refresh_with_log.ps1 → run_nba_late_fetch.ps1)
+#  - PropOracle - Payout CDP @ 11:00
+# Ops overview: docs\guides\DAILY_OPS_OVERVIEW.md
 
 # Inspect what Windows will actually run (look for old OneDrive paths)
 schtasks /query /fo LIST /v | findstr /i "PropOracle PropORACLE"
 
 # Manual kick
-Start-ScheduledTask -TaskName "PropOracle - Daily 8AM"
+Start-ScheduledTask -TaskName "PropOracle - Refresh 1030AM"
+pwsh -NoProfile -File .\scripts\run_refresh_with_log.ps1 -RunLabel MANUAL_CDP_CATCHUP
 
 # Check task status
 Get-ScheduledTask | Where-Object TaskName -like "PropOracle -*" | Select TaskName, State
@@ -123,6 +124,28 @@ Get-ScheduledTaskInfo -TaskName "PropOracle - Refresh 9AM" | Select LastRunTime,
 Get-ScheduledTask | Where-Object TaskName -like "PropOracle -*" | ForEach-Object {
   Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false
 }
+```
+
+## CDP / fail-fast step1 (DataDome)
+
+Keep Chrome on `--remote-debugging-port=9222` with a warmed PrizePicks board tab.
+
+```powershell
+# Soccer
+py -3.14 .\Sports\Soccer\scripts\step1_fetch_prizepicks_soccer.py `
+  --date 2026-07-20 --output .\outputs\2026-07-20\soccer\step1_soccer_props.csv `
+  --fail-fast --cdp http://127.0.0.1:9222
+
+# Tennis
+py -3.14 .\Sports\Tennis\scripts\step1_fetch_prizepicks_tennis.py `
+  --league_id 5 --output .\outputs\2026-07-20\tennis\step1_tennis_props.csv `
+  --fail-fast --replace --cdp http://127.0.0.1:9222
+
+# WNBA (browser-first when CDP listening)
+.\scripts\run_wnba_pipeline.ps1 -Date 2026-07-20 -Step1Only -CdpWhenListening
+
+# Then rebuild without re-fetch
+.\run_pipeline.ps1 -Date 2026-07-20 -SkipFetch -SkipLivePayoutCapture
 ```
 
 ## Optional Python Direct Commands
@@ -146,6 +169,8 @@ py -3.14 -u .\scripts\capture_entries.py
 ## Notes
 
 - Folder map and what to edit after moving files: [../PROJECT_LAYOUT.md](../PROJECT_LAYOUT.md).
+- Daily cadence / audiences / hang recovery: [../guides/DAILY_OPS_OVERVIEW.md](../guides/DAILY_OPS_OVERVIEW.md).
 - Date format: `yyyy-MM-dd` is safest.
 - `-SkipFetch` assumes prior step1 output files already exist.
+- `no_slate` in `outputs/<date>/pipeline_slate_status.json` can mean PrizePicks has no **same-day** games (Soccer often posts tomorrow’s board first).
 - Full run auto-combines available sport outputs into final tickets.

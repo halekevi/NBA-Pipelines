@@ -48,12 +48,14 @@ MIN_SAMPLES_FOR_PERCENTILES: int = 8
 #
 # Ticket p_win floors (independence product of capped leg probs):
 #   2-leg ≥0.45  → needs ~0.67+/leg under the STRONG leg cap
-#   3-leg ≥0.40  → needs ~0.74+/leg (probable Goblin HOT / ML-backed legs)
+#   3-leg ≥0.35  → clears ~0.72^3 (common L5/hit-rate clip) and leaves room for
+#                  mild correlation; higher raw ML/L5 legs still score up to the
+#                  STRONG_MAX_LEG_PROB_FOR_P_WIN ceiling (~0.76 → product ≈0.44)
 # MAIN still uses the tighter 0.72 global leg cap; STRONG alone may use up to
-# STRONG_MAX_LEG_PROB_FOR_P_WIN so 3-leg products are not mathematically blocked.
+# STRONG_MAX_LEG_PROB_FOR_P_WIN so better legs are not flattened for ranking.
 STRONG_MAX_LEGS: int = max(2, min(6, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "3"))))
 STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.45"))
-STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.40"))
+STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.35"))
 STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.28"))
 STRONG_MIN_P_WIN_5LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_5LEG", "0.18"))
 STRONG_MIN_P_WIN_6LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_6LEG", "0.12"))

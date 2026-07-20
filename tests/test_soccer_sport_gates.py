@@ -69,6 +69,22 @@ def test_soccer_hq_over_goblin_allowed():
     )
 
 
+def test_soccer_standard_over_banned_even_if_hq():
+    """Standard OVER is banned outright; Goblin OVER remains the only OVER path."""
+    assert not soccer_allowed_leg(
+        {
+            "sport": "SOCCER",
+            "pick_type": "Standard",
+            "direction": "OVER",
+            "prop_type": "Shots",
+            "hit_rate": max(0.85, SOCCER_OVER_MIN_HIT_RATE),
+            "abs_edge": max(0.25, SOCCER_OVER_MIN_EDGE),
+            "ml_prob": 0.80,
+            "leg_prob": 0.80,
+        }
+    )
+
+
 def test_soccer_low_quality_over_rejected():
     assert not soccer_allowed_leg(
         {

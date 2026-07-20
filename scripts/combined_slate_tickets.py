@@ -2725,10 +2725,10 @@ SOCCER_UNDER_PREFERRED: bool = os.getenv("PROPORACLE_SOCCER_UNDER_PREFERRED", "1
     "off",
 )
 # Soft preference only — OVER can clear these HQ floors (was effectively 999 / hard ban).
-SOCCER_OVER_MIN_EDGE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_EDGE", "0.12"))
-SOCCER_OVER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_HIT_RATE", "0.70"))
-SOCCER_OVER_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_LEG_PROB", "0.68"))
-SOCCER_UNDER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_UNDER_MIN_HIT_RATE", "0.58"))
+SOCCER_OVER_MIN_EDGE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_EDGE", "0.15"))
+SOCCER_OVER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_HIT_RATE", "0.75"))
+SOCCER_OVER_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_LEG_PROB", "0.72"))
+SOCCER_UNDER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_UNDER_MIN_HIT_RATE", "0.62"))
 # Raise per-leg hit floors vs global defaults (aligned with graded UNDER slices).
 SOCCER_LEG_MIN_HIT_RATE = {
     2: 0.58,
@@ -3043,7 +3043,7 @@ def soccer_allowed_leg(leg) -> bool:
     Soccer sport gate (own pipeline):
 
     - Goblin = OVER only (never UNDER); Standard UNDER preferred
-    - OVER allowed only when high-quality (hit/edge/prob floors)
+    - Standard OVER banned (Jul-19 ~15% leg HR); Goblin OVER only with HQ floors
     - Demon never ticket-eligible here
     """
     if isinstance(leg, dict):
@@ -3073,7 +3073,11 @@ def soccer_allowed_leg(leg) -> bool:
         return pick in ("", "standard") or "standard" in pick
 
     if direction == "OVER":
-        # Soft UNDER preference: OVER must clear HQ floors when preferred mode is on.
+        # Jul-19 Standard OVER ~15% — ban Standard; Goblin OVER still HQ-gated.
+        if "standard" in pick and "goblin" not in pick:
+            return False
+        if "goblin" not in pick and pick not in ("",):
+            return False
         if SOCCER_UNDER_PREFERRED:
             if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
                 return False
@@ -3081,7 +3085,7 @@ def soccer_allowed_leg(leg) -> bool:
                 return False
             if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
                 return False
-        return pick in ("", "goblin", "standard") or "goblin" in pick or "standard" in pick
+        return "goblin" in pick or pick == ""
 
     return False
 
@@ -4070,12 +4074,15 @@ DIRECTIONAL_HR_THRESHOLDS: dict[str, dict[str, float]] = {
     "NBA": {"over": 0.70, "under": 0.30, "standard_over_min_edge": 2.45, "standard_under_min_edge": 1.33},
     "NBA1Q": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.45, "standard_under_min_edge": 1.33},
     "NBA1H": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.45, "standard_under_min_edge": 1.33},
+    # Jul-19 WNBA Std OVER 43% / UNDER 54% — raise OVER edge; modest UNDER floor.
+    "WNBA": {"over": 0.68, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
     "NHL": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 0.5, "standard_under_min_edge": 0.5},
-    "MLB": {"over": 0.60, "under": 0.40, "standard_over_min_edge": 0.5, "standard_under_min_edge": 0.5},
+    # MLB Std OVER banned on MAIN; UNDER was ~40% Jul-19 — raise UNDER edge.
+    "MLB": {"over": 0.60, "under": 0.40, "standard_over_min_edge": 0.5, "standard_under_min_edge": 1.0},
     "TENNIS": {"over": 0.60, "under": 0.40},
-    "SOCCER": {"over": 0.60, "under": 0.40, "standard_over_min_rank_score": 0.20},
-    "CBB": {"over": 0.65, "under": 0.35},
-    "WCBB": {"over": 0.65, "under": 0.35},
+    "SOCCER": {"over": 0.60, "under": 0.40, "standard_over_min_rank_score": 0.30},
+    "CBB": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
+    "WCBB": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
 }
 DEFAULT_DIRECTIONAL_THRESHOLD: dict[str, float] = {"over": 0.65, "under": 0.35}
 MLB_MAX_LEGS = 4
@@ -5597,8 +5604,10 @@ def _row_win_rate_eligible(
 
 def _standard_direction_floor(row: dict | pd.Series) -> float:
     """
-    Probability-first Standard: UNDER is historically stronger; OVER needs a higher bar
-    on basketball/NHL-adjacent boards. Returns the min leg_prob for this leg.
+    Probability-first Standard floors by sport × direction (Jul-19 graded anatomy).
+
+    UNDER historically stronger than OVER; MLB UNDER and basketball OVER need
+    higher bars. Returns the min leg_prob for this leg.
     """
     if isinstance(row, pd.Series):
         row_d = row.to_dict()
@@ -5608,18 +5617,30 @@ def _standard_direction_floor(row: dict | pd.Series) -> float:
     direction = str(row_d.get("direction") or row_d.get("over_under") or "").strip().upper()
     base = float(MAIN_MIN_LEG_PROB)
     if direction == "UNDER":
+        # Jul-19: MLB Std UNDER ~40% — raise; Soccer UNDER ~75% — keep selective.
+        if sport == "MLB":
+            return max(0.64, base)
+        if sport in ("SOCCER", "SOC"):
+            return max(0.62, base - 0.02)
+        if sport in ("NBA", "NBA1H", "NBA1Q", "WNBA", "CBB", "WCBB"):
+            return max(0.62, base - 0.02)
+        if sport == "TENNIS":
+            return max(0.62, base - 0.02)
         return max(0.60, base - 0.02)
     # Standard OVER: harder target — require clearer edge.
     if sport in ("NBA", "NBA1H", "NBA1Q", "WNBA", "CBB", "WCBB"):
-        return max(0.68, base + 0.06)
+        # Jul-19 WNBA Std OVER ~43% — raise vs prior 0.68.
+        return max(0.70, base + 0.08)
     if sport == "NHL":
         # Standard OVER blocked elsewhere; if reached, demand a steep floor.
         return 0.75
     if sport in ("SOCCER", "SOC"):
-        return max(0.70, base + 0.08)
+        # Standard OVER banned in soccer_allowed_leg; steep if reached.
+        return max(0.74, base + 0.10)
     if sport == "MLB":
-        return max(0.64, base + 0.02)
-    return max(0.65, base + 0.03)
+        # Standard OVER banned on MAIN; steep if reached.
+        return max(0.70, base + 0.08)
+    return max(0.68, base + 0.05)
 
 
 def _standard_high_prob_leg_allowed(row: dict | pd.Series) -> bool:

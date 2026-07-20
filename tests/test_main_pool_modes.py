@@ -16,9 +16,12 @@ from combined_slate_tickets import (  # noqa: E402
     MAIN_POOL_MODE_GOBLIN,
     MAIN_POOL_MODE_STANDARD,
     _row_win_rate_eligible,
+    _standard_direction_floor,
     _standard_over_elite_ok,
     build_graded_main_win_rate_payload,
     filter_main_high_prob_payload,
+    prefer_main_min_payout_payload,
+    soccer_allowed_leg,
 )
 
 
@@ -31,11 +34,12 @@ def _base_leg(
     player: str = "P One",
     leg_prob: float = 0.72,
     hit_rate: float = 0.72,
+    prop_type: str = "Points",
 ) -> dict:
     return {
         "sport": sport,
         "player": player,
-        "prop_type": "Points",
+        "prop_type": prop_type,
         "pick_type": pick_type,
         "direction": direction,
         "line": 12.5,
@@ -85,6 +89,66 @@ def test_standard_over_requires_elite_gate():
     assert _standard_over_elite_ok(elite)
     assert _row_win_rate_eligible(
         elite, min_leg_prob=0.62, min_composite_hr=0.55, qualify_standard=True
+    )
+
+
+def test_soccer_standard_over_banned_under_allowed():
+    """Jul-19 Soccer Std OVER ~15% — ban Standard OVER; keep selective UNDER."""
+    over = {
+        "sport": "SOCCER",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Shots",
+        "hit_rate": 0.80,
+        "abs_edge": 0.20,
+        "leg_prob": 0.80,
+        "ml_prob": 0.80,
+    }
+    under = {
+        "sport": "SOCCER",
+        "pick_type": "Standard",
+        "direction": "UNDER",
+        "prop_type": "Shots",
+        "hit_rate": 0.70,
+        "abs_edge": 0.10,
+        "leg_prob": 0.70,
+        "ml_prob": 0.70,
+    }
+    assert soccer_allowed_leg(over) is False
+    assert soccer_allowed_leg(under) is True
+
+
+def test_standard_direction_floors_by_sport():
+    assert _standard_direction_floor(
+        {"sport": "MLB", "direction": "UNDER", "pick_type": "Standard"}
+    ) >= 0.64
+    assert _standard_direction_floor(
+        {"sport": "WNBA", "direction": "OVER", "pick_type": "Standard"}
+    ) >= 0.70
+    assert _standard_direction_floor(
+        {"sport": "WNBA", "direction": "UNDER", "pick_type": "Standard"}
+    ) >= 0.62
+    assert _standard_direction_floor(
+        {"sport": "SOCCER", "direction": "OVER", "pick_type": "Standard"}
+    ) >= 0.74
+
+
+def test_mlb_standard_under_needs_higher_floor():
+    weak = _base_leg(
+        pick_type="Standard",
+        direction="UNDER",
+        sport="MLB",
+        prop_type="Hits",
+        leg_prob=0.61,
+        hit_rate=0.61,
+    )
+    # Below MLB UNDER floor (0.64)
+    assert not _row_win_rate_eligible(
+        weak, min_leg_prob=0.60, min_composite_hr=0.55, qualify_standard=True
+    )
+    strong = dict(weak, leg_prob=0.66, ml_prob=0.66, hit_rate=0.66, composite_hit_rate=0.66)
+    assert _row_win_rate_eligible(
+        strong, min_leg_prob=0.60, min_composite_hr=0.55, qualify_standard=True
     )
 
 
@@ -153,3 +217,129 @@ def test_build_payload_pool_modes_tag_correctly():
                     assert picks and all("goblin" in p for p in picks)
                 elif mode == MAIN_POOL_MODE_STANDARD:
                     assert picks and all(("standard" in p) and ("goblin" not in p) for p in picks)
+
+
+def test_prefer_main_payout_floor_keeps_low_when_nothing_clears():
+    payload = {
+        "pool_mode": MAIN_POOL_MODE,
+        "groups": [
+            {
+                "group_name": "WNBA Goblin 2",
+                "n_legs": 2,
+                "tickets": [
+                    {
+                        "legs": [
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 1.6},
+                    }
+                ],
+            }
+        ],
+    }
+    filtered = prefer_main_min_payout_payload(payload)
+    # No STRONG and nothing ≥2x → fallback keeps the low slip.
+    assert sum(len(g.get("tickets") or []) for g in filtered.get("groups") or []) == 1
+
+
+def test_prefer_main_keeps_strong_below_2x():
+    payload = {
+        "pool_mode": MAIN_POOL_MODE,
+        "groups": [
+            {
+                "group_name": "STRONG 2-Leg",
+                "n_legs": 2,
+                "tickets": [
+                    {
+                        "strong_builder": True,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 1.3},
+                    },
+                    {
+                        "strong_builder": True,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 2.7},
+                    },
+                ],
+            },
+            {
+                "group_name": "WNBA Goblin 3",
+                "n_legs": 3,
+                "tickets": [
+                    {
+                        "legs": [
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 1.8},
+                    }
+                ],
+            },
+        ],
+    }
+    filtered = prefer_main_min_payout_payload(payload)
+    slips = [t for g in filtered.get("groups") or [] for t in (g.get("tickets") or [])]
+    assert len(slips) == 2
+    assert all(t.get("strong_builder") for t in slips)
+    assert {float(t["payout"]["display_min_x"]) for t in slips} == {1.3, 2.7}
+
+
+def test_prefer_main_payout_floor_drops_low_when_2x_exists():
+    payload = {
+        "pool_mode": MAIN_POOL_MODE,
+        "groups": [
+            {
+                "group_name": "STRONG 2-Leg",
+                "n_legs": 2,
+                "tickets": [
+                    {
+                        "strong_builder": True,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 2.7},
+                    },
+                    {
+                        "strong_builder": True,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 1.2},
+                    },
+                ],
+            },
+            {
+                "group_name": "WNBA Goblin 3",
+                "n_legs": 3,
+                "tickets": [
+                    {
+                        "legs": [
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                            {"sport": "WNBA", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"display_min_x": 1.8},
+                    }
+                ],
+            },
+        ],
+    }
+    # High-prob filter keeps everything; 2x prefer is the last step.
+    mid = filter_main_high_prob_payload(payload)
+    assert sum(len(g.get("tickets") or []) for g in mid.get("groups") or []) == 3
+    filtered = prefer_main_min_payout_payload(mid)
+    slips = [t for g in filtered.get("groups") or [] for t in (g.get("tickets") or [])]
+    # Both STRONG stay (including 1.2x); non-STRONG 1.8x deferred.
+    assert len(slips) == 2
+    assert all(t.get("strong_builder") for t in slips)
+    assert {float(t["payout"]["display_min_x"]) for t in slips} == {2.7, 1.2}

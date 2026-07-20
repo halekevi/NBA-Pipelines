@@ -331,6 +331,33 @@ elseif ((Get-CsvDataRowCount -CsvPath $soccerStep1) -gt 0) {
     Copy-Step1Mirror -Source $soccerStep1 -MirrorPath (Join-Path $SoccerDir "outputs\step1_soccer_props.csv")
 }
 
+# Tennis — CDP when available; otherwise fail-fast HTTP (was hanging morning refreshes)
+Write-Host "[LATE_FETCH] Fetching Tennis props..."
+$TennisDir = Join-Path $SportsRoot "Tennis"
+$tennisRunOut = Ensure-RunOutDir -SportTag "tennis"
+$tennisStep1 = Join-Path $tennisRunOut "step1_tennis_props.csv"
+$tennisArgs = @(
+    "-3.14", ".\scripts\step1_fetch_prizepicks_tennis.py",
+    "--league_id", "5",
+    "--output", $tennisStep1,
+    "--retries", "$MaxRetries",
+    "--fail-fast",
+    "--replace"
+)
+if ($CdpReachable) {
+    $tennisArgs += @("--cdp", $CdpUrl)
+    Write-Host "[LATE_FETCH] Tennis: CDP reachable — in-page fetch" -ForegroundColor DarkGray
+}
+$tennisTimeout = if ($CdpReachable) { 240 } else { 150 }
+$tennisExit = Invoke-TimedCommand -Label "Tennis step1" -FilePath "py" -ArgumentList $tennisArgs -WorkingDirectory $TennisDir -TimeoutSec $tennisTimeout
+$tennisFailed = ($tennisExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $tennisStep1) -eq 0)
+if ($tennisFailed) {
+    [void](Resolve-Step1MorningFallback -Sport "Tennis" -Step1Path $tennisStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+}
+elseif ((Get-CsvDataRowCount -CsvPath $tennisStep1) -gt 0) {
+    Copy-Step1Mirror -Source $tennisStep1 -MirrorPath (Join-Path $TennisDir "outputs\step1_tennis_props.csv")
+}
+
 # MLB — HTTP first (curl_cffi chrome131), then CDP, then Playwright (all --append)
 Write-Host "[LATE_FETCH] Fetching MLB props (append; HTTP → CDP → Playwright)..." -ForegroundColor Cyan
 $MLBDir = Join-Path $SportsRoot "MLB"

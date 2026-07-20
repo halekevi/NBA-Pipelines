@@ -1958,7 +1958,13 @@ if ($TennisOnly) {
     Write-Host "  [Tennis] Step1 loads the full PrizePicks tennis board (often spans several days). Step8 --date keeps only rows for $TennisDate." -ForegroundColor DarkGray
     $ok = $true
     if (-not $SkipFetch) {
-        if ($ok) { $ok = Run-Step "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`"" }
+        $tennisCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+        $tennisStep1Args = "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
+        if (Test-MlbCdpReachable -CdpUrl $tennisCdpUrl) {
+            Write-Host "  [Tennis] CDP reachable — fetching via Chrome" -ForegroundColor DarkGray
+            $tennisStep1Args += " --cdp `"$tennisCdpUrl`""
+        }
+        if ($ok) { $ok = Run-Step "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" $tennisStep1Args }
     } else {
         Write-Host "  [Tennis] Skipping step1 fetch -- using existing $TennisRunOutDir\step1_tennis_props.csv" -ForegroundColor DarkGray
     }
@@ -2851,8 +2857,10 @@ $SoccerJob = Start-Job -ScriptBlock {
 
 # -- Tennis Job ---------------------------------------------------------------
 Wait-FetchStagger
+$TennisCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+$TennisCdpReachable = Test-MlbCdpReachable -CdpUrl $TennisCdpUrl
 $TennisJob = Start-Job -ScriptBlock {
-    param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir)
+    param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir, $CdpUrl, $CdpReachable)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
@@ -2890,7 +2898,14 @@ $TennisJob = Start-Job -ScriptBlock {
     }
     Write-Output "[TENNIS] Step8 filters to ET date $TennisDate; step1 loads full PrizePicks tennis board (may include several calendar days)"
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`"" } } else { Write-Output "[Tennis] Skipping step1 fetch" }
+    if (-not $SkipFetch) {
+        $tennisStep1Args = "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
+        if ($CdpReachable -and $CdpUrl) {
+            Write-Output "[TENNIS] CDP reachable — fetching via Chrome"
+            $tennisStep1Args += " --cdp `"$CdpUrl`""
+        }
+        if ($ok) { $ok = Run-Step-Job "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" $tennisStep1Args }
+    } else { Write-Output "[Tennis] Skipping step1 fetch" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" "--input `"$TennisRunOutDir\step1_tennis_props.csv`" --output `"$TennisRunOutDir\step2_tennis_picktypes.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" "--input `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --output `"$TennisRunOutDir\step3_tennis_with_defense.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source sackmann --history-n 20" }
@@ -2908,7 +2923,7 @@ $TennisJob = Start-Job -ScriptBlock {
     }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $RepoRoot "Sports\Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
     return $ok
-} -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir
+} -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir, $TennisCdpUrl, $TennisCdpReachable
 
 # -- Golf Job (PGA — step1 → step2 → step4 → step5 → step7 → step8) -----------
 Wait-FetchStagger

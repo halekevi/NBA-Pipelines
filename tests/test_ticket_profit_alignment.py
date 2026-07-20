@@ -18,10 +18,12 @@ from utils import ticket_ev_tiers as tet  # noqa: E402
 def test_strong_max_legs_default_is_three():
     assert tet.STRONG_MAX_LEGS == 3
     assert tet.STRONG_MIN_P_WIN_2LEG >= 0.45
-    assert tet.STRONG_MIN_P_WIN_3LEG >= 0.38
+    assert tet.STRONG_MIN_P_WIN_3LEG >= 0.35
     # STRONG leg cap must allow 3-leg product above the 3-leg floor.
     assert tet.STRONG_MAX_LEG_PROB_FOR_P_WIN**3 >= tet.STRONG_MIN_P_WIN_3LEG
     assert tet.STRONG_MAX_LEG_PROB_FOR_P_WIN > cst.MAX_LEG_PROB_FOR_P_WIN
+    # Common 0.72-clip Goblin legs must still clear the 3-leg floor.
+    assert 0.72**3 >= tet.STRONG_MIN_P_WIN_3LEG
 
 
 def test_main_max_legs_default_is_three():

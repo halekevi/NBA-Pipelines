@@ -3,12 +3,10 @@
 #  Live PrizePicks payout capture (post-ticket step)
 #
 #  Two-tier model:
-#    MAIN (5AM STEP D-payout): scrape all MAIN/STRONG slips missing live floors,
-#      then verify + rebuild rate card (-FillMissingTickets -RebuildRateCard).
-#    UPDATE (midday / manual default): same script, but only slips still missing
-#      payout_source=live_cdp (--only-missing-live). If fingerprint unchanged and
-#      everything already live_cdp → CDP skipped (seconds). Pass -Force only to
-#      re-scrape slips that already have live floors.
+#    MAIN (PropOracle - Payout CDP @ 11:00, after 10:30 refresh): scrape MAIN/STRONG
+#      slips missing live floors, then verify + rebuild rate card.
+#    UPDATE (8/9/10:30/1 refreshes): only slips still missing live_cdp.
+#    5AM daily does NOT run live CDP by default (pass -RunLivePayout to opt in).
 #
 #  Steps:
 #    1) CDP scrape of generated MAIN/STRONG slips → power_min_x
@@ -48,7 +46,9 @@ param(
     [switch]$SkipVerify,
     [switch]$FillMissingTickets,
     [switch]$RebuildRateCard,
-    [switch]$Gentle
+    [switch]$Gentle,
+    # Wall-clock budget for the CDP scrape (minutes). 0 = auto (25 MAIN / 15 UPDATE).
+    [int]$MaxRuntimeMinutes = 0
 )
 
 $ErrorActionPreference = "Continue"
@@ -72,7 +72,7 @@ $mobileTickets = Join-Path $Root "mobile\www\tickets_latest.json"
 $verifyScript = Join-Path $Root "scripts\verify_ticket_payout_rates.py"
 $lockDir = Join-Path $Root "data\cache"
 $lockFile = Join-Path $lockDir "payout_capture.lock"
-$lockTtlHours = 6
+$lockTtlHours = 2
 $script:PayoutLockHeld = $false
 
 # -UpdateOnly = incremental (never Force / never mix-grid). Apply before lock so we
@@ -85,11 +85,85 @@ if ($UpdateOnly) {
     }
 }
 
+if ($MaxRuntimeMinutes -le 0) {
+    # MAIN (fill/rebuild) gets a longer budget; midday UPDATE stays shorter.
+    if ($FillMissingTickets -or $Force) { $MaxRuntimeMinutes = 25 }
+    else { $MaxRuntimeMinutes = 15 }
+}
+
 function Clear-PayoutCaptureLock {
     if ($script:PayoutLockHeld -and (Test-Path -LiteralPath $lockFile)) {
         Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
         $script:PayoutLockHeld = $false
     }
+}
+
+function Test-PayoutLockOwnerAlive {
+    param([string]$LockContent)
+    if ($LockContent -match 'PID\s+(\d+)') {
+        $lockPid = [int]$Matches[1]
+        try {
+            $null = Get-Process -Id $lockPid -ErrorAction Stop
+            return $true
+        } catch {
+            return $false
+        }
+    }
+    return $true
+}
+
+function Stop-ProcessTree {
+    param([int]$ProcessId)
+    try {
+        Get-CimInstance Win32_Process -Filter "ParentProcessId=$ProcessId" -ErrorAction SilentlyContinue |
+            ForEach-Object { Stop-ProcessTree -ProcessId ([int]$_.ProcessId) }
+    } catch { }
+    try { Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+}
+
+function Invoke-PyWithTimeout {
+    param(
+        [string[]]$ArgumentList,
+        [int]$TimeoutSec,
+        [string]$Label = "py"
+    )
+    $pyCmd = Get-Command py -ErrorAction SilentlyContinue
+    if (-not $pyCmd) {
+        Write-Host "  [PAYOUT] ERROR: py launcher not found" -ForegroundColor Red
+        return 1
+    }
+    $stdout = Join-Path $env:TEMP ("proporacle_payout_{0}_{1}.out.txt" -f $PID, [guid]::NewGuid().ToString("n").Substring(0, 8))
+    $stderr = Join-Path $env:TEMP ("proporacle_payout_{0}_{1}.err.txt" -f $PID, [guid]::NewGuid().ToString("n").Substring(0, 8))
+    $proc = Start-Process -FilePath $pyCmd.Source `
+        -ArgumentList $ArgumentList `
+        -WorkingDirectory $Root `
+        -NoNewWindow `
+        -PassThru `
+        -RedirectStandardOutput $stdout `
+        -RedirectStandardError $stderr
+    $finished = $proc.WaitForExit([Math]::Max(1, $TimeoutSec) * 1000)
+    if (-not $finished) {
+        Write-Host "  [PAYOUT] TIMEOUT after ${TimeoutSec}s ($Label) — killing scrape so daily can continue" -ForegroundColor Yellow
+        Stop-ProcessTree -ProcessId $proc.Id
+        try { $proc.WaitForExit(5000) | Out-Null } catch { }
+        if (Test-Path -LiteralPath $stdout) {
+            Get-Content -LiteralPath $stdout -Tail 40 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+        }
+        if (Test-Path -LiteralPath $stderr) {
+            Get-Content -LiteralPath $stderr -Tail 20 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow }
+        }
+        Remove-Item -LiteralPath $stdout, $stderr -Force -ErrorAction SilentlyContinue
+        return 124
+    }
+    if (Test-Path -LiteralPath $stdout) {
+        Get-Content -LiteralPath $stdout -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+    }
+    if (Test-Path -LiteralPath $stderr) {
+        Get-Content -LiteralPath $stderr -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ -ForegroundColor DarkYellow }
+    }
+    $code = $proc.ExitCode
+    Remove-Item -LiteralPath $stdout, $stderr -Force -ErrorAction SilentlyContinue
+    return $code
 }
 
 if (-not (Test-Path -LiteralPath $lockDir)) {
@@ -99,13 +173,18 @@ if (Test-Path -LiteralPath $lockFile) {
     $lockAge = (Get-Date) - (Get-Item -LiteralPath $lockFile).LastWriteTime
     $lockContent = (Get-Content -LiteralPath $lockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
     if (-not $lockContent) { $lockContent = "<unknown>" }
-    if ($lockAge.TotalHours -lt $lockTtlHours -and -not $Force) {
+    $ownerAlive = Test-PayoutLockOwnerAlive -LockContent $lockContent
+    if (-not $ownerAlive) {
+        Write-Host "  [PAYOUT] Clearing dead lock (owner PID gone): $lockContent" -ForegroundColor Yellow
+        Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
+    } elseif ($lockAge.TotalHours -lt $lockTtlHours -and -not $Force) {
         Write-Host "  [PAYOUT] SKIP — another capture is running ($lockContent)" -ForegroundColor Yellow
         Write-Host "  [PAYOUT] Lock age: $([int]$lockAge.TotalMinutes) min (TTL $($lockTtlHours)h). Pass -Force only to clear a dead lock." -ForegroundColor Yellow
         exit 0
+    } else {
+        Write-Host "  [PAYOUT] Clearing stale lock ($([int]$lockAge.TotalMinutes) min old)" -ForegroundColor DarkGray
+        Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
     }
-    Write-Host "  [PAYOUT] Clearing stale lock ($([int]$lockAge.TotalMinutes) min old)" -ForegroundColor DarkGray
-    Remove-Item -LiteralPath $lockFile -Force -ErrorAction SilentlyContinue
 }
 Set-Content -LiteralPath $lockFile -Value ("$Date | PID $PID | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') | $Root")
 $script:PayoutLockHeld = $true
@@ -139,6 +218,65 @@ function Test-CdpUp {
         } catch {
             return $false
         }
+    }
+}
+
+function Test-PlaywrightCdpAttach {
+    param([string]$Url, [int]$TimeoutMs = 15000)
+    $py = @"
+from playwright.sync_api import sync_playwright
+import sys
+url = sys.argv[1]
+timeout_ms = int(sys.argv[2])
+try:
+    p = sync_playwright().start()
+    b = p.chromium.connect_over_cdp(url, timeout=timeout_ms)
+    n = len(b.contexts)
+    p.stop()
+    print('OK', n)
+    raise SystemExit(0)
+except Exception as e:
+    print('FAIL', type(e).__name__, str(e)[:180])
+    raise SystemExit(2)
+"@
+    try {
+        $out = & py -3.14 -c $py $Url $TimeoutMs 2>$null
+        $joined = ($out | Out-String).Trim()
+        if ($LASTEXITCODE -eq 0 -and $joined -match '^OK') {
+            Write-Host "  [PAYOUT] Playwright CDP attach OK ($joined)" -ForegroundColor DarkGray
+            return $true
+        }
+        Write-Host "  [PAYOUT] Playwright CDP attach failed: $joined" -ForegroundColor Yellow
+        return $false
+    } catch {
+        Write-Host "  [PAYOUT] Playwright CDP attach error: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+function Repair-WedgedPrizePicksCdp {
+    param([string]$Url)
+    Write-Host "  [PAYOUT] CDP HTTP is up but Playwright handshake is wedged — restarting PrizePicks debug Chrome..." -ForegroundColor Yellow
+    $launch = Join-Path $Root "scripts\launch_prizepicks_chrome_cdp.ps1"
+    if (-not (Test-Path -LiteralPath $launch)) {
+        Write-Host "  [PAYOUT] ERROR: missing $launch" -ForegroundColor Red
+        return $false
+    }
+    try {
+        Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -match 'remote-debugging-port=9222|\.pp_browser_profile|chrome_debug' } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds 2
+        & pwsh -NoProfile -File $launch -OpenBoard -LeagueId 2 | Out-Host
+        Start-Sleep -Seconds 5
+        if (-not (Test-CdpUp -Url $Url)) {
+            Write-Host "  [PAYOUT] ERROR: CDP still down after Chrome restart" -ForegroundColor Red
+            return $false
+        }
+        return (Test-PlaywrightCdpAttach -Url $Url -TimeoutMs 20000)
+    } catch {
+        Write-Host "  [PAYOUT] ERROR: Chrome restart failed ($($_.Exception.Message))" -ForegroundColor Red
+        return $false
     }
 }
 
@@ -194,14 +332,24 @@ if (-not (Test-Path -LiteralPath $payoutScript)) {
 
 $cdpUp = Test-CdpUp -Url $CdpUrl
 if (-not $cdpUp) {
-    Write-Host "  [PAYOUT] CDP not running on $CdpUrl -- skip scrape (tickets keep board-avg / rate-card)" -ForegroundColor DarkGray
+    Write-Host "  [PAYOUT] CDP not running on $CdpUrl -- skip scrape (tickets stay pending_live / no fake floors)" -ForegroundColor DarkGray
     # Still audit so daily reports show outstanding gaps.
     if (-not $SkipVerify) {
         Invoke-PayoutVerify -VerifyRoot $Root -VerifyDate $Date -VerifyTickets $TicketsPath `
             -VerifyCdp $CdpUrl -DoFill:$false -DoRebuild:$RebuildRateCard.IsPresent -DoGentle:$false
     }
     Clear-PayoutCaptureLock
-    exit 0
+    # Non-zero so schedulers / catchups notice live floors were not captured.
+    exit 2
+}
+
+# HTTP /json/version can look healthy while Playwright connect_over_cdp hangs (wedged browser target).
+if (-not (Test-PlaywrightCdpAttach -Url $CdpUrl)) {
+    if (-not (Repair-WedgedPrizePicksCdp -Url $CdpUrl)) {
+        Write-Host "  [PAYOUT] ERROR: cannot attach Playwright to CDP — abort capture" -ForegroundColor Red
+        Clear-PayoutCaptureLock
+        exit 2
+    }
 }
 
 Push-Location $Root
@@ -269,21 +417,23 @@ try {
     $capExit = 0
     $nOk = 0
     if (-not $skippedFullCapture) {
-        Write-Host "  [PAYOUT] Capturing MAIN/STRONG floors from $TicketsPath" -ForegroundColor Cyan
+        $runtimeSec = [Math]::Max(60, $MaxRuntimeMinutes * 60)
+        Write-Host "  [PAYOUT] Capturing MAIN/STRONG floors from $TicketsPath (budget ${MaxRuntimeMinutes}m)" -ForegroundColor Cyan
         $ticketArgs = @(
             "-3.14", "-X", "utf8", $payoutScript,
             "--tickets", $TicketsPath,
             "--output", $payoutOut,
             "--date", $Date,
             "--cdp-url", $CdpUrl,
-            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min"
+            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min",
+            "--max-runtime-sec", "$runtimeSec"
         )
         if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
         if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
         if ($Gentle) { $ticketArgs += "--gentle" }
         if ($onlyMissingLive) { $ticketArgs += "--only-missing-live" }
-        & py @ticketArgs
-        $capExit = $LASTEXITCODE
+        # Soft backstop above Python's own max-runtime so a hung CDP call cannot idle forever.
+        $capExit = Invoke-PyWithTimeout -ArgumentList $ticketArgs -TimeoutSec ($runtimeSec + 90) -Label "ticket-capture"
 
         if (Test-Path -LiteralPath $payoutOut) {
             try {
@@ -294,6 +444,10 @@ try {
                     Write-Host "  [PAYOUT] summary ok=$nOk failed=$nFail -> $payoutOut" -ForegroundColor $(if ($nOk -gt 0) { "Green" } else { "Yellow" })
                 }
             } catch { }
+        }
+        if ($capExit -eq 124) {
+            Write-Host "  [PAYOUT] WARN: scrape timed out (exit 124) — continuing daily without blocking" -ForegroundColor Yellow
+            $capExit = 0
         }
 
         if ($capExit -eq 0 -and $nOk -gt 0) {

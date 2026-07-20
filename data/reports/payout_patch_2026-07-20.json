@@ -1,0 +1,495 @@
+{
+  "date": "2026-07-20",
+  "generated_at": "2026-07-20T20:37:57.298915Z",
+  "tickets_path": "ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-07-20|STRONG 2-Leg|10": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|11": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|12": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|13": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|14": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|14",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|15": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|15",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|16": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|16",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|17": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|17",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|18": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|18",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|19": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|19",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|2": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|20": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|20",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|22": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|22",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|23": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|23",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|3": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|4": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|5": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|6": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|7": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|8": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 2-Leg|9": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 3-Leg|2": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 3-Leg|3": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 3-Leg|4": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 3-Leg|5": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|5",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 3-Leg|6": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|6",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-07-20|STRONG 3-Leg|7": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|7",
+      "n_legs": 3,
+      "slip_type": "strong"
+    }
+  },
+  "by_leg_sig": {
+    "bryce elder|pitching outs|over|11.500||cristopher sánchez|pitches thrown|over|86.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "george kirby|pitches thrown|over|88.500||michael wacha|pitches thrown|over|84.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "dylan cease|pitches thrown|over|87.500||jeffrey springs|pitching outs|over|11.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "emmet sheehan|earned runs allowed|over|0.500||tanner bibee|hits allowed|over|3.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jack flaherty|pitches thrown|over|81.500||josé soriano|pitching outs|over|14.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|14",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "braxton ashcraft|hits allowed|over|2.500||joe ryan|pitching outs|over|14.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|15",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "erick fedde|earned runs allowed|over|0.500||tanner bibee|walks allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|16",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "andrew abbott|pitches thrown|over|85.500||nick martinez|pitches thrown|over|74.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|17",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jacob degrom|hits allowed|over|2.500||ryan weathers|hits allowed|over|2.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|18",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jack flaherty|hits allowed|over|2.500||joe ryan|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|19",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "janson junk|pitching outs|over|11.500||michael wacha|pitching outs|over|14.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "cristopher sánchez|pitching outs|over|17.500||jacob misiorowski|pitches thrown|over|84.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|20",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "josé soriano|pitches thrown|over|85.500||kyle leahy|pitches thrown|over|77.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|22",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "dylan cease|pitching outs|over|14.500||nick martinez|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|23",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "emmet sheehan|hits allowed|over|2.500||kyle leahy|hits allowed|over|2.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "braxton ashcraft|pitching outs|over|14.500||george kirby|hits allowed|over|3.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jacob misiorowski|pitching outs|over|14.500||kyle freeland|pitching outs|over|11.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "freddy peralta|pitching outs|over|11.500||shane baz|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "bryce elder|pitches thrown|over|72.500||janson junk|pitches thrown|over|79.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "freddy peralta|pitches thrown|over|86.500||shane baz|pitches thrown|over|90.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "kyle freeland|pitches thrown|over|80.500||ryan weathers|pitches thrown|over|83.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "bryce elder|pitches thrown|over|72.500||janson junk|pitches thrown|over|79.500||josé soriano|pitches thrown|over|85.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "jacob misiorowski|pitching outs|over|14.500||kyle freeland|pitches thrown|over|80.500||ryan weathers|pitches thrown|over|83.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "george kirby|pitches thrown|over|88.500||michael wacha|pitches thrown|over|84.500||shane baz|pitches thrown|over|90.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "andrew abbott|pitches thrown|over|85.500||emmet sheehan|hits allowed|over|2.500||nick martinez|pitches thrown|over|74.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|5",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "cristopher sánchez|pitches thrown|over|86.500||freddy peralta|pitches thrown|over|86.500||kyle leahy|pitches thrown|over|77.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|6",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "dylan cease|pitches thrown|over|87.500||jack flaherty|pitches thrown|over|81.500||jeffrey springs|pitching outs|over|11.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-07-20|STRONG 3-Leg|7",
+      "n_legs": 3,
+      "slip_type": "strong"
+    }
+  }
+}

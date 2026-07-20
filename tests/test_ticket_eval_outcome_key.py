@@ -84,27 +84,30 @@ def test_void_below_two_legs_is_refund_not_loss():
     assert float(oc.get("actual_payout") or 0) == 0.0
 
 
-def test_mlb_hitter_no_actual_resolves_to_void():
+def test_no_actual_resolves_to_void_for_all_sports():
     from build_ticket_eval import _resolve_void_pending_if_injury_dnp  # noqa: E402
 
-    leg = {
-        "sport": "MLB",
-        "player": "Bobby Witt Jr.",
-        "team": "KC",
-        "prop_type": "Hits",
-    }
-    assert (
-        _resolve_void_pending_if_injury_dnp(
-            "UNGRADED",
-            leg,
-            None,
-            0.5,
-            "VOID",
-            "NO_ACTUAL",
-            {},
-        )
-        == "VOID"
-    )
+    for sport, player, team, prop in (
+        ("MLB", "Bobby Witt Jr.", "KC", "Hits"),
+        ("WNBA", "Caitlin Clark", "IND", "Points"),
+        ("NBA", "LeBron James", "LAL", "Rebounds"),
+        ("NHL", "Connor McDavid", "EDM", "Hits"),
+        ("SOCCER", "Lionel Messi", "MIA", "Shots"),
+        ("TENNIS", "Carlos Alcaraz", "", "Aces"),
+    ):
+        leg = {"sport": sport, "player": player, "team": team, "prop_type": prop}
+        assert (
+            _resolve_void_pending_if_injury_dnp(
+                "UNGRADED",
+                leg,
+                None,
+                0.5,
+                "VOID",
+                "NO_ACTUAL",
+                {},
+            )
+            == "VOID"
+        ), sport
 
 
 def test_power_goblin_all_hit_uses_scraped_min_not_classic_sweep():

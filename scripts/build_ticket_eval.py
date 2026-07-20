@@ -681,34 +681,22 @@ def _resolve_void_pending_if_injury_dnp(
     injury_dnp_by_sport: dict[str, frozenset[tuple[str, str]]],
 ) -> str:
     """
-    When graded row is VOID with no usable actual (ticket eval shows UNGRADED / void-pending),
-    treat as a resolved VOID if the player appears on injuries_nba / injuries_nhl for that date
-    as Out, Day-To-Day, or Injured Reserve.
+    Settle void-pending UNGRADED legs when the graded row has no usable actual.
+
+    All sports: NO_ACTUAL / provider VOID with no numeric actual resolves to VOID so
+    the slip pays PrizePicks-style (voided legs drop; reduced leg-count tier) instead
+    of lingering pending or scoring as a miss.
+
+    Also: injury-list DNP (Out / Day-To-Day / IR) on NBA/NHL/etc. settles the same way.
     """
     if grade != "UNGRADED":
         return grade
     sport_u = str(leg.get("sport") or "").strip().upper().replace(" ", "")
-    prop_u = _prop_match_key_from_display(str(leg.get("prop_type") or ""))
     g = (graw or "").strip().upper()
     vn = str(vnote or "").strip().upper()
-    # NHL player "hits" frequently arrives as a provider-side VOID without a numeric
-    # player actual in the graded workbook. Resolve these to VOID so ticket payout
-    # can settle instead of lingering in UNGRADED/void-pending.
+    # All sports: DNP / scratch / no box score → settled VOID (not pending, not a miss).
     if (
-        sport_u == "NHL"
-        and prop_u in {"hits"}
-        and g in ("VOID", "PUSH", "N/A", "NA")
-        and not _finite_line_actual(actual, line_f)
-        and (not vn or vn in _VOID_PENDING_VOID_NOTES)
-    ):
-        return "VOID"
-    # MLB provider feeds frequently leave props with NO_ACTUAL after game close
-    # (DNP / scratch / listed starter never appears). Resolve these as VOID so the
-    # slip settles PrizePicks-style: voided legs drop off and payout uses the
-    # reduced leg-count tier — not left pending and not scored as a miss.
-    if (
-        sport_u == "MLB"
-        and g in ("NO_ACTUAL", "VOID", "PUSH", "N/A", "NA", "")
+        g in ("NO_ACTUAL", "VOID", "PUSH", "N/A", "NA", "")
         and not _finite_line_actual(actual, line_f)
         and (not vn or vn in _VOID_PENDING_VOID_NOTES or g == "NO_ACTUAL")
     ):

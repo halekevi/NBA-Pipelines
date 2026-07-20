@@ -23,7 +23,19 @@ html {
 
 @media (max-width: 768px) {
   html {
-    -webkit-tap-highlight-color: rgba(212, 175, 55, 0.14);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a,
+  summary,
+  [role="button"],
+  .pill,
+  .tab-btn,
+  .ticket-filter-pill,
+  .slate-filter-btn,
+  .dpill {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

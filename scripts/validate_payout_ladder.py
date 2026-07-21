@@ -677,6 +677,46 @@ def load_ladder_recipes(*, include_mix: bool = True, include_delta: bool = True)
     return recipes
 
 
+def _synthesize_goblin_leg(
+    std_card: dict,
+    want_delta: float,
+    *,
+    sport: str = "MLB",
+) -> dict[str, Any] | None:
+    """Build a Goblin leg at Standard−Δ so CDP can cycle the More control to that line."""
+    try:
+        std = float(std_card.get("line") or std_card.get("standard_line") or 0)
+        want = float(want_delta)
+    except (TypeError, ValueError):
+        return None
+    if std < 1.0 or want < 0.25:
+        return None
+    # Goblin OVER is easier → lower line than Standard.
+    want_line = round(std - want, 2)
+    if want_line < 0.5:
+        return None
+    # Half-step lines only (PP board granularity).
+    if abs(want_line * 2 - round(want_line * 2)) > 1e-6:
+        want_line = round(want_line * 2) / 2.0
+        if want_line < 0.5 or want_line >= std:
+            return None
+        want = round(std - want_line, 2)
+    return {
+        "player": std_card.get("player"),
+        "prop_type": std_card.get("prop_type"),
+        "direction": "OVER",
+        "line": want_line,
+        "pick_type": "Goblin",
+        "sport": str(std_card.get("league") or std_card.get("sport") or sport).upper(),
+        "line_distance": want,
+        "standard_line": std,
+        "role": "goblin",
+        "has_alt_lines": True,
+        "force_alt_cycle": True,
+        "source_filter": std_card.get("source_filter") or std_card.get("prop_type"),
+    }
+
+
 def _pick_cards_for_recipe(
     recipe: dict[str, Any],
     *,
@@ -684,8 +724,13 @@ def _pick_cards_for_recipe(
     goblins: list[dict],
     demons: list[dict],
     tol: float = 0.35,
+    force_alt_cycle: bool = False,
 ) -> dict[str, Any] | None:
-    """Choose unique-player board cards for a recipe. Prefer exact Goblin distances."""
+    """Choose unique-player board cards for a recipe. Prefer exact Goblin distances.
+
+    force_alt_cycle=True: when the board lacks the target Δ, synthesize a Goblin leg
+    from a Standard face (std−Δ) so capture can cycle the dual-arrow to that line.
+    """
     n_s = int(recipe.get("n_standard") or 0)
     n_g = int(recipe.get("n_goblin") or 0)
     n_d = int(recipe.get("n_demon") or 0)
@@ -700,14 +745,36 @@ def _pick_cards_for_recipe(
     picked: list[dict] = []
     matched_deltas: list[float] = []
     proxy = False
+    sport_hint = "MLB"
 
     def _prop_rank(c: dict) -> float:
         prop = str(c.get("prop_type") or "").lower()
-        if prop in ("points", "assists", "rebounds"):
+        if prop in ("points", "assists", "rebounds", "hits+runs+rbis", "total bases", "tb", "pitcher strikeouts", "ks"):
             return 0.0
         if "+" in prop or "pts" in prop:
             return 2.0
         return 1.0
+
+    def _std_alt_pool() -> list[dict]:
+        # Prefer high lines (room for large Δ) with alt-line control.
+        pool = []
+        for c in standard:
+            try:
+                line = float(c.get("line") or 0)
+            except (TypeError, ValueError):
+                continue
+            if line < 1.0:
+                continue
+            pool.append(c)
+        pool.sort(
+            key=lambda c: (
+                0 if c.get("has_alt_lines") else 1,
+                -float(c.get("line") or 0),
+                _prop_rank(c),
+                str(c.get("player") or ""),
+            )
+        )
+        return pool
 
     def take(pool: list[dict], n: int, role: str, targets: list[float] | None = None) -> bool:
         nonlocal proxy
@@ -743,9 +810,47 @@ def _pick_cards_for_recipe(
                 if score < best_score:
                     best_score = score
                     best = c
+
+            # Force-cycle path: synthesize Goblin @ std−Δ from a Standard face.
+            if (
+                role == "goblin"
+                and force_alt_cycle
+                and want is not None
+                and (best is None or best_score > tol)
+            ):
+                synth = None
+                for sc in _std_alt_pool():
+                    pk = cpd._norm(sc.get("player"))
+                    if not pk or pk in used:
+                        continue
+                    synth = _synthesize_goblin_leg(sc, float(want), sport=sport_hint)
+                    if synth is not None:
+                        used.add(pk)
+                        picked.append(synth)
+                        matched_deltas.append(float(synth["line_distance"]))
+                        proxy = True
+                        break
+                if synth is not None:
+                    continue
             if best is None:
                 return False
             if want is not None and best_score > tol:
+                # Still force-cycle even when a weak goblin face exists.
+                if role == "goblin" and force_alt_cycle:
+                    synth = None
+                    for sc in _std_alt_pool():
+                        pk = cpd._norm(sc.get("player"))
+                        if not pk or pk in used:
+                            continue
+                        synth = _synthesize_goblin_leg(sc, float(want), sport=sport_hint)
+                        if synth is not None:
+                            used.add(pk)
+                            picked.append(synth)
+                            matched_deltas.append(float(synth["line_distance"]))
+                            proxy = True
+                            break
+                    if synth is not None:
+                        continue
                 proxy = True
             used.add(cpd._norm(best.get("player")))
             remaining = [c for c in remaining if c is not best]
@@ -781,6 +886,123 @@ def _pick_cards_for_recipe(
     }
 
 
+def build_force_delta_recipes(
+    *,
+    max_cases: int = 60,
+    available_deltas: list[float] | None = None,
+) -> list[dict[str, Any]]:
+    """Enumerate missing S/G×Δ cells using Δ bins actually reachable on this board."""
+    priority_mixes: list[tuple[int, int]] = [
+        (1, 1),
+        (0, 2),
+        (0, 3),
+        (2, 1),
+        (1, 2),
+        (0, 4),
+        (1, 3),
+        (2, 2),
+        (3, 1),
+        (0, 5),
+        (1, 4),
+        (2, 3),
+        (3, 2),
+        (4, 1),
+        (0, 6),
+    ]
+    if available_deltas:
+        common_deltas = sorted(
+            {
+                round(float(d), 2)
+                for d in available_deltas
+                if 0.25 <= float(d) <= 6.5
+            }
+        )
+    else:
+        common_deltas = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
+    if not common_deltas:
+        common_deltas = [1.0, 1.5, 2.0]
+    print(f"[force-delta] using board-reachable Δ bins={common_deltas}")
+    covered = _live_covered_recipe_keys()
+
+    recipes: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def _add(n_s: int, n_g: int, g_deltas: list[float]) -> None:
+        n = n_s + n_g
+        if n < 2 or n > 6:
+            return
+        if n_g and len(g_deltas) != n_g:
+            return
+        comp = f"{n_s}S+{n_g}G+0D"
+        g_sig = _norm_delta_sig("+".join(f"{x:g}" for x in g_deltas)) if g_deltas else ""
+        key = f"{comp}|{g_sig}"
+        if key in seen:
+            return
+        seen.add(key)
+        recipes.append(
+            {
+                "kind": "force_delta",
+                "n_legs": n,
+                "composition": comp,
+                "n_standard": n_s,
+                "n_goblin": n_g,
+                "n_demon": 0,
+                "goblin_delta_sig": g_sig,
+                "demon_delta_sig": "",
+                "ladder_avg_x": 0.0,
+                "ladder_min_x": 0.0,
+                "ladder_max_x": 0.0,
+                "samples": 0,
+                "force_alt_cycle": True,
+                "already_live": key in covered,
+            }
+        )
+
+    for n_s, n_g in priority_mixes:
+        if n_g == 0:
+            _add(n_s, 0, [])
+            continue
+        for d in common_deltas:
+            _add(n_s, n_g, [d] * n_g)
+
+    for n_s, n_g in ((0, 2), (1, 2), (0, 3), (1, 3), (2, 2)):
+        for i, a in enumerate(common_deltas):
+            for b in common_deltas[i + 1 :]:
+                if n_g == 2:
+                    _add(n_s, 2, [a, b])
+                elif n_g == 3:
+                    _add(n_s, 3, [a, a, b])
+                    _add(n_s, 3, [a, b, b])
+
+    recipes.sort(
+        key=lambda r: (
+            1 if r.get("already_live") else 0,
+            {
+                "1S+1G+0D": 0,
+                "0S+2G+0D": 1,
+                "0S+3G+0D": 2,
+                "2S+1G+0D": 3,
+                "1S+2G+0D": 4,
+                "0S+4G+0D": 5,
+                "1S+3G+0D": 6,
+                "2S+2G+0D": 7,
+                "3S+1G+0D": 8,
+            }.get(str(r.get("composition") or ""), 20),
+            float(
+                sum(float(x) for x in str(r.get("goblin_delta_sig") or "").split("+") if x) or 0
+            ),
+            str(r.get("goblin_delta_sig") or ""),
+        )
+    )
+    out = recipes[: max(1, int(max_cases))]
+    n_missing = sum(1 for r in out if not r.get("already_live"))
+    print(
+        f"[force-delta] planned recipes={len(out)}/{len(recipes)} "
+        f"(missing_live≈{n_missing}; from cataloged board Δ steps)"
+    )
+    return out
+
+
 def build_live_board_tickets_payload(
     recipes: list[dict[str, Any]],
     *,
@@ -790,6 +1012,7 @@ def build_live_board_tickets_payload(
     date_str: str,
     max_cases: int = 0,
     delta_tol: float = 0.35,
+    force_alt_cycle: bool = False,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Build tickets payload from LIVE board cards matching each ladder recipe."""
     tickets: list[dict] = []
@@ -801,15 +1024,17 @@ def build_live_board_tickets_payload(
         g_off = (i - 1) % len(goblins) if goblins else 0
         d_off = (i - 1) % len(demons) if demons else 0
         s_off = (i - 1) % len(standard) if standard else 0
-        g_pool = goblins[g_off:] + goblins[:g_off]
-        d_pool = demons[d_off:] + demons[:d_off]
-        s_pool = standard[s_off:] + standard[:s_off]
+        g_pool = goblins[g_off:] + goblins[:g_off] if goblins else []
+        d_pool = demons[d_off:] + demons[:d_off] if demons else []
+        s_pool = standard[s_off:] + standard[:s_off] if standard else []
+        force = bool(force_alt_cycle) or bool(recipe.get("force_alt_cycle"))
         pick = _pick_cards_for_recipe(
             recipe,
             standard=s_pool,
             goblins=g_pool,
             demons=d_pool,
             tol=float(delta_tol),
+            force_alt_cycle=force,
         )
         if not pick:
             plan_rows.append({**recipe, "status": "unbuildable", "error": "no_matching_board_cards"})
@@ -831,6 +1056,7 @@ def build_live_board_tickets_payload(
                 "samples": recipe.get("samples"),
                 "proxy_match": pick["proxy_match"],
                 "matched_goblin_deltas": pick["matched_goblin_deltas"],
+                "force_alt_cycle": force,
             },
         }
         tickets.append(ticket)
@@ -848,6 +1074,7 @@ def build_live_board_tickets_payload(
                         "line": lg.get("line"),
                         "pick_type": lg.get("pick_type"),
                         "line_distance": lg.get("line_distance"),
+                        "force_alt_cycle": lg.get("force_alt_cycle"),
                     }
                     for lg in pick["legs"]
                 ],
@@ -920,18 +1147,25 @@ def scrape_board_pools(
     *,
     light: bool = False,
     focused: bool = False,
+    prefer_wnba: bool = False,
 ) -> tuple[list[dict], list[dict], list[dict]]:
     """Open PP boards and return (standard, goblin, demon) card pools with distances.
 
     light=True: only Popular/Points once (no multi-filter expand) — gentler on DataDome.
     focused=True: a few high-yield filters only (discover) — clickable faces + Goblin Δ harvest.
+    prefer_wnba=True: try WNBA Points first (wider Δ ladders for force-delta sweeps).
     """
     p, browser, context, page = cpd.connect_existing_browser(cdp_url)
     try:
         best_cards: list[dict] = []
         best_score = -1
-        # MLB first: wider Goblin-Δ bins for rate-card discovery; then WNBA/NBA.
-        for league_id, label in ((2, "MLB"), (3, "WNBA"), (7, "NBA")):
+        # WNBA Points has the widest Goblin-Δ steps; MLB next for live volume.
+        league_order = (
+            ((3, "WNBA"), (2, "MLB"), (7, "NBA"))
+            if prefer_wnba
+            else ((2, "MLB"), (3, "WNBA"), (7, "NBA"))
+        )
+        for league_id, label in league_order:
             try:
                 url = f"https://app.prizepicks.com/board?league_id={league_id}"
                 print(f"[validate] navigate {label} -> {url}")
@@ -969,7 +1203,14 @@ def scrape_board_pools(
                         "Pitcher Strikeouts",
                     ]
                     if label == "MLB"
-                    else ["Popular", "Points", "Assists", "Rebounds", "Pts+Reb+Ast"]
+                    else [
+                        "Popular",
+                        "Points",
+                        "Assists",
+                        "Rebounds",
+                        "Pts+Reb+Ast",
+                        "3-PT Made",
+                    ]
                 )
                 cards = []
                 seen: set[str] = set()
@@ -1057,80 +1298,71 @@ def scrape_board_pools(
         goblins.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
         demons.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
 
-        # Harvest Goblin faces via alt-line when we lack Goblins OR lack known Δ.
-        n_with_delta = sum(1 for c in goblins if c.get("line_distance") is not None)
-        if (len(goblins) < 6 or n_with_delta < 8) and standard:
-            try:
-                frame = cpd.find_prizepicks_frame(page)
-                cpd.dismiss_modal(frame, page)
-                harvested = 0
-                for cand in standard[:24]:
-                    if harvested >= 14:
-                        break
-                    if not cand.get("has_alt_lines"):
-                        continue
-                    player = str(cand.get("player") or "")
-                    prop = str(cand.get("prop_type") or "")
-                    try:
-                        std_line = float(cand.get("line") or cand.get("standard_line") or 0)
-                    except (TypeError, ValueError):
-                        continue
-                    if std_line <= 0 or not player or not prop:
-                        continue
-                    btn, _card = cpd._rebind_more_btn(frame, player, prop)
-                    if btn is None:
-                        continue
-                    cycled = cpd.cycle_card_to_pick_type(
-                        frame,
-                        btn,
-                        player=player,
-                        prop=prop,
-                        want_pick="goblin",
-                        want_line=None,
-                        require_line=False,
-                        max_clicks=4,
+        # Catalog every reachable Goblin Δ by cycling More on Standard faces.
+        # This is what makes --force-deltas comprehensive: we measure rate changes
+        # across real board steps, not invented std−Δ lines that may not exist.
+        try:
+            frame = cpd.find_prizepicks_frame(page)
+            cpd.dismiss_modal(frame, page)
+            # Prefer high-line Points/TB/Ks standards currently on the board.
+            probe_pool = sorted(
+                [
+                    c
+                    for c in standard
+                    if float(c.get("line") or 0) >= 1.5
+                    and str(c.get("prop_type") or "").lower()
+                    in (
+                        "points",
+                        "assists",
+                        "rebounds",
+                        "hits+runs+rbis",
+                        "total bases",
+                        "tb",
+                        "pitcher strikeouts",
+                        "ks",
+                        "3-pt made",
                     )
-                    if not cycled:
-                        continue
+                ],
+                key=lambda c: -float(c.get("line") or 0),
+            )[:14]
+            cataloged = 0
+            # Light catalog: one Goblin resolve per Standard (not a full carousel walk).
+            # Full walks re-parse the board every swap and take 10+ minutes.
+            for cand in probe_pool[:10]:
+                player = str(cand.get("player") or "")
+                prop = str(cand.get("prop_type") or "")
+                try:
+                    std_line = float(cand.get("line") or cand.get("standard_line") or 0)
+                except (TypeError, ValueError):
+                    continue
+                if std_line < 1.5 or not player or not prop:
+                    continue
+                btn, _card = cpd._rebind_more_btn(frame, player, prop)
+                if btn is None:
+                    continue
+                cycled = cpd.cycle_card_to_pick_type(
+                    frame,
+                    btn,
+                    player=player,
+                    prop=prop,
+                    want_pick="goblin",
+                    want_line=None,
+                    require_line=False,
+                    max_clicks=6,
+                )
+                if not cycled:
+                    continue
+                try:
+                    g_line = float(cycled.get("line") or 0)
+                except (TypeError, ValueError):
+                    continue
+                if g_line <= 0 or g_line >= std_line:
                     try:
-                        g_line = float(cycled.get("line") or 0)
-                    except (TypeError, ValueError):
-                        continue
-                    if g_line <= 0 or g_line >= std_line:
-                        try:
-                            btn2, _ = cpd._rebind_more_btn(frame, player, prop)
-                            if btn2 is not None:
-                                cpd.cycle_card_to_pick_type(
-                                    frame,
-                                    btn2,
-                                    player=player,
-                                    prop=prop,
-                                    want_pick="standard",
-                                    want_line=std_line,
-                                    require_line=False,
-                                    max_clicks=4,
-                                )
-                        except Exception:
-                            pass
-                        continue
-                    g_card = {
-                        **cand,
-                        "line": g_line,
-                        "pick_type": "goblin",
-                        "standard_line": std_line,
-                        "line_distance": abs(g_line - std_line),
-                        "has_alt_lines": True,
-                        "league": cand.get("league") or cand.get("sport"),
-                        "sport": cand.get("sport") or cand.get("league"),
-                    }
-                    goblins.append(g_card)
-                    harvested += 1
-                    try:
-                        btn3, _ = cpd._rebind_more_btn(frame, player, prop)
-                        if btn3 is not None:
+                        btn2, _ = cpd._rebind_more_btn(frame, player, prop)
+                        if btn2 is not None:
                             cpd.cycle_card_to_pick_type(
                                 frame,
-                                btn3,
+                                btn2,
                                 player=player,
                                 prop=prop,
                                 want_pick="standard",
@@ -1140,16 +1372,73 @@ def scrape_board_pools(
                             )
                     except Exception:
                         pass
-                    page.wait_for_timeout(400)
-                goblins.sort(
-                    key=lambda c: (
-                        0 if c.get("line_distance") is not None else 1,
-                        str(c.get("player") or ""),
+                    continue
+                delta = round(abs(std_line - g_line) * 2) / 2.0
+                if 0.25 <= delta <= 6.5:
+                    goblins.append(
+                        {
+                            **cand,
+                            "line": g_line,
+                            "pick_type": "goblin",
+                            "standard_line": std_line,
+                            "line_distance": delta,
+                            "has_alt_lines": True,
+                            "cataloged_alt": True,
+                            "league": cand.get("league") or cand.get("sport"),
+                            "sport": cand.get("sport") or cand.get("league"),
+                            "source_filter": cand.get("source_filter") or prop,
+                        }
                     )
+                    cataloged += 1
+                try:
+                    btn3, _ = cpd._rebind_more_btn(frame, player, prop)
+                    if btn3 is not None:
+                        cpd.cycle_card_to_pick_type(
+                            frame,
+                            btn3,
+                            player=player,
+                            prop=prop,
+                            want_pick="standard",
+                            want_line=std_line,
+                            require_line=False,
+                            max_clicks=4,
+                        )
+                except Exception:
+                    pass
+                page.wait_for_timeout(350)
+            # Deduplicate catalog goblins by player|prop|line.
+            uniq: dict[str, dict] = {}
+            for g in goblins:
+                key = (
+                    f"{cpd._norm(g.get('player'))}|"
+                    f"{cpd._norm(g.get('prop_type'))}|"
+                    f"{g.get('line')}|"
+                    f"{str(g.get('pick_type') or '').lower()}"
                 )
-                print(f"[validate] alt-line harvest goblins=+{harvested} total_G={len(goblins)}")
-            except Exception as e:
-                print(f"[validate] WARN: alt-line goblin harvest failed: {e}")
+                prev = uniq.get(key)
+                if prev is None or (g.get("line_distance") and not prev.get("line_distance")):
+                    uniq[key] = g
+            goblins = list(uniq.values())
+            goblins.sort(
+                key=lambda c: (
+                    0 if c.get("line_distance") is not None else 1,
+                    float(c.get("line_distance") or 99),
+                    str(c.get("player") or ""),
+                )
+            )
+            delta_bins = sorted(
+                {
+                    round(float(c["line_distance"]), 2)
+                    for c in goblins
+                    if c.get("line_distance") and 0.25 <= float(c["line_distance"]) <= 6.5
+                }
+            )
+            print(
+                f"[validate] alt-line Δ catalog: +{cataloged} faces "
+                f"total_G={len(goblins)} bins={delta_bins[:16]}"
+            )
+        except Exception as e:
+            print(f"[validate] WARN: alt-line Δ catalog failed: {e}")
 
         print(f"[validate] pools standard={len(standard)} goblin={len(goblins)} demon={len(demons)}")
         return standard, goblins, demons
@@ -1307,20 +1596,35 @@ def main() -> int:
         action="store_true",
         help="Skip CDP board expand; use step1 CSV pools only (recommended with --prefetch-http)",
     )
+    ap.add_argument(
+        "--force-deltas",
+        action="store_true",
+        help=(
+            "Comprehensive Δ sweep: plan missing mix×Δ cells and cycle the More control "
+            "to hit target Goblin lines (std−Δ), not limited to faces already showing"
+        ),
+    )
     args = ap.parse_args()
     date_str = str(args.slate_date or args.date)[:10]
     gentle = bool(args.gentle) or bool(args.prefetch_http)
     delay_sec = float(args.delay_sec) if float(args.delay_sec) > 0 else (2.5 if gentle else 0.5)
     skip_cdp_scrape = bool(args.skip_cdp_scrape) or bool(args.prefetch_http)
+    force_deltas = bool(args.force_deltas)
 
     # Discovery is the default for --run unless an explicit compare mode is chosen.
-    discover = bool(args.discover) or (bool(args.run) and not args.mix_only and not args.delta_only)
+    discover = bool(args.discover) or force_deltas or (
+        bool(args.run) and not args.mix_only and not args.delta_only
+    )
     if args.mix_only or args.delta_only:
         discover = False
 
     include_mix = not bool(args.delta_only)
     include_delta = not bool(args.mix_only)
-    mode = "discover" if discover else ("delta" if args.delta_only else ("mix" if args.mix_only else "all"))
+    mode = (
+        "force_delta"
+        if force_deltas
+        else ("discover" if discover else ("delta" if args.delta_only else ("mix" if args.mix_only else "all")))
+    )
 
     recipes: list[dict[str, Any]] = []
     if not discover:
@@ -1420,12 +1724,19 @@ def main() -> int:
     else:
         # Discover: focused filters (clickable) + alt-line Δ harvest. Gentle delays still
         # apply during slip capture. Avoid full expand (Fantasy Score noise / stale faces).
+        # Force-delta: prefer WNBA Points (room to cycle std−Δ across 0.5…6).
         use_focused = bool(discover)
         use_light = bool(gentle) and not bool(discover)
-        if discover:
+        prefer_wnba = bool(force_deltas)
+        if force_deltas:
+            print("[force-delta] focused scrape preferring WNBA Points for wide Δ ladders")
+        elif discover:
             print("[discover] focused board scrape (Hits/HRR/TB/Ks) + alt-line Δ harvest")
         standard, goblins, demons = scrape_board_pools(
-            args.cdp_url, light=use_light, focused=use_focused
+            args.cdp_url,
+            light=use_light,
+            focused=use_focused,
+            prefer_wnba=prefer_wnba,
         )
 
     step1_meta: dict[str, Any] = {}
@@ -1577,14 +1888,42 @@ def main() -> int:
             f"S={len(standard)}/{n_before[0]} G={len(goblins)}/{n_before[1]} "
             f"D={len(demons)}/{n_before[2]}"
         )
-        recipes = build_discovery_recipes_from_board(
-            standard=standard,
-            goblins=goblins,
-            demons=demons,
-            max_cases=int(args.max_cases),
-            exhaustive=True,
-        )
-        delta_tol = max(float(args.delta_tol), 0.75)
+        if force_deltas:
+            avail = [
+                float(c["line_distance"])
+                for c in goblins
+                if c.get("line_distance") is not None
+                and 0.25 <= float(c["line_distance"]) <= 6.5
+            ]
+            if avail:
+                recipes = build_force_delta_recipes(
+                    max_cases=int(args.max_cases),
+                    available_deltas=avail,
+                )
+                delta_tol = max(float(args.delta_tol), 0.75)
+            else:
+                print(
+                    "[force-delta] WARN: no mid-range Δ (0.5–6.5) cataloged — "
+                    "falling back to board-face discover recipes"
+                )
+                recipes = build_discovery_recipes_from_board(
+                    standard=standard,
+                    goblins=goblins,
+                    demons=demons,
+                    max_cases=int(args.max_cases),
+                    exhaustive=True,
+                )
+                delta_tol = max(float(args.delta_tol), 0.75)
+                force_deltas = False
+        else:
+            recipes = build_discovery_recipes_from_board(
+                standard=standard,
+                goblins=goblins,
+                demons=demons,
+                max_cases=int(args.max_cases),
+                exhaustive=True,
+            )
+            delta_tol = max(float(args.delta_tol), 0.75)
     else:
         delta_tol = float(args.delta_tol)
 
@@ -1596,6 +1935,7 @@ def main() -> int:
         date_str=date_str,
         max_cases=int(args.max_cases),
         delta_tol=delta_tol,
+        force_alt_cycle=force_deltas,
     )
     # Stamp actual matched Goblin distances onto discover recipes for ladder sync.
     if discover:
@@ -1630,7 +1970,7 @@ def main() -> int:
         write_back=False,
         date_override=date_str,
         strict_lines=True,
-        require_line=False,
+        require_line=bool(force_deltas),
         gentle=gentle,
     )
     captured = []

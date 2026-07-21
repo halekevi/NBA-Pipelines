@@ -56,6 +56,24 @@ _SIMPLE_PROPS = {
     "hits",
     "total bases",
     "pitcher strikeouts",
+    "hits+runs+rbis",
+    "hits-runs-rbis",
+    "hits runs rbis",
+    "earned runs allowed",
+    "hits allowed",
+    "walks allowed",
+    "pitching outs",
+}
+
+# Fantasy / abbreviated props often fail CDP tab switch + lookup during discover.
+_DISCOVER_BLOCKED_PROPS = {
+    "hitter fs",
+    "hitter fantasy score",
+    "pitcher fs",
+    "pitcher fantasy score",
+    "fantasy score",
+    "fantasy pts",
+    "fantasy points",
 }
 
 # S/G mixes to cover (n_standard, n_goblin). n_legs = sum, min 2.
@@ -241,6 +259,30 @@ def load_pools_from_step1_csv(
     return standard, goblins, demons, meta
 
 
+def _prop_key_aliases(prop: str) -> list[str]:
+    """Normalize common PP prop label variants for step1↔board matching."""
+    n = cpd._norm(prop)
+    aliases = [n]
+    # Hits+Runs+RBIs <-> Hits-Runs-RBIs <-> HRR
+    compact = (
+        n.replace("runs", "r")
+        .replace("rbis", "rbi")
+        .replace("plus", "")
+        .replace("-", "")
+        .replace("+", "")
+        .replace(" ", "")
+    )
+    if "hits" in n and ("rbi" in n or "runs" in n or "rbi" in compact):
+        aliases.extend(
+            [
+                cpd._norm("Hits+Runs+RBIs"),
+                cpd._norm("Hits-Runs-RBIs"),
+                cpd._norm("Hits Runs RBIs"),
+            ]
+        )
+    return list(dict.fromkeys(a for a in aliases if a))
+
+
 def enrich_pools_with_std_map(
     standard: list[dict],
     goblins: list[dict],
@@ -251,12 +293,19 @@ def enrich_pools_with_std_map(
     if not std_map:
         return standard, goblins, demons
 
+    def _lookup_std(player: str, prop: str) -> float | None:
+        pnorm = cpd._norm(player)
+        for prop_alias in _prop_key_aliases(prop):
+            hit = std_map.get((pnorm, prop_alias))
+            if hit is not None:
+                return float(hit)
+        return None
+
     def _enrich(cards: list[dict], *, role: str) -> list[dict]:
         out: list[dict] = []
         for c in cards:
             c2 = dict(c)
-            key = (cpd._norm(c2.get("player")), cpd._norm(c2.get("prop_type")))
-            std_line = std_map.get(key)
+            std_line = _lookup_std(str(c2.get("player") or ""), str(c2.get("prop_type") or ""))
             if std_line is None:
                 out.append(c2)
                 continue
@@ -340,7 +389,12 @@ def build_discovery_recipes_from_board(
 
     def _ok_card(c: dict) -> bool:
         player = str(c.get("player") or "")
-        return len(player) >= 2
+        if len(player) < 2:
+            return False
+        prop = str(c.get("prop_type") or "").strip().lower()
+        if prop in _DISCOVER_BLOCKED_PROPS:
+            return False
+        return True
 
     def _prop_pref(c: dict) -> tuple:
         prop = str(c.get("prop_type") or "").lower()
@@ -865,16 +919,19 @@ def scrape_board_pools(
     cdp_url: str,
     *,
     light: bool = False,
+    focused: bool = False,
 ) -> tuple[list[dict], list[dict], list[dict]]:
     """Open PP boards and return (standard, goblin, demon) card pools with distances.
 
     light=True: only Popular/Points once (no multi-filter expand) — gentler on DataDome.
+    focused=True: a few high-yield filters only (discover) — clickable faces + Goblin Δ harvest.
     """
     p, browser, context, page = cpd.connect_existing_browser(cdp_url)
     try:
         best_cards: list[dict] = []
         best_score = -1
-        for league_id, label in ((3, "WNBA"), (7, "NBA"), (2, "MLB")):
+        # MLB first: wider Goblin-Δ bins for rate-card discovery; then WNBA/NBA.
+        for league_id, label in ((2, "MLB"), (3, "WNBA"), (7, "NBA")):
             try:
                 url = f"https://app.prizepicks.com/board?league_id={league_id}"
                 print(f"[validate] navigate {label} -> {url}")
@@ -891,6 +948,8 @@ def scrape_board_pools(
                 try:
                     loc = frame.get_by_text("Points", exact=True).first
                     if loc.count() == 0:
+                        loc = frame.get_by_text("Hits", exact=True).first
+                    if loc.count() == 0:
                         loc = frame.get_by_text("Popular", exact=True).first
                     loc.click(force=True, timeout=2000)
                     frame.wait_for_timeout(1200)
@@ -899,6 +958,50 @@ def scrape_board_pools(
                 cpd._scroll_board_for_lazy_load(page)
                 cards = cpd.get_all_cards(frame)
                 print(f"[validate] {label} light-scrape cards={len(cards)}")
+            elif focused:
+                # Discover: stay on props that stay searchable (avoid Fantasy Score sprawl).
+                focus_filters = (
+                    [
+                        "Popular",
+                        "Hits",
+                        "Hits+Runs+RBIs",
+                        "Total Bases",
+                        "Pitcher Strikeouts",
+                    ]
+                    if label == "MLB"
+                    else ["Popular", "Points", "Assists", "Rebounds", "Pts+Reb+Ast"]
+                )
+                cards = []
+                seen: set[str] = set()
+                for filter_name in focus_filters:
+                    try:
+                        cpd.dismiss_modal(frame, page)
+                        loc = frame.get_by_text(filter_name, exact=True).first
+                        if loc.count() == 0:
+                            loc = frame.get_by_text(filter_name, exact=False).first
+                        loc.click(force=True, timeout=2000)
+                        frame.wait_for_timeout(1000)
+                        cpd._scroll_board_for_lazy_load(page)
+                        batch = cpd.get_all_cards(frame)
+                        added = 0
+                        for c in batch:
+                            key = (
+                                f"{cpd._norm(c.get('player'))}|"
+                                f"{cpd._norm(c.get('prop_type'))}|"
+                                f"{c.get('line')}|"
+                                f"{str(c.get('pick_type') or '').lower()}"
+                            )
+                            if key in seen:
+                                continue
+                            seen.add(key)
+                            c2 = dict(c)
+                            c2["source_filter"] = filter_name
+                            cards.append(c2)
+                            added += 1
+                        print(f"[validate] {label} focus {filter_name}: +{added} (pool={len(cards)})")
+                    except Exception as e:
+                        print(f"[validate] {label} focus {filter_name} skipped: {e}")
+                print(f"[validate] {label} focused-scrape cards={len(cards)}")
             else:
                 cards = cpd.expand_card_pool(frame, page)
             n_g = sum(1 for c in cards if str(c.get("pick_type") or "").lower() == "goblin")
@@ -917,8 +1020,11 @@ def scrape_board_pools(
                 best_cards = stamped
             if n_g >= 3 and n_s >= 2:
                 break
-            if light and best_cards:
-                break  # one league is enough when HTTP step1 already has the inventory
+            # Light mode: accept one league only when it actually has Goblins to click.
+            if light and best_cards and n_g >= 1:
+                break
+            if focused and best_cards and (n_g >= 2 or n_s >= 4):
+                break
 
         board_std = cpd._build_std_map_from_board_cards(best_cards)
         standard: list[dict] = []
@@ -945,19 +1051,21 @@ def scrape_board_pools(
                     continue
                 goblins.append(c2)
             else:
-                if line_val >= 1.0:
+                # MLB Hits standards are often 0.5; keep them so Goblin Δ can be computed.
+                if line_val >= 0.5:
                     standard.append(c2)
         goblins.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
         demons.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
 
-        # Harvest Goblin faces via alt-line swap when the board shows mostly Standard.
-        if len(goblins) < 6 and standard:
+        # Harvest Goblin faces via alt-line when we lack Goblins OR lack known Δ.
+        n_with_delta = sum(1 for c in goblins if c.get("line_distance") is not None)
+        if (len(goblins) < 6 or n_with_delta < 8) and standard:
             try:
                 frame = cpd.find_prizepicks_frame(page)
                 cpd.dismiss_modal(frame, page)
                 harvested = 0
-                for cand in standard[:18]:
-                    if harvested >= 12:
+                for cand in standard[:24]:
+                    if harvested >= 14:
                         break
                     if not cand.get("has_alt_lines"):
                         continue
@@ -1310,7 +1418,15 @@ def main() -> int:
     if skip_cdp_scrape:
         print("[validate] skipping CDP board expand (using step1 pools / light path)")
     else:
-        standard, goblins, demons = scrape_board_pools(args.cdp_url, light=gentle)
+        # Discover: focused filters (clickable) + alt-line Δ harvest. Gentle delays still
+        # apply during slip capture. Avoid full expand (Fantasy Score noise / stale faces).
+        use_focused = bool(discover)
+        use_light = bool(gentle) and not bool(discover)
+        if discover:
+            print("[discover] focused board scrape (Hits/HRR/TB/Ks) + alt-line Δ harvest")
+        standard, goblins, demons = scrape_board_pools(
+            args.cdp_url, light=use_light, focused=use_focused
+        )
 
     step1_meta: dict[str, Any] = {}
     step1_path = Path(str(args.step1_csv or "").strip()) if str(args.step1_csv or "").strip() else None
@@ -1337,16 +1453,30 @@ def main() -> int:
             sport = "NBA"
         s1, g1, d1, step1_meta = load_pools_from_step1_csv(step1_path, sport=sport)
         # Prefer step1 pools (accurate Δ); CDP scrape still used for clickability enrich.
-        std_map = {
-            (cpd._norm(c.get("player")), cpd._norm(c.get("prop_type"))): float(c.get("line") or 0)
-            for c in s1
-            if c.get("line") is not None
-        }
+        std_map: dict[tuple[str, str], float] = {}
+        for c in s1:
+            if c.get("line") is None:
+                continue
+            player_n = cpd._norm(c.get("player"))
+            for prop_alias in _prop_key_aliases(str(c.get("prop_type") or "")):
+                key = (player_n, prop_alias)
+                try:
+                    line_f = float(c.get("line") or 0)
+                except (TypeError, ValueError):
+                    continue
+                prev = std_map.get(key)
+                if prev is None or line_f > prev:
+                    std_map[key] = line_f
         for c in g1:
             if c.get("standard_line") is None:
                 continue
-            key = (cpd._norm(c.get("player")), cpd._norm(c.get("prop_type")))
-            std_map.setdefault(key, float(c["standard_line"]))
+            player_n = cpd._norm(c.get("player"))
+            try:
+                std_f = float(c["standard_line"])
+            except (TypeError, ValueError):
+                continue
+            for prop_alias in _prop_key_aliases(str(c.get("prop_type") or "")):
+                std_map.setdefault((player_n, prop_alias), std_f)
         if standard or goblins or demons:
             standard, goblins, demons = enrich_pools_with_std_map(standard, goblins, demons, std_map)
         g_with_delta = sum(1 for c in goblins if _card_distance(c) is not None)
@@ -1434,6 +1564,19 @@ def main() -> int:
         return 1
 
     if discover:
+        def _clickable(c: dict) -> bool:
+            prop = str(c.get("prop_type") or "").strip().lower()
+            return prop not in _DISCOVER_BLOCKED_PROPS and len(str(c.get("player") or "")) >= 2
+
+        n_before = (len(standard), len(goblins), len(demons))
+        standard = [c for c in standard if _clickable(c)]
+        goblins = [c for c in goblins if _clickable(c)]
+        demons = [c for c in demons if _clickable(c)]
+        print(
+            f"[discover] clickable pools (blocked fantasy/FS): "
+            f"S={len(standard)}/{n_before[0]} G={len(goblins)}/{n_before[1]} "
+            f"D={len(demons)}/{n_before[2]}"
+        )
         recipes = build_discovery_recipes_from_board(
             standard=standard,
             goblins=goblins,

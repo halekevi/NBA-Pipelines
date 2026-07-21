@@ -487,6 +487,18 @@ def prop_type_to_board_filter(prop: str) -> str:
         "pra": "Pts+Reb+Ast",
         "points+rebounds+assists": "Pts+Reb+Ast",
         "fantasyscore": "Fantasy Score",
+        "hitterfs": "Hitter Fantasy Score",
+        "hitterfantasyscore": "Hitter Fantasy Score",
+        "pitcherfs": "Pitcher Fantasy Score",
+        "pitcherfantasyscore": "Pitcher Fantasy Score",
+        "hits+runs+rbis": "Hits+Runs+RBIs",
+        "hits-runs-rbis": "Hits+Runs+RBIs",
+        "hitsrunsrbis": "Hits+Runs+RBIs",
+        "ks": "Pitcher Strikeouts",
+        "strikeouts": "Pitcher Strikeouts",
+        "pitcherstrikeouts": "Pitcher Strikeouts",
+        "tb": "Total Bases",
+        "totalbases": "Total Bases",
         "fgmade": "FG Made",
         "fgattempted": "FG Attempted",
         "freethrowsmade": "Free Throws Made",
@@ -1275,6 +1287,7 @@ def expand_card_pool(frame, page) -> list[dict]:
         "Pitcher Strikeouts",
         "Hitter Fantasy Score",
         "Hits-Runs-RBIs",
+        "Hits+Runs+RBIs",
         "Points",
         "Assists",
         "Rebounds",
@@ -2830,7 +2843,28 @@ def write_payout_patch_and_apply_to_tickets(
                     n_kept_live += 1
                     continue
 
-                # Uncaptured + no prior live: mix-grid average, else model estimate
+                # Uncaptured + no prior live: never invent mix/fallback when live required.
+                require_live = True
+                try:
+                    import combined_slate_tickets as _cst
+
+                    require_live = bool(_cst.require_live_payout_display())
+                except Exception:
+                    require_live = (
+                        str(__import__("os").environ.get("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1")
+                        .strip()
+                        .lower()
+                        not in ("0", "false", "no", "off")
+                    )
+                if require_live:
+                    pay["payout_source"] = "pending_live"
+                    pay.pop("display_min_x", None)
+                    t.pop("display_min_x", None)
+                    t["payout"] = pay
+                    n_fallback += 1  # counted as non-live pending
+                    continue
+
+                # Legacy path: mix-grid average, else model estimate
                 legs = t.get("legs") if isinstance(t.get("legs"), list) else []
                 n_legs = len(legs) or int(t.get("n_legs") or 0)
                 avg = mix_avg.get((int(n_legs), int(_goblin_n(legs))))
@@ -2880,7 +2914,7 @@ def write_payout_patch_and_apply_to_tickets(
         sync_tickets_json_mirrors(data, date_str=date_str, primary=tickets_path)
         print(
             f"[PAYOUT] write-back live_cdp={n_patched} kept_live={n_kept_live} "
-            f"fallback={n_fallback} in {tickets_path}"
+            f"non_live_or_pending={n_fallback} in {tickets_path}"
         )
 
     # Feed /payout Rate cards + ladder table with live Goblin composition floors.
@@ -3940,14 +3974,19 @@ def sync_captures_to_payout_ladder_live(
         if key not in rows_by_id:
             n_new += 1
         rows_by_id[key] = row
+    def _sort_key(r: dict) -> tuple:
+        gd = r.get("goblin_deltas")
+        if isinstance(gd, list):
+            gd_s = "+".join(str(x) for x in gd)
+        else:
+            gd_s = str(gd or "")
+        return (str(r.get("leg_composition") or ""), gd_s, str(r.get("ticket_id") or ""))
+
     out = {
         "schema_version": 1,
         "date": date_str,
         "generated_at": datetime.utcnow().isoformat() + "Z",
-        "rows": sorted(
-            rows_by_id.values(),
-            key=lambda r: (r.get("leg_composition") or "", r.get("goblin_deltas") or "", r.get("ticket_id") or ""),
-        ),
+        "rows": sorted(rows_by_id.values(), key=_sort_key),
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")

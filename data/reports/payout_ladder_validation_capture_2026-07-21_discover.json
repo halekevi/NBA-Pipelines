@@ -1,0 +1,2076 @@
+{
+  "date": "2026-07-21",
+  "generated_at": "2026-07-21T20:52:47.121958Z",
+  "cdp_url": "http://127.0.0.1:9222",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\payout_ladder_validation_tickets.json",
+  "tickets_fingerprint": "583e7f35a9ec368cfa66c9fc1ba5c6460994ba97c273ce59070f1a7a12b2a7f5",
+  "fingerprint_n_slips": 30,
+  "fingerprint_n_missing_live": 30,
+  "fields": [
+    "power_min_x",
+    "power_first_x",
+    "min_guarantee"
+  ],
+  "primary_field": "power_min_x",
+  "entry_amount": 1.0,
+  "only_missing_live": false,
+  "timed_out": false,
+  "max_runtime_sec": 0.0,
+  "slips": [
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|1",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 4.0
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|10",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Luisangel Acuña",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Drew Romo",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 7.75,
+      "power_first_x": 10.0,
+      "min_guarantee": 7.75
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|11",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Drew Romo",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.25,
+      "power_first_x": 10.0,
+      "min_guarantee": 6.25
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|12",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kyle Higashioka",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 12.5,
+      "power_first_x": 25.0,
+      "min_guarantee": 12.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|13",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Travis Bazzana",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.75,
+      "power_first_x": 10.0,
+      "min_guarantee": 4.75
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|14",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trea Turner",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Eliézer Alfonzo",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 7.75,
+      "power_first_x": 6.0,
+      "min_guarantee": 7.75
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|15",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trea Turner",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Eliézer Alfonzo",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 7.75,
+      "power_first_x": 6.0,
+      "min_guarantee": 7.75
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|16",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trea Turner",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.0,
+      "power_first_x": 6.0,
+      "min_guarantee": 6.0
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|17",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.5,
+      "power_first_x": 6.0,
+      "min_guarantee": 4.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|18",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.25,
+      "power_first_x": 10.0,
+      "min_guarantee": 6.25
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|19",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.5,
+      "power_first_x": 10.0,
+      "min_guarantee": 6.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|2",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Alex Call",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Eliézer Alfonzo",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Tsung-Che Cheng",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.0,
+      "power_first_x": 3.0,
+      "min_guarantee": 6.0
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|20",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.5,
+      "power_first_x": 10.0,
+      "min_guarantee": 6.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|21",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Travis Bazzana",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 9.5,
+      "power_first_x": 25.0,
+      "min_guarantee": 9.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|22",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Travis Bazzana",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.5,
+      "power_first_x": 6.0,
+      "min_guarantee": 4.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|23",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.3
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|24",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 1.8,
+      "power_first_x": 3.0,
+      "min_guarantee": 1.8
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|25",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.3
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|26",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.25,
+      "power_first_x": 3.0,
+      "min_guarantee": 3.25
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|27",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.5,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|28",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|29",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 4.5,
+      "power_first_x": 6.0,
+      "min_guarantee": 4.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|3",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Spencer Torkelson",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 3.5,
+      "power_first_x": 6.0,
+      "min_guarantee": 3.5
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|30",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Ryan Kreidler",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Austin Hedges",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trevor Larnach",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Trea Turner",
+          "prop_type": "TB",
+          "direction": "OVER",
+          "line": 1.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 6.0,
+      "power_first_x": 6.0,
+      "min_guarantee": 6.0
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|4",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "Alex Call",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Eliézer Alfonzo",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Tsung-Che Cheng",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sam Huff",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sung-Mun Song",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Francisco Alvarez",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_6_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|5",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Eliézer Alfonzo",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Tsung-Che Cheng",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sam Huff",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sung-Mun Song",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_2_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|6",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Tsung-Che Cheng",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sam Huff",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sung-Mun Song",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Francisco Alvarez",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_2_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|7",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Sam Huff",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Sung-Mun Song",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Francisco Alvarez",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|8",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Sung-Mun Song",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Francisco Alvarez",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Luisangel Acuña",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|discover|9",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "Jarren Duran",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Jim Jarvis",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Michael Busch",
+          "prop_type": "Hits+Runs+RBIs",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Goblin",
+          "sport": "MLB",
+          "standard_line": 1.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Francisco Alvarez",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        },
+        {
+          "player": "Luisangel Acuña",
+          "prop_type": "Hits",
+          "direction": "OVER",
+          "line": 0.5,
+          "pick_type": "Standard",
+          "sport": "MLB",
+          "standard_line": 0.5,
+          "line_distance": null,
+          "delta": null
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    }
+  ],
+  "summary": {
+    "n_total": 30,
+    "n_ok": 23,
+    "n_partial": 0,
+    "n_failed": 7,
+    "n_strong": 30,
+    "n_main": 0,
+    "n_skipped_live": 0,
+    "timed_out": false
+  }
+}

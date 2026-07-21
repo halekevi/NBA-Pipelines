@@ -13932,24 +13932,84 @@ CORE_BUILD_FIRST_DEFAULT: bool = os.getenv(
     "PROPORACLE_CORE_BUILD_FIRST", "1"
 ).strip().lower() not in ("0", "false", "no", "off")
 
+# Prop focus for CORE boards (Jul-20 win autopsy + existing MAIN/STRONG gates).
+# Norms use the same keying as _norm_main_prop_key.
+CORE_PROP_FOCUS_NORMS: dict[str, frozenset[str]] = {
+    # MLB Goblin OVER — pitcher only (Hits Allowed led wins; avoid hitter Hits/TB).
+    "MLB": frozenset(MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS),
+    # WNBA Goblin — assists / 3PT led wins; rebounds OK on Goblin (Std rebounds OVER banned).
+    "WNBA": frozenset(
+        {
+            "assists",
+            "3ptmade",
+            "threepointsmade",
+            "threepointersmade",
+            "rebounds",
+            "defensiverebounds",
+            "points",  # secondary; keep thin for Flex 3 fill
+        }
+    ),
+    # Tennis Goblin OVER game totals only (aces/DF banned on MAIN).
+    "TENNIS": frozenset(
+        {
+            "totalgameswon",
+            "totalgames",
+            "gameswon",
+            "gamesplayed",
+        }
+    ),
+    # Soccer Standard — UNDER-friendly; shots/SOT/goals (shots OVER hard-gated on Std).
+    "SOCCER": frozenset(
+        {
+            "shots",
+            "shotsontarget",
+            "goals",
+            "fouls",
+            "tackles",
+        }
+    ),
+    "SOC": frozenset(
+        {
+            "shots",
+            "shotsontarget",
+            "goals",
+            "fouls",
+            "tackles",
+        }
+    ),
+    "NHL": frozenset(
+        {
+            "shotsongoal",
+            "sog",
+            "saves",
+            "blockedshots",
+            "points",
+            "assists",
+        }
+    ),
+}
+
+# Preferred direction for CORE prop focus (empty = both / sport gate decides).
+CORE_PROP_FOCUS_DIRECTION: dict[str, str] = {
+    "MLB": "OVER",
+    "WNBA": "OVER",
+    "TENNIS": "OVER",
+    # Soccer: prefer UNDER; keep blank so soccer_allowed_leg can still pass HQ OVER.
+    "SOCCER": "",
+    "SOC": "",
+}
+
 
 def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.DataFrame:
-    """Narrow eligible rows to the sport's core recipe universe before structuring."""
+    """Narrow eligible rows to the sport's core recipe + prop-focus universe."""
     if pool_df is None or pool_df.empty:
         return pool_df
     out = pool_df.copy()
     sp = str(sport_label or "").strip().upper()
     if sp == "MLB":
-        # Pitcher Goblin OVER only — matches Jul-20 win cluster.
         if "pick_type" in out.columns:
             pt = out["pick_type"].astype(str).str.strip().str.lower()
             out = out[pt.eq("goblin")].copy()
-        if "direction" in out.columns:
-            d = out["direction"].astype(str).str.strip().str.upper()
-            out = out[d.eq("OVER")].copy()
-        if "prop_type" in out.columns and not out.empty:
-            prop_n = out["prop_type"].map(_norm_main_prop_key)
-            out = out[prop_n.isin(MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS)].copy()
     elif sp == "WNBA":
         if "pick_type" in out.columns:
             pt = out["pick_type"].astype(str).str.strip().str.lower()
@@ -13963,12 +14023,32 @@ def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.D
             if len(std) >= 2:
                 out = std
     elif sp == "TENNIS":
-        if "direction" in out.columns and "pick_type" in out.columns:
+        if "pick_type" in out.columns:
             pt = out["pick_type"].astype(str).str.strip().str.lower()
-            d = out["direction"].astype(str).str.strip().str.upper()
-            gob_over = out[pt.eq("goblin") & d.eq("OVER")].copy()
-            if len(gob_over) >= 2:
-                out = gob_over
+            gob = out[pt.eq("goblin")].copy()
+            if len(gob) >= 2:
+                out = gob
+
+    want_dir = str(CORE_PROP_FOCUS_DIRECTION.get(sp) or "").strip().upper()
+    if want_dir in ("OVER", "UNDER") and "direction" in out.columns and not out.empty:
+        d = out["direction"].astype(str).str.strip().str.upper()
+        narrowed = out[d.eq(want_dir)].copy()
+        if len(narrowed) >= 2:
+            out = narrowed
+
+    focus = CORE_PROP_FOCUS_NORMS.get(sp)
+    if focus and "prop_type" in out.columns and not out.empty:
+        prop_n = out["prop_type"].map(_norm_main_prop_key)
+        focused = out[prop_n.isin(focus)].copy()
+        # Keep focus when enough legs remain; otherwise fall back so CORE still builds.
+        min_keep = 3 if sp in ("WNBA", "MLB") else 2
+        if len(focused) >= min_keep:
+            out = focused
+        else:
+            print(
+                f"  [core] {sp}: prop focus kept {len(focused)}/{len(out)} "
+                f"(below {min_keep}) — using broader pool"
+            )
     return out.reset_index(drop=True)
 
 

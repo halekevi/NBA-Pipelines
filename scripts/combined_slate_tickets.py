@@ -8783,8 +8783,8 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            # STRONG builder slips bypass high-prob length mix rules.
-            if t.get("strong_builder"):
+            # STRONG / CORE builder slips bypass high-prob length mix rules.
+            if t.get("strong_builder") or t.get("core_build"):
                 kept.append(t)
                 continue
             legs = [leg for leg in (t.get("legs") or []) if isinstance(leg, dict)]
@@ -8881,7 +8881,7 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            if t.get("strong_builder"):
+            if t.get("strong_builder") or t.get("core_build"):
                 keep_tickets.append(t)
                 n_keep += 1
                 continue
@@ -8949,6 +8949,50 @@ def inject_strong_builder_tickets(full_payload: dict, main_payload: dict) -> dic
         )
     out["groups"] = strong_groups + groups
     out["strong_builder_count"] = len(strong_slips)
+    return out
+
+
+def _extract_core_build_groups(payload: Mapping[str, Any]) -> list[dict]:
+    """Pull CORE pipeline groups from the full Excel export payload (preserve recipe labels)."""
+    if not isinstance(payload, Mapping):
+        return []
+    out: list[dict] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        slips = [
+            t
+            for t in (g.get("tickets") or [])
+            if isinstance(t, dict) and t.get("core_build")
+        ]
+        if not slips:
+            continue
+        ng = dict(g)
+        ng["tickets"] = slips
+        ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(slips[0], ng))
+        ng["hot_legs"] = sum(int(t.get("hot_legs") or 0) for t in slips)
+        ng["cold_legs"] = sum(int(t.get("cold_legs") or 0) for t in slips)
+        out.append(ng)
+    return out
+
+
+def inject_core_build_tickets(full_payload: dict, main_payload: dict) -> dict:
+    """Prepend per-pipeline CORE recipe slips ahead of MAIN (after STRONG if already injected)."""
+    core_groups = _extract_core_build_groups(full_payload)
+    if not core_groups:
+        return main_payload
+    out = dict(main_payload)
+    groups = list(out.get("groups") or [])
+    # Keep STRONG groups first if present; insert CORE immediately after them.
+    strong_idx = 0
+    for i, g in enumerate(groups):
+        gn = str((g or {}).get("group_name") or "").upper()
+        if "STRONG" in gn:
+            strong_idx = i + 1
+            continue
+        break
+    out["groups"] = groups[:strong_idx] + core_groups + groups[strong_idx:]
+    out["core_build_count"] = sum(len(g.get("tickets") or []) for g in core_groups)
     return out
 
 
@@ -9280,6 +9324,9 @@ def ticket_groups_to_payload(
                 "has_data_warning": False,
                 "strong_builder": bool(t.get("strong_builder")),
                 "strong_builder_pick": t.get("strong_builder_pick"),
+                "core_build": bool(t.get("core_build")),
+                "core_recipe": t.get("core_recipe"),
+                "core_label": t.get("core_label"),
                 "pool_policy": t.get("pool_policy"),
                 "probability_ladder": bool(t.get("probability_ladder")),
                 "high_probability_parlay": bool(t.get("high_probability_parlay")),
@@ -13848,6 +13895,145 @@ _STRUCTURE_SPECS: dict[str, dict[str, object]] = {
     "goblin3": {"n_legs": 3, "pool": "goblin", "flow": "power"},
 }
 
+# Focused "core first" recipes per sport pipeline (Jul-20 win autopsy):
+# MLB Goblin pitcher OVER 2–3L Power; WNBA Flex 3 (not Power 2); Tennis Goblin;
+# Soccer Standard (UNDER-biased via soccer_allowed_leg).
+CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
+    "MLB": [
+        {"structure": "power", "label": "Core Power 2", "variants": 3},
+        {"structure": "goblin3", "label": "Core Power 3", "variants": 3},
+    ],
+    "WNBA": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 3},
+    ],
+    "TENNIS": [
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+        {"structure": "goblin3", "label": "Core Power 3", "variants": 2},
+    ],
+    "SOCCER": [
+        {"structure": "standard", "label": "Core Standard 2", "variants": 2},
+        {"structure": "power_std3", "label": "Core Standard 3", "variants": 2},
+    ],
+    "NHL": [
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+    ],
+    "NBA": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+    ],
+    "NFL": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+    ],
+}
+
+CORE_BUILD_FIRST_DEFAULT: bool = os.getenv(
+    "PROPORACLE_CORE_BUILD_FIRST", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+
+
+def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.DataFrame:
+    """Narrow eligible rows to the sport's core recipe universe before structuring."""
+    if pool_df is None or pool_df.empty:
+        return pool_df
+    out = pool_df.copy()
+    sp = str(sport_label or "").strip().upper()
+    if sp == "MLB":
+        # Pitcher Goblin OVER only — matches Jul-20 win cluster.
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            out = out[pt.eq("goblin")].copy()
+        if "direction" in out.columns:
+            d = out["direction"].astype(str).str.strip().str.upper()
+            out = out[d.eq("OVER")].copy()
+        if "prop_type" in out.columns and not out.empty:
+            prop_n = out["prop_type"].map(_norm_main_prop_key)
+            out = out[prop_n.isin(MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS)].copy()
+    elif sp == "WNBA":
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            gob = out[pt.eq("goblin")].copy()
+            if len(gob) >= 3:
+                out = gob
+    elif sp in ("SOCCER", "SOC"):
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            std = out[pt.eq("standard")].copy()
+            if len(std) >= 2:
+                out = std
+    elif sp == "TENNIS":
+        if "direction" in out.columns and "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            d = out["direction"].astype(str).str.strip().str.upper()
+            gob_over = out[pt.eq("goblin") & d.eq("OVER")].copy()
+            if len(gob_over) >= 2:
+                out = gob_over
+    return out.reset_index(drop=True)
+
+
+def build_core_pipeline_ticket_groups(
+    sport_pool_map: list[tuple[str, pd.DataFrame | None]],
+    *,
+    counters: dict | None = None,
+    max_ticket_legs: int = 6,
+    ticket_sort_mode: str = "rank",
+    ticket_gen_starts: int = 10,
+    prioritize_ticket_hit: bool = False,
+) -> list[tuple[str, list[dict], None]]:
+    """
+    Emit one focused core board per in-season sport pipeline before spray variants.
+    Returns (group_name, tickets, None) tuples ready for Excel/web assembly.
+    """
+    groups: list[tuple[str, list[dict], None]] = []
+    for sport_label, sdf in sport_pool_map:
+        if sdf is None or len(sdf) == 0:
+            continue
+        sp = str(sport_label or "").strip().upper()
+        recipes = CORE_PIPELINE_RECIPES.get(sp)
+        if not recipes:
+            continue
+        core_pool = _prepare_core_pipeline_pool(sp, sdf)
+        if core_pool is None or core_pool.empty:
+            print(f"  [core] {sp}: empty after core pool filter — skip")
+            continue
+        for recipe in recipes:
+            structure = str(recipe.get("structure") or "").strip()
+            label = str(recipe.get("label") or structure).strip()
+            variants = max(1, min(6, int(recipe.get("variants") or 1)))
+            spec = _STRUCTURE_SPECS.get(structure) or {}
+            nlegs = int(spec.get("n_legs") or 0)
+            if nlegs and nlegs > int(max_ticket_legs):
+                continue
+            tickets = build_structure_ticket_variants(
+                core_pool,
+                sp,
+                structure,
+                counters=counters,
+                relaxed=False,
+                prioritize_ticket_hit=prioritize_ticket_hit,
+                ticket_sort_mode=ticket_sort_mode,
+                ticket_gen_starts=ticket_gen_starts,
+                max_variants=variants,
+            )
+            if not tickets:
+                print(f"  [core] {sp} {label}: no ticket built")
+                continue
+            for i, t in enumerate(tickets, start=1):
+                t["core_build"] = True
+                t["core_recipe"] = f"{sp}:{structure}"
+                t["core_label"] = label
+                display = f"{sp} {label} #{i}"
+                groups.append((display, [t], None))
+                print(
+                    f"  [core] {display}: "
+                    f"{t.get('ticket_type')} {int(t.get('n_legs') or nlegs)}L "
+                    f"pwr={float(t.get('power_payout') or 0):.2f}x "
+                    f"flex={float(t.get('flex_payout') or 0):.2f}x "
+                    f"p_win={float(t.get('est_win_prob') or 0):.1%}"
+                )
+    return groups
+
 
 def build_single_structure_ticket(
     pool_df: pd.DataFrame,
@@ -17753,6 +17939,21 @@ def main():
             "(one leg per sport; combinatorial top-N per sport)."
         ),
     )
+    ap.add_argument(
+        "--core-build-first",
+        action=argparse.BooleanOptionalAction,
+        default=CORE_BUILD_FIRST_DEFAULT,
+        help=(
+            "Emit focused CORE recipes per sport pipeline before spray variants "
+            "(MLB Goblin pitcher Power 2–3, WNBA Flex 3, Tennis Goblin, Soccer Standard)."
+        ),
+    )
+    ap.add_argument(
+        "--core-only",
+        action="store_true",
+        default=False,
+        help="Build CORE pipeline recipes only (skip Standard/Goblin/Mixed spray + X-Sport).",
+    )
     ap.add_argument("--min-hit-rate", type=float, default=0.65, dest="min_hit_rate")
     ap.add_argument("--min-edge", type=float, default=0.0, dest="min_edge")
     ap.add_argument(
@@ -19750,6 +19951,28 @@ def main():
     print(f"  [handoff] sports in eligible pool: {eligible_sports}")
     print(f"  [handoff] sports in assembly loop: {sports_to_build}")
 
+    # Core build first: one focused recipe board per sport pipeline before STRONG/spray.
+    if bool(getattr(args, "core_build_first", CORE_BUILD_FIRST_DEFAULT)):
+        core_groups = build_core_pipeline_ticket_groups(
+            sport_pool_map,
+            counters=counters,
+            max_ticket_legs=int(args.max_ticket_legs),
+            ticket_sort_mode=str(args.ticket_candidate_sort),
+            ticket_gen_starts=int(getattr(args, "ticket_gen_starts", 10) or 10),
+            prioritize_ticket_hit=bool(getattr(args, "prioritize_ticket_hit", False)),
+        )
+        if core_groups:
+            print(f"  [core] emitted {len(core_groups)} core group(s) across pipelines")
+            for gname, tickets, _ in core_groups:
+                if not tickets:
+                    continue
+                sname = _excel_ticket_sheet_title_unique(gname[:31], wb.sheetnames)
+                write_ticket_sheet(wb, tickets, sname, _header_for_sport(str(tickets[0].get("sport") or "")), label=gname)
+                nl = int(tickets[0].get("n_legs") or len(tickets[0].get("rows") or []))
+                _group_counts_by_size[gname][nl] += len(tickets)
+            for g in reversed(core_groups):
+                all_ticket_groups.insert(0, g)
+
     strong_pool_frames = [df for _, df in sport_pool_map if df is not None and len(df) > 0]
     if strong_pool_frames:
         strong_df = pd.concat(strong_pool_frames, ignore_index=True)
@@ -19881,6 +20104,9 @@ def main():
         if sdf is None or len(sdf) == 0:
             _zero_ticket_reasons[sport_label] = "empty eligible pool"
             continue
+        if bool(getattr(args, "core_only", False)):
+            print(f"  [core-only] skip spray for {sport_label}")
+            continue
         s_pool = sdf.copy()
         if "pick_type" in s_pool.columns:
             pt = s_pool["pick_type"].astype(str).str.upper().str.strip()
@@ -19905,7 +20131,11 @@ def main():
             _zero_ticket_reasons[sport_label] = "no 2-6 leg ticket passed uniqueness/payout constraints"
 
     x_frames = [df for _, df in sport_pool_map if df is not None and len(df) > 0]
-    if x_frames:
+    if not x_frames:
+        _zero_ticket_reasons["X-SPORT"] = "no eligible rows for cross-sport pool"
+    elif bool(getattr(args, "core_only", False)):
+        print("  [core-only] skip X-Sport spray")
+    else:
         x_all = pd.concat(x_frames, ignore_index=True)
         x_pt = x_all["pick_type"].astype(str).str.upper().str.strip() if "pick_type" in x_all.columns else pd.Series([""] * len(x_all))
         x_std = x_all[x_pt.eq("STANDARD")].copy()
@@ -19917,8 +20147,6 @@ def main():
         _emit_groups_for_pool("X-Sport Standard", "MIX", x_std, C["hdr_mix"], require_multi_sport=True)
         _emit_groups_for_pool("X-Sport Goblin", "MIX", x_gob, C["hdr_mix"], require_multi_sport=True)
         _emit_groups_for_pool("X-Sport Mixed", "MIX", x_mix, C["hdr_mix"], require_multi_sport=True, require_picktype_mix=True)
-    else:
-        _zero_ticket_reasons["X-SPORT"] = "no eligible rows for cross-sport pool"
 
     print("\n[Ticket Group Counts]")
     if _group_counts_by_size:
@@ -20223,6 +20451,7 @@ def main():
                 graded_analysis=_load_graded_analysis(),
             )
             payload = inject_strong_builder_tickets(full_payload, payload)
+            payload = inject_core_build_tickets(full_payload, payload)
             if payload.get("pool_mode") != MAIN_POOL_MODE:
                 payload = inject_probability_ladder_groups(
                     full_payload,
@@ -20387,6 +20616,7 @@ def main():
                 graded_analysis=_load_graded_analysis(),
             )
             payload = inject_strong_builder_tickets(full_payload, payload)
+            payload = inject_core_build_tickets(full_payload, payload)
             if payload.get("pool_mode") != MAIN_POOL_MODE:
                 payload = inject_probability_ladder_groups(
                     full_payload,
@@ -20972,6 +21202,8 @@ _TICKET_GROUP_SPORT_SORT_ORDER: dict[str, int] = {
 
 def _ticket_group_sort_rank(group_name: str) -> int:
     name = (group_name or "").upper()
+    if " CORE " in f" {name} " or name.startswith("CORE ") or " CORE" in name:
+        return -200
     if "PROBABILITY LADDER" in name:
         return -100
     sk = _group_sport(group_name)
@@ -20979,8 +21211,10 @@ def _ticket_group_sort_rank(group_name: str) -> int:
 
 
 def _ticket_group_picktype_rank(group_name: str) -> int:
-    """Order within a sport: Standard, Goblin, Mixed, then everything else."""
+    """Order within a sport: Core, Standard, Goblin, Mixed, then everything else."""
     name = (group_name or "").upper().replace("\u00a0", " ")
+    if " CORE " in f" {name} " or "CORE POWER" in name or "CORE FLEX" in name or "CORE STANDARD" in name:
+        return -1
     if " STANDARD" in name:
         return 0
     if " GOBLIN" in name:

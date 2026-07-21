@@ -129,3 +129,148 @@ nav.snav .live-pill,
           font-size: 13px !important;
     }
 }
+
+/* ── Half-screen / split-view desktop (v20260720halfnav2)
+   CSS grid: brand | scrollable tabs | meta — cannot wrap into stacked rows. ── */
+@media (min-width: 769px) and (max-width: 1600px) {
+  nav.snav,
+  nav.snav.glass-card,
+  .snav {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    grid-template-rows: 56px !important;
+    align-items: center !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
+    padding: 0 12px !important;
+    margin: 0.5rem auto 0.35rem !important;
+    gap: 0 8px !important;
+    overflow: hidden !important;
+    flex-wrap: unset !important;
+  }
+  nav.snav > .nav-accent,
+  .snav > .nav-accent {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    height: 2px !important;
+  }
+  nav.snav .snav-brand,
+  .snav-brand {
+    margin-right: 0 !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+  nav.snav ul.snav-links,
+  nav.snav ul#nav-links,
+  .snav-links {
+    display: flex !important;
+    flex: unset !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: 56px !important;
+    gap: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: static !important;
+  }
+  nav.snav ul.snav-links::-webkit-scrollbar,
+  .snav-links::-webkit-scrollbar {
+    display: none !important;
+  }
+  nav.snav .snav-links li a,
+  .snav-links li a {
+    height: 56px !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+    font-size: 10px !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+  nav.snav .snav-right,
+  .snav-right {
+    flex-shrink: 1 !important;
+    gap: 8px !important;
+    margin-left: 0 !important;
+    max-width: min(42vw, 420px) !important;
+    min-width: 0 !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+  .nav-live-cluster {
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  nav.snav .live-pill,
+  .snav .live-pill {
+    padding: 4px 10px !important;
+    font-size: 9px !important;
+    letter-spacing: 0.06em !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+  .nav-datetime-block {
+    padding: 0 0 0 8px !important;
+    gap: 1px !important;
+    max-width: 11rem !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .nav-slate-date,
+  .nav-sync-line,
+  .nav-local-datetime {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}
+
+/* Narrower half: LIVE label only + tighter brand */
+@media (min-width: 769px) and (max-width: 1200px) {
+  nav.snav .live-pill .live-pill-brand,
+  .snav .live-pill .live-pill-brand,
+  nav.snav .live-pill .live-pill-sep,
+  .snav .live-pill .live-pill-sep {
+    display: none !important;
+  }
+  .snav .hybrid-logo .logo-icon,
+  .snav-brand .logo-icon {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .snav-brand .brand-wordmark {
+    font-size: 14px !important;
+  }
+  nav.snav .snav-links li a,
+  .snav-links li a {
+    padding: 0 8px !important;
+  }
+  .nav-datetime-block {
+    max-width: 8.5rem !important;
+  }
+}
+
+/* Very narrow half: logo-only brand, slate date only */
+@media (min-width: 769px) and (max-width: 980px) {
+  .snav-brand .brand-wordmark {
+    display: none !important;
+  }
+  .nav-datetime-block {
+    max-width: 7rem !important;
+  }
+  .nav-sync-line {
+    display: none !important;
+  }
+}

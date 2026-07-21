@@ -1,0 +1,25 @@
+{
+  "sport": "soccer",
+  "display_name": "Soccer",
+  "error": "Defense file missing: H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Soccer\\cache\\soccer_defense_summary.csv",
+  "teams": [],
+  "categories": [
+    {
+      "id": "goals",
+      "label": "Goals",
+      "threshold": 0.4
+    },
+    {
+      "id": "assists",
+      "label": "Assists",
+      "threshold": 0.3
+    },
+    {
+      "id": "shots",
+      "label": "Shots",
+      "threshold": 2.0
+    }
+  ],
+  "matchups": {},
+  "players_by_team_cat": {}
+}

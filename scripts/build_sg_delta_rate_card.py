@@ -73,12 +73,28 @@ def _norm_sig(parts: list[float]) -> str:
 
 
 def _parse_sig(raw: object) -> list[float]:
+    """Parse goblin_deltas from list, JSON list-string, or '1+1.5' / '1,1.5'."""
+    out: list[float] = []
+    if isinstance(raw, (list, tuple)):
+        for part in raw:
+            try:
+                out.append(float(part))
+            except (TypeError, ValueError):
+                continue
+        return sorted(out)
     text = str(raw or "").strip()
     if not text:
         return []
-    out: list[float] = []
+    # JSON / Python list repr: "['1', '1.5']" or '["1","1.5"]'
+    if text.startswith("["):
+        try:
+            parsed = json.loads(text.replace("'", '"'))
+            if isinstance(parsed, list):
+                return _parse_sig(parsed)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
     for part in text.replace("|", ",").replace("+", ",").split(","):
-        part = part.strip()
+        part = part.strip().strip("[]'\"")
         if not part:
             continue
         try:

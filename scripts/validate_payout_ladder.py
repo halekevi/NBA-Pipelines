@@ -1401,7 +1401,22 @@ def scrape_board_pools(
                 frame = cpd.find_prizepicks_frame(page)
                 cpd.dismiss_modal(frame, page)
                 cataloged = 0
-                for cand in probe_pool[:5]:
+
+                def _switch_prop_tab(tab_name: str) -> None:
+                    try:
+                        cpd.dismiss_modal(frame, page)
+                        loc = frame.get_by_text(tab_name, exact=True).first
+                        if loc.count() == 0:
+                            loc = frame.get_by_text(tab_name, exact=False).first
+                        loc.click(force=True, timeout=4000)
+                        frame.wait_for_timeout(900)
+                    except Exception as e:
+                        print(f"[validate] catalog tab '{tab_name}' skip: {e}")
+
+                # Board is often left on 3PTM/Assists after focused scrape — switch to Points
+                # (or the probe prop tab) so More rebind does not latch onto the wrong face.
+                _switch_prop_tab("Points")
+                for cand in probe_pool[:8]:
                     player = str(cand.get("player") or "")
                     prop = str(cand.get("prop_type") or "")
                     if not _usable_board_player(player):
@@ -1412,10 +1427,32 @@ def scrape_board_pools(
                         continue
                     if std_line < 1.5 or not player or not prop:
                         continue
-                    print(f"[validate] catalog probe: {player} {prop} std={std_line:g}")
-                    btn, _card = cpd._rebind_more_btn(frame, player, prop)
+                    prop_l = prop.lower().strip()
+                    tab = (
+                        "Points"
+                        if prop_l == "points"
+                        else (
+                            "Assists"
+                            if prop_l == "assists"
+                            else (
+                                "Rebounds"
+                                if prop_l == "rebounds"
+                                else str(cand.get("source_filter") or "Points")
+                            )
+                        )
+                    )
+                    _switch_prop_tab(tab)
+                    print(f"[validate] catalog probe: {player} {prop} std={std_line:g} tab={tab}")
+                    btn, bound = cpd._rebind_more_btn(frame, player, prop)
                     if btn is None:
-                        print(f"[validate] catalog miss (no More): {player}")
+                        print(f"[validate] catalog miss (no More): {player} {prop}")
+                        continue
+                    bound_prop = str((bound or {}).get("prop_type") or "").lower()
+                    if bound_prop and prop_l not in bound_prop and bound_prop not in prop_l:
+                        print(
+                            f"[validate] catalog miss (wrong prop bind): "
+                            f"want={prop} got={bound.get('prop_type')}"
+                        )
                         continue
                     cycled = cpd.cycle_card_to_pick_type(
                         frame,
@@ -1425,7 +1462,7 @@ def scrape_board_pools(
                         want_pick="goblin",
                         want_line=None,
                         require_line=False,
-                        max_clicks=4,
+                        max_clicks=8,
                     )
                     if not cycled:
                         continue
@@ -1445,12 +1482,19 @@ def scrape_board_pools(
                                     want_pick="standard",
                                     want_line=std_line,
                                     require_line=False,
-                                    max_clicks=3,
+                                    max_clicks=4,
                                 )
                         except Exception:
                             pass
                         continue
                     delta = round(abs(std_line - g_line) * 2) / 2.0
+                    # Reject impossible deltas from wrong-face binds (e.g. Points 24 → 0.5).
+                    if delta > 6.5 or g_line < max(0.5, std_line - 6.5):
+                        print(
+                            f"[validate] catalog reject implausible Δ={delta:g} "
+                            f"({std_line:g}->{g_line:g}) for {player} {prop}"
+                        )
+                        continue
                     if 0.25 <= delta <= 6.5:
                         goblins.append(
                             {
@@ -1987,8 +2031,15 @@ def main() -> int:
                     if c.get("line_distance") is not None
                     and 0.25 <= float(c["line_distance"]) <= 6.5
                 ]
-            # Do NOT blend step1-only Δ bins here: those invent lines that are not
-            # clickable on tonight's board (require_line=on → mass SKIP).
+            # If More-catalog failed, still plan mid-range Δ recipes and synthesize
+            # Goblin legs from high Standard faces (force_alt_cycle). Prefer this over
+            # mix-only discover which produces GΔ=— and does not close the rate grid.
+            if not avail:
+                avail = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+                print(
+                    "[force-delta] WARN: no board Δ catalog — "
+                    f"using default mid-range bins={avail} with alt-line synthesize"
+                )
             if avail:
                 recipes = build_force_delta_recipes(
                     max_cases=int(args.max_cases),
@@ -2064,7 +2115,9 @@ def main() -> int:
         write_back=False,
         date_override=date_str,
         strict_lines=True,
-        require_line=bool(force_deltas),
+        # Force-delta synthesizes Goblin @ std−Δ; exact lines are often nearest-carousel
+        # steps, so keep require_line off and stamp matched Δ after capture.
+        require_line=False if (discover and force_deltas) else bool(force_deltas),
         gentle=gentle,
     )
     captured = []

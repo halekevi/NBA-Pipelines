@@ -909,10 +909,12 @@ def _rebind_more_btn(frame, player: str, prop: str):
             if not (np == cp or np in cp or cp in np):
                 continue
         return c.get("more_btn"), c
-    # name-only fallback
-    for c in cards:
-        if nt in _norm(c.get("player")) or _norm(c.get("player")) in nt:
-            return c.get("more_btn"), c
+    # Name-only fallback is unsafe when a prop was requested: it binds the wrong
+    # face (e.g. 3PTM 0.5 Goblin while probing Points) and poisons Δ catalog.
+    if not np:
+        for c in cards:
+            if nt in _norm(c.get("player")) or _norm(c.get("player")) in nt:
+                return c.get("more_btn"), c
     return None, None
 
 

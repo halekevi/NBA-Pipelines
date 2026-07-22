@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "date": "2026-07-22",
-  "generated_at": "2026-07-22T18:41:41.522186Z",
+  "generated_at": "2026-07-22T20:37:14.027098Z",
   "rows": [
     {
       "date": "2026-07-12",
@@ -425,6 +425,22 @@
       "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|4; sports=WNBA; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-22|LADDER_VAL|force_delta|4",
       "_dedupe_key": "2026-07-22|breanna stewart|points|over|20.500||kayla mcbride|points|over|15.500|2.0"
+    },
+    {
+      "date": "2026-07-22",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1.5",
+        "2.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|6; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|6",
+      "_dedupe_key": "2026-07-22|breanna stewart|points|over|19.500||sabrina ionescu|points|over|15.500|2.3"
     },
     {
       "date": "2026-07-22",

@@ -254,6 +254,9 @@ def load_pools_from_step1_csv(
             ),
             "source_filter": prop,
         }
+        st_raw = str(r.get("start_time") or r.get("game_time") or "").strip()
+        if st_raw:
+            card["start_time"] = st_raw
         if "demon" in pt:
             if std_line is not None and line <= float(std_line):
                 continue
@@ -360,6 +363,75 @@ def enrich_pools_with_std_map(
         _enrich(goblins, role="goblin"),
         _enrich(demons, role="demon"),
     )
+
+
+def load_player_start_times_from_step1(path: Path) -> dict[str, str]:
+    """Map normalized player -> ISO start_time from a dated step1 CSV."""
+    import csv as _csv
+
+    out: dict[str, str] = {}
+    path = Path(path)
+    if not path.is_file():
+        return out
+    with path.open("r", newline="", encoding="utf-8") as f:
+        for row in _csv.DictReader(f):
+            if not isinstance(row, dict):
+                continue
+            player = cpd._norm(row.get("player") or row.get("player_name"))
+            raw = str(row.get("start_time") or row.get("game_time") or "").strip()
+            if not player or not raw:
+                continue
+            # Prefer the earliest start for a player if duplicates disagree.
+            prev = out.get(player)
+            if prev is None or raw < prev:
+                out[player] = raw
+    return out
+
+
+def filter_pools_to_pre_tip(
+    standard: list[dict],
+    goblins: list[dict],
+    demons: list[dict],
+    start_by_player: dict[str, str],
+    *,
+    now: datetime | None = None,
+    drop_unknown: bool = True,
+) -> tuple[list[dict], list[dict], list[dict], dict[str, int]]:
+    """Keep only cards whose game has not tipped; stamp start_time onto keepers.
+
+    Goblin floors change after tip. When drop_unknown=True, cards without a
+    parseable start_time are removed (ambiguous tip status is not rate-card safe).
+    """
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+
+    stats = {"kept": 0, "tipped": 0, "unknown": 0}
+
+    def _keep(cards: list[dict]) -> list[dict]:
+        out: list[dict] = []
+        for c in cards:
+            c2 = dict(c)
+            pk = cpd._norm(c2.get("player"))
+            raw = str(c2.get("start_time") or start_by_player.get(pk) or "").strip()
+            if raw:
+                c2["start_time"] = raw
+            st = cpd._parse_leg_start_dt({"start_time": raw}) if raw else None
+            if st is None:
+                stats["unknown"] += 1
+                if drop_unknown:
+                    continue
+                out.append(c2)
+                stats["kept"] += 1
+                continue
+            if st <= now.astimezone(st.tzinfo):
+                stats["tipped"] += 1
+                continue
+            out.append(c2)
+            stats["kept"] += 1
+        return out
+
+    return _keep(standard), _keep(goblins), _keep(demons), stats
 
 
 def _live_covered_recipe_keys() -> set[str]:
@@ -745,7 +817,7 @@ def _synthesize_goblin_leg(
         if want_line < 0.5 or want_line >= std:
             return None
         want = round(std - want_line, 2)
-    return {
+    leg = {
         "player": std_card.get("player"),
         "prop_type": std_card.get("prop_type"),
         "direction": "OVER",
@@ -759,6 +831,9 @@ def _synthesize_goblin_leg(
         "force_alt_cycle": True,
         "source_filter": std_card.get("source_filter") or std_card.get("prop_type"),
     }
+    if std_card.get("start_time"):
+        leg["start_time"] = std_card.get("start_time")
+    return leg
 
 
 def _pick_cards_for_recipe(
@@ -789,17 +864,31 @@ def _pick_cards_for_recipe(
     picked: list[dict] = []
     matched_deltas: list[float] = []
     proxy = False
-    sport_hint = "MLB"
+    sport_hint = "WNBA"
     # Ticket-priority gaps need exact Δ stamps (2+5 / 1+2+4). Loose discover tol
     # (often ≥0.75) otherwise accepts nearby board faces (1.5≈2) and never synthesizes.
     match_tol = float(tol)
     if force_alt_cycle and bool(recipe.get("ticket_priority")):
         match_tol = min(match_tol, 0.26)
+        # Prefer simple board tabs for reliable More cycling.
+        sport_hint = str(
+            next(
+                (
+                    str(c.get("league") or c.get("sport") or "")
+                    for c in (standard or goblins or [])
+                    if str(c.get("league") or c.get("sport") or "").strip()
+                ),
+                "WNBA",
+            )
+        ).upper() or "WNBA"
 
     def _prop_rank(c: dict) -> float:
         prop = str(c.get("prop_type") or "").lower()
         if prop in ("points", "assists", "rebounds", "hits+runs+rbis", "total bases", "tb", "pitcher strikeouts", "ks"):
             return 0.0
+        # PRA / combo props often fail CDP tab bind during force-alt clicks.
+        if prop in ("pra", "pts+rebs+asts", "pts+reb+ast", "pts+rebs", "rebs+asts"):
+            return 4.0
         if "+" in prop or "pts" in prop:
             return 2.0
         return 1.0
@@ -821,6 +910,22 @@ def _pick_cards_for_recipe(
         for c in standard:
             if not _usable_board_player(c.get("player")):
                 continue
+            prop_l = str(c.get("prop_type") or "").lower().strip()
+            if force_alt_cycle and bool(recipe.get("ticket_priority")):
+                if prop_l not in (
+                    "points",
+                    "assists",
+                    "rebounds",
+                    "hits",
+                    "hits+runs+rbis",
+                    "total bases",
+                    "tb",
+                    "pitcher strikeouts",
+                    "ks",
+                    "3-pt made",
+                    "3ptm",
+                ):
+                    continue
             try:
                 line = float(c.get("line") or 0)
             except (TypeError, ValueError):
@@ -943,6 +1048,8 @@ def _pick_cards_for_recipe(
                 "role": role,
                 "force_alt_cycle": bool(best.get("cataloged_alt") and role == "goblin"),
             }
+            if best.get("start_time"):
+                leg["start_time"] = best.get("start_time")
             picked.append(leg)
             if role == "goblin" and dist is not None:
                 matched_deltas.append(float(dist))
@@ -2011,9 +2118,11 @@ def main() -> int:
     if step1_path is None or not step1_path.is_file():
         # Auto-detect tomorrow/slate step1 CSVs.
         candidates = [
+            ROOT / "Sports" / "WNBA" / "outputs" / "step1_snapshots" / f"step1_wnba_props_{date_str}.csv",
             ROOT / "Sports" / "WNBA" / "data" / "outputs" / f"step1_wnba_props_{date_str}.csv",
             ROOT / "Sports" / "MLB" / "data" / "outputs" / f"step1_mlb_props_{date_str}.csv",
             ROOT / "Sports" / "NBA" / "data" / "outputs" / f"step1_pp_props_{date_str}.csv",
+            ROOT / "Sports" / "WNBA" / "outputs" / "step1_snapshots" / "step1_wnba_props_latest.csv",
         ]
         for cand in candidates:
             if cand.is_file():
@@ -2097,6 +2206,39 @@ def main() -> int:
                     "[discover] WARN: few Goblin-Δ faces on board — "
                     "coverage limited until alt-line cycle expands Goblins"
                 )
+
+        # Tip safety: only keep unstarted games (Goblin floors shift post-tip).
+        start_by_player = load_player_start_times_from_step1(step1_path)
+        if start_by_player:
+            before = (len(standard), len(goblins), len(demons))
+            standard, goblins, demons, tip_stats = filter_pools_to_pre_tip(
+                standard,
+                goblins,
+                demons,
+                start_by_player,
+                drop_unknown=True,
+            )
+            print(
+                f"[tip-safety] pre-tip filter from {step1_path.name}: "
+                f"S={len(standard)}/{before[0]} G={len(goblins)}/{before[1]} "
+                f"D={len(demons)}/{before[2]} "
+                f"(kept={tip_stats['kept']} tipped={tip_stats['tipped']} "
+                f"unknown_dropped={tip_stats['unknown']}; "
+                f"player_starts={len(start_by_player)})"
+            )
+            if len(standard) < 4:
+                print(
+                    "[tip-safety] FATAL: not enough pre-tip Standard cards — "
+                    "stop CDP (do not write suspect post-tip floors)"
+                )
+                return 2
+        else:
+            print(
+                "[tip-safety] WARN: no start_time map from step1 — "
+                "refusing force-delta capture without tip proof"
+            )
+            if force_deltas:
+                return 2
         # Persist inventory for the slate.
         inv_path = REPORTS_DIR / f"payout_board_inventory_{date_str}.json"
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -2136,6 +2278,12 @@ def main() -> int:
     elif skip_cdp_scrape:
         print("[validate] FATAL: --skip-cdp-scrape / --prefetch-http needs a step1 CSV")
         return 1
+    elif force_deltas:
+        print(
+            "[tip-safety] FATAL: force-delta requires a dated step1 CSV with start_time "
+            "(refuse capture without tip proof)"
+        )
+        return 2
 
     if len(standard) + len(goblins) < 4:
         print("[validate] FATAL: not enough board cards from scrape/step1")

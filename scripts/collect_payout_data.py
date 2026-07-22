@@ -2113,14 +2113,35 @@ def read_slip(
 
         n_selected = re.findall(r"(\d+)\s*Players?\s*Selected", slip_section, re.IGNORECASE)
         n_selected_int = int(n_selected[0]) if n_selected else None
+
+        # Prefer the ticket_type subsection — UI often shows Flex then Power together.
+        parse_section = slip_section
+        tt = str(ticket_type or "power").lower().strip()
+        if tt == "power":
+            pp = re.search(
+                r"Power\s*Play\b(.*?)(?:Reversion lineup|Entry Fee|Deposit Funds|$)",
+                slip_section,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if pp:
+                parse_section = pp.group(0)
+        elif tt == "flex":
+            fp = re.search(
+                r"Flex\s*Play\b(.*?)(?:Power\s*Play\b|Reversion lineup|Entry Fee|Deposit Funds|$)",
+                slip_section,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if fp:
+                parse_section = fp.group(0)
+
         first_place = re.findall(
             r"1st\s*place\s*pays[\s\n]*(\d+\.?\d*)[Xx]",
-            slip_section,
+            parse_section,
             re.IGNORECASE,
         )
         correct_pays = re.findall(
             r"(\d+)\s*correct\s*pays[\s\n]*(\d+\.?\d*)[Xx]",
-            slip_section,
+            parse_section,
             re.IGNORECASE,
         )
 
@@ -3205,10 +3226,90 @@ def capture_tickets_from_board(
                     clear_slip(frame)
                     continue
 
+                n_slip = power_slip.get("n_selected")
+                try:
+                    n_slip_i = int(n_slip) if n_slip is not None else int(clicked)
+                except (TypeError, ValueError):
+                    n_slip_i = int(clicked)
+                if n_slip_i != int(n_need):
+                    rec["error"] = f"slip_n_{n_slip_i}_expected_{n_need}"
+                    print(f"  [WARN] reject contaminated slip: {rec['error']}")
+                    n_failed += 1
+                    captured.append(_project_capture_fields(rec, fields))
+                    clear_slip(frame)
+                    continue
+
+                # Soft player check: planned surnames should appear in slip text.
+                raw_slip = _norm(
+                    power_slip.get("raw_slip_section") or power_slip.get("raw_text") or ""
+                )
+                raw_slip_disp = str(
+                    power_slip.get("raw_slip_section") or power_slip.get("raw_text") or ""
+                )
+                if raw_slip:
+                    miss = []
+                    for leg in slip.get("legs") or []:
+                        name = str(leg.get("player") or "").strip()
+                        if not name:
+                            continue
+                        parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
+                        surname = parts[-1] if parts else name
+                        if _norm(surname) not in raw_slip:
+                            miss.append(name)
+                    if miss:
+                        rec["error"] = f"slip_missing_players:{','.join(miss)}"
+                        print(f"  [WARN] reject slip player mismatch: {miss}")
+                        n_failed += 1
+                        captured.append(_project_capture_fields(rec, fields))
+                        clear_slip(frame)
+                        continue
+                    # When strict_lines: planned lines must appear on the slip.
+                    # Force-delta sets strict_lines=True with require_line=False so
+                    # alt-cycle can click nearest faces, but we still reject if the
+                    # slip never landed on the stamped Goblin line (Δ would be a lie).
+                    if strict_lines:
+                        line_miss = []
+                        for leg in slip.get("legs") or []:
+                            try:
+                                want = float(leg.get("line"))
+                            except (TypeError, ValueError):
+                                continue
+                            pats = {
+                                f"{want:g}",
+                                f"{want:.1f}",
+                                f"{want:.0f}" if float(want).is_integer() else f"{want:g}",
+                            }
+                            if not any(p in raw_slip_disp for p in pats):
+                                line_miss.append(
+                                    f"{leg.get('player')}:{want:g}"
+                                )
+                        if line_miss:
+                            rec["error"] = f"slip_missing_lines:{','.join(line_miss)}"
+                            print(f"  [WARN] reject slip line mismatch: {line_miss}")
+                            n_failed += 1
+                            captured.append(_project_capture_fields(rec, fields))
+                            clear_slip(frame)
+                            continue
+
                 power_min = power_slip.get("min_guarantee_payout")
                 power_first = power_slip.get("first_place_payout") or power_slip.get(
                     "displayed_multiplier"
                 )
+                # first < min usually means Flex leaked into Power parse — reject.
+                try:
+                    if (
+                        power_min is not None
+                        and power_first is not None
+                        and float(power_first) + 1e-9 < float(power_min)
+                    ):
+                        rec["error"] = f"first_lt_min:{power_first}<{power_min}"
+                        print(f"  [WARN] reject inconsistent power payouts: {rec['error']}")
+                        n_failed += 1
+                        captured.append(_project_capture_fields(rec, fields))
+                        clear_slip(frame)
+                        continue
+                except (TypeError, ValueError):
+                    pass
                 rec["power_min_x"] = power_min
                 rec["power_first_x"] = power_first
                 rec["min_guarantee"] = power_min
@@ -4018,6 +4119,23 @@ def sync_captures_to_payout_ladder_live(
                 f"{row.get('ticket_id')}"
             )
             continue
+        # Ambiguous tip status is also unsafe — Goblin floors shift after tip.
+        if not allow_tipped:
+            legs_chk = row.get("legs") if isinstance(row.get("legs"), list) else []
+            missing_start = False
+            for leg in legs_chk:
+                if not isinstance(leg, dict):
+                    continue
+                if _parse_leg_start_dt(leg) is None:
+                    missing_start = True
+                    break
+            if missing_start or not legs_chk:
+                n_skip_tipped += 1
+                print(
+                    f"[PAYOUT] SKIP capture with missing/unverified start_time: "
+                    f"{row.get('ticket_id')}"
+                )
+                continue
         enriched_captured.append(row)
     if n_skip_tipped or n_skip_no_floor:
         print(
@@ -4335,6 +4453,10 @@ def run_mix_grid_capture(
                                     "source_filter": card.get("source_filter"),
                                     "line_distance": card.get("line_distance"),
                                     "dev_bucket": card.get("dev_bucket"),
+                                    "start_time": card.get("start_time")
+                                    or card.get("event_start_time")
+                                    or card.get("game_start_time"),
+                                    "standard_line": card.get("standard_line"),
                                 }
                             )
                         else:
@@ -4394,6 +4516,23 @@ def run_mix_grid_capture(
                             clear_slip(frame)
                             continue
                         rec["error"] = err
+                        break
+
+                    # Contaminated slips (uncleared prior legs) mis-attribute Flex/Power floors.
+                    n_slip = slip.get("n_selected")
+                    try:
+                        n_slip_i = int(n_slip) if n_slip is not None else int(clicked)
+                    except (TypeError, ValueError):
+                        n_slip_i = int(clicked)
+                    if n_slip_i != int(n_legs):
+                        err = f"slip_n_{n_slip_i}_expected_{n_legs}"
+                        print(f"  [WARN] attempt {attempt}/{max_attempts}: {err} (reject contaminated slip)")
+                        clear_slip(frame)
+                        frame.wait_for_timeout(900)
+                        if attempt < max_attempts:
+                            continue
+                        rec["error"] = err
+                        rec["legs"] = leg_meta
                         break
 
                     min_x = slip.get("min_guarantee_payout")

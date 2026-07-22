@@ -23,3 +23,24 @@ Pre-tip vs post-tip summary:
 
 Offline work retained: standard_line enrichment, force-delta match_tol fix,
   verify re-audit-after-rebuild, tip-guard.
+
+Session 16:10 ET continue-pass:
+  QUARANTINED: 2026-07-22|LADDER_VAL|force_delta|5  0S+2G+0D  G-delta=1+2.5  6.0x
+    Reason: slip contaminated (4 players still selected); Flex/Power 4-leg payouts misread as 2-leg floor.
+  KEPT: 2026-07-22|LADDER_VAL|force_delta|6  0S+2G+0D  G-delta=1.5+2.5  2.3x
+    Pre-tip NYL Wed 7:00pm (Ionescu+Stewart); clean 2-leg Power slip (3x / 2.3x min).
+  Priority exact gaps 2+5 / 1+2+4 / 1.5+2+3 / 1.5+4+5: capture_failed (PRA clicks / Mitchell not found).
+
+Session 16:23 ET priority retry:
+  QUARANTINED: 2026-07-22|LADDER_VAL|force_delta|3  g=['1', '2', '4']  3.75x
+  QUARANTINED: 2026-07-22|LADDER_VAL|force_delta|4  g=['1.5', '2', '3']  2.8x
+  QUARANTINED: 2026-07-22|LADDER_VAL|force_delta|2  g=['1.5', '4', '5']  5.0x
+  Reasons: slip player/line != planned Goblin-Delta, or n_selected!=n_legs.
+  Still KEPT from earlier pass: force_delta|6 1.5+2.5 @ 2.3x (clean NYL 7pm 2-leg).
+  Remaining targets: 2+5, 1+2+4, 1.5+2+3, 1.5+4+5.
+
+Session 16:37 ET priority2:
+  QUARANTINED: force_delta|1  0S+2G+0D  G-delta=2+5  2.4x
+    Reason: slip showed Aja Wilson at 24 Points (std-ish), not planned Goblin 19 (d=5). Delta stamp invalid.
+  KEPT overall this afternoon: only force_delta|6 1.5+2.5 @ 2.3x (clean pre-tip).
+  Outstanding targets unchanged: 2+5, 1+2+4, 1.5+2+3, 1.5+4+5.

@@ -1,0 +1,103 @@
+{
+  "date": "2026-07-22",
+  "generated_at": "2026-07-22T20:29:41.949940+00:00",
+  "step1": {
+    "path": "Sports\\WNBA\\outputs\\step1_snapshots\\step1_wnba_props_2026-07-22.csv",
+    "n_rows": 3109,
+    "n_standard": 654,
+    "n_goblin": 877,
+    "n_goblin_with_delta": 645,
+    "n_demon": 1570,
+    "std_keys": 661,
+    "goblin_delta_bins": {
+      "0.5": 60,
+      "1": 88,
+      "1.5": 80,
+      "2": 104,
+      "2.5": 58,
+      "3": 51,
+      "3.5": 22,
+      "4": 36,
+      "4.5": 31,
+      "5": 47,
+      "5.5": 26,
+      "6": 23,
+      "6.5": 11,
+      "7": 6,
+      "7.5": 2
+    }
+  },
+  "prefetch_http": false,
+  "gentle": true,
+  "cdp_pools": {
+    "standard": 80,
+    "goblin": 62,
+    "goblin_with_delta": 9,
+    "demon": 10
+  },
+  "goblin_delta_examples": [
+    {
+      "player": "Brittney Griner",
+      "prop": "Rebounds",
+      "line": 4.5,
+      "standard_line": 5.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Caitlin Clark",
+      "prop": "Points",
+      "line": 17.5,
+      "standard_line": 18.5,
+      "delta": 1.0
+    },
+    {
+      "player": "Sabrina Ionescu",
+      "prop": "Points",
+      "line": 15.5,
+      "standard_line": 17.0,
+      "delta": 1.5
+    },
+    {
+      "player": "Sydney Taylor",
+      "prop": "Points",
+      "line": 14.5,
+      "standard_line": 16.0,
+      "delta": 1.5
+    },
+    {
+      "player": "Jackie Young",
+      "prop": "Points",
+      "line": 14.5,
+      "standard_line": 16.5,
+      "delta": 2.0
+    },
+    {
+      "player": "Paige Bueckers",
+      "prop": "Points",
+      "line": 17.5,
+      "standard_line": 19.5,
+      "delta": 2.0
+    },
+    {
+      "player": "Arike Ogunbowale",
+      "prop": "Points",
+      "line": 14.5,
+      "standard_line": 17.0,
+      "delta": 2.5
+    },
+    {
+      "player": "Breanna Stewart",
+      "prop": "Points",
+      "line": 19.5,
+      "standard_line": 22.0,
+      "delta": 2.5
+    },
+    {
+      "player": "A'ja Wilson",
+      "prop": "Points",
+      "line": 19.5,
+      "standard_line": 24.0,
+      "delta": 4.5
+    }
+  ]
+}

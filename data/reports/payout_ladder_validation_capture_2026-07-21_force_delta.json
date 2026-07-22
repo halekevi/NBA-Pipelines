@@ -1,0 +1,916 @@
+{
+  "date": "2026-07-21",
+  "generated_at": "2026-07-22T02:33:57.496396Z",
+  "cdp_url": "http://127.0.0.1:9222",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\payout_ladder_validation_tickets.json",
+  "tickets_fingerprint": "659b1c315fca38d498c31606190e29f0fa00bf45b0fdc7031d9a606c221e8034",
+  "fingerprint_n_slips": 15,
+  "fingerprint_n_missing_live": 15,
+  "fields": [
+    "power_min_x",
+    "power_first_x",
+    "min_guarantee"
+  ],
+  "primary_field": "power_min_x",
+  "entry_amount": 1.0,
+  "only_missing_live": false,
+  "timed_out": false,
+  "max_runtime_sec": 0.0,
+  "slips": [
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|1",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|10",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_2_of_3_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|11",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 11.5,
+          "line_distance": 5.5,
+          "delta": 5.5
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 5.25,
+      "power_first_x": 3.0,
+      "min_guarantee": 5.25
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|12",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 3,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_2_of_3_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|13",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|14",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 11.5,
+          "line_distance": 5.5,
+          "delta": 5.5
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_3_of_4_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|15",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 4,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 11.5,
+          "line_distance": 5.5,
+          "delta": 5.5
+        },
+        {
+          "player": "Jewell Loyd",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 9.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 5.25,
+      "power_first_x": 3.0,
+      "min_guarantee": 5.25
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|2",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 11.5,
+          "line_distance": 5.5,
+          "delta": 5.5
+        },
+        {
+          "player": "Jewell Loyd",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 9.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 18.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 19.0,
+          "line_distance": 0.5,
+          "delta": 0.5
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 9.75,
+      "power_first_x": 6.0,
+      "min_guarantee": 9.75
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|3",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 11.5,
+          "line_distance": 5.5,
+          "delta": 5.5
+        },
+        {
+          "player": "Jewell Loyd",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 9.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|4",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 11.5,
+          "line_distance": 5.5,
+          "delta": 5.5
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|5",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|6",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 5,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Paige Bueckers",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 20.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_4_of_5_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|7",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 6,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 21.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Paige Bueckers",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 20.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 18.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_5_of_6_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|8",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Cameron Brink",
+          "prop_type": "Points",
+          "direction": "OVER",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "sport": "WNBA",
+          "standard_line": 6.5,
+          "line_distance": 2.0,
+          "delta": 2.0
+        }
+      ],
+      "status": "ok",
+      "error": null,
+      "ticket_type_captured": "power",
+      "power_min_x": 2.9,
+      "power_first_x": 3.0,
+      "min_guarantee": 2.9
+    },
+    {
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|9",
+      "slip_type": "strong",
+      "strong_builder": true,
+      "group_name": "LADDER VALIDATION",
+      "n_legs": 2,
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop_type": "Rebounds",
+          "direction": "OVER",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 10.5,
+          "line_distance": 1.0,
+          "delta": 1.0
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop_type": "PRA",
+          "direction": "OVER",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "sport": "WNBA",
+          "standard_line": 27.0,
+          "line_distance": 1.0,
+          "delta": 1.0
+        }
+      ],
+      "status": "failed",
+      "error": "only_clicked_1_of_2_legs",
+      "ticket_type_captured": "power",
+      "power_min_x": null,
+      "power_first_x": null,
+      "min_guarantee": null
+    }
+  ],
+  "summary": {
+    "n_total": 15,
+    "n_ok": 4,
+    "n_partial": 0,
+    "n_failed": 11,
+    "n_strong": 15,
+    "n_main": 0,
+    "n_skipped_live": 0,
+    "timed_out": false
+  }
+}

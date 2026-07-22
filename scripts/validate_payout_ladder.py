@@ -76,6 +76,31 @@ _DISCOVER_BLOCKED_PROPS = {
     "fantasy points",
 }
 
+# PrizePicks sometimes shows "Starting" / TBA placeholders before names resolve.
+_DISCOVER_BLOCKED_PLAYERS = {
+    "starting",
+    "starter",
+    "tba",
+    "tbd",
+    "player",
+    "n/a",
+    "na",
+    "unknown",
+}
+
+
+def _usable_board_player(name: object) -> bool:
+    raw = str(name or "").strip()
+    if len(raw) < 3:
+        return False
+    key = cpd._norm(raw)
+    if not key or key in _DISCOVER_BLOCKED_PLAYERS:
+        return False
+    # Reject pure placeholders / role labels (not real athlete names).
+    if key in ("starting pitcher", "starting batting", "pitcher", "hitter"):
+        return False
+    return True
+
 # S/G mixes to cover (n_standard, n_goblin). n_legs = sum, min 2.
 _DISCOVER_COMPOSITIONS: list[tuple[int, int]] = [
     (0, 2),
@@ -684,6 +709,8 @@ def _synthesize_goblin_leg(
     sport: str = "MLB",
 ) -> dict[str, Any] | None:
     """Build a Goblin leg at Standard−Δ so CDP can cycle the More control to that line."""
+    if not _usable_board_player(std_card.get("player")):
+        return None
     try:
         std = float(std_card.get("line") or std_card.get("standard_line") or 0)
         want = float(want_delta)
@@ -755,10 +782,23 @@ def _pick_cards_for_recipe(
             return 2.0
         return 1.0
 
-    def _std_alt_pool() -> list[dict]:
-        # Prefer high lines (room for large Δ) with alt-line control.
+    def _std_alt_pool(want_delta: float | None = None) -> list[dict]:
+        # Prefer Standards that already have a cataloged Goblin at the target Δ.
+        catalog_keys: set[str] = set()
+        if want_delta is not None:
+            for g in goblins:
+                if not g.get("cataloged_alt"):
+                    continue
+                dist = _card_distance(g)
+                if dist is None or abs(float(dist) - float(want_delta)) > max(tol, 0.26):
+                    continue
+                catalog_keys.add(
+                    f"{cpd._norm(g.get('player'))}|{cpd._norm(g.get('prop_type'))}"
+                )
         pool = []
         for c in standard:
+            if not _usable_board_player(c.get("player")):
+                continue
             try:
                 line = float(c.get("line") or 0)
             except (TypeError, ValueError):
@@ -768,7 +808,13 @@ def _pick_cards_for_recipe(
             pool.append(c)
         pool.sort(
             key=lambda c: (
-                0 if c.get("has_alt_lines") else 1,
+                0
+                if (
+                    f"{cpd._norm(c.get('player'))}|{cpd._norm(c.get('prop_type'))}"
+                    in catalog_keys
+                )
+                else 1,
+                0 if c.get("has_alt_lines") or c.get("cataloged_alt") else 1,
                 -float(c.get("line") or 0),
                 _prop_rank(c),
                 str(c.get("player") or ""),
@@ -786,6 +832,8 @@ def _pick_cards_for_recipe(
             best = None
             best_score = 1e9
             for c in remaining:
+                if not _usable_board_player(c.get("player")):
+                    continue
                 pk = cpd._norm(c.get("player"))
                 if not pk or pk in used:
                     continue
@@ -795,6 +843,9 @@ def _pick_cards_for_recipe(
                         score = 100.0
                     else:
                         score = abs(float(dist) - float(want))
+                        # Strongly prefer faces we already cycled to this Δ on-board.
+                        if c.get("cataloged_alt") and score <= max(tol, 0.26):
+                            score -= 5.0
                 else:
                     # Prefer verified distances, then common board tabs (Points/Assists).
                     score = 0.0 if dist is not None else 5.0
@@ -806,12 +857,15 @@ def _pick_cards_for_recipe(
                     src = str(c.get("source_filter") or "").lower()
                     if src in ("points", "assists", "rebounds", "popular"):
                         score -= 0.3
+                    if c.get("cataloged_alt"):
+                        score -= 1.0
                 score += _prop_rank(c)
                 if score < best_score:
                     best_score = score
                     best = c
 
-            # Force-cycle path: synthesize Goblin @ std−Δ from a Standard face.
+            # Force-cycle path: synthesize Goblin @ std−Δ only from named Standards,
+            # preferring faces that already showed this Δ in the alt-line catalog.
             if (
                 role == "goblin"
                 and force_alt_cycle
@@ -819,7 +873,7 @@ def _pick_cards_for_recipe(
                 and (best is None or best_score > tol)
             ):
                 synth = None
-                for sc in _std_alt_pool():
+                for sc in _std_alt_pool(float(want)):
                     pk = cpd._norm(sc.get("player"))
                     if not pk or pk in used:
                         continue
@@ -838,7 +892,7 @@ def _pick_cards_for_recipe(
                 # Still force-cycle even when a weak goblin face exists.
                 if role == "goblin" and force_alt_cycle:
                     synth = None
-                    for sc in _std_alt_pool():
+                    for sc in _std_alt_pool(float(want)):
                         pk = cpd._norm(sc.get("player"))
                         if not pk or pk in used:
                             continue
@@ -865,6 +919,7 @@ def _pick_cards_for_recipe(
                 "line_distance": dist,
                 "standard_line": best.get("standard_line"),
                 "role": role,
+                "force_alt_cycle": bool(best.get("cataloged_alt") and role == "goblin"),
             }
             picked.append(leg)
             if role == "goblin" and dist is not None:
@@ -1185,7 +1240,7 @@ def scrape_board_pools(
                         loc = frame.get_by_text("Hits", exact=True).first
                     if loc.count() == 0:
                         loc = frame.get_by_text("Popular", exact=True).first
-                    loc.click(force=True, timeout=2000)
+                    loc.click(force=True, timeout=4000)
                     frame.wait_for_timeout(1200)
                 except Exception:
                     pass
@@ -1220,7 +1275,7 @@ def scrape_board_pools(
                         loc = frame.get_by_text(filter_name, exact=True).first
                         if loc.count() == 0:
                             loc = frame.get_by_text(filter_name, exact=False).first
-                        loc.click(force=True, timeout=2000)
+                        loc.click(force=True, timeout=4000)
                         frame.wait_for_timeout(1000)
                         cpd._scroll_board_for_lazy_load(page)
                         batch = cpd.get_all_cards(frame)
@@ -1271,7 +1326,11 @@ def scrape_board_pools(
         standard: list[dict] = []
         goblins: list[dict] = []
         demons: list[dict] = []
+        n_placeholder = 0
         for c in best_cards:
+            if not _usable_board_player(c.get("player")):
+                n_placeholder += 1
+                continue
             try:
                 line_val = float(c.get("line") or 0)
             except (TypeError, ValueError):
@@ -1297,24 +1356,30 @@ def scrape_board_pools(
                     standard.append(c2)
         goblins.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
         demons.sort(key=lambda c: (0 if c.get("line_distance") is not None else 1, str(c.get("player") or "")))
+        if n_placeholder:
+            print(
+                f"[validate] dropped {n_placeholder} placeholder/Starting cards "
+                f"(kept S={len(standard)} G={len(goblins)} D={len(demons)})"
+            )
 
-        # Catalog every reachable Goblin Δ by cycling More on Standard faces.
-        # This is what makes --force-deltas comprehensive: we measure rate changes
-        # across real board steps, not invented std−Δ lines that may not exist.
+        # Catalog reachable Goblin Δ by cycling More — but bail fast on placeholder-heavy boards.
+        # Full walks re-parse ~200 cards every swap and can hang for 20+ minutes.
         try:
-            frame = cpd.find_prizepicks_frame(page)
-            cpd.dismiss_modal(frame, page)
-            # Prefer high-line Points/TB/Ks standards currently on the board.
+            usable_frac = 0.0
+            if best_cards:
+                usable_frac = 1.0 - (n_placeholder / max(1, len(best_cards)))
             probe_pool = sorted(
                 [
                     c
                     for c in standard
-                    if float(c.get("line") or 0) >= 1.5
+                    if _usable_board_player(c.get("player"))
+                    and float(c.get("line") or 0) >= 1.5
                     and str(c.get("prop_type") or "").lower()
                     in (
                         "points",
                         "assists",
                         "rebounds",
+                        "hits",
                         "hits+runs+rbis",
                         "total bases",
                         "tb",
@@ -1324,119 +1389,132 @@ def scrape_board_pools(
                     )
                 ],
                 key=lambda c: -float(c.get("line") or 0),
-            )[:14]
-            cataloged = 0
-            # Light catalog: one Goblin resolve per Standard (not a full carousel walk).
-            # Full walks re-parse the board every swap and take 10+ minutes.
-            for cand in probe_pool[:10]:
-                player = str(cand.get("player") or "")
-                prop = str(cand.get("prop_type") or "")
-                try:
-                    std_line = float(cand.get("line") or cand.get("standard_line") or 0)
-                except (TypeError, ValueError):
-                    continue
-                if std_line < 1.5 or not player or not prop:
-                    continue
-                btn, _card = cpd._rebind_more_btn(frame, player, prop)
-                if btn is None:
-                    continue
-                cycled = cpd.cycle_card_to_pick_type(
-                    frame,
-                    btn,
-                    player=player,
-                    prop=prop,
-                    want_pick="goblin",
-                    want_line=None,
-                    require_line=False,
-                    max_clicks=6,
+            )[:8]
+            skip_catalog = usable_frac < 0.35 or len(probe_pool) < 2
+            if skip_catalog:
+                print(
+                    f"[validate] skipping alt-line Δ catalog "
+                    f"(usable_frac={usable_frac:.2f} probe_std={len(probe_pool)}; "
+                    f"will use board/step1 paired Δ)"
                 )
-                if not cycled:
-                    continue
-                try:
-                    g_line = float(cycled.get("line") or 0)
-                except (TypeError, ValueError):
-                    continue
-                if g_line <= 0 or g_line >= std_line:
+            else:
+                frame = cpd.find_prizepicks_frame(page)
+                cpd.dismiss_modal(frame, page)
+                cataloged = 0
+                for cand in probe_pool[:5]:
+                    player = str(cand.get("player") or "")
+                    prop = str(cand.get("prop_type") or "")
+                    if not _usable_board_player(player):
+                        continue
                     try:
-                        btn2, _ = cpd._rebind_more_btn(frame, player, prop)
-                        if btn2 is not None:
+                        std_line = float(cand.get("line") or cand.get("standard_line") or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if std_line < 1.5 or not player or not prop:
+                        continue
+                    print(f"[validate] catalog probe: {player} {prop} std={std_line:g}")
+                    btn, _card = cpd._rebind_more_btn(frame, player, prop)
+                    if btn is None:
+                        print(f"[validate] catalog miss (no More): {player}")
+                        continue
+                    cycled = cpd.cycle_card_to_pick_type(
+                        frame,
+                        btn,
+                        player=player,
+                        prop=prop,
+                        want_pick="goblin",
+                        want_line=None,
+                        require_line=False,
+                        max_clicks=4,
+                    )
+                    if not cycled:
+                        continue
+                    try:
+                        g_line = float(cycled.get("line") or 0)
+                    except (TypeError, ValueError):
+                        continue
+                    if g_line <= 0 or g_line >= std_line:
+                        try:
+                            btn2, _ = cpd._rebind_more_btn(frame, player, prop)
+                            if btn2 is not None:
+                                cpd.cycle_card_to_pick_type(
+                                    frame,
+                                    btn2,
+                                    player=player,
+                                    prop=prop,
+                                    want_pick="standard",
+                                    want_line=std_line,
+                                    require_line=False,
+                                    max_clicks=3,
+                                )
+                        except Exception:
+                            pass
+                        continue
+                    delta = round(abs(std_line - g_line) * 2) / 2.0
+                    if 0.25 <= delta <= 6.5:
+                        goblins.append(
+                            {
+                                **cand,
+                                "line": g_line,
+                                "pick_type": "goblin",
+                                "standard_line": std_line,
+                                "line_distance": delta,
+                                "has_alt_lines": True,
+                                "cataloged_alt": True,
+                                "league": cand.get("league") or cand.get("sport"),
+                                "sport": cand.get("sport") or cand.get("league"),
+                                "source_filter": cand.get("source_filter") or prop,
+                            }
+                        )
+                        cataloged += 1
+                        print(f"[validate] cataloged Δ={delta:g} via {player} {prop} {std_line:g}->{g_line:g}")
+                    try:
+                        btn3, _ = cpd._rebind_more_btn(frame, player, prop)
+                        if btn3 is not None:
                             cpd.cycle_card_to_pick_type(
                                 frame,
-                                btn2,
+                                btn3,
                                 player=player,
                                 prop=prop,
                                 want_pick="standard",
                                 want_line=std_line,
                                 require_line=False,
-                                max_clicks=4,
+                                max_clicks=3,
                             )
                     except Exception:
                         pass
-                    continue
-                delta = round(abs(std_line - g_line) * 2) / 2.0
-                if 0.25 <= delta <= 6.5:
-                    goblins.append(
-                        {
-                            **cand,
-                            "line": g_line,
-                            "pick_type": "goblin",
-                            "standard_line": std_line,
-                            "line_distance": delta,
-                            "has_alt_lines": True,
-                            "cataloged_alt": True,
-                            "league": cand.get("league") or cand.get("sport"),
-                            "sport": cand.get("sport") or cand.get("league"),
-                            "source_filter": cand.get("source_filter") or prop,
-                        }
+                    page.wait_for_timeout(250)
+                # Deduplicate catalog goblins by player|prop|line.
+                uniq: dict[str, dict] = {}
+                for g in goblins:
+                    key = (
+                        f"{cpd._norm(g.get('player'))}|"
+                        f"{cpd._norm(g.get('prop_type'))}|"
+                        f"{g.get('line')}|"
+                        f"{str(g.get('pick_type') or '').lower()}"
                     )
-                    cataloged += 1
-                try:
-                    btn3, _ = cpd._rebind_more_btn(frame, player, prop)
-                    if btn3 is not None:
-                        cpd.cycle_card_to_pick_type(
-                            frame,
-                            btn3,
-                            player=player,
-                            prop=prop,
-                            want_pick="standard",
-                            want_line=std_line,
-                            require_line=False,
-                            max_clicks=4,
-                        )
-                except Exception:
-                    pass
-                page.wait_for_timeout(350)
-            # Deduplicate catalog goblins by player|prop|line.
-            uniq: dict[str, dict] = {}
-            for g in goblins:
-                key = (
-                    f"{cpd._norm(g.get('player'))}|"
-                    f"{cpd._norm(g.get('prop_type'))}|"
-                    f"{g.get('line')}|"
-                    f"{str(g.get('pick_type') or '').lower()}"
+                    prev = uniq.get(key)
+                    if prev is None or (g.get("line_distance") and not prev.get("line_distance")):
+                        uniq[key] = g
+                goblins = list(uniq.values())
+                goblins.sort(
+                    key=lambda c: (
+                        0 if c.get("line_distance") is not None else 1,
+                        float(c.get("line_distance") or 99),
+                        str(c.get("player") or ""),
+                    )
                 )
-                prev = uniq.get(key)
-                if prev is None or (g.get("line_distance") and not prev.get("line_distance")):
-                    uniq[key] = g
-            goblins = list(uniq.values())
-            goblins.sort(
-                key=lambda c: (
-                    0 if c.get("line_distance") is not None else 1,
-                    float(c.get("line_distance") or 99),
-                    str(c.get("player") or ""),
+                delta_bins = sorted(
+                    {
+                        round(float(c["line_distance"]), 2)
+                        for c in goblins
+                        if c.get("line_distance") and 0.25 <= float(c["line_distance"]) <= 6.5
+                    }
                 )
-            )
-            delta_bins = sorted(
-                {
-                    round(float(c["line_distance"]), 2)
-                    for c in goblins
-                    if c.get("line_distance") and 0.25 <= float(c["line_distance"]) <= 6.5
-                }
-            )
-            print(
-                f"[validate] alt-line Δ catalog: +{cataloged} faces "
-                f"total_G={len(goblins)} bins={delta_bins[:16]}"
-            )
+                print(
+                    f"[validate] alt-line Δ catalog: +{cataloged} faces "
+                    f"total_G={len(goblins)} bins={delta_bins[:16]}"
+                )
         except Exception as e:
             print(f"[validate] WARN: alt-line Δ catalog failed: {e}")
 
@@ -1451,6 +1529,7 @@ def scrape_board_pools(
             p.stop()
         except Exception:
             pass
+
 
 
 def prefetch_step1_http(
@@ -1727,11 +1806,13 @@ def main() -> int:
         # Force-delta: prefer WNBA Points (room to cycle std−Δ across 0.5…6).
         use_focused = bool(discover)
         use_light = bool(gentle) and not bool(discover)
-        prefer_wnba = bool(force_deltas)
-        if force_deltas:
+        prefer_wnba = bool(force_deltas) and "wnba" in str(args.step1_csv or "").lower()
+        if force_deltas and prefer_wnba:
             print("[force-delta] focused scrape preferring WNBA Points for wide Δ ladders")
+        elif force_deltas:
+            print("[force-delta] focused scrape preferring MLB (Hits/HRR/TB/Ks) for mid-range Δ")
         elif discover:
-            print("[discover] focused board scrape (Hits/HRR/TB/Ks) + alt-line Δ harvest")
+            print("[discover] focused board scrape + alt-line Δ harvest (any board faces)")
         standard, goblins, demons = scrape_board_pools(
             args.cdp_url,
             light=use_light,
@@ -1877,24 +1958,37 @@ def main() -> int:
     if discover:
         def _clickable(c: dict) -> bool:
             prop = str(c.get("prop_type") or "").strip().lower()
-            return prop not in _DISCOVER_BLOCKED_PROPS and len(str(c.get("player") or "")) >= 2
+            if prop in _DISCOVER_BLOCKED_PROPS:
+                return False
+            return _usable_board_player(c.get("player"))
 
         n_before = (len(standard), len(goblins), len(demons))
         standard = [c for c in standard if _clickable(c)]
         goblins = [c for c in goblins if _clickable(c)]
         demons = [c for c in demons if _clickable(c)]
         print(
-            f"[discover] clickable pools (blocked fantasy/FS): "
+            f"[discover] clickable pools (blocked fantasy/FS/placeholders): "
             f"S={len(standard)}/{n_before[0]} G={len(goblins)}/{n_before[1]} "
             f"D={len(demons)}/{n_before[2]}"
         )
         if force_deltas:
+            # Prefer Δ bins proven via More cycling; fall back to any mid-range distances.
             avail = [
                 float(c["line_distance"])
                 for c in goblins
-                if c.get("line_distance") is not None
+                if c.get("cataloged_alt")
+                and c.get("line_distance") is not None
                 and 0.25 <= float(c["line_distance"]) <= 6.5
             ]
+            if not avail:
+                avail = [
+                    float(c["line_distance"])
+                    for c in goblins
+                    if c.get("line_distance") is not None
+                    and 0.25 <= float(c["line_distance"]) <= 6.5
+                ]
+            # Do NOT blend step1-only Δ bins here: those invent lines that are not
+            # clickable on tonight's board (require_line=on → mass SKIP).
             if avail:
                 recipes = build_force_delta_recipes(
                     max_cases=int(args.max_cases),

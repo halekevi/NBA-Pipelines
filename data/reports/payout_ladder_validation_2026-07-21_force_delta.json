@@ -1,1679 +1,955 @@
 {
   "date": "2026-07-21",
   "mode": "force_delta",
-  "generated_at": "2026-07-21T23:06:15.775223+00:00",
+  "generated_at": "2026-07-22T02:33:57.534157+00:00",
   "cdp_url": "http://127.0.0.1:9222",
   "live_board_tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\payout_ladder_validation_tickets.json",
   "capture_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\data\\reports\\payout_ladder_validation_capture_2026-07-21_force_delta.json",
   "capture_exit": 0,
   "summary": {
-    "captured": 27
+    "capture_failed": 11,
+    "captured": 4
   },
-  "n_ok_slips": 27,
-  "n_results": 27,
+  "n_ok_slips": 4,
+  "n_results": 15,
   "results": [
     {
-      "n_legs": 6,
-      "composition": "6S+0G+0D",
-      "n_standard": 6,
-      "n_goblin": 0,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|6S+0G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|1",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 18.5,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Aliyah Boston",
-          "prop": "Points",
-          "line": 14.5,
-          "pick_type": "Standard",
-          "line_distance": 1.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Brittney Griner",
-          "prop": "Points",
-          "line": 13.0,
-          "pick_type": "Standard",
-          "line_distance": 4.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 20.0,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 5,
-      "composition": "4S+1G+0D",
-      "n_standard": 4,
-      "n_goblin": 1,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|5|4S+1G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|2",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Aliyah Boston",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 18.5,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 13.0,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 5,
-      "composition": "3S+2G+0D",
-      "n_standard": 3,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|5|3S+2G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|3",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Ariel Atkins",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Arike Ogunbowale",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 14.0,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 5,
-      "composition": "2S+3G+0D",
-      "n_standard": 2,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|5|2S+3G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|4",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Ariel Atkins",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Arike Ogunbowale",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azurá Stevens",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 10.0,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 5,
-      "composition": "1S+4G+0D",
-      "n_standard": 1,
-      "n_goblin": 4,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|5|1S+4G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|5",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Ariel Atkins",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Arike Ogunbowale",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azurá Stevens",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azzi Fudd",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 7.75,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 6,
-      "composition": "5S+1G+0D",
-      "n_standard": 5,
-      "n_goblin": 1,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|5S+1G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|6",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Arike Ogunbowale",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 18.5,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Aliyah Boston",
-          "prop": "Points",
-          "line": 14.5,
-          "pick_type": "Standard",
-          "line_distance": 1.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 16.0,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 6,
-      "composition": "4S+2G+0D",
-      "n_standard": 4,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|4S+2G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|7",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Arike Ogunbowale",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azurá Stevens",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 18.5,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 21.5,
-      "live_power_first_x": 25.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 6,
-      "composition": "3S+3G+0D",
-      "n_standard": 3,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|3S+3G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|8",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Azurá Stevens",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azzi Fudd",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Breanna Stewart",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 9.0,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 6,
-      "composition": "2S+4G+0D",
-      "n_standard": 2,
-      "n_goblin": 4,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|2S+4G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|9",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Azurá Stevens",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azzi Fudd",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Breanna Stewart",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Bridget Carleton",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 6.75,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 6,
-      "composition": "1S+5G+0D",
-      "n_standard": 1,
-      "n_goblin": 5,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|1S+5G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|10",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Azurá Stevens",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Azzi Fudd",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Breanna Stewart",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Bridget Carleton",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Brittney Griner",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 8.75,
-      "live_power_first_x": 25.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 2,
-      "composition": "2S+0G+0D",
-      "n_standard": 2,
-      "n_goblin": 0,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|2|2S+0G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|11",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 3.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 3,
-      "composition": "3S+0G+0D",
-      "n_standard": 3,
-      "n_goblin": 0,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|3|3S+0G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|12",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 6.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 4,
-      "composition": "4S+0G+0D",
-      "n_standard": 4,
-      "n_goblin": 0,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|4|4S+0G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|13",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 18.5,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 10.0,
-      "live_power_first_x": 6.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 5,
-      "composition": "5S+0G+0D",
-      "n_standard": 5,
-      "n_goblin": 0,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|5|5S+0G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|14",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 18.5,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Aliyah Boston",
-          "prop": "Points",
-          "line": 14.5,
-          "pick_type": "Standard",
-          "line_distance": 1.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 10.0,
-      "live_power_first_x": 6.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 2,
-      "composition": "1S+1G+0D",
-      "n_standard": 1,
-      "n_goblin": 1,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|2|1S+1G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|15",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Bridget Carleton",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 2.4,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 2,
-      "composition": "0S+2G+0D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|2|0S+2G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|16",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Bridget Carleton",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Brittney Griner",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 1.6,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 3,
-      "composition": "2S+1G+0D",
-      "n_standard": 2,
-      "n_goblin": 1,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|3|2S+1G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|17",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Brittney Griner",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 2.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 3,
-      "composition": "1S+2G+0D",
-      "n_standard": 1,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|3|1S+2G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|18",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Brittney Griner",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Carla Leite",
-          "prop": "Assists",
-          "line": 5.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 3.25,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 3,
-      "composition": "0S+2G+1D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 1,
-      "kind": "discover",
-      "recipe_id": "discover|3|0S+2G+1D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|19",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Carla Leite",
-          "prop": "Assists",
-          "line": 5.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Chelsea Gray",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Kelsey Mitchell",
-          "prop": "Points",
-          "line": 24.5,
-          "pick_type": "Demon",
-          "line_distance": 4.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 4.75,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|3|0S+3G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|20",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Carla Leite",
-          "prop": "Assists",
-          "line": 5.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Chelsea Gray",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 3.5,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 4,
-      "composition": "3S+1G+0D",
-      "n_standard": 3,
-      "n_goblin": 1,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|4|3S+1G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|21",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Carla Leite",
-          "prop": "Rebounds",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 24.0,
-          "pick_type": "Standard",
-          "line_distance": 0.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 9.5,
-      "live_power_first_x": 6.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 4,
-      "composition": "2S+2G+0D",
-      "n_standard": 2,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|4|2S+2G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|22",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Chelsea Gray",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 7.5,
-      "live_power_first_x": 6.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 4,
-      "composition": "1S+3G+0D",
-      "n_standard": 1,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|4|1S+3G+0D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|23",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Chelsea Gray",
-          "prop": "Rebounds",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Emily Engstler",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 5.5,
-      "live_power_first_x": 6.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "n_legs": 4,
-      "composition": "0S+2G+2D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 2,
-      "kind": "discover",
-      "recipe_id": "discover|4|0S+2G+2D|",
-      "samples": 0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
-      "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|24",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
-      "legs": [
-        {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Emily Engstler",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Kelsey Mitchell",
-          "prop": "Points",
-          "line": 24.5,
-          "pick_type": "Demon",
-          "line_distance": 4.0,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Monique Akoa Makani",
-          "prop": "Points",
-          "line": 9.5,
-          "pick_type": "Demon",
-          "line_distance": null,
-          "force_alt_cycle": null
-        }
-      ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 9.25,
-      "live_power_first_x": 6.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
+      "kind": "force_delta",
       "n_legs": 4,
       "composition": "0S+4G+0D",
       "n_standard": 0,
       "n_goblin": 4,
       "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|4|0S+4G+0D|",
-      "samples": 0,
+      "goblin_delta_sig": "1+1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
       "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
       "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|25",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|1",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
       "legs": [
         {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": false
         },
         {
-          "player": "Emily Engstler",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
-          "player": "Erica Wheeler",
-          "prop": "Assists",
-          "line": 5.5,
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop": "Assists",
-          "line": 2.5,
+          "player": "Kahleah Copper",
+          "prop": "Points",
+          "line": 20.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         }
       ],
-      "force_alt_cycle": false,
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_3_of_4_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 5,
+      "composition": "4S+1G+0D",
+      "n_standard": 4,
+      "n_goblin": 1,
+      "n_demon": 0,
+      "goblin_delta_sig": "1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|2",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop": "Points",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "line_distance": 5.5,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Jewell Loyd",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop": "Points",
+          "line": 18.5,
+          "pick_type": "Standard",
+          "line_distance": 0.5,
+          "force_alt_cycle": false
+        }
+      ],
       "capture_status": "ok",
-      "live_power_min_x": 5.5,
+      "live_power_min_x": 9.75,
       "live_power_first_x": 6.0,
       "verdict": "captured",
       "delta_vs_ladder_avg": null
     },
     {
+      "kind": "force_delta",
+      "n_legs": 5,
+      "composition": "3S+2G+0D",
+      "n_standard": 3,
+      "n_goblin": 2,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|3",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop": "Points",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "line_distance": 5.5,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Jewell Loyd",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_4_of_5_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 5,
+      "composition": "2S+3G+0D",
+      "n_standard": 2,
+      "n_goblin": 3,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|4",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop": "Points",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "line_distance": 5.5,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_4_of_5_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 5,
+      "composition": "1S+4G+0D",
+      "n_standard": 1,
+      "n_goblin": 4,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|5",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Kahleah Copper",
+          "prop": "Points",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_4_of_5_legs"
+    },
+    {
+      "kind": "force_delta",
       "n_legs": 5,
       "composition": "0S+5G+0D",
       "n_standard": 0,
       "n_goblin": 5,
       "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|5|0S+5G+0D|",
-      "samples": 0,
+      "goblin_delta_sig": "1+1+1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
       "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
       "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|26",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|6",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
       "legs": [
         {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": false
         },
         {
-          "player": "Emily Engstler",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
-          "player": "Erica Wheeler",
-          "prop": "Assists",
-          "line": 5.5,
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
-          "player": "Flau'jae Johnson",
-          "prop": "Assists",
-          "line": 2.5,
+          "player": "Kahleah Copper",
+          "prop": "Points",
+          "line": 20.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
-          "player": "Jonquel Jones",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "Paige Bueckers",
+          "prop": "Points",
+          "line": 19.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         }
       ],
-      "force_alt_cycle": false,
-      "capture_status": "ok",
-      "live_power_min_x": 9.25,
-      "live_power_first_x": 10.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_4_of_5_legs"
     },
     {
+      "kind": "force_delta",
       "n_legs": 6,
       "composition": "0S+6G+0D",
       "n_standard": 0,
       "n_goblin": 6,
       "n_demon": 0,
-      "kind": "discover",
-      "recipe_id": "discover|6|0S+6G+0D|",
-      "samples": 0,
+      "goblin_delta_sig": "1+1+1+1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
       "ladder_max_x": 0.0,
-      "ladder_avg_x": 0.0,
-      "goblin_delta_sig": "",
-      "demon_delta_sig": "",
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
       "status": "planned",
-      "ticket_id": "2026-07-21|LADDER_VAL|discover|27",
-      "proxy_match": false,
-      "matched_goblin_deltas": [],
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|7",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
       "legs": [
         {
-          "player": "Dominique Malonga",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": false
         },
         {
-          "player": "Emily Engstler",
-          "prop": "Assists",
-          "line": 1.5,
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
-          "player": "Erica Wheeler",
-          "prop": "Assists",
-          "line": 5.5,
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Flau'jae Johnson",
-          "prop": "Assists",
-          "line": 2.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
-        },
-        {
-          "player": "Jonquel Jones",
-          "prop": "Assists",
-          "line": 1.5,
-          "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         },
         {
           "player": "Kahleah Copper",
-          "prop": "Assists",
-          "line": 1.5,
+          "prop": "Points",
+          "line": 20.5,
           "pick_type": "Goblin",
-          "line_distance": null,
-          "force_alt_cycle": null
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Paige Bueckers",
+          "prop": "Points",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop": "Points",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
         }
       ],
-      "force_alt_cycle": false,
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_5_of_6_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 2,
+      "composition": "1S+1G+0D",
+      "n_standard": 1,
+      "n_goblin": 1,
+      "n_demon": 0,
+      "goblin_delta_sig": "1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|8",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        }
+      ],
       "capture_status": "ok",
-      "live_power_min_x": 15.0,
-      "live_power_first_x": 25.0,
+      "live_power_min_x": 2.9,
+      "live_power_first_x": 3.0,
+      "verdict": "captured",
+      "delta_vs_ladder_avg": null
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 2,
+      "composition": "0S+2G+0D",
+      "n_standard": 0,
+      "n_goblin": 2,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|9",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_1_of_2_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 3,
+      "composition": "0S+3G+0D",
+      "n_standard": 0,
+      "n_goblin": 3,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|10",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_2_of_3_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 3,
+      "composition": "2S+1G+0D",
+      "n_standard": 2,
+      "n_goblin": 1,
+      "n_demon": 0,
+      "goblin_delta_sig": "1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|11",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop": "Points",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "line_distance": 5.5,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "ok",
+      "live_power_min_x": 5.25,
+      "live_power_first_x": 3.0,
+      "verdict": "captured",
+      "delta_vs_ladder_avg": null
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 3,
+      "composition": "1S+2G+0D",
+      "n_standard": 1,
+      "n_goblin": 2,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|12",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_2_of_3_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 4,
+      "composition": "1S+3G+0D",
+      "n_standard": 1,
+      "n_goblin": 3,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|13",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_3_of_4_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 4,
+      "composition": "2S+2G+0D",
+      "n_standard": 2,
+      "n_goblin": 2,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|14",
+      "proxy_match": true,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "PRA",
+          "line": 26.0,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop": "Points",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "line_distance": 5.5,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_3_of_4_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 4,
+      "composition": "3S+1G+0D",
+      "n_standard": 3,
+      "n_goblin": 1,
+      "n_demon": 0,
+      "goblin_delta_sig": "1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": true,
+      "status": "planned",
+      "ticket_id": "2026-07-21|LADDER_VAL|force_delta|15",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "A'ja Wilson",
+          "prop": "Rebounds",
+          "line": 9.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Cameron Brink",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 2.0,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Sabrina Ionescu",
+          "prop": "Points",
+          "line": 17.0,
+          "pick_type": "Standard",
+          "line_distance": 5.5,
+          "force_alt_cycle": false
+        },
+        {
+          "player": "Jewell Loyd",
+          "prop": "Points",
+          "line": 8.5,
+          "pick_type": "Standard",
+          "line_distance": 1.0,
+          "force_alt_cycle": false
+        }
+      ],
+      "capture_status": "ok",
+      "live_power_min_x": 5.25,
+      "live_power_first_x": 3.0,
       "verdict": "captured",
       "delta_vs_ladder_avg": null
     }

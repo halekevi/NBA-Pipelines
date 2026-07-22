@@ -382,10 +382,21 @@ def _live_covered_recipe_keys() -> set[str]:
         comp = str(r.get("leg_composition") or "").strip()
         raw = r.get("goblin_deltas")
         if isinstance(raw, list):
-            if raw and all(isinstance(x, str) and len(x) <= 1 for x in raw):
+            # Character-sploded ["1", ",", "1"] only — not numeric tokens ["3","5"].
+            if (
+                raw
+                and all(isinstance(x, str) and len(x) <= 1 for x in raw)
+                and any(x in {",", "+", "|", ";"} for x in raw)
+            ):
                 raw = "".join(raw)
-            elif all(isinstance(x, (int, float)) for x in raw):
-                raw = "+".join(f"{float(x):g}" for x in raw)
+            elif all(isinstance(x, (int, float)) or (isinstance(x, str) and str(x).replace(".", "", 1).isdigit()) for x in raw):
+                vals = []
+                for x in raw:
+                    try:
+                        vals.append(float(x))
+                    except (TypeError, ValueError):
+                        continue
+                raw = "+".join(f"{v:g}" for v in vals)
             else:
                 raw = ",".join(str(x) for x in raw)
         g_sig = _norm_delta_sig(str(raw or ""))
@@ -941,12 +952,82 @@ def _pick_cards_for_recipe(
     }
 
 
+def _parse_priority_recipe_specs(
+    specs: list[str] | None,
+) -> list[tuple[str, str, int, int, list[float]]]:
+    """Parse '0S+2G+0D|3+5' (or '2|0S+2G+0D|3+5') into (comp, g_sig, n_s, n_g, deltas)."""
+    out: list[tuple[str, str, int, int, list[float]]] = []
+    if not specs:
+        return out
+    for raw in specs:
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        parts = [p.strip() for p in text.split("|") if p.strip()]
+        if len(parts) == 3 and parts[0].isdigit():
+            parts = parts[1:]
+        if len(parts) != 2:
+            continue
+        comp, g_sig_raw = parts[0], parts[1]
+        if g_sig_raw in {"unknown", "—", "-", ""}:
+            continue
+        m = re.match(r"^(\d+)S\+(\d+)G\+(\d+)D$", comp)
+        if not m:
+            continue
+        n_s, n_g, n_d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if n_d != 0 or n_g <= 0:
+            continue
+        deltas = [float(x) for x in g_sig_raw.split("+") if x.strip()]
+        if len(deltas) != n_g:
+            continue
+        g_sig = _norm_delta_sig("+".join(f"{x:g}" for x in deltas))
+        out.append((comp, g_sig, n_s, n_g, deltas))
+    return out
+
+
+def load_priority_sigs_from_verify(date_str: str) -> list[str]:
+    """Load known-Δ missing ticket signatures from ticket_payout_verify_<date>.json."""
+    path = ROOT / "data" / "reports" / f"ticket_payout_verify_{date_str}.json"
+    if not path.is_file():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    counts: Counter[str] = Counter()
+    for key in ("missing_live_cdp", "outstanding_rates"):
+        rows = payload.get(key) if isinstance(payload, dict) else None
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            comp = str(row.get("composition") or "").strip()
+            g_sig = str(row.get("goblin_delta_sig") or "").strip()
+            if not comp or g_sig in {"", "unknown", "—", "-"}:
+                continue
+            if str(row.get("rate_card_status") or "").lower() not in ("", "missing", "extrapolated"):
+                # Still prioritize missing live even if card has observed (ticket stamp gap).
+                if row.get("has_live_cdp_on_ticket") and str(row.get("rate_card_status") or "").lower() == "observed":
+                    continue
+            if "G" not in comp or "+0G+" in comp:
+                continue
+            counts[f"{comp}|{g_sig}"] += 1
+    return [k for k, _ in counts.most_common()]
+
+
 def build_force_delta_recipes(
     *,
     max_cases: int = 60,
     available_deltas: list[float] | None = None,
+    priority_sigs: list[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Enumerate missing S/G×Δ cells using Δ bins actually reachable on this board."""
+    """Enumerate missing S/G×Δ cells using Δ bins actually reachable on this board.
+
+    Ticket-missing signatures (priority_sigs) are injected first — including deep
+    Tennis Δs (3+5, 3+4+4, …) that board catalogs often omit — so max_cases does
+    not cut them in favor of small-Δ floor fills.
+    """
     priority_mixes: list[tuple[int, int]] = [
         (1, 1),
         (0, 2),
@@ -964,25 +1045,34 @@ def build_force_delta_recipes(
         (4, 1),
         (0, 6),
     ]
+    priority_parsed = _parse_priority_recipe_specs(priority_sigs)
+    priority_keys = {f"{comp}|{g_sig}" for comp, g_sig, *_ in priority_parsed}
+
     if available_deltas:
-        common_deltas = sorted(
-            {
-                round(float(d), 2)
-                for d in available_deltas
-                if 0.25 <= float(d) <= 6.5
-            }
-        )
+        common_deltas = {
+            round(float(d), 2)
+            for d in available_deltas
+            if 0.25 <= float(d) <= 6.5
+        }
     else:
-        common_deltas = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
-    if not common_deltas:
-        common_deltas = [1.0, 1.5, 2.0]
-    print(f"[force-delta] using board-reachable Δ bins={common_deltas}")
+        common_deltas = {0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0}
+    # Ensure ticket-priority Δ bins are plannable even when board catalog is shallow.
+    for _comp, _g_sig, _n_s, _n_g, deltas in priority_parsed:
+        for d in deltas:
+            if 0.25 <= float(d) <= 6.5:
+                common_deltas.add(round(float(d), 2))
+    common_deltas_list = sorted(common_deltas)
+    if not common_deltas_list:
+        common_deltas_list = [1.0, 1.5, 2.0]
+    print(f"[force-delta] using board-reachable Δ bins={common_deltas_list}")
+    if priority_keys:
+        print(f"[force-delta] ticket-priority sigs={len(priority_keys)} -> {sorted(priority_keys)[:12]}")
     covered = _live_covered_recipe_keys()
 
     recipes: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    def _add(n_s: int, n_g: int, g_deltas: list[float]) -> None:
+    def _add(n_s: int, n_g: int, g_deltas: list[float], *, ticket_priority: bool = False) -> None:
         n = n_s + n_g
         if n < 2 or n > 6:
             return
@@ -992,6 +1082,11 @@ def build_force_delta_recipes(
         g_sig = _norm_delta_sig("+".join(f"{x:g}" for x in g_deltas)) if g_deltas else ""
         key = f"{comp}|{g_sig}"
         if key in seen:
+            if ticket_priority:
+                for r in recipes:
+                    if f"{r.get('composition')}|{r.get('goblin_delta_sig')}" == key:
+                        r["ticket_priority"] = True
+                        break
             return
         seen.add(key)
         recipes.append(
@@ -1010,19 +1105,24 @@ def build_force_delta_recipes(
                 "samples": 0,
                 "force_alt_cycle": True,
                 "already_live": key in covered,
+                "ticket_priority": bool(ticket_priority) or key in priority_keys,
             }
         )
+
+    # Inject ticket-missing signatures first (deep Tennis / STRONG gaps).
+    for comp, g_sig, n_s, n_g, deltas in priority_parsed:
+        _add(n_s, n_g, deltas, ticket_priority=True)
 
     for n_s, n_g in priority_mixes:
         if n_g == 0:
             _add(n_s, 0, [])
             continue
-        for d in common_deltas:
+        for d in common_deltas_list:
             _add(n_s, n_g, [d] * n_g)
 
     for n_s, n_g in ((0, 2), (1, 2), (0, 3), (1, 3), (2, 2)):
-        for i, a in enumerate(common_deltas):
-            for b in common_deltas[i + 1 :]:
+        for i, a in enumerate(common_deltas_list):
+            for b in common_deltas_list[i + 1 :]:
                 if n_g == 2:
                     _add(n_s, 2, [a, b])
                 elif n_g == 3:
@@ -1031,6 +1131,7 @@ def build_force_delta_recipes(
 
     recipes.sort(
         key=lambda r: (
+            0 if r.get("ticket_priority") and not r.get("already_live") else 1,
             1 if r.get("already_live") else 0,
             {
                 "1S+1G+0D": 0,
@@ -1043,17 +1144,27 @@ def build_force_delta_recipes(
                 "2S+2G+0D": 7,
                 "3S+1G+0D": 8,
             }.get(str(r.get("composition") or ""), 20),
-            float(
-                sum(float(x) for x in str(r.get("goblin_delta_sig") or "").split("+") if x) or 0
+            # Among ticket-priority, prefer deeper (higher sum) Δs — those are the gaps.
+            # Among fillers, keep smaller Δs first (easier board faces).
+            (
+                -float(
+                    sum(float(x) for x in str(r.get("goblin_delta_sig") or "").split("+") if x) or 0
+                )
+                if r.get("ticket_priority")
+                else float(
+                    sum(float(x) for x in str(r.get("goblin_delta_sig") or "").split("+") if x) or 0
+                )
             ),
             str(r.get("goblin_delta_sig") or ""),
         )
     )
     out = recipes[: max(1, int(max_cases))]
     n_missing = sum(1 for r in out if not r.get("already_live"))
+    n_pri = sum(1 for r in out if r.get("ticket_priority") and not r.get("already_live"))
     print(
         f"[force-delta] planned recipes={len(out)}/{len(recipes)} "
-        f"(missing_live≈{n_missing}; from cataloged board Δ steps)"
+        f"(missing_live≈{n_missing}; ticket_priority_missing={n_pri}; "
+        f"from cataloged board Δ steps + ticket verify gaps)"
     )
     return out
 
@@ -1727,6 +1838,20 @@ def main() -> int:
             "to hit target Goblin lines (std−Δ), not limited to faces already showing"
         ),
     )
+    ap.add_argument(
+        "--priority-sigs",
+        default="",
+        help=(
+            "Comma-separated ticket gaps to capture first, e.g. "
+            "'0S+2G+0D|3+5,0S+3G+0D|3+4+4'. Empty = auto-load from "
+            "data/reports/ticket_payout_verify_<date>.json when present."
+        ),
+    )
+    ap.add_argument(
+        "--no-verify-priority",
+        action="store_true",
+        help="Do not auto-load priority signatures from ticket_payout_verify_<date>.json",
+    )
     args = ap.parse_args()
     date_str = str(args.slate_date or args.date)[:10]
     gentle = bool(args.gentle) or bool(args.prefetch_http)
@@ -2041,9 +2166,17 @@ def main() -> int:
                     f"using default mid-range bins={avail} with alt-line synthesize"
                 )
             if avail:
+                pri_raw = [
+                    p.strip()
+                    for p in str(args.priority_sigs or "").split(",")
+                    if p.strip()
+                ]
+                if not pri_raw and not bool(args.no_verify_priority):
+                    pri_raw = load_priority_sigs_from_verify(date_str)
                 recipes = build_force_delta_recipes(
                     max_cases=int(args.max_cases),
                     available_deltas=avail,
+                    priority_sigs=pri_raw or None,
                 )
                 delta_tol = max(float(args.delta_tol), 0.75)
             else:

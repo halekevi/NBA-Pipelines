@@ -56,7 +56,12 @@ def _parse_delta_blob(raw: Any) -> list[float]:
         return [f] if f > 0 else []
     if isinstance(raw, list):
         # Character-sploded ["1", ",", "1"] -> treat as joined string.
-        if raw and all(isinstance(x, str) and len(x) <= 1 for x in raw):
+        # Do NOT join numeric tokens like ["3", "5"] (that wrongly becomes "35").
+        if (
+            raw
+            and all(isinstance(x, str) and len(x) <= 1 for x in raw)
+            and any(x in {",", "+", "|", ";"} for x in raw)
+        ):
             return _parse_delta_blob("".join(raw))
         out: list[float] = []
         for x in raw:
@@ -82,7 +87,7 @@ def _parse_delta_blob(raw: Any) -> list[float]:
 
 
 def _leg_delta(leg: dict) -> float | None:
-    for key in ("line_distance", "delta", "goblin_delta", "distance"):
+    for key in ("line_distance", "delta", "goblin_delta", "distance", "line_discount_vs_standard"):
         f = _safe_float(leg.get(key))
         if f is not None and f > 0:
             return f

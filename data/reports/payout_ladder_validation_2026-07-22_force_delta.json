@@ -1,16 +1,17 @@
 {
   "date": "2026-07-22",
   "mode": "force_delta",
-  "generated_at": "2026-07-22T16:28:14.481698+00:00",
+  "generated_at": "2026-07-22T18:41:41.526561+00:00",
   "cdp_url": "http://127.0.0.1:9222",
   "live_board_tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\payout_ladder_validation_tickets.json",
   "capture_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\data\\reports\\payout_ladder_validation_capture_2026-07-22_force_delta.json",
   "capture_exit": 0,
   "summary": {
-    "captured": 20
+    "captured": 4,
+    "capture_failed": 2
   },
-  "n_ok_slips": 20,
-  "n_results": 20,
+  "n_ok_slips": 4,
+  "n_results": 6,
   "results": [
     {
       "kind": "force_delta",
@@ -19,7 +20,7 @@
       "n_standard": 0,
       "n_goblin": 2,
       "n_demon": 0,
-      "goblin_delta_sig": "1+1.5",
+      "goblin_delta_sig": "1.5+5",
       "demon_delta_sig": "",
       "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
@@ -27,706 +28,30 @@
       "samples": 0,
       "force_alt_cycle": true,
       "already_live": false,
+      "ticket_priority": true,
       "status": "planned",
       "ticket_id": "2026-07-22|LADDER_VAL|force_delta|1",
-      "proxy_match": false,
+      "proxy_match": true,
       "matched_goblin_deltas": [
-        1.0,
-        1.5
+        1.5,
+        5.0
       ],
       "legs": [
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
         {
           "player": "Caitlin Clark",
           "prop": "Points",
           "line": 17.5,
           "pick_type": "Goblin",
           "line_distance": 1.5,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.6,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 2,
-      "composition": "0S+2G+0D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.0,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.2,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 2,
-      "composition": "0S+2G+0D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|3",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.5,
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Breanna Stewart",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Paige Bueckers",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 2,
-      "composition": "0S+2G+0D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|4",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.5,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Breanna Stewart",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 2,
-      "composition": "0S+2G+0D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "2+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|5",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        2.0,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
           "force_alt_cycle": true
         },
         {
           "player": "A'ja Wilson",
           "prop": "Points",
-          "line": 21.5,
+          "line": 19.0,
           "pick_type": "Goblin",
-          "line_distance": 2.0,
+          "line_distance": 5.0,
           "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 1.8,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+1+1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|6",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.0,
-        1.0,
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Kelsey Mitchell",
-          "prop": "Points",
-          "line": 19.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Paige Bueckers",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.25,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+1+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|7",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.0,
-        1.0,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Kelsey Mitchell",
-          "prop": "Points",
-          "line": 19.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 21.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+1.5+1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|8",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.0,
-        1.5,
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Kelsey Mitchell",
-          "prop": "Points",
-          "line": 19.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Breanna Stewart",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.5,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+1.5+1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|9",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.5,
-        1.5,
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Breanna Stewart",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Paige Bueckers",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.25,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+2+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|10",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.0,
-        2.0,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 21.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.0,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+1.5+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|11",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.5,
-        1.5,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Breanna Stewart",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.25,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+2+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|12",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.5,
-        2.0,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 21.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.9,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+2+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|13",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        2.0,
-        2.0,
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 21.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.9,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "2S+1G+0D",
-      "n_standard": 2,
-      "n_goblin": 1,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|14",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": false
         }
       ],
       "capture_status": "ok",
@@ -738,11 +63,11 @@
     {
       "kind": "force_delta",
       "n_legs": 3,
-      "composition": "2S+1G+0D",
-      "n_standard": 2,
-      "n_goblin": 1,
+      "composition": "0S+3G+0D",
+      "n_standard": 0,
+      "n_goblin": 3,
       "n_demon": 0,
-      "goblin_delta_sig": "2",
+      "goblin_delta_sig": "1+1.5+4",
       "demon_delta_sig": "",
       "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
@@ -750,181 +75,22 @@
       "samples": 0,
       "force_alt_cycle": true,
       "already_live": false,
+      "ticket_priority": true,
       "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|15",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
-        },
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 17.0,
-          "pick_type": "Standard",
-          "line_distance": 5.5,
-          "force_alt_cycle": false
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.3,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "1S+2G+0D",
-      "n_standard": 1,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|16",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
       "proxy_match": false,
       "matched_goblin_deltas": [
         1.0,
-        1.5
-      ],
-      "legs": [
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 4.5,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "1S+2G+0D",
-      "n_standard": 1,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+2",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|17",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
-        1.0,
-        2.0
-      ],
-      "legs": [
-        {
-          "player": "Kahleah Copper",
-          "prop": "Points",
-          "line": 20.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Kayla McBride",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.75,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "1S+2G+0D",
-      "n_standard": 1,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+1.5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|18",
-      "proxy_match": false,
-      "matched_goblin_deltas": [
         1.5,
-        1.5
+        4.0
       ],
       "legs": [
         {
-          "player": "Caitlin Clark",
+          "player": "Olivia Miles",
           "prop": "Points",
-          "line": 17.5,
+          "line": 16.5,
           "pick_type": "Goblin",
-          "line_distance": 1.5,
+          "line_distance": 1.0,
           "force_alt_cycle": true
         },
         {
@@ -936,28 +102,28 @@
           "force_alt_cycle": true
         },
         {
-          "player": "Cameron Brink",
+          "player": "A'ja Wilson",
           "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "line_distance": 4.0,
+          "force_alt_cycle": true
         }
       ],
       "capture_status": "ok",
-      "live_power_min_x": 4.25,
+      "live_power_min_x": 2.7,
       "live_power_first_x": 3.0,
       "verdict": "captured",
       "delta_vs_ladder_avg": null
     },
     {
       "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "1S+2G+0D",
-      "n_standard": 1,
+      "n_legs": 2,
+      "composition": "0S+2G+0D",
+      "n_standard": 0,
       "n_goblin": 2,
       "n_demon": 0,
-      "goblin_delta_sig": "1.5+2",
+      "goblin_delta_sig": "1.5+4",
       "demon_delta_sig": "",
       "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
@@ -965,14 +131,127 @@
       "samples": 0,
       "force_alt_cycle": true,
       "already_live": false,
+      "ticket_priority": false,
       "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|19",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|3",
       "proxy_match": false,
       "matched_goblin_deltas": [
         1.5,
-        2.0
+        4.0
       ],
       "legs": [
+        {
+          "player": "Breanna Stewart",
+          "prop": "Points",
+          "line": 20.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.5,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "A'ja Wilson",
+          "prop": "Points",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "line_distance": 4.0,
+          "force_alt_cycle": true
+        }
+      ],
+      "capture_status": "ok",
+      "live_power_min_x": 1.9,
+      "live_power_first_x": 3.0,
+      "verdict": "captured",
+      "delta_vs_ladder_avg": null
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 3,
+      "composition": "0S+3G+0D",
+      "n_standard": 0,
+      "n_goblin": 3,
+      "n_demon": 0,
+      "goblin_delta_sig": "1+1+4",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "ticket_priority": false,
+      "status": "planned",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|4",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        1.0,
+        1.0,
+        4.0
+      ],
+      "legs": [
+        {
+          "player": "Kelsey Mitchell",
+          "prop": "Points",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Olivia Miles",
+          "prop": "Points",
+          "line": 16.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "A'ja Wilson",
+          "prop": "Points",
+          "line": 19.5,
+          "pick_type": "Goblin",
+          "line_distance": 4.0,
+          "force_alt_cycle": true
+        }
+      ],
+      "capture_status": "ok",
+      "live_power_min_x": 2.4,
+      "live_power_first_x": 3.0,
+      "verdict": "captured",
+      "delta_vs_ladder_avg": null
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 3,
+      "composition": "0S+3G+0D",
+      "n_standard": 0,
+      "n_goblin": 3,
+      "n_demon": 0,
+      "goblin_delta_sig": "1.5+1.5+3",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "ticket_priority": false,
+      "status": "planned",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|5",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        1.5,
+        1.5,
+        3.0
+      ],
+      "legs": [
+        {
+          "player": "Paige Bueckers",
+          "prop": "Points",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.5,
+          "force_alt_cycle": true
+        },
         {
           "player": "Caitlin Clark",
           "prop": "Points",
@@ -984,34 +263,26 @@
         {
           "player": "Kayla McBride",
           "prop": "Points",
-          "line": 15.5,
+          "line": 14.5,
           "pick_type": "Goblin",
-          "line_distance": 2.0,
+          "line_distance": 3.0,
           "force_alt_cycle": true
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
         }
       ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.75,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_0_of_3_legs"
     },
     {
       "kind": "force_delta",
       "n_legs": 3,
-      "composition": "1S+2G+0D",
-      "n_standard": 1,
-      "n_goblin": 2,
+      "composition": "0S+3G+0D",
+      "n_standard": 0,
+      "n_goblin": 3,
       "n_demon": 0,
-      "goblin_delta_sig": "2+2",
+      "goblin_delta_sig": "1+1+5",
       "demon_delta_sig": "",
       "ladder_avg_x": 0.0,
       "ladder_min_x": 0.0,
@@ -1019,44 +290,46 @@
       "samples": 0,
       "force_alt_cycle": true,
       "already_live": false,
+      "ticket_priority": false,
       "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|20",
-      "proxy_match": false,
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|6",
+      "proxy_match": true,
       "matched_goblin_deltas": [
-        2.0,
-        2.0
+        1.0,
+        1.0,
+        5.0
       ],
       "legs": [
         {
-          "player": "Kayla McBride",
+          "player": "Kelsey Mitchell",
           "prop": "Points",
-          "line": 15.5,
+          "line": 19.5,
           "pick_type": "Goblin",
-          "line_distance": 2.0,
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Olivia Miles",
+          "prop": "Points",
+          "line": 16.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
           "force_alt_cycle": true
         },
         {
           "player": "A'ja Wilson",
           "prop": "Points",
-          "line": 21.5,
+          "line": 19.0,
           "pick_type": "Goblin",
-          "line_distance": 2.0,
+          "line_distance": 5.0,
           "force_alt_cycle": true
-        },
-        {
-          "player": "Cameron Brink",
-          "prop": "Points",
-          "line": 8.5,
-          "pick_type": "Standard",
-          "line_distance": 2.0,
-          "force_alt_cycle": false
         }
       ],
-      "capture_status": "ok",
-      "live_power_min_x": 3.25,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
+      "capture_status": "failed",
+      "live_power_min_x": null,
+      "live_power_first_x": null,
+      "verdict": "capture_failed",
+      "error": "only_clicked_0_of_3_legs"
     }
   ]
 }

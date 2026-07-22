@@ -322,16 +322,16 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </div>
 <div class="sum-row sum-row-legs">
 <div class="sum-row-label">Legs</div>
-<div class="sum-item"><div class="sum-val green">157</div><div class="sum-lab">Hits</div></div>
-<div class="sum-item"><div class="sum-val red">50</div><div class="sum-lab">Misses</div></div>
+<div class="sum-item"><div class="sum-val green">161</div><div class="sum-lab">Hits</div></div>
+<div class="sum-item"><div class="sum-val red">52</div><div class="sum-lab">Misses</div></div>
 <div class="sum-item"><div class="sum-val void">24</div><div class="sum-lab">Void / push</div></div>
-<div class="sum-item"><div class="sum-val pend">9</div><div class="sum-lab">Ungraded</div></div>
+<div class="sum-item"><div class="sum-val pend">3</div><div class="sum-lab">Ungraded</div></div>
 <div class="sum-item"><div class="sum-val sum-val-sm">240</div><div class="sum-lab">Total legs</div></div>
 </div></div>
 <div class="wrap ticket-eval-main">
 <p class="slate-kicker">SLATE DATE · 2026-07-21</p>
 <details class="grade-eval-help"><summary>How these grades work</summary>
-<p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-07-21/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (9 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-07-21/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-07-21/</code> before rebuilding this page. </p></details>
+<p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-07-21/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (3 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-07-21/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-07-21/</code> before rebuilding this page. </p></details>
 <div class="ticket-sections-wrap">
 <details class="ticket-bucket sb-mlb">
 <summary><span class="ticket-bucket-title">MLB</span><span class="ticket-bucket-meta">41 sections · 41 tickets</span></summary>
@@ -3159,7 +3159,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #1</span>
-<span class="tg">1✓ 1✗ / 5</span>
+<span class="tg">2✓ 2✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3174,14 +3174,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Robert Morales</div>
+<div class="pl-hit">Robert Morales</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUMAS vs TOLUCA</div></div>
 <div class="leg-extra">2 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">-0.8</div>
 </div>
 <div class="legrow leg-pend">
@@ -3194,15 +3194,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Helinho</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">TOLUCA vs PUMAS</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Helinho</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">TOLUCA vs PUMAS</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">6</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-miss">
 <div class="badge miss">✗</div>
@@ -3222,7 +3222,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 5-Leg #2</span>
-<span class="tg">1✓ 1✗ / 5</span>
+<span class="tg">3✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3237,14 +3237,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-0.1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alexis Vega</div>
+<div class="pl-hit">Alexis Vega</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">TOLUCA vs PUMAS</div></div>
 <div class="leg-extra">3 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">-1.2</div>
 </div>
 <div class="legrow leg-miss">
@@ -3267,14 +3267,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-1.4</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Keylor Navas</div>
+<div class="pl-hit">Keylor Navas</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">PUMAS vs TOLUCA</div></div>
 <div class="leg-extra">4 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-0.6</div>
 </div>
 <div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
@@ -3285,7 +3285,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Standard 6-Leg #1</span>
-<span class="tg">2✓ 1✗ / 6</span>
+<span class="tg">3✓ 2✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
 <span class="banner pend">UNGRADED</span>
 </div>
@@ -3300,14 +3300,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-hit">0</div>
 <div class="leg-extra">-2</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Robert Morales</div>
+<div class="pl-hit">Robert Morales</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUMAS vs TOLUCA</div></div>
 <div class="leg-extra">2 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">-0.8</div>
 </div>
 <div class="legrow leg-pend">
@@ -3320,15 +3320,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">-0.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Helinho</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">TOLUCA vs PUMAS</div></div>
-<div class="leg-extra">2.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-pend">—</div>
-<div class="leg-extra">-0.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Helinho</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Shots</div><div class="meta-muted">TOLUCA vs PUMAS</div></div>
+<div class="leg-extra miss-leg-cell">2.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">6</div>
+<div class="leg-extra miss-leg-cell">-0.5</div>
 </div>
 <div class="legrow leg-miss">
 <div class="badge miss">✗</div>

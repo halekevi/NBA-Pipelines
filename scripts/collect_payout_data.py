@@ -3864,6 +3864,59 @@ def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
     }
 
 
+def _parse_leg_start_dt(leg: dict) -> datetime | None:
+    """Best-effort parse of a leg's game start time (tz-aware UTC when possible)."""
+    if not isinstance(leg, dict):
+        return None
+    raw = None
+    for k in (
+        "event_start_time",
+        "start_time",
+        "game_start_time",
+        "commence_time",
+        "game_time",
+    ):
+        v = leg.get(k)
+        if v not in (None, ""):
+            raw = v
+            break
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    try:
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        # Naive timestamps are treated as UTC to avoid false pre-tip.
+        from datetime import timezone as _tz
+
+        dt = dt.replace(tzinfo=_tz.utc)
+    return dt
+
+
+def capture_has_tipped_leg(rec: dict, *, now: datetime | None = None) -> bool:
+    """True when any leg has a parseable start_time at/before now (post-tip).
+
+    Goblin payout floors change after tip — tipped captures must not feed the
+    SG-Δ rate card as pre-game truth. Returns False when start times are missing
+    (caller should treat that as unverified, not as safe).
+    """
+    from datetime import timezone as _tz
+
+    now = now or datetime.now(_tz.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=_tz.utc)
+    legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+    for leg in legs:
+        st = _parse_leg_start_dt(leg if isinstance(leg, dict) else {})
+        if st is not None and st <= now.astimezone(st.tzinfo):
+            return True
+    return False
+
+
 def sync_captures_to_payout_ladder_live(
     captured: list[dict],
     *,
@@ -3871,6 +3924,7 @@ def sync_captures_to_payout_ladder_live(
     output_path: Path | None = None,
     tickets_path: Path | None = None,
     keep_same_date: bool = False,
+    allow_tipped: bool = False,
 ) -> dict[str, Any]:
     """
     Upsert live CDP captures into ui_runner/data/payout_ladder_live_cdp.json.
@@ -3881,6 +3935,9 @@ def sync_captures_to_payout_ladder_live(
     capture batch (full ticket scrape).
     keep_same_date=True: keep prior same-date rows and upsert by dedupe key
     (ladder validation merge).
+
+    By default, slips with any tipped/in-progress leg (parseable start_time <= now)
+    are skipped — Goblin floors shift post-tip and must not pollute the rate card.
     """
     date_str = str(date_str or "").strip()[:10]
     output_path = output_path or PAYOUT_LADDER_LIVE_CDP_PATH
@@ -3913,6 +3970,8 @@ def sync_captures_to_payout_ladder_live(
         # Keep scanning so validation tickets + tickets_latest can both enrich.
 
     enriched_captured: list[dict] = []
+    n_skip_tipped = 0
+    n_skip_no_floor = 0
     for rec in captured or []:
         if not isinstance(rec, dict):
             continue
@@ -3944,7 +4003,27 @@ def sync_captures_to_payout_ladder_live(
                 merged_legs.append(m)
             if merged_legs:
                 row["legs"] = merged_legs
+        # Require a real Min Guarantee floor (never sync partials with null power_min_x).
+        try:
+            floor = float(row.get("power_min_x") or row.get("min_x") or 0)
+        except (TypeError, ValueError):
+            floor = 0.0
+        if floor <= 0:
+            n_skip_no_floor += 1
+            continue
+        if not allow_tipped and capture_has_tipped_leg(row):
+            n_skip_tipped += 1
+            print(
+                f"[PAYOUT] SKIP tipped-game capture (not rate-card truth): "
+                f"{row.get('ticket_id')}"
+            )
+            continue
         enriched_captured.append(row)
+    if n_skip_tipped or n_skip_no_floor:
+        print(
+            f"[PAYOUT] tip/floor filter: skipped tipped={n_skip_tipped} "
+            f"no_floor={n_skip_no_floor} kept={len(enriched_captured)}"
+        )
 
     prior: dict[str, Any] = {"schema_version": 1, "date": date_str, "rows": []}
     if output_path.is_file():

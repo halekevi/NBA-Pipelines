@@ -124,6 +124,16 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
 from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
+from utils.fantasy_prop_filter import is_fantasy_prop_label as _is_fantasy_prop_label
+from utils.category_hit_rate import (
+    CATEGORY_HR_HARD_FILTER as _CATEGORY_HR_HARD_FILTER,
+    attach_category_hr_columns as _attach_category_hr_columns,
+    category_hr_boost_series as _category_hr_boost_series,
+    category_hr_fail_mask as _category_hr_fail_mask,
+    load_category_hr_index as _load_category_hr_index,
+    winrate_priority_series as _winrate_priority_series,
+    DEFAULT_CATEGORY_HR_PATH as _CATEGORY_HR_PATH,
+)
 from utils.kelly_staking import fractional_kelly, leg_edge_pct_for_kelly
 from utils.prop_signal_score import (
     HOT_L10_BOOST,
@@ -536,6 +546,7 @@ def print_combined_slate_input_paths(args: argparse.Namespace) -> None:
 DIVERSITY_CONFIG_PATH = os.path.join(REPO_ROOT, "config", "diversity_config.json")
 PROP_RELIABILITY_LATEST_PATH = os.path.join(REPO_ROOT, "data", "reports", "prop_reliability_latest.json")
 PROP_STRAT_BOARD_LATEST_PATH = os.path.join(REPO_ROOT, "ui_runner", "data", "prop_stratification_board_latest.json")
+CATEGORY_HR_LATEST_PATH = os.getenv("PROPORACLE_CATEGORY_HR_PATH", _CATEGORY_HR_PATH)
 
 
 def _scalar_blank(val: Any) -> bool:
@@ -4381,13 +4392,13 @@ ELIGIBLE_TIERS_BY_PICK_TYPE_DIRECTION: dict[tuple[str, str], set[str]] = {
 }
 TIER_POLICY_SPORTS = {"NBA", "NBA1H", "NBA1Q"}
 
-# Cap fantasy-score concentration per ticket so slips are more diversified.
+# Fantasy Score markets are banned from all ticket construction (0 allowed).
 MAX_FANTASY_LEGS = {
-    2: 1,
-    3: 1,
-    4: 2,
-    5: 2,
-    6: 2,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
 }
 MAX_SAME_PROP_TYPE_PER_TICKET = 2
 
@@ -4396,8 +4407,12 @@ TICKET_LEG_SIZES = [2, 3, 4, 5, 6]
 MIN_TICKET_POOL = min(TICKET_LEG_SIZES)
 
 
-def _is_fantasy_prop(row: pd.Series) -> bool:
-    return "fantasy" in str(row.get("prop_type", "")).strip().lower()
+def _is_fantasy_prop(row: pd.Series | dict) -> bool:
+    if isinstance(row, pd.Series):
+        raw = row.get("prop_type", "") or row.get("prop", "")
+    else:
+        raw = (row or {}).get("prop_type", "") or (row or {}).get("prop", "")
+    return bool(_is_fantasy_prop_label(raw))
 
 
 def _ticket_prop_token(row: pd.Series | dict) -> str:
@@ -4414,6 +4429,8 @@ def _can_add_row_with_prop_cap(
     prop_type_counts: Counter[str],
     max_same_prop: int = MAX_SAME_PROP_TYPE_PER_TICKET,
 ) -> bool:
+    if _is_fantasy_prop(row):
+        return False
     tok = _ticket_prop_token(row)
     if not tok:
         return True
@@ -4569,18 +4586,35 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
     rule: user ruleset (L5, L10/season consistency, defense, minutes, role, H2H, edge),
     with Demon legs deprioritized.
     hot_hr: directional L10/L5 + composite HR (ignore edge) — preferred for MLB Goblin.
+    winrate: category_hr prior + recent form + model + matchup + HOT (fantasy → -9).
     """
     out = df.copy()
     if out.empty:
         out["__ts_pri"] = pd.Series(dtype=float)
         out["__ts_sec"] = pd.Series(dtype=float)
         return out
+    # Fantasy Score is never a ticket candidate — sink to bottom.
+    if "prop_type" in out.columns or "prop" in out.columns:
+        _fant = _fantasy_prop_mask(out)
+        if _fant.any():
+            out = out.loc[~_fant].copy()
+            if out.empty:
+                out["__ts_pri"] = pd.Series(dtype=float)
+                out["__ts_sec"] = pd.Series(dtype=float)
+                return out
+    if "category_hr" not in out.columns:
+        out = _attach_category_hr_columns(out)
     rs = pd.to_numeric(out["rank_score"], errors="coerce") if "rank_score" in out.columns else pd.Series(np.nan, index=out.index)
     ml = pd.to_numeric(out["ml_prob"], errors="coerce") if "ml_prob" in out.columns else pd.Series(np.nan, index=out.index)
     rs_p = rs.map(_scalar_rank_to_prob_for_sort)
     m = (mode or "rank").strip().lower()
-    if m not in ("rank", "ml", "blend", "rule", "hot_hr"):
+    if m not in ("rank", "ml", "blend", "rule", "hot_hr", "winrate"):
         m = "rank"
+    if m == "winrate":
+        out["__ts_pri"] = _winrate_priority_series(out)
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        out["__ts_sec"] = cat.fillna(-1.0)
+        return out
     if m == "ml":
         out["__ts_pri"] = ml.fillna(-1.0)
         out["__ts_sec"] = rs.fillna(-1e9)
@@ -4588,7 +4622,9 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         out = ensure_prop_signal_columns(out)
         ctx = context_signal_adjustment_series(out)
         ml_b = ml.where(ml.notna(), rs_p)
-        out["__ts_pri"] = (0.45 * ml_b + 0.35 * rs_p + 0.20 * ctx.clip(-0.15, 0.15)).fillna(-1.0)
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        cat_boost = ((cat - 0.55) * 0.25).clip(-0.06, 0.10).fillna(0.0)
+        out["__ts_pri"] = (0.40 * ml_b + 0.30 * rs_p + 0.15 * ctx.clip(-0.15, 0.15) + 0.15 * (cat.fillna(0.52) + cat_boost)).fillna(-1.0)
         out["__ts_sec"] = rs.fillna(-1e9)
     elif m == "hot_hr":
         # MLB edge is anti-correlated with hits — rank on recent side hits + composite HR only.
@@ -4609,6 +4645,8 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         pri = pri + np.where(pd.isna(side_l5), 0.0, np.where(side_l5 >= 4, 0.05, np.where(side_l5 <= 2, -0.04, 0.0)))
         tier = out.get("tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
         pri = pri + np.where(tier.eq("A"), 0.03, np.where(tier.eq("B"), 0.015, 0.0))
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        pri = pri + ((cat - 0.55) * 0.20).clip(-0.05, 0.08).fillna(0.0)
         out["__ts_pri"] = pri
         out["__ts_sec"] = base.fillna(-1.0)
     elif m == "rule":
@@ -4620,6 +4658,7 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         # 5) Role context
         # 6) H2H consistency
         # 7) Edge as a smaller tie-breaker
+        # 8) Category HR prior (sport×prop×Std/Gob×O/U) — fantasy already dropped
         direction = out.get("direction", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
         pick_type = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.upper().str.strip()
         def_tier_raw = out.get("def_tier", pd.Series("", index=out.index))
@@ -4691,6 +4730,10 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         edge_adj = pd.Series(np.where(over_mask, edge, -edge), index=out.index)
         edge_adj = pd.to_numeric(edge_adj, errors="coerce").fillna(0.0).clip(-12.0, 12.0) / 40.0
         pri = pri + edge_adj
+
+        # Category HR prior (fantasy already stripped above).
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        pri = pri + ((cat - 0.55) * 0.35).clip(-0.10, 0.14).fillna(0.0)
 
         # Explicitly deprioritize Demon as requested.
         pri = np.where(pick_type.eq("DEMON"), -9.0, pri)
@@ -5167,7 +5210,10 @@ def _main_leg_prop_banned(row_d: dict) -> bool:
     direction = str(
         row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
     ).strip().upper()
-    prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
+    prop_raw = row_d.get("prop_type") or row_d.get("prop") or ""
+    if _is_fantasy_prop_label(prop_raw):
+        return True
+    prop = _norm_main_prop_key(prop_raw)
     if sport == "MLB" and "goblin" in pick and direction == "OVER":
         # Hard-ban hitter core Goblin OVERs (Hits/TB/HRRBI/…). Pitcher allowlist only.
         if not prop:
@@ -7239,7 +7285,53 @@ def attach_standard_refs(df: pd.DataFrame) -> pd.DataFrame:
             return pd.NA
 
     out["line_discount_vs_standard"] = out.apply(_discount, axis=1)
+
+    # Goblin/Demon rows with no Standard sibling (common for MLB pitcher alts and
+    # thin Assists boards): backfill standard_line via sport offset estimates so
+    # Goblin-Δ signatures are computable for payout verify / rate-card keys.
+    try:
+        from utils.pick_line_standard import (
+            estimate_demon_standard_line,
+            estimate_goblin_standard_line,
+        )
+    except Exception:
+        return out
+
+    def _need_std(row) -> bool:
+        pt = str(row.get("pick_type") or "").strip().lower()
+        if pt not in {"goblin", "demon"}:
+            return False
+        try:
+            std = float(row.get("standard_line"))
+            return not math.isfinite(std)
+        except (TypeError, ValueError):
+            return True
+
+    need_mask = out.apply(_need_std, axis=1)
+    if need_mask.any():
+        if "standard_line_source" not in out.columns:
+            out["standard_line_source"] = ""
+        if "deviation_level" not in out.columns:
+            out["deviation_level"] = 1
+        for idx in out.index[need_mask]:
+            row = out.loc[idx]
+            pt = str(row.get("pick_type") or "").strip().lower()
+            sport = str(row.get("sport") or "").strip() or "default"
+            dev = row.get("deviation_level")
+            if pt == "goblin":
+                est = estimate_goblin_standard_line(row.get("line"), dev, sport=sport)
+            else:
+                est = estimate_demon_standard_line(row.get("line"), dev, sport=sport)
+            if est is None:
+                continue
+            out.at[idx, "standard_line"] = float(est)
+            out.at[idx, "standard_line_source"] = "offset_estimate"
+        # Recompute discounts for newly filled rows.
+        out.loc[need_mask, "line_discount_vs_standard"] = out.loc[need_mask].apply(
+            _discount, axis=1
+        )
     return out
+
 
 def _safe_int_cross_books(v) -> Optional[int]:
     if _scalar_blank(v):
@@ -13997,6 +14089,8 @@ CORE_PROP_FOCUS_DIRECTION: dict[str, str] = {
     # Soccer: prefer UNDER; keep blank so soccer_allowed_leg can still pass HQ OVER.
     "SOCCER": "",
     "SOC": "",
+    # NHL: graded history favors UNDER (SOG/Goals/Assists).
+    "NHL": "UNDER",
 }
 
 
@@ -14005,6 +14099,19 @@ def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.D
     if pool_df is None or pool_df.empty:
         return pool_df
     out = pool_df.copy()
+    # Fantasy Score banned from CORE (and all ticket boards).
+    fant = _fantasy_prop_mask(out)
+    if fant.any():
+        out = out.loc[~fant].copy()
+    if out.empty:
+        return out
+    if "category_hr" not in out.columns:
+        out = _attach_category_hr_columns(out)
+    fail = _category_hr_fail_mask(out)
+    if fail.any():
+        kept = out.loc[~fail].copy()
+        if len(kept) >= 2:
+            out = kept
     sp = str(sport_label or "").strip().upper()
     if sp == "MLB":
         if "pick_type" in out.columns:
@@ -14028,6 +14135,12 @@ def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.D
             gob = out[pt.eq("goblin")].copy()
             if len(gob) >= 2:
                 out = gob
+    elif sp == "NHL":
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            std = out[pt.eq("standard")].copy()
+            if len(std) >= 2:
+                out = std
 
     want_dir = str(CORE_PROP_FOCUS_DIRECTION.get(sp) or "").strip().upper()
     if want_dir in ("OVER", "UNDER") and "direction" in out.columns and not out.empty:
@@ -15208,7 +15321,11 @@ def _strong_builder_prop_norm(v: object) -> str:
 
 
 def _strong_builder_prop_allowed(v: object, sport: object = None) -> bool:
+    if _is_fantasy_prop_label(v):
+        return False
     norm = _strong_builder_prop_norm(v)
+    if "fantasy" in norm:
+        return False
     sp = str(sport or "").upper().strip()
     if sp == "MLB":
         return norm in STRONG_BUILDER_MLB_PROPS_NORM
@@ -17900,14 +18017,15 @@ def main():
     )
     ap.add_argument(
         "--ticket-candidate-sort",
-        choices=("rank", "ml", "blend", "rule", "hot_hr"),
-        default="rule",
+        choices=("rank", "ml", "blend", "rule", "hot_hr", "winrate"),
+        default="winrate",
         dest="ticket_candidate_sort",
         help=(
-            "Order slate rows when choosing ticket legs. rank=rank_score only; ml=ml_prob first (NaN last); "
-            "blend=avg(ml_prob, sigmoid(rank_score)) with missing ml using sigmoid(rank) only; "
-            "rule=full context rules (remove Demon, L5/L10, defense, minutes, role, H2H, edge). "
-            "Default blend uses your step8 ML Prob column when present (same signal as _resolve_leg_prob priority)."
+            "Order slate rows when choosing ticket legs. "
+            "winrate=category_hr + recent form + model + defense + HOT (fantasy banned); "
+            "rule=L5/L10/defense/minutes/role/H2H/edge + category_hr; "
+            "rank=rank_score; ml=ml_prob; blend=ml+rank+context+category; hot_hr=L10/L5 HR. "
+            "Fantasy Score props are never ticket candidates."
         ),
     )
     ap.add_argument(
@@ -18747,6 +18865,14 @@ def main():
         print(f"  [reliability] loaded {len(reliability_index)} prop-direction buckets from {PROP_RELIABILITY_LATEST_PATH}")
     else:
         print("  [reliability] no reliability index found; continuing without reliability gate")
+    category_hr_index = _load_category_hr_index(CATEGORY_HR_LATEST_PATH)
+    if category_hr_index:
+        print(
+            f"  [category-hr] loaded {len(category_hr_index)} sport×prop×pick×dir buckets "
+            f"from {CATEGORY_HR_LATEST_PATH} (fantasy excluded)"
+        )
+    else:
+        print("  [category-hr] no category hit-rate index found; continuing without category prior")
     strat_index = _load_prop_strat_index()
     if strat_index:
         print(f"  [strat] loaded {len(strat_index)} trusted segment rows from {PROP_STRAT_BOARD_LATEST_PATH}")
@@ -18874,6 +19000,13 @@ def main():
         filtered_df = _attach_reliability_columns(filtered_df, reliability_index)
         filtered_df = _attach_strat_columns(filtered_df, strat_index)
         filtered_df = attach_stack_70_columns(filtered_df)
+        # Fantasy Score: hard ban from every ticket pool.
+        _fant_mask = _fantasy_prop_mask(filtered_df)
+        _fant_n = int(_fant_mask.sum())
+        if _fant_n:
+            filtered_df = filtered_df.loc[~_fant_mask].copy()
+            print(f"  [pool] Excluded {_fant_n} Fantasy Score legs (banned from tickets)")
+        filtered_df = _attach_category_hr_columns(filtered_df, category_hr_index)
         pre_void_df = filtered_df.copy()
         voided_excluded = 0
         demon_candidates = None
@@ -19065,9 +19198,11 @@ def main():
         # L10, ml_prob, def_tier, cross-book edge, line movement, graded-history boosts.
         _ctx_adj = context_signal_adjustment_series(filtered_df)
         _ga_boost = graded_analysis_boost_series(filtered_df, _graded_ctx_main)
+        _cat_boost = _category_hr_boost_series(filtered_df)
         filtered_df["context_signal_adj"] = _ctx_adj
         filtered_df["graded_history_boost"] = _ga_boost
-        _signal_bonus = _ctx_adj + _ga_boost
+        filtered_df["category_hr_boost"] = _cat_boost
+        _signal_bonus = _ctx_adj + _ga_boost + _cat_boost
         if "rank_score" in filtered_df.columns:
             filtered_df["rank_score"] = (
                 pd.to_numeric(filtered_df["rank_score"], errors="coerce").fillna(0.0) + _signal_bonus
@@ -19076,6 +19211,24 @@ def main():
             filtered_df["blended_score"] = (
                 pd.to_numeric(filtered_df["blended_score"], errors="coerce").fillna(0.0) + _signal_bonus
             )
+
+        # Drop known-weak category lanes (n large enough); fantasy already removed.
+        _cat_fail = _category_hr_fail_mask(filtered_df)
+        _cat_fail_n = int(_cat_fail.sum())
+        if _cat_fail_n and _CATEGORY_HR_HARD_FILTER:
+            _kept = filtered_df.loc[~_cat_fail].copy()
+            # Only apply when enough legs remain so thin sports still build.
+            if len(_kept) >= max(4, int(len(filtered_df) * 0.35)):
+                filtered_df = _kept
+                print(
+                    f"  [category-hr] dropped {_cat_fail_n} weak category legs "
+                    f"(Goblin floor / Standard floor; fantasy already banned)"
+                )
+            else:
+                print(
+                    f"  [category-hr] skip hard filter ({_cat_fail_n} weak) — "
+                    f"would leave only {len(_kept)} legs"
+                )
 
         # Sport-specific hit rate floors based on empirical data
         effective_min_hit = args.min_hit_rate

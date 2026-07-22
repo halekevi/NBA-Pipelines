@@ -555,43 +555,34 @@ def main() -> None:
         print("  ⚠️ Skipping MLB ID lookup (--skip_id_lookup)")
         df["id_status"] = "SKIPPED"
 
-    # ── Deviation level ──
-    df["line_num"]      = pd.to_numeric(df["line"], errors="coerce")
-    std_df              = df[(df["pick_type"] == "Standard") & df["line_num"].notna()]
-    std_lookup          = std_df.groupby(["player", "prop_norm"])["line_num"].first().to_dict()
-    df["standard_line"] = df.apply(
-        lambda r: std_lookup.get((r["player"], r["prop_norm"]), None), axis=1
+    # ── Standard line + deviation (sibling lookup, then Goblin offset backfill) ──
+    # Pitcher alts (Pitching Outs / Hits Allowed / …) are often Goblin-only on PP with
+    # blank API standard_line; offset_estimate lets downstream Δ / payout keys resolve.
+    from utils.pick_line_standard import (
+        attach_standard_line_and_deviation,
+        log_goblin_standard_line_fill,
     )
 
-    rank_lookup: dict = {}
-    for (player, prop_norm, pick_type), grp in df[
-        df["pick_type"].isin(["Goblin", "Demon"])
-    ].groupby(["player", "prop_norm", "pick_type"]):
-        lines_sorted = sorted(
-            grp["line_num"].dropna().unique(),
-            reverse=(pick_type == "Goblin"),
-        )
-        for rank, line_val in enumerate(lines_sorted, start=1):
-            rank_lookup[(player, prop_norm, pick_type, line_val)] = rank
-
-    def get_deviation_level(row):
-        if row["pick_type"] == "Standard":
-            return 0
-        if pd.isna(row["line_num"]):
-            return 0
-        return rank_lookup.get(
-            (row["player"], row["prop_norm"], row["pick_type"], row["line_num"]), 0
-        )
-
-    df["deviation_level"] = df.apply(get_deviation_level, axis=1)
-    df.drop(columns=["line_num"], inplace=True)
+    df = attach_standard_line_and_deviation(
+        df,
+        sport="mlb",
+        player_col="player",
+        prop_norm_col="prop_norm",
+        line_col="line",
+        pick_type_col="pick_type",
+        backfill_goblin=True,
+        preserve_existing_standard_line=True,
+        normalize_pick_type=False,
+    )
+    log_goblin_standard_line_fill(df, "[MLB step2]")
 
     # ── Output ──
     front   = ["mlb_player_id"]
     pp_cols = ["projection_id", "pp_projection_id", "player_id", "pp_game_id",
                "start_time", "pp_home_team", "pp_away_team"]
     model   = ["player", "pos", "player_type", "team", "opp_team", "line",
-               "prop_type", "prop_norm", "pick_type", "standard_line", "deviation_level"]
+               "prop_type", "prop_norm", "pick_type", "standard_line",
+               "standard_line_source", "deviation_level"]
     tail    = ["is_combo_player"]
 
     front  = [c for c in front   if c in df.columns]

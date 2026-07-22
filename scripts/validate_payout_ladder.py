@@ -8,6 +8,12 @@ Flow:
   3) Capture live Min Guarantee (power_min_x)
   4) Upsert into payout_ladder_live_cdp.json (feeds /payout/ladder)
 
+IMPORTANT — tip safety:
+  Goblin payout multipliers change once a game has started. Only treat captures
+  as SG-Δ rate-card truth when every leg's game is still pre-tip / unstarted.
+  If the board is mostly live/tipped, stop scraping and do offline enrichment
+  instead of writing live-adjusted floors into payout_ladder_live_cdp.json.
+
 Optional --mix-only / --delta-only still compare against historical ladder recipes.
 
 Usage:
@@ -784,6 +790,11 @@ def _pick_cards_for_recipe(
     matched_deltas: list[float] = []
     proxy = False
     sport_hint = "MLB"
+    # Ticket-priority gaps need exact Δ stamps (2+5 / 1+2+4). Loose discover tol
+    # (often ≥0.75) otherwise accepts nearby board faces (1.5≈2) and never synthesizes.
+    match_tol = float(tol)
+    if force_alt_cycle and bool(recipe.get("ticket_priority")):
+        match_tol = min(match_tol, 0.26)
 
     def _prop_rank(c: dict) -> float:
         prop = str(c.get("prop_type") or "").lower()
@@ -801,7 +812,7 @@ def _pick_cards_for_recipe(
                 if not g.get("cataloged_alt"):
                     continue
                 dist = _card_distance(g)
-                if dist is None or abs(float(dist) - float(want_delta)) > max(tol, 0.26):
+                if dist is None or abs(float(dist) - float(want_delta)) > max(match_tol, 0.26):
                     continue
                 catalog_keys.add(
                     f"{cpd._norm(g.get('player'))}|{cpd._norm(g.get('prop_type'))}"
@@ -855,7 +866,7 @@ def _pick_cards_for_recipe(
                     else:
                         score = abs(float(dist) - float(want))
                         # Strongly prefer faces we already cycled to this Δ on-board.
-                        if c.get("cataloged_alt") and score <= max(tol, 0.26):
+                        if c.get("cataloged_alt") and score <= max(match_tol, 0.26):
                             score -= 5.0
                 else:
                     # Prefer verified distances, then common board tabs (Points/Assists).
@@ -881,7 +892,7 @@ def _pick_cards_for_recipe(
                 role == "goblin"
                 and force_alt_cycle
                 and want is not None
-                and (best is None or best_score > tol)
+                and (best is None or best_score > match_tol)
             ):
                 synth = None
                 for sc in _std_alt_pool(float(want)):
@@ -899,7 +910,7 @@ def _pick_cards_for_recipe(
                     continue
             if best is None:
                 return False
-            if want is not None and best_score > tol:
+            if want is not None and best_score > match_tol:
                 # Still force-cycle even when a weak goblin face exists.
                 if role == "goblin" and force_alt_cycle:
                     synth = None
@@ -1972,10 +1983,16 @@ def main() -> int:
     else:
         # Discover: focused filters (clickable) + alt-line Δ harvest. Gentle delays still
         # apply during slip capture. Avoid full expand (Fantasy Score noise / stale faces).
-        # Force-delta: prefer WNBA Points (room to cycle std−Δ across 0.5…6).
         use_focused = bool(discover)
         use_light = bool(gentle) and not bool(discover)
-        prefer_wnba = bool(force_deltas) and "wnba" in str(args.step1_csv or "").lower()
+        # Force-delta: prefer WNBA Points (room to cycle std−Δ across 0.5…6) unless the
+        # caller explicitly pointed step1 at another league.
+        step1_hint = str(args.step1_csv or "").lower()
+        prefer_wnba = bool(force_deltas) and (
+            not step1_hint.strip()
+            or "wnba" in step1_hint
+            or ("mlb" not in step1_hint and "nba" not in step1_hint and "nhl" not in step1_hint)
+        )
         if force_deltas and prefer_wnba:
             print("[force-delta] focused scrape preferring WNBA Points for wide Δ ladders")
         elif force_deltas:
@@ -2178,7 +2195,14 @@ def main() -> int:
                     available_deltas=avail,
                     priority_sigs=pri_raw or None,
                 )
+                # Keep discover-friendly floor for fillers, but ticket_priority recipes
+                # clamp match_tol to ≤0.26 inside _pick_cards_for_recipe.
                 delta_tol = max(float(args.delta_tol), 0.75)
+                if any(bool(r.get("ticket_priority")) for r in recipes):
+                    print(
+                        "[force-delta] ticket-priority recipes use match_tol≤0.26 "
+                        f"(discover filler tol={delta_tol:g})"
+                    )
             else:
                 print(
                     "[force-delta] WARN: no mid-range Δ (0.5–6.5) cataloged — "

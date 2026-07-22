@@ -457,6 +457,22 @@ def main() -> int:
     if args.rebuild_rate_card:
         rc = run_rebuild_rate_card()
         report["actions"].append({"action": "rebuild_rate_card", "exit_code": rc})
+        # Re-audit against the freshly written rate card.
+        tickets = load_ticket_rows(tickets_path)
+        live_index = build_live_index(LIVE_CDP)
+        rate_index = build_rate_card_index(RATE_CARD)
+        audit = audit_tickets(tickets, live_index, rate_index)
+        report["summary"] = {
+            "n_tickets": audit["n_tickets"],
+            "n_with_live_cdp": audit["n_with_live_cdp"],
+            "n_missing_live_cdp": audit["n_missing_live_cdp"],
+            "n_outstanding_rates": audit["n_outstanding_rates"],
+            "n_covered": audit["n_covered"],
+        }
+        report["missing_live_cdp"] = audit["missing_live_cdp"]
+        report["outstanding_rates"] = audit["outstanding_rates"]
+        report["recipe_counts"] = audit["recipe_counts"]
+        report["covered_sample"] = audit["covered_sample"]
 
     REPORTS.mkdir(parents=True, exist_ok=True)
     out_path = REPORTS / f"ticket_payout_verify_{date}.json"

@@ -1,0 +1,25 @@
+Payout capture quarantine — 2026-07-22 session (tip-safety)
+
+Discarded from live_cdp (reverted to HEAD):
+  - 2026-07-22|LADDER_VAL|force_delta|3  0S+2G+0D  G-delta=1.5+2.5  2.1x  (WNBA Points)
+  - 2026-07-22|LADDER_VAL|force_delta|4  0S+2G+0D  G-delta=1.5+2.5  2.0x  (WNBA Points)
+
+Why:
+  Goblin payout floors change after tip. Step1 start_time fields were stale (May),
+  so tip status could not be proven from pipeline data. Board UI text showed
+  Wed 7:00/7:30pm ET tips and capture wall-clock was ~15:10-15:20 ET (likely
+  pre-tip), but these rows are quarantined rather than committed as live_cdp truth.
+
+Also NOT kept (failed / incomplete this session):
+  - Planned exact 2+5 and 1+2+4 slips: payout read failed (partial/failed);
+    never trusted as floors. One earlier sync briefly wrote bogus 2+5@3.0 /
+    1+2+4@10.0 from partials — those were removed before quarantine.
+
+Pre-tip vs post-tip summary:
+  - This session CDP: treated as UNCERTAIN -> quarantined (not in rate card).
+  - HEAD live_cdp rows (prior work, incl. remain run): left as-is; not re-audited
+    for tip in this pass.
+  - No further CDP scraping this session under tip constraint.
+
+Offline work retained: standard_line enrichment, force-delta match_tol fix,
+  verify re-audit-after-rebuild, tip-guard.

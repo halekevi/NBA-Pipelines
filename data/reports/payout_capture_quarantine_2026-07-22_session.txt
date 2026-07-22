@@ -44,3 +44,17 @@ Session 16:37 ET priority2:
     Reason: slip showed Aja Wilson at 24 Points (std-ish), not planned Goblin 19 (d=5). Delta stamp invalid.
   KEPT overall this afternoon: only force_delta|6 1.5+2.5 @ 2.3x (clean pre-tip).
   Outstanding targets unchanged: 2+5, 1+2+4, 1.5+2+3, 1.5+4+5.
+Session 18:05 ET priority5:
+  QUARANTINED: force_delta|1  0S+2G+0D  G-delta=2+5  2.4x
+    Reason: slip showed Breanna Stewart at 22 Points (standard), not planned Goblin 17 (d=5).
+    Line-guard false-positive: bare \"17\" matched inside Bueckers 17.5. Row removed from live_cdp.
+  KEPT earlier: force_delta|2  1.5+4+5 @ 2.2x (Clark 14.5 / Young 11.5 / Ionescu 15.5; Power 6x/2.2x; pre-tip).
+  Remaining: 2+5, 1+2+4, 1.5+2+3.
+
+Session 18:35-19:17 ET safe-team continue (user games-filter guidance):
+  Board: NYL/CHI tipping~7pm AVOID; WAS/LVA short window; prefer IND/CON + POR/DAL.
+  Added --prefer-teams filter + step1 Goblin-delta stamp for force-alt picks.
+  KEPT: 1+2+4 @ 2.8x (Clark 17.5 / Bueckers 17.5 / Fudd 11.5; IND+DAL only; Power 6x/2.8x).
+  KEPT earlier: 2+5 @ 1.6x (Young+Bueckers) and 1.5+4+5 @ 2.2x (Clark/Young/Ionescu) — pre-tip when captured; not re-shot on NYL after tip.
+  KEPT fillers (safe IND/DAL/PDX): 1+2.5@2.3, 2+2.5@2.1, 0.5+1@2.5 (not target gaps).
+  REMAINING: 1.5+2+3 — no board-reachable exact d=3 on IND/CON/DAL/PDX Points (Billings board face is 5.5 d=2; Lacan synth 10.5 unclickable). Do not stamp 3.5 as 3.

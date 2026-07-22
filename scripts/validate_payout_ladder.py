@@ -388,6 +388,39 @@ def load_player_start_times_from_step1(path: Path) -> dict[str, str]:
     return out
 
 
+def stamp_step1_goblin_deltas_on_standards(
+    standard: list[dict],
+    step1_path: Path,
+) -> list[dict]:
+    """Attach step1 Goblin Δ list onto Standard cards for smarter force-alt picks."""
+    deltas_by_key: dict[tuple[str, str], list[float]] = {}
+    if not step1_path.is_file():
+        return standard
+    try:
+        _s, goblins, _d, _meta = load_pools_from_step1_csv(step1_path)
+    except Exception:
+        return standard
+    for g in goblins:
+        dist = _card_distance(g)
+        if dist is None:
+            continue
+        key = (cpd._norm(g.get("player")), cpd._norm(g.get("prop_type")))
+        if not key[0] or not key[1]:
+            continue
+        deltas_by_key.setdefault(key, [])
+        d_r = round(float(dist), 2)
+        if d_r not in deltas_by_key[key]:
+            deltas_by_key[key].append(d_r)
+    out: list[dict] = []
+    for c in standard:
+        c2 = dict(c)
+        key = (cpd._norm(c2.get("player")), cpd._norm(c2.get("prop_type")))
+        if key in deltas_by_key:
+            c2["step1_goblin_deltas"] = list(deltas_by_key[key])
+        out.append(c2)
+    return out
+
+
 def filter_pools_to_pre_tip(
     standard: list[dict],
     goblins: list[dict],
@@ -427,6 +460,67 @@ def filter_pools_to_pre_tip(
             if st <= now.astimezone(st.tzinfo):
                 stats["tipped"] += 1
                 continue
+            out.append(c2)
+            stats["kept"] += 1
+        return out
+
+    return _keep(standard), _keep(goblins), _keep(demons), stats
+
+
+def load_player_teams_from_step1(path: Path) -> dict[str, str]:
+    """Map normalized player -> team abbreviation from step1 CSV."""
+    out: dict[str, str] = {}
+    if not path.is_file():
+        return out
+    try:
+        with path.open(encoding="utf-8-sig", newline="") as f:
+            for row in csv.DictReader(f):
+                name = str(row.get("player") or "").strip()
+                team = str(row.get("team") or "").strip().upper()
+                if not name or not team or "/" in team:
+                    continue
+                out[cpd._norm(name)] = team
+    except OSError:
+        pass
+    return out
+
+
+def filter_pools_to_teams(
+    standard: list[dict],
+    goblins: list[dict],
+    demons: list[dict],
+    allowed_teams: set[str],
+    team_by_player: dict[str, str] | None = None,
+) -> tuple[list[dict], list[dict], list[dict], dict[str, int]]:
+    """Keep only cards whose team is in allowed_teams (safe pre-tip games)."""
+    allowed = {str(t).strip().upper() for t in allowed_teams if str(t).strip()}
+    # Common aliases on PP / ESPN
+    aliases = {"POR": "PDX", "PHX": "PHO", "NY": "NYL", "LA": "LAS"}
+    allowed |= {aliases.get(t, t) for t in list(allowed)}
+    team_by_player = team_by_player or {}
+    stats = {"kept": 0, "dropped": 0, "unknown": 0}
+
+    def _team_of(c: dict) -> str:
+        for key in ("team", "team_abbr", "player_team"):
+            raw = str(c.get(key) or "").strip().upper()
+            if raw and "/" not in raw:
+                return aliases.get(raw, raw)
+        pk = cpd._norm(c.get("player"))
+        raw = str(team_by_player.get(pk) or "").strip().upper()
+        return aliases.get(raw, raw) if raw else ""
+
+    def _keep(cards: list[dict]) -> list[dict]:
+        out: list[dict] = []
+        for c in cards:
+            team = _team_of(c)
+            if not team:
+                stats["unknown"] += 1
+                continue
+            if team not in allowed:
+                stats["dropped"] += 1
+                continue
+            c2 = dict(c)
+            c2["team"] = team
             out.append(c2)
             stats["kept"] += 1
         return out
@@ -933,12 +1027,40 @@ def _pick_cards_for_recipe(
             if line < 1.0:
                 continue
             pool.append(c)
+        # When step1 proves exact Δ faces exist, only synthesize from those players
+        # (avoids high-line nearest faces that never expose the deep Goblin).
+        if force_alt_cycle and bool(recipe.get("ticket_priority")) and want_delta is not None:
+            exact = [
+                c
+                for c in pool
+                if any(
+                    abs(float(d) - float(want_delta)) <= max(match_tol, 0.26)
+                    for d in (c.get("step1_goblin_deltas") or [])
+                )
+                or (
+                    f"{cpd._norm(c.get('player'))}|{cpd._norm(c.get('prop_type'))}"
+                    in catalog_keys
+                )
+            ]
+            if exact:
+                pool = exact
         pool.sort(
             key=lambda c: (
                 0
                 if (
                     f"{cpd._norm(c.get('player'))}|{cpd._norm(c.get('prop_type'))}"
                     in catalog_keys
+                )
+                else 1,
+                # Prefer Standards whose step1 Goblin ladder includes this exact Δ
+                # (e.g. Barker d=4) over high-line faces that only show shallow alts.
+                0
+                if (
+                    want_delta is not None
+                    and any(
+                        abs(float(d) - float(want_delta)) <= max(match_tol, 0.26)
+                        for d in (c.get("step1_goblin_deltas") or [])
+                    )
                 )
                 else 1,
                 0 if c.get("has_alt_lines") or c.get("cataloged_alt") else 1,
@@ -1970,6 +2092,14 @@ def main() -> int:
         action="store_true",
         help="Do not auto-load priority signatures from ticket_payout_verify_<date>.json",
     )
+    ap.add_argument(
+        "--prefer-teams",
+        default="",
+        help=(
+            "Comma-separated team abbreviations to keep in click pools "
+            "(e.g. 'IND,CON,DAL,PDX'). Empty = no team filter."
+        ),
+    )
     args = ap.parse_args()
     date_str = str(args.slate_date or args.date)[:10]
     gentle = bool(args.gentle) or bool(args.prefetch_http)
@@ -2239,6 +2369,40 @@ def main() -> int:
             )
             if force_deltas:
                 return 2
+
+        prefer_teams_raw = [
+            t.strip().upper()
+            for t in str(args.prefer_teams or "").split(",")
+            if t.strip()
+        ]
+        if prefer_teams_raw:
+            team_by_player = load_player_teams_from_step1(step1_path)
+            before_t = (len(standard), len(goblins), len(demons))
+            standard, goblins, demons, team_stats = filter_pools_to_teams(
+                standard,
+                goblins,
+                demons,
+                set(prefer_teams_raw),
+                team_by_player=team_by_player,
+            )
+            print(
+                f"[team-safety] prefer-teams={sorted(set(prefer_teams_raw))}: "
+                f"S={len(standard)}/{before_t[0]} G={len(goblins)}/{before_t[1]} "
+                f"D={len(demons)}/{before_t[2]} "
+                f"(kept={team_stats['kept']} dropped={team_stats['dropped']} "
+                f"unknown={team_stats['unknown']})"
+            )
+            if len(standard) < 3:
+                print(
+                    "[team-safety] FATAL: not enough Standard cards on preferred teams — stop"
+                )
+                return 2
+
+        # Stamp step1 Goblin Δs onto Standards so force-alt prefers reachable deep bins.
+        if step1_path is not None and step1_path.is_file():
+            standard = stamp_step1_goblin_deltas_on_standards(standard, step1_path)
+            n_stamped = sum(1 for c in standard if c.get("step1_goblin_deltas"))
+            print(f"[discover] step1 goblin-Δ stamped on {n_stamped}/{len(standard)} Standards")
         # Persist inventory for the slate.
         inv_path = REPORTS_DIR / f"payout_board_inventory_{date_str}.json"
         REPORTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -2420,9 +2584,13 @@ def main() -> int:
         write_back=False,
         date_override=date_str,
         strict_lines=True,
-        # Force-delta synthesizes Goblin @ std−Δ; exact lines are often nearest-carousel
-        # steps, so keep require_line off and stamp matched Δ after capture.
-        require_line=False if (discover and force_deltas) else bool(force_deltas),
+        # Ticket-priority exact sigs need the planned Goblin line on-face before
+        # More-click. Non-priority force-delta still allows nearest-carousel fills.
+        require_line=(
+            True
+            if (force_deltas and bool(str(args.priority_sigs or "").strip()))
+            else (False if (discover and force_deltas) else bool(force_deltas))
+        ),
         gentle=gentle,
     )
     captured = []

@@ -1,177 +1,18 @@
 {
   "date": "2026-07-22",
   "mode": "force_delta",
-  "generated_at": "2026-07-22T20:37:14.030966+00:00",
+  "generated_at": "2026-07-22T23:17:33.239294+00:00",
   "cdp_url": "http://127.0.0.1:9222",
   "live_board_tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\ui_runner\\data\\payout_ladder_validation_tickets.json",
   "capture_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\data\\reports\\payout_ladder_validation_capture_2026-07-22_force_delta.json",
   "capture_exit": 0,
   "summary": {
-    "captured": 1,
-    "capture_failed": 3
+    "capture_failed": 1,
+    "captured": 1
   },
   "n_ok_slips": 1,
-  "n_results": 4,
+  "n_results": 2,
   "results": [
-    {
-      "kind": "force_delta",
-      "n_legs": 2,
-      "composition": "0S+2G+0D",
-      "n_standard": 0,
-      "n_goblin": 2,
-      "n_demon": 0,
-      "goblin_delta_sig": "2+5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "ticket_priority": true,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|1",
-      "proxy_match": true,
-      "matched_goblin_deltas": [
-        2.0,
-        5.0
-      ],
-      "legs": [
-        {
-          "player": "Jackie Young",
-          "prop": "Points",
-          "line": 14.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 19.0,
-          "pick_type": "Goblin",
-          "line_distance": 5.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "ok",
-      "live_power_min_x": 2.4,
-      "live_power_first_x": 3.0,
-      "verdict": "captured",
-      "delta_vs_ladder_avg": null
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1.5+4+5",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "ticket_priority": true,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
-      "proxy_match": true,
-      "matched_goblin_deltas": [
-        1.5,
-        4.0,
-        5.0
-      ],
-      "legs": [
-        {
-          "player": "Sabrina Ionescu",
-          "prop": "Points",
-          "line": 15.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.5,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 20.0,
-          "pick_type": "Goblin",
-          "line_distance": 4.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 13.5,
-          "pick_type": "Goblin",
-          "line_distance": 5.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "failed",
-      "live_power_min_x": null,
-      "live_power_first_x": null,
-      "verdict": "capture_failed",
-      "error": "slip_missing_players:Sabrina Ionescu,A'ja Wilson"
-    },
-    {
-      "kind": "force_delta",
-      "n_legs": 3,
-      "composition": "0S+3G+0D",
-      "n_standard": 0,
-      "n_goblin": 3,
-      "n_demon": 0,
-      "goblin_delta_sig": "1+2+4",
-      "demon_delta_sig": "",
-      "ladder_avg_x": 0.0,
-      "ladder_min_x": 0.0,
-      "ladder_max_x": 0.0,
-      "samples": 0,
-      "force_alt_cycle": true,
-      "already_live": false,
-      "ticket_priority": true,
-      "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|3",
-      "proxy_match": true,
-      "matched_goblin_deltas": [
-        1.0,
-        2.0,
-        4.0
-      ],
-      "legs": [
-        {
-          "player": "Caitlin Clark",
-          "prop": "Points",
-          "line": 17.5,
-          "pick_type": "Goblin",
-          "line_distance": 1.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "Jackie Young",
-          "prop": "Points",
-          "line": 14.5,
-          "pick_type": "Goblin",
-          "line_distance": 2.0,
-          "force_alt_cycle": true
-        },
-        {
-          "player": "A'ja Wilson",
-          "prop": "Points",
-          "line": 20.0,
-          "pick_type": "Goblin",
-          "line_distance": 4.0,
-          "force_alt_cycle": true
-        }
-      ],
-      "capture_status": "failed",
-      "live_power_min_x": null,
-      "live_power_first_x": null,
-      "verdict": "capture_failed",
-      "error": "only_clicked_1_of_3_legs"
-    },
     {
       "kind": "force_delta",
       "n_legs": 3,
@@ -189,7 +30,7 @@
       "already_live": false,
       "ticket_priority": true,
       "status": "planned",
-      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|4",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|1",
       "proxy_match": true,
       "matched_goblin_deltas": [
         1.5,
@@ -198,25 +39,25 @@
       ],
       "legs": [
         {
-          "player": "Sydney Taylor",
+          "player": "Carla Leite",
           "prop": "Points",
-          "line": 14.5,
+          "line": 13.5,
           "pick_type": "Goblin",
           "line_distance": 1.5,
           "force_alt_cycle": true
         },
         {
-          "player": "Jackie Young",
+          "player": "Aliyah Boston",
           "prop": "Points",
-          "line": 14.5,
+          "line": 12.5,
           "pick_type": "Goblin",
           "line_distance": 2.0,
           "force_alt_cycle": true
         },
         {
-          "player": "A'ja Wilson",
+          "player": "Leila Lacan",
           "prop": "Points",
-          "line": 21.0,
+          "line": 10.5,
           "pick_type": "Goblin",
           "line_distance": 3.0,
           "force_alt_cycle": true
@@ -226,7 +67,54 @@
       "live_power_min_x": null,
       "live_power_first_x": null,
       "verdict": "capture_failed",
-      "error": "only_clicked_0_of_3_legs"
+      "error": "only_clicked_2_of_3_legs"
+    },
+    {
+      "kind": "force_delta",
+      "n_legs": 2,
+      "composition": "0S+2G+0D",
+      "n_standard": 0,
+      "n_goblin": 2,
+      "n_demon": 0,
+      "goblin_delta_sig": "0.5+1",
+      "demon_delta_sig": "",
+      "ladder_avg_x": 0.0,
+      "ladder_min_x": 0.0,
+      "ladder_max_x": 0.0,
+      "samples": 0,
+      "force_alt_cycle": true,
+      "already_live": false,
+      "ticket_priority": false,
+      "status": "planned",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
+      "proxy_match": false,
+      "matched_goblin_deltas": [
+        0.5,
+        1.0
+      ],
+      "legs": [
+        {
+          "player": "Carla Leite",
+          "prop": "Points",
+          "line": 14.5,
+          "pick_type": "Goblin",
+          "line_distance": 0.5,
+          "force_alt_cycle": true
+        },
+        {
+          "player": "Caitlin Clark",
+          "prop": "Points",
+          "line": 17.5,
+          "pick_type": "Goblin",
+          "line_distance": 1.0,
+          "force_alt_cycle": true
+        }
+      ],
+      "capture_status": "ok",
+      "live_power_min_x": 2.5,
+      "live_power_first_x": 3.0,
+      "verdict": "captured",
+      "delta_vs_ladder_avg": null
     }
   ]
 }

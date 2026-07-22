@@ -1022,12 +1022,18 @@ def _click_player_direction(frame, matched_name: str, direction: str, prop: str)
         return False
     try:
         if str(direction).upper() == "OVER":
-            target["more_btn"].click(timeout=900)
+            try:
+                target["more_btn"].click(timeout=900)
+            except Exception:
+                target["more_btn"].click(force=True, timeout=2000)
         else:
             try:
                 target["more_btn"].locator("xpath=../..//button[contains(., 'Less')]").first.click(timeout=900)
             except Exception:
-                frame.get_by_text("Less", exact=True).first.click(timeout=900)
+                try:
+                    frame.get_by_text("Less", exact=True).first.click(timeout=900)
+                except Exception:
+                    frame.get_by_text("Less", exact=True).first.click(force=True, timeout=2000)
         frame.wait_for_timeout(500)
         return True
     except Exception as e:
@@ -1038,7 +1044,12 @@ def _click_player_direction(frame, matched_name: str, direction: str, prop: str)
 def click_leg(frame, card: dict, direction: str) -> bool:
     try:
         if direction.upper() in ["OVER", "MORE"]:
-            card["more_btn"].click(timeout=1200)
+            try:
+                card["more_btn"].click(timeout=1200)
+            except Exception:
+                # Overlays / unstable layout often block Playwright's actionability
+                # checks; force-click still selects the leg on PrizePicks.
+                card["more_btn"].click(force=True, timeout=2000)
         else:
             found_less = card["more_btn"].evaluate(
                 """
@@ -1055,7 +1066,10 @@ def click_leg(frame, card: dict, direction: str) -> bool:
                 """
             )
             if not found_less:
-                frame.get_by_text("Less").nth(0).click(timeout=1200)
+                try:
+                    frame.get_by_text("Less").nth(0).click(timeout=1200)
+                except Exception:
+                    frame.get_by_text("Less").nth(0).click(force=True, timeout=2000)
         frame.wait_for_timeout(400)
         return True
     except Exception as e:
@@ -1104,16 +1118,27 @@ def extract_multiplier_from_any(value: Any) -> float | None:
 
 def clear_slip(frame):
     try:
+        # Prefer exact Clear on the Current Lineup panel (force past overlays).
         for txt in ["Clear", "Clear All", "Remove All"]:
-            b = frame.get_by_text(txt, exact=False).first
-            if b.count() > 0:
+            locs = [
+                frame.get_by_role("button", name=re.compile(rf"^{re.escape(txt)}$", re.I)),
+                frame.get_by_text(txt, exact=True),
+                frame.get_by_text(txt, exact=False),
+            ]
+            for loc in locs:
                 try:
-                    b.click(timeout=500)
-                    frame.wait_for_timeout(600)
+                    if loc.count() <= 0:
+                        continue
+                    btn = loc.first
+                    try:
+                        btn.click(timeout=800)
+                    except Exception:
+                        btn.click(force=True, timeout=1500)
+                    frame.wait_for_timeout(700)
                     print("[SLIP] Cleared")
                     return
                 except Exception:
-                    pass
+                    continue
         for sel in [
             "button[aria-label*='remove']",
             "button[aria-label*='delete']",
@@ -1125,7 +1150,7 @@ def clear_slip(frame):
             n = min(btns.count(), 20)
             for _ in range(n):
                 try:
-                    btns.nth(0).click(timeout=300)
+                    btns.nth(0).click(force=True, timeout=500)
                     frame.wait_for_timeout(250)
                 except Exception:
                     break
@@ -1142,19 +1167,40 @@ def verify_slip_empty(frame, page=None) -> tuple[bool, object]:
                 f"  [WARN] Slip not empty after clear: "
                 f"{n_selected[0]} players still selected"
             )
-            clear_slip(frame)
-            frame.wait_for_timeout(1000)
-            text2 = frame.evaluate("() => document.body.innerText")
-            n_selected2 = re.findall(r"(\d+)\s*Players?\s*Selected", text2, re.IGNORECASE)
-            if n_selected2 and int(n_selected2[0]) > 0:
-                print("  [WARN] Slip still not empty after retry; reconnecting frame")
-                if page is not None:
+            for _attempt in range(3):
+                clear_slip(frame)
+                dismiss_modal(frame, page) if page is not None else None
+                frame.wait_for_timeout(800)
+                text2 = frame.evaluate("() => document.body.innerText")
+                n_selected2 = re.findall(
+                    r"(\d+)\s*Players?\s*Selected", text2, re.IGNORECASE
+                )
+                if not n_selected2 or int(n_selected2[0]) <= 0:
+                    return True, frame
+            print("  [WARN] Slip still not empty after retry; reconnecting frame")
+            if page is not None:
+                try:
+                    # Hard navigation reset often unsticks a wedged lineup panel.
                     try:
-                        frame = find_prizepicks_frame(page)
-                        ensure_popular_filter(frame, page)
-                        dismiss_modal(frame, page)
-                    except Exception as e:
-                        print(f"  [WARN] Frame reconnect failed: {e}")
+                        page.goto(
+                            "https://app.prizepicks.com/board?league_id=3",
+                            wait_until="domcontentloaded",
+                            timeout=45000,
+                        )
+                        page.wait_for_timeout(2000)
+                    except Exception:
+                        pass
+                    frame = find_prizepicks_frame(page)
+                    ensure_popular_filter(frame, page)
+                    dismiss_modal(frame, page)
+                    clear_slip(frame)
+                    frame.wait_for_timeout(800)
+                    text3 = frame.evaluate("() => document.body.innerText")
+                    n3 = re.findall(r"(\d+)\s*Players?\s*Selected", text3, re.IGNORECASE)
+                    if not n3 or int(n3[0]) <= 0:
+                        return True, frame
+                except Exception as e:
+                    print(f"  [WARN] Frame reconnect failed: {e}")
                 return False, frame
         return True, frame
     except Exception:
@@ -1801,7 +1847,7 @@ def add_leg(
                     want_line=line,
                     require_line=bool(require_line),
                     # Cap swaps — 14 re-parses of 60+ cards is what makes captures run hours.
-                    max_clicks=6 if require_line else 10,
+                    max_clicks=12 if require_line else 10,
                 )
                 cards = get_all_cards(frame)
                 target = _resolve_ticket_leg_card(
@@ -1873,6 +1919,19 @@ def add_leg(
                 f"{target.get('prop_type')} {target.get('line')} "
                 f"({target.get('pick_type')})"
             )
+            # Never More-click a face whose line ≠ planned Goblin/Demon line under
+            # strict mode — that stamps a false Δ (std face looks like a miss).
+            if (
+                strict_lines
+                and line is not None
+                and str(line).strip() != ""
+                and _line_key(target.get("line")) != _line_key(line)
+            ):
+                print(
+                    f"[LOOKUP] refuse click: board line={target.get('line')} "
+                    f"!= planned {line} (pick={target.get('pick_type')})"
+                )
+                return False
             if click_leg(frame, target, direction):
                 return True
 
@@ -3184,6 +3243,21 @@ def capture_tickets_from_board(
             }
 
             try:
+                n_need_pre = int(slip.get("n_legs") or len(slip.get("legs") or []) or 2)
+                if n_need_pre >= 3:
+                    try:
+                        page.goto(
+                            "https://app.prizepicks.com/board?league_id=3",
+                            wait_until="domcontentloaded",
+                            timeout=45000,
+                        )
+                        page.wait_for_timeout(2000 if gentle else 1000)
+                        frame = find_prizepicks_frame(page)
+                        ensure_popular_filter(frame, page)
+                        dismiss_modal(frame, page)
+                        print("[PAYOUT] hard board reset before multi-leg slip")
+                    except Exception as e:
+                        print(f"[PAYOUT] WARN hard reset failed: {e}")
                 clear_slip(frame)
                 _, frame = verify_slip_empty(frame, page)
                 dismiss_modal(frame, page)
@@ -3263,26 +3337,55 @@ def capture_tickets_from_board(
                         captured.append(_project_capture_fields(rec, fields))
                         clear_slip(frame)
                         continue
-                    # When strict_lines: planned lines must appear on the slip.
-                    # Force-delta sets strict_lines=True with require_line=False so
-                    # alt-cycle can click nearest faces, but we still reject if the
-                    # slip never landed on the stamped Goblin line (Δ would be a lie).
+                    # When strict_lines: planned lines must appear on the slip
+                    # *for that player* (not anywhere in the panel). Matching
+                    # bare "17" against "17.5Points" previously falsely passed
+                    # Goblin-Δ stamps when a co-leg carried a .5 line.
                     if strict_lines:
                         line_miss = []
                         for leg in slip.get("legs") or []:
+                            name = str(leg.get("player") or "").strip()
                             try:
                                 want = float(leg.get("line"))
                             except (TypeError, ValueError):
                                 continue
-                            pats = {
-                                f"{want:g}",
-                                f"{want:.1f}",
-                                f"{want:.0f}" if float(want).is_integer() else f"{want:g}",
-                            }
-                            if not any(p in raw_slip_disp for p in pats):
-                                line_miss.append(
-                                    f"{leg.get('player')}:{want:g}"
+                            if not name:
+                                continue
+                            parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
+                            surname = parts[-1] if parts else name
+                            # Slice slip text from this surname to the next known surname.
+                            low = raw_slip_disp.lower()
+                            sn_l = surname.lower()
+                            idx = low.find(sn_l)
+                            if idx < 0:
+                                line_miss.append(f"{name}:{want:g}")
+                                continue
+                            next_idx = len(raw_slip_disp)
+                            for other in slip.get("legs") or []:
+                                oname = str(other.get("player") or "").strip()
+                                if not oname or oname == name:
+                                    continue
+                                oparts = [
+                                    p for p in re.split(r"[^A-Za-z]+", oname) if len(p) >= 3
+                                ]
+                                osn = (oparts[-1] if oparts else oname).lower()
+                                j = low.find(osn, idx + len(sn_l))
+                                if j >= 0:
+                                    next_idx = min(next_idx, j)
+                            chunk = raw_slip_disp[idx:next_idx]
+                            # Prefer exact line tokens next to Points / on own line.
+                            line_ok = bool(
+                                re.search(
+                                    rf"(?<![\d.]){re.escape(f'{want:g}')}(?![\d.])",
+                                    chunk,
                                 )
+                                or re.search(
+                                    rf"(?<![\d.]){re.escape(f'{want:.1f}')}(?![\d.])",
+                                    chunk,
+                                )
+                            )
+                            if not line_ok:
+                                line_miss.append(f"{name}:{want:g}")
                         if line_miss:
                             rec["error"] = f"slip_missing_lines:{','.join(line_miss)}"
                             print(f"  [WARN] reject slip line mismatch: {line_miss}")

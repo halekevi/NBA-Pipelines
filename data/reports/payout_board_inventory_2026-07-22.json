@@ -1,8 +1,8 @@
 {
   "date": "2026-07-22",
-  "generated_at": "2026-07-22T20:29:41.949940+00:00",
+  "generated_at": "2026-07-22T23:14:20.911900+00:00",
   "step1": {
-    "path": "Sports\\WNBA\\outputs\\step1_snapshots\\step1_wnba_props_2026-07-22.csv",
+    "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\Sports\\WNBA\\outputs\\step1_snapshots\\step1_wnba_props_2026-07-22.csv",
     "n_rows": 3109,
     "n_standard": 654,
     "n_goblin": 877,
@@ -30,18 +30,18 @@
   "prefetch_http": false,
   "gentle": true,
   "cdp_pools": {
-    "standard": 80,
-    "goblin": 62,
-    "goblin_with_delta": 9,
-    "demon": 10
+    "standard": 37,
+    "goblin": 32,
+    "goblin_with_delta": 7,
+    "demon": 7
   },
   "goblin_delta_examples": [
     {
-      "player": "Brittney Griner",
-      "prop": "Rebounds",
-      "line": 4.5,
-      "standard_line": 5.5,
-      "delta": 1.0
+      "player": "Carla Leite",
+      "prop": "Points",
+      "line": 14.5,
+      "standard_line": 15.0,
+      "delta": 0.5
     },
     {
       "player": "Caitlin Clark",
@@ -51,24 +51,17 @@
       "delta": 1.0
     },
     {
-      "player": "Sabrina Ionescu",
+      "player": "Aliyah Boston",
       "prop": "Points",
-      "line": 15.5,
-      "standard_line": 17.0,
-      "delta": 1.5
+      "line": 12.5,
+      "standard_line": 14.5,
+      "delta": 2.0
     },
     {
-      "player": "Sydney Taylor",
+      "player": "Monique Billings",
       "prop": "Points",
-      "line": 14.5,
-      "standard_line": 16.0,
-      "delta": 1.5
-    },
-    {
-      "player": "Jackie Young",
-      "prop": "Points",
-      "line": 14.5,
-      "standard_line": 16.5,
+      "line": 5.5,
+      "standard_line": 7.5,
       "delta": 2.0
     },
     {
@@ -81,23 +74,16 @@
     {
       "player": "Arike Ogunbowale",
       "prop": "Points",
-      "line": 14.5,
+      "line": 13.5,
       "standard_line": 17.0,
-      "delta": 2.5
+      "delta": 3.5
     },
     {
-      "player": "Breanna Stewart",
+      "player": "Azzi Fudd",
       "prop": "Points",
-      "line": 19.5,
-      "standard_line": 22.0,
-      "delta": 2.5
-    },
-    {
-      "player": "A'ja Wilson",
-      "prop": "Points",
-      "line": 19.5,
-      "standard_line": 24.0,
-      "delta": 4.5
+      "line": 11.5,
+      "standard_line": 15.5,
+      "delta": 4.0
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "date": "2026-07-22",
-  "generated_at": "2026-07-22T20:37:14.027098Z",
+  "generated_at": "2026-07-22T23:17:33.236283Z",
   "rows": [
     {
       "date": "2026-07-12",
@@ -225,6 +225,38 @@
       "_dedupe_key": "2026-07-22|jake bennett|hits allowed|over|2.500||seth lugo|hits allowed|over|3.500|1.2"
     },
     {
+      "date": "2026-07-22",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "0.5",
+        "1"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.5",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|2; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
+      "_dedupe_key": "2026-07-22|azzi fudd|points|over|14.500||carla leite|points|over|14.500|2.5"
+    },
+    {
+      "date": "2026-07-22",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "0.5",
+        "1"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.5",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|2; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
+      "_dedupe_key": "2026-07-22|caitlin clark|points|over|17.500||carla leite|points|over|14.500|2.5"
+    },
+    {
       "date": "2026-07-21",
       "n_legs": "2",
       "leg_composition": "0S+2G+0D",
@@ -303,6 +335,22 @@
       "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|2; sports=WNBA; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
       "_dedupe_key": "2026-07-22|kahleah copper|points|over|20.500||kayla mcbride|points|over|15.500|2.2"
+    },
+    {
+      "date": "2026-07-22",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "2.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|2; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
+      "_dedupe_key": "2026-07-22|arike ogunbowale|points|over|14.500||caitlin clark|points|over|17.500|2.3"
     },
     {
       "date": "2026-07-22",
@@ -802,6 +850,22 @@
       "leg_composition": "0S+2G+0D",
       "goblin_deltas": [
         "2",
+        "2.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.1",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|3; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|3",
+      "_dedupe_key": "2026-07-22|arike ogunbowale|points|over|14.500||paige bueckers|points|over|17.500|2.1"
+    },
+    {
+      "date": "2026-07-22",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "2",
         "3"
       ],
       "demon_deltas": [],
@@ -811,6 +875,22 @@
       "notes": "ticket_id=2026-07-22|STRONG 2-Leg|6; sports=MLB; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-22|STRONG 2-Leg|6",
       "_dedupe_key": "2026-07-22|merrill kelly|hits allowed|over|3.500||sandy alcantara|hits allowed|over|3.500|1.2"
+    },
+    {
+      "date": "2026-07-22",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "2",
+        "5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.6",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|1; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|1",
+      "_dedupe_key": "2026-07-22|jackie young|points|over|14.500||paige bueckers|points|over|14.500|1.6"
     },
     {
       "date": "2026-07-12",
@@ -1342,6 +1422,23 @@
       "_dedupe_key": "2026-07-22|a'ja wilson|points|over|21.500||kahleah copper|points|over|20.500||kayla mcbride|points|over|15.500|3.0"
     },
     {
+      "date": "2026-07-22",
+      "n_legs": "3",
+      "leg_composition": "0S+3G+0D",
+      "goblin_deltas": [
+        "1",
+        "2",
+        "4"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.8",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|1; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|1",
+      "_dedupe_key": "2026-07-22|azzi fudd|points|over|11.500||caitlin clark|points|over|17.500||paige bueckers|points|over|17.500|2.8"
+    },
+    {
       "date": "2026-07-13",
       "n_legs": "3",
       "leg_composition": "0S+3G+0D",
@@ -1421,6 +1518,23 @@
       "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|13; sports=WNBA; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-07-22|LADDER_VAL|force_delta|13",
       "_dedupe_key": "2026-07-22|a'ja wilson|points|over|21.500||caitlin clark|points|over|17.500||kayla mcbride|points|over|15.500|2.9"
+    },
+    {
+      "date": "2026-07-22",
+      "n_legs": "3",
+      "leg_composition": "0S+3G+0D",
+      "goblin_deltas": [
+        "1.5",
+        "4",
+        "5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "2.2",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-07-22|LADDER_VAL|force_delta|2; sports=WNBA; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-07-22|LADDER_VAL|force_delta|2",
+      "_dedupe_key": "2026-07-22|caitlin clark|points|over|14.500||jackie young|points|over|11.500||sabrina ionescu|points|over|15.500|2.2"
     },
     {
       "date": "2026-07-22",

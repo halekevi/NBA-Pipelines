@@ -65,6 +65,8 @@ _SPORT_MAPS: dict[str, dict[str, str]] = {
     "NBA1H": NBA_PROP_CAT,
     "NBA1Q": NBA_PROP_CAT,
     "WNBA": WNBA_PROP_CAT,
+    "WNBA1H": WNBA_PROP_CAT,
+    "WNBA1Q": WNBA_PROP_CAT,
     "NHL": NHL_PROP_CAT,
     "MLB": MLB_PROP_CAT,
 }

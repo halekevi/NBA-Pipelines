@@ -8,6 +8,8 @@ which returns stats summed across those quarters (e.g. 1H = Q1+Q2, 2H = Q3+Q4).
 CBB (--sport CBB): NBA.com is not used; ESPN play-by-play is parsed for the same
 period ranges (coarser than full box; use for period props when needed).
 
+WNBA (--sport WNBA): ESPN play-by-play only (same period ranges).
+
 Outputs use the same schema as fetch_actuals.py:
   player, team, prop_type, actual (+ raw stat columns)
 
@@ -15,6 +17,8 @@ Examples:
   py -3.14 Sports/NBA/scripts/fetch_nba_period_actuals.py --date 2026-03-25 --segment 1Q --output outputs/2026-03-25/actuals_nba1q_2026-03-25.csv
   py -3.14 Sports/NBA/scripts/fetch_nba_period_actuals.py --date 2026-03-25 --segment 1H --output outputs/2026-03-25/actuals_nba1h_2026-03-25.csv
   py -3.14 Sports/NBA/scripts/fetch_nba_period_actuals.py --sport CBB --date 2026-03-25 --segment 1H --output outputs/2026-03-25/actuals_cbb1h_2026-03-25.csv
+  py -3.14 Sports/NBA/scripts/fetch_nba_period_actuals.py --sport WNBA --date 2026-07-21 --segment 1H --output outputs/2026-07-21/actuals_wnba1h_2026-07-21.csv
+  py -3.14 Sports/NBA/scripts/fetch_nba_period_actuals.py --sport WNBA --date 2026-07-21 --segment 1Q --output outputs/2026-07-21/actuals_wnba1q_2026-07-21.csv
 """
 
 from __future__ import annotations
@@ -192,7 +196,7 @@ def _parse_game_period_stats(
 ) -> list[dict]:
     """
     Sum stats from ESPN plays whose period is in [start_period, end_period] inclusive.
-    Used as fallback for NBA when NBA.com fails, and as the primary path for CBB.
+    Used as fallback for NBA when NBA.com fails, and as the primary path for CBB/WNBA.
     """
     url = CORE_PBP_URL.format(sport=espn_sport, event_id=event_id)
     gp = {}
@@ -204,7 +208,12 @@ def _parse_game_period_stats(
     except Exception:
         # Core endpoint can intermittently return non-JSON/empty for NBA.
         # Fallback to site summary, which carries compatible plays/boxscore blocks.
-        league = "nba" if espn_sport == "nba" else "mens-college-basketball"
+        if espn_sport == "nba":
+            league = "nba"
+        elif espn_sport == "wnba":
+            league = "wnba"
+        else:
+            league = "mens-college-basketball"
         s_url = (
             f"https://site.api.espn.com/apis/site/v2/sports/basketball/"
             f"{league}/summary?event={event_id}"
@@ -333,9 +342,9 @@ def main() -> None:
     ap.add_argument("--date", default=_default_date_str(), help="YYYY-MM-DD (default: yesterday)")
     ap.add_argument(
         "--sport",
-        choices=["NBA", "CBB"],
+        choices=["NBA", "CBB", "WNBA"],
         default="NBA",
-        help="NBA uses NBA.com box scores (ESPN PBP fallback). CBB uses ESPN PBP only.",
+        help="NBA uses NBA.com box scores (ESPN PBP fallback). CBB/WNBA use ESPN PBP only.",
     )
     ap.add_argument(
         "--segment",
@@ -348,7 +357,8 @@ def main() -> None:
 
     start_period, end_period = SEGMENT_TO_PERIODS[args.segment]
     all_rows: list[dict] = []
-    use_nba_com = args.sport.upper() == "NBA"
+    sport_u = args.sport.upper()
+    use_nba_com = sport_u == "NBA"
 
     if use_nba_com:
         nba_ids: list[str] = []
@@ -365,12 +375,22 @@ def main() -> None:
             except Exception as e:
                 print(f"WARNING: NBA.com boxscore parse failed for game {gid}: {e}")
 
-    # ESPN play-by-play: CBB primary; NBA fallback when NBA.com returned nothing.
+    # ESPN play-by-play: CBB/WNBA primary; NBA fallback when NBA.com returned nothing.
     if not all_rows:
-        espn_path = "nba" if use_nba_com else "mens-college-basketball"
+        if sport_u == "WNBA":
+            espn_path = "wnba"
+        elif sport_u == "CBB":
+            espn_path = "mens-college-basketball"
+        else:
+            espn_path = "nba"
         events = fetch_events_for_date(espn_path, args.date, is_cbb=(espn_path == "mens-college-basketball"))
         event_ids = sorted({str((e or {}).get("id", "")).strip() for e in events if (e or {}).get("id")})
-        label = "ESPN PBP fallback" if use_nba_com else "ESPN PBP (CBB)"
+        if use_nba_com:
+            label = "ESPN PBP fallback"
+        elif sport_u == "WNBA":
+            label = "ESPN PBP (WNBA)"
+        else:
+            label = "ESPN PBP (CBB)"
         print(f"  {label}: {len(event_ids)} events, periods {start_period}-{end_period}")
         for eid in event_ids:
             try:
@@ -403,5 +423,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
 

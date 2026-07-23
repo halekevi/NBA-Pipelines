@@ -970,6 +970,8 @@ def publish_payload(payload: dict[str, Any], sport: str, repo_root: Path | None 
         targets.append(root / "Sports/MLB/data/mlb_matchup_edge.json")
     if sport in ("nba1h", "nba1q"):
         targets.append(root / "Sports/NBA/data" / f"{sport}_matchup_edge.json")
+    if sport in ("wnba1h", "wnba1q"):
+        targets.append(root / "Sports/WNBA/data" / f"{sport}_matchup_edge.json")
     text = json.dumps(payload, indent=2)
     errors: list[str] = []
     for p in targets:

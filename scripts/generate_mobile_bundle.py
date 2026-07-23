@@ -180,7 +180,7 @@ def _today_et_ymd() -> str:
 
 
 _SLATE_STRICT_GAME_DAY_SPORTS = frozenset(
-    {"nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba"}
+    {"nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba", "wnba1h", "wnba1q"}
 )
 
 
@@ -394,6 +394,133 @@ def _extract_series_from_row(row):
     return actual_vals, line_vals
 
 
+# Cache-bust stamp for shell CSS after mobile polish (bump when CSS changes).
+MOBILE_CSS_V = "20260719gradesm2"
+
+NAV_ROUTE_MAP = {
+    "/": "index.html",
+    "/tickets": "tickets.html",
+    "/grades": "grades.html",
+    "/income": "income.html",
+    "/payout": "payout.html",
+    "/payout/log": "payout_log.html",
+    "/payout/ladder": "payout_ladder.html",
+    "/payout/examples": "payout_examples.html",
+}
+
+NAV_ACTIVE_BY_DEST = {
+    "index.html": "home",
+    "tickets.html": "tickets",
+    "grades.html": "grades",
+    "income.html": "income",
+    "payout.html": "payout",
+    "payout_ladder.html": "payout",
+    "payout_log.html": "payout",
+    "payout_examples.html": "payout",
+}
+
+
+def _rewrite_app_nav_hrefs(content: str) -> str:
+    """Map Flask absolute routes → static *.html for Capacitor / file://."""
+    for route, target in sorted(NAV_ROUTE_MAP.items(), key=lambda kv: -len(kv[0])):
+        content = re.sub(
+            rf'href\s*=\s*(["\'])\s*{re.escape(route)}((?:\?[^"\']*)?)\s*\1',
+            lambda m, t=target: f'href="{t}{m.group(2)}"',
+            content,
+            flags=re.IGNORECASE,
+        )
+    content = content.replace("'/payout/log'", "'payout_log.html'")
+    content = content.replace('"/payout/log"', '"payout_log.html"')
+    content = content.replace("'/payout?tab=cards'", "'payout.html?tab=cards'")
+    content = content.replace('"/payout?tab=cards"', '"payout.html?tab=cards"')
+    return content
+
+
+def _apply_nav_active_and_live_pill(content: str, dest_name: str) -> str:
+    """Restore active tab + LIVE pill after Jinja strip leaves empty class/pill."""
+    active_key = NAV_ACTIVE_BY_DEST.get(dest_name, "")
+    # Fill empty LIVE pill suffix left by {{ _pill }}.
+    content = re.sub(
+        r'(<div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span>\s*&nbsp;·&nbsp;\s*)(</div>)',
+        r"\1LIVE\2",
+        content,
+        count=2,
+    )
+    if not active_key:
+        return content
+    href_for = {
+        "home": "index.html",
+        "tickets": "tickets.html",
+        "grades": "grades.html",
+        "income": "income.html",
+        "payout": "payout.html",
+    }.get(active_key)
+    if not href_for:
+        return content
+    # Clear any existing active, then mark this page (top nav + mobile menu).
+    content = re.sub(
+        r'(href="(?:index|tickets|grades|income|payout)\.html"[^>]*?)\s+class="active"',
+        r'\1 class=""',
+        content,
+    )
+    content = re.sub(
+        rf'(href="{re.escape(href_for)}")(\s+class="")?',
+        rf'\1 class="active"',
+        content,
+        count=4,
+    )
+    return content
+
+
+def _bump_shell_css_cache(content: str) -> str:
+    """Keep shell CSS query params fresh so WebViews pick up polish."""
+    for name in (
+        "proporacle-page-shell.css",
+        "mobile-content-width.css",
+        "site-nav-unified.css",
+        "site-nav-datetime.css",
+        "nav-mobile-shared.css",
+        "proporacle-mobile-schema.css",
+        "tickets-redesign.css",
+        "tickets-built-content.css",
+        "global-scrollbar.css",
+    ):
+        content = re.sub(
+            rf'({re.escape(name)}\?v=)[^"\'\s>]+',
+            rf"\g<1>{MOBILE_CSS_V}",
+            content,
+            flags=re.IGNORECASE,
+        )
+        # Absolute Flask paths still present before relativization.
+        content = re.sub(
+            rf'(/static/{re.escape(name)}\?v=)[^"\'\s>]+',
+            rf"\g<1>{MOBILE_CSS_V}",
+            content,
+            flags=re.IGNORECASE,
+        )
+    # Ensure payout satellite pages load the full nav CSS stack.
+    if "site-nav-unified.css" not in content and "proporacle-page-shell.css" in content:
+        content = content.replace(
+            f'href="static/proporacle-page-shell.css?v={MOBILE_CSS_V}"/>',
+            (
+                f'href="static/proporacle-page-shell.css?v={MOBILE_CSS_V}"/>\n'
+                f'  <link rel="stylesheet" href="static/site-nav-unified.css?v={MOBILE_CSS_V}"/>\n'
+                f'  <link rel="stylesheet" href="static/site-nav-datetime.css?v={MOBILE_CSS_V}"/>'
+            ),
+            1,
+        )
+        content = content.replace(
+            f'href="/static/proporacle-page-shell.css?v={MOBILE_CSS_V}"/>',
+            (
+                f'href="/static/proporacle-page-shell.css?v={MOBILE_CSS_V}"/>\n'
+                f'  <link rel="stylesheet" href="/static/site-nav-unified.css?v={MOBILE_CSS_V}"/>\n'
+                f'  <link rel="stylesheet" href="/static/site-nav-datetime.css?v={MOBILE_CSS_V}"/>'
+            ),
+            1,
+        )
+    return content
+
+
 def process_template(file_path, templates_dir):
     """Recursively processes Jinja2 includes and strips placeholders."""
     if not file_path.exists():
@@ -494,29 +621,8 @@ def generate_bundle():
 
             # Fix navigation links for static bundle using robust regex
             # (Matches href="/", href="/tickets", etc., with flexible quoting and whitespace)
-            NAV_MAP = {
-                "/": "index.html",
-                "/tickets": "tickets.html",
-                "/grades": "grades.html",
-                "/income": "income.html",
-                "/payout": "payout.html",
-                "/payout/log": "payout_log.html",
-                "/payout/ladder": "payout_ladder.html",
-                "/payout/examples": "payout_examples.html",
-            }
-            # Longer routes first so /payout does not steal /payout/log.
-            for route, target in sorted(NAV_MAP.items(), key=lambda kv: -len(kv[0])):
-                content = re.sub(
-                    rf'href\s*=\s*(["\'])\s*{re.escape(route)}((?:\?[^"\']*)?)\s*\1',
-                    lambda m, t=target: f'href="{t}{m.group(2)}"',
-                    content,
-                    flags=re.IGNORECASE,
-                )
-            # JS navigations used by payout tabs (Ladder Log is its own page).
-            content = content.replace("'/payout/log'", "'payout_log.html'")
-            content = content.replace('"/payout/log"', '"payout_log.html"')
-            content = content.replace("'/payout?tab=cards'", "'payout.html?tab=cards'")
-            content = content.replace('"/payout?tab=cards"', '"payout.html?tab=cards"')
+            content = _rewrite_app_nav_hrefs(content)
+            content = _bump_shell_css_cache(content)
 
             # Mobile bundle runs from local files (not Railway routes).
             # Rewrite grades page report/API paths to local assets.
@@ -601,7 +707,9 @@ def generate_bundle():
 })();
 </script>
 """
-                content = content.replace("</body>", grades_mobile_bootstrap + "\n</body>")
+                # Avoid double-inject if grades template already carries the offline shim.
+                if "mobile_bundle_missing" not in content and "graded_props_${d}.json" not in content:
+                    content = content.replace("</body>", grades_mobile_bootstrap + "\n</body>")
             elif dest_name == "index.html":
                 # Home page slate data must come from bundled JSON in offline/mobile mode.
                 content = content.replace(
@@ -686,7 +794,7 @@ async function fetch_smart(localPath) {
             net_dollars: net,
             roi_pct: roi,
           };
-        }).filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date));
+        }).filter((r) => /^\\d{4}-\\d{2}-\\d{2}$/.test(r.date));
       }
 
       function renderSports(payload) {
@@ -748,17 +856,42 @@ async function fetch_smart(localPath) {
                 # Prefer rendering the tickets generator/slips view from fresh tickets_latest.json
                 # into tickets_built.html so mobile matches /tickets platform content.
                 tickets_json = TEMPLATES_DIR / "tickets_latest.json"
+                data_tickets_json = ROOT_DIR / "ui_runner" / "data" / "tickets_latest.json"
+                # Prefer the curated MAIN board (preferred_min_payout_x) when present.
+                if data_tickets_json.exists():
+                    try:
+                        _dj = json.loads(data_tickets_json.read_text(encoding="utf-8"))
+                        if _dj.get("preferred_min_payout_x") is not None or (
+                            str(_dj.get("max_legs") or "") in {"2", "3"}
+                            and sum(len(g.get("tickets") or []) for g in (_dj.get("groups") or [])) > 0
+                        ):
+                            tickets_json = data_tickets_json
+                    except Exception:
+                        pass
                 tickets_built_tpl = TEMPLATES_DIR / "tickets_built.html"
                 if tickets_json.exists() and tickets_built_tpl.exists():
                     try:
                         payload = json.loads(tickets_json.read_text(encoding="utf-8"))
+                        # Apply last-filter prefer ≥2x (STRONG always kept) if not already stamped.
+                        try:
+                            if payload.get("preferred_min_payout_x") is None:
+                                payload = combined_slate_tickets.prefer_main_min_payout_payload(payload)
+                        except Exception:
+                            pass
                         tickets_body_html, page_title = combined_slate_tickets.render_tickets_body_html(payload)
                         content = process_template(tickets_built_tpl, TEMPLATES_DIR)
                         content = content.replace("{{ tickets_body|safe }}", tickets_body_html)
                         content = content.replace("{{ page_title }}", page_title or "PropOracle Tickets")
-                    except Exception:
-                        # Fallback to whatever source page was selected above.
-                        pass
+                        # Body inject reintroduces Flask absolute nav — rewrite again.
+                        content = _rewrite_app_nav_hrefs(content)
+                        content = _bump_shell_css_cache(content)
+                        # Keep mobile tickets JSON aligned with the baked board.
+                        (MOBILE_WWW_DIR / "tickets_latest.json").write_text(
+                            json.dumps(payload, indent=2, ensure_ascii=False),
+                            encoding="utf-8",
+                        )
+                    except Exception as _tickets_exc:
+                        print(f"  [WARN] tickets bake failed ({_tickets_exc}); using shell fallback")
                 # Manual builder sport chips: keep visible on touch devices.
                 content = content.replace(
                     "btn.style.opacity = active ? '1' : '.55';",
@@ -768,7 +901,6 @@ async function fetch_smart(localPath) {
                     "btn.style.filter = active ? 'none' : 'grayscale(0.2)';",
                     "btn.style.filter = 'none';"
                 )
-                # Tickets bundle is sourced from ticket_eval pages (Grades nav active by default).
                 # Force Tickets tab active in both top nav and mobile menu for tickets.html.
                 content = content.replace(
                     'href="grades.html" class="active" title="Ticket evaluation hub"',
@@ -808,7 +940,90 @@ async function fetch_smart(localPath) {
 })();
 </script>
 """
-                content = content.replace("</body>", tickets_mobile_bootstrap + "\n</body>")
+                if "uniform-tickets/dates" not in content:
+                    content = content.replace("</body>", tickets_mobile_bootstrap + "\n</body>")
+            elif dest_name == "payout_ladder.html":
+                # Bake ladder tables with live CDP / mix summary (Jinja would otherwise strip empty).
+                try:
+                    ui_dir = str(ROOT_DIR / "ui_runner")
+                    if ui_dir not in sys.path:
+                        sys.path.insert(0, ui_dir)
+                    from app import (  # type: ignore
+                        _ladder_quality_stats,
+                        _normalize_delta_signature,
+                        _ladder_row_has_invalid_distance,
+                        _read_payout_ladder_rows,
+                        _summarize_ladder_rows,
+                    )
+                    from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+                    rows = _read_payout_ladder_rows()
+                    quality = _ladder_quality_stats(rows)
+                    n_live_cdp = int(quality.get("live_cdp") or 0)
+                    n_with_deltas = sum(
+                        1
+                        for r in rows
+                        if (
+                            _normalize_delta_signature(r.get("goblin_delta_sig") or r.get("goblin_deltas"))
+                            or _normalize_delta_signature(r.get("demon_delta_sig") or r.get("demon_deltas"))
+                        )
+                        and not _ladder_row_has_invalid_distance(r)
+                    )
+                    env = Environment(
+                        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+                        autoescape=select_autoescape(["html", "xml"]),
+                    )
+
+                    def _mobile_url_for(endpoint: str, **values: object) -> str:
+                        if endpoint == "static":
+                            filename = str(values.get("filename") or "")
+                            return f"static/{filename}"
+                        # Best-effort for any leftover Flask route helpers in includes.
+                        route = {
+                            "index": "index.html",
+                            "tickets": "tickets.html",
+                            "grades": "grades.html",
+                            "income": "income.html",
+                            "payout": "payout.html",
+                            "payout_log": "payout_log.html",
+                            "payout_ladder": "payout_ladder.html",
+                            "payout_examples": "payout_examples.html",
+                        }.get(endpoint)
+                        return route or f"{endpoint}.html"
+
+                    env.globals["url_for"] = _mobile_url_for
+                    tpl = env.get_template("payout_ladder.html")
+                    content = tpl.render(
+                        ladder_rows=_summarize_ladder_rows(rows, by_delta=False),
+                        delta_rows=_summarize_ladder_rows(rows, by_delta=True),
+                        total_rows=len(rows),
+                        live_cdp_rows=n_live_cdp,
+                        delta_known_rows=n_with_deltas,
+                        excluded_zero_delta_rows=int(quality.get("excluded_zero_delta") or 0),
+                        nav_active="payout",
+                        nav_pill_suffix="LIVE",
+                    )
+                    content = _rewrite_app_nav_hrefs(content)
+                    content = re.sub(
+                        r'(src|href)\s*=\s*(["\'])\s*/static/',
+                        r"\1=\2static/",
+                        content,
+                        flags=re.IGNORECASE,
+                    )
+                    content = _bump_shell_css_cache(content)
+                    # Horizontal scroll on narrow phones.
+                    if "table-scroll" not in content:
+                        content = content.replace(
+                            "<table aria-label=",
+                            '<div class="table-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table aria-label=',
+                        )
+                        content = content.replace("</table>\n      </section>", "</table></div>\n      </section>")
+                    print(f"  [payout_ladder] baked {len(rows)} raw rows (live_cdp={n_live_cdp})")
+                except Exception as _ladder_exc:
+                    print(f"  [WARN] payout_ladder bake failed ({_ladder_exc})")
+            elif dest_name == "payout_examples.html":
+                content = content.replace("open <code>/payout</code>", "open <code>payout.html</code>")
+                content = content.replace("open <code>/payout</code>", "open payout.html")
             elif dest_name == "payout.html":
                 # Offline/mobile: rate cards must load from bundled JSON (no /api route in file:// mode).
                 content = content.replace(
@@ -835,6 +1050,11 @@ async function fetch_smart(localPath) {
             if dest_name == "income.html":
                 # After Jinja stripping, invalid assignment can remain.
                 content = re.sub(r"const\s+points\s*=\s*;", "const points = [];", content)
+
+            # Jinja strip clears {{ 'active' if … }} and {{ _pill }} — restore for mobile chrome.
+            content = _apply_nav_active_and_live_pill(content, dest_name)
+            content = _rewrite_app_nav_hrefs(content)
+            content = _bump_shell_css_cache(content)
 
             dest_path.write_text(content, encoding="utf-8")
         else:
@@ -1013,7 +1233,10 @@ async function fetch_smart(localPath) {
             (slate_payload.get("date") if isinstance(slate_payload, dict) else "") or ""
         ).strip()[:10]
         modified_default = f"{slate_date} 12:00:00" if slate_date else ""
-        status_sports = ["nba", "nba1h", "nba1q", "cbb", "cfb", "nhl", "soccer", "mlb", "nfl", "tennis", "wnba", "combined"]
+        status_sports = [
+            "nba", "nba1h", "nba1q", "cbb", "cfb", "nhl", "soccer", "mlb", "nfl",
+            "tennis", "wnba", "wnba1h", "wnba1q", "combined",
+        ]
         R = ROOT_DIR
         combined_candidates = list(R.glob("combined_slate_tickets_*.xlsx"))
         _out_root = R / "outputs"
@@ -1091,6 +1314,18 @@ async function fetch_smart(localPath) {
                     R / "Sports" / "WNBA" / "step8_wnba_direction.xlsx",
                     R / "WNBA" / "step8_wnba_direction_clean.xlsx",
                     R / "WNBA" / "step8_wnba_direction.xlsx",
+                ]
+            ),
+            "wnba1h": _first_existing_path(
+                [
+                    R / "outputs" / slate_date / "wnba1h" / "step8_wnba1h_direction_clean.xlsx",
+                    R / "Sports" / "WNBA" / "step8_wnba1h_direction_clean.xlsx",
+                ]
+            ),
+            "wnba1q": _first_existing_path(
+                [
+                    R / "outputs" / slate_date / "wnba1q" / "step8_wnba1q_direction_clean.xlsx",
+                    R / "Sports" / "WNBA" / "step8_wnba1q_direction_clean.xlsx",
                 ]
             ),
         }
@@ -1199,6 +1434,20 @@ async function fetch_smart(localPath) {
     src_payout_ladder_examples = ROOT_DIR / "ui_runner" / "data" / "payout_ladder_examples.json"
     if src_payout_ladder_examples.exists():
         shutil.copy2(src_payout_ladder_examples, MOBILE_WWW_DIR / "payout_ladder_examples.json")
+
+    # Matchup edge JSONs for mobile slate matchup panels.
+    matchup_copied = 0
+    for src in sorted((TEMPLATES_DIR).glob("*_matchup_edge.json")):
+        shutil.copy2(src, mobile_data_dir / src.name)
+        matchup_copied += 1
+    sports_root = ROOT_DIR / "Sports"
+    if sports_root.is_dir():
+        for src in sports_root.glob("*/data/*_matchup_edge.json"):
+            dest = mobile_data_dir / src.name
+            if not dest.exists():
+                shutil.copy2(src, dest)
+                matchup_copied += 1
+    print(f"  [matchup] copied {matchup_copied} matchup edge JSON files -> data/")
 
     # Offline/mobile Sport Breakdown source for income page.
     (MOBILE_WWW_DIR / "sport_breakdown.json").write_text(

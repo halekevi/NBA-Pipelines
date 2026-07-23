@@ -67,5 +67,5 @@ try {
 }
 
 Write-Host ""
-Write-Host "WNBA board: league_id=3  |  NBA board: league_id=7" -ForegroundColor DarkGray
+Write-Host "WNBA board: league_id=3  |  WNBA1H=193  |  WNBA1Q=308  |  NBA board: league_id=7" -ForegroundColor DarkGray
 Write-Host "Run pipeline: pwsh -File scripts\run_wnba_pipeline.ps1 -Cdp $cdpUrl -Date YYYY-MM-DD" -ForegroundColor DarkGray

@@ -3,7 +3,8 @@
 step1_fetch_prizepicks.py  (WNBA Pipeline)
 
 Fetches WNBA PrizePicks projections from the public API.
-League ID: 3 (WNBA)
+Default league ID: 3 (WNBA full game). Period boards use separate IDs
+(see Sports/WNBA/prizepicks_league_ids.py: WNBA1H=193, WNBA1Q=308).
 
 Identical logic to NbaPropPipelineA/step1_fetch_prizepicks_api.py —
 only the default league_id differs.
@@ -11,9 +12,11 @@ only the default league_id differs.
 Run:
   py -3.14 step1_fetch_prizepicks.py
   py -3.14 step1_fetch_prizepicks.py --output step1_wnba_props.csv
+  py -3.14 step1_fetch_prizepicks.py --league_id 193 --sport-tag WNBA1H ...
 
-scripts/run_wnba_pipeline.ps1 defaults to Sports/NBA/scripts/step1_fetch_prizepicks_api.py
-with --league_id 3 (same as NBA fetch); outputs stay under outputs/<date>/wnba/.
+scripts/run_wnba_pipeline.ps1 defaults to this script (HTTP) with league_id 3;
+outputs stay under outputs/<date>/wnba/. Period refresh:
+  scripts/_run_wnba_period_refresh.ps1
 This script is used for --playwright / --cdp when PrizePicks blocks direct API.
 """
 
@@ -854,6 +857,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--output",           default="step1_wnba_props.csv")
     ap.add_argument("--league_id",        default=WNBA_LEAGUE_ID_DEFAULT)   # WNBA = 3 (legacy)
+    ap.add_argument(
+        "--sport-tag",
+        default="",
+        help="Sport label for archive/sport column (WNBA, WNBA1H, WNBA1Q). "
+             "Default: map from league_id via prizepicks_league_ids, else WNBA.",
+    )
     ap.add_argument("--game_mode",        default="pickem")
     ap.add_argument("--per_page",         type=int,   default=250)
     ap.add_argument("--max_pages",        type=int,   default=20)
@@ -903,7 +912,19 @@ def main():
         out_path = Path(__file__).resolve().parent / out_path
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"📡 Fetching PrizePicks WNBA | league_id={args.league_id}")
+    lid_s = str(args.league_id).strip()
+    sport_tag = str(args.sport_tag or "").strip().upper()
+    if not sport_tag:
+        try:
+            wnba_dir = Path(__file__).resolve().parent
+            if str(wnba_dir) not in sys.path:
+                sys.path.insert(0, str(wnba_dir))
+            from prizepicks_league_ids import SPORT_TAG_BY_LEAGUE_ID
+
+            sport_tag = SPORT_TAG_BY_LEAGUE_ID.get(lid_s, "WNBA")
+        except Exception:
+            sport_tag = "WNBA"
+    print(f"📡 Fetching PrizePicks {sport_tag} | league_id={lid_s}")
 
     data: List[dict] = []
     included: List[dict] = []
@@ -911,7 +932,7 @@ def main():
     if use_playwright:
         try:
             data, included, leagues = fetch_via_playwright_session(
-                league_id=str(args.league_id).strip(),
+                league_id=lid_s,
                 timeout_s=int(args.timeout),
                 cdp_url=str(args.cdp).strip(),
             )
@@ -931,6 +952,11 @@ def main():
                     print(f"  - {lid}: {name}")
                 if not any("wnba" in n.lower() for _, n in items):
                     print("⚠️ WNBA not present in active leagues payload.")
+                # Highlight period boards used by _run_wnba_period_refresh.ps1
+                for want in ("WNBA1H", "WNBA1Q", "WNBA4Q", "WNBA2H"):
+                    hits = [(i, n) for i, n in items if n.upper() == want]
+                    if hits:
+                        print(f"  [period] {want} -> league_id={hits[0][0]}")
         except Exception as e:
             print(f"❌ FETCH_FAILED: Playwright fetch failed: {e}")
             print(
@@ -942,7 +968,7 @@ def main():
     else:
         try:
             data, included = fetch_pages(
-                league_id=args.league_id,
+                league_id=lid_s,
                 game_mode=args.game_mode,
                 per_page=args.per_page,
                 max_pages=args.max_pages,
@@ -1063,11 +1089,11 @@ def main():
 
     rows_n = len(df)
     if rows_n == 0:
-        print(no_props_log_line("WNBA", str(args.date).strip()[:10]))
+        print(no_props_log_line(sport_tag, str(args.date).strip()[:10]))
         empty_cols = [
             "projection_id", "pp_projection_id", "player_id", "pp_game_id", "start_time",
             "player", "pos", "team", "opp_team", "prop_type", "line", "pick_type", "game_date",
-            "fetched_at",
+            "fetched_at", "sport",
         ]
         pd.DataFrame(columns=empty_cols).to_csv(out_path, index=False, encoding="utf-8-sig")
         sys.exit(0)
@@ -1083,17 +1109,20 @@ def main():
         sys.exit(1)
 
     df = _stamp_fetched_at(df)
+    df["sport"] = sport_tag
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
     try:
         _root = Path(__file__).resolve().parents[2]
         if str(_root) not in sys.path:
             sys.path.insert(0, str(_root))
         from scripts.line_history_archive import archive_lines
-        archive_lines(df, sport="WNBA")
+        archive_lines(df, sport=sport_tag)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
-    _write_snapshots(df, str(args.date).strip())
-    print(f"✅ Saved → {out_path}  rows={rows_n}  teams={teams_n}")
+    # Snapshots are full-game WNBA only (period boards skip dated snapshot clutter).
+    if sport_tag == "WNBA":
+        _write_snapshots(df, str(args.date).strip())
+    print(f"✅ Saved → {out_path}  rows={rows_n}  teams={teams_n}  sport={sport_tag}")
 
     if rows_n < args.min_rows or teams_n < args.min_teams:
         print(f"⛔ BOARD_TOO_SMALL (need min_rows={args.min_rows}, min_teams={args.min_teams})")

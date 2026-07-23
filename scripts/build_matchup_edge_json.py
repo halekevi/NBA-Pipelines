@@ -3,7 +3,7 @@
 Build Matchup Edge JSON for Slate Explorer (all supported sports).
 
 Each sport emits top-5 + bottom-5 leaders per team/category (leader_slice in JSON).
-WNBA/NBA/NHL/MLB use dedicated builders; nba1h/nba1q/soccer/cbb/cfb/nfl use the generic path.
+WNBA/NBA/NHL/MLB use dedicated builders; nba1h/nba1q/wnba1h/wnba1q/soccer/cbb/cfb/nfl use the generic path.
 
 One sport failing (e.g. NHL off-season missing defense CSV) must NOT abort the rest —
 otherwise MLB/WNBA/Tennis panels go stale until the next successful full run.

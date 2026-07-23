@@ -1812,6 +1812,98 @@
         }
       ]
     },
+    "wnba1h": {
+      "label": "WNBA 1H Pipeline",
+      "workdir": "Sports/WNBA",
+      "commands": [
+        {
+          "id": "wnba1h_step1",
+          "label": "Step 1 — Fetch PrizePicks (WNBA1H league 193)",
+          "cmd": [
+            "py",
+            "-3.14",
+            "./step1_fetch_prizepicks.py",
+            "--league_id",
+            "193",
+            "--sport-tag",
+            "WNBA1H",
+            "--game_mode",
+            "pickem",
+            "--per_page",
+            "250",
+            "--max_pages",
+            "5",
+            "--min_rows",
+            "5",
+            "--output",
+            "../../outputs/{TODAY}/wnba1h/step1_wnba1h_props.csv",
+            "--date",
+            "{TODAY}"
+          ]
+        },
+        {
+          "id": "wnba1h_period_refresh",
+          "label": "WNBA1H+WNBA1Q period refresh (steps 1-8)",
+          "cmd": [
+            "powershell",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "../../scripts/_run_wnba_period_refresh.ps1",
+            "-Date",
+            "{TODAY}",
+            "-Cdp",
+            "http://127.0.0.1:9222"
+          ]
+        }
+      ]
+    },
+    "wnba1q": {
+      "label": "WNBA 1Q Pipeline",
+      "workdir": "Sports/WNBA",
+      "commands": [
+        {
+          "id": "wnba1q_step1",
+          "label": "Step 1 — Fetch PrizePicks (WNBA1Q league 308)",
+          "cmd": [
+            "py",
+            "-3.14",
+            "./step1_fetch_prizepicks.py",
+            "--league_id",
+            "308",
+            "--sport-tag",
+            "WNBA1Q",
+            "--game_mode",
+            "pickem",
+            "--per_page",
+            "250",
+            "--max_pages",
+            "5",
+            "--min_rows",
+            "5",
+            "--output",
+            "../../outputs/{TODAY}/wnba1q/step1_wnba1q_props.csv",
+            "--date",
+            "{TODAY}"
+          ]
+        },
+        {
+          "id": "wnba1q_period_refresh",
+          "label": "WNBA1H+WNBA1Q period refresh (steps 1-8)",
+          "cmd": [
+            "powershell",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            "../../scripts/_run_wnba_period_refresh.ps1",
+            "-Date",
+            "{TODAY}",
+            "-Cdp",
+            "http://127.0.0.1:9222"
+          ]
+        }
+      ]
+    },
     "deploy_helpers": {
       "label": "Deploy / Income helpers",
       "workdir": "",

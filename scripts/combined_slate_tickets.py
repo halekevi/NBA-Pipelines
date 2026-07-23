@@ -1193,7 +1193,8 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
 def require_live_payout_display() -> bool:
     """
     When True (default), board display floors must come from live_cdp.
-    Mix-grid / model fallbacks are not stamped as display_min_x.
+    Mix-grid / model / SG-Δ extrapolated / historical-without-live are never
+    stamped as display_min_x (leave pending_live until a real PP capture).
     Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0 to restore legacy estimate floors.
     """
     raw = (os.getenv("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1").strip().lower()
@@ -1300,12 +1301,15 @@ def attach_display_min_x(ticket: dict) -> dict:
     Set payout.display_min_x + payout.payout_source.
 
     Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1):
-      1. live_cdp only
+      1. live_cdp only (verified PP capture)
       else pending_live (no fake floor)
+
+    Never uses sg_delta_payout_rate_card extrapolated or historical-without-live
+    cells as ticket display floors — those stay audit-only until live_cdp verifies.
 
     Legacy (PROPORACLE_REQUIRE_LIVE_PAYOUT=0):
       1. live_cdp
-      2. rate_card
+      2. rate_card (fitted mix-grid card, not SG-Δ extrapolations)
       3. mix_grid_average
       4. fallback_estimate
 
@@ -21286,6 +21290,8 @@ def _normalize_payout_source(source: str | None) -> str:
     src = str(source or "").strip().lower()
     if src == "live_cdp":
         return "live_cdp"
+    if src == "pending_live":
+        return "pending_live"
     if src == "rate_card":
         return "rate_card"
     if src == "mix_grid_average":
@@ -21298,9 +21304,28 @@ def _normalize_payout_source(source: str | None) -> str:
 
 
 def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = None) -> float | None:
-    """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x."""
+    """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x.
+
+    When live floors are required, only live_cdp (or power_min_x already captured as
+    live) is shown — no model / extrapolated / historical-without-live fallback.
+    """
     pay = payout if isinstance(payout, dict) else {}
     ticket = ticket if isinstance(ticket, dict) else {}
+    src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if require_live_payout_display():
+        if src == "pending_live":
+            return None
+        if src and src != "live_cdp":
+            return None
+        for raw in (
+            pay.get("display_min_x") if src == "live_cdp" else None,
+            ticket.get("display_min_x") if src == "live_cdp" else None,
+            pay.get("power_min_x"),
+        ):
+            v = _safe_positive_float(raw)
+            if v is not None:
+                return v
+        return None
     for raw in (
         pay.get("display_min_x"),
         ticket.get("display_min_x"),
@@ -21317,11 +21342,13 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
 def _board_payout_label(display_x: float | None, source: str | None) -> tuple[str, str, str]:
     """
     Option A board payout copy: (mult_text, source_badge, title).
-    live_cdp → "2.2x" + "✓ live"; estimates use a leading ~.
+    live_cdp → "2.2x" + "✓ live"; pending_live → "—"; estimates use a leading ~.
     """
     src = _normalize_payout_source(source)
+    if src == "pending_live":
+        return "—", "pending", "Waiting for live PrizePicks capture (no extrapolated floor)"
     if display_x is None:
-        return "—", "est", "Board payout unavailable"
+        return "—", "pending" if require_live_payout_display() else "est", "Board payout unavailable"
     mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
     if src == "live_cdp":
         return f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
@@ -21341,6 +21368,8 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
     if badge_label is None:
         if src == "live_cdp":
             badge_label = "✓ live"
+        elif src == "pending_live":
+            badge_label = "pending"
         elif src == "rate_card":
             badge_label = "est"
         elif src == "mix_grid_average":
@@ -22447,10 +22476,19 @@ def render_tickets_body_html(
 
             kpi_payout = board_pay_x
             kpi_source = board_pay_src
-            if kpi_payout is None:
+            # Do not substitute model power_payout when waiting on live_cdp.
+            if (
+                kpi_payout is None
+                and not require_live_payout_display()
+                and str(kpi_source or "").strip().lower() != "pending_live"
+            ):
                 kpi_payout = t_power_pay
                 board_mult_text, board_badge_label, board_title = _board_payout_label(
                     _safe_positive_float(kpi_payout), kpi_source
+                )
+            elif kpi_payout is None:
+                board_mult_text, board_badge_label, board_title = _board_payout_label(
+                    None, kpi_source
                 )
 
             warn_html = ('<span style="font-size:10px;color:var(--amber);margin-left:auto;">⚠ data warning</span>'

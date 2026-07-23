@@ -61,6 +61,47 @@ def test_attach_does_not_downgrade_live_cdp():
     assert float(out["payout"]["power_min_x"]) == 2.6
 
 
+def test_attach_pending_live_when_require_live(monkeypatch):
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    t = _ticket("d|STRONG|9", 2.2, "mix_grid_average")
+    t["payout"]["power_min_x"] = None
+    t["payout"]["payout_source"] = "mix_grid_average"
+    out = cst.attach_display_min_x(t)
+    assert out["payout"]["payout_source"] == "pending_live"
+    assert out["payout"].get("display_min_x") is None
+    assert out.get("display_min_x") is None
+
+
+def test_resolve_display_skips_model_when_pending(monkeypatch):
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    t = {
+        "power_payout": 9.0,
+        "base_power_payout": 9.0,
+        "payout": {"payout_source": "pending_live", "model_min_payout_x": 9.0},
+    }
+    assert cst._resolve_ticket_display_min_x(t["payout"], t) is None
+    label, badge, _ = cst._board_payout_label(None, "pending_live")
+    assert label == "—"
+    assert badge == "pending"
+
+
+def test_attach_mix_grid_when_require_live_off(monkeypatch):
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "0")
+    monkeypatch.setattr(cst, "_load_live_payout_rate_card", lambda: None)
+    monkeypatch.setattr(cst, "_LIVE_COMPOSITION_FLOORS", {})
+    t = {
+        "n_legs": 2,
+        "legs": [
+            {"pick_type": "Goblin", "player": "A", "prop_type": "X", "line": 1.5},
+            {"pick_type": "Goblin", "player": "B", "prop_type": "Y", "line": 2.5},
+        ],
+        "payout": {"min_payout_x": 9.0, "model_min_payout_x": 9.0},
+    }
+    out = cst.attach_display_min_x(t)
+    assert out["payout"]["payout_source"] == "mix_grid_average"
+    assert float(out["payout"]["display_min_x"]) == 2.2
+
+
 def test_empty_capture_does_not_wipe_prior_patch(tmp_path, monkeypatch):
     monkeypatch.setattr(cpd, "ROOT", tmp_path)
     reports = tmp_path / "data" / "reports"

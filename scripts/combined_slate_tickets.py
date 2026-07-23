@@ -134,6 +134,10 @@ from utils.category_hit_rate import (
     winrate_priority_series as _winrate_priority_series,
     DEFAULT_CATEGORY_HR_PATH as _CATEGORY_HR_PATH,
 )
+from utils.cell_hr_priority import (
+    cell_hr_priority_boost_series as _cell_hr_priority_boost_series,
+    summarize_cell_hr_priority as _summarize_cell_hr_priority,
+)
 from utils.kelly_staking import fractional_kelly, leg_edge_pct_for_kelly
 from utils.prop_signal_score import (
     HOT_L10_BOOST,
@@ -19516,13 +19520,24 @@ def main():
                 filtered_df["rank_score"] = pd.to_numeric(filtered_df["rank_score"], errors="coerce").fillna(0.0) * strat_mult
 
         # L10, ml_prob, def_tier, cross-book edge, line movement, graded-history boosts.
+        # Jul-22 ≥60% cell allowlist + rolling category_hr≥60% soft-boost; weak lanes soft-downrank.
         _ctx_adj = context_signal_adjustment_series(filtered_df)
         _ga_boost = graded_analysis_boost_series(filtered_df, _graded_ctx_main)
         _cat_boost = _category_hr_boost_series(filtered_df)
+        _cell_hr_boost = _cell_hr_priority_boost_series(filtered_df)
         filtered_df["context_signal_adj"] = _ctx_adj
         filtered_df["graded_history_boost"] = _ga_boost
         filtered_df["category_hr_boost"] = _cat_boost
-        _signal_bonus = _ctx_adj + _ga_boost + _cat_boost
+        filtered_df["cell_hr_priority_boost"] = _cell_hr_boost
+        _signal_bonus = _ctx_adj + _ga_boost + _cat_boost + _cell_hr_boost
+        _cell_hr_sum = _summarize_cell_hr_priority(filtered_df, _cell_hr_boost)
+        if _cell_hr_sum.get("boosted") or _cell_hr_sum.get("penalized"):
+            print(
+                "  [cell-hr-priority] "
+                f"boosted={_cell_hr_sum.get('boosted', 0)} "
+                f"penalized={_cell_hr_sum.get('penalized', 0)} "
+                "(Jul22 ≥60% n≥10 allowlist + rolling category_hr; weak Soccer/Tennis lanes)"
+            )
         if "rank_score" in filtered_df.columns:
             filtered_df["rank_score"] = (
                 pd.to_numeric(filtered_df["rank_score"], errors="coerce").fillna(0.0) + _signal_bonus

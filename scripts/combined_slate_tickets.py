@@ -6333,11 +6333,13 @@ def build_win_rate_ticket_groups(
     goblin_only_3leg: bool = False,
     standard_only: bool = False,
 ) -> list[tuple[str, list, None]]:
-    """Build win-rate slips sorted by p_win (3-leg primary; 2-leg fallback; never 4+)."""
-    max_legs = max(2, min(int(MAIN_GRADED_MAX_LEGS), int(max_legs)))
+    """Build win-rate slips sorted by p_win (3-leg primary; Goblin-only may also emit 4–6)."""
     graded_ctx = _graded_analysis_context(graded_analysis)
     goblin_only_3leg = bool(goblin_only_3leg)
     standard_only = bool(standard_only)
+    goblin_long = bool(goblin_only) and not goblin_only_3leg and not standard_only
+    hard_cap = int(GOBLIN_MAX_LEGS) if goblin_long else int(MAIN_GRADED_MAX_LEGS)
+    max_legs = max(2, min(hard_cap, int(max_legs)))
     if goblin_only_3leg:
         goblin_only = True
         max_legs = min(max_legs, MAIN_GRADED_MAX_LEGS)
@@ -6359,10 +6361,14 @@ def build_win_rate_ticket_groups(
                     frames_by_sport[str(sp).strip().upper()] = g
 
     if prefer_three_leg:
-        # Production: 3-leg primary + 2-leg companion (never 4+).
+        # Short book: 3-leg primary + 2-leg companion. Goblin-only also builds 4–6 (Long Goblin).
         build_leg_counts = [MAIN_DEFAULT_LEGS]
         if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS and MAIN_GRADED_MIN_LEGS <= max_legs:
             build_leg_counts.append(MAIN_GRADED_MIN_LEGS)
+        if goblin_long:
+            for n in range(4, max_legs + 1):
+                if n not in build_leg_counts:
+                    build_leg_counts.append(n)
     else:
         build_leg_counts = list(range(MAIN_GRADED_MIN_LEGS, max_legs + 1))
 
@@ -6428,6 +6434,8 @@ def build_win_rate_ticket_groups(
                 return 0
             if n == MAIN_GRADED_MIN_LEGS:
                 return 1
+            if goblin_long and 4 <= n <= max_legs:
+                return 1 + n  # after 2–3; shorter long slips before 6
             return 9
         return 0
 
@@ -6443,7 +6451,9 @@ def build_win_rate_ticket_groups(
     picked: list[dict] = []
     # Seed output with preferred lengths before filling remaining slots by score.
     if prefer_three_leg:
-        pick_order = (MAIN_DEFAULT_LEGS, MAIN_GRADED_MIN_LEGS)
+        pick_order = [MAIN_DEFAULT_LEGS, MAIN_GRADED_MIN_LEGS]
+        if goblin_long:
+            pick_order.extend(range(4, max_legs + 1))
         for target_n in pick_order:
             if target_n > max_legs:
                 continue
@@ -6466,7 +6476,8 @@ def build_win_rate_ticket_groups(
             if len(picked) >= int(max_tickets):
                 break
     elif max_legs >= 3:
-        for target_n in (3, 2):
+        seed_ns = [3, 2] + (list(range(4, max_legs + 1)) if goblin_long else [])
+        for target_n in seed_ns:
             if target_n > max_legs:
                 continue
             for t in candidates:
@@ -7756,13 +7767,18 @@ def _finalize_payload_l10_streaks(payload: dict) -> None:
     payload["cold_legs"] = sum(int(g.get("cold_legs") or 0) for g in (payload.get("groups") or []) if isinstance(g, dict))
 
 
-# Graded KPI split: main = high-prob Standard+Goblin 2–3 leg (profitability path);
-# long_parlay sidecar is OFF by default (was 5–6; re-enable via PROPORACLE_LONG_PARLAY=1).
+# Graded KPI split: mixed MAIN = high-prob Standard+Goblin 2–3 (short book);
+# Goblin-only boards may also emit 4–6 (Long Goblin); long_parlay sidecar = 5–6.
 MAIN_GRADED_MIN_LEGS = 2
 MAIN_GRADED_MAX_LEGS = max(2, min(3, int(os.getenv("PROPORACLE_MAIN_MAX_LEGS", "3"))))
+# Goblin-only MAIN / Long Goblin: allow 4–6 while mixed MAIN stays ≤3.
+GOBLIN_MAX_LEGS = max(
+    MAIN_GRADED_MAX_LEGS,
+    min(6, int(os.getenv("PROPORACLE_GOBLIN_MAX_LEGS", "6"))),
+)
 MAIN_DEFAULT_LEGS = 3
 MAIN_THIN_POOL_MIN_LEGS = 6
-# Legacy 4-leg path retained for shadow/experiments only (MAIN hard-caps at 3).
+# 4+ Goblin / MAIN slips: Tier-A HOT floors (see _ticket_passes_main_four_leg_gate).
 MAIN_FOUR_LEG_MIN_ML_PROB = 0.70
 MAIN_FOUR_LEG_MIN_LEG_PROB = 0.70
 MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
@@ -7797,7 +7813,7 @@ MAIN_POOL_MODES = frozenset(
         "goblin_only_3leg",  # legacy alias → goblin_only
     }
 )
-LONG_PARLAY_ENABLED: bool = os.getenv("PROPORACLE_LONG_PARLAY", "0").strip().lower() not in (
+LONG_PARLAY_ENABLED: bool = os.getenv("PROPORACLE_LONG_PARLAY", "1").strip().lower() not in (
     "0",
     "false",
     "no",
@@ -8018,7 +8034,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
 def extract_long_parlay_payload(full_payload: dict) -> dict:
     """5–6 leg slips from the full EV export (separate grade track from main win-rate pool).
 
-    Disabled by default (`PROPORACLE_LONG_PARLAY=0`) so production boards stay 2–3 legs.
+    Enabled by default (`PROPORACLE_LONG_PARLAY=1`). Set to 0 to disable.
     """
     if not LONG_PARLAY_ENABLED:
         out = dict(full_payload) if isinstance(full_payload, dict) else {}
@@ -8195,12 +8211,7 @@ def build_graded_main_win_rate_payload(
     policy_tag: str | None = None,
 ) -> dict:
     """Build MAIN graded track from win-rate builder (mixed / goblin_only / standard_only)."""
-    # Main graded leg cap is independent of --max-ticket-legs (workbook/EV builder knob).
-    wr_max_legs = max(MAIN_GRADED_MIN_LEGS, int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS))
-    wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
-    wr_max_tickets = int(max_tickets or MAIN_MAX_SLIPS)
-
-    # Resolve pool mode: explicit pool_mode wins; legacy goblin_only_3leg / opt3 flags still work.
+    # Resolve pool mode first so Goblin-only can raise the leg cap to GOBLIN_MAX_LEGS.
     requested = str(pool_mode or "").strip().lower()
     if goblin_tier_a_only:
         mode = MAIN_POOL_MODE_GOBLIN
@@ -8211,14 +8222,14 @@ def build_graded_main_win_rate_payload(
     elif requested in ("goblin_only", "goblin_only_3leg") or (
         bool(goblin_only_3leg) and not requested
     ):
-        # Prefer 3-leg build for all Goblin-only boards; keep legacy label only when requested.
+        # Prefer 3-leg short book; Long Goblin 4–6 when not legacy goblin_only_3leg.
         use_legacy_goblin_label = requested == "goblin_only_3leg" or (
             bool(goblin_only_3leg) and not requested
         )
         mode = "goblin_only_3leg" if use_legacy_goblin_label else MAIN_POOL_MODE_GOBLIN
         use_goblin_only = True
         use_standard_only = False
-        use_goblin_only_3leg = True
+        use_goblin_only_3leg = bool(use_legacy_goblin_label)
         use_high_prob = False
     elif requested == MAIN_POOL_MODE_STANDARD:
         mode = MAIN_POOL_MODE_STANDARD
@@ -8232,6 +8243,23 @@ def build_graded_main_win_rate_payload(
         use_standard_only = False
         use_goblin_only_3leg = False
         use_high_prob = True
+
+    # Mixed MAIN stays ≤3; Goblin-only (non-legacy) may build through GOBLIN_MAX_LEGS.
+    default_cap = (
+        GOBLIN_MAX_LEGS
+        if use_goblin_only and not use_goblin_only_3leg
+        else MAIN_GRADED_MAX_LEGS
+    )
+    wr_max_legs = max(
+        MAIN_GRADED_MIN_LEGS,
+        int(max_legs if max_legs is not None else default_cap),
+    )
+    if use_goblin_only and not use_goblin_only_3leg:
+        wr_max_legs = min(int(GOBLIN_MAX_LEGS), wr_max_legs)
+    else:
+        wr_max_legs = min(int(MAIN_GRADED_MAX_LEGS), wr_max_legs)
+    wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
+    wr_max_tickets = int(max_tickets or MAIN_MAX_SLIPS)
 
     wr_groups = build_win_rate_ticket_groups(
         sport_frames,
@@ -9131,8 +9159,9 @@ def filter_main_goblin_only_3leg_payload(payload: dict) -> dict:
 
 def filter_main_high_prob_payload(payload: dict) -> dict:
     """
-    Keep high-prob MAIN slips: Goblin and/or Standard, 2–3 legs preferred,
-    4-leg only when every leg clears the strict Tier-A HOT floor.
+    Keep high-prob MAIN slips: Goblin and/or Standard.
+    Mixed / standard-only: 2–3 legs. Goblin-only: 2–GOBLIN_MAX_LEGS (Long Goblin 4–6).
+    4+ legs still require every leg to clear the Tier-A HOT floor at build time.
     Drops Demon / banned props / excluded sports.
     """
     mode_raw = str(payload.get("pool_mode") or "").strip().lower()
@@ -9141,6 +9170,12 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
     mode = _normalize_main_pool_mode(mode_raw)
     goblin_only = mode == MAIN_POOL_MODE_GOBLIN or bool(payload.get("goblin_only"))
     standard_only = mode == MAIN_POOL_MODE_STANDARD or bool(payload.get("standard_only"))
+    legacy_goblin_3 = mode_raw == "goblin_only_3leg"
+    max_keep = (
+        MAIN_GRADED_MAX_LEGS
+        if standard_only or legacy_goblin_3 or not goblin_only
+        else GOBLIN_MAX_LEGS
+    )
     out = dict(payload)
     new_groups: list[dict] = []
     for g in out.get("groups") or []:
@@ -9156,7 +9191,7 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
                 continue
             legs = [leg for leg in (t.get("legs") or []) if isinstance(leg, dict)]
             n = len(legs)
-            if n < MAIN_GRADED_MIN_LEGS or n > MAIN_GRADED_MAX_LEGS:
+            if n < MAIN_GRADED_MIN_LEGS or n > max_keep:
                 continue
             if any(_leg_mlb_construction_banned(leg) for leg in legs):
                 continue

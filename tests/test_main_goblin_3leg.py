@@ -1,4 +1,4 @@
-"""Tests for high-prob MAIN track (Standard+Goblin, 2–3 leg only)."""
+"""Tests for high-prob MAIN track (Standard+Goblin short book; Goblin-only Long 4–6)."""
 from __future__ import annotations
 
 import sys
@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from combined_slate_tickets import (  # noqa: E402
+    GOBLIN_MAX_LEGS,
     MAIN_DEFAULT_LEGS,
     MAIN_POOL_MODE,
     MAIN_THIN_POOL_MIN_LEGS,
@@ -149,6 +150,26 @@ def test_thin_pool_allows_two_leg_fallback():
     leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
     assert 2 in leg_counts
     assert all(n <= 3 for n in leg_counts)
+
+
+def test_goblin_only_can_build_long_4_to_6():
+    """Goblin-only (non-legacy) may emit Long Goblin 4–6 under Tier-A HOT gates."""
+    assert GOBLIN_MAX_LEGS >= 6
+    frames = [("WNBA", _frame(10, ml_prob=0.72))]
+    groups = build_win_rate_ticket_groups(
+        frames,
+        min_leg_prob=0.62,
+        min_composite_hr=0.52,
+        max_legs=6,
+        max_tickets=12,
+        goblin_only=True,
+        goblin_only_3leg=False,
+    )
+    assert groups
+    leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
+    assert MAIN_DEFAULT_LEGS in leg_counts
+    assert any(n >= 4 for n in leg_counts), f"expected Long Goblin legs, got {leg_counts}"
+    assert all(n <= 6 for n in leg_counts)
 
 
 def test_filter_main_high_prob_keeps_standard_and_goblin():

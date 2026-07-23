@@ -203,6 +203,35 @@ def _norm_name_mlb(s) -> str:
 
     return fold_player_name(s)
 
+
+def _combo_player_parts(player: str) -> list[str]:
+    """Split PrizePicks combo labels (``A + B``) into individual player names."""
+    raw = str(player or "").strip()
+    if "+" not in raw:
+        return [raw] if raw else []
+    return [p.strip() for p in raw.split("+") if p.strip()]
+
+
+def _combo_team_parts(team: str, n_players: int) -> list[str]:
+    """Align team tokens with combo arms (``STL/LAA`` → one team per player)."""
+    if n_players <= 1:
+        return [str(team or "").strip().upper()]
+    raw = str(team or "").strip()
+    if not raw or raw.lower() in ("nan", "none", "-", "—"):
+        return [""] * n_players
+    if "/" in raw:
+        parts = [p.strip().upper() for p in raw.split("/") if p.strip()]
+        if len(parts) >= n_players:
+            return parts[:n_players]
+        if len(parts) == 1:
+            return parts * n_players
+        while len(parts) < n_players:
+            parts.append(parts[-1] if parts else "")
+        return parts[:n_players]
+    tok = raw.upper()
+    return [tok] * n_players
+
+
 def load_slate(path: Path, sport: str, grade_date: str = None) -> pd.DataFrame:
     sport = sport.upper()
     # Try reading — handle xlsx and csv
@@ -627,6 +656,10 @@ def grade(slate: pd.DataFrame, actuals: pd.DataFrame, sport: str) -> pd.DataFram
         "hitterfantasyscore":   ["hitterfantasyscore", "fantasyscore", "fantasypoints"],
         "earnedrunsallowed":    ["earnedruns", "earnedrunsallowed"],
         "earnedruns":           ["earnedruns", "earnedrunsallowed"],
+        "1stinningrunsallowed": ["1stinningrunsallowed", "firstinningrunsallowed"],
+        "firstinningrunsallowed": ["1stinningrunsallowed", "firstinningrunsallowed"],
+        "1stinningwalksallowed": ["1stinningwalksallowed", "firstinningwalksallowed"],
+        "firstinningwalksallowed": ["1stinningwalksallowed", "firstinningwalksallowed"],
     }
 
     def _find_prop_match(candidates, sprop, sport):
@@ -651,6 +684,39 @@ def grade(slate: pd.DataFrame, actuals: pd.DataFrame, sport: str) -> pd.DataFram
                 return alias_matches[0]
         return None
 
+    def _lookup_mlb_player_prop(player_name: str, team_hint: str, sprop: str):
+        """Find an actuals row for one MLB player+prop (exact then alias)."""
+        sname = _norm_name_mlb(player_name)
+        candidates = act_by_name.get(sname, [])
+        matched = _find_prop_match(candidates, sprop, "MLB")
+        if matched is not None:
+            return matched
+        team_key = str(team_hint or "").strip().upper()
+        s_last = str(sname).split()[-1] if str(sname).split() else ""
+        if team_key and s_last:
+            candidates2 = act_by_team_last.get((team_key, s_last), [])
+            return _find_prop_match(candidates2, sprop, "MLB")
+        return None
+
+    def _lookup_mlb_combo_sum(player_label: str, team_label: str, sprop: str):
+        """Sum component actuals for PrizePicks multi-player combo labels."""
+        parts = _combo_player_parts(player_label)
+        if len(parts) < 2:
+            return None
+        teams = _combo_team_parts(team_label, len(parts))
+        vals: list[float] = []
+        opp_parts: list[str] = []
+        for arm_name, arm_team in zip(parts, teams):
+            matched = _lookup_mlb_player_prop(arm_name, arm_team, sprop)
+            if matched is None or pd.isna(matched.get("_val")):
+                return None
+            vals.append(float(matched["_val"]))
+            ot = matched.get("opp_team") if hasattr(matched, "get") else None
+            if ot is not None and not (isinstance(ot, float) and pd.isna(ot)) and str(ot).strip():
+                opp_parts.append(str(ot).strip())
+        if not vals:
+            return None
+        return float(sum(vals)), "/".join(p for p in opp_parts if p)
     for idx, srow in slate.iterrows():
         sname = _norm_name_mlb(srow.get("player", "")) if sport == "MLB" else _norm_name(srow.get("player", ""))
         # Prefer raw pipeline prop key when available (e.g., NHL `power_play_points`);
@@ -685,6 +751,7 @@ def grade(slate: pd.DataFrame, actuals: pd.DataFrame, sport: str) -> pd.DataFram
         s_eid_valid = s_eid and s_eid not in ("", "nan", "None")
 
         matched = None
+        combo_sum = None
 
         # ── PASS 1: ESPN player ID match (soccer, bulletproof) ────────────────
         if sport == "SOCCER" and s_eid_valid and s_eid in act_by_id:
@@ -705,11 +772,44 @@ def grade(slate: pd.DataFrame, actuals: pd.DataFrame, sport: str) -> pd.DataFram
                 if team_key and s_last:
                     candidates2 = act_by_team_last.get((team_key, s_last), [])
                     matched = _find_prop_match(candidates2, sprop, sport)
-            if matched is None:
+            # MLB multi-player combos (A + B): sum each arm's actual for the same prop.
+            if matched is None and sport == "MLB" and "+" in str(srow.get("player", "") or ""):
+                combo_sum = _lookup_mlb_combo_sum(
+                    str(srow.get("player", "") or ""),
+                    str(srow.get("team", "") or ""),
+                    sprop,
+                )
+            if matched is None and combo_sum is None:
                 voids += 1
                 continue
             # Never guess to the first candidate when prop does not match.
             # Wrong-stat joins silently corrupt grading and calibration outputs.
+
+        if combo_sum is not None:
+            actual_val, combo_opp = combo_sum
+            if pd.isna(sline) or (isinstance(sline, float) and np.isnan(sline)):
+                voids += 1
+                slate.at[idx, "void_reason_grade"] = "NO_LINE"
+                continue
+            line_val = float(sline)
+            slate.at[idx, "actual"] = actual_val
+            margin = actual_val - line_val
+            slate.at[idx, "margin"] = margin
+            if combo_opp:
+                slate.at[idx, "opp_team"] = combo_opp
+            if margin == 0:
+                slate.at[idx, "result"] = "PUSH"
+                slate.at[idx, "void_reason_grade"] = ""
+                pushes += 1
+            elif (sdir == "OVER" and margin > 0) or (sdir == "UNDER" and margin < 0):
+                slate.at[idx, "result"] = "HIT"
+                slate.at[idx, "void_reason_grade"] = ""
+                hits += 1
+            else:
+                slate.at[idx, "result"] = "MISS"
+                slate.at[idx, "void_reason_grade"] = ""
+                misses += 1
+            continue
 
         if matched is None or pd.isna(matched["_val"]):
             voids += 1

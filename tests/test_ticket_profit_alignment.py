@@ -34,7 +34,8 @@ def test_main_max_legs_default_is_three():
     assert cst.MLB_MAX_LEGS <= 3
     assert cst.CROSS_PIPELINE_MAX_LEGS <= 3
     assert cst.HIGH_PROB_PARLAY_MAX_LEGS <= 3
-    assert cst.LONG_PARLAY_ENABLED is False
+    assert cst.GOBLIN_MAX_LEGS >= 6
+    assert cst.LONG_PARLAY_ENABLED is True
 
 
 def test_strong_max_legs_hard_capped_at_three():

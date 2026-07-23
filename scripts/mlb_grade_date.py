@@ -186,6 +186,35 @@ def grader_norm_prop(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", str(s).lower())
 
 
+def _combo_player_parts(player: str) -> list[str]:
+    """Split PrizePicks combo labels (``A + B``) into individual player names."""
+    raw = str(player or "").strip()
+    if "+" not in raw:
+        return [raw] if raw else []
+    return [p.strip() for p in raw.split("+") if p.strip()]
+
+
+def _combo_team_parts(team: str, n_players: int) -> list[str]:
+    """Align team tokens with combo arms (``STL/LAA`` → one team per player)."""
+    if n_players <= 1:
+        tok = str(team or "").strip().upper()
+        return [tok]
+    raw = str(team or "").strip()
+    if not raw or raw.lower() in ("nan", "none", "-", "—"):
+        return [""] * n_players
+    if "/" in raw:
+        parts = [p.strip().upper() for p in raw.split("/") if p.strip()]
+        if len(parts) >= n_players:
+            return parts[:n_players]
+        if len(parts) == 1:
+            return parts * n_players
+        while len(parts) < n_players:
+            parts.append(parts[-1] if parts else "")
+        return parts[:n_players]
+    tok = raw.upper()
+    return [tok] * n_players
+
+
 def resolve_date(s: str) -> str:
     t = str(s).strip().lower()
     if t in ("yesterday", "yst", "yday"):
@@ -283,6 +312,15 @@ def _fetch_actuals_csv(
                     id_map[a] = str(b).strip()
 
     names = sorted({str(x).strip() for x in slate_df["Player"].tolist() if str(x).strip()})
+    # Expand PrizePicks combo labels (A + B) so arm IDs are cached before actuals fetch.
+    expanded: Set[str] = set()
+    for nm in names:
+        parts = _combo_player_parts(nm)
+        if len(parts) >= 2:
+            expanded.update(parts)
+        else:
+            expanded.add(nm)
+    names = sorted(expanded)
     print(
         f"  [MLB actuals] slate_rows={len(slate_df):,}; unique_players={len(names):,}; "
         f"season={season} (Stats API gameLog)",
@@ -355,16 +393,49 @@ def _fetch_actuals_csv(
 
     out_rows: Dict[Tuple[str, str], dict] = {}
     no_id = no_game = bad_prop = 0
+    combo_resolved = 0
+
+    def _stat_for_arm(
+        player_name: str,
+        team_abbr: str,
+        prop_norm: str,
+        ptype: str,
+    ) -> Optional[Tuple[float, str, str, str]]:
+        """Return (actual, mlb_id, team, opp_team) for one player arm, or None."""
+        key = s2.norm_name(player_name)
+        mlb_id = (id_map.get(key) or "").strip()
+        if not mlb_id:
+            pid = s2.search_mlb_player(player_name)
+            if pid:
+                id_map[key] = pid
+                mlb_id = pid
+                print(f"    + combo arm {player_name} -> {pid}", flush=True)
+        if not mlb_id:
+            return None
+        spl = split_for_date(mlb_id, ptype, player_name)
+        if spl is None:
+            return None
+        derive = s4.derive_pitcher_stat if ptype == "pitcher" else s4.derive_hitter_stat
+        val = float(derive(spl, prop_norm))
+        if np.isnan(val):
+            return None
+        opp_team = ""
+        try:
+            opp = spl.get("opponent") or {}
+            opp_abbr = str(opp.get("abbreviation") or "").strip()
+            if not opp_abbr:
+                oid = opp.get("id")
+                if oid is not None:
+                    opp_abbr = _mlb_team_id_to_abbr_map().get(int(oid), "") or ""
+            opp_team = str(opp_abbr).strip().upper()
+        except Exception:
+            pass
+        return val, mlb_id, team_abbr, opp_team
 
     for _, r in slate_df.iterrows():
         player = str(r["Player"]).strip()
         prop_disp = str(r["Prop"]).strip()
         if not player or not prop_disp:
-            continue
-        key = s2.norm_name(player)
-        mlb_id = (id_map.get(key) or "").strip()
-        if not mlb_id:
-            no_id += 1
             continue
 
         prop_norm = s2.norm_prop(prop_disp)
@@ -379,6 +450,64 @@ def _fetch_actuals_csv(
             bad_prop += 1
             continue
 
+        team = ""
+        if "Team" in slate_df.columns:
+            team = str(r.get("Team", "")).strip()
+
+        arms = _combo_player_parts(player)
+        teams = _combo_team_parts(team, len(arms))
+        gkey = grader_norm_prop(prop_disp)
+
+        if len(arms) >= 2:
+            arm_vals: List[float] = []
+            arm_meta: List[Tuple[str, str, str, str]] = []
+            failed = False
+            for arm_name, arm_team in zip(arms, teams):
+                got = _stat_for_arm(arm_name, arm_team, prop_norm, ptype)
+                if got is None:
+                    failed = True
+                    break
+                val, mlb_id, tm, opp = got
+                arm_vals.append(val)
+                arm_meta.append((arm_name, mlb_id, tm, opp))
+                # Also persist solo arm actuals so grader can sum on re-grade.
+                arm_key = (s2.norm_name(arm_name), gkey)
+                if arm_key not in out_rows:
+                    out_rows[arm_key] = {
+                        "player": arm_name,
+                        "prop": gkey,
+                        "actual": val,
+                        "game_date": d,
+                        "mlb_player_id": mlb_id,
+                        "team": tm,
+                        "opp_team": opp,
+                    }
+            if failed or not arm_vals:
+                # Count once for the combo row (arms may also lack IDs independently).
+                no_game += 1
+                continue
+            combo_val = float(sum(arm_vals))
+            nk = (s2.norm_name(player), gkey)
+            if nk not in out_rows:
+                out_rows[nk] = {
+                    "player": player,
+                    "prop": gkey,
+                    "actual": combo_val,
+                    "game_date": d,
+                    "mlb_player_id": "|".join(m[1] for m in arm_meta),
+                    "team": team,
+                    "opp_team": "/".join(m[3] for m in arm_meta if m[3]) or "",
+                }
+                combo_resolved += 1
+            continue
+
+        # Solo player path
+        key = s2.norm_name(player)
+        mlb_id = (id_map.get(key) or "").strip()
+        if not mlb_id:
+            no_id += 1
+            continue
+
         spl = split_for_date(mlb_id, ptype, player)
         if spl is None:
             no_game += 1
@@ -390,14 +519,9 @@ def _fetch_actuals_csv(
             bad_prop += 1
             continue
 
-        gkey = grader_norm_prop(prop_disp)
         nk = (key, gkey)
         if nk in out_rows:
             continue
-        team = ""
-        if "Team" in slate_df.columns:
-            team = str(r.get("Team", "")).strip()
-        # Game log split: opponent has id/name; abbreviation is often omitted — resolve via team-id map.
         opp_team = ""
         try:
             opp = spl.get("opponent") or {}
@@ -422,6 +546,7 @@ def _fetch_actuals_csv(
 
     print(
         f"  [MLB actuals] built_unique_props={len(out_rows):,}; "
+        f"combo_props_resolved={combo_resolved:,}; "
         f"skipped_no_mlb_id_rows={no_id:,}; "
         f"skipped_no_game_log_for_date={no_game:,}; "
         f"skipped_bad_prop_or_nan_stat={bad_prop:,}",

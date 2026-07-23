@@ -210,6 +210,14 @@ def prop_norm_from_label(prop: str) -> str:
             "totalbases",
             "walks",
             "walksallowed",
+            "hitsrunsrbis",
+            "hitsrunsrbi",
+            "rbis",
+            "rbi",
+            "1stinningrunsallowed",
+            "firstinningrunsallowed",
+            "1stinningwalksallowed",
+            "firstinningwalksallowed",
         }
     )
     mlb_fold = re.sub(r"[^a-z0-9]", "", p)
@@ -235,10 +243,18 @@ def prop_norm_from_label(prop: str) -> str:
         return "homeruns"
     if "total base" in p:
         return "totalbases"
+    if "hits+runs+rbi" in p or "hitsrunsrbi" in mlb_fold:
+        return "hitsrunsrbis"
+    if "1st inning runs" in p or "first inning runs" in p:
+        return "1stinningrunsallowed"
+    if "1st inning walk" in p or "first inning walk" in p:
+        return "1stinningwalksallowed"
     if p in ("hits", "hit"):
         return "hits"
     if p in ("walks", "walk") and "allowed" not in p:
         return "walks"
+    if p in ("rbi", "rbis"):
+        return "rbis"
 
     if "pts+reb+ast" in p or p == "pra":
         return "pra"

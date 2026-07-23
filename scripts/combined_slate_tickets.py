@@ -6449,72 +6449,68 @@ def build_win_rate_ticket_groups(
     )
     seen: set[frozenset] = set()
     picked: list[dict] = []
-    # Seed output with preferred lengths before filling remaining slots by score.
-    if prefer_three_leg:
-        pick_order = [MAIN_DEFAULT_LEGS, MAIN_GRADED_MIN_LEGS]
-        if goblin_long:
-            pick_order.extend(range(4, max_legs + 1))
-        for target_n in pick_order:
-            if target_n > max_legs:
-                continue
-            for t in candidates:
-                rows = [dict(r) for r in (t.get("rows") or [])]
-                if len(rows) != target_n:
-                    continue
-                if _winrate_ticket_construction_reject(t):
-                    continue
-                if any(_leg_dnp_risk(r) for r in rows):
-                    continue
-                if not _ticket_passes_main_four_leg_gate(rows):
-                    continue
-                key = _ticket_row_dedup_key(rows)
-                if key in seen:
-                    continue
-                seen.add(key)
-                picked.append(t)
-                break
-            if len(picked) >= int(max_tickets):
-                break
-    elif max_legs >= 3:
-        seed_ns = [3, 2] + (list(range(4, max_legs + 1)) if goblin_long else [])
-        for target_n in seed_ns:
-            if target_n > max_legs:
-                continue
-            for t in candidates:
-                rows = [dict(r) for r in (t.get("rows") or [])]
-                if len(rows) != target_n:
-                    continue
-                if _winrate_ticket_construction_reject(t):
-                    continue
-                if any(_leg_dnp_risk(r) for r in rows):
-                    continue
-                if not _ticket_passes_main_four_leg_gate(rows):
-                    continue
-                key = _ticket_row_dedup_key(rows)
-                if key in seen:
-                    continue
-                seen.add(key)
-                picked.append(t)
-                break
-            if len(picked) >= int(max_tickets):
-                break
-    for t in candidates:
-        if _winrate_ticket_construction_reject(t):
-            continue
-        rows = [dict(r) for r in (t.get("rows") or [])]
-        if len(rows) < MAIN_GRADED_MIN_LEGS or len(rows) > max_legs:
-            continue
-        if not _ticket_passes_main_four_leg_gate(rows):
-            continue
+
+    def _try_pick(ticket: dict) -> bool:
+        rows = [dict(r) for r in (ticket.get("rows") or [])]
+        if _winrate_ticket_construction_reject(ticket):
+            return False
         if any(_leg_dnp_risk(r) for r in rows):
-            continue
+            return False
+        if not _ticket_passes_main_four_leg_gate(rows):
+            return False
         key = _ticket_row_dedup_key(rows)
         if key in seen:
-            continue
+            return False
         seen.add(key)
-        picked.append(t)
+        picked.append(ticket)
+        return True
+
+    def _seed_target_n(target_n: int, limit: int) -> None:
+        if target_n > max_legs or limit <= 0:
+            return
+        taken = 0
+        for t in candidates:
+            if len(picked) >= int(max_tickets) or taken >= limit:
+                break
+            rows = t.get("rows") or []
+            if len(rows) != target_n:
+                continue
+            if _try_pick(t):
+                taken += 1
+
+    # Seed preferred lengths first. Goblin-long reserves multiple 4/5/6 slips so the
+    # short-book fill (often filling MAIN_MAX_SLIPS with 3-legs) cannot starve Long Goblin.
+    long_seed_per_n = 0
+    if goblin_long and max_legs >= 4:
+        long_ns = [n for n in range(4, max_legs + 1)]
+        # Keep room for short book (3 + optional 2) while guaranteeing Long Goblin coverage.
+        short_reserve = 2 if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS else 1
+        long_budget = max(0, int(max_tickets) - short_reserve)
+        long_seed_per_n = max(1, long_budget // max(1, len(long_ns)))
+
+    if prefer_three_leg:
+        # Long Goblin first when enabled, then one short companion of each length
+        # (preserves 2-leg thin-pool fallback; remaining slots filled by score).
+        if goblin_long:
+            for target_n in range(4, max_legs + 1):
+                _seed_target_n(target_n, long_seed_per_n)
+        _seed_target_n(MAIN_DEFAULT_LEGS, 1)
+        if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS:
+            _seed_target_n(MAIN_GRADED_MIN_LEGS, 1)
+    elif max_legs >= 3:
+        if goblin_long:
+            for target_n in range(4, max_legs + 1):
+                _seed_target_n(target_n, long_seed_per_n)
+        _seed_target_n(3, 1)
+        _seed_target_n(2, 1)
+
+    for t in candidates:
         if len(picked) >= int(max_tickets):
             break
+        rows = t.get("rows") or []
+        if len(rows) < MAIN_GRADED_MIN_LEGS or len(rows) > max_legs:
+            continue
+        _try_pick(t)
 
     groups: list[tuple[str, list, None]] = []
     for t in picked:
@@ -8244,20 +8240,23 @@ def build_graded_main_win_rate_payload(
         use_goblin_only_3leg = False
         use_high_prob = True
 
-    # Mixed MAIN stays ≤3; Goblin-only (non-legacy) may build through GOBLIN_MAX_LEGS.
-    default_cap = (
-        GOBLIN_MAX_LEGS
-        if use_goblin_only and not use_goblin_only_3leg
-        else MAIN_GRADED_MAX_LEGS
-    )
-    wr_max_legs = max(
-        MAIN_GRADED_MIN_LEGS,
-        int(max_legs if max_legs is not None else default_cap),
-    )
+    # Mixed MAIN stays ≤3; Goblin-only (non-legacy) always builds through GOBLIN_MAX_LEGS
+    # (do not inherit a short-book max_legs=3 from callers / thresholds).
     if use_goblin_only and not use_goblin_only_3leg:
-        wr_max_legs = min(int(GOBLIN_MAX_LEGS), wr_max_legs)
+        wr_max_legs = int(GOBLIN_MAX_LEGS)
+        if max_legs is not None:
+            wr_max_legs = max(MAIN_GRADED_MIN_LEGS, min(int(GOBLIN_MAX_LEGS), int(max_legs)))
+            # If caller passed the short-book cap, still raise to Long Goblin.
+            if wr_max_legs <= int(MAIN_GRADED_MAX_LEGS):
+                wr_max_legs = int(GOBLIN_MAX_LEGS)
     else:
-        wr_max_legs = min(int(MAIN_GRADED_MAX_LEGS), wr_max_legs)
+        wr_max_legs = max(
+            MAIN_GRADED_MIN_LEGS,
+            min(
+                int(MAIN_GRADED_MAX_LEGS),
+                int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS),
+            ),
+        )
     wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
     wr_max_tickets = int(max_tickets or MAIN_MAX_SLIPS)
 
@@ -9185,13 +9184,18 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            # STRONG / CORE builder slips bypass high-prob length mix rules.
-            if t.get("strong_builder") or t.get("core_build"):
+            # STRONG bypasses pick-mix rules (builder already caps ≤ STRONG_MAX_LEGS).
+            # CORE respects max_keep so mixed MAIN stays ≤3 while Goblin-only / long
+            # boards (max_keep=GOBLIN_MAX_LEGS) can keep WNBA Flex 4–6 CORE slips.
+            if t.get("strong_builder"):
                 kept.append(t)
                 continue
             legs = [leg for leg in (t.get("legs") or []) if isinstance(leg, dict)]
             n = len(legs)
             if n < MAIN_GRADED_MIN_LEGS or n > max_keep:
+                continue
+            if t.get("core_build"):
+                kept.append(t)
                 continue
             if any(_leg_mlb_construction_banned(leg) for leg in legs):
                 continue
@@ -14299,8 +14303,10 @@ _STRUCTURE_SPECS: dict[str, dict[str, object]] = {
 }
 
 # Focused "core first" recipes per sport pipeline (Jul-20 win autopsy):
-# MLB Goblin pitcher OVER 2–3L Power; WNBA Flex 3 (not Power 2); Tennis Goblin;
-# Soccer Standard (UNDER-biased via soccer_allowed_leg).
+# MLB Goblin pitcher OVER 2–3L Power; WNBA Goblin Flex 3 + Long Goblin Flex 4–6;
+# Tennis Goblin; Soccer Standard (UNDER-biased via soccer_allowed_leg).
+# WNBA Flex 4–6 are Goblin-long CORE slips; mixed MAIN still drops them via
+# filter_main_high_prob_payload max_keep (core_build respects length cap).
 CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
     "MLB": [
         {"structure": "power", "label": "Core Power 2", "variants": 3},
@@ -14308,6 +14314,9 @@ CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
     ],
     "WNBA": [
         {"structure": "flex", "label": "Core Flex 3", "variants": 3},
+        {"structure": "flex4", "label": "Core Flex 4", "variants": 2},
+        {"structure": "flex5", "label": "Core Flex 5", "variants": 2},
+        {"structure": "flex6", "label": "Core Flex 6", "variants": 2},
     ],
     "TENNIS": [
         {"structure": "power", "label": "Core Power 2", "variants": 2},
@@ -18454,7 +18463,7 @@ def main():
         default=CORE_BUILD_FIRST_DEFAULT,
         help=(
             "Emit focused CORE recipes per sport pipeline before spray variants "
-            "(MLB Goblin pitcher Power 2–3, WNBA Flex 3, Tennis Goblin, Soccer Standard)."
+            "(MLB Goblin pitcher Power 2–3, WNBA Goblin Flex 3–6, Tennis Goblin, Soccer Standard)."
         ),
     )
     ap.add_argument(

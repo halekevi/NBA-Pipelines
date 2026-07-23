@@ -155,13 +155,13 @@ def test_thin_pool_allows_two_leg_fallback():
 def test_goblin_only_can_build_long_4_to_6():
     """Goblin-only (non-legacy) may emit Long Goblin 4–6 under Tier-A HOT gates."""
     assert GOBLIN_MAX_LEGS >= 6
-    frames = [("WNBA", _frame(10, ml_prob=0.72))]
+    frames = [("WNBA", _frame(12, ml_prob=0.72))]
     groups = build_win_rate_ticket_groups(
         frames,
         min_leg_prob=0.62,
         min_composite_hr=0.52,
         max_legs=6,
-        max_tickets=12,
+        max_tickets=15,
         goblin_only=True,
         goblin_only_3leg=False,
     )
@@ -170,6 +170,45 @@ def test_goblin_only_can_build_long_4_to_6():
     assert MAIN_DEFAULT_LEGS in leg_counts
     assert any(n >= 4 for n in leg_counts), f"expected Long Goblin legs, got {leg_counts}"
     assert all(n <= 6 for n in leg_counts)
+    # Seeding must reserve Long Goblin — not only a single 4+ after 3-leg fill.
+    assert {4, 5, 6} & leg_counts, f"expected 4/5/6 reserved, got {leg_counts}"
+
+
+def test_wnba_goblin_only_payload_max_legs_is_six():
+    """WNBA Goblin-only boards raise to GOBLIN_MAX_LEGS even if short-book max is passed."""
+    frames = [("WNBA", _frame(12, ml_prob=0.72))]
+    payload = build_graded_main_win_rate_payload(
+        frames,
+        "2026-07-22",
+        {"max_ticket_legs": 3},
+        bankroll=0.0,
+        curve_stake_usd=0.0,
+        pool_mode="goblin_only",
+        max_legs=3,  # short-book caller knob must not starve Long Goblin
+    )
+    assert payload.get("pool_mode") == "goblin_only"
+    assert int(payload.get("max_legs") or 0) >= 6
+    from combined_slate_tickets import filter_main_high_prob_payload
+
+    filtered = filter_main_high_prob_payload(payload)
+    leg_counts = {
+        len(t.get("legs") or [])
+        for g in filtered.get("groups") or []
+        for t in g.get("tickets") or []
+    }
+    assert any(n >= 4 for n in leg_counts), f"WNBA Goblin-only missing 4+, got {leg_counts}"
+
+
+def test_wnba_core_recipes_include_long_flex():
+    from combined_slate_tickets import CORE_PIPELINE_RECIPES, _STRUCTURE_SPECS
+
+    recipes = CORE_PIPELINE_RECIPES.get("WNBA") or []
+    structures = {str(r.get("structure") or "") for r in recipes}
+    assert "flex" in structures
+    assert {"flex4", "flex5", "flex6"} <= structures
+    for key in ("flex4", "flex5", "flex6"):
+        assert int((_STRUCTURE_SPECS.get(key) or {}).get("n_legs") or 0) >= 4
+        assert str((_STRUCTURE_SPECS.get(key) or {}).get("pool") or "") == "goblin"
 
 
 def test_filter_main_high_prob_keeps_standard_and_goblin():

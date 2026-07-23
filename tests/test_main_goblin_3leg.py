@@ -1,4 +1,4 @@
-"""Tests for high-prob MAIN track (Standard+Goblin, 3-leg primary, strict 4-leg)."""
+"""Tests for high-prob MAIN track (Standard+Goblin, 2–3 leg only)."""
 from __future__ import annotations
 
 import sys
@@ -106,7 +106,7 @@ def test_build_win_rate_prefers_three_leg_high_prob():
         frames,
         min_leg_prob=0.62,
         min_composite_hr=0.55,
-        max_legs=4,
+        max_legs=3,
         max_tickets=5,
         goblin_only=False,
         goblin_only_3leg=False,
@@ -114,8 +114,8 @@ def test_build_win_rate_prefers_three_leg_high_prob():
     assert groups
     leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
     assert MAIN_DEFAULT_LEGS in leg_counts
-    assert all(n <= 4 for n in leg_counts)
-    assert not any(n >= 5 for n in leg_counts)
+    assert all(n <= 3 for n in leg_counts)
+    assert not any(n >= 4 for n in leg_counts)
 
 
 def test_build_win_rate_prefers_three_leg_when_goblin_only_3leg():
@@ -124,7 +124,7 @@ def test_build_win_rate_prefers_three_leg_when_goblin_only_3leg():
         frames,
         min_leg_prob=0.62,
         min_composite_hr=0.52,
-        max_legs=4,
+        max_legs=3,
         max_tickets=5,
         goblin_only=True,
         goblin_only_3leg=True,
@@ -132,7 +132,7 @@ def test_build_win_rate_prefers_three_leg_when_goblin_only_3leg():
     assert groups
     leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
     assert MAIN_DEFAULT_LEGS in leg_counts
-    assert all(n <= 4 for n in leg_counts)
+    assert all(n <= 3 for n in leg_counts)
 
 
 def test_thin_pool_allows_two_leg_fallback():
@@ -141,13 +141,14 @@ def test_thin_pool_allows_two_leg_fallback():
         frames,
         min_leg_prob=0.62,
         min_composite_hr=0.52,
-        max_legs=4,
+        max_legs=3,
         max_tickets=5,
         goblin_only=True,
         goblin_only_3leg=True,
     )
     leg_counts = {len(t.get("rows") or []) for _, tickets, _ in groups for t in tickets}
     assert 2 in leg_counts
+    assert all(n <= 3 for n in leg_counts)
 
 
 def test_filter_main_high_prob_keeps_standard_and_goblin():

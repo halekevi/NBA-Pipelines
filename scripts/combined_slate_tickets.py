@@ -677,8 +677,8 @@ PAYOUT = {
 }
 
 
-# Cross-pipeline showcase slips: PrizePicks caps at 6 legs.
-CROSS_PIPELINE_MAX_LEGS = 6
+# Cross-pipeline showcase slips: production board capped at 2–3 legs.
+CROSS_PIPELINE_MAX_LEGS = max(2, min(3, int(os.getenv("PROPORACLE_CROSS_MAX_LEGS", "3"))))
 
 # Probability ladder: Standard-first; Goblin when leg prob beats Standard by this margin.
 LADDER_GOBLIN_ADVANTAGE_PP: float = float(os.getenv("PROPORACLE_LADDER_GOBLIN_ADVANTAGE_PP", "0.03"))
@@ -703,9 +703,12 @@ LADDER_CROSS_ONLY_DEFAULT: bool = os.getenv("PROPORACLE_LADDER_CROSS_ONLY", "1")
     "off",
 )
 
-# Cross-sport combinatorial search: best 3–6 leg parlay (one leg per sport, top-N per sport).
-HIGH_PROB_PARLAY_MIN_LEGS: int = max(3, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MIN_LEGS", "3")))
-HIGH_PROB_PARLAY_MAX_LEGS: int = min(6, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MAX_LEGS", "6")))
+# Cross-sport combinatorial search: production capped at 2–3 legs (no 4–6).
+HIGH_PROB_PARLAY_MIN_LEGS: int = max(2, min(3, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MIN_LEGS", "2"))))
+HIGH_PROB_PARLAY_MAX_LEGS: int = max(
+    HIGH_PROB_PARLAY_MIN_LEGS,
+    min(3, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MAX_LEGS", "3"))),
+)
 HIGH_PROB_PARLAY_DEPTH_PER_SPORT: int = max(2, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_DEPTH", "5")))
 HIGH_PROB_PARLAY_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MIN_LEG", "0.55"))
 HIGH_PROB_PARLAY_MIN_P_WIN: dict[int, float] = {
@@ -4371,7 +4374,7 @@ DIRECTIONAL_HR_THRESHOLDS: dict[str, dict[str, float]] = {
     "WCBB": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
 }
 DEFAULT_DIRECTIONAL_THRESHOLD: dict[str, float] = {"over": 0.65, "under": 0.35}
-MLB_MAX_LEGS = 4
+MLB_MAX_LEGS = 3
 MLB_PITCHING_OVER_ONLY_PROPS = {"strikeouts", "hits allowed"}
 
 _MLB_POSTPONED_TEAMS_CACHE: dict[str, set[str]] = {}
@@ -6330,8 +6333,8 @@ def build_win_rate_ticket_groups(
     goblin_only_3leg: bool = False,
     standard_only: bool = False,
 ) -> list[tuple[str, list, None]]:
-    """Build win-rate slips sorted by p_win (3-leg primary; 4-leg only under strict gates)."""
-    max_legs = max(2, min(4, int(max_legs)))
+    """Build win-rate slips sorted by p_win (3-leg primary; 2-leg fallback; never 4+)."""
+    max_legs = max(2, min(int(MAIN_GRADED_MAX_LEGS), int(max_legs)))
     graded_ctx = _graded_analysis_context(graded_analysis)
     goblin_only_3leg = bool(goblin_only_3leg)
     standard_only = bool(standard_only)
@@ -6355,21 +6358,10 @@ def build_win_rate_ticket_groups(
                 for sp, g in raw_df.groupby(raw_df["sport"].astype(str).str.upper()):
                     frames_by_sport[str(sp).strip().upper()] = g
 
-    eligible_total = _count_win_rate_eligible_legs(
-        sport_frames,
-        min_leg_prob=min_leg_prob,
-        min_composite_hr=min_composite_hr,
-        graded_ctx=graded_ctx,
-        goblin_tier_a_only=goblin_tier_a_only,
-        goblin_only=goblin_only,
-        standard_only=standard_only,
-    )
-    thin_pool = eligible_total < int(MAIN_THIN_POOL_MIN_LEGS)
     if prefer_three_leg:
+        # Production: 3-leg primary + 2-leg companion (never 4+).
         build_leg_counts = [MAIN_DEFAULT_LEGS]
-        if not thin_pool:
-            build_leg_counts.append(4)
-        if thin_pool:
+        if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS and MAIN_GRADED_MIN_LEGS <= max_legs:
             build_leg_counts.append(MAIN_GRADED_MIN_LEGS)
     else:
         build_leg_counts = list(range(MAIN_GRADED_MIN_LEGS, max_legs + 1))
@@ -6434,10 +6426,8 @@ def build_win_rate_ticket_groups(
         if prefer_three_leg:
             if n == MAIN_DEFAULT_LEGS:
                 return 0
-            if n == 4:
-                return 1
             if n == MAIN_GRADED_MIN_LEGS:
-                return 2
+                return 1
             return 9
         return 0
 
@@ -6453,13 +6443,13 @@ def build_win_rate_ticket_groups(
     picked: list[dict] = []
     # Seed output with preferred lengths before filling remaining slots by score.
     if prefer_three_leg:
-        pick_order = (MAIN_DEFAULT_LEGS, 4, MAIN_GRADED_MIN_LEGS) if thin_pool else (MAIN_DEFAULT_LEGS, 4)
+        pick_order = (MAIN_DEFAULT_LEGS, MAIN_GRADED_MIN_LEGS)
         for target_n in pick_order:
+            if target_n > max_legs:
+                continue
             for t in candidates:
                 rows = [dict(r) for r in (t.get("rows") or [])]
                 if len(rows) != target_n:
-                    continue
-                if not thin_pool and target_n == MAIN_GRADED_MIN_LEGS:
                     continue
                 if _winrate_ticket_construction_reject(t):
                     continue
@@ -6476,7 +6466,7 @@ def build_win_rate_ticket_groups(
             if len(picked) >= int(max_tickets):
                 break
     elif max_legs >= 3:
-        for target_n in (3, 4):
+        for target_n in (3, 2):
             if target_n > max_legs:
                 continue
             for t in candidates:
@@ -6498,11 +6488,11 @@ def build_win_rate_ticket_groups(
             if len(picked) >= int(max_tickets):
                 break
     for t in candidates:
-        if prefer_three_leg and not thin_pool and len(t.get("rows") or []) == MAIN_GRADED_MIN_LEGS:
-            continue
         if _winrate_ticket_construction_reject(t):
             continue
         rows = [dict(r) for r in (t.get("rows") or [])]
+        if len(rows) < MAIN_GRADED_MIN_LEGS or len(rows) > max_legs:
+            continue
         if not _ticket_passes_main_four_leg_gate(rows):
             continue
         if any(_leg_dnp_risk(r) for r in rows):
@@ -7767,12 +7757,12 @@ def _finalize_payload_l10_streaks(payload: dict) -> None:
 
 
 # Graded KPI split: main = high-prob Standard+Goblin 2–3 leg (profitability path);
-# long_parlay = 5–6 sidecar only (not injected into MAIN win-rate board).
+# long_parlay sidecar is OFF by default (was 5–6; re-enable via PROPORACLE_LONG_PARLAY=1).
 MAIN_GRADED_MIN_LEGS = 2
-MAIN_GRADED_MAX_LEGS = max(2, min(4, int(os.getenv("PROPORACLE_MAIN_MAX_LEGS", "3"))))
+MAIN_GRADED_MAX_LEGS = max(2, min(3, int(os.getenv("PROPORACLE_MAIN_MAX_LEGS", "3"))))
 MAIN_DEFAULT_LEGS = 3
 MAIN_THIN_POOL_MIN_LEGS = 6
-# Legacy 4-leg path (only if PROPORACLE_MAIN_MAX_LEGS>=4): strict floors.
+# Legacy 4-leg path retained for shadow/experiments only (MAIN hard-caps at 3).
 MAIN_FOUR_LEG_MIN_ML_PROB = 0.70
 MAIN_FOUR_LEG_MIN_LEG_PROB = 0.70
 MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
@@ -7806,6 +7796,13 @@ MAIN_POOL_MODES = frozenset(
         MAIN_POOL_MODE_STANDARD,
         "goblin_only_3leg",  # legacy alias → goblin_only
     }
+)
+LONG_PARLAY_ENABLED: bool = os.getenv("PROPORACLE_LONG_PARLAY", "0").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+    "",
 )
 LONG_PARLAY_MIN_LEGS = 5
 LONG_PARLAY_MAX_LEGS = 6
@@ -8019,7 +8016,17 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
 
 
 def extract_long_parlay_payload(full_payload: dict) -> dict:
-    """5–6 leg slips from the full EV export (separate grade track from main win-rate pool)."""
+    """5–6 leg slips from the full EV export (separate grade track from main win-rate pool).
+
+    Disabled by default (`PROPORACLE_LONG_PARLAY=0`) so production boards stay 2–3 legs.
+    """
+    if not LONG_PARLAY_ENABLED:
+        out = dict(full_payload) if isinstance(full_payload, dict) else {}
+        out["groups"] = []
+        out["ticket_track"] = "long_parlay"
+        out["payload_mode"] = "long_parlay"
+        out["long_parlay_disabled"] = True
+        return out
     long_p = filter_ticket_payload_by_leg_count(
         full_payload,
         min_legs=LONG_PARLAY_MIN_LEGS,
@@ -8574,6 +8581,13 @@ def _emit_main_pool_mode_sidecars(
 
 
 def _write_long_parlay_ticket_snapshot(payload: dict, date_str: str) -> None:
+    if not LONG_PARLAY_ENABLED:
+        n_slips = sum(len(g.get("tickets") or []) for g in (payload or {}).get("groups") or [])
+        print(
+            f"  [skip] Long-parlay track disabled "
+            f"(PROPORACLE_LONG_PARLAY=0; would have had {n_slips} slips)"
+        )
+        return
     path = os.path.join(
         REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_long_parlay_{date_str}.json"
     )
@@ -20800,8 +20814,9 @@ def main():
         print(f"  [long-legs] added {len(final_long)} long-leg sheet(s) for leg sizes {long_leg_sizes}")
     elif long_leg_sizes and bool(args.write_web):
         print(
-            f"  [long-legs] skipped (--write-web default; MAIN is ≤3-leg win-rate; "
-            f"5–6 stay on long_parlay sidecar). "
+            f"  [long-legs] skipped (--write-web default; MAIN is 2–3-leg only; "
+            f"5–6 long_parlay sidecar "
+            f"{'enabled' if LONG_PARLAY_ENABLED else 'disabled'}). "
             f"Pass --long-leg-supplement to add the slow extra workbook pass for sizes {long_leg_sizes}."
         )
 
@@ -20968,7 +20983,8 @@ def main():
             print(
                 f"  Web payload: {n_groups} groups, {n_slips} main slips "
                 f"({MAIN_GRADED_MIN_LEGS}-{MAIN_GRADED_MAX_LEGS} leg high-prob Std+Gob) | "
-                f"{n_long} long-parlay slips (5-6 leg, separate grade track)."
+                f"{n_long} long-parlay slips "
+                f"({'enabled' if LONG_PARLAY_ENABLED else 'disabled'} 5-6 track)."
             )
             gated_preview = filter_positive_ev_tickets_payload(
                 payload,
@@ -21133,7 +21149,8 @@ def main():
             print(
                 f"  Web payload: {n_groups} groups, {n_slips} main slips "
                 f"({MAIN_GRADED_MIN_LEGS}-{MAIN_GRADED_MAX_LEGS} leg high-prob Std+Gob) | "
-                f"{n_long} long-parlay slips (FINAL fallback)."
+                f"{n_long} long-parlay slips "
+                f"({'enabled' if LONG_PARLAY_ENABLED else 'disabled'} FINAL fallback)."
             )
             gated_preview = filter_positive_ev_tickets_payload(
                 payload,

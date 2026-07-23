@@ -24,9 +24,10 @@ Re-fit linear scalars from graded props `min_date>=2026-06-20` (Demons excluded)
 
 | Knob | New default | Why |
 |------|-------------|-----|
-| `PROPORACLE_STRONG_MAX_LEGS` | **3** | Jul 17 STRONG ≤3 → ~73% ticket WR |
+| `PROPORACLE_STRONG_MAX_LEGS` | **3** (hard cap) | Jul 17 STRONG ≤3 → ~73% ticket WR |
 | STRONG `min_p_win` 2/3 | **0.45 / 0.38** | Toward 70% ticket WR target |
-| `PROPORACLE_MAIN_MAX_LEGS` | **3** | Starve 4–6 on MAIN win-rate board |
+| `PROPORACLE_MAIN_MAX_LEGS` | **3** (hard cap) | Production boards are 2–3 only |
+| `PROPORACLE_LONG_PARLAY` | **0** (off) | Disables 5–6 long-parlay sidecar |
 | MLB Goblin OVER MAIN floor | **0.68** (stress props **0.72**) | Miss concentration + overconfidence |
 | STRONG MLB props | Drop Hits / Total Bases | Same miss anatomy |
 | STRONG min leg_prob | **0.65** (MLB **0.70**) | Match calibrated reality |

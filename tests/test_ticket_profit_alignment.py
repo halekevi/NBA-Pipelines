@@ -28,8 +28,18 @@ def test_strong_max_legs_default_is_three():
 
 def test_main_max_legs_default_is_three():
     assert cst.MAIN_GRADED_MAX_LEGS == 3
+    assert cst.MAIN_GRADED_MIN_LEGS == 2
     assert cst.MAIN_MLB_GOBLIN_MIN_LEG_PROB >= 0.68
     assert cst.MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB >= 0.72
+    assert cst.MLB_MAX_LEGS <= 3
+    assert cst.CROSS_PIPELINE_MAX_LEGS <= 3
+    assert cst.HIGH_PROB_PARLAY_MAX_LEGS <= 3
+    assert cst.LONG_PARLAY_ENABLED is False
+
+
+def test_strong_max_legs_hard_capped_at_three():
+    assert tet.STRONG_MAX_LEGS == 3
+    assert cst.STRONG_MAX_LEGS == 3
 
 
 def test_mlb_goblin_hits_banned_on_main():
@@ -119,7 +129,7 @@ def test_mlb_construction_ban_shared_across_builders():
     assert cst._leg_mlb_construction_banned(hits_gob)
     assert cst._leg_mlb_construction_banned(std_over)
     assert not cst._leg_mlb_construction_banned(pitcher)
-    assert cst._mlb_leg_sizes_capped([2, 3, 4, 5, 6]) == [2, 3, 4]
+    assert cst._mlb_leg_sizes_capped([2, 3, 4, 5, 6]) == [2, 3]
 
 
 def test_filter_payload_mlb_construction_hygiene():

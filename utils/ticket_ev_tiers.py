@@ -44,7 +44,7 @@ MIN_SAMPLES_FOR_PERCENTILES: int = 8
 
 # STRONG favors high-conviction Goblin HOT slips. Default max 3 legs (Jul 2026
 # graded: ≤3 cleared ~70%+ ticket WR; 4–6 dragged the average). Override via
-# PROPORACLE_STRONG_MAX_LEGS (still capped at 6 for shadow/exhaust experiments).
+# PROPORACLE_STRONG_MAX_LEGS (hard-capped at 3 for production boards).
 #
 # Ticket p_win floors (independence product of capped leg probs):
 #   2-leg ≥0.45  → needs ~0.67+/leg under the STRONG leg cap
@@ -53,7 +53,7 @@ MIN_SAMPLES_FOR_PERCENTILES: int = 8
 #                  STRONG_MAX_LEG_PROB_FOR_P_WIN ceiling (~0.76 → product ≈0.44)
 # MAIN still uses the tighter 0.72 global leg cap; STRONG alone may use up to
 # STRONG_MAX_LEG_PROB_FOR_P_WIN so better legs are not flattened for ranking.
-STRONG_MAX_LEGS: int = max(2, min(6, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "3"))))
+STRONG_MAX_LEGS: int = max(2, min(3, int(os.getenv("PROPORACLE_STRONG_MAX_LEGS", "3"))))
 STRONG_MIN_P_WIN_2LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_2LEG", "0.45"))
 STRONG_MIN_P_WIN_3LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_3LEG", "0.35"))
 STRONG_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_MIN_P_WIN_4LEG", "0.28"))

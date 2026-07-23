@@ -36,7 +36,8 @@ from utils.wnba_team_keys import canonical_team_key, defense_team_key  # noqa: E
 ESPN_TO_SLATE: dict[str, str] = {
     "LV": "LVA", "LA": "LAS", "NY": "NYL", "GS": "GSV", "PHO": "PHX", "PHX": "PHX",
     "CONN": "CON", "CON": "CON", "DAL": "DAL", "IND": "IND", "ATL": "ATL", "CHI": "CHI",
-    "MIN": "MIN", "SEA": "SEA", "WSH": "WSH", "POR": "POR", "PDX": "POR", "TOR": "TOR",
+    "MIN": "MIN", "SEA": "SEA", "WSH": "WSH", "WAS": "WSH", "POR": "POR", "PDX": "POR",
+    "TOR": "TOR",
 }
 
 SLATE_TO_DEF: dict[str, str] = {v: k for k, v in ESPN_TO_SLATE.items()}
@@ -200,6 +201,25 @@ def _assign_player_teams(
     return pd.Series(out, index=df.index)
 
 
+def _row_team_opp(row: dict) -> tuple[str, str]:
+    """Extract single-team slate abbrs; skip blank / dash / same-game compound cells."""
+    team = str(row.get("team") or "").strip().upper()
+    opp = str(
+        row.get("opp")
+        or row.get("opponent")
+        or row.get("opp_team")
+        or row.get("Opponent")
+        or ""
+    ).strip().upper()
+    bad = {"", "—", "-", "NAN", "NONE", "NULL"}
+    if team in bad or opp in bad:
+        return "", ""
+    # Combined / stacked cells like "LAS / PHX" are not single-franchise keys.
+    if "/" in team or "/" in opp or " vs " in team.lower() or " vs " in opp.lower():
+        return "", ""
+    return team, opp
+
+
 def _tonight_matchups(slate_path: Path) -> dict[str, dict]:
     """team slate abbr -> {opp_slate, opp_name, opp_def_rank, opp_def_tier, opp_ppg}."""
     rows = _load_slate_rows(slate_path)
@@ -207,17 +227,27 @@ def _tonight_matchups(slate_path: Path) -> dict[str, dict]:
     for row in rows:
         if not isinstance(row, dict):
             continue
-        team = str(row.get("team") or "").strip().upper()
-        opp = str(row.get("opp") or "").strip().upper()
-        if not team or not opp or team == "—" or opp == "—":
+        team, opp = _row_team_opp(row)
+        if not team or not opp:
             continue
         team_slate = _slate_team(team)
+        opp_slate = _slate_team(opp)
+        if not team_slate or not opp_slate or team_slate == opp_slate:
+            continue
         if team_slate not in matchups:
             matchups[team_slate] = {
                 "team_slate": team_slate,
-                "opp_slate": _slate_team(opp),
+                "opp_slate": opp_slate,
                 "opp_def_rank": row.get("opponent_def_rank") or row.get("OVERALL_DEF_RANK"),
                 "opp_def_tier": row.get("def_tier") or row.get("DEF_TIER") or "",
+            }
+        # Ensure reciprocal mapping when only one side was seen first.
+        if opp_slate not in matchups:
+            matchups[opp_slate] = {
+                "team_slate": opp_slate,
+                "opp_slate": team_slate,
+                "opp_def_rank": None,
+                "opp_def_tier": "",
             }
     return matchups
 

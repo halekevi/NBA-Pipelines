@@ -20,6 +20,7 @@ WNBA_DEFENSE_TEAM_KEY_MAP: dict[str, str] = {
     "PHX": "PHX",
     "LA": "LA",
     "CON": "CON",
+    "CONN": "CON",
     "DAL": "DAL",
     "IND": "IND",
     "ATL": "ATL",

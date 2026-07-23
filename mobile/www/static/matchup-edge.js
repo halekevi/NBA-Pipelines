@@ -439,16 +439,25 @@
   ];
 
   function teamAliasSet(data, team) {
-    const seed = String(team || "").trim().toUpperCase();
+    const seedRaw = String(team || "").trim();
+    const seed = seedRaw.toUpperCase();
     const out = new Set();
     if (!seed) return out;
     out.add(seed);
     (data?.teams || []).forEach((t) => {
       const sa = String(t?.slate_abbr || "").trim().toUpperCase();
       const dk = String(t?.def_key || "").trim().toUpperCase();
-      if (sa === seed || dk === seed) {
+      const nm = String(t?.name || "").trim().toUpperCase();
+      if (sa === seed || dk === seed || nm === seed) {
         if (sa) out.add(sa);
         if (dk) out.add(dk);
+        if (nm) out.add(nm);
+      }
+      // Full-name / nick match: "Los Angeles Sparks" or "Sparks" → LAS
+      if (nm && (nm === seed || nm.endsWith(" " + seed) || seed.endsWith(nm))) {
+        if (sa) out.add(sa);
+        if (dk) out.add(dk);
+        out.add(nm);
       }
     });
     TEAM_ALIAS_PAIRS.forEach(([a, b]) => {
@@ -506,15 +515,22 @@
       const r = rows[i];
       if (!r) continue;
       const rs = String(r.sport || "").trim().toLowerCase();
-      if (rs && rs !== sportKey) continue;
+      // Accept blank sport (combined slate) or exact sport match.
+      if (rs && rs !== sportKey && !(sportKey === "wnba" && (rs === "wnba1h" || rs === "wnba1q"))) {
+        continue;
+      }
       const t = String(r.team || "").trim().toUpperCase();
-      const o = nonEmptyAbbr(r.opp || r.opp_team).toUpperCase();
-      if (!t || !o) continue;
-      if (aliases.has(t)) {
+      const o = nonEmptyAbbr(r.opp || r.opp_team || r.opponent).toUpperCase();
+      if (!t || !o || t.includes("/") || o.includes("/")) continue;
+      const tAliases = teamAliasSet(data, t);
+      const oAliases = teamAliasSet(data, o);
+      const teamHit = [...aliases].some((a) => tAliases.has(a) || a === t);
+      const oppHit = [...aliases].some((a) => oAliases.has(a) || a === o);
+      if (teamHit) {
         oppRaw = o;
         break;
       }
-      if (aliases.has(o)) {
+      if (oppHit) {
         oppRaw = t;
         break;
       }

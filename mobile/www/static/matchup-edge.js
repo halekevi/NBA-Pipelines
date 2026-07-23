@@ -361,8 +361,8 @@
         // Prefer clubs that actually have leader blocks (tonight's slate).
         if (teamsWithBlocks.size && !teamsWithBlocks.has(ab)) return false;
         // Drop idle clubs with no opponent when matchup map is present.
-        const mu = (data.matchups || {})[ab] || (data.matchups || {})[t?.slate_abbr] || {};
-        const hasOpp = Boolean(mu.opponent_slate || mu.opponent_name);
+        const mu = lookupMatchup(data, ab);
+        const hasOpp = Boolean(nonEmptyAbbr(mu.opponent_slate) || nonEmptyAbbr(mu.opponent_name));
         if (teamsWithBlocks.size) return true;
         if (Object.keys(data.matchups || {}).length) return hasOpp;
         return true;
@@ -414,19 +414,156 @@
     onTeamChange(sport);
   }
 
+  function nonEmptyAbbr(s) {
+    const v = String(s == null ? "" : s).trim();
+    if (!v || v === "—" || v === "-" || v.toLowerCase() === "none") return "";
+    return v;
+  }
+
+  /** PrizePicks / ESPN / defense-key aliases used across sports. */
+  const TEAM_ALIAS_PAIRS = [
+    ["WAS", "WSH"],
+    ["PDX", "POR"],
+    ["LA", "LAS"],
+    ["LV", "LVA"],
+    ["NY", "NYL"],
+    ["GS", "GSV"],
+    ["PHO", "PHX"],
+    ["CONN", "CON"],
+    ["WSH", "WAS"], // NBA Mystics/Wizards vs NHL Caps handled via teams meta
+    ["NO", "NOP"],
+    ["NY", "NYK"],
+    ["SA", "SAS"],
+    ["UTAH", "UTA"],
+    ["BRK", "BKN"],
+  ];
+
+  function teamAliasSet(data, team) {
+    const seedRaw = String(team || "").trim();
+    const seed = seedRaw.toUpperCase();
+    const out = new Set();
+    if (!seed) return out;
+    out.add(seed);
+    (data?.teams || []).forEach((t) => {
+      const sa = String(t?.slate_abbr || "").trim().toUpperCase();
+      const dk = String(t?.def_key || "").trim().toUpperCase();
+      const nm = String(t?.name || "").trim().toUpperCase();
+      if (sa === seed || dk === seed || nm === seed) {
+        if (sa) out.add(sa);
+        if (dk) out.add(dk);
+        if (nm) out.add(nm);
+      }
+      // Full-name / nick match: "Los Angeles Sparks" or "Sparks" → LAS
+      if (nm && (nm === seed || nm.endsWith(" " + seed) || seed.endsWith(nm))) {
+        if (sa) out.add(sa);
+        if (dk) out.add(dk);
+        out.add(nm);
+      }
+    });
+    TEAM_ALIAS_PAIRS.forEach(([a, b]) => {
+      if (out.has(a)) out.add(b);
+      if (out.has(b)) out.add(a);
+    });
+    return out;
+  }
+
+  function lookupMatchup(data, team) {
+    const mus = data?.matchups || {};
+    const aliases = teamAliasSet(data, team);
+    for (const key of aliases) {
+      if (mus[key]) return mus[key];
+    }
+    for (const [k, v] of Object.entries(mus)) {
+      if (aliases.has(String(k).toUpperCase())) return v || {};
+    }
+    return {};
+  }
+
+  function teamDisplayName(data, abbr) {
+    const want = teamAliasSet(data, abbr);
+    for (const t of data?.teams || []) {
+      const sa = String(t?.slate_abbr || "").trim().toUpperCase();
+      const dk = String(t?.def_key || "").trim().toUpperCase();
+      if (want.has(sa) || want.has(dk)) return t.name || sa || dk;
+    }
+    return nonEmptyAbbr(abbr);
+  }
+
+  function canonicalizeTeamAbbr(data, abbr) {
+    const raw = nonEmptyAbbr(abbr);
+    if (!raw) return "";
+    const want = teamAliasSet(data, raw);
+    for (const t of data?.teams || []) {
+      const sa = String(t?.slate_abbr || "").trim().toUpperCase();
+      if (want.has(sa)) return sa;
+    }
+    for (const t of data?.teams || []) {
+      const dk = String(t?.def_key || "").trim().toUpperCase();
+      if (want.has(dk)) return String(t?.slate_abbr || dk).trim().toUpperCase();
+    }
+    return raw.toUpperCase();
+  }
+
+  /** Resolve tonight's opponent from loaded Full Slate rows when matchup JSON lacks opp. */
+  function opponentFromSlate(sport, team, data) {
+    const rows = global.ALL_SLATE;
+    if (!Array.isArray(rows) || !rows.length) return { opp: "", oppName: "" };
+    const aliases = teamAliasSet(data, team);
+    const sportKey = String(sport || "").toLowerCase();
+    let oppRaw = "";
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r) continue;
+      const rs = String(r.sport || "").trim().toLowerCase();
+      // Accept blank sport (combined slate) or exact sport match.
+      if (rs && rs !== sportKey && !(sportKey === "wnba" && (rs === "wnba1h" || rs === "wnba1q"))) {
+        continue;
+      }
+      const t = String(r.team || "").trim().toUpperCase();
+      const o = nonEmptyAbbr(r.opp || r.opp_team || r.opponent).toUpperCase();
+      if (!t || !o || t.includes("/") || o.includes("/")) continue;
+      const tAliases = teamAliasSet(data, t);
+      const oAliases = teamAliasSet(data, o);
+      const teamHit = [...aliases].some((a) => tAliases.has(a) || a === t);
+      const oppHit = [...aliases].some((a) => oAliases.has(a) || a === o);
+      if (teamHit) {
+        oppRaw = o;
+        break;
+      }
+      if (oppHit) {
+        oppRaw = t;
+        break;
+      }
+    }
+    if (!oppRaw) return { opp: "", oppName: "" };
+    const opp = canonicalizeTeamAbbr(data, oppRaw);
+    return { opp, oppName: teamDisplayName(data, opp) || opp };
+  }
+
   function opponentForTeam(sport, team) {
     const data = state[sport]?.data;
     if (!data || !team) return { opp: "", oppName: "" };
-    const mu = (data.matchups || {})[team] || {};
-    let opp = mu.opponent_slate || "";
-    let oppName = mu.opponent_name || opp;
+    const mu = lookupMatchup(data, team);
+    let opp = nonEmptyAbbr(mu.opponent_slate);
+    let oppName = nonEmptyAbbr(mu.opponent_name) || opp;
     if (!opp) {
-      const entry = Object.entries(data.players_by_team_cat || {}).find(([k]) =>
-        k.startsWith(team + "|")
-      );
+      const aliases = teamAliasSet(data, team);
+      const entry = Object.entries(data.players_by_team_cat || {}).find(([k]) => {
+        const ab = String(k.split("|")[0] || "").toUpperCase();
+        return aliases.has(ab);
+      });
       const blockOpp = entry ? entry[1].opponent || {} : {};
-      opp = blockOpp.slate_abbr || "";
-      oppName = blockOpp.name || opp;
+      opp = nonEmptyAbbr(blockOpp.slate_abbr);
+      oppName = nonEmptyAbbr(blockOpp.name) || opp;
+    }
+    if (!opp) {
+      const fromSlate = opponentFromSlate(sport, team, data);
+      opp = fromSlate.opp;
+      oppName = fromSlate.oppName || opp;
+    }
+    if (opp) {
+      opp = canonicalizeTeamAbbr(data, opp);
+      if (!oppName || oppName === opp) oppName = teamDisplayName(data, opp) || opp;
     }
     return { opp, oppName, mu };
   }
@@ -438,8 +575,9 @@
     const oppSel = document.getElementById(pid(sport, "opp"));
     if (!oppSel || !data || !team) return;
     if (catSel) {
+      const aliases = teamAliasSet(data, team);
       const teamCats = Object.keys(data.players_by_team_cat || {})
-        .filter((k) => k.startsWith(team + "|"))
+        .filter((k) => aliases.has(String(k.split("|")[0] || "").toUpperCase()))
         .map((k) => k.split("|")[1]);
       if (teamCats.length && !teamCats.includes(catSel.value)) {
         catSel.value = teamCats[0];
@@ -447,7 +585,7 @@
     }
     const { opp, oppName } = opponentForTeam(sport, team);
     oppSel.innerHTML = opp
-      ? '<option value="' + esc(opp) + '">' + esc(oppName) + "</option>"
+      ? '<option value="' + esc(opp) + '" selected>' + esc(oppName || opp) + "</option>"
       : '<option value="">—</option>';
     render(sport);
   }
@@ -457,7 +595,14 @@
     const team = document.getElementById(pid(sport, "team"))?.value;
     const cat = document.getElementById(pid(sport, "cat"))?.value;
     if (!team || !cat || !data) return null;
-    return (data.players_by_team_cat || {})[team + "|" + cat] || null;
+    const direct = (data.players_by_team_cat || {})[team + "|" + cat];
+    if (direct) return direct;
+    const aliases = teamAliasSet(data, team);
+    const key = Object.keys(data.players_by_team_cat || {}).find((k) => {
+      const [ab, c] = k.split("|");
+      return c === cat && aliases.has(String(ab || "").toUpperCase());
+    });
+    return key ? data.players_by_team_cat[key] : null;
   }
 
   function render(sport) {
@@ -653,6 +798,8 @@
         await new Promise((r) => setTimeout(r, 250));
         populateSelectors(sport);
       }
+      // Slate may load after matchup JSON — refresh opponent once ALL_SLATE arrives.
+      scheduleSlateOppRefresh(sport);
       state[sport].ready = true;
     } catch (e) {
       if (loading)
@@ -662,12 +809,38 @@
     }
   }
 
+  function scheduleSlateOppRefresh(sport) {
+    state[sport] = state[sport] || {};
+    if (state[sport].slateOppTimer) return;
+    let tries = 0;
+    state[sport].slateOppTimer = setInterval(() => {
+      tries += 1;
+      const team = document.getElementById(pid(sport, "team"))?.value;
+      const oppSel = document.getElementById(pid(sport, "opp"));
+      if (!team || !oppSel) {
+        if (tries >= 40) {
+          clearInterval(state[sport].slateOppTimer);
+          state[sport].slateOppTimer = null;
+        }
+        return;
+      }
+      const { opp } = opponentForTeam(sport, team);
+      const cur = nonEmptyAbbr(oppSel.value);
+      if (opp && opp !== cur) onTeamChange(sport);
+      if ((opp && oppSel.value === opp) || tries >= 40) {
+        clearInterval(state[sport].slateOppTimer);
+        state[sport].slateOppTimer = null;
+      }
+    }, 250);
+  }
+
   function onPanelOpen(sport) {
     if (SKIP.has(sport)) return;
     // If data already loaded (e.g. panel closed and reopened), skip fetch
     // but always re-populate in case DOM was rebuilt
     if (state[sport]?.ready) {
       populateSelectors(sport);
+      scheduleSlateOppRefresh(sport);
     } else {
       init(sport);
     }

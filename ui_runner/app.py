@@ -5647,6 +5647,203 @@ def api_slate_sport_single(sport: str):
         return jsonify({"error": str(e), "sport": sport_key, "rows": []}), 500
 
 
+def _matchup_edge_slate_paths(sport_key: str) -> list[Path]:
+    """Candidate Full Slate JSON paths used to backfill tonight's opponents."""
+    sk = str(sport_key or "").strip().lower()
+    name = f"slate_sport_{sk}.json"
+    return [
+        TEMPLATES_DIR / name,
+        UI_DIR / "data" / name,
+        _MOBILE_WWW_DIR / name,
+        BASE_DIR / "mobile" / "www" / name,
+    ]
+
+
+def _matchup_edge_slate_mtime(sport_key: str) -> float:
+    for p in _matchup_edge_slate_paths(sport_key):
+        try:
+            if p.is_file():
+                return float(p.stat().st_mtime)
+        except OSError:
+            continue
+    return 0.0
+
+
+def _load_matchup_edge_slate_rows(sport_key: str) -> list[dict]:
+    for path in _matchup_edge_slate_paths(sport_key):
+        if not path.is_file():
+            continue
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(raw, list):
+            rows = [r for r in raw if isinstance(r, dict)]
+        elif isinstance(raw, dict):
+            rows = [r for r in (raw.get("rows") or raw.get("picks") or []) if isinstance(r, dict)]
+        else:
+            rows = []
+        if rows:
+            return rows
+    return []
+
+
+def _matchup_edge_team_alias_map(payload: dict[str, Any], sport_key: str) -> dict[str, str]:
+    """Map common slate tokens / full names -> payload slate_abbr."""
+    out: dict[str, str] = {}
+    for t in payload.get("teams") or []:
+        if not isinstance(t, dict):
+            continue
+        sa = str(t.get("slate_abbr") or "").strip().upper()
+        dk = str(t.get("def_key") or "").strip().upper()
+        name = str(t.get("name") or "").strip().upper()
+        if not sa:
+            continue
+        out[sa] = sa
+        if dk:
+            out[dk] = sa
+        if name:
+            out[name] = sa
+            parts = [p for p in name.replace("-", " ").split() if p]
+            if parts:
+                out[parts[-1]] = sa
+    common = {
+        "WAS": "WSH",
+        "PDX": "POR",
+        "PHO": "PHX",
+        "CONN": "CON",
+        "LA": "LAS",
+        "LV": "LVA",
+        "NY": "NYL",
+        "GS": "GSV",
+    }
+    if sport_key == "wnba":
+        try:
+            from utils.wnba_team_keys import defense_team_key
+
+            for alias, sa in list(out.items()):
+                dk = defense_team_key(alias)
+                if dk:
+                    out.setdefault(dk, sa)
+            for a, b in common.items():
+                if b in out:
+                    out.setdefault(a, b)
+                if a in out:
+                    out.setdefault(b, out[a])
+        except Exception:
+            for a, b in common.items():
+                if b in out:
+                    out.setdefault(a, b)
+    else:
+        for a, b in common.items():
+            if b in out:
+                out.setdefault(a, b)
+    return out
+
+
+def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> dict[str, Any]:
+    """
+    Fill empty matchups[].opponent_* (and block.opponent) from tonight's Full Slate.
+
+    Production rebuilds sometimes emit matchup JSON with leaders but blank opponents
+    when the builder could not resolve slate opp cells — the live slate still has them.
+    """
+    if not isinstance(payload, dict) or payload.get("error"):
+        return payload
+    mus = payload.get("matchups")
+    if not isinstance(mus, dict) or not mus:
+        return payload
+    missing = [
+        k
+        for k, v in mus.items()
+        if not str((v or {}).get("opponent_slate") or "").strip()
+        and not str((v or {}).get("opponent_name") or "").strip()
+    ]
+    if not missing:
+        return payload
+
+    rows = _load_matchup_edge_slate_rows(sport_key)
+    if not rows:
+        return payload
+
+    aliases = _matchup_edge_team_alias_map(payload, sport_key)
+    name_by_abbr = {
+        str(t.get("slate_abbr") or "").strip().upper(): str(t.get("name") or "").strip()
+        for t in (payload.get("teams") or [])
+        if isinstance(t, dict) and str(t.get("slate_abbr") or "").strip()
+    }
+    meta_by_abbr = {
+        str(t.get("slate_abbr") or "").strip().upper(): t
+        for t in (payload.get("teams") or [])
+        if isinstance(t, dict) and str(t.get("slate_abbr") or "").strip()
+    }
+
+    def _canon(tok: object) -> str:
+        raw = str(tok or "").strip().upper()
+        if not raw or raw in {"—", "-", "NAN", "NONE", "NULL"}:
+            return ""
+        if "/" in raw or " VS " in f" {raw} ":
+            return ""
+        return aliases.get(raw, raw)
+
+    pair: dict[str, str] = {}
+    for row in rows:
+        team = _canon(row.get("team"))
+        opp = _canon(row.get("opp") or row.get("opponent") or row.get("opp_team"))
+        if not team or not opp or team == opp:
+            continue
+        pair.setdefault(team, opp)
+        pair.setdefault(opp, team)
+
+    if not pair:
+        return payload
+
+    filled = 0
+    for ab, mu in mus.items():
+        if not isinstance(mu, dict):
+            continue
+        if str(mu.get("opponent_slate") or "").strip() or str(mu.get("opponent_name") or "").strip():
+            continue
+        opp = pair.get(str(ab).strip().upper(), "")
+        if not opp:
+            continue
+        opp_meta = meta_by_abbr.get(opp) or {}
+        mu["opponent_slate"] = opp
+        mu["opponent_name"] = name_by_abbr.get(opp) or str(opp_meta.get("name") or opp)
+        if mu.get("opponent_def_rank") is None and opp_meta.get("def_rank") is not None:
+            mu["opponent_def_rank"] = opp_meta.get("def_rank")
+        if not str(mu.get("opponent_def_tier") or "").strip() and opp_meta.get("def_tier"):
+            mu["opponent_def_tier"] = opp_meta.get("def_tier")
+        filled += 1
+
+    if filled:
+        pbtc = payload.get("players_by_team_cat")
+        if isinstance(pbtc, dict):
+            for key, block in pbtc.items():
+                if not isinstance(block, dict):
+                    continue
+                team_ab = str(key).split("|", 1)[0].strip().upper()
+                opp_obj = block.get("opponent")
+                if not isinstance(opp_obj, dict):
+                    opp_obj = {}
+                    block["opponent"] = opp_obj
+                if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
+                    continue
+                mu = mus.get(team_ab) or {}
+                opp = str(mu.get("opponent_slate") or "").strip().upper()
+                if not opp:
+                    continue
+                opp_meta = meta_by_abbr.get(opp) or {}
+                opp_obj["slate_abbr"] = opp
+                opp_obj["name"] = mu.get("opponent_name") or name_by_abbr.get(opp) or opp
+                if opp_obj.get("def_rank") is None:
+                    opp_obj["def_rank"] = mu.get("opponent_def_rank") or opp_meta.get("def_rank")
+                if not str(opp_obj.get("def_tier") or "").strip():
+                    opp_obj["def_tier"] = mu.get("opponent_def_tier") or opp_meta.get("def_tier") or ""
+        payload["_opponents_enriched_from_slate"] = filled
+    return payload
+
+
 def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
     sport_key = str(sport_key or "").strip().lower()
     json_name = f"{sport_key}_matchup_edge.json"
@@ -5657,7 +5854,8 @@ def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
             alt = BASE_DIR / "Sports" / "WNBA" / "data" / json_name
         path = alt if alt.is_file() else path
     if path.is_file():
-        return json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return _enrich_matchup_edge_opponents(payload, sport_key)
     build_script = BASE_DIR / "scripts" / "build_matchup_edge_json.py"
     if build_script.is_file():
         subprocess.run(
@@ -5668,7 +5866,8 @@ def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
             check=False,
         )
         if path.is_file():
-            return json.loads(path.read_text(encoding="utf-8"))
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            return _enrich_matchup_edge_opponents(payload, sport_key)
     return {
         "sport": sport_key,
         "error": f"{json_name} not found — run scripts/build_matchup_edge_json.py --sport {sport_key}",
@@ -5689,9 +5888,21 @@ def serve_data_json(filename: str):
         path = base / name
         if path.is_file():
             try:
+                def _build(p=path, n=name):
+                    payload = json.loads(p.read_text(encoding="utf-8"))
+                    if n.endswith("_matchup_edge.json"):
+                        sport_key = n[: -len("_matchup_edge.json")].strip().lower()
+                        payload = _enrich_matchup_edge_opponents(payload, sport_key)
+                    return payload
+
+                sport_key = (
+                    name[: -len("_matchup_edge.json")].strip().lower()
+                    if name.endswith("_matchup_edge.json")
+                    else ""
+                )
                 return _gz_json_response(
-                    f"data-json:{name}:{path.stat().st_mtime_ns}",
-                    lambda: json.loads(path.read_text(encoding="utf-8")),
+                    f"data-json:{name}:{path.stat().st_mtime_ns}:{_matchup_edge_slate_mtime(sport_key) if sport_key else 0}",
+                    _build,
                     ttl=120.0,
                 )
             except (OSError, json.JSONDecodeError):
@@ -5710,7 +5921,7 @@ def api_matchup_edge(sport: str):
 
     try:
         return _gz_json_response(
-            f"matchup-edge-v2:{sport_key}:{_template_json_disk_mtime(json_name) or 0}",
+            f"matchup-edge-v3:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
             _build,
             ttl=120.0,
         )

@@ -449,12 +449,17 @@ def _derive_soccer_pick_type(
     ml_prob_s: str,
     hit_rate_s: str,
     blended_s: str,
+    direction: str = "",
 ) -> str:
     """
     When Soccer step8 omits pick_type, infer Goblin / Standard / Demon from tier + scores
     (same spirit as scripts.nhl_soccer_grader.load_slate).
+
+    Goblin/Demon are OVER-only products — UNDER rows with blank pick_type stay Standard.
     """
     tier_u = str(tier or "").strip().upper()
+    dir_u = str(direction or "").strip().upper()
+    over_only_ok = dir_u in ("", "OVER", "O", "MORE")
 
     def _to_float(v) -> float | None:
         if v is None:
@@ -476,14 +481,15 @@ def _derive_soccer_pick_type(
     if p_candidates:
         p = max(0.01, min(0.99, float(p_candidates[0])))
         if p >= 0.70:
-            return "Goblin"
+            return "Goblin" if over_only_ok else "Standard"
         if p >= 0.55:
             return "Standard"
-    if tier_u == "A" and edge is not None and edge >= 0.48:
+    if over_only_ok and tier_u == "A" and edge is not None and edge >= 0.48:
         return "Goblin"
     if tier_u in ("A", "B"):
         return "Standard"
-    return "Demon"
+    # Tier C/D default was Demon — only valid on OVER.
+    return "Demon" if over_only_ok else "Standard"
 
 
 def _norm_result_display(row: dict) -> str:
@@ -693,10 +699,20 @@ def prop_row_for_api(
         pick_type = "—"
         if sport_up == "SOCCER" and tier:
             inferred = _derive_soccer_pick_type(
-                tier, edge, ml_prob, hit_rate_for_pick, blended_for_pick
+                tier,
+                edge,
+                ml_prob,
+                hit_rate_for_pick,
+                blended_for_pick,
+                direction=direction,
             )
             if inferred:
                 pick_type = inferred
+
+    # Product rule: Goblin/Demon are OVER-only. UNDER + Goblin/Demon is a mislabel —
+    # keep the UNDER side and demote pick_type to Standard (do not flip direction).
+    if pick_type in ("Goblin", "Demon") and direction == "UNDER":
+        pick_type = "Standard"
 
     on_live = False
     on_shadow = False

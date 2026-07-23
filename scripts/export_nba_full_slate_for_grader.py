@@ -133,8 +133,8 @@ def _map_step8_demon_rows_to_grader(
     if s8.empty or "Pick Type" not in s8.columns:
         return pd.DataFrame(columns=out_columns)
     dem = s8.loc[s8["Pick Type"].astype(str).str.strip().str.upper() == "DEMON"].copy()
-    # Grading slate: keep every Demon row from step8. (combined_slate_tickets still drops Demon+OVER
-    # for ticket hygiene — step8 encodes Demon sides as OVER by convention.)
+    # Grading slate: keep Demon rows from step8. Demons are OVER-only; MAIN tickets still
+    # exclude Demons via ticket_pick_types (Std+Gob). combined_slate drops Demon non-OVER.
     if dem.empty:
         return pd.DataFrame(columns=out_columns)
 

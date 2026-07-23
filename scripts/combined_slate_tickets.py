@@ -13663,9 +13663,11 @@ def add_l5_play_side_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 def drop_demon_over_rows(df: Optional[pd.DataFrame], sport_label: str) -> Optional[pd.DataFrame]:
     """
-    PrizePicks Demon is a line-hardening pick type and is not offered on the OVER side for
-    these boards — upstream step8 can still emit Demon+OVER rows. Remove them so Excel
-    slates, Full Slate, ticket pools, and slate_latest.json never surface unbookable legs.
+    PrizePicks Demon is OVER-only (harder ladder). Drop Demon+UNDER artifacts so Excel
+    slates, Full Slate, ticket pools, and slate_latest.json never surface invalid sides.
+
+    Note: MAIN/STRONG tickets still exclude Demons entirely via ticket_pick_types
+    (Std+Gob only). This guard is product-side hygiene for Demon UNDER mislabels.
     """
     if df is None or len(df) == 0:
         return df
@@ -13673,10 +13675,13 @@ def drop_demon_over_rows(df: Optional[pd.DataFrame], sport_label: str) -> Option
         return df
     pt = df["pick_type"].astype(str).str.strip().str.upper()
     dr = df["direction"].astype(str).str.strip().str.upper()
-    bad = pt.eq("DEMON") & dr.eq("OVER")
+    bad = pt.eq("DEMON") & ~dr.eq("OVER")
     n_drop = int(bad.sum())
     if n_drop:
-        print(f"  [bookability] {sport_label}: dropping {n_drop} Demon+OVER row(s) (not a valid PP offering).")
+        print(
+            f"  [bookability] {sport_label}: dropping {n_drop} Demon non-OVER row(s) "
+            "(Demon is OVER-only)."
+        )
         return df.loc[~bad].copy()
     return df
 

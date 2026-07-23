@@ -151,8 +151,14 @@ def load_graded_json_rows(
 
 
 def _is_ticket_eligible_slice(pick_type: str, direction: str) -> bool:
-    """Mirror combined_slate_tickets drop_demon_over_rows — demon+OVER is unbookable."""
-    return not (_norm_pick(pick_type) == "demon" and _norm_dir(direction) == "OVER")
+    """MAIN tickets are Std+Gob only; Demon is not ticket-eligible. Goblin is OVER-only."""
+    pt = _norm_pick(pick_type)
+    dr = _norm_dir(direction)
+    if pt == "demon":
+        return False
+    if pt == "goblin" and dr != "OVER":
+        return False
+    return True
 
 
 def exclude_unbookable_demon_over(
@@ -160,15 +166,24 @@ def exclude_unbookable_demon_over(
     *,
     include_demon: bool = False,
 ) -> pd.DataFrame:
-    if df.empty or include_demon:
+    """
+    Default: drop all Demon rows (MAIN tickets are Std+Gob only).
+    With include_demon=True: keep Demon OVER, still drop Demon non-OVER (invalid).
+    """
+    if df.empty:
         return df
     pt = df["pick_type"].astype(str).str.strip().str.lower()
     dr = df["direction"].astype(str).str.strip().str.upper()
-    demon_over_mask = pt.eq("demon") & dr.eq("OVER")
-    excluded = int(demon_over_mask.sum())
+    if include_demon:
+        mask = pt.eq("demon") & ~dr.eq("OVER")
+        label = "Demon non-OVER (Demon is OVER-only)"
+    else:
+        mask = pt.eq("demon")
+        label = "Demon (not ticket-eligible; use --include-demon for Demon OVER)"
+    excluded = int(mask.sum())
     if excluded > 0:
-        logger.info("Excluding %s demon+OVER rows (unbookable)", f"{excluded:,}")
-    return df.loc[~demon_over_mask].copy()
+        logger.info("Excluding %s %s row(s)", f"{excluded:,}", label)
+    return df.loc[~mask].copy()
 
 
 def recommend_scalars(
@@ -285,7 +300,7 @@ def main() -> int:
     ap.add_argument(
         "--include-demon",
         action="store_true",
-        help="Include demon+OVER rows (diagnostic; default excludes unbookable demon+OVER)",
+        help="Include Demon OVER rows in calibration (default drops all Demons; Demon UNDER never included)",
     )
     ap.add_argument("--out-csv", type=Path, default=None, help="Write recommendations CSV")
     args = ap.parse_args()
@@ -309,7 +324,7 @@ def main() -> int:
         print(f"  min_date >= {min_date}")
     df = exclude_unbookable_demon_over(df, include_demon=bool(args.include_demon))
     if df.empty:
-        print("No rows left after demon+OVER exclusion.")
+        print("No rows left after Demon exclusion.")
         return 1
     if args.sport:
         print(f"  sport filter: {args.sport.upper()} → {len(df):,} rows")

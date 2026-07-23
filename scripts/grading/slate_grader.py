@@ -779,8 +779,15 @@ def _build_actuals_lookup(act: pd.DataFrame, actuals_path: str = "") -> ActualsL
         if not raw_prop or raw_prop.lower() in ("nan", "none"):
             continue
         t0 = norm_team_key(arow.get("team", ""))
-        apath_l = str(actuals_path or "").lower()
-        if "nba" in apath_l and "actuals" in apath_l:
+        apath_l = str(actuals_path or "").replace("\\", "/").lower()
+        # Prefer WNBA before NBA: "wnba" filenames contain the substring "nba".
+        if "wnba" in apath_l and "actuals" in apath_l:
+            from espn_injuries import canon_team_abbr
+
+            t0 = canon_team_abbr("WNBA", arow.get("team", "")) or t0
+        elif re.search(r"actuals_nba(?:1[hq]|2[hq]|[34]q)?_", apath_l) or (
+            "/nba/" in apath_l and "actuals" in apath_l and "wnba" not in apath_l
+        ):
             from espn_injuries import canon_team_abbr
 
             t0 = canon_team_abbr("NBA", arow.get("team", "")) or t0
@@ -992,12 +999,18 @@ def _injury_confirms_dnp_for_row(
     return False
 
 
-def apply_actuals(df, actuals_path):
+def apply_actuals(df, actuals_path, *, output_path: str = "", slate_path: str = ""):
+    from grading.period_actuals_guard import assert_actuals_for_inferred_period
+
+    assert_actuals_for_inferred_period(actuals_path, output_path, slate_path, actuals_path)
     act = pd.read_csv(actuals_path)
     apath = str(actuals_path or "")
     lookup = _build_actuals_lookup(act, apath)
     dnp_keys: frozenset[tuple[str, str]] = frozenset()
-    if "nba" in apath.lower() and "actuals" in apath.lower():
+    apath_l = apath.replace("\\", "/").lower()
+    if re.search(r"actuals_nba(?:1[hq]|2[hq]|[34]q)?_", apath_l) or (
+        "/nba/" in apath_l and "actuals" in apath_l and "wnba" not in apath_l
+    ):
         dnp_keys = _load_nba_injury_dnp_keys(apath)
 
     df["player_key"] = _slate_player_key_series(df)
@@ -1728,7 +1741,7 @@ def main():
 
     if args.actuals:
         print(f'Applying actuals from {args.actuals}...')
-        df=apply_actuals(df,args.actuals)
+        df=apply_actuals(df, args.actuals, output_path=args.output, slate_path=args.slate)
         decided=df[df['result'].isin(['HIT','MISS'])]
         hits=(decided['result']=='HIT').sum()
         print(f'  Graded: {len(decided)} decided — {hits} HIT / {len(decided)-hits} MISS')

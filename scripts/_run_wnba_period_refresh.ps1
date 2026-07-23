@@ -164,7 +164,8 @@ function Run-WNBAPeriodOnly {
     Run-StepLocal "step3" ".\step3_attach_defense.py" @(
         "--input", $step2, "--defense", "wnba_defense_summary.csv", "--output", $step3
     )
-    # Full-game ESPN rolling stats as period proxy (same pattern as early NBA1H/1Q).
+    # Full-game ESPN rolling stats as period *projection* proxy (same early NBA1H/1Q).
+    # Grading uses period actuals via fetch_nba_period_actuals.py --sport WNBA --segment 1H|1Q.
     Run-StepLocal "step4" ".\step4_fetch_player_stats.py" @(
         "--slate", $step3, "--out", $step4, "--season", "2026", "--date", $Date,
         "--days", "35", "--cache", "wnba_espn_cache.csv", "--sleep", "0.8",

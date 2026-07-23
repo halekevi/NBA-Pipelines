@@ -3105,6 +3105,13 @@ def main() -> None:
         if wnba_path:
             print(f"  Auto-detected WNBA: {wnba_path}")
 
+    wnba1q_path: Path | None = find_graded_file("wnba1q", date_str)
+    if wnba1q_path:
+        print(f"  Auto-detected WNBA1Q: {wnba1q_path}")
+    wnba1h_path: Path | None = find_graded_file("wnba1h", date_str)
+    if wnba1h_path:
+        print(f"  Auto-detected WNBA1H: {wnba1h_path}")
+
     tennis_path: Path | None = None
     if args.tennis:
         tennis_path = Path(args.tennis).resolve()
@@ -3125,6 +3132,8 @@ def main() -> None:
         or soccer_path
         or mlb_path
         or wnba_path
+        or wnba1q_path
+        or wnba1h_path
         or tennis_path
     ):
         if args.allow_empty:
@@ -3188,6 +3197,17 @@ def main() -> None:
         print(f"  Loading WNBA: {wnba_path.name} ...", end="", flush=True)
         wnba_rows = load_graded(wnba_path, "wnba")
         print(f" {len(wnba_rows):,} rows")
+    wnba1q_rows: list[dict] = []
+    if wnba1q_path:
+        print(f"  Loading WNBA1Q: {wnba1q_path.name} ...", end="", flush=True)
+        wnba1q_rows = load_graded(wnba1q_path, "wnba1q")
+        print(f" {len(wnba1q_rows):,} rows")
+    wnba1h_rows: list[dict] = []
+    if wnba1h_path:
+        print(f"  Loading WNBA1H: {wnba1h_path.name} ...", end="", flush=True)
+        wnba1h_rows = load_graded(wnba1h_path, "wnba1h")
+        print(f" {len(wnba1h_rows):,} rows")
+    wnba_rows_merged = [*wnba_rows, *wnba1q_rows, *wnba1h_rows]
 
     tennis_rows: list[dict] = []
     if tennis_path:
@@ -3206,7 +3226,7 @@ def main() -> None:
         nhl_rows=nhl_rows,
         soccer_rows=soccer_rows,
         mlb_rows=mlb_rows,
-        wnba_rows=wnba_rows,
+        wnba_rows=wnba_rows_merged,
         tennis_rows=tennis_rows,
         nhl_path=nhl_path,
         soccer_path=soccer_path,
@@ -3246,6 +3266,10 @@ def main() -> None:
         json_bundles.append(("MLB", mlb_rows))
     if wnba_rows:
         json_bundles.append(("WNBA", wnba_rows))
+    if wnba1q_rows:
+        json_bundles.append(("WNBA1Q", wnba1q_rows))
+    if wnba1h_rows:
+        json_bundles.append(("WNBA1H", wnba1h_rows))
     if tennis_rows:
         json_bundles.append(("Tennis", tennis_rows))
     json_p = export_graded_props_json(date_str, out_p.parent, json_bundles)
@@ -3256,7 +3280,7 @@ def main() -> None:
         *nhl_rows,
         *soccer_rows,
         *mlb_rows,
-        *wnba_rows,
+        *wnba_rows_merged,
         *tennis_rows,
     ]
     tabs_p = export_analysis_tabs_xlsx(date_str, out_p.parent, all_rows)

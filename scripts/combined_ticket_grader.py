@@ -556,6 +556,10 @@ def prep_actuals(csv_path: Path, sport_label: str) -> pd.DataFrame:
         from espn_injuries import canon_team_abbr
 
         df["team_norm"] = df["team"].map(lambda t: canon_team_abbr("NBA", t) or strip_norm(t))
+    elif sl in ("WNBA", "WNBA1H", "WNBA1Q"):
+        from espn_injuries import canon_team_abbr
+
+        df["team_norm"] = df["team"].map(lambda t: canon_team_abbr("WNBA", t) or strip_norm(t))
     elif sl in ("CBB", "WCBB", "NHL", "SOCCER"):
         from espn_injuries import canon_team_abbr
 
@@ -971,6 +975,8 @@ def lookup_actual(sport: str, player: str, team: str, prop_norm: str,
                   nba1h_lpt=None, nba1h_lp=None,
                   nba1q_lpt=None, nba1q_lp=None,
                   wnba_lpt=None, wnba_lp=None,
+                  wnba1h_lpt=None, wnba1h_lp=None,
+                  wnba1q_lpt=None, wnba1q_lp=None,
                   nhl_lpt=None, nhl_lp=None,
                   soccer_lpt=None, soccer_lp=None,
                   tennis_lpt=None, tennis_lp=None,
@@ -984,7 +990,7 @@ def lookup_actual(sport: str, player: str, team: str, prop_norm: str,
         from espn_injuries import canon_team_abbr
 
         team_n = canon_team_abbr("NBA", team) or team_n
-    elif sport == "WNBA":
+    elif sport in ("WNBA", "WNBA1H", "WNBA1Q"):
         from espn_injuries import canon_team_abbr
 
         team_n = canon_team_abbr("WNBA", team) or team_n
@@ -1013,6 +1019,28 @@ def lookup_actual(sport: str, player: str, team: str, prop_norm: str,
             if key1 in nba1q_lp:
                 return float(nba1q_lp[key1][0]["actual"])
         # Never use full-game NBA for quarter props — inflates OVER hit rates.
+        return np.nan
+
+    if sport == "WNBA1H":
+        if wnba1h_lpt is not None and wnba1h_lp is not None:
+            key2 = (player_n, team_n, prop_norm)
+            if key2 in wnba1h_lpt:
+                return float(wnba1h_lpt[key2][0]["actual"])
+            key1 = (player_n, prop_norm)
+            if key1 in wnba1h_lp:
+                return float(wnba1h_lp[key1][0]["actual"])
+        # Never use full-game WNBA for half props — inflates OVER hit rates.
+        return np.nan
+
+    if sport == "WNBA1Q":
+        if wnba1q_lpt is not None and wnba1q_lp is not None:
+            key2 = (player_n, team_n, prop_norm)
+            if key2 in wnba1q_lpt:
+                return float(wnba1q_lpt[key2][0]["actual"])
+            key1 = (player_n, prop_norm)
+            if key1 in wnba1q_lp:
+                return float(wnba1q_lp[key1][0]["actual"])
+        # Never use full-game WNBA for quarter props — inflates OVER hit rates.
         return np.nan
 
     if sport == "NBA":
@@ -1114,6 +1142,10 @@ def _lookup_actual_with_combo_fallback(
     nba1q_lp=None,
     wnba_lpt=None,
     wnba_lp=None,
+    wnba1h_lpt=None,
+    wnba1h_lp=None,
+    wnba1q_lpt=None,
+    wnba1q_lp=None,
     nhl_lpt=None,
     nhl_lp=None,
     soccer_lpt=None,
@@ -1138,6 +1170,10 @@ def _lookup_actual_with_combo_fallback(
         nba1q_lp=nba1q_lp,
         wnba_lpt=wnba_lpt,
         wnba_lp=wnba_lp,
+        wnba1h_lpt=wnba1h_lpt,
+        wnba1h_lp=wnba1h_lp,
+        wnba1q_lpt=wnba1q_lpt,
+        wnba1q_lp=wnba1q_lp,
         nhl_lpt=nhl_lpt,
         nhl_lp=nhl_lp,
         soccer_lpt=soccer_lpt,
@@ -1756,6 +1792,8 @@ def main():
     ap.add_argument("--tennis_actuals", default="", help="actuals_tennis_YYYY-MM-DD.csv (optional, for Tennis legs)")
     ap.add_argument("--mlb_actuals", default="", help="actuals_mlb_YYYY-MM-DD.csv (optional, for MLB legs)")
     ap.add_argument("--wnba_actuals", default="", help="actuals_wnba_YYYY-MM-DD.csv (optional, for WNBA legs)")
+    ap.add_argument("--wnba1h_actuals", default="", help="actuals_wnba1h_YYYY-MM-DD.csv (optional; 1H period only)")
+    ap.add_argument("--wnba1q_actuals", default="", help="actuals_wnba1q_YYYY-MM-DD.csv (optional; 1Q period only)")
     ap.add_argument("--nba_injuries", default="", help="injuries_nba CSV (optional; defaults next to nba actuals)")
     ap.add_argument("--cbb_injuries", default="", help="injuries_cbb CSV (optional)")
     ap.add_argument("--nhl_injuries", default="", help="injuries_nhl CSV (optional)")
@@ -1821,12 +1859,16 @@ def main():
     cbb_lp, cbb_lpt = build_lookup(cbb_act) if not cbb_act.empty else ({}, {})
     nba1h_lp = nba1h_lpt = None
     nba1q_lp = nba1q_lpt = None
+    nba1h_act = pd.DataFrame()
+    nba1q_act = pd.DataFrame()
+    from grading.period_actuals_guard import assert_period_actuals_path
+
     if args.nba1h_actuals:
-        nba1h_csv = Path(args.nba1h_actuals)
+        nba1h_csv = assert_period_actuals_path("NBA1H", args.nba1h_actuals)
         nba1h_act = prep_actuals(nba1h_csv, "NBA1H")
         nba1h_lp, nba1h_lpt = build_lookup(nba1h_act)
     if args.nba1q_actuals:
-        nba1q_csv = Path(args.nba1q_actuals)
+        nba1q_csv = assert_period_actuals_path("NBA1Q", args.nba1q_actuals)
         nba1q_act = prep_actuals(nba1q_csv, "NBA1Q")
         nba1q_lp, nba1q_lpt = build_lookup(nba1q_act)
 
@@ -1838,6 +1880,10 @@ def main():
     mlb_lp = mlb_lpt = None
     wnba_lp = wnba_lpt = None
     wnba_act = pd.DataFrame()
+    wnba1h_lp = wnba1h_lpt = None
+    wnba1q_lp = wnba1q_lpt = None
+    wnba1h_act = pd.DataFrame()
+    wnba1q_act = pd.DataFrame()
     if args.nhl_actuals:
         nhl_csv = Path(args.nhl_actuals)
         nhl_act = prep_actuals(nhl_csv, "NHL")
@@ -1875,6 +1921,15 @@ def main():
         wnba_act = prep_actuals(wnba_actuals_path, "WNBA")
         wnba_lp, wnba_lpt = build_lookup(wnba_act)
 
+    if args.wnba1h_actuals:
+        wnba1h_csv = assert_period_actuals_path("WNBA1H", args.wnba1h_actuals)
+        wnba1h_act = prep_actuals(wnba1h_csv, "WNBA1H")
+        wnba1h_lp, wnba1h_lpt = build_lookup(wnba1h_act)
+    if args.wnba1q_actuals:
+        wnba1q_csv = assert_period_actuals_path("WNBA1Q", args.wnba1q_actuals)
+        wnba1q_act = prep_actuals(wnba1q_csv, "WNBA1Q")
+        wnba1q_lp, wnba1q_lpt = build_lookup(wnba1q_act)
+
     # Grade latency tracker (one row per actuals file)
     grade_ts = datetime.now(timezone.utc)
     m = re.search(r"_(\d{4}-\d{2}-\d{2})", str(nba_csv.name))
@@ -1896,6 +1951,10 @@ def main():
         _append_grade_latency_row(ROOT, grade_date, "MLB", mlb_actuals_path, grade_ts)
     if wnba_actuals_path.is_file():
         _append_grade_latency_row(ROOT, grade_date, "WNBA", wnba_actuals_path, grade_ts)
+    if args.wnba1h_actuals:
+        _append_grade_latency_row(ROOT, grade_date, "WNBA1H", Path(args.wnba1h_actuals), grade_ts)
+    if args.wnba1q_actuals:
+        _append_grade_latency_row(ROOT, grade_date, "WNBA1Q", Path(args.wnba1q_actuals), grade_ts)
 
     from espn_injuries import (  # noqa: E402
         canon_team_abbr as _inj_canon_team,
@@ -1997,17 +2056,45 @@ def main():
             raise RuntimeError(
                 "WNBA legs detected in tickets but --wnba_actuals was not provided (or file missing)."
             )
+    if wnba1h_act.empty:
+        has_wnba1h = legs_df["sport"].astype(str).str.upper().eq("WNBA1H").any()
+        if has_wnba1h and not str(args.wnba1h_actuals or "").strip():
+            raise RuntimeError(
+                "WNBA1H legs detected but --wnba1h_actuals was not provided. "
+                "Do not pass full-game --wnba_actuals for period legs."
+            )
+    if wnba1q_act.empty:
+        has_wnba1q = legs_df["sport"].astype(str).str.upper().eq("WNBA1Q").any()
+        if has_wnba1q and not str(args.wnba1q_actuals or "").strip():
+            raise RuntimeError(
+                "WNBA1Q legs detected but --wnba1q_actuals was not provided. "
+                "Do not pass full-game --wnba_actuals for period legs."
+            )
 
     # grade legs
+    def _act_df_for_sport(sp: str) -> pd.DataFrame | None:
+        su = str(sp or "").upper()
+        if su in ("NBA",):
+            return nba_act
+        if su == "NBA1H":
+            return nba1h_act if not nba1h_act.empty else None
+        if su == "NBA1Q":
+            return nba1q_act if not nba1q_act.empty else None
+        if su == "WNBA":
+            return wnba_act if not wnba_act.empty else None
+        if su == "WNBA1H":
+            return wnba1h_act if not wnba1h_act.empty else None
+        if su == "WNBA1Q":
+            return wnba1q_act if not wnba1q_act.empty else None
+        return None
+
     legs_df["actual"] = legs_df.apply(
         lambda r: _lookup_actual_with_combo_fallback(
             r["sport"],
             r["player"],
             r["team"],
             r["prop_norm"],
-            nba_act if str(r["sport"] or "").upper() in ("NBA", "NBA1H", "NBA1Q") else (
-                wnba_act if str(r["sport"] or "").upper() == "WNBA" else None
-            ),
+            _act_df_for_sport(r["sport"]),
             nba_lpt=nba_lpt,
             nba_lp=nba_lp,
             cbb_lpt=cbb_lpt,
@@ -2018,6 +2105,10 @@ def main():
             nba1q_lp=nba1q_lp,
             wnba_lpt=wnba_lpt,
             wnba_lp=wnba_lp,
+            wnba1h_lpt=wnba1h_lpt,
+            wnba1h_lp=wnba1h_lp,
+            wnba1q_lpt=wnba1q_lpt,
+            wnba1q_lp=wnba1q_lp,
             nhl_lpt=nhl_lpt,
             nhl_lp=nhl_lp,
             soccer_lpt=soccer_lpt,
@@ -2070,7 +2161,7 @@ def main():
             tm = _inj_canon_team("NBA", row["team"])
             if pl and tm and (pl, tm) in nba_void:
                 return "VOID"
-        elif sp == "WNBA":
+        elif sp in ("WNBA", "WNBA1H", "WNBA1Q"):
             tm = _inj_canon_team("WNBA", row["team"])
             if pl and tm and (pl, tm) in wnba_void:
                 return "VOID"

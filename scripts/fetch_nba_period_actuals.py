@@ -19,6 +19,8 @@ Examples:
   py -3.14 scripts/fetch_nba_period_actuals.py --date 2026-03-25 --segment 1H --output outputs/2026-03-25/actuals_nba1h_2026-03-25.csv
   py -3.14 scripts/fetch_nba_period_actuals.py --date 2026-03-25 --segment 2H --output outputs/2026-03-25/actuals_nba2h_2026-03-25.csv
   py -3.14 scripts/fetch_nba_period_actuals.py --sport CBB --date 2026-03-25 --segment 1H --output outputs/2026-03-25/actuals_cbb1h_2026-03-25.csv
+  py -3.14 scripts/fetch_nba_period_actuals.py --sport WNBA --date 2026-07-21 --segment 1H --output outputs/2026-07-21/actuals_wnba1h_2026-07-21.csv
+  py -3.14 scripts/fetch_nba_period_actuals.py --sport WNBA --date 2026-07-21 --segment 1Q --output outputs/2026-07-21/actuals_wnba1q_2026-07-21.csv
 """
 
 from __future__ import annotations

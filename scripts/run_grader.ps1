@@ -172,7 +172,11 @@ $NBA1QGradedFile = Join-Path $DateDir "graded_nba1q_$Date.xlsx"
 $WCBBGradedFile = Join-Path $DateDir "graded_wcbb_$Date.xlsx"
 $TennisGradedFile = Join-Path $TennisGradeOutDir "graded_tennis_$TennisSlateDate.xlsx"
 $WNBAActuals = Join-Path $DateDir "actuals_wnba_$Date.csv"
+$WNBA1HActuals = Join-Path $DateDir "actuals_wnba1h_$Date.csv"
+$WNBA1QActuals = Join-Path $DateDir "actuals_wnba1q_$Date.csv"
 $WNBAGradedFile = Join-Path $DateDir "graded_wnba_$Date.xlsx"
+$WNBA1HGradedFile = Join-Path $DateDir "graded_wnba1h_$Date.xlsx"
+$WNBA1QGradedFile = Join-Path $DateDir "graded_wnba1q_$Date.xlsx"
 $NFLActuals = Join-Path $DateDir "actuals_nfl_$Date.csv"
 $NFLGradedFile = Join-Path $DateDir "graded_nfl_$Date.xlsx"
 $CFBActuals = Join-Path $DateDir "actuals_cfb_$Date.csv"
@@ -208,6 +212,8 @@ function Copy-PropOracleGradedSlateBundle {
         "graded_mlb_$GradeDate.xlsx",
         "graded_soccer_$GradeDate.xlsx",
         "graded_wnba_$GradeDate.xlsx",
+        "graded_wnba1h_$GradeDate.xlsx",
+        "graded_wnba1q_$GradeDate.xlsx",
         "graded_nfl_$GradeDate.xlsx",
         "graded_cfb_$GradeDate.xlsx",
         $tennisGradedLeaf,
@@ -582,6 +588,28 @@ if (Test-Path $FetchActualsScript) {
         else {
             Write-Host "Skipping Fetch CBB 1H Actuals (sport disabled: cbb)." -ForegroundColor Yellow
         }
+        if (-not (Test-GraderSportDisabled 'wnba1h')) {
+            Run-Py "Fetch WNBA 1H Actuals (ESPN PBP)" $Root $FetchNBAPeriodActualsScript @(
+                "--sport", "WNBA",
+                "--date", $Date,
+                "--segment", "1H",
+                "--output", $WNBA1HActuals
+            )
+        }
+        else {
+            Write-Host "Skipping Fetch WNBA 1H Actuals (sport disabled: wnba1h)." -ForegroundColor Yellow
+        }
+        if (-not (Test-GraderSportDisabled 'wnba1q')) {
+            Run-Py "Fetch WNBA 1Q Actuals (ESPN PBP)" $Root $FetchNBAPeriodActualsScript @(
+                "--sport", "WNBA",
+                "--date", $Date,
+                "--segment", "1Q",
+                "--output", $WNBA1QActuals
+            )
+        }
+        else {
+            Write-Host "Skipping Fetch WNBA 1Q Actuals (sport disabled: wnba1q)." -ForegroundColor Yellow
+        }
         if (-not $NBAGradingOffSeason) {
             if (Test-Path $BuildNBA1QHistoryScript) {
                 Write-Host "[NBA1Q DB] Appending Q1/Q2 actuals to proporacle_ref.db..." -ForegroundColor Yellow
@@ -883,6 +911,89 @@ else {
     Write-Host "Skipping WNBA slate grading (missing actuals_wnba, step8 WNBA slate, or slate_grader)." -ForegroundColor Yellow
 }
 
+# WNBA 1H / 1Q must use period ESPN PBP actuals (never full-game actuals_wnba_*.csv).
+$DatedWNBA1HPath = Join-Path $DateDir "step8_wnba1h_direction_clean_$Date.xlsx"
+$DatedWNBA1QPath = Join-Path $DateDir "step8_wnba1q_direction_clean_$Date.xlsx"
+$WNBA1HSlateFile = Resolve-FirstExisting @(
+    $DatedWNBA1HPath,
+    (Join-Path $DateDir "wnba1h\step8_wnba1h_direction_clean.xlsx"),
+    (Join-Path $SportsRoot "WNBA\step8_wnba1h_direction_clean.xlsx")
+)
+$WNBA1QSlateFile = Resolve-FirstExisting @(
+    $DatedWNBA1QPath,
+    (Join-Path $DateDir "wnba1q\step8_wnba1q_direction_clean.xlsx"),
+    (Join-Path $SportsRoot "WNBA\step8_wnba1q_direction_clean.xlsx")
+)
+if ($WNBA1HSlateFile) {
+    Write-Host "[GRADER] WNBA1H slate: $(Split-Path $WNBA1HSlateFile -Leaf)" -ForegroundColor Cyan
+    Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $WNBA1HSlateFile -GradeDate $Date -SportLabel "WNBA1H"
+}
+if ($WNBA1QSlateFile) {
+    Write-Host "[GRADER] WNBA1Q slate: $(Split-Path $WNBA1QSlateFile -Leaf)" -ForegroundColor Cyan
+    Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $WNBA1QSlateFile -GradeDate $Date -SportLabel "WNBA1Q"
+}
+
+if (Test-Path $FetchNBAPeriodActualsScript) {
+    if (-not (Test-GraderSportDisabled 'wnba1h')) {
+        if ($WNBA1HSlateFile -and (Test-Path $WNBA1HSlateFile) -and -not (Test-Path $WNBA1HActuals)) {
+            Run-Py "Fetch WNBA 1H Actuals (pre-grade, missing CSV)" $Root $FetchNBAPeriodActualsScript @(
+                "--sport", "WNBA",
+                "--date", $Date,
+                "--segment", "1H",
+                "--output", $WNBA1HActuals
+            )
+        }
+    }
+    else {
+        Write-Host "Skipping WNBA1H actuals fetch (sport disabled: wnba1h)." -ForegroundColor Yellow
+    }
+    if (-not (Test-GraderSportDisabled 'wnba1q')) {
+        if ($WNBA1QSlateFile -and (Test-Path $WNBA1QSlateFile) -and -not (Test-Path $WNBA1QActuals)) {
+            Run-Py "Fetch WNBA 1Q Actuals (pre-grade, missing CSV)" $Root $FetchNBAPeriodActualsScript @(
+                "--sport", "WNBA",
+                "--date", $Date,
+                "--segment", "1Q",
+                "--output", $WNBA1QActuals
+            )
+        }
+    }
+    else {
+        Write-Host "Skipping WNBA1Q actuals fetch (sport disabled: wnba1q)." -ForegroundColor Yellow
+    }
+}
+
+if (Test-GraderSportDisabled 'wnba1h') {
+    Write-Host "Skipping WNBA1H grading (sport disabled: wnba1h)." -ForegroundColor Yellow
+}
+elseif ($WNBA1HSlateFile -and (Test-Path $WNBA1HSlateFile) -and (Test-Path $SlateGraderScript) -and (Test-Path $WNBA1HActuals)) {
+    Run-Py "Grade WNBA1H Slate" $Root $SlateGraderScript @(
+        "--sport", "WNBA",
+        "--slate", $WNBA1HSlateFile,
+        "--actuals", $WNBA1HActuals,
+        "--output", $WNBA1HGradedFile,
+        "--date", $Date
+    )
+}
+else {
+    Write-Host "Skipping WNBA1H grading (missing slate, grader, or actuals_wnba1h_$Date.csv after fetch attempt)." -ForegroundColor Yellow
+}
+
+if (Test-GraderSportDisabled 'wnba1q') {
+    Write-Host "Skipping WNBA1Q grading (sport disabled: wnba1q)." -ForegroundColor Yellow
+}
+elseif ($WNBA1QSlateFile -and (Test-Path $WNBA1QSlateFile) -and (Test-Path $SlateGraderScript) -and (Test-Path $WNBA1QActuals)) {
+    Run-Py "Grade WNBA1Q Slate" $Root $SlateGraderScript @(
+        "--sport", "WNBA",
+        "--slate", $WNBA1QSlateFile,
+        "--actuals", $WNBA1QActuals,
+        "--output", $WNBA1QGradedFile,
+        "--date", $Date
+    )
+}
+else {
+    Write-Host "Skipping WNBA1Q grading (missing slate, grader, or actuals_wnba1q_$Date.csv after fetch attempt)." -ForegroundColor Yellow
+}
+
 $NFLStep8Dated = Join-Path $DateDir "nfl\step8_nfl_direction_clean.xlsx"
 $NFLStep8Bundle = Join-Path $DateDir "step8_nfl_direction_clean_$Date.xlsx"
 $NFLStep8Static = Join-Path $SportsRoot "NFL\outputs\step8_nfl_direction_clean.xlsx"
@@ -1067,7 +1178,9 @@ if (Test-Path $VoidValidatorScript) {
         $NBA1HGradedFile,
         $NBA1QGradedFile,
         $TennisGradedFile,
-        $WNBAGradedFile
+        $WNBAGradedFile,
+        $WNBA1HGradedFile,
+        $WNBA1QGradedFile
     )) {
         if ($gf -and (Test-Path $gf)) {
             $VoidArgs += @("--graded", $gf)
@@ -1248,6 +1361,12 @@ else {
     if (Test-Path $WNBAActuals) {
         $GraderArgs += @("--wnba_actuals", $WNBAActuals)
     }
+    if (Test-Path $WNBA1HActuals) {
+        $GraderArgs += @("--wnba1h_actuals", $WNBA1HActuals)
+    }
+    if (Test-Path $WNBA1QActuals) {
+        $GraderArgs += @("--wnba1q_actuals", $WNBA1QActuals)
+    }
     $InjNBA = Join-Path $DateDir "injuries_nba_$Date.csv"
     $InjCBB = Join-Path $DateDir "injuries_cbb_$Date.csv"
     $InjNHL = Join-Path $DateDir "injuries_nhl_$Date.csv"
@@ -1341,6 +1460,8 @@ if (Test-Path $TicketEvalBuilderScript) {
         if (Test-Path $TennisActuals) { $LongParlayGraderArgs += @("--tennis_actuals", $TennisActuals) }
         if (Test-Path $MlbActuals) { $LongParlayGraderArgs += @("--mlb_actuals", $MlbActuals) }
         if (Test-Path $WNBAActuals) { $LongParlayGraderArgs += @("--wnba_actuals", $WNBAActuals) }
+        if (Test-Path $WNBA1HActuals) { $LongParlayGraderArgs += @("--wnba1h_actuals", $WNBA1HActuals) }
+        if (Test-Path $WNBA1QActuals) { $LongParlayGraderArgs += @("--wnba1q_actuals", $WNBA1QActuals) }
         Run-Py "Long Parlay Ticket Grader" $Root $CombinedTicketGrader $LongParlayGraderArgs
     }
     elseif ($LongParlayTicketsArg) {
@@ -1395,6 +1516,8 @@ if (Test-Path $TicketEvalBuilderScript) {
         if (Test-Path $TennisActuals) { $HighLegGraderArgs += @("--tennis_actuals", $TennisActuals) }
         if (Test-Path $MlbActuals) { $HighLegGraderArgs += @("--mlb_actuals", $MlbActuals) }
         if (Test-Path $WNBAActuals) { $HighLegGraderArgs += @("--wnba_actuals", $WNBAActuals) }
+        if (Test-Path $WNBA1HActuals) { $HighLegGraderArgs += @("--wnba1h_actuals", $WNBA1HActuals) }
+        if (Test-Path $WNBA1QActuals) { $HighLegGraderArgs += @("--wnba1q_actuals", $WNBA1QActuals) }
         Run-Py "High Leg HR Ticket Grader" $Root $CombinedTicketGrader $HighLegGraderArgs
     }
     elseif ($HighLegTicketsArg) {

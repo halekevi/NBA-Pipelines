@@ -759,8 +759,17 @@ GOBLIN_MIN_FACTOR_SLOPE = 0.074
 GOBLIN_MIN_FACTOR_FLOOR = 0.30
 # Live mix-grid rate card: goblin_discount_per_unit by deviation bucket ("1.0","1.5","2.0")
 PAYOUT_RATE_CARD_PATH = os.path.join(REPO_ROOT, "data", "reports", "payout_rate_card.json")
+# SG-Δ mix×Goblin-Δ grid (live_cdp + extrapolated). Extrapolated stamps need verified lines.
+SG_DELTA_PAYOUT_RATE_CARD_PATH = os.path.join(
+    REPO_ROOT, "ui_runner", "data", "sg_delta_payout_rate_card_latest.json"
+)
 _LIVE_GOBLIN_DISCOUNT_PER_UNIT: dict[float, float] | None = None
 _LIVE_RATE_CARD_META: dict[str, Any] = {}
+_SG_DELTA_RATE_CARD_CACHE: dict[str, Any] | None = None
+# Max |Δ| gap for a live peer to count as "close verified" for the same goblin line family.
+_SG_DELTA_PEER_ABS = 0.5
+# Board-facing sources allowed when PROPORACLE_REQUIRE_LIVE_PAYOUT=1.
+VERIFIED_PAYOUT_SOURCES = frozenset({"live_cdp", "sg_delta_live", "sg_delta_verified"})
 
 
 def _load_live_payout_rate_card(force: bool = False) -> dict[float, float] | None:
@@ -1192,14 +1201,248 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
 
 def require_live_payout_display() -> bool:
     """
-    When True (default), board display floors must come from live_cdp.
-    Mix-grid / model / SG-Δ extrapolated / historical-without-live are never
-    stamped as display_min_x (leave pending_live until a real PP capture).
-    Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0 to restore legacy estimate floors.
+    When True (default), board display floors must be *verified lines*:
+      - live_cdp (ticket or exact SG-Δ cell observed via CDP), or
+      - sg_delta_verified (extrapolated SG-Δ cell only after same mix+Δ family
+        has live CDP evidence — see _sg_delta_same_lines_verified).
+
+    Cold extrapolated / historical-without-live / mix-grid / model floors are
+    never stamped (leave pending_live). Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0
+    to restore legacy estimate floors.
     """
     raw = (os.getenv("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1").strip().lower()
     return raw not in ("0", "false", "no", "off")
 
+
+def is_verified_payout_source(source: str | None) -> bool:
+    """True when payout_source is allowed under PROPORACLE_REQUIRE_LIVE_PAYOUT."""
+    return str(source or "").strip().lower() in VERIFIED_PAYOUT_SOURCES
+
+
+def _load_sg_delta_rate_card(force: bool = False) -> dict[str, Any] | None:
+    """Load ui_runner/data/sg_delta_payout_rate_card_latest.json (cached)."""
+    global _SG_DELTA_RATE_CARD_CACHE
+    if _SG_DELTA_RATE_CARD_CACHE is not None and not force:
+        return _SG_DELTA_RATE_CARD_CACHE
+    path = SG_DELTA_PAYOUT_RATE_CARD_PATH
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            card = json.load(f)
+    except Exception:
+        _SG_DELTA_RATE_CARD_CACHE = None
+        return None
+    if not isinstance(card, dict):
+        _SG_DELTA_RATE_CARD_CACHE = None
+        return None
+    _SG_DELTA_RATE_CARD_CACHE = card
+    return card
+
+
+def _norm_sg_delta_sig(parts: list[float]) -> str:
+    vals = sorted(
+        float(x) for x in parts if math.isfinite(float(x)) and float(x) > 0
+    )
+    return "+".join(f"{v:g}" for v in vals)
+
+
+def _parse_sg_delta_sig(raw: object) -> list[float]:
+    if isinstance(raw, (list, tuple)):
+        out: list[float] = []
+        for part in raw:
+            try:
+                f = float(part)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(f) and f > 0:
+                out.append(f)
+        return sorted(out)
+    text = str(raw or "").strip()
+    if not text or text in {"—", "-", "nan", "None", "unknown"}:
+        return []
+    out = []
+    for part in text.replace("|", ",").replace("+", ",").replace(";", ",").split(","):
+        part = part.strip().strip("[]'\"")
+        if not part:
+            continue
+        try:
+            f = float(part)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(f) and f > 0:
+            out.append(f)
+    return sorted(out)
+
+
+def _ticket_sg_delta_recipe(ticket: dict) -> dict[str, Any] | None:
+    """Composition + goblin Δ signature for SG-Δ rate-card lookup."""
+    legs = ticket.get("legs") if isinstance(ticket.get("legs"), list) else []
+    if len(legs) < 2:
+        return None
+    n_s = n_g = n_d = 0
+    g_deltas: list[float] = []
+    missing_g = 0
+    for leg in legs:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or leg.get("pick") or "standard").strip().lower()
+        if "demon" in pt:
+            n_d += 1
+            continue
+        if "goblin" in pt:
+            n_g += 1
+            dist = None
+            for key in (
+                "line_distance",
+                "delta",
+                "goblin_delta",
+                "distance",
+                "line_discount_vs_standard",
+            ):
+                dist = _safe_positive_float(leg.get(key))
+                if dist is not None:
+                    break
+            if dist is None:
+                missing_g += 1
+            else:
+                g_deltas.append(float(dist))
+        else:
+            n_s += 1
+    if n_g > 0 and (missing_g or len(g_deltas) != n_g):
+        g_sig = "unknown"
+    elif n_g == 0:
+        g_sig = "—"
+    else:
+        g_sig = _norm_sg_delta_sig(g_deltas) or "unknown"
+    return {
+        "n_legs": len(legs),
+        "n_s": n_s,
+        "n_g": n_g,
+        "n_d": n_d,
+        "composition": f"{n_s}S+{n_g}G+{n_d}D",
+        "goblin_delta_sig": g_sig,
+    }
+
+
+def _sg_delta_sigs_overlap_or_close(
+    want_sig: str,
+    live_sig: str,
+    *,
+    max_peer_abs: float = _SG_DELTA_PEER_ABS,
+) -> bool:
+    """True when Δ signatures share a value or are close peers (same n_g length)."""
+    a = _parse_sg_delta_sig(want_sig)
+    b = _parse_sg_delta_sig(live_sig)
+    if not a and not b:
+        return True  # pure standard
+    if not a or not b:
+        return False
+    if set(a) & set(b):
+        return True
+    if len(a) != len(b):
+        return False
+    return all(abs(x - y) <= float(max_peer_abs) for x, y in zip(a, b))
+
+
+def _sg_delta_same_lines_verified(
+    card: dict[str, Any],
+    composition: str,
+    want_sig: str,
+) -> bool:
+    """
+    Same-lines verified gate for extrapolated SG-Δ cells.
+
+    Allow extrapolated stamp only when this mix has live CDP evidence for the
+    goblin-Δ line family:
+      - exact sig cell has n_live > 0 (previously live-verified even if the
+        current card median is interpolated), OR
+      - ≥1 live_cdp cell in the same composition with overlapping / close
+        (≤0.5) Δ signature evidence.
+
+    Cold compositions (zero live_cdp cells) never pass.
+    """
+    cells = card.get("cells") if isinstance(card.get("cells"), list) else []
+    live_peers: list[dict[str, Any]] = []
+    exact_n_live = 0
+    for c in cells:
+        if not isinstance(c, dict):
+            continue
+        if str(c.get("composition") or "").strip() != composition:
+            continue
+        c_sig = str(c.get("goblin_delta_sig") or "—").strip() or "—"
+        src = str(c.get("source") or "").strip().lower()
+        try:
+            n_live = int(c.get("n_live") or 0)
+        except (TypeError, ValueError):
+            n_live = 0
+        if c_sig == want_sig and n_live > 0:
+            exact_n_live = max(exact_n_live, n_live)
+        if src == "live_cdp":
+            live_peers.append(c)
+    if exact_n_live > 0:
+        return True
+    if not live_peers:
+        return False
+    return any(
+        _sg_delta_sigs_overlap_or_close(
+            want_sig, str(c.get("goblin_delta_sig") or "—")
+        )
+        for c in live_peers
+    )
+
+
+def _lookup_sg_delta_verified_floor(
+    ticket: dict,
+) -> tuple[float, str] | None:
+    """
+    Prefer exact live SG-Δ cell; else verified-line extrapolated; else None.
+
+    Returns (min_x, payout_source) where source is sg_delta_live or
+    sg_delta_verified. Never returns cold extrapolated cells.
+    """
+    recipe = _ticket_sg_delta_recipe(ticket)
+    if not recipe:
+        return None
+    want_sig = str(recipe["goblin_delta_sig"] or "")
+    if want_sig in ("", "unknown"):
+        return None
+    card = _load_sg_delta_rate_card()
+    if not card:
+        return None
+    composition = str(recipe["composition"])
+    cells = card.get("cells") if isinstance(card.get("cells"), list) else []
+    cell = None
+    for c in cells:
+        if not isinstance(c, dict):
+            continue
+        if str(c.get("composition") or "").strip() != composition:
+            continue
+        if str(c.get("goblin_delta_sig") or "—").strip() != want_sig:
+            continue
+        cell = c
+        break
+    if cell is None:
+        return None
+    min_x = _safe_positive_float(cell.get("power_min_x"))
+    if min_x is None:
+        return None
+    src = str(cell.get("source") or "").strip().lower()
+    status = str(cell.get("status") or "").strip().lower()
+    try:
+        n_live = int(cell.get("n_live") or 0)
+    except (TypeError, ValueError):
+        n_live = 0
+
+    # 1) Exact live / observed on the card for this mix+Δ.
+    if src == "live_cdp" or (status == "observed" and n_live > 0):
+        return float(min_x), "sg_delta_live"
+
+    # 2) Extrapolated / historical only after same lines verified.
+    if src in ("extrapolated", "historical") or status == "extrapolated":
+        if _sg_delta_same_lines_verified(card, composition, want_sig):
+            return float(min_x), "sg_delta_verified"
+        return None
+
+    return None
 
 
 def _load_live_composition_floors() -> dict[tuple[int, int], float]:
@@ -1276,9 +1519,11 @@ def _commit_display_min_x(ticket: dict, pay: dict, min_x: float, source: str) ->
     """Stamp min-guarantee display fields and recompute Power EV from that floor."""
     floor = round(float(min_x), 4)
     pay["display_min_x"] = floor
-    if source == "live_cdp":
+    src = str(source or "").strip().lower()
+    # Observed PP floors (ticket CDP or exact SG-Δ live cell) also set power_min_x.
+    if src in ("live_cdp", "sg_delta_live"):
         pay["power_min_x"] = floor
-    pay["payout_source"] = source
+    pay["payout_source"] = src
     refresh_ticket_ev_from_min_guarantee(pay, floor, update_recommendation=False)
     ticket["payout"] = pay
     ticket["display_min_x"] = floor
@@ -1286,7 +1531,7 @@ def _commit_display_min_x(ticket: dict, pay: dict, min_x: float, source: str) ->
 
 
 def _commit_pending_live_payout(ticket: dict, pay: dict) -> dict:
-    """No live CDP yet — do not invent mix/fallback display floors."""
+    """No verified lines yet — do not invent mix/fallback/cold-extrapolated floors."""
     pay = dict(pay) if isinstance(pay, dict) else {}
     pay["payout_source"] = "pending_live"
     pay.pop("display_min_x", None)
@@ -1300,12 +1545,14 @@ def attach_display_min_x(ticket: dict) -> dict:
     """
     Set payout.display_min_x + payout.payout_source.
 
-    Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1):
-      1. live_cdp only (verified PP capture)
-      else pending_live (no fake floor)
-
-    Never uses sg_delta_payout_rate_card extrapolated or historical-without-live
-    cells as ticket display floors — those stay audit-only until live_cdp verifies.
+    Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1) — verified lines only:
+      1. live_cdp on the ticket (exact PP capture)
+      2. SG-Δ rate card exact live_cdp / observed cell for same composition+Δ
+         → stamp sg_delta_live
+      3. SG-Δ extrapolated (or historical) cell ONLY when same lines verified
+         (composition has live CDP with overlapping/close Δ evidence, or exact
+         sig n_live>0) → stamp sg_delta_verified
+      else pending_live (no cold extrapolated, no model fake floors)
 
     Legacy (PROPORACLE_REQUIRE_LIVE_PAYOUT=0):
       1. live_cdp
@@ -1313,7 +1560,7 @@ def attach_display_min_x(ticket: dict) -> dict:
       3. mix_grid_average
       4. fallback_estimate
 
-    Power EV is recomputed as P(all) * display_min_x - 1 when a live floor exists.
+    Power EV is recomputed as P(all) * display_min_x - 1 when a verified floor exists.
     """
     if not isinstance(ticket, dict):
         return ticket
@@ -1341,7 +1588,17 @@ def attach_display_min_x(ticket: dict) -> dict:
         disp = disp_v if disp_v is not None and src_now == "live_cdp" else live_v
         return _commit_display_min_x(ticket, pay, float(disp), "live_cdp")
 
-    # Live-only board: stop here — no mix-grid / model fake floors.
+    # Preserve prior verified SG-Δ stamps (rebuild without wiping).
+    if src_now in ("sg_delta_live", "sg_delta_verified") and disp_v is not None:
+        return _commit_display_min_x(ticket, pay, float(disp_v), src_now)
+
+    # 2–3) SG-Δ card: exact live first, then verified-line extrapolated.
+    sg = _lookup_sg_delta_verified_floor(ticket)
+    if sg is not None:
+        floor, sg_src = sg
+        return _commit_display_min_x(ticket, pay, floor, sg_src)
+
+    # Verified-lines board: stop here — no mix-grid / model / cold extrapolated.
     if require_live_payout_display():
         return _commit_pending_live_payout(ticket, pay)
 
@@ -8948,9 +9205,10 @@ def _ticket_board_payout_x(ticket: dict) -> float | None:
 
 
 def _ticket_has_live_cdp_payout(ticket: dict) -> bool:
+    """True when ticket has a verified board floor (live CDP or verified SG-Δ)."""
     pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
     src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
-    if src == "live_cdp":
+    if is_verified_payout_source(src):
         return True
     return _safe_positive_float(pay.get("power_min_x")) is not None and src in ("", "live_cdp")
 
@@ -21290,6 +21548,10 @@ def _normalize_payout_source(source: str | None) -> str:
     src = str(source or "").strip().lower()
     if src == "live_cdp":
         return "live_cdp"
+    if src == "sg_delta_live":
+        return "sg_delta_live"
+    if src == "sg_delta_verified":
+        return "sg_delta_verified"
     if src == "pending_live":
         return "pending_live"
     if src == "rate_card":
@@ -21306,8 +21568,8 @@ def _normalize_payout_source(source: str | None) -> str:
 def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = None) -> float | None:
     """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x.
 
-    When live floors are required, only live_cdp (or power_min_x already captured as
-    live) is shown — no model / extrapolated / historical-without-live fallback.
+    When verified lines are required, only live_cdp / sg_delta_live /
+    sg_delta_verified floors are shown — no model or cold-extrapolated fallback.
     """
     pay = payout if isinstance(payout, dict) else {}
     ticket = ticket if isinstance(ticket, dict) else {}
@@ -21315,12 +21577,12 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
     if require_live_payout_display():
         if src == "pending_live":
             return None
-        if src and src != "live_cdp":
+        if src and not is_verified_payout_source(src):
             return None
         for raw in (
-            pay.get("display_min_x") if src == "live_cdp" else None,
-            ticket.get("display_min_x") if src == "live_cdp" else None,
-            pay.get("power_min_x"),
+            pay.get("display_min_x") if is_verified_payout_source(src) or not src else None,
+            ticket.get("display_min_x") if is_verified_payout_source(src) or not src else None,
+            pay.get("power_min_x") if src in ("", "live_cdp", "sg_delta_live") else None,
         ):
             v = _safe_positive_float(raw)
             if v is not None:
@@ -21342,16 +21604,29 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
 def _board_payout_label(display_x: float | None, source: str | None) -> tuple[str, str, str]:
     """
     Option A board payout copy: (mult_text, source_badge, title).
-    live_cdp → "2.2x" + "✓ live"; pending_live → "—"; estimates use a leading ~.
+    live_cdp → "2.2x" + "✓ live"; sg_delta_verified → "2.2x" + "✓ lines";
+    pending_live → "—"; estimates use a leading ~.
     """
     src = _normalize_payout_source(source)
     if src == "pending_live":
-        return "—", "pending", "Waiting for live PrizePicks capture (no extrapolated floor)"
+        return (
+            "—",
+            "pending",
+            "Waiting for verified lines (live CDP or same-line SG-Δ evidence)",
+        )
     if display_x is None:
         return "—", "pending" if require_live_payout_display() else "est", "Board payout unavailable"
     mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
     if src == "live_cdp":
         return f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
+    if src == "sg_delta_live":
+        return f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
+    if src == "sg_delta_verified":
+        return (
+            f"{mult}x",
+            "✓ lines",
+            f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
+        )
     if src == "rate_card":
         return f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
     if src == "mix_grid_average":
@@ -21368,6 +21643,10 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
     if badge_label is None:
         if src == "live_cdp":
             badge_label = "✓ live"
+        elif src == "sg_delta_live":
+            badge_label = "✓ live"
+        elif src == "sg_delta_verified":
+            badge_label = "✓ lines"
         elif src == "pending_live":
             badge_label = "pending"
         elif src == "rate_card":

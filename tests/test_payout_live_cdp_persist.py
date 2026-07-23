@@ -89,6 +89,7 @@ def test_attach_mix_grid_when_require_live_off(monkeypatch):
     monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "0")
     monkeypatch.setattr(cst, "_load_live_payout_rate_card", lambda: None)
     monkeypatch.setattr(cst, "_LIVE_COMPOSITION_FLOORS", {})
+    monkeypatch.setattr(cst, "_lookup_sg_delta_verified_floor", lambda _t: None)
     t = {
         "n_legs": 2,
         "legs": [
@@ -100,6 +101,119 @@ def test_attach_mix_grid_when_require_live_off(monkeypatch):
     out = cst.attach_display_min_x(t)
     assert out["payout"]["payout_source"] == "mix_grid_average"
     assert float(out["payout"]["display_min_x"]) == 2.2
+
+
+def _sg_card(cells: list[dict]) -> dict:
+    return {"cells": cells, "summary": {"n_cells": len(cells)}}
+
+
+def test_attach_sg_delta_live_when_exact_cell(monkeypatch):
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setattr(
+        cst,
+        "_load_sg_delta_rate_card",
+        lambda force=False: _sg_card(
+            [
+                {
+                    "composition": "0S+2G+0D",
+                    "goblin_delta_sig": "1+2",
+                    "power_min_x": 2.4,
+                    "source": "live_cdp",
+                    "status": "observed",
+                    "n_live": 2,
+                }
+            ]
+        ),
+    )
+    t = {
+        "n_legs": 2,
+        "legs": [
+            {"pick_type": "Goblin", "line_distance": 1.0},
+            {"pick_type": "Goblin", "line_distance": 2.0},
+        ],
+        "payout": {"model_min_payout_x": 9.0},
+    }
+    out = cst.attach_display_min_x(t)
+    assert out["payout"]["payout_source"] == "sg_delta_live"
+    assert float(out["payout"]["display_min_x"]) == 2.4
+    assert float(out["payout"]["power_min_x"]) == 2.4
+
+
+def test_attach_sg_delta_verified_extrapolated_when_peer_live(monkeypatch):
+    """Extrapolated OK once same composition has close/overlapping live Δ evidence."""
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setattr(
+        cst,
+        "_load_sg_delta_rate_card",
+        lambda force=False: _sg_card(
+            [
+                {
+                    "composition": "1S+1G+0D",
+                    "goblin_delta_sig": "5",
+                    "power_min_x": 1.9,
+                    "source": "live_cdp",
+                    "status": "observed",
+                    "n_live": 3,
+                },
+                {
+                    "composition": "1S+1G+0D",
+                    "goblin_delta_sig": "5.5",
+                    "power_min_x": 1.8753,
+                    "source": "extrapolated",
+                    "status": "extrapolated",
+                    "n_live": 0,
+                },
+            ]
+        ),
+    )
+    t = {
+        "n_legs": 2,
+        "legs": [
+            {"pick_type": "Standard", "line_distance": 0},
+            {"pick_type": "Goblin", "line_distance": 5.5},
+        ],
+        "payout": {"model_min_payout_x": 9.0},
+    }
+    out = cst.attach_display_min_x(t)
+    assert out["payout"]["payout_source"] == "sg_delta_verified"
+    assert float(out["payout"]["display_min_x"]) == 1.8753
+    label, badge, _ = cst._board_payout_label(1.8753, "sg_delta_verified")
+    assert badge == "✓ lines"
+    assert cst._resolve_ticket_display_min_x(out["payout"], out) == 1.8753
+
+
+def test_attach_blocks_cold_extrapolated(monkeypatch):
+    """Zero live_cdp cells in the composition → pending_live, no stamp."""
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setattr(
+        cst,
+        "_load_sg_delta_rate_card",
+        lambda force=False: _sg_card(
+            [
+                {
+                    "composition": "0S+4G+0D",
+                    "goblin_delta_sig": "1+1+1+1",
+                    "power_min_x": 3.3,
+                    "source": "extrapolated",
+                    "status": "extrapolated",
+                    "n_live": 0,
+                }
+            ]
+        ),
+    )
+    t = {
+        "n_legs": 4,
+        "legs": [
+            {"pick_type": "Goblin", "line_distance": 1.0},
+            {"pick_type": "Goblin", "line_distance": 1.0},
+            {"pick_type": "Goblin", "line_distance": 1.0},
+            {"pick_type": "Goblin", "line_distance": 1.0},
+        ],
+        "payout": {"model_min_payout_x": 9.0},
+    }
+    out = cst.attach_display_min_x(t)
+    assert out["payout"]["payout_source"] == "pending_live"
+    assert out["payout"].get("display_min_x") is None
 
 
 def test_empty_capture_does_not_wipe_prior_patch(tmp_path, monkeypatch):

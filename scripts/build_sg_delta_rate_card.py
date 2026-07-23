@@ -7,8 +7,12 @@ Sources (priority):
   2) historical ladder log (excludes Δ≈0 junk)
   3) linear / additive extrapolation from observed cells
 
-Policy: extrapolated (and historical-without-live) cells are audit/coverage only.
-Do not stamp them onto ticket display_min_x until verified via live_cdp capture.
+Policy (ticket display floors):
+  - live_cdp / observed cells: always OK to stamp.
+  - extrapolated (and historical-without-live): OK only after same lines are
+    verified — same composition has live CDP with overlapping/close Δ evidence,
+    or the exact Δ sig has n_live > 0. Cold extrapolated cells stay audit-only.
+  Wire-up: attach_display_min_x → sg_delta_live / sg_delta_verified / pending_live.
 
 Writes:
   data/reports/sg_delta_payout_rate_card_<date>.json
@@ -515,7 +519,7 @@ def build_rate_card(board_bins: list[float] | None = None) -> dict[str, Any]:
         "notes": [
             "observed = measured Min Guarantee (prefer live_cdp over historical)",
             "extrapolated = peer/mean-Δ interpolation or family boost — not PP-official",
-            "Do NOT use extrapolated / historical-without-live as ticket display floors until live_cdp verifies",
+            "Extrapolated OK for ticket floors only after same composition+Δ lines are live-verified",
             "Δ≈0 signatures excluded as invalid",
         ],
         "summary": {

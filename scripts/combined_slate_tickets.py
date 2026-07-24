@@ -11233,7 +11233,7 @@ def _preserve_live_cdp_from_existing_web_json(payload: dict, json_path: str) -> 
 
 
 def _sync_tickets_latest_mirrors(payload: dict, outdir: str, *, json_filename: str = "tickets_latest.json") -> None:
-    """Keep docs + mobile tickets_latest.json aligned with templates (MAIN only)."""
+    """Keep docs + mobile + ui_runner/data tickets_latest.json aligned with templates (MAIN only)."""
     # Never overwrite live MAIN mirrors when writing win-rate / high-leg / shadow JSON.
     if Path(str(json_filename or "tickets_latest.json")).name != "tickets_latest.json":
         return
@@ -11241,6 +11241,7 @@ def _sync_tickets_latest_mirrors(payload: dict, outdir: str, *, json_filename: s
         outdir_p = Path(outdir).resolve()
         for docs_json in (
             outdir_p.parent / "docs" / "tickets_latest.json",
+            Path(REPO_ROOT) / "ui_runner" / "data" / "tickets_latest.json",
             Path(REPO_ROOT) / "mobile" / "www" / "tickets_latest.json",
         ):
             docs_json.parent.mkdir(parents=True, exist_ok=True)

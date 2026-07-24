@@ -141,7 +141,7 @@
     padding-left: max(20px, env(safe-area-inset-left, 0px)) !important;
     padding-right: max(20px, env(safe-area-inset-right, 0px)) !important;
     touch-action: manipulation !important;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: rgba(212, 175, 55, 0.12);
   }
 }
 

@@ -90,6 +90,9 @@
   font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 .me-sport-wnba .me-find,
 .wnba-me-find {
@@ -99,10 +102,26 @@
 }
 .me-find-row,
 .wnba-me-find-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  flex: 1 1 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.me-find-row .me-find,
+.wnba-me-find-row .wnba-me-find,
+.me-find-row .wnba-me-find,
+.wnba-me-find-row .me-find {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .me-find:disabled,
 .wnba-me-find:disabled {
@@ -343,19 +362,25 @@
     min-height: 44px;
     font-size: 14px;
     padding: 10px 12px;
+    box-sizing: border-box;
   }
   .me-find-row,
   .wnba-me-find-row {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
+    flex: 1 1 100%;
+    min-width: 0;
   }
   .me-find-row .me-find,
   .wnba-me-find-row .wnba-me-find,
   .me-find-row .wnba-me-find,
   .wnba-me-find-row .me-find {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     text-align: center;
   }
   .me-cards,

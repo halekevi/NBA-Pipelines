@@ -612,6 +612,8 @@ SOCCER_LEAGUES = [
     ("usa.nwsl", "NWSL"),
     ("arg.1",  "Argentina"),
     ("mex.1",  "Liga MX"),
+    # Brazilian Série A — frequent on PP soccer boards (Corinthians, Botafogo, etc.).
+    ("bra.1",  "Brazil Serie A"),
     # sau.1 (Saudi Pro League): ESPN scoreboard/summary often 400 — skip; no reliable boxscore.
     ("aus.1",  "A-League"),
     # CONMEBOL club competitions — needed for South American clubs appearing on PP boards.

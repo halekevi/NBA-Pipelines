@@ -52,10 +52,17 @@ def test_boost_priority_and_penalize_weak():
                 "category_hr": 0.66,
                 "category_hr_n": 40,
             },
+            {
+                "sport": "TENNIS",
+                "prop_type": "Total Games Won",
+                "pick_type": "Goblin",
+                "direction": "OVER",
+            },
         ]
     )
     boost = cell_hr_priority_boost_series(df)
     assert float(boost.iloc[0]) > 0  # Jul22 priority
     assert float(boost.iloc[1]) < 0  # Soccer OVER Shots weak
-    assert float(boost.iloc[2]) < 0  # Tennis Ace Goblin weak
+    assert float(boost.iloc[2]) <= -0.30  # Tennis Ace Goblin hard downrank
     assert float(boost.iloc[3]) > 0  # rolling category_hr ≥60% n≥10
+    assert float(boost.iloc[4]) > 0  # Tennis totals priority

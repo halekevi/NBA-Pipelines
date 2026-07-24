@@ -3,7 +3,8 @@
   "source": "ui_runner/templates/graded_props_2026-07-22.json",
   "criteria": {
     "priority": "non-Demon direction\u00d7prop\u00d7pick cells with HR>=60% and n>=10",
-    "weak": "seeded weak lanes: Soccer OVER Shots/Goal+Assist Goblin; Tennis OVER Aces/Double Faults Goblin"
+    "weak": "seeded weak lanes: Soccer OVER Shots/Goal+Assist Goblin; Tennis OVER Aces/Double Faults Goblin (hard ticket ban + -0.35 rank)",
+    "tennis_prefer": "Total Games / Total Games Won Goblin+Standard OVER"
   },
   "priority_cells": [
     {
@@ -305,6 +306,45 @@
       "n": 10,
       "hr": 0.6,
       "hr_pct": 60.0
+    },
+    {
+      "sport": "Tennis",
+      "sport_key": "TENNIS",
+      "direction": "OVER",
+      "prop": "Total Games Won",
+      "pick_type": "Goblin",
+      "hit": 6,
+      "miss": 2,
+      "n": 8,
+      "hr": 0.75,
+      "hr_pct": 75.0,
+      "note": "Jul-22 non-Demon totals lane (prefer over Ace/DF)"
+    },
+    {
+      "sport": "Tennis",
+      "sport_key": "TENNIS",
+      "direction": "OVER",
+      "prop": "Total Games",
+      "pick_type": "Goblin",
+      "hit": 5,
+      "miss": 3,
+      "n": 8,
+      "hr": 0.625,
+      "hr_pct": 62.5,
+      "note": "Jul-22 non-Demon totals lane (prefer over Ace/DF)"
+    },
+    {
+      "sport": "Tennis",
+      "sport_key": "TENNIS",
+      "direction": "OVER",
+      "prop": "Total Games Won",
+      "pick_type": "Standard",
+      "hit": 4,
+      "miss": 0,
+      "n": 4,
+      "hr": 1.0,
+      "hr_pct": 100.0,
+      "note": "Jul-22 non-Demon totals lane (prefer over Ace/DF)"
     }
   ],
   "weak_cells": [

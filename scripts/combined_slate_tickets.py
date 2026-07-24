@@ -329,6 +329,12 @@ WEB_SUPPLEMENT_SPORTS: frozenset[str] = frozenset(
     for s in os.getenv("PROPORACLE_WEB_SUPPLEMENT_SPORTS", "MLB,SOCCER,TENNIS").split(",")
     if s.strip()
 )
+# Cap Tennis share on MAIN web payload (Jul-23: 15 tennis-heavy slips).
+WEB_SUPPLEMENT_MAX_GROUPS: dict[str, int] = {
+    "TENNIS": int(os.getenv("PROPORACLE_WEB_SUPPLEMENT_TENNIS_GROUPS", "2")),
+    "SOCCER": int(os.getenv("PROPORACLE_WEB_SUPPLEMENT_SOCCER_GROUPS", "4")),
+    "MLB": int(os.getenv("PROPORACLE_WEB_SUPPLEMENT_MLB_GROUPS", "6")),
+}
 
 
 def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
@@ -4469,14 +4475,28 @@ def _wnba_postponed_exclusion_mask(df: pd.DataFrame, slate_date: str) -> pd.Seri
 
     return wnba & team_col.map(_hit)
 
-# Tennis: short slips only (max 3 legs). Relaxed per-leg floors vs NBA — no graded PP history yet.
+# Tennis: short slips only (max 3 legs).
+# Jul-22/23 graded: Ace/DF Goblin OVER 0%; Total Games lanes better but Goblin totals
+# still flooded MAIN via relaxed floors (min() vs global + 0.52 structured override).
 MAX_LEGS_TENNIS = 3
-TENNIS_LEG_MIN_HIT_RATE = {2: 0.55, 3: 0.58, 4: 0.62}
+TENNIS_LEG_MIN_HIT_RATE = {2: 0.68, 3: 0.72, 4: 0.75}
+TENNIS_HIT_RATE_PROXY_FLOOR = 0.62
+TENNIS_HIT_RATE_PROXY_CAP = 0.88
+TENNIS_GOBLIN_MIN_L5_HITS = 3
+TENNIS_STD_MIN_L5_HITS = 3
 TENNIS_ELIGIBLE_PROPS = frozenset({
     "total games won",
     "total games",
     "games won",
     "games played",
+})
+TENNIS_SERVE_JUNK_FRAGMENTS = frozenset({
+    "ace",
+    "aces",
+    "double fault",
+    "doublefault",
+    "double faults",
+    "doublefaults",
 })
 
 
@@ -4486,6 +4506,34 @@ def _tennis_leg_prop_label(leg) -> str:
     else:
         raw = leg.get("prop_type") or leg.get("prop") or ""
     return str(raw).lower()
+
+
+def _tennis_is_serve_junk(prop_label: str) -> bool:
+    p = str(prop_label or "").strip().lower()
+    if not p:
+        return False
+    compact = re.sub(r"[^a-z0-9]+", "", p)
+    if compact in {"aces", "ace", "doublefaults", "doublefault"}:
+        return True
+    return any(frag in p for frag in TENNIS_SERVE_JUNK_FRAGMENTS)
+
+
+def _tennis_directional_l5_hits(leg) -> float:
+    """Directional L5 hit count (0–5). Missing → 0."""
+    if isinstance(leg, dict):
+        row = leg
+    else:
+        row = leg
+    direction = str(row.get("direction") or row.get("over_under") or "").upper()
+    if direction == "UNDER":
+        keys = ("l5_under", "last5_under", "L5 Under")
+    else:
+        keys = ("l5_over", "last5_over", "L5 Over")
+    for k in keys:
+        v = pd.to_numeric(row.get(k), errors="coerce")
+        if pd.notna(v):
+            return float(v)
+    return 0.0
 
 
 def nhl_allowed_leg(leg) -> bool:
@@ -4522,7 +4570,7 @@ def _tennis_prop_label_series(df: pd.DataFrame) -> pd.Series:
 
 
 def _tennis_allowed_mask(df: pd.DataFrame) -> pd.Series:
-    """Vectorized tennis_allowed_leg: Goblin OVER totals + Standard UNDER (tier×def)."""
+    """Vectorized tennis_allowed_leg: totals-only; Ace/DF hard-banned; L5 floors."""
     if df.empty:
         return pd.Series(dtype=bool, index=df.index)
     pick = df.get("pick_type", pd.Series("", index=df.index)).astype(str).str.strip().str.lower()
@@ -4532,21 +4580,46 @@ def _tennis_allowed_mask(df: pd.DataFrame) -> pd.Series:
             direction = df[c].astype(str).str.upper().str.strip()
             break
     prop_label = _tennis_prop_label_series(df)
+    serve_junk = prop_label.map(_tennis_is_serve_junk).fillna(False)
     eligible_prop = pd.Series(False, index=df.index)
     for p in TENNIS_ELIGIBLE_PROPS:
         eligible_prop = eligible_prop | prop_label.str.contains(p, na=False, regex=False)
-    goblin_ok = (pick == "goblin") & direction.eq("OVER") & eligible_prop
-    std_under = (pick == "standard") & direction.eq("UNDER")
+    eligible_prop = eligible_prop & ~serve_junk
+    l5_over = pd.to_numeric(df.get("l5_over", df.get("last5_over", 0)), errors="coerce").fillna(0.0)
+    l5_under = pd.to_numeric(df.get("l5_under", df.get("last5_under", 0)), errors="coerce").fillna(0.0)
+    l5_side = pd.Series(
+        np.where(direction.eq("UNDER"), l5_under, l5_over),
+        index=df.index,
+        dtype=float,
+    )
+    goblin_ok = (
+        (pick == "goblin")
+        & direction.eq("OVER")
+        & eligible_prop
+        & l5_side.ge(float(TENNIS_GOBLIN_MIN_L5_HITS))
+    )
+    std_ok = (
+        (pick == "standard")
+        & direction.isin(["UNDER", "OVER"])
+        & eligible_prop
+        & l5_side.ge(float(TENNIS_STD_MIN_L5_HITS))
+    )
     allowed = goblin_ok.copy()
-    if std_under.any():
-        sub_idx = std_under[std_under].index
+    if std_ok.any():
+        sub_idx = std_ok[std_ok].index
         tier_pass = ~tier_defense_exclusion_mask(df.loc[sub_idx], sport="TENNIS")
         allowed.loc[sub_idx] = tier_pass
     return allowed.fillna(False)
 
 
 def tennis_allowed_leg(leg) -> bool:
-    """Goblin OVER on game totals (no tier gate), or Standard UNDER (tier×def gate)."""
+    """
+    Tennis ticket gate (Jul-22/23 tighten):
+    - Hard-ban Ace / Double Faults (any pick) — 0% Goblin OVER both days.
+    - Goblin OVER on Total Games / Games Won only, with L5 floor.
+    - Standard OVER or UNDER on those totals (tier×def + L5) — Std OVER Games Won
+      was the strongest Jul-22/23 lane.
+    """
     if isinstance(leg, dict):
         sport = str(leg.get("sport", "")).upper()
         pick_type = str(leg.get("pick_type", "")).strip().lower()
@@ -4562,13 +4635,16 @@ def tennis_allowed_leg(leg) -> bool:
     if not goblin_direction_ok(row):
         return False
     prop_label = _tennis_leg_prop_label(leg)
-    if (
-        pick_type == "goblin"
-        and direction == "OVER"
-        and any(p in prop_label for p in TENNIS_ELIGIBLE_PROPS)
-    ):
-        return True
-    if pick_type == "standard" and direction == "UNDER":
+    if _tennis_is_serve_junk(prop_label):
+        return False
+    if not any(p in prop_label for p in TENNIS_ELIGIBLE_PROPS):
+        return False
+    l5_hits = _tennis_directional_l5_hits(row)
+    if pick_type == "goblin" and direction == "OVER":
+        return l5_hits >= float(TENNIS_GOBLIN_MIN_L5_HITS)
+    if pick_type == "standard" and direction in ("UNDER", "OVER"):
+        if l5_hits < float(TENNIS_STD_MIN_L5_HITS):
+            return False
         return leg_passes_tier_defense_gate(leg, sport="TENNIS")
     return False
 
@@ -5343,7 +5419,8 @@ _WIN_RATE_PRIMARY_SPORTS = frozenset(
 _WIN_RATE_EXTRA_SPORTS = frozenset()
 # Prop norms banned from MAIN / win-rate high-prob tickets (graded slice evidence).
 MAIN_BANNED_GOBLIN_PROP_NORMS: dict[str, frozenset[str]] = {
-    "TENNIS": frozenset({"aces", "doublefaults", "doublefault"}),
+    # Tennis Ace/DF Goblin OVER: 0% on Jul-22 (0/20) and Jul-23 (0/9) — hard ban.
+    "TENNIS": frozenset({"aces", "ace", "doublefaults", "doublefault"}),
     # Soccer Goblin OVER is not globally banned — soccer_allowed_leg keeps HQ OVER
     # (UNDER preferred) so Goblins ship like other sports.
     # MLB: Jul-18 miss engine was Hits / TB / H+R+RBI Goblin OVER 0.5 on long tickets.
@@ -6003,6 +6080,15 @@ def _row_win_rate_eligible(
             mlb_floor = max(mlb_floor, float(MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB))
         if leg_prob < mlb_floor:
             return False
+    if sport_early == "TENNIS":
+        if pt_l == "goblin" and direction_early == "OVER":
+            if leg_prob < float(MAIN_TENNIS_GOBLIN_MIN_LEG_PROB):
+                return False
+        elif "standard" in pt_l and "goblin" not in pt_l:
+            if leg_prob < float(MAIN_TENNIS_STD_MIN_LEG_PROB):
+                return False
+        if not tennis_allowed_leg(row_d):
+            return False
     # Goblin ml_prob is poorly calibrated (corr~0.06) — only enforce ml floor when
     # composite/hit-rate evidence is also below the MAIN leg floor.
     mlp = pd.to_numeric(row_d.get("ml_prob"), errors="coerce")
@@ -6055,9 +6141,12 @@ def _standard_direction_floor(row: dict | pd.Series) -> float:
         if sport in ("NBA", "NBA1H", "NBA1Q", "WNBA", "CBB", "WCBB"):
             return max(0.62, base - 0.02)
         if sport == "TENNIS":
-            return max(0.62, base - 0.02)
+            return max(0.66, base)
         return max(0.60, base - 0.02)
     # Standard OVER: harder target — require clearer edge.
+    if sport == "TENNIS":
+        # Jul-22/23 Std OVER totals (esp. Games Won) outperformed Goblin — still raise bar.
+        return max(0.68, base + 0.04)
     if sport in ("NBA", "NBA1H", "NBA1Q", "WNBA", "CBB", "WCBB"):
         # Jul-19 WNBA Std OVER ~43% — raise vs prior 0.68.
         return max(0.70, base + 0.08)
@@ -7786,6 +7875,13 @@ MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
 MAIN_MLB_GOBLIN_MIN_LEG_PROB: float = float(
     os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_MIN_LEG_PROB", "0.68")
 )
+# Tennis Goblin OVER totals: Jul-23 Goblin 15.8% overall; require clearer modeled edge.
+MAIN_TENNIS_GOBLIN_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_TENNIS_GOBLIN_MIN_LEG_PROB", "0.68")
+)
+MAIN_TENNIS_STD_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_TENNIS_STD_MIN_LEG_PROB", "0.66")
+)
 MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB: float = float(
     os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB", "0.72")
 )
@@ -9430,6 +9526,15 @@ def _web_supplement_group_priority(group_name: str, sport_key: str) -> tuple[int
         if "standard" in gn:
             return (2, gn)
         return (1, gn)
+    if sport_key == "TENNIS":
+        # Prefer short Power / totals boards over long Goblin piles.
+        if "power 2" in gn or "core power 2" in gn:
+            return (0, gn)
+        if "power 3" in gn or "core power 3" in gn:
+            return (1, gn)
+        if "goblin" in gn:
+            return (3, gn)
+        return (2, gn)
     return (0, gn)
 
 
@@ -9504,8 +9609,9 @@ def append_in_season_web_supplement_groups(
         cands.sort(
             key=lambda item: _web_supplement_group_priority(str(item.get("group_name") or ""), sport_key)
         )
+        sport_cap = int(WEB_SUPPLEMENT_MAX_GROUPS.get(sport_key, max_groups_per_sport))
         for ng in cands:
-            if added_by_sport[sport_key] >= int(max_groups_per_sport):
+            if added_by_sport[sport_key] >= sport_cap:
                 break
             gn = str(ng.get("group_name") or "")
             if not gn or gn in existing_names:
@@ -12170,9 +12276,15 @@ def _tennis_hit_rate_zero_like_proxy(df: pd.DataFrame, log_prefix: str) -> None:
     if proxy_col is None:
         return
     proxy = pd.to_numeric(df[proxy_col], errors="coerce")
-    if proxy.notna().any() and float(proxy.dropna().max()) > 1.5:
-        proxy = proxy / 100.0
-    proxy = proxy.clip(lower=0.52, upper=0.90)
+    if proxy.notna().any():
+        mx = float(proxy.dropna().max())
+        # L5/L10 hit counts (0–5 / 0–10) → rate; percentages (>10) → /100.
+        if 1.5 < mx <= 10.5:
+            denom = 5.0 if "l5" in proxy_col else 10.0
+            proxy = proxy / denom
+        elif mx > 10.5:
+            proxy = proxy / 100.0
+    proxy = proxy.clip(lower=TENNIS_HIT_RATE_PROXY_FLOOR, upper=TENNIS_HIT_RATE_PROXY_CAP)
     df["hit_rate"] = proxy.where(proxy.notna(), hr_now)
     print(
         f"  [{log_prefix}] Tennis hit_rate proxy applied from '{proxy_col}' "
@@ -12736,7 +12848,7 @@ def _tennis_board_hit_rate_proxy(df: pd.DataFrame) -> pd.DataFrame:
         return out
     high = bs >= 0.70
     proxy = (bs * 0.65).where(high, (bs * 0.58))
-    proxy = proxy.clip(0.52, 0.90)
+    proxy = proxy.clip(TENNIS_HIT_RATE_PROXY_FLOOR, TENNIS_HIT_RATE_PROXY_CAP)
     m0 = hr0 <= 0.001
     use = m0 & proxy.notna()
     out.loc[use, "hit_rate"] = proxy.loc[use]
@@ -14328,8 +14440,8 @@ CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
         {"structure": "flex6", "label": "Core Flex 6", "variants": 2},
     ],
     "TENNIS": [
-        {"structure": "power", "label": "Core Power 2", "variants": 2},
-        {"structure": "goblin3", "label": "Core Power 3", "variants": 2},
+        {"structure": "power", "label": "Core Power 2", "variants": 1},
+        {"structure": "goblin3", "label": "Core Power 3", "variants": 1},
     ],
     "SOCCER": [
         {"structure": "standard", "label": "Core Standard 2", "variants": 2},
@@ -14706,13 +14818,15 @@ def build_single_structure_ticket(
                 proxy = pd.to_numeric(cand[proxy_col], errors="coerce")
                 if proxy.dropna().max() > 1.5:
                     proxy = proxy / 100.0
-                proxy = proxy.clip(lower=0.52, upper=0.90)
+                proxy = proxy.clip(lower=TENNIS_HIT_RATE_PROXY_FLOOR, upper=TENNIS_HIT_RATE_PROXY_CAP)
                 cand["hit_rate"] = proxy.where(proxy.notna(), hr0)
                 print(f"  [TENNIS GATE TRACE] build_single_structure_ticket hit_rate proxy='{proxy_col}' applied")
             elif "blended_score" in cand.columns:
                 bs = pd.to_numeric(cand["blended_score"], errors="coerce")
                 high = bs >= 0.70
-                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(0.52, 0.90)
+                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(
+                    TENNIS_HIT_RATE_PROXY_FLOOR, TENNIS_HIT_RATE_PROXY_CAP
+                )
                 m0 = hr0 <= 0.001
                 use = m0 & proxy.notna()
                 cand.loc[use, "hit_rate"] = proxy.loc[use]
@@ -14902,12 +15016,14 @@ def build_structure_ticket_variants(
                 proxy = pd.to_numeric(cand[proxy_col], errors="coerce")
                 if proxy.dropna().max() > 1.5:
                     proxy = proxy / 100.0
-                proxy = proxy.clip(lower=0.52, upper=0.90)
+                proxy = proxy.clip(lower=TENNIS_HIT_RATE_PROXY_FLOOR, upper=TENNIS_HIT_RATE_PROXY_CAP)
                 cand["hit_rate"] = proxy.where(proxy.notna(), hr0)
             elif "blended_score" in cand.columns:
                 bs = pd.to_numeric(cand["blended_score"], errors="coerce")
                 high = bs >= 0.70
-                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(0.52, 0.90)
+                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(
+                    TENNIS_HIT_RATE_PROXY_FLOOR, TENNIS_HIT_RATE_PROXY_CAP
+                )
                 m0 = hr0 <= 0.001
                 use = m0 & proxy.notna()
                 cand.loc[use, "hit_rate"] = proxy.loc[use]
@@ -16461,7 +16577,8 @@ def build_final_web_ticket_groups(
             if cap is not None:
                 if base is None:
                     return float(cap)
-                return min(base, float(cap))
+                # Raise floors (like Soccer) — never relax global mins downward.
+                return max(base, float(cap))
         if str(label).strip().upper() in ("SOCCER", "SOC"):
             cap = SOCCER_LEG_MIN_HIT_RATE.get(int(n))
             if cap is not None:
@@ -18756,8 +18873,12 @@ def main():
     if nhl_structured_min_leg_hr is not None and float(nhl_structured_min_leg_hr) > 0.55:
         nhl_structured_min_leg_hr = 0.52
     tennis_structured_min_leg_hr = structured_min_leg_hr
-    if tennis_structured_min_leg_hr is not None and float(tennis_structured_min_leg_hr) > 0.55:
-        tennis_structured_min_leg_hr = 0.52
+    _tennis_floor = float(TENNIS_LEG_MIN_HIT_RATE.get(3, 0.72))
+    if tennis_structured_min_leg_hr is None:
+        tennis_structured_min_leg_hr = _tennis_floor
+    else:
+        # Jul-22/23: never relax Tennis below sport floors (old path forced 0.52).
+        tennis_structured_min_leg_hr = max(float(tennis_structured_min_leg_hr), _tennis_floor)
     print(f"[NHL TRACE] global structured_min_leg_hr={structured_min_leg_hr}")
     print(f"[NHL TRACE] NHL structured_min_leg_hr_override={nhl_structured_min_leg_hr}")
     print(f"[TENNIS TRACE] Tennis structured_min_leg_hr_override={tennis_structured_min_leg_hr}")
@@ -19434,7 +19555,7 @@ def main():
         if sport == "TENNIS":
             print(
                 f"  [main-pool] tennis allowed: {n_tennis_allowed} legs "
-                f"(Goblin OVER totals + Standard UNDER only)"
+                f"(totals Goblin OVER / Std O|U + L5 floors; Ace/DF banned)"
             )
         if sport in ("SOCCER", "SOC"):
             print(

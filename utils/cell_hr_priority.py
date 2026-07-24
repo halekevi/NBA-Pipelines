@@ -24,8 +24,26 @@ DEFAULT_JUL22_PATH = os.path.join(
 # Soft additive rank_score deltas (same units as category_hr_boost / graded_history).
 PRIORITY_BOOST = float(os.getenv("PROPORACLE_CELL_HR_PRIORITY_BOOST", "0.10"))
 WEAK_PENALTY = float(os.getenv("PROPORACLE_CELL_HR_WEAK_PENALTY", "0.14"))
+# Tennis Ace/DF Goblin: soft −0.14 was not enough for slate ranking — hard downrank.
+TENNIS_SERVE_WEAK_PENALTY = float(
+    os.getenv("PROPORACLE_CELL_HR_TENNIS_SERVE_WEAK_PENALTY", "0.35")
+)
 ROLLING_HR_FLOOR = float(os.getenv("PROPORACLE_CELL_HR_ROLLING_FLOOR", "0.60"))
 ROLLING_HR_MIN_N = int(os.getenv("PROPORACLE_CELL_HR_ROLLING_MIN_N", "10"))
+
+_TENNIS_SERVE_WEAK_PROPS = frozenset({"aces", "ace", "doublefaults", "doublefault"})
+
+
+def _weak_penalty_for_key(key: tuple[str, str, str, str]) -> float:
+    sport, prop_norm, pick, direction = key
+    if (
+        sport == "TENNIS"
+        and pick == "Goblin"
+        and direction == "OVER"
+        and prop_norm in _TENNIS_SERVE_WEAK_PROPS
+    ):
+        return float(TENNIS_SERVE_WEAK_PENALTY)
+    return float(WEAK_PENALTY)
 
 
 def _norm_prop(text: object) -> str:
@@ -108,7 +126,7 @@ def load_jul22_cell_sets(
         )
         if key:
             weak.add(key)
-    # Hardcoded fallbacks if JSON missing weak seeds (user callouts).
+    # Hardcoded fallbacks if JSON missing weak/priority seeds (user callouts).
     if not weak:
         weak.update(
             {
@@ -116,6 +134,15 @@ def load_jul22_cell_sets(
                 ("SOCCER", "goalassist", "Goblin", "OVER"),
                 ("TENNIS", "aces", "Goblin", "OVER"),
                 ("TENNIS", "doublefaults", "Goblin", "OVER"),
+            }
+        )
+    if not priority:
+        priority.update(
+            {
+                ("TENNIS", "totalgames", "Goblin", "OVER"),
+                ("TENNIS", "totalgameswon", "Goblin", "OVER"),
+                ("TENNIS", "totalgameswon", "Standard", "OVER"),
+                ("TENNIS", "totalgames", "Standard", "OVER"),
             }
         )
     return frozenset(priority), frozenset(weak)
@@ -159,7 +186,7 @@ def cell_hr_priority_boost_series(
         if key is None:
             continue
         if key in weak:
-            boost.at[i] -= WEAK_PENALTY
+            boost.at[i] -= _weak_penalty_for_key(key)
             continue
         if key in priority:
             boost.at[i] += PRIORITY_BOOST

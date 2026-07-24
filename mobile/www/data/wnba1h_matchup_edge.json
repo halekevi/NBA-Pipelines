@@ -1,0 +1,140 @@
+{
+  "sport": "wnba1h",
+  "display_name": "WNBA 1H",
+  "matchup_mode": "team",
+  "generated_at": "2026-07-23T17:28:29.775868+00:00",
+  "slate_note": "No slate rows \u2014 run sport pipeline or publish slate_sport JSON.",
+  "n_teams": 15,
+  "elite_rank_cut": 4,
+  "weak_rank_cut": 10,
+  "opp_metric_label": "Opp def rank",
+  "categories": [
+    {
+      "id": "pts",
+      "label": "Points (1H)",
+      "threshold": 10.0
+    },
+    {
+      "id": "pra",
+      "label": "Pts+Reb+Ast (1H)",
+      "threshold": 16.0
+    }
+  ],
+  "teams": [
+    {
+      "def_key": "ATL",
+      "slate_abbr": "ATL",
+      "name": "Atlanta Dream",
+      "def_rank": 2,
+      "def_tier": "Elite"
+    },
+    {
+      "def_key": "CHI",
+      "slate_abbr": "CHI",
+      "name": "Chicago Sky",
+      "def_rank": 5,
+      "def_tier": "Above Avg"
+    },
+    {
+      "def_key": "CON",
+      "slate_abbr": "CON",
+      "name": "Connecticut Sun",
+      "def_rank": 14,
+      "def_tier": "Weak"
+    },
+    {
+      "def_key": "DAL",
+      "slate_abbr": "DAL",
+      "name": "Dallas Wings",
+      "def_rank": 6,
+      "def_tier": "Above Avg"
+    },
+    {
+      "def_key": "GS",
+      "slate_abbr": "GSV",
+      "name": "Golden State Valkyries",
+      "def_rank": 1,
+      "def_tier": "Elite"
+    },
+    {
+      "def_key": "IND",
+      "slate_abbr": "IND",
+      "name": "Indiana Fever",
+      "def_rank": 8,
+      "def_tier": "Avg"
+    },
+    {
+      "def_key": "LV",
+      "slate_abbr": "LVA",
+      "name": "Las Vegas Aces",
+      "def_rank": 10,
+      "def_tier": "Below Avg"
+    },
+    {
+      "def_key": "LA",
+      "slate_abbr": "LAS",
+      "name": "Los Angeles Sparks",
+      "def_rank": 15,
+      "def_tier": "Weak"
+    },
+    {
+      "def_key": "MIN",
+      "slate_abbr": "MIN",
+      "name": "Minnesota Lynx",
+      "def_rank": 4,
+      "def_tier": "Above Avg"
+    },
+    {
+      "def_key": "NY",
+      "slate_abbr": "NYL",
+      "name": "New York Liberty",
+      "def_rank": 7,
+      "def_tier": "Avg"
+    },
+    {
+      "def_key": "PHX",
+      "slate_abbr": "PHX",
+      "name": "Phoenix Mercury",
+      "def_rank": 8,
+      "def_tier": "Avg"
+    },
+    {
+      "def_key": "POR",
+      "slate_abbr": "POR",
+      "name": "Portland Fire",
+      "def_rank": 11,
+      "def_tier": "Below Avg"
+    },
+    {
+      "def_key": "SEA",
+      "slate_abbr": "SEA",
+      "name": "Seattle Storm",
+      "def_rank": 3,
+      "def_tier": "Elite"
+    },
+    {
+      "def_key": "TOR",
+      "slate_abbr": "TOR",
+      "name": "Toronto Tempo",
+      "def_rank": 12,
+      "def_tier": "Below Avg"
+    },
+    {
+      "def_key": "WSH",
+      "slate_abbr": "WSH",
+      "name": "Washington Mystics",
+      "def_rank": 13,
+      "def_tier": "Weak"
+    }
+  ],
+  "matchups": {},
+  "players_by_team_cat": {},
+  "edge_legend": {
+    "TOP_EDGE": "Positive PP edge (+1.5+) or strong avg vs soft defense (high rank = weak).",
+    "OK_EDGE": "PP edge on board or solid production vs average-or-softer defense.",
+    "TOP_UNDER": "PP edge -2+ vs elite defense, or historically fades vs elite D.",
+    "OK_UNDER": "Negative PP edge vs elite defense \u2014 lean UNDER.",
+    "NEUTRAL": "No clear edge.",
+    "AVOID": "Negative PP edge without elite matchup \u2014 skip OVER."
+  }
+}

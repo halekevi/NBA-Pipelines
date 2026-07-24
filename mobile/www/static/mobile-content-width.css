@@ -10,8 +10,9 @@
   --po-mobile-bottom-bar-bg: rgba(12, 12, 20, 0.94);
   --po-mobile-bottom-bar-border: rgba(255, 255, 255, 0.12);
   --po-mobile-bottom-bar-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
-  --po-mobile-nav-clearance: calc(82px + env(safe-area-inset-bottom, 0px));
-  --po-mobile-body-pad-extra: calc(74px + env(safe-area-inset-bottom, 0px));
+  --po-mobile-nav-clearance: calc(68px + env(safe-area-inset-bottom, 0px));
+  /* Single gutter via .shell/#app — do not also pad body (double clearance). */
+  --po-mobile-body-pad-extra: 0px;
 }
 
 /* Home only uses .shell — 98% band on all viewports (loads after index.html inline CSS) */
@@ -122,8 +123,8 @@ nav.snav.glass-card {
     box-sizing: border-box !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-    padding-top: 14px !important;
-    padding-bottom: 20px !important;
+    padding-top: 6px !important;
+    padding-bottom: 8px !important;
   }
 
   nav.snav,
@@ -138,36 +139,36 @@ nav.snav.glass-card {
   /* “How to read this page” — was only 8px horizontal; give links/text room from edges */
   .hero .home-flow-lede {
     box-sizing: border-box !important;
-    padding-top: 14px !important;
-    padding-bottom: 16px !important;
-    padding-left: max(14px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(14px, env(safe-area-inset-right, 0px)) !important;
+    padding-top: 8px !important;
+    padding-bottom: 10px !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
   }
 
   .hero .home-flow-lede .home-jump {
-    margin-top: 10px !important;
+    margin-top: 6px !important;
     display: block !important;
   }
 
-  /* Home <details> section headers (Slate Explorer, Top Edges, …) — more vertical + horizontal padding */
+  /* Home <details> section headers (Slate Explorer, Top Edges, …) */
   .home-cat > summary {
-    padding-top: 14px !important;
-    padding-bottom: 14px !important;
-    padding-left: max(16px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(16px, env(safe-area-inset-right, 0px)) !important;
-    min-height: 48px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    min-height: 40px !important;
     box-sizing: border-box !important;
   }
 
   .home-cat-body {
-    padding-top: clamp(12px, 3vw, 18px) !important;
-    padding-bottom: clamp(16px, 3.5vw, 22px) !important;
-    padding-left: max(14px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(14px, env(safe-area-inset-right, 0px)) !important;
+    padding-top: 8px !important;
+    padding-bottom: 12px !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
   }
 
   .home-cat {
-    margin-bottom: 16px !important;
+    margin-bottom: 8px !important;
   }
 
   .slate-panel-header-row {
@@ -363,24 +364,41 @@ nav.snav.glass-card {
     margin-right: 0 !important;
   }
 
-  /* Horizontal scroll */
+  /* Horizontal scroll — pills strip only, not the whole date bar */
   .slate-table-wrap,
   .log-table-wrap,
   #combo-table-wrap,
-  .date-pills,
-  .date-bar,
-  .tabs-bar {
+  .date-pills {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
   }
 
-  /* Grades hub: tabs are equal-width flex cells — no sideways strip */
-  body.page-grades .iframe-shell-toolbar .tabs-bar {
+  body.page-grades .date-bar {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body.page-grades .date-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    min-width: 0 !important;
+  }
+
+  /* Grades hub: tabs are a 2×2 / 4-col grid — never a sideways strip */
+  body.page-grades .iframe-shell-toolbar .tabs-bar,
+  body.page-grades .tabs-bar {
     overflow-x: visible !important;
+    overflow-y: visible !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   body.page-tickets {
-    padding-top: 8px !important;
+    padding-top: 0 !important;
   }
 
   /* Tighten top stack on Tickets: reduce empty gap under sticky nav before ratings cards. */
@@ -403,7 +421,7 @@ nav.snav.glass-card {
   body.page-income {
     padding-left: env(safe-area-inset-left, 0px) !important;
     padding-right: env(safe-area-inset-right, 0px) !important;
-    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: 0 !important;
   }
 
   body.page-income .summary-grid {
@@ -413,7 +431,7 @@ nav.snav.glass-card {
   }
 
   body.page-income .panel {
-    min-height: 240px !important;
+    min-height: 0 !important;
   }
 
   body.page-income .js-plotly-plot {
@@ -480,42 +498,23 @@ table.grades-table th {
 }
 
 @media (max-width: 768px) {
-  .grades-json-wrap .grades-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .grades-json-wrap table.grades-table {
-    min-width: 520px;
-  }
   /* Scoped: do not use global .hide-mobile (ticket legs use it differently). */
   .grades-json-wrap table.grades-table .hide-mobile {
     display: none !important;
   }
-  /* Explicit: Type / Tier columns (some layouts still showed label cells). */
   .grades-json-wrap table.grades-table th.gcol-type,
   .grades-json-wrap table.grades-table th.gcol-tier,
   .grades-json-wrap table.grades-table td.gcol-type,
   .grades-json-wrap table.grades-table td.gcol-tier {
     display: none !important;
   }
-}
 
-@media (max-width: 480px) {
-  .grades-json-wrap .grades-sport-summary {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px;
-  }
-  .grades-json-wrap .grades-sport-summary .grades-sport-card {
-    width: 100% !important;
-    min-width: 0;
-  }
-
+  /* Phone/tablet: card rows instead of a sideways table. */
   .grades-json-wrap .grades-table-wrapper {
     overflow-x: visible;
+    max-width: 100%;
   }
 
-  /* Grades cards: block layout (no CSS grid on tr/td — avoids invisible cells). */
   .grades-json-wrap table.grades-table,
   .grades-json-wrap table.grades-table tbody,
   .grades-json-wrap table.grades-table tr.grade-row {
@@ -627,12 +626,17 @@ table.grades-table th {
   .grades-json-wrap table.grades-table td.hide-mobile {
     display: none !important;
   }
-  /* Belt-and-suspenders: match unscoped selectors so nothing overrides card cells. */
-  .grades-json-wrap table.grades-table th.gcol-type,
-  .grades-json-wrap table.grades-table th.gcol-tier,
-  .grades-json-wrap table.grades-table td.gcol-type,
-  .grades-json-wrap table.grades-table td.gcol-tier {
-    display: none !important;
+}
+
+@media (max-width: 480px) {
+  .grades-json-wrap .grades-sport-summary {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+  }
+  .grades-json-wrap .grades-sport-summary .grades-sport-card {
+    width: 100% !important;
+    min-width: 0;
   }
 }
 
@@ -1141,16 +1145,16 @@ nav.snav .mobile-menu a {
     bottom: auto !important;
     left: auto !important;
     right: auto !important;
-    margin: 0 auto 12px auto !important;
+    margin: 0 auto 4px auto !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: flex-start !important;
     height: auto !important;
-    min-height: 56px !important;
+    min-height: 48px !important;
     max-height: none !important;
     /* Extra air below status bar / notch (safe-area + cushion) */
-    padding: calc(env(safe-area-inset-top, 0px) + 12px) max(12px, env(safe-area-inset-right, 0px)) 12px max(12px, env(safe-area-inset-left, 0px)) !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 6px) max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px)) !important;
     z-index: 220 !important;
     border-radius: 0 !important;
     box-sizing: border-box !important;
@@ -1234,8 +1238,8 @@ nav.snav .mobile-menu a {
     gap: 6px !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 6px max(8px, env(safe-area-inset-left, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-right, 0px)) !important;
-    min-height: calc(54px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 4px max(6px, env(safe-area-inset-left, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-right, 0px)) !important;
+    min-height: calc(48px + env(safe-area-inset-bottom, 0px)) !important;
     z-index: 260 !important;
     list-style: none !important;
     box-sizing: border-box !important;
@@ -1264,10 +1268,10 @@ nav.snav .mobile-menu a {
     align-items: center !important;
     gap: 0 !important;
     line-height: 0 !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    width: 48px !important;
-    max-width: min(56px, 100%) !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    width: 44px !important;
+    max-width: min(52px, 100%) !important;
     min-width: 44px !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;
@@ -1313,7 +1317,7 @@ nav.snav .mobile-menu a {
   }
 
   body:not(.page-grades) {
-    padding-bottom: var(--po-mobile-body-pad-extra) !important;
+    padding-bottom: 0 !important;
   }
 
   .shell,
@@ -1337,6 +1341,134 @@ nav.snav .mobile-menu a {
   body.page-grades .grades-body {
     padding-bottom: 0 !important;
     margin-bottom: 0 !important;
+  }
+
+  /* All lanes: date lives in page chrome / content — hide sticky nav datetime cluster */
+  nav.snav .nav-datetime-block {
+    display: none !important;
+  }
+  body.page-grades .shell {
+    padding: 4px 0 0 !important;
+  }
+  body.page-grades .grades-hub-shell .iframe-shell-toolbar {
+    padding-bottom: 4px !important;
+  }
+
+  /* ── Cross-lane mobile vertical density ── */
+  nav.snav,
+  nav.snav.glass-card {
+    min-height: 44px !important;
+    margin-bottom: 4px !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 4px) max(12px, env(safe-area-inset-right, 0px)) 4px max(12px, env(safe-area-inset-left, 0px)) !important;
+  }
+
+  .shell:not(:has(.grades-hub-shell)) {
+    padding-top: 6px !important;
+  }
+
+  /* Home */
+  body:not(.page-grades):not(.page-tickets):not(.page-income):not(.page-payout):not(.page-payout-ladder):not(.page-payout-log) .hero,
+  .hero:not(.tickets-hero) {
+    margin-bottom: 10px !important;
+    gap: 8px !important;
+    padding: 12px 12px 10px !important;
+  }
+  .hero-title {
+    font-size: clamp(32px, 9vw, 40px) !important;
+    letter-spacing: 1px !important;
+  }
+  .hero-eyebrow {
+    margin-bottom: 6px !important;
+    padding: 5px 10px !important;
+  }
+  .status-row {
+    margin-bottom: 12px !important;
+    gap: 8px !important;
+  }
+
+  /* Tickets */
+  .hero.tickets-hero,
+  .tickets-built .hero.tickets-hero {
+    margin-bottom: 8px !important;
+    padding: 10px 12px !important;
+  }
+  .tickets-built .winrate-best-panel {
+    margin: 0 0 8px 0 !important;
+    padding: 10px 12px !important;
+  }
+  .tickets-built .ticket-filter-bar {
+    padding: 6px 0 !important;
+    margin-bottom: 8px !important;
+    gap: 6px !important;
+  }
+  .tickets-built .ticket-filter-pill,
+  .tickets-built .ticket-filter-bar-action {
+    min-height: 36px !important;
+    padding: 5px 10px !important;
+  }
+  #app {
+    padding-top: 4px !important;
+  }
+  body.page-tickets .wrap {
+    padding-top: 0 !important;
+  }
+
+  /* Income */
+  body.page-income .hero,
+  .income-wrap .hero {
+    margin: 4px 0 8px !important;
+    padding: 10px 12px !important;
+  }
+  body.page-income .income-wrap {
+    padding-top: 4px !important;
+  }
+  body.page-income .summary-card,
+  body.page-income .card {
+    min-height: 0 !important;
+  }
+
+  /* Payout family */
+  body.page-payout .hero,
+  body.page-payout-ladder .hero,
+  body.page-payout-log .hero,
+  .page-payout .hero,
+  .page-payout-ladder .hero {
+    margin: 8px 0 10px !important;
+    padding: 10px 12px !important;
+  }
+  .payout-subnav {
+    margin: 0 0 8px !important;
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
+  .payout-subnav-tools {
+    margin-left: auto !important;
+    width: auto !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .payout-subnav-links a,
+  .payout-subnav-tools a {
+    min-height: 36px !important;
+    padding: 5px 10px !important;
+    white-space: nowrap !important;
+  }
+  .tab-bar {
+    margin-bottom: 8px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+  .tab-bar .tab-btn {
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+  }
+  body.page-payout .card,
+  body.page-payout-ladder .card,
+  body.page-payout-log .card,
+  .page-payout .card {
+    padding: 12px !important;
+    margin-bottom: 12px !important;
   }
 }
 
@@ -1440,8 +1572,6 @@ nav.snav .mobile-menu a {
   }
 }
 
-}
-
 /* ── Fix 1: Landscape mode — collapse top bar to save vertical space (v20260522landscape) ── */
 @media (max-height: 450px) and (orientation: landscape) {
     nav.snav,
@@ -1507,20 +1637,52 @@ nav.snav .mobile-menu a {
 }
 
 
-/* ── Fix: Grades iframe min-height on mobile (v20260522gradesframe) ──
-   Ticket tab: hub JS sizes #ticket-frame to content — 80vh min-height left a dark void under KPIs. */
+/* ── Fix: Grades iframe height on mobile — size to content, not a fixed 80vh void ──
+   Hub JS (syncGradeFrameHeight / syncTicketFrameHeight) sets px heights from the slate/ticket doc.
+   A forced min-height:80vh left a dark empty band under short tickets and fought content height. */
 @media (max-width: 900px) {
     body.page-grades #grade-frame,
     body.page-grades iframe.grade-frame:not(#ticket-frame) {
-          min-height: 80vh !important;
+          min-height: 0 !important;
           height: auto !important;
+          position: relative !important;
     }
     body.page-grades .iframe-shell-stage:not([data-grades-tab="tickets"]) {
-          min-height: 80vh !important;
+          min-height: 0 !important;
+          height: auto !important;
+          overflow: visible !important;
     }
     body.page-grades .iframe-shell-stage[data-grades-tab="tickets"],
     body.page-grades #ticket-frame {
           min-height: 0 !important;
+    }
+    /* Props/tables: keep wide data scrollable inside the hub without page-level horiz spill. */
+    body.page-grades .grades-analytics-wrap,
+    body.page-grades #props-eval-panel,
+    body.page-grades #player-evaluator-panel {
+          overflow-x: hidden !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+    }
+    body.page-grades .props-eval-filter-row,
+    body.page-grades .props-eval-search-row,
+    body.page-grades .props-eval-kpis {
+          flex-wrap: wrap !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+    }
+    body.page-grades .insights-table-host {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow-x: auto !important;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+    }
+    body.page-grades .insights-table-host table {
+          width: max-content !important;
+          min-width: 100% !important;
+          max-width: none !important;
     }
 }
 

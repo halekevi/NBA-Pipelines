@@ -217,11 +217,16 @@
 
   function ticketDisplayMinX(t) {
     const pay = t && t.payout && typeof t.payout === 'object' ? t.payout : null;
+    const src = String((pay && pay.payout_source) || (t && t.payout_source) || '').toLowerCase();
+    // Verified lines: live_cdp, exact SG-Δ live cell, or extrapolated after same-lines verified.
+    // Never show model / cold-extrapolated as PP rates.
+    const verified = src === 'live_cdp' || src === 'sg_delta_live' || src === 'sg_delta_verified';
+    if (src === 'pending_live') return null;
+    if (src && !verified) return null;
     if (pay && pay.display_min_x != null) return pay.display_min_x;
     if (t && t.display_min_x != null) return t.display_min_x;
     if (pay && pay.power_min_x != null) return pay.power_min_x;
-    if (pay && pay.min_payout_x != null) return pay.min_payout_x;
-    return t ? t.power_payout : null;
+    return null;
   }
 
   function renderTicket(t) {

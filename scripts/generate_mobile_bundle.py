@@ -310,6 +310,67 @@ def _read_template_json_date(templates_dir: Path) -> str:
     return ""
 
 
+
+def _payload_slate_date(path: Path) -> str:
+    """Return YYYY-MM-DD from a tickets/slate JSON, or empty string."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        ds = str((data or {}).get("date") or "").strip()[:10]
+        if len(ds) == 10 and ds[4] == "-" and ds[7] == "-":
+            return ds
+    except Exception:
+        pass
+    return ""
+
+
+def _resolve_tickets_latest_for_mobile(root_dir: Path, templates_dir: Path) -> Path | None:
+    """
+    Pick tickets_latest.json for mobile bake.
+
+    Never let a stale ui_runner/data snapshot beat a newer templates --write-web
+    board (that was the daily mobile lag: data stayed on an old preferred_min_payout
+    board while templates moved forward).
+    """
+    templates = templates_dir / "tickets_latest.json"
+    data = root_dir / "ui_runner" / "data" / "tickets_latest.json"
+    candidates = [p for p in (templates, data) if p.exists()]
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+
+    t_date = _payload_slate_date(templates)
+    d_date = _payload_slate_date(data)
+    if t_date and d_date and t_date != d_date:
+        chosen = templates if t_date > d_date else data
+        print(
+            f"  [tickets] using {chosen.relative_to(root_dir)} "
+            f"(templates date={t_date or '?'}, data date={d_date or '?'})"
+        )
+        return chosen
+    if t_date and not d_date:
+        return templates
+    if d_date and not t_date:
+        return data
+
+    # Same slate date (or undated): prefer curated preferred_min_payout data when present,
+    # else newer mtime, else templates (canonical write-web path).
+    try:
+        dj = json.loads(data.read_text(encoding="utf-8"))
+        if dj.get("preferred_min_payout_x") is not None:
+            print(f"  [tickets] using {data.relative_to(root_dir)} (same-date preferred_min_payout)")
+            return data
+    except Exception:
+        pass
+    try:
+        if data.stat().st_mtime > templates.stat().st_mtime:
+            print(f"  [tickets] using {data.relative_to(root_dir)} (same-date newer mtime)")
+            return data
+    except OSError:
+        pass
+    return templates
+
+
 def _merged_combined_rows_for_mobile(sports_payload: dict) -> list:
     """All sport rows merged + sorted by rank_score (matches app /api/slate-sport/combined)."""
     out = []
@@ -747,7 +808,9 @@ async function fetch_smart(localPath) {
             elif dest_name == "tickets.html":
                 # Prefer rendering the tickets generator/slips view from fresh tickets_latest.json
                 # into tickets_built.html so mobile matches /tickets platform content.
-                tickets_json = TEMPLATES_DIR / "tickets_latest.json"
+                tickets_json = _resolve_tickets_latest_for_mobile(ROOT_DIR, TEMPLATES_DIR)
+                if tickets_json is None:
+                    tickets_json = TEMPLATES_DIR / "tickets_latest.json"
                 tickets_built_tpl = TEMPLATES_DIR / "tickets_built.html"
                 if tickets_json.exists() and tickets_built_tpl.exists():
                     try:
@@ -1172,10 +1235,10 @@ async function fetch_smart(localPath) {
 
     # Same date field as /api/slate-display-date — bundled apps cannot call the API offline.
     _ymd = _read_template_json_date(TEMPLATES_DIR)
-    (MOBILE_WWW_DIR / "slate_display_date.json").write_text(
-        json.dumps({"date": _ymd}, ensure_ascii=True),
-        encoding="utf-8",
-    )
+    _display_payload = json.dumps({"date": _ymd}, ensure_ascii=True)
+    (MOBILE_WWW_DIR / "slate_display_date.json").write_text(_display_payload, encoding="utf-8")
+    # Keep templates mirror current too (stale May-era files blocked some freshness checks).
+    (TEMPLATES_DIR / "slate_display_date.json").write_text(_display_payload, encoding="utf-8")
 
     # Copy grade history for offline/mobile P&L (same resolution as Flask /income).
     mobile_data_dir = MOBILE_WWW_DIR / "data"

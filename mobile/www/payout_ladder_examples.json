@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-07-21T13:38:13.517852+00:00",
+  "generated_at": "2026-07-23T17:27:56.076720+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -84,24 +84,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -110,24 +110,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -136,24 +136,50 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
+        }
+      ]
+    },
+    {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Luciano Darderi",
+          "prop_type": "Total Games",
+          "line": 17.5,
+          "standard_line": 21.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
         }
       ]
     },
@@ -162,34 +188,34 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -198,34 +224,34 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -234,34 +260,34 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -270,34 +296,34 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -306,34 +332,34 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -342,34 +368,34 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -378,34 +404,106 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         },
         {
-          "player": "Xavier Edwards",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Taj Bradley",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.8101000716845878
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.859963870967742
+        },
+        {
+          "player": "Luciano Darderi",
+          "prop_type": "Total Games",
+          "line": 17.5,
+          "standard_line": 21.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Luciano Darderi",
+          "prop_type": "Total Games",
+          "line": 17.5,
+          "standard_line": 21.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
         }
       ]
     },
@@ -414,44 +512,44 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -460,44 +558,44 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -506,44 +604,44 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -552,44 +650,44 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -598,44 +696,44 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -644,44 +742,44 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         }
       ]
     },
@@ -690,380 +788,136 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         },
         {
-          "player": "Xavier Edwards",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Taj Bradley",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.8101000716845878
         }
       ]
     },
     {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 0.5,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 0.5,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 1.0,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 1.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
+      "composition": "2S+1G+1D",
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
+        },
+        {
+          "player": "Luciano Darderi",
+          "prop_type": "Total Games",
+          "line": 17.5,
+          "standard_line": 21.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
         }
       ]
     },
     {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 2.0,
+      "composition": "3S+0G+1D",
+      "goblin_delta": null,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 2.5,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 2.5,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "4S+1G+0D",
-      "goblin_delta": 3.0,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.8
         },
         {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 3.0,
+          "pick_type": "Standard",
+          "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Luciano Darderi",
+          "prop_type": "Total Games",
+          "line": 17.5,
+          "standard_line": 21.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
         }
       ]
     },
@@ -1072,516 +926,110 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.859963870967742
         },
         {
-          "player": "Xavier Edwards",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
+          "player": "Taj Bradley",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.8101000716845878
         }
       ]
     },
     {
-      "composition": "5S+1G+0D",
-      "goblin_delta": 0.5,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Heliot Ramos",
-          "prop_type": "Hits",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7853200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 0.5,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "5S+1G+0D",
-      "goblin_delta": 1.0,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Heliot Ramos",
-          "prop_type": "Hits",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7853200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 1.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "5S+1G+0D",
+      "composition": "3S+1G+1D",
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Heliot Ramos",
-          "prop_type": "Hits",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7853200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
+          "player": "Lucas Zelarayán",
+          "prop_type": "Shots",
+          "line": 1.5,
           "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Danilo Santos",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jáminton Campaz",
+          "prop_type": "Shots",
+          "line": 1.5,
+          "standard_line": 1.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Gavin Williams",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "5S+1G+0D",
-      "goblin_delta": 2.0,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
+          "hit_rate": 0.859963870967742
         },
         {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
+          "player": "Luciano Darderi",
+          "prop_type": "Total Games",
+          "line": 17.5,
+          "standard_line": 21.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
           "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Heliot Ramos",
-          "prop_type": "Hits",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7853200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "5S+1G+0D",
-      "goblin_delta": 2.5,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Heliot Ramos",
-          "prop_type": "Hits",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7853200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 2.5,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "5S+1G+0D",
-      "goblin_delta": 3.0,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Heliot Ramos",
-          "prop_type": "Hits",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7853200000000001
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 3.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        }
-      ]
-    },
-    {
-      "composition": "4S+2G+0D",
-      "goblin_delta": 2.0,
-      "legs": [
-        {
-          "player": "Chase DeLauter",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Chandler Simpson",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7353200000000001
-        },
-        {
-          "player": "Nolan Arenado",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Willi Castro",
-          "prop_type": "Total Bases",
-          "line": 0.5,
-          "standard_line": null,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.6953199999999999
-        },
-        {
-          "player": "Mike Trout",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
-        },
-        {
-          "player": "Xavier Edwards",
-          "prop_type": "Hits+Runs+RBIs",
-          "line": 0.5,
-          "standard_line": 1.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.889
+          "hit_rate": 0.8
         }
       ]
     }

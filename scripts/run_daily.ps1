@@ -1729,6 +1729,36 @@ else {
 }
 
 # =============================================================================
+# STEP D-MOBILE — Regenerate mobile/www before git publish
+# =============================================================================
+# Belt-and-suspenders: Run-Combined already calls generate_mobile_bundle, but mid-day
+# template writes / grader-only paths can leave mobile/www behind. Always rebuild so
+# STEP E commits a fresh tickets/slate/grades bundle.
+$mobileBundleScript = Join-Path $Root "scripts\generate_mobile_bundle.py"
+if (Test-Path -LiteralPath $mobileBundleScript) {
+    Write-Log "STEP D-MOBILE - Generate mobile bundle: START"
+    Push-Location $Root
+    try {
+        & py -3.14 -X utf8 $mobileBundleScript
+        if ($LASTEXITCODE -eq 0) {
+            Write-Log "STEP D-MOBILE - Generate mobile bundle: OK"
+        }
+        else {
+            Write-Log "STEP D-MOBILE - Generate mobile bundle: WARN (exit $LASTEXITCODE)"
+        }
+    }
+    catch {
+        Write-Log "STEP D-MOBILE - Generate mobile bundle: WARN ($($_.Exception.Message))"
+    }
+    finally {
+        Pop-Location
+    }
+}
+else {
+    Write-Log "STEP D-MOBILE - Generate mobile bundle: SKIP (script missing)"
+}
+
+# =============================================================================
 # STEP E — Git commit + push
 # =============================================================================
 # Railway serves origin/main (and re-fetches slate JSON from GitHub raw main).

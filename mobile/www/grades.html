@@ -9,9 +9,9 @@
 <meta property="og:title" content="PropOracle — Grades"/>
 <title>PropOracle — Grades</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="static/global-scrollbar.css?v=20260517platform"/>
+<link rel="stylesheet" href="static/global-scrollbar.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260719gradeshub"/>
-<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260719alllanes1"/>
+<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260714pe"/>
 <style>
 :root{
@@ -1664,10 +1664,10 @@ select option,
 }
 
 </style>
-<link rel="stylesheet" href="static/site-nav-unified.css?v=20260720halfnav1"/>
-<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719alllanes1"/>
-<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="static/site-nav-unified.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260719gradesm2"/>
 </head>
 <body class="page-grades">
 <!-- Ambient orbs — match Home (static, no drift animation) -->
@@ -1707,7 +1707,7 @@ select option,
       <span class="tt-icon tt-sun" style="display:none">☀️</span>
     </button>
     <div class="nav-live-cluster">
-      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; </div>
+      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span> &nbsp;·&nbsp; LIVE</div>
       <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
         <div class="nav-slate-date" id="slate-date">—</div>
         <div class="nav-sync-line">
@@ -6755,73 +6755,6 @@ window.addEventListener('resize', () => {
         const live = await _origFetch(input, init);
         if (live && live.ok) return live;
       } catch (_eProps) {}
-      const ds = _dateParamFrom(urlStr);
-      const j = await _loadGradedPropsByDate(ds);
-      const props = Array.isArray(j && j.props) ? j.props : [];
-      let nHit = 0, nMiss = 0;
-      props.forEach((p) => {
-        const ru = String((p && p.result) || '').toUpperCase();
-        if (ru === 'HIT') nHit += 1;
-        else if (ru === 'MISS') nMiss += 1;
-      });
-      return _jsonResp({ ok: true, props: props, n_hit: nHit, n_miss: nMiss, n: props.length, n_returned: props.length, truncated: false });
-    }
-    return _origFetch(input, init);
-  };
-})();
-</script>
-
-
-<script>
-(function () {
-  const _origFetch = window.fetch.bind(window);
-  function _jsonResp(obj) {
-    return new Response(JSON.stringify(obj), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-  function _dateParamFrom(urlStr) {
-    try {
-      const u = new URL(urlStr, window.location.href);
-      return u.searchParams.get('date') || '';
-    } catch (_e) { return ''; }
-  }
-  function _extractDate(raw) {
-    const m = String(raw || '').match(/\d{4}-\d{2}-\d{2}/);
-    return m ? m[0] : '';
-  }
-  async function _loadGradedPropsByDate(ds) {
-    const d = _extractDate(ds);
-    if (!d) return null;
-    const file = `graded_props_${d}.json`;
-    const r = await _origFetch(file, { cache: 'no-store' });
-    if (!r.ok) return null;
-    return r.json();
-  }
-  window.fetch = async function (input, init) {
-    const urlStr = (typeof input === 'string') ? input : (input && input.url ? input.url : String(input || ''));
-    const path = urlStr.replace(window.location.origin, '');
-
-    if (path.includes('/api/grades/report_dates')) {
-      return _origFetch('grades_report_dates.json', init);
-    }
-    if (path.includes('/api/grades/insights')) {
-      return _jsonResp({ calibration: [], clv_by_sport: [], edge_bucket_hit_rate: [], clv_by_prop_type: [], clv_by_tier: [] });
-    }
-    if (path.includes('/api/grades/archive_dates')) {
-      return _origFetch('grades_archive_dates.json', init);
-    }
-    if (path.includes('/api/grade-history')) {
-      return _origFetch('data/grade_history.json', init);
-    }
-    if (path.includes('/api/graded-props')) {
-      const ds = _dateParamFrom(urlStr);
-      const j = await _loadGradedPropsByDate(ds);
-      if (j) return _jsonResp(j);
-      return _jsonResp({ ok: true, date: _extractDate(ds), props: [], source: 'mobile_bundle_missing' });
-    }
-    if (path.includes('/api/grades/props')) {
       const ds = _dateParamFrom(urlStr);
       const j = await _loadGradedPropsByDate(ds);
       const props = Array.isArray(j && j.props) ? j.props : [];

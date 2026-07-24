@@ -1561,6 +1561,21 @@ if (Test-Path $DateDir) {
     }
 }
 
+# =============================
+# Mobile bundle — grades/indexes/rate cards after grader copies
+# =============================
+# Individual Copy-Item calls above keep dated eval HTML/JSON in mobile/www, but the
+# full bundle (grades_report_dates, slate_display_date, payout cards, tickets bake)
+# must run so mobile does not drift when CombinedOnly was skipped or ran earlier.
+$MobileBundleScript = Join-Path $Root "scripts\generate_mobile_bundle.py"
+if (Test-Path -LiteralPath $MobileBundleScript) {
+    Write-Host "`n[GRADER] Generating mobile bundle (post-grade sync)..." -ForegroundColor Cyan
+    Run-Py "Generate mobile bundle" $Root $MobileBundleScript @()
+}
+else {
+    Write-Host "[GRADER] WARN: generate_mobile_bundle.py missing — mobile/www may lag grades." -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "DONE." -ForegroundColor Green
 

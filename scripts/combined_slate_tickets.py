@@ -241,6 +241,18 @@ DISABLED_SPORTS: set[str] = set()
 # Match run_pipeline.ps1 $NBA_SEASON_RESUME — skip stale NBA-family step8 in combined.
 NBA_OFF_SEASON_RESUME = "2026-10-01"
 NHL_OFF_SEASON_RESUME = "2026-09-01"
+# WNBA All-Star mid-season pause: skip [PAUSE_START, RESUME). Override via env.
+# WNBA_RESUME_DATE=YYYY-MM-DD (resume on/after); WNBA_PAUSE_START=YYYY-MM-DD.
+WNBA_OFF_SEASON_RESUME = (
+    os.getenv("WNBA_RESUME_DATE", "").strip()
+    or os.getenv("PROPORACLE_WNBA_RESUME", "").strip()
+    or "2026-07-28"
+)
+WNBA_ALLSTAR_PAUSE_START = (
+    os.getenv("WNBA_PAUSE_START", "").strip()
+    or os.getenv("PROPORACLE_WNBA_PAUSE_START", "").strip()
+    or "2026-07-19"
+)
 DEFAULT_SOCCER_PATH = os.path.join(REPO_ROOT, "Sports", "Soccer", "outputs", "step8_soccer_direction_clean.xlsx")
 DEFAULT_TENNIS_PATH = os.path.join(REPO_ROOT, "Tennis", "outputs", "step8_tennis_direction_clean.xlsx")
 DEFAULT_GOLF_PATH = os.path.join(REPO_ROOT, "Sports", "Golf", "outputs", "step8_golf_direction_clean.xlsx")
@@ -288,6 +300,18 @@ def _nhl_off_season(slate_date: str) -> bool:
         resume = datetime.strptime(NHL_OFF_SEASON_RESUME, "%Y-%m-%d").date()
         slate = datetime.strptime(td, "%Y-%m-%d").date()
         return slate < resume
+    except ValueError:
+        return False
+
+
+def _wnba_family_off_season(slate_date: str) -> bool:
+    """True when WNBA / WNBA1H / WNBA1Q is paused (All-Star break window)."""
+    td = str(slate_date).strip()[:10]
+    try:
+        pause = datetime.strptime(WNBA_ALLSTAR_PAUSE_START, "%Y-%m-%d").date()
+        resume = datetime.strptime(WNBA_OFF_SEASON_RESUME, "%Y-%m-%d").date()
+        slate = datetime.strptime(td, "%Y-%m-%d").date()
+        return pause <= slate < resume
     except ValueError:
         return False
 
@@ -356,6 +380,8 @@ def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
     if sl in ("nba", "nba1h", "nba1q") and _nba_family_off_season(slate_date):
         return True
     if sl == "nhl" and _nhl_off_season(slate_date):
+        return True
+    if sl in ("wnba", "wnba1h", "wnba1q") and _wnba_family_off_season(slate_date):
         return True
     return False
 
@@ -19216,7 +19242,13 @@ def main():
         print("  [Golf] skipped (empty --golf)")
 
     wnba = None
-    if str(args.wnba).strip():
+    if _wnba_family_off_season(args.date):
+        print(
+            f"  [WNBA] All-Star pause — skipped until {WNBA_OFF_SEASON_RESUME} "
+            f"(window {WNBA_ALLSTAR_PAUSE_START}..<resume; override WNBA_RESUME_DATE)"
+        )
+        _load_audit_row("WNBA", "", pd.DataFrame())
+    elif str(args.wnba).strip():
         try:
             wnba = load_wnba(args.wnba)
             wnba = enforce_target_date(

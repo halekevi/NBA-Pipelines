@@ -15,11 +15,23 @@ param(
     [string]$Date = (Get-Date -Format "yyyy-MM-dd"),
     [string]$Cdp = "",
     [switch]$PreferBrowser,
-    [switch]$SkipFetch
+    [switch]$SkipFetch,
+    [switch]$Force
 )
 
 $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+
+$WNBA_SEASON_RESUME = "2026-07-28"
+if ($env:WNBA_RESUME_DATE) { $WNBA_SEASON_RESUME = $env:WNBA_RESUME_DATE.Trim() }
+elseif ($env:PROPORACLE_WNBA_RESUME) { $WNBA_SEASON_RESUME = $env:PROPORACLE_WNBA_RESUME.Trim() }
+$WNBA_ALLSTAR_PAUSE_START = "2026-07-19"
+if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.Trim() }
+elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
+if (-not $Force.IsPresent -and ($Date -ge $WNBA_ALLSTAR_PAUSE_START) -and ($Date -lt $WNBA_SEASON_RESUME)) {
+    Write-Host "[WNBA period] All-Star pause — skipped until $WNBA_SEASON_RESUME (use -Force)." -ForegroundColor DarkGray
+    exit 0
+}
 
 $WNBADir = Join-Path $Root "Sports\WNBA"
 $OutDir = Join-Path $Root "outputs\$Date"

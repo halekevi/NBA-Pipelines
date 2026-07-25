@@ -65,10 +65,21 @@ if (Test-Path $envFile) {
     }
 }
 $SportsRoot = Join-Path $Root "Sports"
-# WNBA: must match $WNBA_SEASON_START in repo-root run_pipeline.ps1 (parallel job + dated step8 gate).
+# WNBA: must match $WNBA_SEASON_START / All-Star pause in repo-root run_pipeline.ps1.
 $WNBA_SEASON_START = "2026-05-01"
+$WNBA_SEASON_RESUME = "2026-07-28"
+if ($env:WNBA_RESUME_DATE) { $WNBA_SEASON_RESUME = $env:WNBA_RESUME_DATE.Trim() }
+elseif ($env:PROPORACLE_WNBA_RESUME) { $WNBA_SEASON_RESUME = $env:PROPORACLE_WNBA_RESUME.Trim() }
+$WNBA_ALLSTAR_PAUSE_START = "2026-07-19"
+if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.Trim() }
+elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
 # NBA / NBA1H / NBA1Q grading: must match run_pipeline.ps1 $NBA_SEASON_RESUME.
 $NBA_SEASON_RESUME = "2026-10-01"
+
+function Test-WnbaAllStarPause {
+    param([string]$SlateDate)
+    return ($SlateDate -ge $WNBA_ALLSTAR_PAUSE_START) -and ($SlateDate -lt $WNBA_SEASON_RESUME)
+}
 
 function Test-PpCdpReachable {
     param([string]$CdpBaseUrl = "http://127.0.0.1:9222")
@@ -267,17 +278,24 @@ function Get-MissingTodaySlateOutputs {
         "step8_wnba_direction_clean_$RunDate.xlsx"    = @{ key = "wnba";   step1 = (Join-Path $outDir "wnba\step1_wnba_props.csv") }
     }
     $required = @(
-        "step8_nba_direction_clean_$RunDate.xlsx",
-        "step8_nba1h_direction_clean_$RunDate.xlsx",
-        "step8_nba1q_direction_clean_$RunDate.xlsx",
-        "step8_nhl_direction_clean_$RunDate.xlsx",
         "step8_soccer_direction_clean_$RunDate.xlsx",
         "step8_mlb_direction_clean_$RunDate.xlsx",
         "step8_tennis_direction_clean_$tennisDated.xlsx"
     )
+    # NBA / NHL / period boards: keep exemption wiring, but do not require during off-season.
+    if ($RunDate -ge $NBA_SEASON_RESUME) {
+        $required = @(
+            "step8_nba_direction_clean_$RunDate.xlsx",
+            "step8_nba1h_direction_clean_$RunDate.xlsx",
+            "step8_nba1q_direction_clean_$RunDate.xlsx"
+        ) + @($required)
+    }
+    if ($RunDate -ge "2026-09-01") {
+        $required = @("step8_nhl_direction_clean_$RunDate.xlsx") + @($required)
+    }
     # WNBA: run_wnba_pipeline.ps1 publishes outputs/<date>/step8_wnba_direction_clean_<date>.xlsx
     # (same basename pattern as other sports' step8_*_direction_clean_<date>.xlsx).
-    if ($RunDate -ge $WNBA_SEASON_START) {
+    if (($RunDate -ge $WNBA_SEASON_START) -and -not (Test-WnbaAllStarPause -SlateDate $RunDate)) {
         $required = @($required) + @("step8_wnba_direction_clean_$RunDate.xlsx")
     }
     # 2026 NCAA: WCBB title Sun Apr 5; men's title Mon Apr 6. Expect no WCBB slate from Apr 6+;
@@ -1743,7 +1761,9 @@ if (Test-Path $meScript) {
         & py -3.14 -X utf8 $meScript --sport all
         if ($LASTEXITCODE -ne 0) {
             Write-Log "STEP D-ME - Matchup edge rebuild: WARN (exit $LASTEXITCODE) — retrying active summer sports"
-            foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
+            $meSports = @("mlb", "soccer", "tennis")
+            if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $meSports = @("mlb", "wnba", "soccer", "tennis") }
+            foreach ($meSport in $meSports) {
                 & py -3.14 -X utf8 $meScript --sport $meSport
                 if ($LASTEXITCODE -ne 0) {
                     Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $LASTEXITCODE)"
@@ -2305,7 +2325,8 @@ try {
     }
     elseif (Test-Path -LiteralPath $slateStatusPath) {
         $ss = Get-Content -LiteralPath $slateStatusPath -Raw -ErrorAction Stop | ConvertFrom-Json
-        $active = @("mlb", "wnba", "soccer", "tennis")
+        $active = @("mlb", "soccer", "tennis")
+        if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $active = @("mlb", "wnba", "soccer", "tennis") }
         $completeCount = 0
         foreach ($sk in $active) {
             if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $completeCount++ }
@@ -2464,13 +2485,17 @@ if ($NowHour -ge 10) {
     }
 
     $wnbaLatePs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
-    if (Test-Path -LiteralPath $wnbaLatePs1) {
+    if ((Test-Path -LiteralPath $wnbaLatePs1) -and -not (Test-WnbaAllStarPause -SlateDate $Today)) {
         Write-Host "[LATE_FETCH] Fetching WNBA props..." -ForegroundColor Cyan
         & pwsh -NoProfile -File $wnbaLatePs1 -Date $Today -Step1Only
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "[NBA_LATE_FETCH] WNBA step1 failed (exit $LASTEXITCODE) — continuing"
             Write-Log "[NBA_LATE_FETCH] WARN: WNBA step1 exit $LASTEXITCODE"
         }
+    }
+    elseif (Test-WnbaAllStarPause -SlateDate $Today) {
+        Write-Host "[LATE_FETCH] Skipping WNBA (All-Star pause until $WNBA_SEASON_RESUME)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] SKIP: WNBA All-Star pause until $WNBA_SEASON_RESUME"
     }
 
         $pipeScript = Join-Path $Root "run_pipeline.ps1"

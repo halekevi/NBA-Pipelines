@@ -220,6 +220,15 @@ $NFLDir    = Join-Path $SportsRoot "NFL"
 # WNBA regular season: include in full parallel runs on/after this date (ISO yyyy-MM-dd).
 # 2026 opener starts May 1, so keep WNBA active for same-day fresh slates.
 $WNBA_SEASON_START = "2026-05-01"
+# WNBA All-Star mid-season pause: skip [PAUSE_START, RESUME). Resume on/after RESUME.
+# Override: $env:WNBA_RESUME_DATE / $env:WNBA_PAUSE_START (or PROPORACLE_WNBA_*).
+$WNBA_SEASON_RESUME = "2026-07-28"
+if ($env:WNBA_RESUME_DATE) { $WNBA_SEASON_RESUME = $env:WNBA_RESUME_DATE.Trim() }
+elseif ($env:PROPORACLE_WNBA_RESUME) { $WNBA_SEASON_RESUME = $env:PROPORACLE_WNBA_RESUME.Trim() }
+$WNBA_ALLSTAR_PAUSE_START = "2026-07-19"
+if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.Trim() }
+elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
+$WNBAOffSeason = ($Date -ge $WNBA_ALLSTAR_PAUSE_START) -and ($Date -lt $WNBA_SEASON_RESUME)
 
 # NBA off-season: pause NBA / NBA1H / NBA1Q until this date (summer ops).
 $NBA_SEASON_RESUME = "2026-10-01"
@@ -1367,6 +1376,10 @@ function Run-Combined {
         if (-not $okMatchupEdge) {
             Write-Host "  [matchup-edge] WARN: full build failed — retrying active summer sports individually..." -ForegroundColor Yellow
             foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
+                if ($meSport -eq "wnba" -and $WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+                    Write-Host "  [matchup-edge] SKIP wnba (All-Star pause until $WNBA_SEASON_RESUME)" -ForegroundColor DarkGray
+                    continue
+                }
                 $meOk = Run-Step "Build Matchup Edge ($meSport)" $Root ".\scripts\build_matchup_edge_json.py" "--sport $meSport"
                 if (-not $meOk) {
                     Write-Host "  [matchup-edge] WARN: $meSport still failed; panel may be stale." -ForegroundColor Yellow
@@ -1529,6 +1542,17 @@ if ($CombinedOnly) {
 #  WNBA ONLY
 # =============================================================================
 if ($WNBAOnly) {
+    if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+        Write-Host "  [WNBA] All-Star pause — paused until $WNBA_SEASON_RESUME (use -ForceWNBA to run)" -ForegroundColor DarkGray
+        Write-PipelineSlateStatusJson -RunDate $Date -Sports @{
+            wnba = "off_season"
+            wnba1h = "off_season"
+            wnba1q = "off_season"
+        }
+        Run-Combined "after WNBA (all-star pause)"
+        Print-Done
+        exit 0
+    }
     Write-Host "[ WNBA PIPELINE ]" -ForegroundColor Magenta
     Write-Host "  Delegating to scripts\run_wnba_pipeline.ps1 ..." -ForegroundColor DarkGray
     $wnbaPs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
@@ -2199,45 +2223,45 @@ if ($NBAOnly) {
 }
 
 # =============================================================================
-#  FULL PARALLEL RUN  (NBA + CBB + NHL + Soccer + MLB + NFL [+ WNBA when in season])
+#  FULL PARALLEL RUN  (active summer: Soccer + Tennis + MLB [+ WNBA when in season]
+#  Off-season scaffolding kept for NBA/NHL/NFL/CFB/CBB/Golf — not run as in-season)
 # =============================================================================
-if ($NBAOffSeason -and $NHLOffSeason) {
-    Write-Host "  [SKIP] NBA/NHL off-season -- skipping DB backfill and cache refresh" -ForegroundColor DarkGray
+# Active in-season set (summer 2026): MLB, Soccer, Tennis, WNBA (date-gated).
+# proporacle_ref DB backfill currently supports soccer among that set (not nba/nhl).
+if ($RefreshCache -and -not $NBAOffSeason) {
+    Write-Host "  [Cache] Wiping ESPN cache files..." -ForegroundColor Yellow
+    Remove-Item (Join-Path $NBADir "nba_espn_boxscore_cache.csv") -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $NBADir "nba_to_espn_id_map.csv")      -Force -ErrorAction SilentlyContinue
+    Write-Host "  [Cache] Done." -ForegroundColor Green
     Write-Host ""
+} elseif (-not $NBAOffSeason) {
+    Check-AutoRefreshCache
 } else {
-    if ($RefreshCache -and -not $NBAOffSeason) {
-        Write-Host "  [Cache] Wiping ESPN cache files..." -ForegroundColor Yellow
-        Remove-Item (Join-Path $NBADir "nba_espn_boxscore_cache.csv") -Force -ErrorAction SilentlyContinue
-        Remove-Item (Join-Path $NBADir "nba_to_espn_id_map.csv")      -Force -ErrorAction SilentlyContinue
-        Write-Host "  [Cache] Done." -ForegroundColor Green
-        Write-Host ""
-    } elseif (-not $NBAOffSeason) {
-        Check-AutoRefreshCache
-    } else {
-        Write-Host "  [SKIP] NBA off-season -- skipping NBA cache refresh" -ForegroundColor DarkGray
-    }
-
-    # -- Backfill boxscore DB for last 3 days (active sports only) ------------
-    Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
-    Write-Host "  Syncing proporacle_ref.db for last 3 days..." -ForegroundColor DarkGray
-    $backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
-    if (Test-Path $backfillScript) {
-        $bfSports = @("soccer")
-        if (-not $NBAOffSeason) { $bfSports = @("nba") + $bfSports }
-        if (-not $NHLOffSeason) { $bfSports = @("nhl") + $bfSports }
-        $bfSportsArg = ($bfSports -join " ")
-        $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports $bfSportsArg" 2>&1
-        foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
-        Write-Host "  DB backfill complete ($bfSportsArg)." -ForegroundColor Green
-    } else {
-        Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
-    }
-    Write-Host ""
+    Write-Host "  [SKIP] NBA off-season -- skipping NBA cache refresh" -ForegroundColor DarkGray
 }
 
+# -- Backfill boxscore DB for last 3 days (active summer sports only) ----------
+Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
+Write-Host "  Syncing proporacle_ref.db for last 3 days (active: soccer)..." -ForegroundColor DarkGray
+$backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
+if (Test-Path $backfillScript) {
+    # Do not backfill nba/nhl/cbb while those sports are off-season scaffolding.
+    # MLB/Tennis/WNBA use sport-local caches; soccer is the live proporacle_ref sport.
+    $bfSports = @("soccer")
+    $bfSportsArg = ($bfSports -join " ")
+    $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports $bfSportsArg" 2>&1
+    foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
+    Write-Host "  DB backfill complete ($bfSportsArg)." -ForegroundColor Green
+} else {
+    Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
+}
+Write-Host ""
+
 if (Test-Path (Join-Path $NBADir "RUN_COMPLETE.flag")) { Remove-Item (Join-Path $NBADir "RUN_COMPLETE.flag") -Force }
-$wnbaParallel = ($ForceWNBA.IsPresent -or ($Date -ge $WNBA_SEASON_START))
-if (-not $wnbaParallel) {
+$wnbaParallel = ($ForceWNBA.IsPresent -or (($Date -ge $WNBA_SEASON_START) -and -not $WNBAOffSeason))
+if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+    Write-Host "  [WNBA] All-Star pause — skipped until $WNBA_SEASON_RESUME (pause start $WNBA_ALLSTAR_PAUSE_START; use -ForceWNBA)." -ForegroundColor DarkGray
+} elseif (-not $wnbaParallel) {
     Write-Host "  [WNBA] Parallel job skipped until $WNBA_SEASON_START (use -ForceWNBA to run early)." -ForegroundColor DarkGray
 }
 
@@ -2267,8 +2291,17 @@ if (-not $CFB_PARALLEL_ACTIVE) {
     Write-Host "  [CFB] Parallel job skipped (off-season for $Date; active months Aug–Jan)." -ForegroundColor DarkGray
 }
 
+# Golf: keep -GolfOnly scaffolding; not in active summer in-season parallel set.
+$GOLF_PARALLEL_ACTIVE = $false
+if (-not $GOLF_PARALLEL_ACTIVE) {
+    Write-Host "  [Golf] Parallel job skipped (not in active summer in-season set: MLB/Soccer/Tennis/WNBA)." -ForegroundColor DarkGray
+}
+
 if ($NBAOffSeason) {
     Write-Host "  [NBA] Off-season — paused until 2026-10-01" -ForegroundColor DarkGray
+}
+if ($NHLOffSeason) {
+    Write-Host "  [NHL] Off-season — paused until $NHL_SEASON_RESUME" -ForegroundColor DarkGray
 }
 
 $parallelLabel = if ($wnbaParallel) {
@@ -2926,6 +2959,8 @@ $TennisJob = Start-Job -ScriptBlock {
 } -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir, $TennisCdpUrl, $TennisCdpReachable
 
 # -- Golf Job (PGA — step1 → step2 → step4 → step5 → step7 → step8) -----------
+$GolfJob = $null
+if ($GOLF_PARALLEL_ACTIVE) {
 Wait-FetchStagger
 $GolfJob = Start-Job -ScriptBlock {
     param($GolfDir, $Date, $SkipFetch, $GolfRunOutDir, $RepoRoot)
@@ -3005,6 +3040,7 @@ $GolfJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "Golf Step 8 - Direction Context" $GolfDir ".\scripts\step8_add_direction_context_golf.py" "--input `"$GolfRunOutDir\step7_golf_ranked.xlsx`" --sheet ALL --output `"$GolfRunOutDir\step8_golf_direction.csv`" --xlsx `"$GolfRunOutDir\step8_golf_direction_clean.xlsx`" --date $Date" }
     return $ok
 } -ArgumentList $GolfDir, $Date, $SkipFetch, $GolfRunOutDir, $Root
+} # end GOLF_PARALLEL_ACTIVE
 
 # -- MLB Job ------------------------------------------------------------------
 # MLB activated April 2026
@@ -3474,7 +3510,7 @@ if (-not $SoccerSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOu
     Clear-SoccerGeneratedOutputs -BaseDir $SoccerRunOutDir
     $SoccerSuccess = $true
 }
-$GolfSuccess   = Test-Path (Join-Path $GolfRunOutDir "step8_golf_direction_clean.xlsx")
+$GolfSuccess   = if (-not $GOLF_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $GolfRunOutDir "step8_golf_direction_clean.xlsx") }
 if (-not $GolfSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $GolfRunOutDir "step1_golf_props.csv"))) {
     Write-Host "  [Golf] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-GolfGeneratedOutputs -BaseDir $GolfRunOutDir
@@ -3590,12 +3626,16 @@ $slateStatusSports = @{
     soccer = if ($soccerNoSlate) { "no_slate" } elseif ($SoccerSuccess) { "complete" } else { "failed" }
     mlb    = if ($mlbNoSlate) { "no_slate" } elseif ($MLBSuccess) { "complete" } else { "failed" }
     tennis = if ($tennisNoSlate) { "no_slate" } elseif ($TennisSuccess) { "complete" } else { "failed" }
-    golf   = if ($golfNoSlate) { "no_slate" } elseif ($GolfSuccess) { "complete" } else { "failed" }
+    golf   = if (-not $GOLF_PARALLEL_ACTIVE) { "off_season" } elseif ($golfNoSlate) { "no_slate" } elseif ($GolfSuccess) { "complete" } else { "failed" }
     cbb    = if (-not $CBB_PARALLEL_ACTIVE) { "off_season" } elseif ($CBBSuccess) { "complete" } else { "failed" }
     cfb    = if (-not $CFB_PARALLEL_ACTIVE) { "off_season" } elseif ($CFBSuccess) { "complete" } else { "failed" }
     nfl    = if (-not $NFL_PARALLEL_ACTIVE) { "off_season" } elseif ($NFLSuccess) { "complete" } else { "failed" }
 }
-if ($wnbaParallel) {
+if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+    $slateStatusSports["wnba"] = "off_season"
+    $slateStatusSports["wnba1h"] = "off_season"
+    $slateStatusSports["wnba1q"] = "off_season"
+} elseif ($wnbaParallel) {
     $slateStatusSports["wnba"] = if ($wnbaNoSlate) { "no_slate" } elseif ($WNBASuccess) { "complete" } else { "failed" }
 }
 Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
@@ -3608,7 +3648,7 @@ Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
     @{ Name="Soccer"; Ok=$SoccerSuccess; Skip=$false; NoSlate=$soccerNoSlate },
     @{ Name="MLB";    Ok=$MLBSuccess; Skip=$false; NoSlate=$mlbNoSlate },
     @{ Name="Tennis"; Ok=$TennisSuccess; Skip=$false },
-    @{ Name="Golf";   Ok=$GolfSuccess; Skip=$false; NoSlate=$golfNoSlate },
+    @{ Name="Golf";   Ok=$GolfSuccess; Skip=(-not $GOLF_PARALLEL_ACTIVE); NoSlate=$golfNoSlate },
     @{ Name="NFL";    Ok=$NFLSuccess; Skip=(-not $NFL_PARALLEL_ACTIVE) }
 ) | ForEach-Object {
     if ($_.Skip) {
@@ -3621,7 +3661,9 @@ Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
         Write-Host "  $($_.Name) FAILED."  -ForegroundColor Red
     }
 }
-if ($wnbaParallel) {
+if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+    Write-Host "  WNBA skipped (All-Star pause until $WNBA_SEASON_RESUME)." -ForegroundColor DarkGray
+} elseif ($wnbaParallel) {
     if ($WNBASuccess) { Write-Host "  WNBA complete." -ForegroundColor Green }
     else { Write-Host "  WNBA FAILED." -ForegroundColor Red }
 }

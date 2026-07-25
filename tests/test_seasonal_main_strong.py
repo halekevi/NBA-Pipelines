@@ -48,6 +48,21 @@ def test_sport_slug_off_season_uses_resume():
     assert not _sport_in_season_for_main("CBB", "2026-10-01")
 
 
+def test_wnba_allstar_pause_window():
+    from combined_slate_tickets import _wnba_family_off_season, WNBA_OFF_SEASON_RESUME
+
+    assert _wnba_family_off_season("2026-07-25")
+    assert _sport_slug_off_season("wnba", "2026-07-25")
+    assert _sport_slug_off_season("wnba1h", "2026-07-25")
+    assert _sport_slug_off_season("wnba1q", "2026-07-25")
+    assert not _wnba_family_off_season("2026-07-18")
+    assert not _wnba_family_off_season(WNBA_OFF_SEASON_RESUME)
+    assert not _sport_slug_off_season("wnba", "2026-07-28")
+    assert not _sport_slug_off_season("mlb", "2026-07-25")
+    assert not _sport_slug_off_season("soccer", "2026-07-25")
+    assert not _sport_slug_off_season("tennis", "2026-07-25")
+
+
 def test_strong_sports_include_soccer_tennis_nhl():
     assert {"SOCCER", "TENNIS", "NHL", "WNBA", "MLB"} <= set(STRONG_BUILDER_SPORTS)
 

@@ -355,8 +355,14 @@ if (-not (Test-Path $DateDir)) {
 # Re-enable all: set PROPORACLE_GRADER_DISABLED_SPORTS to empty string.
 # Temporarily skip period props: PROPORACLE_GRADER_DISABLED_SPORTS=cbb,wcbb,nba1h,nba1q
 # Optional: fail if slate has zero rows for -Date (set PROPORACLE_GRADER_STRICT_SLATE_DATE=1 — enforced in slate_grader.py).
-# Must match run_pipeline.ps1 $NBA_SEASON_RESUME.
+# Must match run_pipeline.ps1 $NBA_SEASON_RESUME / WNBA All-Star pause.
 $NBA_SEASON_RESUME = "2026-10-01"
+$WNBA_SEASON_RESUME = "2026-07-28"
+if ($env:WNBA_RESUME_DATE) { $WNBA_SEASON_RESUME = $env:WNBA_RESUME_DATE.Trim() }
+elseif ($env:PROPORACLE_WNBA_RESUME) { $WNBA_SEASON_RESUME = $env:PROPORACLE_WNBA_RESUME.Trim() }
+$WNBA_ALLSTAR_PAUSE_START = "2026-07-19"
+if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.Trim() }
+elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
 $GraderDisabledSports = @('cbb', 'wcbb')
 if ($null -ne $env:PROPORACLE_GRADER_DISABLED_SPORTS) {
     $envRaw = [string]$env:PROPORACLE_GRADER_DISABLED_SPORTS
@@ -377,6 +383,14 @@ if ($NBAGradingOffSeason) {
         }
     }
 }
+$WNBAGradingAllStarPause = ($Date -ge $WNBA_ALLSTAR_PAUSE_START) -and ($Date -lt $WNBA_SEASON_RESUME)
+if ($WNBAGradingAllStarPause) {
+    foreach ($sk in @('wnba', 'wnba1h', 'wnba1q')) {
+        if (@($GraderDisabledSports) -notcontains $sk) {
+            $GraderDisabledSports = @($GraderDisabledSports) + @($sk)
+        }
+    }
+}
 function Test-GraderSportDisabled {
     param([Parameter(Mandatory)][string]$SportKey)
     return @($GraderDisabledSports) -contains $SportKey.ToLower().Trim()
@@ -391,6 +405,9 @@ function Remove-StaleGradedWorkbook {
 }
 if ($NBAGradingOffSeason) {
     Write-Host "[GRADER] NBA family off-season until $NBA_SEASON_RESUME (skip NBA/NBA1H/NBA1Q fetch + grade for -Date $Date)" -ForegroundColor Yellow
+}
+if ($WNBAGradingAllStarPause) {
+    Write-Host "[GRADER] WNBA All-Star pause until $WNBA_SEASON_RESUME (skip WNBA/WNBA1H/WNBA1Q fetch + grade for -Date $Date)" -ForegroundColor Yellow
 }
 if (@($GraderDisabledSports).Count -gt 0) {
     Write-Host "[GRADER] Disabled sports (skip fetch/grade for this run): $($GraderDisabledSports -join ', ')" -ForegroundColor Yellow
@@ -408,6 +425,15 @@ if (@($GraderDisabledSports).Count -gt 0) {
     }
     if (Test-GraderSportDisabled 'nba1q') {
         Remove-StaleGradedWorkbook -Path $NBA1QGradedFile -Label 'nba1q'
+    }
+    if (Test-GraderSportDisabled 'wnba') {
+        Remove-StaleGradedWorkbook -Path $WNBAGradedFile -Label 'wnba'
+    }
+    if (Test-GraderSportDisabled 'wnba1h') {
+        Remove-StaleGradedWorkbook -Path $WNBA1HGradedFile -Label 'wnba1h'
+    }
+    if (Test-GraderSportDisabled 'wnba1q') {
+        Remove-StaleGradedWorkbook -Path $WNBA1QGradedFile -Label 'wnba1q'
     }
 }
 
@@ -477,12 +503,17 @@ if (Test-Path $FetchActualsScript) {
         "--output", $SoccerActuals
     )
 
-    Run-Py "Fetch WNBA Actuals" $Root $FetchActualsScript @(
-        "--sport", "WNBA",
-        "--date", $Date,
-        "--nba-window", "1",
-        "--output", $WNBAActuals
-    )
+    if (-not (Test-GraderSportDisabled 'wnba')) {
+        Run-Py "Fetch WNBA Actuals" $Root $FetchActualsScript @(
+            "--sport", "WNBA",
+            "--date", $Date,
+            "--nba-window", "1",
+            "--output", $WNBAActuals
+        )
+    }
+    else {
+        Write-Host "Skipping Fetch WNBA Actuals (sport disabled: wnba)." -ForegroundColor Yellow
+    }
 
     if (Test-Path $FetchTennisActualsScript) {
         $TennisFetchDate = $TennisSlateDate
@@ -898,7 +929,10 @@ if ($WNBASlateFile) {
     Write-Host "[GRADER] WNBA slate: $(Split-Path $WNBASlateFile -Leaf)" -ForegroundColor Cyan
     Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $WNBASlateFile -GradeDate $Date -SportLabel "WNBA"
 }
-if ((Test-Path $WNBAActuals) -and $WNBASlateFile -and (Test-Path $WNBASlateFile) -and (Test-Path $SlateGraderScript)) {
+if (Test-GraderSportDisabled 'wnba') {
+    Write-Host "Skipping WNBA slate grading (sport disabled: wnba - All-Star / off-season)." -ForegroundColor Yellow
+}
+elseif ((Test-Path $WNBAActuals) -and $WNBASlateFile -and (Test-Path $WNBASlateFile) -and (Test-Path $SlateGraderScript)) {
     Run-Py "Grade WNBA Slate" $Root $SlateGraderScript @(
         "--sport", "WNBA",
         "--slate", $WNBASlateFile,

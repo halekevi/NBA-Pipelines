@@ -56,7 +56,15 @@ function Test-TodaySlateNeedsCatchup {
     try {
         $ss = Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json
         $complete = 0
-        foreach ($sk in @("mlb", "wnba", "soccer", "tennis")) {
+        $active = @("mlb", "soccer", "tennis")
+        $wnbaResume = "2026-07-28"
+        if ($env:WNBA_RESUME_DATE) { $wnbaResume = $env:WNBA_RESUME_DATE.Trim() }
+        $wnbaPause = "2026-07-19"
+        if ($env:WNBA_PAUSE_START) { $wnbaPause = $env:WNBA_PAUSE_START.Trim() }
+        if (-not (($today -ge $wnbaPause) -and ($today -lt $wnbaResume))) {
+            $active = @("mlb", "wnba", "soccer", "tennis")
+        }
+        foreach ($sk in $active) {
             if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $complete++ }
         }
         return ($complete -eq 0)

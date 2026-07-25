@@ -50,6 +50,14 @@ Ticket modes (defaults favor volume; optional strict mode):
 - Improve ml_prob over time: run combined_ticket_grader.py with --export-graded-legs-csv (stack slates) and read ML_CALIBRATION in the graded workbook.
 - --ticket-gen-starts (default 10): structured slips try K alternative first legs and keep the best modeled ticket payout (flex cash or all-hit prob).
 
+Jul-24 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
+- PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 2.2) — prefer board Min Guarantee
+- PROPORACLE_SHORT_FLOOR_HARD_X (default 2.0) — hard cut for STRONG/short Goblin
+- PROPORACLE_SHORT_FLOOR_HIGH_P_WIN (default 0.70) — sub-floor bypass
+- PROPORACLE_MAIN_MAX_LEGS (default 3) / PROPORACLE_GOBLIN_MAX_LEGS (default 6)
+- PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
+- PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
+
 HOTFIX:
 - Fixes crash when CBB "direction" becomes a DataFrame due to duplicate columns.
   We de-duplicate columns BEFORE touching df["direction"].str.upper().
@@ -3892,19 +3900,29 @@ MIN_WEB_DISPLAY_EST_WIN_PROB: float = 0.06
 # /tickets: hard floor for displayed/generated slip payout multipliers.
 MIN_WEB_PAYOUT_X: float = 3.0
 MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 2.0
-# MAIN web preference: show ≥2x when any qualify; keep <2x only if nothing hits the floor.
+# Jul-24 construction (EV = WR × floor): short Goblin / STRONG lose money under ~2.0×
+# Min Guarantee at ~50% WR. Prefer ≥2.2×; allow <hard only with very high p_win.
+# Env:
+#   PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X  (default 2.2) — prefer/rank floor
+#   PROPORACLE_SHORT_FLOOR_HARD_X          (default 2.0) — hard cut when preferred exist
+#   PROPORACLE_SHORT_FLOOR_HIGH_P_WIN      (default 0.70) — bypass for sub-floor slips
 MAIN_PREFERRED_MIN_PAYOUT_X: float = float(
-    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "2.0")
+    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "2.2")
+)
+SHORT_FLOOR_HARD_X: float = float(os.getenv("PROPORACLE_SHORT_FLOOR_HARD_X", "2.0"))
+SHORT_FLOOR_HIGH_P_WIN: float = float(
+    os.getenv("PROPORACLE_SHORT_FLOOR_HIGH_P_WIN", "0.70")
 )
 DEBUG_PAYOUT_DIAGNOSTIC: bool = os.getenv("PROPORACLE_DEBUG_PAYOUT", "false").lower() == "true"
 
 # /tickets page target volumes per sport after EV gate.
+# Jul-24: cut 2–3L / long 5–6 volume; upweight 4L (MLB Goblin 4L +102% ROI).
 WEB_TICKET_TEMPLATE_BY_LEGS: dict[int, int] = {
-    6: 6,
-    5: 8,
-    4: 12,
-    3: 12,
-    2: 12,
+    6: 3,
+    5: 4,
+    4: 14,
+    3: 8,
+    2: 8,
 }
 
 # Cap sorted candidate pool size per leg count (top rows by ticket sort) to bound greedy work.
@@ -5706,8 +5724,10 @@ def _enrich_slip_p_win_fields(slip: dict, *, mode: str = "ev") -> None:
     slip["expected_wins_per_100"] = round(p_win * 100, 1)
     slip["mode"] = mode
     if mode == "win_rate":
-        pay_mult = float(slip.get("payout_multiplier") or 1.0)
-        slip["win_rate_score"] = round(p_win * math.log(1.0 + max(pay_mult, 0.0)), 6)
+        # Jul-24: EV proxy = WR × floor (not log-smoothed WR alone).
+        pay_mult = float(slip.get("payout_multiplier") or _ticket_rank_floor_x(slip) or 1.0)
+        slip["win_rate_score"] = round(p_win * max(pay_mult, 0.0), 6)
+        slip["floor_ev"] = round(p_win * max(pay_mult, 0.0) - 1.0, 6)
 
 
 def _group_max_p_win(group: dict) -> float:
@@ -6298,12 +6318,49 @@ def _winrate_ticket_win_prob(ticket: dict) -> float:
     return 0.0
 
 
+def _ticket_rank_floor_x(ticket: dict) -> float:
+    """Best-known Min Guarantee / payout multiplier for floor-EV ranking."""
+    for raw in (
+        _ticket_board_payout_x(ticket),
+        ticket.get("payout_multiplier"),
+    ):
+        v = _safe_positive_float(raw)
+        if v is not None:
+            return float(v)
+    return 1.0
+
+
+def _ticket_is_mlb_goblin_n(ticket: dict, n_legs: int) -> bool:
+    """True when slip is pure MLB Goblin with exactly n_legs."""
+    legs = [
+        leg
+        for leg in (ticket.get("legs") or ticket.get("rows") or [])
+        if isinstance(leg, dict)
+    ]
+    if len(legs) != int(n_legs):
+        return False
+    for leg in legs:
+        sport = str(leg.get("sport") or "").strip().upper()
+        pt = str(leg.get("pick_type") or "").strip().lower()
+        if sport != "MLB" or "goblin" not in pt:
+            return False
+    return True
+
+
 def _winrate_ticket_rank_score(ticket: dict) -> float:
-    """Panel/build sort: highest modeled win probability (not ticket_model_p_cash)."""
-    v = _winrate_ticket_win_prob(ticket)
+    """
+    Panel/build sort: floor-EV proxy = p_win × Min Guarantee (Jul-24).
+
+    Optimizes for EV = WR × floor, not WR alone. MLB Goblin 4L gets a mild boost.
+    """
+    p = _winrate_ticket_win_prob(ticket)
+    floor = _ticket_rank_floor_x(ticket)
+    score = float(p) * float(floor)
+    if _ticket_is_mlb_goblin_n(ticket, 4):
+        score *= float(MLB_GOBLIN_4L_RANK_BOOST)
     if _winrate_ticket_construction_reject(ticket):
-        v *= 0.85
-    return v
+        score *= 0.85
+    return score
 
 
 def _winrate_ticket_panel_pcash_optional(ticket: dict) -> float | None:
@@ -6478,7 +6535,9 @@ def build_win_rate_ticket_groups(
     if anchor is not None:
         p_win = _compute_p_win_from_rows(anchor.get("rows") or [])
         anchor["p_win"] = p_win
-        anchor["win_rate_score"] = p_win * math.log(1.0 + max(float(anchor.get("payout_multiplier") or 1.0), 0.0))
+        pay_mult = float(anchor.get("payout_multiplier") or 1.0)
+        anchor["win_rate_score"] = p_win * max(pay_mult, 0.0)
+        anchor["floor_ev"] = p_win * max(pay_mult, 0.0) - 1.0
         candidates.append(anchor)
 
     for label, raw_df in sport_frames:
@@ -6515,7 +6574,8 @@ def build_win_rate_ticket_groups(
                 pay_mult = float(t.get("payout_multiplier") or 1.0)
                 t = dict(t)
                 t["p_win"] = p_win
-                t["win_rate_score"] = p_win * math.log(1.0 + max(pay_mult, 0.0))
+                t["win_rate_score"] = p_win * max(pay_mult, 0.0)
+                t["floor_ev"] = p_win * max(pay_mult, 0.0) - 1.0
                 t["mode"] = "win_rate"
                 t["_sport_label"] = label
                 candidates.append(t)
@@ -6523,20 +6583,23 @@ def build_win_rate_ticket_groups(
     def _leg_count_pref(ticket: dict) -> int:
         n = len(ticket.get("rows") or [])
         if prefer_three_leg:
-            if n == MAIN_DEFAULT_LEGS:
+            # Jul-24: MLB/Goblin 4L was the only clear +ROI family — prefer before 3L.
+            if goblin_long and n == 4:
                 return 0
-            if n == MAIN_GRADED_MIN_LEGS:
+            if n == MAIN_DEFAULT_LEGS:
                 return 1
-            if goblin_long and 4 <= n <= max_legs:
-                return 1 + n  # after 2–3; shorter long slips before 6
+            if n == MAIN_GRADED_MIN_LEGS:
+                return 2
+            if goblin_long and 5 <= n <= max_legs:
+                return 3 + n  # tighten Long 5–6 vs 4
             return 9
         return 0
 
     candidates.sort(
         key=lambda x: (
             _leg_count_pref(x),
-            -_winrate_ticket_win_prob(x),
             -_winrate_ticket_rank_score(x),
+            -_winrate_ticket_win_prob(x),
             -float(x.get("win_rate_score") or 0.0),
         )
     )
@@ -6582,18 +6645,19 @@ def build_win_rate_ticket_groups(
         long_seed_per_n = max(1, long_budget // max(1, len(long_ns)))
 
     if prefer_three_leg:
-        # Long Goblin first when enabled, then one short companion of each length
-        # (preserves 2-leg thin-pool fallback; remaining slots filled by score).
+        # Jul-24: seed Goblin 4L heavily first; thin-seed 5–6 until WR clears BE.
         if goblin_long:
-            for target_n in range(4, max_legs + 1):
-                _seed_target_n(target_n, long_seed_per_n)
+            _seed_target_n(4, long_seed_per_n + int(GOBLIN_4L_SEED_EXTRA))
+            for target_n in range(5, max_legs + 1):
+                _seed_target_n(target_n, max(1, long_seed_per_n // 2))
         _seed_target_n(MAIN_DEFAULT_LEGS, 1)
         if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS:
             _seed_target_n(MAIN_GRADED_MIN_LEGS, 1)
     elif max_legs >= 3:
         if goblin_long:
-            for target_n in range(4, max_legs + 1):
-                _seed_target_n(target_n, long_seed_per_n)
+            _seed_target_n(4, long_seed_per_n + int(GOBLIN_4L_SEED_EXTRA))
+            for target_n in range(5, max_legs + 1):
+                _seed_target_n(target_n, max(1, long_seed_per_n // 2))
         _seed_target_n(3, 1)
         _seed_target_n(2, 1)
 
@@ -7918,6 +7982,18 @@ LONG_PARLAY_ENABLED: bool = os.getenv("PROPORACLE_LONG_PARLAY", "1").strip().low
 )
 LONG_PARLAY_MIN_LEGS = 5
 LONG_PARLAY_MAX_LEGS = 6
+# Jul-24: Long 5–6L did not clear breakeven — fewer slips, require non-negative floor-EV.
+# Env: PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6), PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0.0)
+LONG_PARLAY_MAX_SLIPS: int = max(1, int(os.getenv("PROPORACLE_LONG_PARLAY_MAX_SLIPS", "6")))
+LONG_PARLAY_MIN_FLOOR_EV: float = float(
+    os.getenv("PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV", "0.0")
+)
+# Goblin-only seed: extra 4L slots (Jul-24 only clear +ROI family).
+# Env: PROPORACLE_GOBLIN_4L_SEED_EXTRA (default 2), PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST (default 1.25)
+GOBLIN_4L_SEED_EXTRA: int = max(0, int(os.getenv("PROPORACLE_GOBLIN_4L_SEED_EXTRA", "2")))
+MLB_GOBLIN_4L_RANK_BOOST: float = float(
+    os.getenv("PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST", "1.25")
+)
 
 # Main graded export: win-rate builder prioritizing realized HR / HOT over flat ml_prob.
 MAIN_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_MAIN_MIN_LEG_PROB", "0.62"))
@@ -8066,16 +8142,17 @@ def filter_ticket_payload_by_leg_count(
 
 def filter_main_track_high_win_prob(payload: dict) -> dict:
     """
-    Curate main-track slips: STRONG/OK only, top MAIN_MAX_SLIPS by modeled p_win rank score.
+    Curate main-track slips: STRONG/OK only, top MAIN_MAX_SLIPS by floor-EV rank.
 
     Excludes void-prone sports (default: Tennis) and same-game deep-bench stacks.
+    Rank = p_win × Min Guarantee (Jul-24); p_win still gates MAIN_MIN_P_WIN_FLOOR.
     """
     if not isinstance(payload, dict):
         return {}
     floor_p = float(MAIN_MIN_P_WIN_FLOOR)
     max_slips = int(MAIN_MAX_SLIPS)
     exclude = set(main_exclude_sports_for_date(str(payload.get("date") or "")))
-    candidates: list[tuple[float, dict, dict]] = []
+    candidates: list[tuple[float, float, dict, dict]] = []
     for g in payload.get("groups") or []:
         if not isinstance(g, dict):
             continue
@@ -8094,7 +8171,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
                 continue
             if any(_leg_dnp_risk(leg) for leg in legs):
                 continue
-            p_win = _winrate_ticket_rank_score(t)
+            p_win = _winrate_ticket_win_prob(t)
             if p_win < floor_p:
                 continue
             pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
@@ -8103,12 +8180,13 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
                 continue
             if _winrate_ticket_construction_reject(t):
                 continue
-            candidates.append((p_win, dict(t), g))
-    candidates.sort(key=lambda x: (-x[0], str(x[2].get("group_name") or "")))
+            rank = _winrate_ticket_rank_score(t)
+            candidates.append((rank, p_win, dict(t), g))
+    candidates.sort(key=lambda x: (-x[0], -x[1], str(x[3].get("group_name") or "")))
     candidates = candidates[:max_slips]
     by_group: dict[str, list[dict]] = {}
     group_meta: dict[str, dict] = {}
-    for _p, t, g in candidates:
+    for _rank, _p, t, g in candidates:
         gn = str(g.get("group_name") or "Group")
         by_group.setdefault(gn, []).append(t)
         group_meta[gn] = g
@@ -8123,6 +8201,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
     out["main_min_p_win_floor"] = floor_p
     out["main_max_slips"] = max_slips
     out["main_exclude_sports"] = sorted(exclude)
+    out["main_rank_mode"] = "floor_ev"
     _finalize_payload_l10_streaks(out)
     return out
 
@@ -8131,6 +8210,7 @@ def extract_long_parlay_payload(full_payload: dict) -> dict:
     """5–6 leg slips from the full EV export (separate grade track from main win-rate pool).
 
     Enabled by default (`PROPORACLE_LONG_PARLAY=1`). Set to 0 to disable.
+    Jul-24: tighten to LONG_PARLAY_MAX_SLIPS by floor-EV; drop negative floor-EV.
     """
     if not LONG_PARLAY_ENABLED:
         out = dict(full_payload) if isinstance(full_payload, dict) else {}
@@ -8146,7 +8226,56 @@ def extract_long_parlay_payload(full_payload: dict) -> dict:
         ticket_track="long_parlay",
         payload_mode="long_parlay",
     )
-    return filter_payload_mlb_construction_hygiene(long_p)
+    long_p = filter_payload_mlb_construction_hygiene(long_p)
+    return tighten_long_parlay_payload(long_p)
+
+
+def tighten_long_parlay_payload(payload: dict) -> dict:
+    """
+    Keep top LONG_PARLAY_MAX_SLIPS by floor-EV (p_win × min_guarantee).
+
+    Drops slips with floor_ev < LONG_PARLAY_MIN_FLOOR_EV (default 0 = breakeven).
+    Env: PROPORACLE_LONG_PARLAY_MAX_SLIPS, PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    min_edge = float(LONG_PARLAY_MIN_FLOOR_EV)
+    max_slips = int(LONG_PARLAY_MAX_SLIPS)
+    scored: list[tuple[float, float, dict, dict]] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            p_win = _winrate_ticket_win_prob(t)
+            floor = _ticket_rank_floor_x(t)
+            floor_ev = p_win * floor - 1.0
+            if floor_ev + 1e-12 < min_edge:
+                continue
+            rank = _winrate_ticket_rank_score(t)
+            scored.append((rank, floor_ev, dict(t), g))
+    scored.sort(key=lambda x: (-x[0], -x[1]))
+    kept = scored[:max_slips]
+    by_group: dict[str, list[dict]] = {}
+    group_meta: dict[str, dict] = {}
+    for _rank, floor_ev, t, g in kept:
+        t["floor_ev"] = round(float(floor_ev), 6)
+        gn = str(g.get("group_name") or "Group")
+        by_group.setdefault(gn, []).append(t)
+        group_meta[gn] = g
+    new_groups: list[dict] = []
+    for gn, tickets in by_group.items():
+        g0 = group_meta[gn]
+        ng = dict(g0)
+        ng["tickets"] = tickets
+        new_groups.append(ng)
+    out = dict(payload)
+    out["groups"] = new_groups
+    out["long_parlay_max_slips"] = max_slips
+    out["long_parlay_min_floor_ev"] = min_edge
+    out["long_parlay_rank_mode"] = "floor_ev"
+    return out
 
 
 def filter_payload_mlb_construction_hygiene(payload: dict) -> dict:
@@ -9366,64 +9495,118 @@ def _ticket_has_live_cdp_payout(ticket: dict) -> bool:
     return _safe_positive_float(pay.get("power_min_x")) is not None and src in ("", "live_cdp")
 
 
+def _ticket_clears_payout_floor(
+    ticket: dict,
+    *,
+    floor_x: float,
+    high_p_win: float | None = None,
+    allow_unknown: bool = False,
+) -> bool:
+    """True when board floor ≥ floor_x, high-p_win bypass, or unknown floor allowed."""
+    bypass = float(SHORT_FLOOR_HIGH_P_WIN if high_p_win is None else high_p_win)
+    px = _ticket_board_payout_x(ticket)
+    if px is None:
+        if allow_unknown:
+            return True
+        return bypass > 0 and _winrate_ticket_win_prob(ticket) + 1e-12 >= bypass
+    if px + 1e-9 >= float(floor_x):
+        return True
+    if bypass > 0 and _winrate_ticket_win_prob(ticket) + 1e-12 >= bypass:
+        return True
+    return False
+
+
 def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     """
-    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 2.0).
+    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 2.2).
 
-    STRONG builder slips always stay (even below the floor). Non-STRONG below-floor
-    slips are deferred when anything preferred (STRONG or ≥2x) remains.
+    Jul-24: STRONG and short Goblin no longer auto-bypass low floors. Sub-floor
+    slips ship only with very high p_win (SHORT_FLOOR_HIGH_P_WIN, default 0.70).
+    When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (2.0)
+    unless high-p_win bypass. If nothing preferred, still apply the hard cut
+    (cut volume) rather than shipping a board of ~1.4–1.6× losers.
+    Unknown/pending floors pass the hard gate (not invented as <2.0×).
 
     When PROPORACLE_REQUIRE_LIVE_PAYOUT=1, non-STRONG without live_cdp are deferred.
     """
-    floor = float(MAIN_PREFERRED_MIN_PAYOUT_X)
+    preferred_x = float(MAIN_PREFERRED_MIN_PAYOUT_X)
+    hard_x = float(SHORT_FLOOR_HARD_X)
     require_live = require_live_payout_display()
-    if floor <= 0 and not require_live:
+    if preferred_x <= 0 and hard_x <= 0 and not require_live:
         return groups
+
     preferred: list[dict] = []
-    n_keep = n_defer = 0
+    hard_only: list[dict] = []
+    n_pref = n_hard = n_defer = 0
+
     for g in groups:
         if not isinstance(g, dict):
             continue
-        keep_tickets: list[dict] = []
+        pref_tickets: list[dict] = []
+        hard_tickets: list[dict] = []
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            if t.get("strong_builder") or t.get("core_build"):
-                keep_tickets.append(t)
-                n_keep += 1
-                continue
-            if require_live and not _ticket_has_live_cdp_payout(t):
+            is_strong = bool(t.get("strong_builder") or t.get("core_build"))
+            if require_live and not is_strong and not _ticket_has_live_cdp_payout(t):
                 n_defer += 1
                 continue
-            if floor <= 0:
-                keep_tickets.append(t)
-                n_keep += 1
-                continue
-            px = _ticket_board_payout_x(t)
-            if px is not None and px + 1e-9 >= floor:
-                keep_tickets.append(t)
-                n_keep += 1
+            clears_pref = preferred_x <= 0 or _ticket_clears_payout_floor(
+                t, floor_x=preferred_x, allow_unknown=False
+            )
+            clears_hard = hard_x <= 0 or _ticket_clears_payout_floor(
+                t, floor_x=hard_x, allow_unknown=True
+            )
+            if clears_pref:
+                pref_tickets.append(t)
+                n_pref += 1
+            elif clears_hard:
+                hard_tickets.append(t)
+                n_hard += 1
             else:
                 n_defer += 1
-        if keep_tickets:
+        if pref_tickets:
             ng = dict(g)
-            ng["tickets"] = keep_tickets
-            ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(keep_tickets[0], ng))
+            ng["tickets"] = pref_tickets
+            ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(pref_tickets[0], ng))
             preferred.append(ng)
+        if hard_tickets or pref_tickets:
+            keep = pref_tickets + hard_tickets
+            if keep:
+                ng2 = dict(g)
+                ng2["tickets"] = keep
+                ng2["n_legs"] = int(ng2.get("n_legs") or _slip_leg_count(keep[0], ng2))
+                hard_only.append(ng2)
+
     if preferred:
-        if n_defer:
+        if n_defer or n_hard:
             print(
-                f"  [web] last filter: prefer ≥{floor:g}x"
-                f"{' + live_cdp' if require_live else ''} (STRONG always kept) — "
-                f"kept {n_keep} slips, deferred {n_defer}"
+                f"  [web] last filter: prefer ≥{preferred_x:g}x"
+                f" (hard ≥{hard_x:g}x; high p_win≥{SHORT_FLOOR_HIGH_P_WIN:g} bypass)"
+                f"{' + live_cdp' if require_live else ''} — "
+                f"kept {n_pref} preferred, deferred {n_defer + n_hard}"
             )
         return preferred
-    return groups
+    if hard_only:
+        if n_defer:
+            print(
+                f"  [web] last filter: hard ≥{hard_x:g}x"
+                f" (no ≥{preferred_x:g}x; high p_win≥{SHORT_FLOOR_HIGH_P_WIN:g} bypass)"
+                f"{' + live_cdp' if require_live else ''} — "
+                f"kept {n_pref + n_hard} slips, deferred {n_defer}"
+            )
+        return hard_only
+    if n_defer:
+        print(
+            f"  [web] last filter: cut all {n_defer} slips below hard ≥{hard_x:g}x "
+            f"(no high-p_win bypass)"
+        )
+    return []
 
 
 def prefer_main_min_payout_payload(payload: dict) -> dict:
     """
-    Final MAIN/web filter: prefer ≥ MAIN_PREFERRED_MIN_PAYOUT_X; STRONG always kept.
+    Final MAIN/web filter: prefer ≥ MAIN_PREFERRED_MIN_PAYOUT_X; floor-gate STRONG.
 
     Must run after display payouts are finalized so display_min_x is authoritative.
     """
@@ -9433,6 +9616,8 @@ def prefer_main_min_payout_payload(payload: dict) -> dict:
     groups = list(out.get("groups") or [])
     out["groups"] = _prefer_main_payout_floor_groups(groups)
     out["preferred_min_payout_x"] = float(MAIN_PREFERRED_MIN_PAYOUT_X)
+    out["short_floor_hard_x"] = float(SHORT_FLOOR_HARD_X)
+    out["short_floor_high_p_win"] = float(SHORT_FLOOR_HIGH_P_WIN)
     return out
 
 

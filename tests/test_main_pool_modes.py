@@ -260,7 +260,8 @@ def test_build_payload_pool_modes_tag_correctly():
                     assert picks and all(("standard" in p) and ("goblin" not in p) for p in picks)
 
 
-def test_prefer_main_payout_floor_keeps_low_when_nothing_clears():
+def test_prefer_main_payout_floor_cuts_low_when_nothing_clears():
+    """Jul-24: cut ~1.6× volume rather than ship a sub-hard-floor board."""
     payload = {
         "pool_mode": MAIN_POOL_MODE,
         "groups": [
@@ -273,18 +274,23 @@ def test_prefer_main_payout_floor_keeps_low_when_nothing_clears():
                             {"sport": "WNBA", "pick_type": "Goblin"},
                             {"sport": "WNBA", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 1.6},
+                        "p_win": 0.55,
+                        "payout": {
+                            "display_min_x": 1.6,
+                            "power_min_x": 1.6,
+                            "payout_source": "live_cdp",
+                        },
                     }
                 ],
             }
         ],
     }
     filtered = prefer_main_min_payout_payload(payload)
-    # No STRONG and nothing ≥2x → fallback keeps the low slip.
-    assert sum(len(g.get("tickets") or []) for g in filtered.get("groups") or []) == 1
+    assert sum(len(g.get("tickets") or []) for g in filtered.get("groups") or []) == 0
 
 
-def test_prefer_main_keeps_strong_below_2x():
+def test_prefer_main_keeps_high_pwin_strong_below_preferred():
+    """STRONG below preferred floor ships only with very high p_win bypass."""
     payload = {
         "pool_mode": MAIN_POOL_MODE,
         "groups": [
@@ -294,19 +300,31 @@ def test_prefer_main_keeps_strong_below_2x():
                 "tickets": [
                     {
                         "strong_builder": True,
+                        "p_win": 0.72,
+                        "est_win_prob": 0.72,
                         "legs": [
                             {"sport": "MLB", "pick_type": "Goblin"},
                             {"sport": "MLB", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 1.3},
+                        "payout": {
+                            "display_min_x": 1.3,
+                            "power_min_x": 1.3,
+                            "payout_source": "live_cdp",
+                        },
                     },
                     {
                         "strong_builder": True,
+                        "p_win": 0.50,
+                        "est_win_prob": 0.50,
                         "legs": [
                             {"sport": "MLB", "pick_type": "Goblin"},
                             {"sport": "MLB", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 2.7},
+                        "payout": {
+                            "display_min_x": 2.7,
+                            "power_min_x": 2.7,
+                            "payout_source": "live_cdp",
+                        },
                     },
                 ],
             },
@@ -315,12 +333,17 @@ def test_prefer_main_keeps_strong_below_2x():
                 "n_legs": 3,
                 "tickets": [
                     {
+                        "p_win": 0.55,
                         "legs": [
                             {"sport": "WNBA", "pick_type": "Goblin"},
                             {"sport": "WNBA", "pick_type": "Goblin"},
                             {"sport": "WNBA", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 1.8},
+                        "payout": {
+                            "display_min_x": 1.8,
+                            "power_min_x": 1.8,
+                            "payout_source": "live_cdp",
+                        },
                     }
                 ],
             },
@@ -328,12 +351,14 @@ def test_prefer_main_keeps_strong_below_2x():
     }
     filtered = prefer_main_min_payout_payload(payload)
     slips = [t for g in filtered.get("groups") or [] for t in (g.get("tickets") or [])]
+    # Preferred ≥2.2 keeps 2.7; high-p_win 1.3 also clears preferred via bypass.
+    # 1.8 non-STRONG deferred.
     assert len(slips) == 2
     assert all(t.get("strong_builder") for t in slips)
     assert {float(t["payout"]["display_min_x"]) for t in slips} == {1.3, 2.7}
 
 
-def test_prefer_main_payout_floor_drops_low_when_2x_exists():
+def test_prefer_main_drops_low_strong_when_preferred_exists():
     payload = {
         "pool_mode": MAIN_POOL_MODE,
         "groups": [
@@ -343,19 +368,31 @@ def test_prefer_main_payout_floor_drops_low_when_2x_exists():
                 "tickets": [
                     {
                         "strong_builder": True,
+                        "p_win": 0.50,
+                        "est_win_prob": 0.50,
                         "legs": [
                             {"sport": "MLB", "pick_type": "Goblin"},
                             {"sport": "MLB", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 2.7},
+                        "payout": {
+                            "display_min_x": 2.7,
+                            "power_min_x": 2.7,
+                            "payout_source": "live_cdp",
+                        },
                     },
                     {
                         "strong_builder": True,
+                        "p_win": 0.50,
+                        "est_win_prob": 0.50,
                         "legs": [
                             {"sport": "MLB", "pick_type": "Goblin"},
                             {"sport": "MLB", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 1.2},
+                        "payout": {
+                            "display_min_x": 1.2,
+                            "power_min_x": 1.2,
+                            "payout_source": "live_cdp",
+                        },
                     },
                 ],
             },
@@ -364,23 +401,60 @@ def test_prefer_main_payout_floor_drops_low_when_2x_exists():
                 "n_legs": 3,
                 "tickets": [
                     {
+                        "p_win": 0.55,
                         "legs": [
                             {"sport": "WNBA", "pick_type": "Goblin"},
                             {"sport": "WNBA", "pick_type": "Goblin"},
                             {"sport": "WNBA", "pick_type": "Goblin"},
                         ],
-                        "payout": {"display_min_x": 1.8},
+                        "payout": {
+                            "display_min_x": 1.8,
+                            "power_min_x": 1.8,
+                            "payout_source": "live_cdp",
+                        },
                     }
                 ],
             },
         ],
     }
-    # High-prob filter keeps everything; 2x prefer is the last step.
+    # High-prob filter keeps everything; 2.2x prefer is the last step.
     mid = filter_main_high_prob_payload(payload)
     assert sum(len(g.get("tickets") or []) for g in mid.get("groups") or []) == 3
     filtered = prefer_main_min_payout_payload(mid)
     slips = [t for g in filtered.get("groups") or [] for t in (g.get("tickets") or [])]
-    # Both STRONG stay (including 1.2x); non-STRONG 1.8x deferred.
-    assert len(slips) == 2
-    assert all(t.get("strong_builder") for t in slips)
-    assert {float(t["payout"]["display_min_x"]) for t in slips} == {2.7, 1.2}
+    # Only ≥2.2 STRONG kept; low STRONG + 1.8 non-STRONG deferred.
+    assert len(slips) == 1
+    assert slips[0].get("strong_builder")
+    assert float(slips[0]["payout"]["display_min_x"]) == 2.7
+
+
+def test_prefer_main_hard_floor_keeps_2x_when_no_preferred():
+    """Board of ≥2.0× / <2.2× ships via hard floor when nothing hits preferred."""
+    payload = {
+        "pool_mode": MAIN_POOL_MODE,
+        "groups": [
+            {
+                "group_name": "MLB Goblin 3",
+                "n_legs": 3,
+                "tickets": [
+                    {
+                        "p_win": 0.55,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {
+                            "display_min_x": 2.0,
+                            "power_min_x": 2.0,
+                            "payout_source": "live_cdp",
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+    filtered = prefer_main_min_payout_payload(payload)
+    slips = [t for g in filtered.get("groups") or [] for t in (g.get("tickets") or [])]
+    assert len(slips) == 1
+    assert float(slips[0]["payout"]["display_min_x"]) == 2.0

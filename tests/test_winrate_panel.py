@@ -60,7 +60,49 @@ def test_same_game_bench_stack():
 def test_win_prob_prefers_est_win_prob_over_pcash():
     ticket = {"p_win": 0.64, "ticket_model_p_cash": 0.41, "est_win_prob": 0.58}
     assert cst._winrate_ticket_win_prob(ticket) == pytest.approx(0.58, rel=1e-3)
+    # Rank score is floor-EV (p_win × floor); default floor=1.0 → equals p_win.
     assert cst._winrate_ticket_rank_score(ticket) == pytest.approx(0.58, rel=1e-3)
+
+
+def test_rank_score_uses_floor_ev_not_wr_alone():
+    low_floor = {
+        "est_win_prob": 0.60,
+        "payout": {"display_min_x": 1.5, "power_min_x": 1.5, "payout_source": "live_cdp"},
+        "legs": [{"sport": "WNBA", "pick_type": "Goblin"}] * 2,
+    }
+    high_floor = {
+        "est_win_prob": 0.45,
+        "payout": {"display_min_x": 4.0, "power_min_x": 4.0, "payout_source": "live_cdp"},
+        "legs": [{"sport": "WNBA", "pick_type": "Goblin"}] * 2,
+    }
+    # 0.45 × 4.0 = 1.80 > 0.60 × 1.5 = 0.90
+    assert cst._winrate_ticket_rank_score(high_floor) > cst._winrate_ticket_rank_score(low_floor)
+
+
+def test_mlb_goblin_4l_rank_boost():
+    base = {
+        "est_win_prob": 0.40,
+        "payout": {"display_min_x": 5.0, "power_min_x": 5.0, "payout_source": "live_cdp"},
+        "legs": [
+            {"sport": "MLB", "pick_type": "Goblin"},
+            {"sport": "MLB", "pick_type": "Goblin"},
+            {"sport": "MLB", "pick_type": "Goblin"},
+            {"sport": "MLB", "pick_type": "Goblin"},
+        ],
+    }
+    other = {
+        "est_win_prob": 0.40,
+        "payout": {"display_min_x": 5.0, "power_min_x": 5.0, "payout_source": "live_cdp"},
+        "legs": [
+            {"sport": "WNBA", "pick_type": "Goblin"},
+            {"sport": "WNBA", "pick_type": "Goblin"},
+            {"sport": "WNBA", "pick_type": "Goblin"},
+            {"sport": "WNBA", "pick_type": "Goblin"},
+        ],
+    }
+    assert cst._ticket_is_mlb_goblin_n(base, 4)
+    assert not cst._ticket_is_mlb_goblin_n(other, 4)
+    assert cst._winrate_ticket_rank_score(base) > cst._winrate_ticket_rank_score(other)
 
 
 def test_rank_score_not_driven_by_ticket_model_p_cash():

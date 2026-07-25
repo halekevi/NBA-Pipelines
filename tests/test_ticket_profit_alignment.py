@@ -36,6 +36,80 @@ def test_main_max_legs_default_is_three():
     assert cst.HIGH_PROB_PARLAY_MAX_LEGS <= 3
     assert cst.GOBLIN_MAX_LEGS >= 6
     assert cst.LONG_PARLAY_ENABLED is True
+    # Jul-24 construction defaults
+    assert cst.MAIN_PREFERRED_MIN_PAYOUT_X >= 2.2
+    assert cst.SHORT_FLOOR_HARD_X >= 2.0
+    assert cst.SHORT_FLOOR_HIGH_P_WIN >= 0.70
+    assert cst.LONG_PARLAY_MAX_SLIPS <= 8
+    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[4] >= cst.WEB_TICKET_TEMPLATE_BY_LEGS[3]
+    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[5] <= 4
+    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[6] <= 3
+
+
+def test_tighten_long_parlay_keeps_top_floor_ev():
+    payload = {
+        "groups": [
+            {
+                "group_name": "MLB Goblin 5",
+                "n_legs": 5,
+                "tickets": [
+                    {
+                        # floor_ev = 0.10*4 - 1 = -0.6 → drop
+                        "est_win_prob": 0.10,
+                        "legs": [{"sport": "MLB", "pick_type": "Goblin"}] * 5,
+                        "payout": {
+                            "display_min_x": 4.0,
+                            "power_min_x": 4.0,
+                            "payout_source": "live_cdp",
+                        },
+                    },
+                    {
+                        # floor_ev = 0.25*5 - 1 = +0.25 → keep
+                        "est_win_prob": 0.25,
+                        "legs": [{"sport": "MLB", "pick_type": "Goblin"}] * 5,
+                        "payout": {
+                            "display_min_x": 5.0,
+                            "power_min_x": 5.0,
+                            "payout_source": "live_cdp",
+                        },
+                    },
+                    {
+                        # floor_ev = 0.05*8 - 1 = -0.6 → drop
+                        "est_win_prob": 0.05,
+                        "legs": [{"sport": "MLB", "pick_type": "Goblin"}] * 6,
+                        "payout": {
+                            "display_min_x": 8.0,
+                            "power_min_x": 8.0,
+                            "payout_source": "live_cdp",
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+    out = cst.tighten_long_parlay_payload(payload)
+    slips = [t for g in out.get("groups") or [] for t in (g.get("tickets") or [])]
+    assert len(slips) == 1
+    assert float(slips[0]["est_win_prob"]) == 0.25
+    assert float(slips[0].get("floor_ev") or -1) >= 0.0
+
+
+def test_demons_excluded_from_main_pool():
+    row = {
+        "sport": "WNBA",
+        "pick_type": "demon",
+        "tier": "A",
+        "direction": "OVER",
+        "prop_type": "Points",
+        "composite_hit_rate": 0.90,
+        "hit_rate": 0.90,
+        "ml_prob": 0.90,
+        "l5_over": 5,
+        "l5_under": 0,
+    }
+    assert not cst._row_win_rate_eligible(
+        row, min_leg_prob=0.62, min_composite_hr=0.55
+    )
 
 
 def test_strong_max_legs_hard_capped_at_three():

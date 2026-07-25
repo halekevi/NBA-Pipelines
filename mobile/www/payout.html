@@ -944,12 +944,12 @@ body::before{
     linear-gradient(180deg,#050505 0%,#0a0a0a 52%,#111111 100%);
 }
 </style>
-<link rel="stylesheet" href="static/global-scrollbar.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/global-scrollbar.css?v=20260517platform"/>
 <link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260719gradesm2"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260719gradesm2"/>
-<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260719gradesm2"/>
-<link rel="stylesheet" href="static/site-nav-unified.css?v=20260719gradesm2"/>
+<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260418nav"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260522gradesframe"/>
+<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="static/site-nav-unified.css?v=20260720halfnav1"/>
 </head>
 <body class="page-payout">
 <!-- Liquid Glass Orbs -->
@@ -981,7 +981,7 @@ body::before{
     <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
     <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
     <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
-    <li><a href="payout.html" class="active"><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
+    <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
     <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
@@ -1006,7 +1006,7 @@ body::before{
   <a href="tickets.html" class="">🎟 Tickets</a>
   <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
   <a href="income.html" class="">📈 Income</a>
-  <a href="payout.html" class="active">💰 Payouts</a>
+  <a href="payout.html" class="">💰 Payouts</a>
 </div>
 
 <div id="app">
@@ -1107,10 +1107,10 @@ body::before{
   }
 </style>
 <nav class="payout-subnav" aria-label="Payouts sections">
-  <a class="payout-subnav-back" href="payout.html" class="active">&larr; Back to Builder</a>
+  <a class="payout-subnav-back" href="payout.html">&larr; Back to Builder</a>
   <span class="payout-subnav-sep" aria-hidden="true"></span>
   <div class="payout-subnav-links">
-    <a href="payout.html" class="active" data-section="builder">Builder</a>
+    <a href="payout.html" data-section="builder">Builder</a>
     <a href="payout_log.html" data-section="ladder_log">Ladder Log</a>
     <a href="payout.html?tab=cards" data-section="cards">Rates &amp; Ladder</a>
   </div>

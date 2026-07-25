@@ -188,13 +188,7 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 4px 0 6px;
-    margin-bottom: 8px;
-    gap: 6px;
-  }
-  .tickets-built .winrate-best-panel {
-    margin: 0 0 8px 0;
-    padding: 10px 12px;
+    padding-bottom: 8px;
   }
 }
 

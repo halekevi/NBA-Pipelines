@@ -58,30 +58,19 @@ if ($branch -ne "main") {
 }
 
 Write-Host "[8AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
-$unmergedBefore = @(git ls-files -u 2>$null)
-if ($unmergedBefore.Count -gt 0) {
-    Write-Host "[8AM UPDATE] FAILED: unmerged paths block pull (resolve or reset first)." -ForegroundColor Red
-    $unmergedBefore | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+# Same permanent fix as 3AM/5AM: never abort the run for generated publish JSON.
+$EnsurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
+if (-not (Test-Path -LiteralPath $EnsurePull)) {
+    $EnsurePull = Join-Path $Root "scripts\Ensure-CleanPull.ps1"
+}
+& pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[8AM UPDATE]" -StashMessage ("proporacle-8am-pre-pull-{0:yyyyMMdd_HHmmss}" -f (Get-Date))
+$pullPrepExit = $LASTEXITCODE
+if ($pullPrepExit -eq 2) {
+    Write-Host "[8AM UPDATE] FAILED: source-code conflicts block pull (resolve manually)." -ForegroundColor Red
     exit 128
 }
-$stashOut = git stash push -u -m "proporacle-8am-pre-pull-$(Get-Date -Format 'yyyyMMdd_HHmmss')" 2>&1
-$stashOut | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-$didStash = ("$stashOut" -notmatch 'No local changes to save')
-git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-$pullExit = $LASTEXITCODE
-if ($pullExit -ne 0) {
-    Write-Host "[8AM UPDATE] git pull failed (exit $pullExit); leaving pre-pull stash (if any) intact." -ForegroundColor Red
-    exit $pullExit
-}
-if ($didStash) {
-    git stash pop 2>&1 | ForEach-Object { Write-Host "    stash pop: $_" -ForegroundColor DarkGray }
-    $popExit = $LASTEXITCODE
-    $unmergedAfter = @(git ls-files -u 2>$null)
-    if ($popExit -ne 0 -or $unmergedAfter.Count -gt 0) {
-        Write-Host "[8AM UPDATE] FAILED: stash pop left conflicts; aborting (stash kept)." -ForegroundColor Red
-        $unmergedAfter | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
-        exit 128
-    }
+if ($pullPrepExit -ne 0) {
+    Write-Host "[8AM UPDATE] Pull prep warned (exit $pullPrepExit); continuing with local tree." -ForegroundColor Yellow
 }
 
 Write-Host "[8AM UPDATE] Running line-move refresh (RunLabel 8AM)..." -ForegroundColor Cyan

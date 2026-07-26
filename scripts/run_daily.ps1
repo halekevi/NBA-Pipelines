@@ -2079,6 +2079,22 @@ else {
         finally {
             if ($stepEStashed) {
                 git stash pop 2>&1 | ForEach-Object { Write-Log "STEP E - stash pop: $_" }
+                $stepEPopExit = $LASTEXITCODE
+                $stepEUnmerged = @(git ls-files -u 2>$null)
+                if ($stepEPopExit -ne 0 -or $stepEUnmerged.Count -gt 0) {
+                    Write-Log "STEP E - stash pop left conflicts; repairing via Ensure-CleanPull.ps1"
+                    $ensurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
+                    if (-not (Test-Path -LiteralPath $ensurePull)) {
+                        $ensurePull = Join-Path $Root "scripts\Ensure-CleanPull.ps1"
+                    }
+                    if (Test-Path -LiteralPath $ensurePull) {
+                        & pwsh -NoProfile -File $ensurePull -RepoRoot (Get-Location).Path -Label "[STEP E]" -SkipPull
+                        Write-Log "STEP E - Ensure-CleanPull exit $LASTEXITCODE"
+                    }
+                    else {
+                        Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
+                    }
+                }
             }
             Pop-Location
             if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {

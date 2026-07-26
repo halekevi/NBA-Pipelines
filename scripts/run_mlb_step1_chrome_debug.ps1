@@ -54,8 +54,10 @@ if (-not (Test-CdpEndpoint -BaseUrl $CdpUrl)) {
     Write-Host ""
     Write-Host '  & "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" `'
     Write-Host '      --remote-debugging-port=9222 `'
+    Write-Host '      --remote-allow-origins=* `'
     Write-Host '      --user-data-dir="$env:USERPROFILE\.pp_browser_profile"'
     Write-Host ""
+    Write-Host "Or: pwsh -NoProfile -File scripts\launch_prizepicks_chrome_cdp.ps1 -OpenBoard -LeagueId 2" -ForegroundColor DarkGray
     Write-Host "Full walkthrough: docs\guides\chrome_debug_setup.md (MLB step1 over CDP)" -ForegroundColor DarkGray
     exit 1
 }

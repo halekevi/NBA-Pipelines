@@ -41,6 +41,10 @@ if (-not $profile) {
 $cdpUrl = "http://127.0.0.1:$Port"
 $args = @(
     "--remote-debugging-port=$Port",
+    # Required for Playwright / websocket-client attach from this machine.
+    # Without it, Chrome returns HTTP 403 on DevTools WebSocket handshake and
+    # step1 CDP hangs/fails (tickets stay empty on 403 days).
+    "--remote-allow-origins=*",
     "--user-data-dir=$profile",
     "--no-first-run",
     "--no-default-browser-check"

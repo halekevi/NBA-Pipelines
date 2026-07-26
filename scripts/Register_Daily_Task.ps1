@@ -172,7 +172,11 @@ Register-PropTask `
     -ScriptPath $ScriptPayout `
     -At "11:00"
 
-$ScriptPayoutUpdate = Join-Path $Root "scripts\run_payout_cdp_update.ps1"
+$ScriptPayoutUpdate = Join-Path $PipelineRoot "scripts\run_payout_cdp_update.ps1"
+if (-not (Test-Path $ScriptPayoutUpdate)) {
+    Write-Error "Required script missing: $ScriptPayoutUpdate"
+    exit 1
+}
 Register-PropTask `
     -TaskName "PropOracle - Payout CDP Update" `
     -Description "Afternoon UpdateOnly CDP fill for slips still missing live_cdp after ticket rebuilds. Opens visible PowerShell." `

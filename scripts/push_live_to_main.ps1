@@ -61,7 +61,9 @@ if ($IncludePublishHelpers) {
     $AlsoPaths += @(
         "run_pipeline.ps1",
         "scripts/run_daily.ps1",
-        "scripts/run_daily_7am.ps1",
+        "scripts/run_daily_5am.ps1",
+        "scripts/run_daily_8am.ps1",
+        "scripts/Ensure-CleanPull.ps1",
         "scripts/push_live_to_main.ps1",
         "scripts/combined_slate_tickets.py",
         "utils/ticket_ev_tiers.py"

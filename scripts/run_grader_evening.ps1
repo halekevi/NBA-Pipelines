@@ -1,7 +1,8 @@
 #requires -Version 5.1
 <#
   Scheduled hourly grader (7pm–1am) via Register_Daily_Task.ps1.
-  Same as run_grader_5am.ps1: git pull, then run_grader.ps1 for yesterday's slate date.
+  Evening grader wrapper: git pull, then run_grader.ps1 for yesterday's slate date.
+  (Standalone run_grader_5am.ps1 was removed — morning grading is inside Daily 5AM.)
 #>
 param()
 

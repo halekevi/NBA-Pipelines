@@ -1,3 +1,19 @@
 # Normalize combined slate script to LF so diffs stay readable on Windows.
 scripts/combined_slate_tickets.py text eol=lf
 scripts/railway_gunicorn.sh text eol=lf
+
+# Published slate/ticket JSON is regenerated every daily/refresh. Prefer "ours"
+# on merge so STEP E / stash-pop does not leave orphaned unmerged index entries
+# that abort 3AM/5AM/8AM (exit 128) before the pipeline runs.
+ui_runner/templates/tickets_latest.json merge=ours
+ui_runner/docs/tickets_latest.json merge=ours
+ui_runner/data/tickets_latest.json merge=ours
+mobile/www/tickets_latest.json merge=ours
+ui_runner/templates/slate_latest.json merge=ours
+mobile/www/slate_latest.json merge=ours
+ui_runner/templates/pipeline_status.json merge=ours
+mobile/www/pipeline_status.json merge=ours
+ui_runner/templates/sport_breakdown.json merge=ours
+ui_runner/docs/sport_breakdown.json merge=ours
+mobile/www/sport_breakdown.json merge=ours
+data/sport_breakdown.json merge=ours

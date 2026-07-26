@@ -6,9 +6,12 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate → (D-payout) live CDP payout scrape + verify outstanding ticket floors / mixΔ (scripts/run_live_payout_capture.ps1; also runs inside Run-Combined) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
-         Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 7AM refresh); override when needed.
+         Live PrizePicks CDP payout scrape is a separate scheduled task (PropOracle - Payout CDP @ 11:00)
+         via scripts\run_payout_cdp.ps1 — not part of 5AM, so the board can publish without waiting on Chrome.
+         Pass -RunLivePayout to opt back into STEP D-payout for a manual full daily.
+         Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
          Combined slate (STEP D via run_pipeline.ps1) fetches Underdog + DraftKings by default; set PROPORACLE_SKIP_ALT_BOOKS=1 or pass -SkipAltBooks to run_pipeline to disable.
          Use -SkipFetch to skip A1 and C0b. -SkipGameLines skips C0. -SkipPeriodHistorySync skips C0b only.
@@ -46,7 +49,9 @@ param(
     [double]$TicketModelWeight = 0.35,
     [int]$TicketModelTopN = 10,
     # When set, run STEP D1 ticket-model dataset/train/eval (default off — use on retrain days).
-    [switch]$RunTicketModels
+    [switch]$RunTicketModels,
+    # Opt-in: run live PrizePicks CDP in this daily (default off — use PropOracle - Payout CDP @ 11AM).
+    [switch]$RunLivePayout
 )
 
 $ErrorActionPreference = "Continue"
@@ -60,10 +65,21 @@ if (Test-Path $envFile) {
     }
 }
 $SportsRoot = Join-Path $Root "Sports"
-# WNBA: must match $WNBA_SEASON_START in repo-root run_pipeline.ps1 (parallel job + dated step8 gate).
+# WNBA: must match $WNBA_SEASON_START / All-Star pause in repo-root run_pipeline.ps1.
 $WNBA_SEASON_START = "2026-05-01"
+$WNBA_SEASON_RESUME = "2026-07-28"
+if ($env:WNBA_RESUME_DATE) { $WNBA_SEASON_RESUME = $env:WNBA_RESUME_DATE.Trim() }
+elseif ($env:PROPORACLE_WNBA_RESUME) { $WNBA_SEASON_RESUME = $env:PROPORACLE_WNBA_RESUME.Trim() }
+$WNBA_ALLSTAR_PAUSE_START = "2026-07-19"
+if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.Trim() }
+elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
 # NBA / NBA1H / NBA1Q grading: must match run_pipeline.ps1 $NBA_SEASON_RESUME.
 $NBA_SEASON_RESUME = "2026-10-01"
+
+function Test-WnbaAllStarPause {
+    param([string]$SlateDate)
+    return ($SlateDate -ge $WNBA_ALLSTAR_PAUSE_START) -and ($SlateDate -lt $WNBA_SEASON_RESUME)
+}
 
 function Test-PpCdpReachable {
     param([string]$CdpBaseUrl = "http://127.0.0.1:9222")
@@ -262,17 +278,24 @@ function Get-MissingTodaySlateOutputs {
         "step8_wnba_direction_clean_$RunDate.xlsx"    = @{ key = "wnba";   step1 = (Join-Path $outDir "wnba\step1_wnba_props.csv") }
     }
     $required = @(
-        "step8_nba_direction_clean_$RunDate.xlsx",
-        "step8_nba1h_direction_clean_$RunDate.xlsx",
-        "step8_nba1q_direction_clean_$RunDate.xlsx",
-        "step8_nhl_direction_clean_$RunDate.xlsx",
         "step8_soccer_direction_clean_$RunDate.xlsx",
         "step8_mlb_direction_clean_$RunDate.xlsx",
         "step8_tennis_direction_clean_$tennisDated.xlsx"
     )
+    # NBA / NHL / period boards: keep exemption wiring, but do not require during off-season.
+    if ($RunDate -ge $NBA_SEASON_RESUME) {
+        $required = @(
+            "step8_nba_direction_clean_$RunDate.xlsx",
+            "step8_nba1h_direction_clean_$RunDate.xlsx",
+            "step8_nba1q_direction_clean_$RunDate.xlsx"
+        ) + @($required)
+    }
+    if ($RunDate -ge "2026-09-01") {
+        $required = @("step8_nhl_direction_clean_$RunDate.xlsx") + @($required)
+    }
     # WNBA: run_wnba_pipeline.ps1 publishes outputs/<date>/step8_wnba_direction_clean_<date>.xlsx
     # (same basename pattern as other sports' step8_*_direction_clean_<date>.xlsx).
-    if ($RunDate -ge $WNBA_SEASON_START) {
+    if (($RunDate -ge $WNBA_SEASON_START) -and -not (Test-WnbaAllStarPause -SlateDate $RunDate)) {
         $required = @($required) + @("step8_wnba_direction_clean_$RunDate.xlsx")
     }
     # 2026 NCAA: WCBB title Sun Apr 5; men's title Mon Apr 6. Expect no WCBB slate from Apr 6+;
@@ -624,6 +647,36 @@ if (Test-Path $syncGradeHistoryScript) {
 }
 else {
     Write-Log "STEP A1b-sync - grade_history → templates: SKIP (sync_grade_history_to_templates.py missing)"
+}
+
+# =============================================================================
+# STEP A1b-mlb — MAIN MLB construction expected vs actual (non-blocking)
+# =============================================================================
+$mlbConstructionCheck = Join-Path $Root "scripts\daily_main_mlb_construction_check.py"
+if (Test-Path $mlbConstructionCheck) {
+    Write-Log "STEP A1b-mlb - MAIN MLB construction check: START"
+    Push-Location $Root
+    try {
+        $from7 = (Get-Date).AddDays(-7).ToString("yyyy-MM-dd")
+        $toToday = (Get-Date).ToString("yyyy-MM-dd")
+        & py -3.14 -X utf8 $mlbConstructionCheck --from $from7 --to $toToday
+        $mc = $LASTEXITCODE
+        if ($mc -ne 0) {
+            Write-Log "STEP A1b-mlb - MAIN MLB construction check: WARN (exit $mc)"
+        }
+        else {
+            Write-Log "STEP A1b-mlb - MAIN MLB construction check: OK → data/reports/main_mlb_construction_daily_latest.json"
+        }
+    }
+    catch {
+        Write-Log "STEP A1b-mlb - MAIN MLB construction check: WARN ($($_.Exception.Message))"
+    }
+    finally {
+        Pop-Location
+    }
+}
+else {
+    Write-Log "STEP A1b-mlb - MAIN MLB construction check: SKIP (script missing)"
 }
 
 # =============================================================================
@@ -1149,8 +1202,9 @@ if ($script:PipelineFailed) {
     try {
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
         # SkipDailyGrader: yesterday already graded in STEP A; avoid a second full run_grader pass.
+        # SkipLivePayoutCapture: live CDP is PropOracle - Payout CDP @ 11:00 (not Combined).
         # grading handled by STEP A (run_grader.ps1) — not the post-pipeline grader here
-        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader
+        & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -CombinedOnly -DQWarnOnly -SkipDailyGrader -SkipLivePayoutCapture
         $ce = $LASTEXITCODE
         # Success = combined Excel exists; exit code may be non-zero if only ticket_eval HTML failed (non-fatal)
         if (Test-Path $combinedOut) {
@@ -1180,13 +1234,17 @@ if ($script:PipelineFailed) {
 }
 
 # =============================================================================
-# STEP D-payout — Live PrizePicks payout capture after tickets (shared helper)
-# Daily STEP D passes -SkipLivePayoutCapture so CDP runs once here (MAIN scrape).
-# Midday refreshes call the same helper with -UpdateOnly (only missing live_cdp).
-# Idempotent: skips CDP if fingerprint unchanged + all live_cdp; else --only-missing-live.
+# STEP D-payout — Live PrizePicks payout capture (OPT-IN only)
+# Default: skipped. MAIN scrape is PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00).
+# Midday refreshes still call run_live_payout_capture.ps1 -UpdateOnly for missing floors.
+# Pass -RunLivePayout for a one-shot full daily that includes CDP.
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
+}
+elseif (-not $RunLivePayout) {
+    Write-Host "  [SKIP] Live payout CDP — separate PropOracle - Payout CDP task (pass -RunLivePayout to include)" -ForegroundColor DarkGray
+    Write-Log "STEP D-payout - Live payout capture: SKIPPED (default; use Payout CDP task or -RunLivePayout)"
 }
 else {
     $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
@@ -1202,7 +1260,7 @@ else {
         Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
     }
     else {
-        Write-Log "STEP D-payout - Live payout capture + verify: START"
+        Write-Log "STEP D-payout - Live payout capture + verify: START (-RunLivePayout)"
         try {
             & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -RebuildRateCard
             Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
@@ -1703,7 +1761,9 @@ if (Test-Path $meScript) {
         & py -3.14 -X utf8 $meScript --sport all
         if ($LASTEXITCODE -ne 0) {
             Write-Log "STEP D-ME - Matchup edge rebuild: WARN (exit $LASTEXITCODE) — retrying active summer sports"
-            foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
+            $meSports = @("mlb", "soccer", "tennis")
+            if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $meSports = @("mlb", "wnba", "soccer", "tennis") }
+            foreach ($meSport in $meSports) {
                 & py -3.14 -X utf8 $meScript --sport $meSport
                 if ($LASTEXITCODE -ne 0) {
                     Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $LASTEXITCODE)"
@@ -2019,6 +2079,22 @@ else {
         finally {
             if ($stepEStashed) {
                 git stash pop 2>&1 | ForEach-Object { Write-Log "STEP E - stash pop: $_" }
+                $stepEPopExit = $LASTEXITCODE
+                $stepEUnmerged = @(git ls-files -u 2>$null)
+                if ($stepEPopExit -ne 0 -or $stepEUnmerged.Count -gt 0) {
+                    Write-Log "STEP E - stash pop left conflicts; repairing via Ensure-CleanPull.ps1"
+                    $ensurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
+                    if (-not (Test-Path -LiteralPath $ensurePull)) {
+                        $ensurePull = Join-Path $Root "scripts\Ensure-CleanPull.ps1"
+                    }
+                    if (Test-Path -LiteralPath $ensurePull) {
+                        & pwsh -NoProfile -File $ensurePull -RepoRoot (Get-Location).Path -Label "[STEP E]" -SkipPull
+                        Write-Log "STEP E - Ensure-CleanPull exit $LASTEXITCODE"
+                    }
+                    else {
+                        Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
+                    }
+                }
             }
             Pop-Location
             if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {
@@ -2228,19 +2304,76 @@ try {
 catch {
     $refreshRunning = $false
 }
-$refreshSoon = ($NowHour -ge 10)
+# Also honor a live refresh.lock (PID still running). Do NOT treat "hour >= 10" as
+# refreshSoon — that previously skipped inline late-fetch forever after 10:00 and
+# left the day empty when a scheduled refresh hung or soft-skipped.
+$refreshLockBlocks = $false
+try {
+    $dailyRefreshLock = Join-Path $Root "data\cache\refresh.lock"
+    if (Test-Path -LiteralPath $dailyRefreshLock) {
+        $lockLine = (Get-Content -LiteralPath $dailyRefreshLock -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $lockAgeMin = ((Get-Date) - (Get-Item -LiteralPath $dailyRefreshLock).LastWriteTime).TotalMinutes
+        $lockPid = $null
+        if ("$lockLine" -match 'PID\s+(\d+)') { $lockPid = [int]$Matches[1] }
+        $lockPidAlive = $false
+        if ($lockPid) {
+            $lockPidAlive = $null -ne (Get-Process -Id $lockPid -ErrorAction SilentlyContinue)
+        }
+        if ($lockPidAlive -and $lockAgeMin -lt 90) {
+            $refreshLockBlocks = $true
+        }
+        elseif (-not $lockPidAlive -or $lockAgeMin -ge 90) {
+            Remove-Item -LiteralPath $dailyRefreshLock -Force -ErrorAction SilentlyContinue
+            Write-Log "[NBA_LATE_FETCH] Cleared stale refresh.lock (alive=$lockPidAlive ageMin=$([int]$lockAgeMin))"
+        }
+    }
+}
+catch { }
+
+# Today's slate still empty / all no_slate → do not defer to a scheduled refresh that may
+# already have soft-skipped. Run inline late-fetch so tickets land.
+$todaySlateNeedsCatchup = $false
+try {
+    $slateStatusPath = Join-Path $Root "outputs\$Today\pipeline_slate_status.json"
+    $combinedTodayXlsx = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.xlsx"
+    if (-not (Test-Path -LiteralPath $combinedTodayXlsx)) {
+        $todaySlateNeedsCatchup = $true
+    }
+    elseif (Test-Path -LiteralPath $slateStatusPath) {
+        $ss = Get-Content -LiteralPath $slateStatusPath -Raw -ErrorAction Stop | ConvertFrom-Json
+        $active = @("mlb", "soccer", "tennis")
+        if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $active = @("mlb", "wnba", "soccer", "tennis") }
+        $completeCount = 0
+        foreach ($sk in $active) {
+            if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $completeCount++ }
+        }
+        if ($completeCount -eq 0) { $todaySlateNeedsCatchup = $true }
+    }
+}
+catch {
+    $todaySlateNeedsCatchup = $true
+}
 
 if ($NowHour -ge 10) {
-    if ($refreshRunning -or $refreshSoon) {
+    # Only skip when a refresh is actually in flight. Never skip solely because hour>=10
+    # (that old refreshSoon bug deferred forever to hung/soft-skipped scheduled tasks).
+    if ($refreshRunning -or $refreshLockBlocks) {
         Write-Host "[LATE_FETCH] Skipping inline late-fetch — refresh task will handle it" -ForegroundColor DarkGray
         if ($refreshRunning) {
             Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled (a refresh task is currently running)"
         }
         else {
-            Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled after 10:00 (scheduled refresh handles late fetch)"
+            Write-Log "[NBA_LATE_FETCH] SKIP: inline late-fetch disabled (live refresh.lock)"
+        }
+        if ($todaySlateNeedsCatchup) {
+            Write-Log "[NBA_LATE_FETCH] WARN: today's slate still incomplete while refresh is running — will rely on refresh finish or next cadence"
         }
     }
     else {
+        if ($todaySlateNeedsCatchup) {
+            Write-Host "[LATE_FETCH] Today's slate still empty — running catchup late-fetch" -ForegroundColor Yellow
+            Write-Log "[NBA_LATE_FETCH] CATCHUP: slate incomplete; running inline late-fetch"
+        }
         Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
         Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch -SkipLivePayoutCapture)"
 
@@ -2368,7 +2501,7 @@ if ($NowHour -ge 10) {
     }
 
     $wnbaLatePs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
-    if (Test-Path -LiteralPath $wnbaLatePs1) {
+    if ((Test-Path -LiteralPath $wnbaLatePs1) -and -not (Test-WnbaAllStarPause -SlateDate $Today)) {
         Write-Host "[LATE_FETCH] Fetching WNBA props..." -ForegroundColor Cyan
         & pwsh -NoProfile -File $wnbaLatePs1 -Date $Today -Step1Only
         if ($LASTEXITCODE -ne 0) {
@@ -2376,10 +2509,14 @@ if ($NowHour -ge 10) {
             Write-Log "[NBA_LATE_FETCH] WARN: WNBA step1 exit $LASTEXITCODE"
         }
     }
+    elseif (Test-WnbaAllStarPause -SlateDate $Today) {
+        Write-Host "[LATE_FETCH] Skipping WNBA (All-Star pause until $WNBA_SEASON_RESUME)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] SKIP: WNBA All-Star pause until $WNBA_SEASON_RESUME"
+    }
 
         $pipeScript = Join-Path $Root "run_pipeline.ps1"
         if (Test-Path $pipeScript) {
-            # Midday/late fetch must not start live CDP payout (5AM D-payout / manual only).
+            # Midday/late fetch must not start embedded live CDP (Payout CDP task / -UpdateOnly only).
             & pwsh -NoProfile -File $pipeScript -Date $Today -TennisDate $TennisDate -SkipFetch -SkipLivePayoutCapture
             if ($LASTEXITCODE -eq 0) {
                 Write-Log "[NBA_LATE_FETCH] OK (full pipeline -SkipFetch -SkipLivePayoutCapture)"

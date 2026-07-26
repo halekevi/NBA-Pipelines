@@ -204,7 +204,27 @@ def parse_card_lines(lines: list[str]) -> tuple[str | None, float | None, str | 
 
 
 def _norm(s: Any) -> str:
-    return re.sub(r"\s+", " ", str(s or "").strip().lower())
+    text = re.sub(r"\s+", " ", str(s or "").strip().lower())
+    # PrizePicks card titles often append role suffixes (" - Player", " - Attacker").
+    text = re.sub(
+        r"\s*-\s*(player|attacker|midfielder|defender|goalkeeper|goalie|pitcher|"
+        r"hitter|guard|forward|center|wing|coach)\s*$",
+        "",
+        text,
+    )
+    return text.strip()
+
+
+def _norm_player_display(s: Any) -> str:
+    """Strip role suffixes from board player labels without lowercasing for logs."""
+    text = re.sub(r"\s+", " ", str(s or "").strip())
+    return re.sub(
+        r"\s*-\s*(Player|Attacker|Midfielder|Defender|Goalkeeper|Goalie|Pitcher|"
+        r"Hitter|Guard|Forward|Center|Wing|Coach)\s*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    ).strip()
 
 
 def _pick_col(df: pd.DataFrame, names: list[str]) -> str | None:
@@ -1181,12 +1201,17 @@ def verify_slip_empty(frame, page=None) -> tuple[bool, object]:
             if page is not None:
                 try:
                     # Hard navigation reset often unsticks a wedged lineup panel.
+                    # Stay on the current board URL when possible (do not force WNBA).
                     try:
-                        page.goto(
-                            "https://app.prizepicks.com/board?league_id=3",
-                            wait_until="domcontentloaded",
-                            timeout=45000,
-                        )
+                        cur = str(page.url or "")
+                        if "prizepicks.com" in cur and "board" in cur:
+                            page.reload(wait_until="domcontentloaded", timeout=45000)
+                        else:
+                            page.goto(
+                                "https://app.prizepicks.com/board",
+                                wait_until="domcontentloaded",
+                                timeout=45000,
+                            )
                         page.wait_for_timeout(2000)
                     except Exception:
                         pass
@@ -1725,11 +1750,44 @@ def add_leg(
         pick_type = "standard"
     line = leg.get("line")
     try:
-        ensure_popular_filter(frame, page)
         tab = prop_type_to_board_filter(prop)
-        _switch_board_filter(frame, page, tab)
         dismiss_modal(frame, page)
         _scroll_board_for_lazy_load(page)
+
+        print(
+            f"[LOOKUP] Target player={player} prop={prop} line={line} "
+            f"pick={pick_type} dir={direction} tab={tab} "
+            f"strict={strict_lines} require_line={require_line}"
+        )
+
+        # Resolve on the current league board FIRST. Switching Popular/prop chips
+        # often remounts a different sport board (e.g. tennis -> WNBA) and loses
+        # the players we already navigated to via league_id.
+        cards = get_all_cards(frame)
+        target = _resolve_ticket_leg_card(
+            player,
+            prop,
+            line,
+            pick_type,
+            cards,
+            strict=strict_lines,
+            require_line=require_line,
+        )
+        if target is None:
+            ensure_popular_filter(frame, page)
+            _switch_board_filter(frame, page, tab)
+            dismiss_modal(frame, page)
+            _scroll_board_for_lazy_load(page)
+            cards = get_all_cards(frame)
+            target = _resolve_ticket_leg_card(
+                player,
+                prop,
+                line,
+                pick_type,
+                cards,
+                strict=strict_lines,
+                require_line=require_line,
+            )
 
         visible_players, best_sel, sel_counts = _collect_visible_players(frame)
         if not _LOOKUP_DIAG_PRINTED:
@@ -1741,23 +1799,6 @@ def add_leg(
             for nm in visible_players[:5]:
                 print(f"  - {nm}")
             _LOOKUP_DIAG_PRINTED = True
-
-        print(
-            f"[LOOKUP] Target player={player} prop={prop} line={line} "
-            f"pick={pick_type} dir={direction} tab={tab} "
-            f"strict={strict_lines} require_line={require_line}"
-        )
-
-        cards = get_all_cards(frame)
-        target = _resolve_ticket_leg_card(
-            player,
-            prop,
-            line,
-            pick_type,
-            cards,
-            strict=strict_lines,
-            require_line=require_line,
-        )
 
         # If we landed on the right badge but wrong line, cycle the dual-arrow swap.
         if (
@@ -3246,16 +3287,17 @@ def capture_tickets_from_board(
                 n_need_pre = int(slip.get("n_legs") or len(slip.get("legs") or []) or 2)
                 if n_need_pre >= 3:
                     try:
-                        page.goto(
-                            "https://app.prizepicks.com/board?league_id=3",
-                            wait_until="domcontentloaded",
-                            timeout=45000,
-                        )
-                        page.wait_for_timeout(2000 if gentle else 1000)
+                        # Reset to THIS slip's league — never hardcode WNBA (league_id=3).
+                        reset_sport = slip_sport or active_sport or first_sport or "NBA"
+                        navigate_board_for_sport(page, reset_sport, settle_ms=2000 if gentle else 1000)
+                        active_sport = str(reset_sport or active_sport or "").strip().upper()
                         frame = find_prizepicks_frame(page)
                         ensure_popular_filter(frame, page)
                         dismiss_modal(frame, page)
-                        print("[PAYOUT] hard board reset before multi-leg slip")
+                        print(
+                            f"[PAYOUT] hard board reset before multi-leg slip "
+                            f"(sport={active_sport or reset_sport})"
+                        )
                     except Exception as e:
                         print(f"[PAYOUT] WARN hard reset failed: {e}")
                 clear_slip(frame)

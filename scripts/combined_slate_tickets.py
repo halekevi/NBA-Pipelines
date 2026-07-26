@@ -50,9 +50,9 @@ Ticket modes (defaults favor volume; optional strict mode):
 - Improve ml_prob over time: run combined_ticket_grader.py with --export-graded-legs-csv (stack slates) and read ML_CALIBRATION in the graded workbook.
 - --ticket-gen-starts (default 10): structured slips try K alternative first legs and keep the best modeled ticket payout (flex cash or all-hit prob).
 
-Jul-24 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
-- PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 2.2) — prefer board Min Guarantee
-- PROPORACLE_SHORT_FLOOR_HARD_X (default 2.0) — hard cut for STRONG/short Goblin
+Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
+- PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 1.9) — prefer board Min Guarantee
+- PROPORACLE_SHORT_FLOOR_HARD_X (default 1.9) — hard cut for STRONG/short Goblin
 - PROPORACLE_SHORT_FLOOR_HIGH_P_WIN (default 0.70) — sub-floor bypass
 - PROPORACLE_MAIN_MAX_LEGS (default 3) / PROPORACLE_GOBLIN_MAX_LEGS (default 6)
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
@@ -3925,30 +3925,30 @@ MIN_WEB_DISPLAY_EST_WIN_PROB: float = 0.06
 
 # /tickets: hard floor for displayed/generated slip payout multipliers.
 MIN_WEB_PAYOUT_X: float = 3.0
-MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 2.0
-# Jul-24 construction (EV = WR × floor): short Goblin / STRONG lose money under ~2.0×
-# Min Guarantee at ~50% WR. Prefer ≥2.2×; allow <hard only with very high p_win.
+MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 1.9
+# Jul-25 graded book: 1.90x (66.7% WR) + 3.00x (+ROI) were the clear cash engines;
+# 1.60x and 5–6L / 8.4x+ destroyed ROI. Floor = 1.9×; prefer short 2-leg.
 # Env:
-#   PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X  (default 2.2) — prefer/rank floor
-#   PROPORACLE_SHORT_FLOOR_HARD_X          (default 2.0) — hard cut when preferred exist
+#   PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X  (default 1.9) — prefer/rank floor
+#   PROPORACLE_SHORT_FLOOR_HARD_X          (default 1.9) — hard cut when preferred exist
 #   PROPORACLE_SHORT_FLOOR_HIGH_P_WIN      (default 0.70) — bypass for sub-floor slips
 MAIN_PREFERRED_MIN_PAYOUT_X: float = float(
-    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "2.2")
+    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "1.9")
 )
-SHORT_FLOOR_HARD_X: float = float(os.getenv("PROPORACLE_SHORT_FLOOR_HARD_X", "2.0"))
+SHORT_FLOOR_HARD_X: float = float(os.getenv("PROPORACLE_SHORT_FLOOR_HARD_X", "1.9"))
 SHORT_FLOOR_HIGH_P_WIN: float = float(
     os.getenv("PROPORACLE_SHORT_FLOOR_HIGH_P_WIN", "0.70")
 )
 DEBUG_PAYOUT_DIAGNOSTIC: bool = os.getenv("PROPORACLE_DEBUG_PAYOUT", "false").lower() == "true"
 
 # /tickets page target volumes per sport after EV gate.
-# Jul-24: cut 2–3L / long 5–6 volume; upweight 4L (MLB Goblin 4L +102% ROI).
+# Jul-25: prioritize 2L (≥1.9x); keep light 3–4L; starve 5–6L long parlays.
 WEB_TICKET_TEMPLATE_BY_LEGS: dict[int, int] = {
-    6: 3,
-    5: 4,
-    4: 14,
-    3: 8,
-    2: 8,
+    6: 0,
+    5: 1,
+    4: 6,
+    3: 6,
+    2: 16,
 }
 
 # Cap sorted candidate pool size per leg count (top rows by ticket sort) to bound greedy work.
@@ -9544,14 +9544,14 @@ def _ticket_clears_payout_floor(
 
 def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     """
-    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 2.2).
+    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 1.9).
 
-    Jul-24: STRONG and short Goblin no longer auto-bypass low floors. Sub-floor
+    Jul-25: STRONG and short Goblin no longer auto-bypass low floors. Sub-floor
     slips ship only with very high p_win (SHORT_FLOOR_HIGH_P_WIN, default 0.70).
-    When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (2.0)
+    When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (1.9)
     unless high-p_win bypass. If nothing preferred, still apply the hard cut
     (cut volume) rather than shipping a board of ~1.4–1.6× losers.
-    Unknown/pending floors pass the hard gate (not invented as <2.0×).
+    Unknown/pending floors pass the hard gate (not invented as <1.9×).
 
     When PROPORACLE_REQUIRE_LIVE_PAYOUT=1, non-STRONG without live_cdp are deferred.
     """

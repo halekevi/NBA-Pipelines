@@ -36,14 +36,15 @@ def test_main_max_legs_default_is_three():
     assert cst.HIGH_PROB_PARLAY_MAX_LEGS <= 3
     assert cst.GOBLIN_MAX_LEGS >= 6
     assert cst.LONG_PARLAY_ENABLED is True
-    # Jul-24 construction defaults
-    assert cst.MAIN_PREFERRED_MIN_PAYOUT_X >= 2.2
-    assert cst.SHORT_FLOOR_HARD_X >= 2.0
+    # Jul-25 construction defaults: ≥1.9x floor, favor 2L, starve 5–6L
+    assert cst.MAIN_PREFERRED_MIN_PAYOUT_X >= 1.9
+    assert cst.SHORT_FLOOR_HARD_X >= 1.9
     assert cst.SHORT_FLOOR_HIGH_P_WIN >= 0.70
     assert cst.LONG_PARLAY_MAX_SLIPS <= 8
-    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[4] >= cst.WEB_TICKET_TEMPLATE_BY_LEGS[3]
-    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[5] <= 4
-    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[6] <= 3
+    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[2] >= cst.WEB_TICKET_TEMPLATE_BY_LEGS[3]
+    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[5] <= 2
+    assert cst.WEB_TICKET_TEMPLATE_BY_LEGS[6] == 0
+    assert cst.MIN_WEB_PAYOUT_X_GOBLIN_SHORT >= 1.9
 
 
 def test_tighten_long_parlay_keeps_top_floor_ev():

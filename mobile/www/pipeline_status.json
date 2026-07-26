@@ -2,25 +2,25 @@
   "nba": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "nba1h": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "nba1q": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "cbb": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "cfb": {
@@ -32,19 +32,19 @@
   "nhl": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "nfl": {
@@ -56,13 +56,13 @@
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   },
   "wnba1h": {
@@ -80,7 +80,7 @@
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-07-26 18:33:03"
+      "modified": "2026-07-26 20:34:47"
     }
   }
 }

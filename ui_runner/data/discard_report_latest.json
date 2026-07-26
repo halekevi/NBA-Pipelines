@@ -1,85 +1,10 @@
 {
-  "build_date": "2026-07-21",
-  "generated_at": "2026-07-21T13:38:13.534613+00:00",
-  "discards": {
-    "MLB": {
-      "standard_over_edge_below_floor": 247,
-      "standard_under_edge_below_floor": 222,
-      "pick_type_not_eligible": 876,
-      "prop_quality_below_floor": 383,
-      "final_pool_kept": 2882
-    }
-  },
+  "build_date": "2026-07-26",
+  "generated_at": "2026-07-26T13:32:58.663824+00:00",
+  "discards": {},
   "funnel": {
-    "stages": [
-      "input",
-      "after_invalid_market_side",
-      "after_prop_ban",
-      "after_fantasy_score",
-      "after_directional_l5_hr",
-      "after_standard_over_edge_floor",
-      "after_standard_over_rank_score_floor",
-      "after_standard_under_edge_floor",
-      "after_picktype_direction_tier_policy",
-      "after_pick_type",
-      "after_pick_type_eligible",
-      "after_void_reason",
-      "after_prop_quality"
-    ],
-    "snapshots": {
-      "input": {
-        "ALL": 1177,
-        "MLB": 1177
-      },
-      "after_invalid_market_side": {
-        "ALL": 1177,
-        "MLB": 1177
-      },
-      "after_prop_ban": {
-        "ALL": 1177,
-        "MLB": 1177
-      },
-      "after_fantasy_score": {
-        "ALL": 1177,
-        "MLB": 1177
-      },
-      "after_directional_l5_hr": {
-        "ALL": 1177,
-        "MLB": 1177
-      },
-      "after_standard_over_edge_floor": {
-        "ALL": 1114,
-        "MLB": 1114
-      },
-      "after_standard_over_rank_score_floor": {
-        "ALL": 1114,
-        "MLB": 1114
-      },
-      "after_standard_under_edge_floor": {
-        "ALL": 1054,
-        "MLB": 1054
-      },
-      "after_picktype_direction_tier_policy": {
-        "ALL": 1054,
-        "MLB": 1054
-      },
-      "after_pick_type": {
-        "ALL": 1054,
-        "MLB": 1054
-      },
-      "after_pick_type_eligible": {
-        "ALL": 835,
-        "MLB": 835
-      },
-      "after_void_reason": {
-        "ALL": 835,
-        "MLB": 835
-      },
-      "after_prop_quality": {
-        "ALL": 737,
-        "MLB": 737
-      }
-    }
+    "stages": [],
+    "snapshots": {}
   },
   "final_pool_size": 0
 }

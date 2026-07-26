@@ -804,7 +804,7 @@
             "p_all_win": 0.6875,
             "p_miss_1": 0.2958,
             "ev": 1.0625,
-            "recommendation": "MARGINAL",
+            "recommendation": "OK",
             "entry_10_to_win_guarantee": 30.0,
             "entry_20_to_win_guarantee": 60.0,
             "sweep_payout": 3.0,
@@ -818,7 +818,7 @@
           },
           "p_win": 0.432,
           "expected_wins_per_100": 43.2,
-          "empirical_recommendation": "MARGINAL"
+          "empirical_recommendation": "OK"
         }
       ],
       "hot_legs": 1,
@@ -1130,7 +1130,7 @@
             "p_all_win": 0.6875,
             "p_miss_1": 0.2958,
             "ev": 1.0625,
-            "recommendation": "MARGINAL",
+            "recommendation": "OK",
             "entry_10_to_win_guarantee": 30.0,
             "entry_20_to_win_guarantee": 60.0,
             "sweep_payout": 3.0,
@@ -1144,7 +1144,7 @@
           },
           "p_win": 0.432,
           "expected_wins_per_100": 43.2,
-          "empirical_recommendation": "MARGINAL"
+          "empirical_recommendation": "OK"
         }
       ],
       "hot_legs": 1,
@@ -1585,7 +1585,7 @@
             "p_all_win": 0.7942,
             "p_miss_1": 0.1961,
             "ev": 0.9855,
-            "recommendation": "SKIP",
+            "recommendation": "STRONG",
             "entry_10_to_win_guarantee": 25.0,
             "entry_20_to_win_guarantee": 50.0,
             "sweep_payout": 2.5,
@@ -1601,7 +1601,7 @@
           "expected_wins_per_100": 37.3,
           "win_rate_score": 0.070283,
           "floor_ev": -0.929717,
-          "empirical_recommendation": "SKIP"
+          "empirical_recommendation": "STRONG"
         }
       ],
       "hot_legs": 3,
@@ -1611,20 +1611,20 @@
   "hot_legs": 123,
   "cold_legs": 0,
   "tier_ev_thresholds": {
-    "strong": 1.4,
-    "ok": 1.15,
-    "marginal": 1.0
+    "strong": 0.29812,
+    "ok": 0.06631999999999996,
+    "marginal": -0.03266
   },
   "tier_ev_thresholds_by_legs": {
     "2": {
-      "strong": 1.4,
-      "ok": 1.15,
-      "marginal": 1.0
+      "strong": 0.304445,
+      "ok": 0.17110000000000003,
+      "marginal": 0.014234999999999972
     },
     "3": {
-      "strong": 1.4,
-      "ok": 1.15,
-      "marginal": 1.0
+      "strong": 0.051459999999999874,
+      "ok": -0.018900000000000007,
+      "marginal": -0.14926999999999999
     }
   },
   "tier_ev_percentiles": {
@@ -1647,7 +1647,7 @@
     "require_hot_streak": true
   },
   "strong_gate_stats": {
-    "legs_checked": 3,
+    "legs_checked": 76,
     "failed_goblin": 0,
     "failed_tier": 0,
     "failed_streak": 0

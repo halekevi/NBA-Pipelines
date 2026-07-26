@@ -9536,11 +9536,11 @@ def _ticket_board_payout_x(ticket: dict) -> float | None:
 
 
 def _ticket_has_live_cdp_payout(ticket: dict) -> bool:
-    """True when ticket has a verified board floor (live CDP or verified SG-Δ)."""
+    """True when ticket has an exact live_cdp board floor (peer SG-Δ does not count)."""
     pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
     src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
     if is_verified_payout_source(src):
-        return True
+        return _safe_positive_float(pay.get("power_min_x") or pay.get("display_min_x")) is not None
     return _safe_positive_float(pay.get("power_min_x")) is not None and src in ("", "live_cdp")
 
 
@@ -9574,12 +9574,10 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (1.9)
     unless high-p_win bypass. If nothing preferred, still apply the hard cut
     (cut volume) rather than shipping a board of ~1.4–1.6× losers.
-    Unknown/pending floors pass the hard gate (not invented as <1.9×).
 
-    When PROPORACLE_REQUIRE_LIVE_PAYOUT=1, display floors stay pending_live
-    until exact live_cdp capture — peer SG-Δ stamps are not used. Pending
-    slips may remain on the board (no invented multiplier) so payout CDP can
-    fill them; preferred ≥floor selection still requires a real live floor.
+    When PROPORACLE_REQUIRE_LIVE_PAYOUT=1 (default): only exact live_cdp floors
+    ship. Pending / peer SG-Δ / unknown floors are deferred — empty board is
+    correct when nothing has a verified ≥floor capture yet.
     """
     preferred_x = float(MAIN_PREFERRED_MIN_PAYOUT_X)
     hard_x = float(SHORT_FLOOR_HARD_X)
@@ -9599,11 +9597,16 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
+            # Live-only board: no invented / pending floors on /tickets.
+            if require_live and not _ticket_has_live_cdp_payout(t):
+                n_defer += 1
+                continue
             clears_pref = preferred_x <= 0 or _ticket_clears_payout_floor(
                 t, floor_x=preferred_x, allow_unknown=False
             )
+            # Unknown floors do not ship when live is required (handled above).
             clears_hard = hard_x <= 0 or _ticket_clears_payout_floor(
-                t, floor_x=hard_x, allow_unknown=True
+                t, floor_x=hard_x, allow_unknown=not require_live
             )
             if clears_pref:
                 pref_tickets.append(t)
@@ -9646,8 +9649,10 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
         return hard_only
     if n_defer:
         print(
-            f"  [web] last filter: cut all {n_defer} slips below hard ≥{hard_x:g}x "
-            f"(no high-p_win bypass)"
+            f"  [web] last filter: cut all {n_defer} slips "
+            f"(need live_cdp ≥{hard_x:g}x"
+            f"{'' if not require_live else '; pending/unpriced deferred'}; "
+            f"no high-p_win bypass)"
         )
     return []
 

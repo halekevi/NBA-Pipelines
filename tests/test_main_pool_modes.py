@@ -458,3 +458,44 @@ def test_prefer_main_hard_floor_keeps_2x_when_no_preferred():
     slips = [t for g in filtered.get("groups") or [] for t in (g.get("tickets") or [])]
     assert len(slips) == 1
     assert float(slips[0]["payout"]["display_min_x"]) == 2.0
+
+
+def test_prefer_main_defers_pending_when_require_live(monkeypatch):
+    """Empty board is correct when nothing has exact live_cdp ≥ floor."""
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT", "0")
+    payload = {
+        "pool_mode": MAIN_POOL_MODE,
+        "groups": [
+            {
+                "group_name": "MLB Goblin 3",
+                "n_legs": 3,
+                "tickets": [
+                    {
+                        "p_win": 0.55,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {"payout_source": "pending_live"},
+                        "display_min_x": None,
+                    },
+                    {
+                        "p_win": 0.55,
+                        "legs": [
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                            {"sport": "MLB", "pick_type": "Goblin"},
+                        ],
+                        "payout": {
+                            "display_min_x": 3.375,
+                            "power_min_x": 3.375,
+                            "payout_source": "sg_delta_live",
+                        },
+                    },
+                ],
+            }
+        ],
+    }
+    filtered = prefer_main_min_payout_payload(payload)
+    assert filtered.get("groups") == []

@@ -6,11 +6,12 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (D-payout) live CDP FillMissing
+         → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
-         Live PrizePicks CDP payout scrape is a separate scheduled task (PropOracle - Payout CDP @ 11:00)
-         via scripts\run_payout_cdp.ps1 — not part of 5AM, so the board can publish without waiting on Chrome.
-         Pass -RunLivePayout to opt back into STEP D-payout for a manual full daily.
+         Board floors require exact per-ticket live_cdp (peer SG-Δ rate cards off by default).
+         STEP D-payout runs FillMissingTickets after Combined; pass -SkipLivePayout to skip.
+         MAIN PropOracle - Payout CDP @ 11:00 (run_payout_cdp.ps1) still runs as the full scrape.
          Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
          Combined slate (STEP D via run_pipeline.ps1) fetches Underdog + DraftKings by default; set PROPORACLE_SKIP_ALT_BOOKS=1 or pass -SkipAltBooks to run_pipeline to disable.
@@ -50,8 +51,10 @@ param(
     [int]$TicketModelTopN = 10,
     # When set, run STEP D1 ticket-model dataset/train/eval (default off — use on retrain days).
     [switch]$RunTicketModels,
-    # Opt-in: run live PrizePicks CDP in this daily (default off — use PropOracle - Payout CDP @ 11AM).
-    [switch]$RunLivePayout
+    # Legacy alias: live CDP now runs by default after Combined (exact live_cdp required).
+    [switch]$RunLivePayout,
+    # Skip STEP D-payout live CDP scrape (board floors stay pending until Payout CDP task).
+    [switch]$SkipLivePayout
 )
 
 $ErrorActionPreference = "Continue"
@@ -1234,17 +1237,17 @@ if ($script:PipelineFailed) {
 }
 
 # =============================================================================
-# STEP D-payout — Live PrizePicks payout capture (OPT-IN only)
-# Default: skipped. MAIN scrape is PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00).
-# Midday refreshes still call run_live_payout_capture.ps1 -UpdateOnly for missing floors.
-# Pass -RunLivePayout for a one-shot full daily that includes CDP.
+# STEP D-payout — Live PrizePicks payout capture (REQUIRED for board floors)
+# Exact per-ticket live_cdp only — peer SG-Δ rate cards are not trusted.
+# Default: FillMissingTickets after Combined. Pass -SkipLivePayout to skip.
+# MAIN scrape still also runs via PropOracle - Payout CDP (run_payout_cdp.ps1).
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
 }
-elseif (-not $RunLivePayout) {
-    Write-Host "  [SKIP] Live payout CDP — separate PropOracle - Payout CDP task (pass -RunLivePayout to include)" -ForegroundColor DarkGray
-    Write-Log "STEP D-payout - Live payout capture: SKIPPED (default; use Payout CDP task or -RunLivePayout)"
+elseif ($SkipLivePayout -and -not $RunLivePayout) {
+    Write-Host "  [SKIP] Live payout CDP (-SkipLivePayout)" -ForegroundColor DarkGray
+    Write-Log "STEP D-payout - Live payout capture: SKIPPED (-SkipLivePayout)"
 }
 else {
     $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
@@ -1260,9 +1263,9 @@ else {
         Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
     }
     else {
-        Write-Log "STEP D-payout - Live payout capture + verify: START (-RunLivePayout)"
+        Write-Log "STEP D-payout - Live payout capture + verify: START (exact live_cdp required)"
         try {
-            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -RebuildRateCard
+            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -UpdateOnly
             Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
         }
         catch {

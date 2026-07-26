@@ -108,7 +108,41 @@ def _sg_card(cells: list[dict]) -> dict:
 
 
 def test_attach_sg_delta_live_when_exact_cell(monkeypatch):
+    """Peer SG-Δ stamps are opt-in; default require-live leaves pending_live."""
     monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT", "0")
+    monkeypatch.setattr(
+        cst,
+        "_load_sg_delta_rate_card",
+        lambda force=False: _sg_card(
+            [
+                {
+                    "composition": "0S+2G+0D",
+                    "goblin_delta_sig": "1+2",
+                    "power_min_x": 2.4,
+                    "source": "live_cdp",
+                    "status": "observed",
+                    "n_live": 2,
+                }
+            ]
+        ),
+    )
+    t = {
+        "n_legs": 2,
+        "legs": [
+            {"pick_type": "Goblin", "line_distance": 1.0},
+            {"pick_type": "Goblin", "line_distance": 2.0},
+        ],
+        "payout": {"model_min_payout_x": 9.0},
+    }
+    out = cst.attach_display_min_x(t)
+    assert out["payout"]["payout_source"] == "pending_live"
+    assert out["payout"].get("display_min_x") is None
+
+
+def test_attach_sg_delta_live_when_opted_in(monkeypatch):
+    monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT", "1")
     monkeypatch.setattr(
         cst,
         "_load_sg_delta_rate_card",
@@ -140,8 +174,9 @@ def test_attach_sg_delta_live_when_exact_cell(monkeypatch):
 
 
 def test_attach_sg_delta_verified_extrapolated_when_peer_live(monkeypatch):
-    """Extrapolated OK once same composition has close/overlapping live Δ evidence."""
+    """Extrapolated OK only when SG-Δ stamps opted in + peer live evidence."""
     monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT", "1")
     monkeypatch.setattr(
         cst,
         "_load_sg_delta_rate_card",
@@ -185,6 +220,7 @@ def test_attach_sg_delta_verified_extrapolated_when_peer_live(monkeypatch):
 def test_attach_blocks_cold_extrapolated(monkeypatch):
     """Zero live_cdp cells in the composition → pending_live, no stamp."""
     monkeypatch.setenv("PROPORACLE_REQUIRE_LIVE_PAYOUT", "1")
+    monkeypatch.setenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT", "1")
     monkeypatch.setattr(
         cst,
         "_load_sg_delta_rate_card",

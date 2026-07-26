@@ -54,6 +54,8 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 1.9) — prefer board Min Guarantee
 - PROPORACLE_SHORT_FLOOR_HARD_X (default 1.9) — hard cut for STRONG/short Goblin
 - PROPORACLE_SHORT_FLOOR_HIGH_P_WIN (default 0.70) — sub-floor bypass
+- PROPORACLE_REQUIRE_LIVE_PAYOUT (default 1) — board floors must be exact live_cdp
+- PROPORACLE_ALLOW_SG_DELTA_PAYOUT (default 0) — opt-in peer SG-Δ stamps (untrusted)
 - PROPORACLE_MAIN_MAX_LEGS (default 3) / PROPORACLE_GOBLIN_MAX_LEGS (default 6)
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
 - PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
@@ -816,7 +818,9 @@ _SG_DELTA_RATE_CARD_CACHE: dict[str, Any] | None = None
 # Max |Δ| gap for a live peer to count as "close verified" for the same goblin line family.
 _SG_DELTA_PEER_ABS = 0.5
 # Board-facing sources allowed when PROPORACLE_REQUIRE_LIVE_PAYOUT=1.
-VERIFIED_PAYOUT_SOURCES = frozenset({"live_cdp", "sg_delta_live", "sg_delta_verified"})
+# Only exact per-ticket PrizePicks CDP captures — peer rate-card SG-Δ stamps
+# (sg_delta_live / sg_delta_verified) are NOT trusted (Warren/Prielipp 1.9 vs 1.4).
+VERIFIED_PAYOUT_SOURCES = frozenset({"live_cdp"})
 
 
 def _load_live_payout_rate_card(force: bool = False) -> dict[float, float] | None:
@@ -1248,22 +1252,36 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
 
 def require_live_payout_display() -> bool:
     """
-    When True (default), board display floors must be *verified lines*:
-      - live_cdp (ticket or exact SG-Δ cell observed via CDP), or
-      - sg_delta_verified (extrapolated SG-Δ cell only after same mix+Δ family
-        has live CDP evidence — see _sg_delta_same_lines_verified).
+    When True (default), board display floors must be exact per-ticket live_cdp
+    captures from PrizePicks. Peer SG-Δ / mix-grid / model floors are never
+    stamped (leave pending_live).
 
-    Cold extrapolated / historical-without-live / mix-grid / model floors are
-    never stamped (leave pending_live). Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0
-    to restore legacy estimate floors.
+    Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0 to restore legacy estimate floors.
+    Set PROPORACLE_ALLOW_SG_DELTA_PAYOUT=1 to opt back into peer SG-Δ stamps
+    (not recommended — composition+Δ peers can misprice individual slips).
     """
     raw = (os.getenv("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1").strip().lower()
     return raw not in ("0", "false", "no", "off")
 
 
+def allow_sg_delta_payout_stamps() -> bool:
+    """Opt-in peer SG-Δ rate-card stamps (default off — untrusted vs live PP)."""
+    raw = (os.getenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT") or "0").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
 def is_verified_payout_source(source: str | None) -> bool:
     """True when payout_source is allowed under PROPORACLE_REQUIRE_LIVE_PAYOUT."""
-    return str(source or "").strip().lower() in VERIFIED_PAYOUT_SOURCES
+    src = str(source or "").strip().lower()
+    if src in VERIFIED_PAYOUT_SOURCES:
+        return True
+    # Opt-in peer SG-Δ stamps (PROPORACLE_ALLOW_SG_DELTA_PAYOUT=1).
+    if allow_sg_delta_payout_stamps() and src in (
+        "sg_delta_live",
+        "sg_delta_verified",
+    ):
+        return True
+    return False
 
 
 def _load_sg_delta_rate_card(force: bool = False) -> dict[str, Any] | None:
@@ -1582,6 +1600,8 @@ def _commit_pending_live_payout(ticket: dict, pay: dict) -> dict:
     pay = dict(pay) if isinstance(pay, dict) else {}
     pay["payout_source"] = "pending_live"
     pay.pop("display_min_x", None)
+    # Drop peer/rate-card power floors so a later attach cannot promote them to live_cdp.
+    pay.pop("power_min_x", None)
     # Keep model_* for analytics only; clear board-facing floor.
     ticket.pop("display_min_x", None)
     ticket["payout"] = pay
@@ -1592,20 +1612,17 @@ def attach_display_min_x(ticket: dict) -> dict:
     """
     Set payout.display_min_x + payout.payout_source.
 
-    Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1) — verified lines only:
-      1. live_cdp on the ticket (exact PP capture)
-      2. SG-Δ rate card exact live_cdp / observed cell for same composition+Δ
-         → stamp sg_delta_live
-      3. SG-Δ extrapolated (or historical) cell ONLY when same lines verified
-         (composition has live CDP with overlapping/close Δ evidence, or exact
-         sig n_live>0) → stamp sg_delta_verified
-      else pending_live (no cold extrapolated, no model fake floors)
+    Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1) — exact live CDP only:
+      1. live_cdp on the ticket (exact PP Min Guarantee capture)
+      else pending_live (no peer SG-Δ, mix-grid, or model fake floors)
+
+    Opt-in peer stamps (PROPORACLE_ALLOW_SG_DELTA_PAYOUT=1):
+      2. SG-Δ exact live_cdp / observed cell → sg_delta_live
+      3. SG-Δ extrapolated after same-lines verified → sg_delta_verified
 
     Legacy (PROPORACLE_REQUIRE_LIVE_PAYOUT=0):
       1. live_cdp
-      2. rate_card (fitted mix-grid card, not SG-Δ extrapolations)
-      3. mix_grid_average
-      4. fallback_estimate
+      2. SG-Δ (if allowed) / rate_card / mix_grid_average / fallback_estimate
 
     Power EV is recomputed as P(all) * display_min_x - 1 when a verified floor exists.
     """
@@ -1635,15 +1652,21 @@ def attach_display_min_x(ticket: dict) -> dict:
         disp = disp_v if disp_v is not None and src_now == "live_cdp" else live_v
         return _commit_display_min_x(ticket, pay, float(disp), "live_cdp")
 
-    # Preserve prior verified SG-Δ stamps (rebuild without wiping).
-    if src_now in ("sg_delta_live", "sg_delta_verified") and disp_v is not None:
+    allow_sg = allow_sg_delta_payout_stamps()
+    # Preserve prior SG-Δ stamps only when explicitly opted in.
+    if (
+        allow_sg
+        and src_now in ("sg_delta_live", "sg_delta_verified")
+        and disp_v is not None
+    ):
         return _commit_display_min_x(ticket, pay, float(disp_v), src_now)
 
-    # 2–3) SG-Δ card: exact live first, then verified-line extrapolated.
-    sg = _lookup_sg_delta_verified_floor(ticket)
-    if sg is not None:
-        floor, sg_src = sg
-        return _commit_display_min_x(ticket, pay, floor, sg_src)
+    # Peer SG-Δ rate-card lookup — off by default (untrusted vs exact PP slip).
+    if allow_sg:
+        sg = _lookup_sg_delta_verified_floor(ticket)
+        if sg is not None:
+            floor, sg_src = sg
+            return _commit_display_min_x(ticket, pay, floor, sg_src)
 
     # Verified-lines board: stop here — no mix-grid / model / cold extrapolated.
     if require_live_payout_display():
@@ -9553,7 +9576,10 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     (cut volume) rather than shipping a board of ~1.4–1.6× losers.
     Unknown/pending floors pass the hard gate (not invented as <1.9×).
 
-    When PROPORACLE_REQUIRE_LIVE_PAYOUT=1, non-STRONG without live_cdp are deferred.
+    When PROPORACLE_REQUIRE_LIVE_PAYOUT=1, display floors stay pending_live
+    until exact live_cdp capture — peer SG-Δ stamps are not used. Pending
+    slips may remain on the board (no invented multiplier) so payout CDP can
+    fill them; preferred ≥floor selection still requires a real live floor.
     """
     preferred_x = float(MAIN_PREFERRED_MIN_PAYOUT_X)
     hard_x = float(SHORT_FLOOR_HARD_X)
@@ -9572,10 +9598,6 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
         hard_tickets: list[dict] = []
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
-                continue
-            is_strong = bool(t.get("strong_builder") or t.get("core_build"))
-            if require_live and not is_strong and not _ticket_has_live_cdp_payout(t):
-                n_defer += 1
                 continue
             clears_pref = preferred_x <= 0 or _ticket_clears_payout_floor(
                 t, floor_x=preferred_x, allow_unknown=False
@@ -21988,8 +22010,8 @@ def _normalize_payout_source(source: str | None) -> str:
 def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = None) -> float | None:
     """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x.
 
-    When verified lines are required, only live_cdp / sg_delta_live /
-    sg_delta_verified floors are shown — no model or cold-extrapolated fallback.
+    When verified lines are required, only exact live_cdp floors are shown —
+    no peer SG-Δ, model, or cold-extrapolated fallback.
     """
     pay = payout if isinstance(payout, dict) else {}
     ticket = ticket if isinstance(ticket, dict) else {}

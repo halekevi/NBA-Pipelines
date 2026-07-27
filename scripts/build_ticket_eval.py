@@ -1541,6 +1541,7 @@ EVAL_TRACK_LABELS: dict[str, str] = {
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
     "strong_standard_shadow": "STRONG Standard HOT Shadow",
     "strong_mix_shadow": "STRONG Mix Shadow (Goblin+Standard HOT)",
+    "strong_recombo_shadow": "STRONG Recombo Shadow (4-6L from STRONG 2-3L legs)",
 }
 
 
@@ -2800,6 +2801,30 @@ def find_strong_mix_shadow_payload_path(
     return None
 
 
+def find_strong_recombo_shadow_payload_path(
+    arg_date: str, override: Path | None = None
+) -> Path | None:
+    if override is not None:
+        return override if override.is_file() else None
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_strong_recombo_{arg_date}.json",
+        REPO_ROOT / "ui_runner" / "data" / "strong_recombo_shadow_latest.json",
+        TEMPLATES_DIR / "strong_recombo_shadow_latest.json",
+    ):
+        if jp.is_file():
+            if jp.name.endswith("_latest.json"):
+                try:
+                    with jp.open(encoding="utf-8") as f:
+                        hdr = json.load(f)
+                    if str(hdr.get("date") or "")[:10] == arg_date:
+                        return jp
+                except (OSError, json.JSONDecodeError, TypeError):
+                    pass
+            else:
+                return jp
+    return None
+
+
 def _normalize_eval_track(raw: str | None) -> str:
     t = str(raw or "graded_main").strip().lower()
     if t in ("main", "graded_main"):
@@ -2831,6 +2856,15 @@ def _normalize_eval_track(raw: str | None) -> str:
         "mix_shadow",
     ):
         return "strong_mix_shadow"
+    if t in (
+        "strong_recombo_shadow",
+        "strong-recombo-shadow",
+        "strong_recombo",
+        "strong-recombo",
+        "recombo_shadow",
+        "recombo",
+    ):
+        return "strong_recombo_shadow"
     return "graded_main"
 
 
@@ -3283,10 +3317,16 @@ def _group_is_strong_mix(group_name: str) -> bool:
     return bool(re.match(r"^STRONG Mix(\s+\d+-Leg)?$", n, re.I))
 
 
-def _group_is_strong_shipped(group_name: str) -> bool:
-    """STRONG builder groups: legacy HOT, N-Leg, or Mix N-Leg."""
+def _group_is_strong_recombo(group_name: str) -> bool:
+    """STRONG Recombo 4–6L shadow groups (legs harvested from STRONG 2–3L)."""
     n = str(group_name or "").strip()
-    if _group_is_strong_mix(n):
+    return bool(re.match(r"^STRONG Recombo(\s+\d+-Leg)?$", n, re.I))
+
+
+def _group_is_strong_shipped(group_name: str) -> bool:
+    """STRONG builder groups: legacy HOT, N-Leg, Mix N-Leg, or Recombo N-Leg."""
+    n = str(group_name or "").strip()
+    if _group_is_strong_mix(n) or _group_is_strong_recombo(n):
         return True
     return bool(
         re.match(r"^STRONG(\s+Goblin\s+HOT|\s+\d+-Leg)$", n, re.I)
@@ -3322,10 +3362,16 @@ def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
         return True
     if pool_mode in ("strong_mix_shadow", "strong_mix") and _group_is_strong_mix(group_name):
         return True
+    if pool_mode in ("strong_recombo_shadow", "strong_recombo", "strong_slip_recombo") and _group_is_strong_recombo(
+        group_name
+    ):
+        return True
     if _group_is_strong_standard_hot(group_name):
         # Always allow the shadow group name when present (track-local JSON).
         return True
     if _group_is_strong_mix(group_name):
+        return True
+    if _group_is_strong_recombo(group_name):
         return True
     if pool_mode == "high_prob_std_gob" and _group_is_high_prob_main_shipped(group_name):
         return True
@@ -5350,11 +5396,13 @@ def main() -> int:
             "winrate_goblin_opt3_shadow",
             "strong_standard_shadow",
             "strong_mix_shadow",
+            "strong_recombo_shadow",
         ),
         help=(
             "Ticket track: graded_main (2-4 leg, default), long_parlay (5-6 leg), "
             "high_leg_hr (win-rate panel), winrate_goblin_opt3_shadow (Goblin Tier A shadow), "
-            "strong_standard_shadow (STRONG Standard HOT), or strong_mix_shadow (Goblin+Standard HOT)."
+            "strong_standard_shadow (STRONG Standard HOT), strong_mix_shadow (Goblin+Standard HOT), "
+            "or strong_recombo_shadow (4-6L from STRONG 2-3L legs)."
         ),
     )
     ap.add_argument(
@@ -5433,6 +5481,17 @@ def main() -> int:
                     "(combined_slate_tickets_strong_mix_{date}.json)."
                 )
             return 1
+    elif eval_track == "strong_recombo_shadow":
+        tpath = find_strong_recombo_shadow_payload_path(arg_date, override=override_path)
+        if not tpath:
+            if override_raw:
+                print(f"ERROR: STRONG Recombo shadow file not found: {override_raw}")
+            else:
+                print(
+                    "ERROR: No STRONG Recombo shadow payload found "
+                    "(combined_slate_tickets_strong_recombo_{date}.json)."
+                )
+            return 1
     else:
         tpath = find_ticket_payload_path(arg_date, override=override_path)
         if not tpath:
@@ -5494,6 +5553,7 @@ def main() -> int:
         "winrate_goblin_opt3_shadow": f"ticket_eval_winrate_goblin_opt3_{arg_date}.html",
         "strong_standard_shadow": f"ticket_eval_strong_standard_{arg_date}.html",
         "strong_mix_shadow": f"ticket_eval_strong_mix_{arg_date}.html",
+        "strong_recombo_shadow": f"ticket_eval_strong_recombo_{arg_date}.html",
     }.get(eval_track, f"ticket_eval_{arg_date}.html")
     out_dated = TEMPLATES_DIR / dated_name
     try:

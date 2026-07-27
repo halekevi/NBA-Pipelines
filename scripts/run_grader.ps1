@@ -1640,6 +1640,39 @@ if (Test-Path $TicketEvalBuilderScript) {
             Write-Host "[GRADER] Mobile copy: ticket_eval_strong_mix_$Date.html -> mobile\www\" -ForegroundColor DarkGray
         }
     }
+
+    # STRONG Recombo shadow (4-6L from STRONG 2-3L legs) — validation only, never MAIN.
+    $RecomboStrongShadowJson = Join-Path $Root "ui_runner\data\combined_slate_tickets_strong_recombo_$Date.json"
+    $RecomboStrongShadowLatest = Join-Path $Root "ui_runner\data\strong_recombo_shadow_latest.json"
+    if (-not (Test-Path $RecomboStrongShadowJson) -and (Test-Path $RecomboStrongShadowLatest)) {
+        $RecomboStrongShadowJson = $RecomboStrongShadowLatest
+    }
+    if (Test-Path $RecomboStrongShadowJson) {
+        $TeRecomboStrongOut = Join-Path $TemplatesDir "ticket_eval_strong_recombo_$Date.html"
+        $TeRecomboStrongArgs = @(
+            "--date", $Date,
+            "--track", "strong_recombo_shadow",
+            "--tickets", $RecomboStrongShadowJson,
+            "--out", $TeRecomboStrongOut
+        )
+        if ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -and $env:PROPORACLE_TICKET_EVAL_GAME_DATE.Trim()) {
+            foreach ($gd in ($env:PROPORACLE_TICKET_EVAL_GAME_DATE -split ',')) {
+                $t = $gd.Trim()
+                if ($t -match '^\d{4}-\d{2}-\d{2}$') {
+                    $TeRecomboStrongArgs += @("--game-date", $t)
+                }
+            }
+        }
+        Run-Py "Build STRONG Recombo Shadow Ticket Eval" $Root $TicketEvalBuilderScript $TeRecomboStrongArgs
+        if ((Test-Path -LiteralPath $MobileWwwDir) -and (Test-Path -LiteralPath $TeRecomboStrongOut)) {
+            Copy-Item -LiteralPath $TeRecomboStrongOut -Destination (Join-Path $MobileWwwDir "ticket_eval_strong_recombo_$Date.html") -Force -ErrorAction SilentlyContinue
+            Write-Host "[GRADER] Mobile copy: ticket_eval_strong_recombo_$Date.html -> mobile\www\" -ForegroundColor DarkGray
+        }
+        $GradeRecomboScript = Join-Path $Root "scripts\grade_strong_builder_tickets.py"
+        if (Test-Path $GradeRecomboScript) {
+            Run-Py "Grade STRONG Recombo Shadow" $Root $GradeRecomboScript @("--date", $Date)
+        }
+    }
 }
 else {
     Write-Host "Skipping ticket eval build (build_ticket_eval.py not found)." -ForegroundColor Yellow

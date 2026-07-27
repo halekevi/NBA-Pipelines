@@ -9196,8 +9196,15 @@ def _write_strong_recombo_shadow_snapshot(payload: dict, date_str: str) -> None:
         "data",
         "strong_recombo_shadow_latest.json",
     )
+    templates_latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "templates",
+        "strong_recombo_shadow_latest.json",
+    )
     _write_json_file(dated, payload)
     _write_json_file(latest, payload)
+    _write_json_file(templates_latest, payload)
     n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
     print(
         f"  [OK] STRONG Recombo shadow -> {dated} ({n_slips} slips; "

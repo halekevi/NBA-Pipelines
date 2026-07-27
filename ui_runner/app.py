@@ -1562,6 +1562,26 @@ def serve_tickets_latest_json():
         abort(404)
 
 
+@app.get("/strong_recombo_shadow_latest.json")
+def serve_strong_recombo_shadow_latest_json():
+    """SHADOW sleeve: 4–6L tickets rebuilt from STRONG 2–3L legs only (not MAIN)."""
+    path = TEMPLATES_DIR / "strong_recombo_shadow_latest.json"
+    if not path.is_file():
+        data_fallback = UI_DIR / "data" / "strong_recombo_shadow_latest.json"
+        if data_fallback.is_file():
+            path = data_fallback
+        else:
+            abort(404)
+    try:
+        return _gz_json_response(
+            "strong-recombo-shadow-json",
+            lambda: read_json_cached(path),
+            ttl=_PIPELINE_JSON_TTL,
+        )
+    except Exception:
+        abort(404)
+
+
 # ── Uniform-bucket tickets (built by scripts/build_uniform_tickets_artifacts.py) ─
 
 _UNIFORM_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -3235,6 +3255,16 @@ def serve_ticket_eval_high_leg_report(date: str):
         r = _send_grades_report_html(fname)
         if r is not None:
             return r
+    abort(404)
+
+
+@app.route("/grades/ticket_eval_strong_recombo_<date>.html", methods=("GET", "HEAD"))
+def serve_ticket_eval_strong_recombo_report(date: str):
+    """Serve STRONG Recombo 4–6L shadow ticket eval HTML."""
+    fname = f"ticket_eval_strong_recombo_{date}.html"
+    r = _send_grades_report_html(fname)
+    if r is not None:
+        return r
     abort(404)
 
 

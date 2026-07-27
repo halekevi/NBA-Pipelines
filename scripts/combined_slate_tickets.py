@@ -50,6 +50,16 @@ Ticket modes (defaults favor volume; optional strict mode):
 - Improve ml_prob over time: run combined_ticket_grader.py with --export-graded-legs-csv (stack slates) and read ML_CALIBRATION in the graded workbook.
 - --ticket-gen-starts (default 10): structured slips try K alternative first legs and keep the best modeled ticket payout (flex cash or all-hit prob).
 
+Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
+- PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 1.5) — prefer board Min Guarantee
+- PROPORACLE_SHORT_FLOOR_HARD_X (default 1.5) — hard cut for STRONG/short Goblin
+- PROPORACLE_SHORT_FLOOR_HIGH_P_WIN (default 0.70) — sub-floor bypass
+- PROPORACLE_REQUIRE_LIVE_PAYOUT (default 1) — board floors must be exact live_cdp
+- PROPORACLE_ALLOW_SG_DELTA_PAYOUT (default 0) — opt-in peer SG-Δ stamps (untrusted)
+- PROPORACLE_MAIN_MAX_LEGS (default 3) / PROPORACLE_GOBLIN_MAX_LEGS (default 6)
+- PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
+- PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
+
 HOTFIX:
 - Fixes crash when CBB "direction" becomes a DataFrame due to duplicate columns.
   We de-duplicate columns BEFORE touching df["direction"].str.upper().
@@ -124,6 +134,20 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
 from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
+from utils.fantasy_prop_filter import is_fantasy_prop_label as _is_fantasy_prop_label
+from utils.category_hit_rate import (
+    CATEGORY_HR_HARD_FILTER as _CATEGORY_HR_HARD_FILTER,
+    attach_category_hr_columns as _attach_category_hr_columns,
+    category_hr_boost_series as _category_hr_boost_series,
+    category_hr_fail_mask as _category_hr_fail_mask,
+    load_category_hr_index as _load_category_hr_index,
+    winrate_priority_series as _winrate_priority_series,
+    DEFAULT_CATEGORY_HR_PATH as _CATEGORY_HR_PATH,
+)
+from utils.cell_hr_priority import (
+    cell_hr_priority_boost_series as _cell_hr_priority_boost_series,
+    summarize_cell_hr_priority as _summarize_cell_hr_priority,
+)
 from utils.kelly_staking import fractional_kelly, leg_edge_pct_for_kelly
 from utils.prop_signal_score import (
     HOT_L10_BOOST,
@@ -160,6 +184,7 @@ from utils.ticket_tier_defense_gates import (
 from utils.prop_signal_score import l10_streak_series
 from utils.ticket_ev_tiers import (
     STRONG_ALLOW_CROSS_SPORT,
+    STRONG_MAX_LEG_PROB_FOR_P_WIN,
     STRONG_MAX_LEGS,
     STRONG_MIN_P_WIN_2LEG,
     STRONG_MIN_P_WIN_3LEG,
@@ -218,6 +243,18 @@ DISABLED_SPORTS: set[str] = set()
 # Match run_pipeline.ps1 $NBA_SEASON_RESUME — skip stale NBA-family step8 in combined.
 NBA_OFF_SEASON_RESUME = "2026-10-01"
 NHL_OFF_SEASON_RESUME = "2026-09-01"
+# WNBA All-Star mid-season pause: skip [PAUSE_START, RESUME). Override via env.
+# WNBA_RESUME_DATE=YYYY-MM-DD (resume on/after); WNBA_PAUSE_START=YYYY-MM-DD.
+WNBA_OFF_SEASON_RESUME = (
+    os.getenv("WNBA_RESUME_DATE", "").strip()
+    or os.getenv("PROPORACLE_WNBA_RESUME", "").strip()
+    or "2026-07-28"
+)
+WNBA_ALLSTAR_PAUSE_START = (
+    os.getenv("WNBA_PAUSE_START", "").strip()
+    or os.getenv("PROPORACLE_WNBA_PAUSE_START", "").strip()
+    or "2026-07-19"
+)
 DEFAULT_SOCCER_PATH = os.path.join(REPO_ROOT, "Sports", "Soccer", "outputs", "step8_soccer_direction_clean.xlsx")
 DEFAULT_TENNIS_PATH = os.path.join(REPO_ROOT, "Tennis", "outputs", "step8_tennis_direction_clean.xlsx")
 DEFAULT_GOLF_PATH = os.path.join(REPO_ROOT, "Sports", "Golf", "outputs", "step8_golf_direction_clean.xlsx")
@@ -269,6 +306,18 @@ def _nhl_off_season(slate_date: str) -> bool:
         return False
 
 
+def _wnba_family_off_season(slate_date: str) -> bool:
+    """True when WNBA / WNBA1H / WNBA1Q is paused (All-Star break window)."""
+    td = str(slate_date).strip()[:10]
+    try:
+        pause = datetime.strptime(WNBA_ALLSTAR_PAUSE_START, "%Y-%m-%d").date()
+        resume = datetime.strptime(WNBA_OFF_SEASON_RESUME, "%Y-%m-%d").date()
+        slate = datetime.strptime(td, "%Y-%m-%d").date()
+        return pause <= slate < resume
+    except ValueError:
+        return False
+
+
 _PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset()  # use dated resumes in _sport_slug_off_season
 
 
@@ -314,6 +363,12 @@ WEB_SUPPLEMENT_SPORTS: frozenset[str] = frozenset(
     for s in os.getenv("PROPORACLE_WEB_SUPPLEMENT_SPORTS", "MLB,SOCCER,TENNIS").split(",")
     if s.strip()
 )
+# Cap Tennis share on MAIN web payload (Jul-23: 15 tennis-heavy slips).
+WEB_SUPPLEMENT_MAX_GROUPS: dict[str, int] = {
+    "TENNIS": int(os.getenv("PROPORACLE_WEB_SUPPLEMENT_TENNIS_GROUPS", "2")),
+    "SOCCER": int(os.getenv("PROPORACLE_WEB_SUPPLEMENT_SOCCER_GROUPS", "4")),
+    "MLB": int(os.getenv("PROPORACLE_WEB_SUPPLEMENT_MLB_GROUPS", "6")),
+}
 
 
 def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
@@ -327,6 +382,8 @@ def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
     if sl in ("nba", "nba1h", "nba1q") and _nba_family_off_season(slate_date):
         return True
     if sl == "nhl" and _nhl_off_season(slate_date):
+        return True
+    if sl in ("wnba", "wnba1h", "wnba1q") and _wnba_family_off_season(slate_date):
         return True
     return False
 
@@ -535,6 +592,7 @@ def print_combined_slate_input_paths(args: argparse.Namespace) -> None:
 DIVERSITY_CONFIG_PATH = os.path.join(REPO_ROOT, "config", "diversity_config.json")
 PROP_RELIABILITY_LATEST_PATH = os.path.join(REPO_ROOT, "data", "reports", "prop_reliability_latest.json")
 PROP_STRAT_BOARD_LATEST_PATH = os.path.join(REPO_ROOT, "ui_runner", "data", "prop_stratification_board_latest.json")
+CATEGORY_HR_LATEST_PATH = os.getenv("PROPORACLE_CATEGORY_HR_PATH", _CATEGORY_HR_PATH)
 
 
 def _scalar_blank(val: Any) -> bool:
@@ -665,8 +723,8 @@ PAYOUT = {
 }
 
 
-# Cross-pipeline showcase slips: PrizePicks caps at 6 legs.
-CROSS_PIPELINE_MAX_LEGS = 6
+# Cross-pipeline showcase slips: production board capped at 2–3 legs.
+CROSS_PIPELINE_MAX_LEGS = max(2, min(3, int(os.getenv("PROPORACLE_CROSS_MAX_LEGS", "3"))))
 
 # Probability ladder: Standard-first; Goblin when leg prob beats Standard by this margin.
 LADDER_GOBLIN_ADVANTAGE_PP: float = float(os.getenv("PROPORACLE_LADDER_GOBLIN_ADVANTAGE_PP", "0.03"))
@@ -691,9 +749,12 @@ LADDER_CROSS_ONLY_DEFAULT: bool = os.getenv("PROPORACLE_LADDER_CROSS_ONLY", "1")
     "off",
 )
 
-# Cross-sport combinatorial search: best 3–6 leg parlay (one leg per sport, top-N per sport).
-HIGH_PROB_PARLAY_MIN_LEGS: int = max(3, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MIN_LEGS", "3")))
-HIGH_PROB_PARLAY_MAX_LEGS: int = min(6, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MAX_LEGS", "6")))
+# Cross-sport combinatorial search: production capped at 2–3 legs (no 4–6).
+HIGH_PROB_PARLAY_MIN_LEGS: int = max(2, min(3, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MIN_LEGS", "2"))))
+HIGH_PROB_PARLAY_MAX_LEGS: int = max(
+    HIGH_PROB_PARLAY_MIN_LEGS,
+    min(3, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MAX_LEGS", "3"))),
+)
 HIGH_PROB_PARLAY_DEPTH_PER_SPORT: int = max(2, int(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_DEPTH", "5")))
 HIGH_PROB_PARLAY_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_HIGH_PROB_PARLAY_MIN_LEG", "0.55"))
 HIGH_PROB_PARLAY_MIN_P_WIN: dict[int, float] = {
@@ -747,8 +808,19 @@ GOBLIN_MIN_FACTOR_SLOPE = 0.074
 GOBLIN_MIN_FACTOR_FLOOR = 0.30
 # Live mix-grid rate card: goblin_discount_per_unit by deviation bucket ("1.0","1.5","2.0")
 PAYOUT_RATE_CARD_PATH = os.path.join(REPO_ROOT, "data", "reports", "payout_rate_card.json")
+# SG-Δ mix×Goblin-Δ grid (live_cdp + extrapolated). Extrapolated stamps need verified lines.
+SG_DELTA_PAYOUT_RATE_CARD_PATH = os.path.join(
+    REPO_ROOT, "ui_runner", "data", "sg_delta_payout_rate_card_latest.json"
+)
 _LIVE_GOBLIN_DISCOUNT_PER_UNIT: dict[float, float] | None = None
 _LIVE_RATE_CARD_META: dict[str, Any] = {}
+_SG_DELTA_RATE_CARD_CACHE: dict[str, Any] | None = None
+# Max |Δ| gap for a live peer to count as "close verified" for the same goblin line family.
+_SG_DELTA_PEER_ABS = 0.5
+# Board-facing sources allowed when PROPORACLE_REQUIRE_LIVE_PAYOUT=1.
+# Only exact per-ticket PrizePicks CDP captures — peer rate-card SG-Δ stamps
+# (sg_delta_live / sg_delta_verified) are NOT trusted (Warren/Prielipp 1.9 vs 1.4).
+VERIFIED_PAYOUT_SOURCES = frozenset({"live_cdp"})
 
 
 def _load_live_payout_rate_card(force: bool = False) -> dict[float, float] | None:
@@ -1166,6 +1238,7 @@ def _compute_power_min_guarantee(legs: list, n_legs: int) -> tuple[float, int]:
 
 
 # Live PP floors for UI when CDP / rate card unavailable (from mix-grid 2026-07-11).
+# Only used when PROPORACLE_REQUIRE_LIVE_PAYOUT=0 (legacy / offline backtests).
 MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
     # (n_legs, n_goblin) -> power_min_x
     (2, 0): 3.0,   # 2S
@@ -1175,6 +1248,266 @@ MIX_GRID_AVERAGE_FLOORS: dict[tuple[int, int], float] = {
     (3, 1): 4.75,  # 1G+2S
     (3, 2): 4.0,   # 2G+1S
 }
+
+
+def require_live_payout_display() -> bool:
+    """
+    When True (default), board display floors must be exact per-ticket live_cdp
+    captures from PrizePicks. Peer SG-Δ / mix-grid / model floors are never
+    stamped (leave pending_live).
+
+    Set PROPORACLE_REQUIRE_LIVE_PAYOUT=0 to restore legacy estimate floors.
+    Set PROPORACLE_ALLOW_SG_DELTA_PAYOUT=1 to opt back into peer SG-Δ stamps
+    (not recommended — composition+Δ peers can misprice individual slips).
+    """
+    raw = (os.getenv("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1").strip().lower()
+    return raw not in ("0", "false", "no", "off")
+
+
+def allow_sg_delta_payout_stamps() -> bool:
+    """Opt-in peer SG-Δ rate-card stamps (default off — untrusted vs live PP)."""
+    raw = (os.getenv("PROPORACLE_ALLOW_SG_DELTA_PAYOUT") or "0").strip().lower()
+    return raw in ("1", "true", "yes", "on")
+
+
+def is_verified_payout_source(source: str | None) -> bool:
+    """True when payout_source is allowed under PROPORACLE_REQUIRE_LIVE_PAYOUT."""
+    src = str(source or "").strip().lower()
+    if src in VERIFIED_PAYOUT_SOURCES:
+        return True
+    # Opt-in peer SG-Δ stamps (PROPORACLE_ALLOW_SG_DELTA_PAYOUT=1).
+    if allow_sg_delta_payout_stamps() and src in (
+        "sg_delta_live",
+        "sg_delta_verified",
+    ):
+        return True
+    return False
+
+
+def _load_sg_delta_rate_card(force: bool = False) -> dict[str, Any] | None:
+    """Load ui_runner/data/sg_delta_payout_rate_card_latest.json (cached)."""
+    global _SG_DELTA_RATE_CARD_CACHE
+    if _SG_DELTA_RATE_CARD_CACHE is not None and not force:
+        return _SG_DELTA_RATE_CARD_CACHE
+    path = SG_DELTA_PAYOUT_RATE_CARD_PATH
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            card = json.load(f)
+    except Exception:
+        _SG_DELTA_RATE_CARD_CACHE = None
+        return None
+    if not isinstance(card, dict):
+        _SG_DELTA_RATE_CARD_CACHE = None
+        return None
+    _SG_DELTA_RATE_CARD_CACHE = card
+    return card
+
+
+def _norm_sg_delta_sig(parts: list[float]) -> str:
+    vals = sorted(
+        float(x) for x in parts if math.isfinite(float(x)) and float(x) > 0
+    )
+    return "+".join(f"{v:g}" for v in vals)
+
+
+def _parse_sg_delta_sig(raw: object) -> list[float]:
+    if isinstance(raw, (list, tuple)):
+        out: list[float] = []
+        for part in raw:
+            try:
+                f = float(part)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(f) and f > 0:
+                out.append(f)
+        return sorted(out)
+    text = str(raw or "").strip()
+    if not text or text in {"—", "-", "nan", "None", "unknown"}:
+        return []
+    out = []
+    for part in text.replace("|", ",").replace("+", ",").replace(";", ",").split(","):
+        part = part.strip().strip("[]'\"")
+        if not part:
+            continue
+        try:
+            f = float(part)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(f) and f > 0:
+            out.append(f)
+    return sorted(out)
+
+
+def _ticket_sg_delta_recipe(ticket: dict) -> dict[str, Any] | None:
+    """Composition + goblin Δ signature for SG-Δ rate-card lookup."""
+    legs = ticket.get("legs") if isinstance(ticket.get("legs"), list) else []
+    if len(legs) < 2:
+        return None
+    n_s = n_g = n_d = 0
+    g_deltas: list[float] = []
+    missing_g = 0
+    for leg in legs:
+        if not isinstance(leg, dict):
+            continue
+        pt = str(leg.get("pick_type") or leg.get("pick") or "standard").strip().lower()
+        if "demon" in pt:
+            n_d += 1
+            continue
+        if "goblin" in pt:
+            n_g += 1
+            dist = None
+            for key in (
+                "line_distance",
+                "delta",
+                "goblin_delta",
+                "distance",
+                "line_discount_vs_standard",
+            ):
+                dist = _safe_positive_float(leg.get(key))
+                if dist is not None:
+                    break
+            if dist is None:
+                missing_g += 1
+            else:
+                g_deltas.append(float(dist))
+        else:
+            n_s += 1
+    if n_g > 0 and (missing_g or len(g_deltas) != n_g):
+        g_sig = "unknown"
+    elif n_g == 0:
+        g_sig = "—"
+    else:
+        g_sig = _norm_sg_delta_sig(g_deltas) or "unknown"
+    return {
+        "n_legs": len(legs),
+        "n_s": n_s,
+        "n_g": n_g,
+        "n_d": n_d,
+        "composition": f"{n_s}S+{n_g}G+{n_d}D",
+        "goblin_delta_sig": g_sig,
+    }
+
+
+def _sg_delta_sigs_overlap_or_close(
+    want_sig: str,
+    live_sig: str,
+    *,
+    max_peer_abs: float = _SG_DELTA_PEER_ABS,
+) -> bool:
+    """True when Δ signatures share a value or are close peers (same n_g length)."""
+    a = _parse_sg_delta_sig(want_sig)
+    b = _parse_sg_delta_sig(live_sig)
+    if not a and not b:
+        return True  # pure standard
+    if not a or not b:
+        return False
+    if set(a) & set(b):
+        return True
+    if len(a) != len(b):
+        return False
+    return all(abs(x - y) <= float(max_peer_abs) for x, y in zip(a, b))
+
+
+def _sg_delta_same_lines_verified(
+    card: dict[str, Any],
+    composition: str,
+    want_sig: str,
+) -> bool:
+    """
+    Same-lines verified gate for extrapolated SG-Δ cells.
+
+    Allow extrapolated stamp only when this mix has live CDP evidence for the
+    goblin-Δ line family:
+      - exact sig cell has n_live > 0 (previously live-verified even if the
+        current card median is interpolated), OR
+      - ≥1 live_cdp cell in the same composition with overlapping / close
+        (≤0.5) Δ signature evidence.
+
+    Cold compositions (zero live_cdp cells) never pass.
+    """
+    cells = card.get("cells") if isinstance(card.get("cells"), list) else []
+    live_peers: list[dict[str, Any]] = []
+    exact_n_live = 0
+    for c in cells:
+        if not isinstance(c, dict):
+            continue
+        if str(c.get("composition") or "").strip() != composition:
+            continue
+        c_sig = str(c.get("goblin_delta_sig") or "—").strip() or "—"
+        src = str(c.get("source") or "").strip().lower()
+        try:
+            n_live = int(c.get("n_live") or 0)
+        except (TypeError, ValueError):
+            n_live = 0
+        if c_sig == want_sig and n_live > 0:
+            exact_n_live = max(exact_n_live, n_live)
+        if src == "live_cdp":
+            live_peers.append(c)
+    if exact_n_live > 0:
+        return True
+    if not live_peers:
+        return False
+    return any(
+        _sg_delta_sigs_overlap_or_close(
+            want_sig, str(c.get("goblin_delta_sig") or "—")
+        )
+        for c in live_peers
+    )
+
+
+def _lookup_sg_delta_verified_floor(
+    ticket: dict,
+) -> tuple[float, str] | None:
+    """
+    Prefer exact live SG-Δ cell; else verified-line extrapolated; else None.
+
+    Returns (min_x, payout_source) where source is sg_delta_live or
+    sg_delta_verified. Never returns cold extrapolated cells.
+    """
+    recipe = _ticket_sg_delta_recipe(ticket)
+    if not recipe:
+        return None
+    want_sig = str(recipe["goblin_delta_sig"] or "")
+    if want_sig in ("", "unknown"):
+        return None
+    card = _load_sg_delta_rate_card()
+    if not card:
+        return None
+    composition = str(recipe["composition"])
+    cells = card.get("cells") if isinstance(card.get("cells"), list) else []
+    cell = None
+    for c in cells:
+        if not isinstance(c, dict):
+            continue
+        if str(c.get("composition") or "").strip() != composition:
+            continue
+        if str(c.get("goblin_delta_sig") or "—").strip() != want_sig:
+            continue
+        cell = c
+        break
+    if cell is None:
+        return None
+    min_x = _safe_positive_float(cell.get("power_min_x"))
+    if min_x is None:
+        return None
+    src = str(cell.get("source") or "").strip().lower()
+    status = str(cell.get("status") or "").strip().lower()
+    try:
+        n_live = int(cell.get("n_live") or 0)
+    except (TypeError, ValueError):
+        n_live = 0
+
+    # 1) Exact live / observed on the card for this mix+Δ.
+    if src == "live_cdp" or (status == "observed" and n_live > 0):
+        return float(min_x), "sg_delta_live"
+
+    # 2) Extrapolated / historical only after same lines verified.
+    if src in ("extrapolated", "historical") or status == "extrapolated":
+        if _sg_delta_same_lines_verified(card, composition, want_sig):
+            return float(min_x), "sg_delta_verified"
+        return None
+
+    return None
 
 
 def _load_live_composition_floors() -> dict[tuple[int, int], float]:
@@ -1251,25 +1584,47 @@ def _commit_display_min_x(ticket: dict, pay: dict, min_x: float, source: str) ->
     """Stamp min-guarantee display fields and recompute Power EV from that floor."""
     floor = round(float(min_x), 4)
     pay["display_min_x"] = floor
-    if source == "live_cdp":
+    src = str(source or "").strip().lower()
+    # Observed PP floors (ticket CDP or exact SG-Δ live cell) also set power_min_x.
+    if src in ("live_cdp", "sg_delta_live"):
         pay["power_min_x"] = floor
-    pay["payout_source"] = source
+    pay["payout_source"] = src
     refresh_ticket_ev_from_min_guarantee(pay, floor, update_recommendation=False)
     ticket["payout"] = pay
     ticket["display_min_x"] = floor
     return ticket
 
 
+def _commit_pending_live_payout(ticket: dict, pay: dict) -> dict:
+    """No verified lines yet — do not invent mix/fallback/cold-extrapolated floors."""
+    pay = dict(pay) if isinstance(pay, dict) else {}
+    pay["payout_source"] = "pending_live"
+    pay.pop("display_min_x", None)
+    # Drop peer/rate-card power floors so a later attach cannot promote them to live_cdp.
+    pay.pop("power_min_x", None)
+    # Keep model_* for analytics only; clear board-facing floor.
+    ticket.pop("display_min_x", None)
+    ticket["payout"] = pay
+    return ticket
+
+
 def attach_display_min_x(ticket: dict) -> dict:
     """
-    Set payout.display_min_x + payout.payout_source with fallback hierarchy:
-      1. live_cdp (power_min_x from --tickets capture — scraped PP min guarantee)
-      2. rate_card (payout_rate_card.json + line_distance)
-      3. mix_grid_average (hardcoded 2G/1G+1S/2S floors)
-      4. fallback_estimate (model min_payout_x / power_payout)
+    Set payout.display_min_x + payout.payout_source.
 
-    Power EV is always recomputed as P(all) * display_min_x - 1 so the board
-    uses the scrape/rate-card min guarantee, not the modeled Standard sweep.
+    Default (PROPORACLE_REQUIRE_LIVE_PAYOUT=1) — exact live CDP only:
+      1. live_cdp on the ticket (exact PP Min Guarantee capture)
+      else pending_live (no peer SG-Δ, mix-grid, or model fake floors)
+
+    Opt-in peer stamps (PROPORACLE_ALLOW_SG_DELTA_PAYOUT=1):
+      2. SG-Δ exact live_cdp / observed cell → sg_delta_live
+      3. SG-Δ extrapolated after same-lines verified → sg_delta_verified
+
+    Legacy (PROPORACLE_REQUIRE_LIVE_PAYOUT=0):
+      1. live_cdp
+      2. SG-Δ (if allowed) / rate_card / mix_grid_average / fallback_estimate
+
+    Power EV is recomputed as P(all) * display_min_x - 1 when a verified floor exists.
     """
     if not isinstance(ticket, dict):
         return ticket
@@ -1292,16 +1647,36 @@ def attach_display_min_x(ticket: dict) -> dict:
         keep = live_v if live_v is not None else disp_v
         if keep is not None:
             return _commit_display_min_x(ticket, pay, keep, "live_cdp")
-    if live_v is not None and src_now in ("", "live_cdp"):
-        # power_min_x present from capture even if source blank
-        disp = disp_v if disp_v is not None else live_v
+    if live_v is not None and src_now in ("", "live_cdp", "pending_live"):
+        # power_min_x present from capture even if source blank / pending
+        disp = disp_v if disp_v is not None and src_now == "live_cdp" else live_v
         return _commit_display_min_x(ticket, pay, float(disp), "live_cdp")
+
+    allow_sg = allow_sg_delta_payout_stamps()
+    # Preserve prior SG-Δ stamps only when explicitly opted in.
+    if (
+        allow_sg
+        and src_now in ("sg_delta_live", "sg_delta_verified")
+        and disp_v is not None
+    ):
+        return _commit_display_min_x(ticket, pay, float(disp_v), src_now)
+
+    # Peer SG-Δ rate-card lookup — off by default (untrusted vs exact PP slip).
+    if allow_sg:
+        sg = _lookup_sg_delta_verified_floor(ticket)
+        if sg is not None:
+            floor, sg_src = sg
+            return _commit_display_min_x(ticket, pay, floor, sg_src)
+
+    # Verified-lines board: stop here — no mix-grid / model / cold extrapolated.
+    if require_live_payout_display():
+        return _commit_pending_live_payout(ticket, pay)
 
     legs = _ticket_legs_for_display_payout(ticket)
     n = len(legs) or int(ticket.get("n_legs") or ticket.get("size") or 0)
     g_count = _count_goblin_legs(legs)
 
-    # 2) Live rate card
+    # 2) Live rate card (legacy path only)
     fitted = _load_live_payout_rate_card()
     if fitted and n >= 2 and legs:
         try:
@@ -2238,6 +2613,10 @@ def filter_web_tickets_for_ui(
     """Build /tickets JSON groups: optional positive-EV gate, then optional WEB_TICKET_TEMPLATE quotas."""
     groups_in = list(payload.get("groups") or [])
     win_rate_main = _is_win_rate_main_web_payload(payload)
+    # Win-rate MAIN (high_prob_std_gob) optimizes hit rate; EV/3x gates are for EV boards.
+    # Applying them here wiped Jul-18 STRONG slips (mult unset → payout_below_3x).
+    if win_rate_main:
+        require_positive_ev = False
     skip_payout_gate = win_rate_main and not require_positive_ev
     out_groups: list[dict] = []
     sport_candidates: dict[str, tuple[tuple[float, int, float], dict, str]] = {}
@@ -2260,6 +2639,10 @@ def filter_web_tickets_for_ui(
             kept = []
             for t in tickets_in:
                 if not isinstance(t, dict):
+                    continue
+                # STRONG builder slips stay on MAIN regardless of EV/3x display gates.
+                if t.get("strong_builder"):
+                    kept.append(t)
                     continue
                 if not _ticket_passes_positive_ev_gate(t):
                     if discard_tracker is not None:
@@ -2545,6 +2928,7 @@ def _load_diversity_config(path: str = DIVERSITY_CONFIG_PATH) -> dict[str, Any]:
     defaults: dict[str, Any] = {
         "max_leg_exposure": 4,
         "max_player_exposure": 8,
+        "max_player_prop_exposure": 1,
         "void_risk_min_sample": 10,
         "max_jaccard_overlap": 0.8,
         "exposure_penalty_weight": 0.1,
@@ -2572,32 +2956,38 @@ def _apply_diversity_filter_to_ticket_groups(
     all_ticket_groups: list[tuple[str, list[dict[str, Any]], Any]],
     config: dict[str, Any],
 ) -> list[tuple[str, list[dict[str, Any]], Any]]:
-    flat: list[dict[str, Any]] = []
-    for _gname, tickets, _bg in all_ticket_groups:
-        for t in (tickets or []):
-            if isinstance(t, dict):
-                flat.append(t)
+    """Apply diversity caps per section (group_name), not across the whole slate.
+
+    So e.g. Ionescu rebounds may appear once in STRONG 6-Leg and again in MLB Mixed,
+    but not on two slips inside the same section.
+    """
     n_before_groups = len(all_ticket_groups)
-    n_before_slips = len(flat)
+    n_before_slips = sum(len(tickets or []) for _g, tickets, _bg in all_ticket_groups)
     if n_before_slips == 0:
         _log_slate.info("[diversity] no candidate slips to filter")
         return all_ticket_groups
 
-    kept = apply_diversity_filter(flat, config)
-    kept_ids = {id(t) for t in kept}
-
     out: list[tuple[str, list[dict[str, Any]], Any]] = []
     dropped_groups = 0
     for group_name, tickets, bg in all_ticket_groups:
-        filtered = [t for t in (tickets or []) if id(t) in kept_ids]
-        if filtered:
-            out.append((group_name, filtered, bg))
+        flat = [t for t in (tickets or []) if isinstance(t, dict)]
+        if not flat:
+            dropped_groups += 1
+            continue
+        kept = apply_diversity_filter(flat, config)
+        if kept:
+            out.append((group_name, kept, bg))
         else:
             dropped_groups += 1
+            _log_slate.info(
+                "[diversity] section %r: %d -> 0 slips",
+                group_name,
+                len(flat),
+            )
 
     n_after_slips = sum(len(g[1]) for g in out)
     _log_slate.info(
-        "[diversity] groups %d -> %d (dropped %d), slips %d -> %d",
+        "[diversity] per-section groups %d -> %d (dropped %d), slips %d -> %d",
         n_before_groups,
         len(out),
         dropped_groups,
@@ -2678,10 +3068,10 @@ SOCCER_UNDER_PREFERRED: bool = os.getenv("PROPORACLE_SOCCER_UNDER_PREFERRED", "1
     "off",
 )
 # Soft preference only — OVER can clear these HQ floors (was effectively 999 / hard ban).
-SOCCER_OVER_MIN_EDGE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_EDGE", "0.12"))
-SOCCER_OVER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_HIT_RATE", "0.70"))
-SOCCER_OVER_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_LEG_PROB", "0.68"))
-SOCCER_UNDER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_UNDER_MIN_HIT_RATE", "0.58"))
+SOCCER_OVER_MIN_EDGE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_EDGE", "0.15"))
+SOCCER_OVER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_HIT_RATE", "0.75"))
+SOCCER_OVER_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_LEG_PROB", "0.72"))
+SOCCER_UNDER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_UNDER_MIN_HIT_RATE", "0.62"))
 # Raise per-leg hit floors vs global defaults (aligned with graded UNDER slices).
 SOCCER_LEG_MIN_HIT_RATE = {
     2: 0.58,
@@ -2996,7 +3386,7 @@ def soccer_allowed_leg(leg) -> bool:
     Soccer sport gate (own pipeline):
 
     - Goblin = OVER only (never UNDER); Standard UNDER preferred
-    - OVER allowed only when high-quality (hit/edge/prob floors)
+    - Standard OVER banned (Jul-19 ~15% leg HR); Goblin OVER only with HQ floors
     - Demon never ticket-eligible here
     """
     if isinstance(leg, dict):
@@ -3026,7 +3416,24 @@ def soccer_allowed_leg(leg) -> bool:
         return pick in ("", "standard") or "standard" in pick
 
     if direction == "OVER":
-        # Soft UNDER preference: OVER must clear HQ floors when preferred mode is on.
+        # Standard OVER: prop×direction ledger gates (not a blanket Standard ban).
+        # Goblin OVER remains HQ-gated below.
+        if "standard" in pick and "goblin" not in pick:
+            if _leg_standard_prop_direction_gated(row):
+                return False
+            # Non-gated Standard OVER still needs HQ floors when UNDER-preferred.
+        elif "goblin" not in pick and pick not in ("",):
+            return False
+        if "goblin" in pick or pick == "":
+            if SOCCER_UNDER_PREFERRED:
+                if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
+                    return False
+                if edge < float(SOCCER_OVER_MIN_EDGE):
+                    return False
+                if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
+                    return False
+            return "goblin" in pick or pick == ""
+        # Standard OVER that cleared prop gate: apply same HQ floors as Goblin OVER.
         if SOCCER_UNDER_PREFERRED:
             if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
                 return False
@@ -3034,7 +3441,7 @@ def soccer_allowed_leg(leg) -> bool:
                 return False
             if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
                 return False
-        return pick in ("", "goblin", "standard") or "goblin" in pick or "standard" in pick
+        return True
 
     return False
 
@@ -3541,16 +3948,29 @@ MIN_WEB_DISPLAY_EST_WIN_PROB: float = 0.06
 
 # /tickets: hard floor for displayed/generated slip payout multipliers.
 MIN_WEB_PAYOUT_X: float = 3.0
-MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 2.0
+MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 1.5
+# Playable floor: live Min Guarantee ≥1.5x (was 1.9; Jul-25 still favored short 2–3L).
+# Env:
+#   PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X  (default 1.5) — prefer/rank floor
+#   PROPORACLE_SHORT_FLOOR_HARD_X          (default 1.5) — hard cut when preferred exist
+#   PROPORACLE_SHORT_FLOOR_HIGH_P_WIN      (default 0.70) — bypass for sub-floor slips
+MAIN_PREFERRED_MIN_PAYOUT_X: float = float(
+    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "1.5")
+)
+SHORT_FLOOR_HARD_X: float = float(os.getenv("PROPORACLE_SHORT_FLOOR_HARD_X", "1.5"))
+SHORT_FLOOR_HIGH_P_WIN: float = float(
+    os.getenv("PROPORACLE_SHORT_FLOOR_HIGH_P_WIN", "0.70")
+)
 DEBUG_PAYOUT_DIAGNOSTIC: bool = os.getenv("PROPORACLE_DEBUG_PAYOUT", "false").lower() == "true"
 
 # /tickets page target volumes per sport after EV gate.
+# Prefer 2L; keep light 3–4L; starve 5–6L long parlays.
 WEB_TICKET_TEMPLATE_BY_LEGS: dict[int, int] = {
-    6: 6,
-    5: 8,
-    4: 12,
-    3: 12,
-    2: 12,
+    6: 0,
+    5: 1,
+    4: 6,
+    3: 6,
+    2: 16,
 }
 
 # Cap sorted candidate pool size per leg count (top rows by ticket sort) to bound greedy work.
@@ -4019,15 +4439,18 @@ DIRECTIONAL_HR_THRESHOLDS: dict[str, dict[str, float]] = {
     "NBA": {"over": 0.70, "under": 0.30, "standard_over_min_edge": 2.45, "standard_under_min_edge": 1.33},
     "NBA1Q": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.45, "standard_under_min_edge": 1.33},
     "NBA1H": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.45, "standard_under_min_edge": 1.33},
+    # Jul-19 WNBA Std OVER 43% / UNDER 54% — raise OVER edge; modest UNDER floor.
+    "WNBA": {"over": 0.68, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
     "NHL": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 0.5, "standard_under_min_edge": 0.5},
-    "MLB": {"over": 0.60, "under": 0.40, "standard_over_min_edge": 0.5, "standard_under_min_edge": 0.5},
+    # MLB Std OVER banned on MAIN; UNDER was ~40% Jul-19 — raise UNDER edge.
+    "MLB": {"over": 0.60, "under": 0.40, "standard_over_min_edge": 0.5, "standard_under_min_edge": 1.0},
     "TENNIS": {"over": 0.60, "under": 0.40},
-    "SOCCER": {"over": 0.60, "under": 0.40, "standard_over_min_rank_score": 0.20},
-    "CBB": {"over": 0.65, "under": 0.35},
-    "WCBB": {"over": 0.65, "under": 0.35},
+    "SOCCER": {"over": 0.60, "under": 0.40, "standard_over_min_rank_score": 0.30},
+    "CBB": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
+    "WCBB": {"over": 0.65, "under": 0.35, "standard_over_min_edge": 2.0, "standard_under_min_edge": 1.0},
 }
 DEFAULT_DIRECTIONAL_THRESHOLD: dict[str, float] = {"over": 0.65, "under": 0.35}
-MLB_MAX_LEGS = 4
+MLB_MAX_LEGS = 3
 MLB_PITCHING_OVER_ONLY_PROPS = {"strikeouts", "hits allowed"}
 
 _MLB_POSTPONED_TEAMS_CACHE: dict[str, set[str]] = {}
@@ -4118,14 +4541,28 @@ def _wnba_postponed_exclusion_mask(df: pd.DataFrame, slate_date: str) -> pd.Seri
 
     return wnba & team_col.map(_hit)
 
-# Tennis: short slips only (max 3 legs). Relaxed per-leg floors vs NBA — no graded PP history yet.
+# Tennis: short slips only (max 3 legs).
+# Jul-22/23 graded: Ace/DF Goblin OVER 0%; Total Games lanes better but Goblin totals
+# still flooded MAIN via relaxed floors (min() vs global + 0.52 structured override).
 MAX_LEGS_TENNIS = 3
-TENNIS_LEG_MIN_HIT_RATE = {2: 0.55, 3: 0.58, 4: 0.62}
+TENNIS_LEG_MIN_HIT_RATE = {2: 0.68, 3: 0.72, 4: 0.75}
+TENNIS_HIT_RATE_PROXY_FLOOR = 0.62
+TENNIS_HIT_RATE_PROXY_CAP = 0.88
+TENNIS_GOBLIN_MIN_L5_HITS = 3
+TENNIS_STD_MIN_L5_HITS = 3
 TENNIS_ELIGIBLE_PROPS = frozenset({
     "total games won",
     "total games",
     "games won",
     "games played",
+})
+TENNIS_SERVE_JUNK_FRAGMENTS = frozenset({
+    "ace",
+    "aces",
+    "double fault",
+    "doublefault",
+    "double faults",
+    "doublefaults",
 })
 
 
@@ -4135,6 +4572,34 @@ def _tennis_leg_prop_label(leg) -> str:
     else:
         raw = leg.get("prop_type") or leg.get("prop") or ""
     return str(raw).lower()
+
+
+def _tennis_is_serve_junk(prop_label: str) -> bool:
+    p = str(prop_label or "").strip().lower()
+    if not p:
+        return False
+    compact = re.sub(r"[^a-z0-9]+", "", p)
+    if compact in {"aces", "ace", "doublefaults", "doublefault"}:
+        return True
+    return any(frag in p for frag in TENNIS_SERVE_JUNK_FRAGMENTS)
+
+
+def _tennis_directional_l5_hits(leg) -> float:
+    """Directional L5 hit count (0–5). Missing → 0."""
+    if isinstance(leg, dict):
+        row = leg
+    else:
+        row = leg
+    direction = str(row.get("direction") or row.get("over_under") or "").upper()
+    if direction == "UNDER":
+        keys = ("l5_under", "last5_under", "L5 Under")
+    else:
+        keys = ("l5_over", "last5_over", "L5 Over")
+    for k in keys:
+        v = pd.to_numeric(row.get(k), errors="coerce")
+        if pd.notna(v):
+            return float(v)
+    return 0.0
 
 
 def nhl_allowed_leg(leg) -> bool:
@@ -4171,7 +4636,7 @@ def _tennis_prop_label_series(df: pd.DataFrame) -> pd.Series:
 
 
 def _tennis_allowed_mask(df: pd.DataFrame) -> pd.Series:
-    """Vectorized tennis_allowed_leg: Goblin OVER totals + Standard UNDER (tier×def)."""
+    """Vectorized tennis_allowed_leg: totals-only; Ace/DF hard-banned; L5 floors."""
     if df.empty:
         return pd.Series(dtype=bool, index=df.index)
     pick = df.get("pick_type", pd.Series("", index=df.index)).astype(str).str.strip().str.lower()
@@ -4181,21 +4646,46 @@ def _tennis_allowed_mask(df: pd.DataFrame) -> pd.Series:
             direction = df[c].astype(str).str.upper().str.strip()
             break
     prop_label = _tennis_prop_label_series(df)
+    serve_junk = prop_label.map(_tennis_is_serve_junk).fillna(False)
     eligible_prop = pd.Series(False, index=df.index)
     for p in TENNIS_ELIGIBLE_PROPS:
         eligible_prop = eligible_prop | prop_label.str.contains(p, na=False, regex=False)
-    goblin_ok = (pick == "goblin") & direction.eq("OVER") & eligible_prop
-    std_under = (pick == "standard") & direction.eq("UNDER")
+    eligible_prop = eligible_prop & ~serve_junk
+    l5_over = pd.to_numeric(df.get("l5_over", df.get("last5_over", 0)), errors="coerce").fillna(0.0)
+    l5_under = pd.to_numeric(df.get("l5_under", df.get("last5_under", 0)), errors="coerce").fillna(0.0)
+    l5_side = pd.Series(
+        np.where(direction.eq("UNDER"), l5_under, l5_over),
+        index=df.index,
+        dtype=float,
+    )
+    goblin_ok = (
+        (pick == "goblin")
+        & direction.eq("OVER")
+        & eligible_prop
+        & l5_side.ge(float(TENNIS_GOBLIN_MIN_L5_HITS))
+    )
+    std_ok = (
+        (pick == "standard")
+        & direction.isin(["UNDER", "OVER"])
+        & eligible_prop
+        & l5_side.ge(float(TENNIS_STD_MIN_L5_HITS))
+    )
     allowed = goblin_ok.copy()
-    if std_under.any():
-        sub_idx = std_under[std_under].index
+    if std_ok.any():
+        sub_idx = std_ok[std_ok].index
         tier_pass = ~tier_defense_exclusion_mask(df.loc[sub_idx], sport="TENNIS")
         allowed.loc[sub_idx] = tier_pass
     return allowed.fillna(False)
 
 
 def tennis_allowed_leg(leg) -> bool:
-    """Goblin OVER on game totals (no tier gate), or Standard UNDER (tier×def gate)."""
+    """
+    Tennis ticket gate (Jul-22/23 tighten):
+    - Hard-ban Ace / Double Faults (any pick) — 0% Goblin OVER both days.
+    - Goblin OVER on Total Games / Games Won only, with L5 floor.
+    - Standard OVER or UNDER on those totals (tier×def + L5) — Std OVER Games Won
+      was the strongest Jul-22/23 lane.
+    """
     if isinstance(leg, dict):
         sport = str(leg.get("sport", "")).upper()
         pick_type = str(leg.get("pick_type", "")).strip().lower()
@@ -4211,13 +4701,16 @@ def tennis_allowed_leg(leg) -> bool:
     if not goblin_direction_ok(row):
         return False
     prop_label = _tennis_leg_prop_label(leg)
-    if (
-        pick_type == "goblin"
-        and direction == "OVER"
-        and any(p in prop_label for p in TENNIS_ELIGIBLE_PROPS)
-    ):
-        return True
-    if pick_type == "standard" and direction == "UNDER":
+    if _tennis_is_serve_junk(prop_label):
+        return False
+    if not any(p in prop_label for p in TENNIS_ELIGIBLE_PROPS):
+        return False
+    l5_hits = _tennis_directional_l5_hits(row)
+    if pick_type == "goblin" and direction == "OVER":
+        return l5_hits >= float(TENNIS_GOBLIN_MIN_L5_HITS)
+    if pick_type == "standard" and direction in ("UNDER", "OVER"):
+        if l5_hits < float(TENNIS_STD_MIN_L5_HITS):
+            return False
         return leg_passes_tier_defense_gate(leg, sport="TENNIS")
     return False
 
@@ -4309,13 +4802,13 @@ ELIGIBLE_TIERS_BY_PICK_TYPE_DIRECTION: dict[tuple[str, str], set[str]] = {
 }
 TIER_POLICY_SPORTS = {"NBA", "NBA1H", "NBA1Q"}
 
-# Cap fantasy-score concentration per ticket so slips are more diversified.
+# Fantasy Score markets are banned from all ticket construction (0 allowed).
 MAX_FANTASY_LEGS = {
-    2: 1,
-    3: 1,
-    4: 2,
-    5: 2,
-    6: 2,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
 }
 MAX_SAME_PROP_TYPE_PER_TICKET = 2
 
@@ -4324,8 +4817,12 @@ TICKET_LEG_SIZES = [2, 3, 4, 5, 6]
 MIN_TICKET_POOL = min(TICKET_LEG_SIZES)
 
 
-def _is_fantasy_prop(row: pd.Series) -> bool:
-    return "fantasy" in str(row.get("prop_type", "")).strip().lower()
+def _is_fantasy_prop(row: pd.Series | dict) -> bool:
+    if isinstance(row, pd.Series):
+        raw = row.get("prop_type", "") or row.get("prop", "")
+    else:
+        raw = (row or {}).get("prop_type", "") or (row or {}).get("prop", "")
+    return bool(_is_fantasy_prop_label(raw))
 
 
 def _ticket_prop_token(row: pd.Series | dict) -> str:
@@ -4342,6 +4839,8 @@ def _can_add_row_with_prop_cap(
     prop_type_counts: Counter[str],
     max_same_prop: int = MAX_SAME_PROP_TYPE_PER_TICKET,
 ) -> bool:
+    if _is_fantasy_prop(row):
+        return False
     tok = _ticket_prop_token(row)
     if not tok:
         return True
@@ -4497,18 +4996,35 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
     rule: user ruleset (L5, L10/season consistency, defense, minutes, role, H2H, edge),
     with Demon legs deprioritized.
     hot_hr: directional L10/L5 + composite HR (ignore edge) — preferred for MLB Goblin.
+    winrate: category_hr prior + recent form + model + matchup + HOT (fantasy → -9).
     """
     out = df.copy()
     if out.empty:
         out["__ts_pri"] = pd.Series(dtype=float)
         out["__ts_sec"] = pd.Series(dtype=float)
         return out
+    # Fantasy Score is never a ticket candidate — sink to bottom.
+    if "prop_type" in out.columns or "prop" in out.columns:
+        _fant = _fantasy_prop_mask(out)
+        if _fant.any():
+            out = out.loc[~_fant].copy()
+            if out.empty:
+                out["__ts_pri"] = pd.Series(dtype=float)
+                out["__ts_sec"] = pd.Series(dtype=float)
+                return out
+    if "category_hr" not in out.columns:
+        out = _attach_category_hr_columns(out)
     rs = pd.to_numeric(out["rank_score"], errors="coerce") if "rank_score" in out.columns else pd.Series(np.nan, index=out.index)
     ml = pd.to_numeric(out["ml_prob"], errors="coerce") if "ml_prob" in out.columns else pd.Series(np.nan, index=out.index)
     rs_p = rs.map(_scalar_rank_to_prob_for_sort)
     m = (mode or "rank").strip().lower()
-    if m not in ("rank", "ml", "blend", "rule", "hot_hr"):
+    if m not in ("rank", "ml", "blend", "rule", "hot_hr", "winrate"):
         m = "rank"
+    if m == "winrate":
+        out["__ts_pri"] = _winrate_priority_series(out)
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        out["__ts_sec"] = cat.fillna(-1.0)
+        return out
     if m == "ml":
         out["__ts_pri"] = ml.fillna(-1.0)
         out["__ts_sec"] = rs.fillna(-1e9)
@@ -4516,7 +5032,9 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         out = ensure_prop_signal_columns(out)
         ctx = context_signal_adjustment_series(out)
         ml_b = ml.where(ml.notna(), rs_p)
-        out["__ts_pri"] = (0.45 * ml_b + 0.35 * rs_p + 0.20 * ctx.clip(-0.15, 0.15)).fillna(-1.0)
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        cat_boost = ((cat - 0.55) * 0.25).clip(-0.06, 0.10).fillna(0.0)
+        out["__ts_pri"] = (0.40 * ml_b + 0.30 * rs_p + 0.15 * ctx.clip(-0.15, 0.15) + 0.15 * (cat.fillna(0.52) + cat_boost)).fillna(-1.0)
         out["__ts_sec"] = rs.fillna(-1e9)
     elif m == "hot_hr":
         # MLB edge is anti-correlated with hits — rank on recent side hits + composite HR only.
@@ -4537,6 +5055,8 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         pri = pri + np.where(pd.isna(side_l5), 0.0, np.where(side_l5 >= 4, 0.05, np.where(side_l5 <= 2, -0.04, 0.0)))
         tier = out.get("tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
         pri = pri + np.where(tier.eq("A"), 0.03, np.where(tier.eq("B"), 0.015, 0.0))
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        pri = pri + ((cat - 0.55) * 0.20).clip(-0.05, 0.08).fillna(0.0)
         out["__ts_pri"] = pri
         out["__ts_sec"] = base.fillna(-1.0)
     elif m == "rule":
@@ -4548,6 +5068,7 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         # 5) Role context
         # 6) H2H consistency
         # 7) Edge as a smaller tie-breaker
+        # 8) Category HR prior (sport×prop×Std/Gob×O/U) — fantasy already dropped
         direction = out.get("direction", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
         pick_type = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.upper().str.strip()
         def_tier_raw = out.get("def_tier", pd.Series("", index=out.index))
@@ -4619,6 +5140,10 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         edge_adj = pd.Series(np.where(over_mask, edge, -edge), index=out.index)
         edge_adj = pd.to_numeric(edge_adj, errors="coerce").fillna(0.0).clip(-12.0, 12.0) / 40.0
         pri = pri + edge_adj
+
+        # Category HR prior (fantasy already stripped above).
+        cat = pd.to_numeric(out.get("category_hr"), errors="coerce")
+        pri = pri + ((cat - 0.55) * 0.35).clip(-0.10, 0.14).fillna(0.0)
 
         # Explicitly deprioritize Demon as requested.
         pri = np.where(pick_type.eq("DEMON"), -9.0, pri)
@@ -4928,7 +5453,13 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
     return DEFAULT_LEG_PROB_FALLBACK, "fallback_const"
 
 
-def win_prob(leg_probs_with_source, _n_legs: int) -> float:
+def win_prob(
+    leg_probs_with_source,
+    _n_legs: int,
+    *,
+    max_leg_prob: float | None = None,
+) -> float:
+    """Independence product of leg probs. Optional max_leg_prob overrides source caps."""
     vals = []
     for p, src in leg_probs_with_source:
         try:
@@ -4936,7 +5467,10 @@ def win_prob(leg_probs_with_source, _n_legs: int) -> float:
                 continue
             if isinstance(p, float) and np.isnan(p):
                 continue
-            vals.append(_clip_prob(float(p), src))
+            if max_leg_prob is not None:
+                vals.append(float(np.clip(float(p), LEG_PROB_FLOOR, float(max_leg_prob))))
+            else:
+                vals.append(_clip_prob(float(p), src))
         except Exception:
             continue
     if not vals:
@@ -4951,27 +5485,199 @@ _WIN_RATE_PRIMARY_SPORTS = frozenset(
 _WIN_RATE_EXTRA_SPORTS = frozenset()
 # Prop norms banned from MAIN / win-rate high-prob tickets (graded slice evidence).
 MAIN_BANNED_GOBLIN_PROP_NORMS: dict[str, frozenset[str]] = {
-    "TENNIS": frozenset({"aces", "doublefaults", "doublefault"}),
+    # Tennis Ace/DF Goblin OVER: 0% on Jul-22 (0/20) and Jul-23 (0/9) — hard ban.
+    "TENNIS": frozenset({"aces", "ace", "doublefaults", "doublefault"}),
     # Soccer Goblin OVER is not globally banned — soccer_allowed_leg keeps HQ OVER
     # (UNDER preferred) so Goblins ship like other sports.
+    # MLB: Jul-18 miss engine was Hits / TB / H+R+RBI Goblin OVER 0.5 on long tickets.
+    # Prefer pitcher props (same allowlist philosophy as STRONG).
+    "MLB": frozenset(
+        {
+            "hits",
+            "totalbases",
+            "hitsrunsrbis",
+            "hitsrunsrebis",
+            "hitrbis",
+            "runs",
+            "rbi",
+            "rbis",
+            "homeruns",
+            "hr",
+            "stolenbases",
+            "sb",
+            "doubles",
+            "singles",
+            "triples",
+            "hitterstrikeouts",
+            "batterstrikeouts",
+        }
+    ),
 }
+
+# MLB Goblin OVER props still allowed on MAIN (pitcher-centric).
+MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS: frozenset[str] = frozenset(
+    {
+        "strikeouts",  # pitcher Ks when not tagged hitter/batter
+        "pitchesthrown",
+        "pitchingouts",
+        "earnedrunsallowed",
+        "hitsallowed",
+        "walksallowed",
+        "outs",
+        "pitchingstrikeouts",
+    }
+)
 
 
 def _norm_main_prop_key(prop: object) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(prop or "").strip().lower())
 
 
+# Standard-only prop×direction gates from Jul 10–19 ticket_eval ledger.
+# Goblins stay mostly open (easier hit / lower payout); Standards carry payout upside
+# and need prop-level hygiene — not sport-wide OVER bans.
+# Keys: (sport, prop_norm, direction)
+_STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
+    {
+        # MLB
+        ("MLB", "totalbases", "OVER"),
+        ("MLB", "hits", "OVER"),
+        ("MLB", "earnedrunsallowed", "OVER"),
+        ("MLB", "hitsallowed", "OVER"),
+        ("MLB", "plateappearances", "UNDER"),
+        # WNBA
+        ("WNBA", "rebounds", "OVER"),
+        ("WNBA", "ptsrebsasts", "OVER"),
+        ("WNBA", "fgattempted", "UNDER"),
+        ("WNBA", "fieldgoalsattempted", "UNDER"),
+        # Soccer
+        ("SOCCER", "shotscombo", "OVER"),
+        ("SOC", "shotscombo", "OVER"),
+    }
+)
+_STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
+    {
+        # MLB — still issued historically but sub-48% Standard HR
+        ("MLB", "pitchesthrown", "OVER"),
+        ("MLB", "pitcherstrikeouts", "OVER"),
+        ("MLB", "hitsrunsrbis", "OVER"),
+        # WNBA
+        ("WNBA", "ptsrebs", "OVER"),
+        ("WNBA", "ptsasts", "OVER"),
+        ("WNBA", "assists", "UNDER"),
+        # Soccer
+        ("SOCCER", "shots", "OVER"),
+        ("SOC", "shots", "OVER"),
+    }
+)
+
+
+def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
+    sport = str(row_d.get("sport") or "").strip().upper()
+    pick = str(row_d.get("pick_type") or "").strip().lower()
+    if "standard" not in pick or "goblin" in pick:
+        return None
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    if direction not in ("OVER", "UNDER"):
+        return None
+    prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
+    if not prop:
+        return None
+    return (sport, prop, direction)
+
+
+def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
+    """
+    True when this Standard leg's sport×prop×direction is banned or hard-gated.
+
+    Goblin legs always return False here — payouts improve on Standards, so we
+    gate those props tightly while leaving easier Goblin hits alone.
+    """
+    if isinstance(row_d, pd.Series):
+        row_d = row_d.to_dict()
+    else:
+        row_d = dict(row_d)
+    key = _standard_prop_gate_key(row_d)
+    if key is None:
+        return False
+    return key in _STANDARD_PROP_GATE_BAN or key in _STANDARD_PROP_GATE_HARD
+
+
+def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:
+    """True for MLB counting props that drove Jul-18 OVER 0.5 miss volume."""
+    if not prop_norm:
+        return False
+    if prop_norm in MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS:
+        return False
+    return prop_norm in MAIN_BANNED_GOBLIN_PROP_NORMS.get("MLB", frozenset())
+
+
 def _main_leg_prop_banned(row_d: dict) -> bool:
     """True when sport×pick×prop is a known low-HR MAIN ban."""
     sport = str(row_d.get("sport") or "").strip().upper()
     pick = str(row_d.get("pick_type") or "").strip().lower()
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    prop_raw = row_d.get("prop_type") or row_d.get("prop") or ""
+    if _is_fantasy_prop_label(prop_raw):
+        return True
+    prop = _norm_main_prop_key(prop_raw)
+    if sport == "MLB" and "goblin" in pick and direction == "OVER":
+        # Hard-ban hitter core Goblin OVERs (Hits/TB/HRRBI/…). Pitcher allowlist only.
+        if not prop:
+            return True
+        if prop in MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS:
+            return False
+        if prop in MAIN_BANNED_GOBLIN_PROP_NORMS.get("MLB", frozenset()):
+            return True
+        # Unknown MLB Goblin OVER prop: ban (fail closed toward pitcher-centric board).
+        return True
     if "goblin" not in pick:
         return False
     banned = MAIN_BANNED_GOBLIN_PROP_NORMS.get(sport)
     if not banned:
         return False
-    prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
     return bool(prop) and prop in banned
+
+
+def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
+    """
+    Legacy name: MLB Standard OVER sport-wide ban removed.
+
+    Replaced by prop×direction Standard gates (Total Bases / Hits / ERA / …).
+    Kept as a thin wrapper so older call sites still compile.
+    """
+    return _leg_standard_prop_direction_gated(row_d)
+
+
+def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
+    """
+    Shared hygiene for MAIN / FINAL / long-parlay builders:
+    banned MLB Goblin OVER props + Standard prop×direction ledger gates.
+    """
+    if isinstance(row_d, pd.Series):
+        row_d = row_d.to_dict()
+    else:
+        row_d = dict(row_d)
+    return _main_leg_prop_banned(row_d) or _leg_standard_prop_direction_gated(row_d)
+
+
+def _ticket_rows_mlb_construction_banned(rows: list) -> bool:
+    return any(
+        _leg_mlb_construction_banned(r if isinstance(r, dict) else dict(r))
+        for r in rows
+    )
+
+
+def _mlb_leg_sizes_capped(leg_sizes: list[int] | None) -> list[int]:
+    """MLB sheets never exceed MLB_MAX_LEGS (default 4)."""
+    sizes = list(leg_sizes) if leg_sizes is not None else list(TICKET_LEG_SIZES)
+    return [n for n in sizes if int(n) <= int(MLB_MAX_LEGS)]
+
+
 # Cap per-leg factor in p_win product — l5_over_proxy can return 0.99 on hot streaks (artifact).
 MAX_LEG_PROB_FOR_P_WIN = 0.72
 # Deep bench legs: L5 "5/5 over" on 0.5 Goblin lines is not a trustworthy parlay factor.
@@ -5007,11 +5713,20 @@ def _leg_l5_hit_prob_cap(row: pd.Series | dict) -> float:
     return MAX_L5_HIT_PROB_DEFAULT
 
 
-def _leg_prob_for_p_win_from_mapping(leg: dict | pd.Series) -> float:
+def _leg_prob_for_p_win_from_mapping(
+    leg: dict | pd.Series,
+    *,
+    max_leg_prob: float | None = None,
+) -> float:
     """P(win) leg factor: leg_prob_used → composite_hit_rate/hit_rate → ml_prob → 0.55 (capped)."""
     if isinstance(leg, pd.Series):
         leg = leg.to_dict()
-    cap = MAX_LEG_PROB_BENCH_SUPPORT if _winrate_leg_bench_risk(leg) else MAX_LEG_PROB_FOR_P_WIN
+    if _winrate_leg_bench_risk(leg):
+        cap = MAX_LEG_PROB_BENCH_SUPPORT
+    elif max_leg_prob is not None:
+        cap = float(max_leg_prob)
+    else:
+        cap = MAX_LEG_PROB_FOR_P_WIN
     for key in ("leg_prob_used", "composite_hit_rate", "hit_rate", "ml_prob"):
         raw = leg.get(key)
         if raw is None or raw == "":
@@ -5025,26 +5740,42 @@ def _leg_prob_for_p_win_from_mapping(leg: dict | pd.Series) -> float:
     return min(0.55, cap)
 
 
-def _compute_p_win_from_rows(rows: list) -> float:
+def _compute_p_win_from_rows(
+    rows: list,
+    *,
+    max_leg_prob: float | None = None,
+) -> float:
     p = 1.0
     for row in rows or []:
-        p *= _leg_prob_for_p_win_from_mapping(row)
+        p *= _leg_prob_for_p_win_from_mapping(row, max_leg_prob=max_leg_prob)
     return float(np.clip(p, 0.0, 1.0))
 
 
 def _enrich_slip_p_win_fields(slip: dict, *, mode: str = "ev") -> None:
+    # STRONG builder slips use a higher per-leg ceiling so probable 3-legs keep a
+    # consistent p_win on the board (MAIN stays on the global 0.72 cap).
+    strong_cap = (
+        float(STRONG_MAX_LEG_PROB_FOR_P_WIN)
+        if slip.get("strong_builder")
+        else None
+    )
     legs = slip.get("legs") or []
     if legs:
-        p_win = _compute_p_win_from_rows(legs)
+        p_win = _compute_p_win_from_rows(legs, max_leg_prob=strong_cap)
     else:
         rows = slip.get("rows") or []
-        p_win = _compute_p_win_from_rows(rows)
+        p_win = _compute_p_win_from_rows(rows, max_leg_prob=strong_cap)
     slip["p_win"] = round(p_win, 6)
+    # Keep builder est_win_prob when present; otherwise mirror p_win.
+    if slip.get("est_win_prob") is None and slip.get("strong_builder"):
+        slip["est_win_prob"] = round(p_win, 6)
     slip["expected_wins_per_100"] = round(p_win * 100, 1)
     slip["mode"] = mode
     if mode == "win_rate":
-        pay_mult = float(slip.get("payout_multiplier") or 1.0)
-        slip["win_rate_score"] = round(p_win * math.log(1.0 + max(pay_mult, 0.0)), 6)
+        # Jul-24: EV proxy = WR × floor (not log-smoothed WR alone).
+        pay_mult = float(slip.get("payout_multiplier") or _ticket_rank_floor_x(slip) or 1.0)
+        slip["win_rate_score"] = round(p_win * max(pay_mult, 0.0), 6)
+        slip["floor_ev"] = round(p_win * max(pay_mult, 0.0) - 1.0, 6)
 
 
 def _group_max_p_win(group: dict) -> float:
@@ -5154,6 +5885,26 @@ def _row_hot_l10_streak(row_d: dict) -> bool:
     if pd.notna(raw) and float(raw) >= 7.0:
         return True
     return False
+
+
+def _standard_over_elite_ok(row_d: dict) -> bool:
+    """
+    High-bar Standard OVER gate (Jul 14: unrestricted Std OVER ~12% leg HR).
+
+    Require Tier A + directional HOT L10 + stack_70 (HR/L5/matchup/consistency).
+    UNDER Standards do not use this gate.
+    """
+    tier = str(row_d.get("tier") or "").strip().upper()
+    if tier != "A":
+        return False
+    if not _row_hot_l10_streak(row_d):
+        return False
+    try:
+        if not stack_70_eligible_row(row_d):
+            return False
+    except Exception:
+        return False
+    return True
 
 
 def _graded_analysis_row_boost(row_d: dict, ctx: dict[str, Any]) -> float:
@@ -5336,6 +6087,8 @@ def _row_win_rate_eligible(
     graded_ctx: dict[str, Any] | None = None,
     goblin_tier_a_only: bool = False,
     goblin_only: bool = False,
+    standard_only: bool = False,
+    qualify_standard: bool = True,
 ) -> bool:
     if isinstance(row, pd.Series):
         row_d = row.to_dict()
@@ -5343,16 +6096,24 @@ def _row_win_rate_eligible(
         row_d = dict(row)
     if graded_ctx and _row_in_avoid_slice(row_d, graded_ctx):
         return False
-    if _main_leg_prop_banned(row_d):
+    # Includes MLB Std OVER + MAIN banned Goblin props (MLB pitcher allowlist, Tennis, …).
+    if _leg_mlb_construction_banned(row_d):
         return False
     pt = str(row_d.get("pick_type") or "").strip().lower()
     tier = str(row_d.get("tier") or "").strip().upper()
     if not goblin_direction_ok(row_d):
         return False
+    if goblin_only and standard_only:
+        return False
     if goblin_only:
         if pt != "goblin":
             return False
         if goblin_tier_a_only and tier != "A":
+            return False
+    elif standard_only:
+        if "standard" not in pt or "goblin" in pt:
+            return False
+        if tier not in ("A", "B"):
             return False
     elif pt == "goblin":
         if goblin_tier_a_only and tier != "A":
@@ -5374,6 +6135,28 @@ def _row_win_rate_eligible(
     leg_prob = _leg_prob_for_p_win_from_mapping(row_d)
     if leg_prob < float(min_leg_prob):
         return False
+    # MLB Goblin OVER: higher floors for remaining pitcher allowlist props.
+    sport_early = str(row_d.get("sport") or "").strip().upper()
+    direction_early = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    pt_l = pt
+    if sport_early == "MLB" and pt_l == "goblin" and direction_early == "OVER":
+        prop_n = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
+        mlb_floor = float(MAIN_MLB_GOBLIN_MIN_LEG_PROB)
+        if prop_n in MAIN_MLB_GOBLIN_STRESS_PROP_NORMS:
+            mlb_floor = max(mlb_floor, float(MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB))
+        if leg_prob < mlb_floor:
+            return False
+    if sport_early == "TENNIS":
+        if pt_l == "goblin" and direction_early == "OVER":
+            if leg_prob < float(MAIN_TENNIS_GOBLIN_MIN_LEG_PROB):
+                return False
+        elif "standard" in pt_l and "goblin" not in pt_l:
+            if leg_prob < float(MAIN_TENNIS_STD_MIN_LEG_PROB):
+                return False
+        if not tennis_allowed_leg(row_d):
+            return False
     # Goblin ml_prob is poorly calibrated (corr~0.06) — only enforce ml floor when
     # composite/hit-rate evidence is also below the MAIN leg floor.
     mlp = pd.to_numeric(row_d.get("ml_prob"), errors="coerce")
@@ -5385,13 +6168,30 @@ def _row_win_rate_eligible(
         return False
     if _winrate_leg_bench_risk(row_d):
         return False
+
+    # Qualified Standard: prop×direction ledger + sport hygiene + OVER elite stack.
+    if qualify_standard and ("standard" in pt) and ("goblin" not in pt):
+        if _leg_standard_prop_direction_gated(row_d):
+            return False
+        if not _standard_high_prob_leg_allowed(row_d):
+            return False
+        std_floor = _standard_direction_floor(row_d)
+        if leg_prob < float(std_floor):
+            return False
+        direction = str(
+            row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+        ).strip().upper()
+        if direction == "OVER" and not _standard_over_elite_ok(row_d):
+            return False
     return True
 
 
 def _standard_direction_floor(row: dict | pd.Series) -> float:
     """
-    Probability-first Standard: UNDER is historically stronger; OVER needs a higher bar
-    on basketball/NHL-adjacent boards. Returns the min leg_prob for this leg.
+    Probability-first Standard floors by sport × direction (Jul-19 graded anatomy).
+
+    UNDER historically stronger than OVER; MLB UNDER and basketball OVER need
+    higher bars. Returns the min leg_prob for this leg.
     """
     if isinstance(row, pd.Series):
         row_d = row.to_dict()
@@ -5401,18 +6201,33 @@ def _standard_direction_floor(row: dict | pd.Series) -> float:
     direction = str(row_d.get("direction") or row_d.get("over_under") or "").strip().upper()
     base = float(MAIN_MIN_LEG_PROB)
     if direction == "UNDER":
+        # Jul-19: MLB Std UNDER ~40% — raise; Soccer UNDER ~75% — keep selective.
+        if sport == "MLB":
+            return max(0.64, base)
+        if sport in ("SOCCER", "SOC"):
+            return max(0.62, base - 0.02)
+        if sport in ("NBA", "NBA1H", "NBA1Q", "WNBA", "CBB", "WCBB"):
+            return max(0.62, base - 0.02)
+        if sport == "TENNIS":
+            return max(0.66, base)
         return max(0.60, base - 0.02)
     # Standard OVER: harder target — require clearer edge.
+    if sport == "TENNIS":
+        # Jul-22/23 Std OVER totals (esp. Games Won) outperformed Goblin — still raise bar.
+        return max(0.68, base + 0.04)
     if sport in ("NBA", "NBA1H", "NBA1Q", "WNBA", "CBB", "WCBB"):
-        return max(0.68, base + 0.06)
+        # Jul-19 WNBA Std OVER ~43% — raise vs prior 0.68.
+        return max(0.70, base + 0.08)
     if sport == "NHL":
         # Standard OVER blocked elsewhere; if reached, demand a steep floor.
         return 0.75
     if sport in ("SOCCER", "SOC"):
-        return max(0.70, base + 0.08)
+        # Standard OVER banned in soccer_allowed_leg; steep if reached.
+        return max(0.74, base + 0.10)
     if sport == "MLB":
-        return max(0.64, base + 0.02)
-    return max(0.65, base + 0.03)
+        # Standard OVER banned on MAIN; steep if reached.
+        return max(0.70, base + 0.08)
+    return max(0.68, base + 0.05)
 
 
 def _standard_high_prob_leg_allowed(row: dict | pd.Series) -> bool:
@@ -5453,14 +6268,28 @@ def _row_standard_high_prob_eligible(
         min_composite_hr=float(min_composite_hr),
         graded_ctx=graded_ctx,
         goblin_only=False,
+        standard_only=True,
+        qualify_standard=True,
     ):
-        return False
-    if not _standard_high_prob_leg_allowed(row_d):
         return False
     # Prefer realized / modeled strength: require floor after resolve.
     if _leg_prob_for_p_win_from_mapping(row_d) < floor:
         return False
     return True
+
+
+def _normalize_main_pool_mode(pool_mode: str | None) -> str:
+    """Canonical MAIN pool_mode: high_prob_std_gob | goblin_only | standard_only."""
+    m = str(pool_mode or "").strip().lower()
+    if m in ("", "mixed", "main"):
+        return MAIN_POOL_MODE
+    if m in ("goblin_only_3leg", "goblin_only"):
+        return MAIN_POOL_MODE_GOBLIN
+    if m == MAIN_POOL_MODE_STANDARD:
+        return MAIN_POOL_MODE_STANDARD
+    if m == MAIN_POOL_MODE:
+        return MAIN_POOL_MODE
+    return MAIN_POOL_MODE
 
 
 def _winrate_ticket_same_game_bench_stack(ticket: dict) -> bool:
@@ -5482,6 +6311,46 @@ def _winrate_ticket_same_game_bench_stack(ticket: dict) -> bool:
     return False
 
 
+def _winrate_leg_is_mlb_hitter_prop(leg: dict) -> bool:
+    if str(leg.get("sport") or "").strip().upper() != "MLB":
+        return False
+    prop = _norm_main_prop_key(leg.get("prop_type") or leg.get("prop") or "")
+    return _main_mlb_prop_is_hitter_core(prop)
+
+
+def _winrate_ticket_mlb_same_game_hitter_stack(ticket: dict) -> bool:
+    """
+    Audit helper: 2+ MLB hitter props from the same game (or same team).
+
+    Not a hard MAIN reject — Jul 14–18 rebuild showed this gate adds no lift once
+    hitter Goblin OVER props are already banned at the leg pool.
+    """
+    legs = [leg for leg in (ticket.get("legs") or ticket.get("rows") or []) if isinstance(leg, dict)]
+    mlb_hitters = [leg for leg in legs if _winrate_leg_is_mlb_hitter_prop(leg)]
+    if len(mlb_hitters) < 2:
+        return False
+    by_game: dict[str, int] = {}
+    by_team: dict[str, int] = {}
+    for leg in mlb_hitters:
+        team = str(leg.get("team") or "").strip().upper()
+        opp = str(leg.get("opp") or leg.get("opp_team") or "").strip().upper()
+        if team and opp:
+            gk = "|".join(sorted([team, opp]))
+            by_game[gk] = by_game.get(gk, 0) + 1
+        if team:
+            by_team[team] = by_team.get(team, 0) + 1
+    if any(n >= 2 for n in by_game.values()):
+        return True
+    if any(n >= 2 for n in by_team.values()):
+        return True
+    return False
+
+
+def _winrate_ticket_construction_reject(ticket: dict) -> bool:
+    """Hard construction rejects for MAIN/win-rate pick loop (bench correlation only)."""
+    return _winrate_ticket_same_game_bench_stack(ticket)
+
+
 def _winrate_ticket_win_prob(ticket: dict) -> float:
     """Modeled probability ticket wins (power = all legs hit), not payout/cash EV."""
     for key in ("est_win_prob", "p_win", "combined_hit_prob_curve"):
@@ -5497,12 +6366,49 @@ def _winrate_ticket_win_prob(ticket: dict) -> float:
     return 0.0
 
 
+def _ticket_rank_floor_x(ticket: dict) -> float:
+    """Best-known Min Guarantee / payout multiplier for floor-EV ranking."""
+    for raw in (
+        _ticket_board_payout_x(ticket),
+        ticket.get("payout_multiplier"),
+    ):
+        v = _safe_positive_float(raw)
+        if v is not None:
+            return float(v)
+    return 1.0
+
+
+def _ticket_is_mlb_goblin_n(ticket: dict, n_legs: int) -> bool:
+    """True when slip is pure MLB Goblin with exactly n_legs."""
+    legs = [
+        leg
+        for leg in (ticket.get("legs") or ticket.get("rows") or [])
+        if isinstance(leg, dict)
+    ]
+    if len(legs) != int(n_legs):
+        return False
+    for leg in legs:
+        sport = str(leg.get("sport") or "").strip().upper()
+        pt = str(leg.get("pick_type") or "").strip().lower()
+        if sport != "MLB" or "goblin" not in pt:
+            return False
+    return True
+
+
 def _winrate_ticket_rank_score(ticket: dict) -> float:
-    """Panel/build sort: highest modeled win probability (not ticket_model_p_cash)."""
-    v = _winrate_ticket_win_prob(ticket)
-    if _winrate_ticket_same_game_bench_stack(ticket):
-        v *= 0.85
-    return v
+    """
+    Panel/build sort: floor-EV proxy = p_win × Min Guarantee (Jul-24).
+
+    Optimizes for EV = WR × floor, not WR alone. MLB Goblin 4L gets a mild boost.
+    """
+    p = _winrate_ticket_win_prob(ticket)
+    floor = _ticket_rank_floor_x(ticket)
+    score = float(p) * float(floor)
+    if _ticket_is_mlb_goblin_n(ticket, 4):
+        score *= float(MLB_GOBLIN_4L_RANK_BOOST)
+    if _winrate_ticket_construction_reject(ticket):
+        score *= 0.85
+    return score
 
 
 def _winrate_ticket_panel_pcash_optional(ticket: dict) -> float | None:
@@ -5531,6 +6437,7 @@ def _filter_win_rate_pool(
     graded_ctx: dict[str, Any] | None = None,
     goblin_tier_a_only: bool = False,
     goblin_only: bool = False,
+    standard_only: bool = False,
 ) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
@@ -5543,6 +6450,7 @@ def _filter_win_rate_pool(
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
             goblin_only=goblin_only,
+            standard_only=standard_only,
         ):
             out_rows.append(r.to_dict())
     if not out_rows:
@@ -5592,6 +6500,7 @@ def _count_win_rate_eligible_legs(
     graded_ctx: dict[str, Any],
     goblin_tier_a_only: bool,
     goblin_only: bool,
+    standard_only: bool = False,
 ) -> int:
     total = 0
     for _, raw_df in sport_frames:
@@ -5602,6 +6511,7 @@ def _count_win_rate_eligible_legs(
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
             goblin_only=goblin_only,
+            standard_only=standard_only,
         )
         if wr_df is not None and not wr_df.empty:
             total += len(wr_df)
@@ -5619,16 +6529,25 @@ def build_win_rate_ticket_groups(
     goblin_tier_a_only: bool = False,
     goblin_only: bool = False,
     goblin_only_3leg: bool = False,
+    standard_only: bool = False,
 ) -> list[tuple[str, list, None]]:
-    """Build win-rate slips sorted by p_win (3-leg primary; 4-leg only under strict gates)."""
-    max_legs = max(2, min(4, int(max_legs)))
+    """Build win-rate slips sorted by p_win (3-leg primary; Goblin-only may also emit 4–6)."""
     graded_ctx = _graded_analysis_context(graded_analysis)
     goblin_only_3leg = bool(goblin_only_3leg)
+    standard_only = bool(standard_only)
+    goblin_long = bool(goblin_only) and not goblin_only_3leg and not standard_only
+    hard_cap = int(GOBLIN_MAX_LEGS) if goblin_long else int(MAIN_GRADED_MAX_LEGS)
+    max_legs = max(2, min(hard_cap, int(max_legs)))
     if goblin_only_3leg:
         goblin_only = True
         max_legs = min(max_legs, MAIN_GRADED_MAX_LEGS)
-    # Production MAIN + Goblin-only shadows prefer 3-leg; opt3 Tier-A shadow stays freer mix.
-    prefer_three_leg = bool(goblin_only_3leg) or (not bool(goblin_tier_a_only))
+    if standard_only:
+        goblin_only = False
+        max_legs = min(max_legs, MAIN_GRADED_MAX_LEGS)
+    # Production MAIN + Goblin/Standard-only boards prefer 3-leg; opt3 Tier-A shadow stays freer mix.
+    prefer_three_leg = (
+        bool(goblin_only_3leg) or bool(standard_only) or (not bool(goblin_tier_a_only))
+    )
 
     frames_by_sport: dict[str, pd.DataFrame] = {}
     for label, raw_df in sport_frames:
@@ -5639,28 +6558,22 @@ def build_win_rate_ticket_groups(
                 for sp, g in raw_df.groupby(raw_df["sport"].astype(str).str.upper()):
                     frames_by_sport[str(sp).strip().upper()] = g
 
-    eligible_total = _count_win_rate_eligible_legs(
-        sport_frames,
-        min_leg_prob=min_leg_prob,
-        min_composite_hr=min_composite_hr,
-        graded_ctx=graded_ctx,
-        goblin_tier_a_only=goblin_tier_a_only,
-        goblin_only=goblin_only,
-    )
-    thin_pool = eligible_total < int(MAIN_THIN_POOL_MIN_LEGS)
     if prefer_three_leg:
+        # Short book: 3-leg primary + 2-leg companion. Goblin-only also builds 4–6 (Long Goblin).
         build_leg_counts = [MAIN_DEFAULT_LEGS]
-        if not thin_pool:
-            build_leg_counts.append(4)
-        if thin_pool:
+        if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS and MAIN_GRADED_MIN_LEGS <= max_legs:
             build_leg_counts.append(MAIN_GRADED_MIN_LEGS)
+        if goblin_long:
+            for n in range(4, max_legs + 1):
+                if n not in build_leg_counts:
+                    build_leg_counts.append(n)
     else:
         build_leg_counts = list(range(MAIN_GRADED_MIN_LEGS, max_legs + 1))
 
     candidates: list[dict] = []
     anchor = None
-    # opt3 / Goblin-only shadows skip the HOT anchor (includes Std/B); high-prob MAIN uses it.
-    if not goblin_tier_a_only and not goblin_only:
+    # Goblin/Standard-only + opt3 shadows skip the HOT Goblin anchor; mixed MAIN uses it.
+    if not goblin_tier_a_only and not goblin_only and not standard_only:
         anchor = build_win_rate_anchor_ticket(
             frames_by_sport,
             min_leg_prob=min_leg_prob,
@@ -5670,7 +6583,9 @@ def build_win_rate_ticket_groups(
     if anchor is not None:
         p_win = _compute_p_win_from_rows(anchor.get("rows") or [])
         anchor["p_win"] = p_win
-        anchor["win_rate_score"] = p_win * math.log(1.0 + max(float(anchor.get("payout_multiplier") or 1.0), 0.0))
+        pay_mult = float(anchor.get("payout_multiplier") or 1.0)
+        anchor["win_rate_score"] = p_win * max(pay_mult, 0.0)
+        anchor["floor_ev"] = p_win * max(pay_mult, 0.0) - 1.0
         candidates.append(anchor)
 
     for label, raw_df in sport_frames:
@@ -5681,6 +6596,7 @@ def build_win_rate_ticket_groups(
             graded_ctx=graded_ctx,
             goblin_tier_a_only=goblin_tier_a_only,
             goblin_only=goblin_only,
+            standard_only=standard_only,
         )
         if wr_df is None or len(wr_df) < 2:
             continue
@@ -5706,7 +6622,8 @@ def build_win_rate_ticket_groups(
                 pay_mult = float(t.get("payout_multiplier") or 1.0)
                 t = dict(t)
                 t["p_win"] = p_win
-                t["win_rate_score"] = p_win * math.log(1.0 + max(pay_mult, 0.0))
+                t["win_rate_score"] = p_win * max(pay_mult, 0.0)
+                t["floor_ev"] = p_win * max(pay_mult, 0.0) - 1.0
                 t["mode"] = "win_rate"
                 t["_sport_label"] = label
                 candidates.append(t)
@@ -5714,88 +6631,91 @@ def build_win_rate_ticket_groups(
     def _leg_count_pref(ticket: dict) -> int:
         n = len(ticket.get("rows") or [])
         if prefer_three_leg:
-            if n == MAIN_DEFAULT_LEGS:
+            # Jul-24: MLB/Goblin 4L was the only clear +ROI family — prefer before 3L.
+            if goblin_long and n == 4:
                 return 0
-            if n == 4:
+            if n == MAIN_DEFAULT_LEGS:
                 return 1
             if n == MAIN_GRADED_MIN_LEGS:
                 return 2
+            if goblin_long and 5 <= n <= max_legs:
+                return 3 + n  # tighten Long 5–6 vs 4
             return 9
         return 0
 
     candidates.sort(
         key=lambda x: (
             _leg_count_pref(x),
-            -_winrate_ticket_win_prob(x),
             -_winrate_ticket_rank_score(x),
+            -_winrate_ticket_win_prob(x),
             -float(x.get("win_rate_score") or 0.0),
         )
     )
     seen: set[frozenset] = set()
     picked: list[dict] = []
-    # Seed output with preferred lengths before filling remaining slots by score.
-    if prefer_three_leg:
-        pick_order = (MAIN_DEFAULT_LEGS, 4, MAIN_GRADED_MIN_LEGS) if thin_pool else (MAIN_DEFAULT_LEGS, 4)
-        for target_n in pick_order:
-            for t in candidates:
-                rows = [dict(r) for r in (t.get("rows") or [])]
-                if len(rows) != target_n:
-                    continue
-                if not thin_pool and target_n == MAIN_GRADED_MIN_LEGS:
-                    continue
-                if _winrate_ticket_same_game_bench_stack(t):
-                    continue
-                if any(_leg_dnp_risk(r) for r in rows):
-                    continue
-                if not _ticket_passes_main_four_leg_gate(rows):
-                    continue
-                key = _ticket_row_dedup_key(rows)
-                if key in seen:
-                    continue
-                seen.add(key)
-                picked.append(t)
-                break
-            if len(picked) >= int(max_tickets):
-                break
-    elif max_legs >= 3:
-        for target_n in (3, 4):
-            if target_n > max_legs:
-                continue
-            for t in candidates:
-                rows = [dict(r) for r in (t.get("rows") or [])]
-                if len(rows) != target_n:
-                    continue
-                if _winrate_ticket_same_game_bench_stack(t):
-                    continue
-                if any(_leg_dnp_risk(r) for r in rows):
-                    continue
-                if not _ticket_passes_main_four_leg_gate(rows):
-                    continue
-                key = _ticket_row_dedup_key(rows)
-                if key in seen:
-                    continue
-                seen.add(key)
-                picked.append(t)
-                break
-            if len(picked) >= int(max_tickets):
-                break
-    for t in candidates:
-        if prefer_three_leg and not thin_pool and len(t.get("rows") or []) == MAIN_GRADED_MIN_LEGS:
-            continue
-        if _winrate_ticket_same_game_bench_stack(t):
-            continue
-        rows = [dict(r) for r in (t.get("rows") or [])]
-        if not _ticket_passes_main_four_leg_gate(rows):
-            continue
+
+    def _try_pick(ticket: dict) -> bool:
+        rows = [dict(r) for r in (ticket.get("rows") or [])]
+        if _winrate_ticket_construction_reject(ticket):
+            return False
         if any(_leg_dnp_risk(r) for r in rows):
-            continue
+            return False
+        if not _ticket_passes_main_four_leg_gate(rows):
+            return False
         key = _ticket_row_dedup_key(rows)
         if key in seen:
-            continue
+            return False
         seen.add(key)
-        picked.append(t)
+        picked.append(ticket)
+        return True
+
+    def _seed_target_n(target_n: int, limit: int) -> None:
+        if target_n > max_legs or limit <= 0:
+            return
+        taken = 0
+        for t in candidates:
+            if len(picked) >= int(max_tickets) or taken >= limit:
+                break
+            rows = t.get("rows") or []
+            if len(rows) != target_n:
+                continue
+            if _try_pick(t):
+                taken += 1
+
+    # Seed preferred lengths first. Goblin-long reserves multiple 4/5/6 slips so the
+    # short-book fill (often filling MAIN_MAX_SLIPS with 3-legs) cannot starve Long Goblin.
+    long_seed_per_n = 0
+    if goblin_long and max_legs >= 4:
+        long_ns = [n for n in range(4, max_legs + 1)]
+        # Keep room for short book (3 + optional 2) while guaranteeing Long Goblin coverage.
+        short_reserve = 2 if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS else 1
+        long_budget = max(0, int(max_tickets) - short_reserve)
+        long_seed_per_n = max(1, long_budget // max(1, len(long_ns)))
+
+    if prefer_three_leg:
+        # Jul-24: seed Goblin 4L heavily first; thin-seed 5–6 until WR clears BE.
+        if goblin_long:
+            _seed_target_n(4, long_seed_per_n + int(GOBLIN_4L_SEED_EXTRA))
+            for target_n in range(5, max_legs + 1):
+                _seed_target_n(target_n, max(1, long_seed_per_n // 2))
+        _seed_target_n(MAIN_DEFAULT_LEGS, 1)
+        if MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS:
+            _seed_target_n(MAIN_GRADED_MIN_LEGS, 1)
+    elif max_legs >= 3:
+        if goblin_long:
+            _seed_target_n(4, long_seed_per_n + int(GOBLIN_4L_SEED_EXTRA))
+            for target_n in range(5, max_legs + 1):
+                _seed_target_n(target_n, max(1, long_seed_per_n // 2))
+        _seed_target_n(3, 1)
+        _seed_target_n(2, 1)
+
+    for t in candidates:
         if len(picked) >= int(max_tickets):
             break
+        rows = t.get("rows") or []
+        if len(rows) < MAIN_GRADED_MIN_LEGS or len(rows) > max_legs:
+            continue
+        _try_pick(t)
 
     groups: list[tuple[str, list, None]] = []
     for t in picked:
@@ -6828,7 +7748,53 @@ def attach_standard_refs(df: pd.DataFrame) -> pd.DataFrame:
             return pd.NA
 
     out["line_discount_vs_standard"] = out.apply(_discount, axis=1)
+
+    # Goblin/Demon rows with no Standard sibling (common for MLB pitcher alts and
+    # thin Assists boards): backfill standard_line via sport offset estimates so
+    # Goblin-Δ signatures are computable for payout verify / rate-card keys.
+    try:
+        from utils.pick_line_standard import (
+            estimate_demon_standard_line,
+            estimate_goblin_standard_line,
+        )
+    except Exception:
+        return out
+
+    def _need_std(row) -> bool:
+        pt = str(row.get("pick_type") or "").strip().lower()
+        if pt not in {"goblin", "demon"}:
+            return False
+        try:
+            std = float(row.get("standard_line"))
+            return not math.isfinite(std)
+        except (TypeError, ValueError):
+            return True
+
+    need_mask = out.apply(_need_std, axis=1)
+    if need_mask.any():
+        if "standard_line_source" not in out.columns:
+            out["standard_line_source"] = ""
+        if "deviation_level" not in out.columns:
+            out["deviation_level"] = 1
+        for idx in out.index[need_mask]:
+            row = out.loc[idx]
+            pt = str(row.get("pick_type") or "").strip().lower()
+            sport = str(row.get("sport") or "").strip() or "default"
+            dev = row.get("deviation_level")
+            if pt == "goblin":
+                est = estimate_goblin_standard_line(row.get("line"), dev, sport=sport)
+            else:
+                est = estimate_demon_standard_line(row.get("line"), dev, sport=sport)
+            if est is None:
+                continue
+            out.at[idx, "standard_line"] = float(est)
+            out.at[idx, "standard_line_source"] = "offset_estimate"
+        # Recompute discounts for newly filled rows.
+        out.loc[need_mask, "line_discount_vs_standard"] = out.loc[need_mask].apply(
+            _discount, axis=1
+        )
     return out
+
 
 def _safe_int_cross_books(v) -> Optional[int]:
     if _scalar_blank(v):
@@ -7002,19 +7968,80 @@ def _finalize_payload_l10_streaks(payload: dict) -> None:
     payload["cold_legs"] = sum(int(g.get("cold_legs") or 0) for g in (payload.get("groups") or []) if isinstance(g, dict))
 
 
-# Graded KPI split: main = high-prob Standard+Goblin 2–3 leg primary; long_parlay = 5–6.
+# Graded KPI split: mixed MAIN = high-prob Standard+Goblin 2–3 (short book);
+# Goblin-only boards may also emit 4–6 (Long Goblin); long_parlay sidecar = 5–6.
 MAIN_GRADED_MIN_LEGS = 2
-MAIN_GRADED_MAX_LEGS = 4
+MAIN_GRADED_MAX_LEGS = max(2, min(3, int(os.getenv("PROPORACLE_MAIN_MAX_LEGS", "3"))))
+# Goblin-only MAIN / Long Goblin: allow 4–6 while mixed MAIN stays ≤3.
+GOBLIN_MAX_LEGS = max(
+    MAIN_GRADED_MAX_LEGS,
+    min(6, int(os.getenv("PROPORACLE_GOBLIN_MAX_LEGS", "6"))),
+)
 MAIN_DEFAULT_LEGS = 3
 MAIN_THIN_POOL_MIN_LEGS = 6
-# Legacy name kept for imports; 4-leg now uses leg_prob/composite floors below.
+# 4+ Goblin / MAIN slips: Tier-A HOT floors (see _ticket_passes_main_four_leg_gate).
 MAIN_FOUR_LEG_MIN_ML_PROB = 0.70
 MAIN_FOUR_LEG_MIN_LEG_PROB = 0.70
 MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
+# MLB Goblin OVER dominates miss volume on long mixed boards — raise the bar.
+MAIN_MLB_GOBLIN_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_MIN_LEG_PROB", "0.68")
+)
+# Tennis Goblin OVER totals: Jul-23 Goblin 15.8% overall; require clearer modeled edge.
+MAIN_TENNIS_GOBLIN_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_TENNIS_GOBLIN_MIN_LEG_PROB", "0.68")
+)
+MAIN_TENNIS_STD_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_TENNIS_STD_MIN_LEG_PROB", "0.66")
+)
+MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB: float = float(
+    os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_STRESS_MIN_LEG_PROB", "0.72")
+)
+MAIN_MLB_GOBLIN_STRESS_PROP_NORMS: frozenset[str] = frozenset(
+    {
+        "hitsrunsrbis",
+        "hitsrunsrebis",
+        "hitrbis",
+        "totalbases",
+        "hits",
+        "hitterstrikeouts",
+        "batterstrikeouts",
+        "strikeouts",  # ambiguous label — treat as stressed on MLB Goblin OVER
+    }
+)
 # High-prob MAIN: Goblin + Standard A/B, multi-sport, 3-leg primary (not Goblin-only).
 MAIN_POOL_MODE = "high_prob_std_gob"
+MAIN_POOL_MODE_GOBLIN = "goblin_only"
+MAIN_POOL_MODE_STANDARD = "standard_only"
+MAIN_POOL_MODES = frozenset(
+    {
+        MAIN_POOL_MODE,
+        MAIN_POOL_MODE_GOBLIN,
+        MAIN_POOL_MODE_STANDARD,
+        "goblin_only_3leg",  # legacy alias → goblin_only
+    }
+)
+LONG_PARLAY_ENABLED: bool = os.getenv("PROPORACLE_LONG_PARLAY", "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+    "",
+)
 LONG_PARLAY_MIN_LEGS = 5
 LONG_PARLAY_MAX_LEGS = 6
+# Jul-24: Long 5–6L did not clear breakeven — fewer slips, require non-negative floor-EV.
+# Env: PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6), PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0.0)
+LONG_PARLAY_MAX_SLIPS: int = max(1, int(os.getenv("PROPORACLE_LONG_PARLAY_MAX_SLIPS", "6")))
+LONG_PARLAY_MIN_FLOOR_EV: float = float(
+    os.getenv("PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV", "0.0")
+)
+# Goblin-only seed: extra 4L slots (Jul-24 only clear +ROI family).
+# Env: PROPORACLE_GOBLIN_4L_SEED_EXTRA (default 2), PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST (default 1.25)
+GOBLIN_4L_SEED_EXTRA: int = max(0, int(os.getenv("PROPORACLE_GOBLIN_4L_SEED_EXTRA", "2")))
+MLB_GOBLIN_4L_RANK_BOOST: float = float(
+    os.getenv("PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST", "1.25")
+)
 
 # Main graded export: win-rate builder prioritizing realized HR / HOT over flat ml_prob.
 MAIN_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_MAIN_MIN_LEG_PROB", "0.62"))
@@ -7079,6 +8106,31 @@ STRONG_MIX_SHADOW_ENABLED: bool = os.getenv(
 STRONG_STANDARD_PROB_SHADOW_ENABLED: bool = os.getenv(
     "PROPORACLE_STRONG_STD_PROB_SHADOW", "1"
 ).strip().lower() not in ("0", "false", "no", "off")
+# STRONG Recombo shadow: 4–6L built ONLY from legs that already appear on
+# production STRONG 2–3L slips. Never injected into MAIN (shadow sleeve only).
+STRONG_RECOMBO_SHADOW_ENABLED: bool = os.getenv(
+    "PROPORACLE_STRONG_RECOMBO_SHADOW", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+STRONG_RECOMBO_MIN_LEGS: int = max(4, min(6, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_LEGS", "4"))))
+STRONG_RECOMBO_MAX_LEGS: int = max(
+    STRONG_RECOMBO_MIN_LEGS,
+    min(6, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_LEGS", "6"))),
+)
+STRONG_RECOMBO_SOURCE_MIN_LEGS: int = max(2, min(3, int(os.getenv("PROPORACLE_STRONG_RECOMBO_SOURCE_MIN", "2"))))
+STRONG_RECOMBO_SOURCE_MAX_LEGS: int = max(
+    STRONG_RECOMBO_SOURCE_MIN_LEGS,
+    min(3, int(os.getenv("PROPORACLE_STRONG_RECOMBO_SOURCE_MAX", "3"))),
+)
+STRONG_RECOMBO_MAX_TICKETS: int = max(1, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_TICKETS", "20")))
+# Soft per-length quotas — prefer 4L, starve 5–6L.
+STRONG_RECOMBO_MAX_4LEG: int = max(0, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_4LEG", "12")))
+STRONG_RECOMBO_MAX_5LEG: int = max(0, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_5LEG", "6")))
+STRONG_RECOMBO_MAX_6LEG: int = max(0, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_6LEG", "4")))
+# Recombo p_win floors (slightly below production STRONG 4L so ~0.72^4 Goblin
+# stacks can clear; 5–6 stay loose but soft-starved by quota).
+STRONG_RECOMBO_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_P_WIN_4LEG", "0.24"))
+STRONG_RECOMBO_MIN_P_WIN_5LEG: float = float(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_P_WIN_5LEG", "0.16"))
+STRONG_RECOMBO_MIN_P_WIN_6LEG: float = float(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_P_WIN_6LEG", "0.10"))
 MAIN_MLB_SHADOW_ALLOWED_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv("PROPORACLE_MAIN_MLB_SHADOW_SPORTS", "MLB").split(",")
@@ -7163,16 +8215,17 @@ def filter_ticket_payload_by_leg_count(
 
 def filter_main_track_high_win_prob(payload: dict) -> dict:
     """
-    Curate main-track slips: STRONG/OK only, top MAIN_MAX_SLIPS by modeled p_win rank score.
+    Curate main-track slips: STRONG/OK only, top MAIN_MAX_SLIPS by floor-EV rank.
 
     Excludes void-prone sports (default: Tennis) and same-game deep-bench stacks.
+    Rank = p_win × Min Guarantee (Jul-24); p_win still gates MAIN_MIN_P_WIN_FLOOR.
     """
     if not isinstance(payload, dict):
         return {}
     floor_p = float(MAIN_MIN_P_WIN_FLOOR)
     max_slips = int(MAIN_MAX_SLIPS)
     exclude = set(main_exclude_sports_for_date(str(payload.get("date") or "")))
-    candidates: list[tuple[float, dict, dict]] = []
+    candidates: list[tuple[float, float, dict, dict]] = []
     for g in payload.get("groups") or []:
         if not isinstance(g, dict):
             continue
@@ -7191,21 +8244,22 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
                 continue
             if any(_leg_dnp_risk(leg) for leg in legs):
                 continue
-            p_win = _winrate_ticket_rank_score(t)
+            p_win = _winrate_ticket_win_prob(t)
             if p_win < floor_p:
                 continue
             pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
             rec = str((pay or {}).get("recommendation") or "").strip().upper()
             if MAIN_REQUIRE_STRONG_OK and rec not in ("STRONG", "OK"):
                 continue
-            if _winrate_ticket_same_game_bench_stack(t):
+            if _winrate_ticket_construction_reject(t):
                 continue
-            candidates.append((p_win, dict(t), g))
-    candidates.sort(key=lambda x: (-x[0], str(x[2].get("group_name") or "")))
+            rank = _winrate_ticket_rank_score(t)
+            candidates.append((rank, p_win, dict(t), g))
+    candidates.sort(key=lambda x: (-x[0], -x[1], str(x[3].get("group_name") or "")))
     candidates = candidates[:max_slips]
     by_group: dict[str, list[dict]] = {}
     group_meta: dict[str, dict] = {}
-    for _p, t, g in candidates:
+    for _rank, _p, t, g in candidates:
         gn = str(g.get("group_name") or "Group")
         by_group.setdefault(gn, []).append(t)
         group_meta[gn] = g
@@ -7220,19 +8274,106 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
     out["main_min_p_win_floor"] = floor_p
     out["main_max_slips"] = max_slips
     out["main_exclude_sports"] = sorted(exclude)
+    out["main_rank_mode"] = "floor_ev"
     _finalize_payload_l10_streaks(out)
     return out
 
 
 def extract_long_parlay_payload(full_payload: dict) -> dict:
-    """5–6 leg slips from the full EV export (separate grade track from main win-rate pool)."""
-    return filter_ticket_payload_by_leg_count(
+    """5–6 leg slips from the full EV export (separate grade track from main win-rate pool).
+
+    Enabled by default (`PROPORACLE_LONG_PARLAY=1`). Set to 0 to disable.
+    Jul-24: tighten to LONG_PARLAY_MAX_SLIPS by floor-EV; drop negative floor-EV.
+    """
+    if not LONG_PARLAY_ENABLED:
+        out = dict(full_payload) if isinstance(full_payload, dict) else {}
+        out["groups"] = []
+        out["ticket_track"] = "long_parlay"
+        out["payload_mode"] = "long_parlay"
+        out["long_parlay_disabled"] = True
+        return out
+    long_p = filter_ticket_payload_by_leg_count(
         full_payload,
         min_legs=LONG_PARLAY_MIN_LEGS,
         max_legs=LONG_PARLAY_MAX_LEGS,
         ticket_track="long_parlay",
         payload_mode="long_parlay",
     )
+    long_p = filter_payload_mlb_construction_hygiene(long_p)
+    return tighten_long_parlay_payload(long_p)
+
+
+def tighten_long_parlay_payload(payload: dict) -> dict:
+    """
+    Keep top LONG_PARLAY_MAX_SLIPS by floor-EV (p_win × min_guarantee).
+
+    Drops slips with floor_ev < LONG_PARLAY_MIN_FLOOR_EV (default 0 = breakeven).
+    Env: PROPORACLE_LONG_PARLAY_MAX_SLIPS, PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    min_edge = float(LONG_PARLAY_MIN_FLOOR_EV)
+    max_slips = int(LONG_PARLAY_MAX_SLIPS)
+    scored: list[tuple[float, float, dict, dict]] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            p_win = _winrate_ticket_win_prob(t)
+            floor = _ticket_rank_floor_x(t)
+            floor_ev = p_win * floor - 1.0
+            if floor_ev + 1e-12 < min_edge:
+                continue
+            rank = _winrate_ticket_rank_score(t)
+            scored.append((rank, floor_ev, dict(t), g))
+    scored.sort(key=lambda x: (-x[0], -x[1]))
+    kept = scored[:max_slips]
+    by_group: dict[str, list[dict]] = {}
+    group_meta: dict[str, dict] = {}
+    for _rank, floor_ev, t, g in kept:
+        t["floor_ev"] = round(float(floor_ev), 6)
+        gn = str(g.get("group_name") or "Group")
+        by_group.setdefault(gn, []).append(t)
+        group_meta[gn] = g
+    new_groups: list[dict] = []
+    for gn, tickets in by_group.items():
+        g0 = group_meta[gn]
+        ng = dict(g0)
+        ng["tickets"] = tickets
+        new_groups.append(ng)
+    out = dict(payload)
+    out["groups"] = new_groups
+    out["long_parlay_max_slips"] = max_slips
+    out["long_parlay_min_floor_ev"] = min_edge
+    out["long_parlay_rank_mode"] = "floor_ev"
+    return out
+
+
+def filter_payload_mlb_construction_hygiene(payload: dict) -> dict:
+    """Drop slips that still carry banned MLB Goblin OVER / MLB Standard OVER legs."""
+    if not isinstance(payload, dict):
+        return payload
+    out = dict(payload)
+    new_groups: list[dict] = []
+    for g in out.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        kept: list[dict] = []
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            legs = [leg for leg in (t.get("legs") or t.get("rows") or []) if isinstance(leg, dict)]
+            if legs and _ticket_rows_mlb_construction_banned(legs):
+                continue
+            kept.append(t)
+        if kept:
+            ng = dict(g)
+            ng["tickets"] = kept
+            new_groups.append(ng)
+    out["groups"] = new_groups
+    return out
 
 
 def _main_track_wr_sport_frames(
@@ -7362,18 +8503,65 @@ def build_graded_main_win_rate_payload(
     max_tickets: int | None = None,
     goblin_tier_a_only: bool = False,
     goblin_only_3leg: bool = False,
+    pool_mode: str | None = None,
     ticket_track: str = "graded_main",
     payload_mode: str | None = None,
     policy_tag: str | None = None,
 ) -> dict:
-    """Build main graded track from win-rate builder (Standard+Goblin high-prob, 3-leg primary)."""
-    # Main graded leg cap is independent of --max-ticket-legs (workbook/EV builder knob).
-    wr_max_legs = max(MAIN_GRADED_MIN_LEGS, int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS))
+    """Build MAIN graded track from win-rate builder (mixed / goblin_only / standard_only)."""
+    # Resolve pool mode first so Goblin-only can raise the leg cap to GOBLIN_MAX_LEGS.
+    requested = str(pool_mode or "").strip().lower()
+    if goblin_tier_a_only:
+        mode = MAIN_POOL_MODE_GOBLIN
+        use_goblin_only = True
+        use_standard_only = False
+        use_goblin_only_3leg = False
+        use_high_prob = False
+    elif requested in ("goblin_only", "goblin_only_3leg") or (
+        bool(goblin_only_3leg) and not requested
+    ):
+        # Prefer 3-leg short book; Long Goblin 4–6 when not legacy goblin_only_3leg.
+        use_legacy_goblin_label = requested == "goblin_only_3leg" or (
+            bool(goblin_only_3leg) and not requested
+        )
+        mode = "goblin_only_3leg" if use_legacy_goblin_label else MAIN_POOL_MODE_GOBLIN
+        use_goblin_only = True
+        use_standard_only = False
+        use_goblin_only_3leg = bool(use_legacy_goblin_label)
+        use_high_prob = False
+    elif requested == MAIN_POOL_MODE_STANDARD:
+        mode = MAIN_POOL_MODE_STANDARD
+        use_goblin_only = False
+        use_standard_only = True
+        use_goblin_only_3leg = False
+        use_high_prob = True
+    else:
+        mode = MAIN_POOL_MODE
+        use_goblin_only = False
+        use_standard_only = False
+        use_goblin_only_3leg = False
+        use_high_prob = True
+
+    # Mixed MAIN stays ≤3; Goblin-only (non-legacy) always builds through GOBLIN_MAX_LEGS
+    # (do not inherit a short-book max_legs=3 from callers / thresholds).
+    if use_goblin_only and not use_goblin_only_3leg:
+        wr_max_legs = int(GOBLIN_MAX_LEGS)
+        if max_legs is not None:
+            wr_max_legs = max(MAIN_GRADED_MIN_LEGS, min(int(GOBLIN_MAX_LEGS), int(max_legs)))
+            # If caller passed the short-book cap, still raise to Long Goblin.
+            if wr_max_legs <= int(MAIN_GRADED_MAX_LEGS):
+                wr_max_legs = int(GOBLIN_MAX_LEGS)
+    else:
+        wr_max_legs = max(
+            MAIN_GRADED_MIN_LEGS,
+            min(
+                int(MAIN_GRADED_MAX_LEGS),
+                int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS),
+            ),
+        )
     wr_min_prob = float(min_leg_prob if min_leg_prob is not None else MAIN_MIN_LEG_PROB)
     wr_max_tickets = int(max_tickets or MAIN_MAX_SLIPS)
-    # Legacy opt3 / explicit Goblin-only shadow still supported.
-    use_goblin_only_3leg = bool(goblin_only_3leg) and not goblin_tier_a_only
-    use_high_prob = (not use_goblin_only_3leg) and (not goblin_tier_a_only)
+
     wr_groups = build_win_rate_ticket_groups(
         sport_frames,
         min_leg_prob=wr_min_prob,
@@ -7382,22 +8570,26 @@ def build_graded_main_win_rate_payload(
         max_tickets=wr_max_tickets,
         graded_analysis=graded_analysis,
         goblin_tier_a_only=goblin_tier_a_only,
-        goblin_only=use_goblin_only_3leg or goblin_tier_a_only,
+        goblin_only=use_goblin_only,
         goblin_only_3leg=use_goblin_only_3leg,
+        standard_only=use_standard_only,
     )
     filters_out = dict(thresholds or {})
     filters_out["max_ticket_legs"] = wr_max_legs
     filters_out["main_min_leg_prob"] = wr_min_prob
+    filters_out["pool_mode"] = mode
     if goblin_tier_a_only:
         filters_out["goblin_tier_a_only"] = True
-    if use_goblin_only_3leg:
+    if use_goblin_only:
         filters_out["goblin_only"] = True
         filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
-        filters_out["pool_mode"] = "goblin_only_3leg"
-    elif use_high_prob:
+    if use_standard_only:
+        filters_out["standard_only"] = True
+        filters_out["allow_standard"] = True
+        filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
+    if use_high_prob and not use_standard_only:
         filters_out["goblin_only"] = False
         filters_out["main_default_legs"] = MAIN_DEFAULT_LEGS
-        filters_out["pool_mode"] = MAIN_POOL_MODE
         filters_out["allow_standard"] = True
     payload = ticket_groups_to_payload(
         wr_groups,
@@ -7421,19 +8613,23 @@ def build_graded_main_win_rate_payload(
     payload["main_season_lead_days"] = int(MAIN_SEASON_LEAD_DAYS)
     payload["main_min_leg_prob"] = wr_min_prob
     payload["main_min_ml_prob_leg"] = MAIN_MIN_ML_PROB_LEG
+    payload["pool_mode"] = mode
     if policy_tag:
         payload["policy_tag"] = str(policy_tag)
     if goblin_tier_a_only:
         payload["goblin_tier_a_only"] = True
         payload["shadow_track"] = True
-    if use_goblin_only_3leg:
+    if use_goblin_only:
         payload["goblin_only"] = True
-        payload["pool_mode"] = "goblin_only_3leg"
         payload["main_default_legs"] = MAIN_DEFAULT_LEGS
         payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
-    elif use_high_prob:
+    if use_standard_only:
+        payload["standard_only"] = True
+        payload["allow_standard"] = True
+        payload["main_default_legs"] = MAIN_DEFAULT_LEGS
+        payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
+    if use_high_prob and not use_standard_only:
         payload["goblin_only"] = False
-        payload["pool_mode"] = MAIN_POOL_MODE
         payload["main_default_legs"] = MAIN_DEFAULT_LEGS
         payload["main_thin_pool_min_legs"] = MAIN_THIN_POOL_MIN_LEGS
         payload["allow_standard"] = True
@@ -7638,7 +8834,89 @@ def _emit_winrate_mlb_goblin_shadow_payload(
     _write_winrate_mlb_goblin_shadow_snapshot(shadow, date_str)
 
 
+def _write_main_pool_mode_snapshot(payload: dict, date_str: str, pool_mode: str) -> None:
+    """Persist a MAIN board sidecar (goblin_only / standard_only) next to mixed export."""
+    mode = _normalize_main_pool_mode(pool_mode)
+    if mode not in (MAIN_POOL_MODE_GOBLIN, MAIN_POOL_MODE_STANDARD):
+        return
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_{mode}_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_{mode}_latest.json",
+    )
+    filtered = filter_main_high_prob_payload(payload)
+    _write_json_file(dated, filtered)
+    _write_json_file(latest, filtered)
+    n_slips = sum(len(g.get("tickets") or []) for g in filtered.get("groups") or [])
+    print(f"  [OK] MAIN {mode} JSON -> {dated} ({n_slips} slips)")
+
+
+def _emit_main_pool_mode_sidecars(
+    *,
+    nba1q,
+    nba,
+    nba1h,
+    wnba,
+    mlb,
+    soccer,
+    tennis,
+    nhl,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    pool_fn,
+    graded_analysis: dict | None,
+) -> None:
+    """Build + write goblin_only and standard_only MAIN boards alongside mixed MAIN."""
+    wr_frames = _main_track_wr_sport_frames(
+        nba1q=nba1q,
+        nba=nba,
+        nba1h=nba1h,
+        wnba=wnba,
+        mlb=mlb,
+        soccer=soccer,
+        tennis=tennis,
+        nhl=nhl,
+        pool_fn=pool_fn,
+        slate_date=str(date_str or ""),
+    )
+    for mode, track in (
+        (MAIN_POOL_MODE_GOBLIN, "graded_main_goblin_only"),
+        (MAIN_POOL_MODE_STANDARD, "graded_main_standard_only"),
+    ):
+        payload = build_graded_main_win_rate_payload(
+            wr_frames,
+            date_str,
+            thresholds,
+            bankroll=bankroll,
+            curve_stake_usd=curve_stake_usd,
+            graded_analysis=graded_analysis,
+            pool_mode=mode,
+            ticket_track=track,
+            payload_mode=track,
+            policy_tag=mode,
+        )
+        n = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+        print(f"  [main-track] {mode} board: {n} slips")
+        _write_main_pool_mode_snapshot(payload, date_str, mode)
+
+
 def _write_long_parlay_ticket_snapshot(payload: dict, date_str: str) -> None:
+    if not LONG_PARLAY_ENABLED:
+        n_slips = sum(len(g.get("tickets") or []) for g in (payload or {}).get("groups") or [])
+        print(
+            f"  [skip] Long-parlay track disabled "
+            f"(PROPORACLE_LONG_PARLAY=0; would have had {n_slips} slips)"
+        )
+        return
     path = os.path.join(
         REPO_ROOT, "ui_runner", "data", f"combined_slate_tickets_long_parlay_{date_str}.json"
     )
@@ -7902,6 +9180,142 @@ def _emit_strong_mix_shadow_payload(
         "(production main unchanged)"
     )
     _write_strong_mix_shadow_snapshot(payload, date_str)
+
+
+def _write_strong_recombo_shadow_snapshot(payload: dict, date_str: str) -> None:
+    """Persist STRONG Recombo 4–6L shadow (MAIN unchanged)."""
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_strong_recombo_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        "strong_recombo_shadow_latest.json",
+    )
+    templates_latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "templates",
+        "strong_recombo_shadow_latest.json",
+    )
+    _write_json_file(dated, payload)
+    _write_json_file(latest, payload)
+    _write_json_file(templates_latest, payload)
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [OK] STRONG Recombo shadow -> {dated} ({n_slips} slips; "
+        "production main unchanged)"
+    )
+
+
+def _strong_recombo_group_name(n_legs: int) -> str:
+    return f"STRONG Recombo {int(n_legs)}-Leg"
+
+
+def _emit_strong_recombo_shadow_payload(
+    *,
+    strong_tickets: Sequence[Mapping[str, Any]] | None = None,
+    frames: list | None = None,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    max_tickets: int | None = None,
+    min_legs: int | None = None,
+    max_legs: int | None = None,
+) -> None:
+    """
+    Build + persist 4–6L tickets from legs that already appear on STRONG 2–3L slips.
+    Does not inject into MAIN / production STRONG board.
+    """
+    if not STRONG_RECOMBO_SHADOW_ENABLED:
+        print("  [shadow-recombo] skipped (PROPORACLE_STRONG_RECOMBO_SHADOW off)")
+        return
+
+    source = list(strong_tickets or [])
+    if not source and frames:
+        nonempty = [
+            f for f in frames if f is not None and hasattr(f, "__len__") and len(f) > 0
+        ]
+        if nonempty:
+            df = pd.concat(nonempty, ignore_index=True)
+            source = build_strong_tickets(
+                df,
+                date_str=str(date_str),
+                pick_mode="goblin",
+                max_tickets=None,
+                max_legs=int(STRONG_RECOMBO_SOURCE_MAX_LEGS),
+                exhaust_pool=True,
+            )
+    if not source:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_recombo_shadow",
+            "mode": "strong_recombo_shadow",
+            "pool_mode": "strong_recombo_shadow",
+            "shadow_track": True,
+            "pool_policy": "strong_slip_recombo",
+            "groups": [],
+        }
+        _write_strong_recombo_shadow_snapshot(empty, date_str)
+        print("  [shadow-recombo] 0 slips (no STRONG source legs; MAIN unchanged)")
+        return
+
+    tickets = build_strong_recombo_long_tickets(
+        source,
+        date_str=str(date_str),
+        max_tickets=max_tickets,
+        min_legs=min_legs,
+        max_legs=max_legs,
+    )
+    if not tickets:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_recombo_shadow",
+            "mode": "strong_recombo_shadow",
+            "pool_mode": "strong_recombo_shadow",
+            "shadow_track": True,
+            "pool_policy": "strong_slip_recombo",
+            "source_strong_slips": len(source),
+            "groups": [],
+        }
+        _write_strong_recombo_shadow_snapshot(empty, date_str)
+        print("  [shadow-recombo] 0 recombo slips (MAIN unchanged)")
+        return
+
+    by_n: dict[int, list[dict]] = defaultdict(list)
+    for t in tickets:
+        by_n[_strong_ticket_leg_count(t)].append(t)
+    groups: list[tuple[str, list[dict], None]] = []
+    for n in sorted(by_n, reverse=True):
+        if n < 4:
+            continue
+        groups.append((_strong_recombo_group_name(n), by_n[n], None))
+    payload = ticket_groups_to_payload(
+        groups,
+        str(date_str),
+        {**(thresholds or {}), "pool_mode": "strong_recombo_shadow"},
+        bankroll=float(bankroll or 0.0),
+        curve_stake_usd=float(curve_stake_usd or 1.0),
+        ticket_track="strong_recombo_shadow",
+        payload_mode="strong_recombo_shadow",
+    )
+    payload["shadow_track"] = True
+    payload["pool_mode"] = "strong_recombo_shadow"
+    payload["pool_policy"] = "strong_slip_recombo"
+    payload["source_strong_slips"] = len(source)
+    n_shadow = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [shadow-recombo] STRONG Recombo 4-6L: {n_shadow} slips "
+        f"from {len(source)} STRONG source slips (production main unchanged)"
+    )
+    _write_strong_recombo_shadow_snapshot(payload, date_str)
 
 
 def _emit_strong_standard_prob_shadow_payload(
@@ -8182,14 +9596,23 @@ def filter_main_goblin_only_3leg_payload(payload: dict) -> dict:
 
 def filter_main_high_prob_payload(payload: dict) -> dict:
     """
-    Keep high-prob MAIN slips: Goblin and/or Standard, 2–3 legs preferred,
-    4-leg only when every leg clears the strict Tier-A HOT floor.
+    Keep high-prob MAIN slips: Goblin and/or Standard.
+    Mixed / standard-only: 2–3 legs. Goblin-only: 2–GOBLIN_MAX_LEGS (Long Goblin 4–6).
+    4+ legs still require every leg to clear the Tier-A HOT floor at build time.
     Drops Demon / banned props / excluded sports.
     """
-    mode = str(payload.get("pool_mode") or "")
-    if mode not in (MAIN_POOL_MODE, "goblin_only_3leg"):
+    mode_raw = str(payload.get("pool_mode") or "").strip().lower()
+    if mode_raw and mode_raw not in MAIN_POOL_MODES:
         return payload
-    goblin_only = mode == "goblin_only_3leg" or bool(payload.get("goblin_only"))
+    mode = _normalize_main_pool_mode(mode_raw)
+    goblin_only = mode == MAIN_POOL_MODE_GOBLIN or bool(payload.get("goblin_only"))
+    standard_only = mode == MAIN_POOL_MODE_STANDARD or bool(payload.get("standard_only"))
+    legacy_goblin_3 = mode_raw == "goblin_only_3leg"
+    max_keep = (
+        MAIN_GRADED_MAX_LEGS
+        if standard_only or legacy_goblin_3 or not goblin_only
+        else GOBLIN_MAX_LEGS
+    )
     out = dict(payload)
     new_groups: list[dict] = []
     for g in out.get("groups") or []:
@@ -8199,15 +9622,20 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            # STRONG builder slips bypass high-prob length mix rules.
+            # STRONG bypasses pick-mix rules (builder already caps ≤ STRONG_MAX_LEGS).
+            # CORE respects max_keep so mixed MAIN stays ≤3 while Goblin-only / long
+            # boards (max_keep=GOBLIN_MAX_LEGS) can keep WNBA Flex 4–6 CORE slips.
             if t.get("strong_builder"):
                 kept.append(t)
                 continue
             legs = [leg for leg in (t.get("legs") or []) if isinstance(leg, dict)]
             n = len(legs)
-            if n < MAIN_GRADED_MIN_LEGS or n > MAIN_GRADED_MAX_LEGS:
+            if n < MAIN_GRADED_MIN_LEGS or n > max_keep:
                 continue
-            if any(_main_leg_prop_banned(leg) for leg in legs):
+            if t.get("core_build"):
+                kept.append(t)
+                continue
+            if any(_leg_mlb_construction_banned(leg) for leg in legs):
                 continue
             leg_sports = {
                 str(leg.get("sport") or "").strip().upper()
@@ -8226,6 +9654,8 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
                 continue
             if goblin_only and not all("goblin" in p for p in picks):
                 continue
+            if standard_only and not all(("standard" in p) and ("goblin" not in p) for p in picks):
+                continue
             if not all(("goblin" in p) or ("standard" in p) for p in picks):
                 continue
             if n >= 4 and not _ticket_passes_main_four_leg_gate(legs):
@@ -8238,7 +9668,169 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
         ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(kept[0], ng))
         new_groups.append(ng)
     out["groups"] = new_groups
-    out["pool_mode"] = mode or MAIN_POOL_MODE
+    # Preserve legacy label when the payload already used it.
+    if mode_raw == "goblin_only_3leg":
+        out["pool_mode"] = "goblin_only_3leg"
+    else:
+        out["pool_mode"] = mode or MAIN_POOL_MODE
+    return out
+
+
+def _ticket_board_payout_x(ticket: dict) -> float | None:
+    """Board min-guarantee multiplier (display_min_x), with payout-block fallbacks."""
+    if not isinstance(ticket, dict):
+        return None
+    pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
+    for raw in (
+        pay.get("display_min_x"),
+        ticket.get("display_min_x"),
+        pay.get("power_min_x"),
+        pay.get("min_guarantee"),
+        pay.get("min_payout_x"),
+        pay.get("payout"),
+    ):
+        v = _safe_positive_float(raw)
+        if v is not None:
+            return v
+    return None
+
+
+def _ticket_has_live_cdp_payout(ticket: dict) -> bool:
+    """True when ticket has an exact live_cdp board floor (peer SG-Δ does not count)."""
+    pay = ticket.get("payout") if isinstance(ticket.get("payout"), dict) else {}
+    src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if is_verified_payout_source(src):
+        return _safe_positive_float(pay.get("power_min_x") or pay.get("display_min_x")) is not None
+    return _safe_positive_float(pay.get("power_min_x")) is not None and src in ("", "live_cdp")
+
+
+def _ticket_clears_payout_floor(
+    ticket: dict,
+    *,
+    floor_x: float,
+    high_p_win: float | None = None,
+    allow_unknown: bool = False,
+) -> bool:
+    """True when board floor ≥ floor_x, high-p_win bypass, or unknown floor allowed."""
+    bypass = float(SHORT_FLOOR_HIGH_P_WIN if high_p_win is None else high_p_win)
+    px = _ticket_board_payout_x(ticket)
+    if px is None:
+        if allow_unknown:
+            return True
+        return bypass > 0 and _winrate_ticket_win_prob(ticket) + 1e-12 >= bypass
+    if px + 1e-9 >= float(floor_x):
+        return True
+    if bypass > 0 and _winrate_ticket_win_prob(ticket) + 1e-12 >= bypass:
+        return True
+    return False
+
+
+def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
+    """
+    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 1.5).
+
+    STRONG and short Goblin no longer auto-bypass low floors. Sub-floor
+    slips ship only with very high p_win (SHORT_FLOOR_HIGH_P_WIN, default 0.70).
+    When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (1.5)
+    unless high-p_win bypass. If nothing preferred, still apply the hard cut
+    (cut volume) rather than shipping a board of sub-floor losers.
+
+    When PROPORACLE_REQUIRE_LIVE_PAYOUT=1 (default): only exact live_cdp floors
+    ship. Pending / peer SG-Δ / unknown floors are deferred — empty board is
+    correct when nothing has a verified ≥floor capture yet.
+    """
+    preferred_x = float(MAIN_PREFERRED_MIN_PAYOUT_X)
+    hard_x = float(SHORT_FLOOR_HARD_X)
+    require_live = require_live_payout_display()
+    if preferred_x <= 0 and hard_x <= 0 and not require_live:
+        return groups
+
+    preferred: list[dict] = []
+    hard_only: list[dict] = []
+    n_pref = n_hard = n_defer = 0
+
+    for g in groups:
+        if not isinstance(g, dict):
+            continue
+        pref_tickets: list[dict] = []
+        hard_tickets: list[dict] = []
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            # Live-only board: no invented / pending floors on /tickets.
+            if require_live and not _ticket_has_live_cdp_payout(t):
+                n_defer += 1
+                continue
+            clears_pref = preferred_x <= 0 or _ticket_clears_payout_floor(
+                t, floor_x=preferred_x, allow_unknown=False
+            )
+            # Unknown floors do not ship when live is required (handled above).
+            clears_hard = hard_x <= 0 or _ticket_clears_payout_floor(
+                t, floor_x=hard_x, allow_unknown=not require_live
+            )
+            if clears_pref:
+                pref_tickets.append(t)
+                n_pref += 1
+            elif clears_hard:
+                hard_tickets.append(t)
+                n_hard += 1
+            else:
+                n_defer += 1
+        if pref_tickets:
+            ng = dict(g)
+            ng["tickets"] = pref_tickets
+            ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(pref_tickets[0], ng))
+            preferred.append(ng)
+        if hard_tickets or pref_tickets:
+            keep = pref_tickets + hard_tickets
+            if keep:
+                ng2 = dict(g)
+                ng2["tickets"] = keep
+                ng2["n_legs"] = int(ng2.get("n_legs") or _slip_leg_count(keep[0], ng2))
+                hard_only.append(ng2)
+
+    if preferred:
+        if n_defer or n_hard:
+            print(
+                f"  [web] last filter: prefer ≥{preferred_x:g}x"
+                f" (hard ≥{hard_x:g}x; high p_win≥{SHORT_FLOOR_HIGH_P_WIN:g} bypass)"
+                f"{' + live_cdp' if require_live else ''} — "
+                f"kept {n_pref} preferred, deferred {n_defer + n_hard}"
+            )
+        return preferred
+    if hard_only:
+        if n_defer:
+            print(
+                f"  [web] last filter: hard ≥{hard_x:g}x"
+                f" (no ≥{preferred_x:g}x; high p_win≥{SHORT_FLOOR_HIGH_P_WIN:g} bypass)"
+                f"{' + live_cdp' if require_live else ''} — "
+                f"kept {n_pref + n_hard} slips, deferred {n_defer}"
+            )
+        return hard_only
+    if n_defer:
+        print(
+            f"  [web] last filter: cut all {n_defer} slips "
+            f"(need live_cdp ≥{hard_x:g}x"
+            f"{'' if not require_live else '; pending/unpriced deferred'}; "
+            f"no high-p_win bypass)"
+        )
+    return []
+
+
+def prefer_main_min_payout_payload(payload: dict) -> dict:
+    """
+    Final MAIN/web filter: prefer ≥ MAIN_PREFERRED_MIN_PAYOUT_X; floor-gate STRONG.
+
+    Must run after display payouts are finalized so display_min_x is authoritative.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    out = dict(payload)
+    groups = list(out.get("groups") or [])
+    out["groups"] = _prefer_main_payout_floor_groups(groups)
+    out["preferred_min_payout_x"] = float(MAIN_PREFERRED_MIN_PAYOUT_X)
+    out["short_floor_hard_x"] = float(SHORT_FLOOR_HARD_X)
+    out["short_floor_high_p_win"] = float(SHORT_FLOOR_HIGH_P_WIN)
     return out
 
 
@@ -8265,6 +9857,50 @@ def inject_strong_builder_tickets(full_payload: dict, main_payload: dict) -> dic
     return out
 
 
+def _extract_core_build_groups(payload: Mapping[str, Any]) -> list[dict]:
+    """Pull CORE pipeline groups from the full Excel export payload (preserve recipe labels)."""
+    if not isinstance(payload, Mapping):
+        return []
+    out: list[dict] = []
+    for g in payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        slips = [
+            t
+            for t in (g.get("tickets") or [])
+            if isinstance(t, dict) and t.get("core_build")
+        ]
+        if not slips:
+            continue
+        ng = dict(g)
+        ng["tickets"] = slips
+        ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(slips[0], ng))
+        ng["hot_legs"] = sum(int(t.get("hot_legs") or 0) for t in slips)
+        ng["cold_legs"] = sum(int(t.get("cold_legs") or 0) for t in slips)
+        out.append(ng)
+    return out
+
+
+def inject_core_build_tickets(full_payload: dict, main_payload: dict) -> dict:
+    """Prepend per-pipeline CORE recipe slips ahead of MAIN (after STRONG if already injected)."""
+    core_groups = _extract_core_build_groups(full_payload)
+    if not core_groups:
+        return main_payload
+    out = dict(main_payload)
+    groups = list(out.get("groups") or [])
+    # Keep STRONG groups first if present; insert CORE immediately after them.
+    strong_idx = 0
+    for i, g in enumerate(groups):
+        gn = str((g or {}).get("group_name") or "").upper()
+        if "STRONG" in gn:
+            strong_idx = i + 1
+            continue
+        break
+    out["groups"] = groups[:strong_idx] + core_groups + groups[strong_idx:]
+    out["core_build_count"] = sum(len(g.get("tickets") or []) for g in core_groups)
+    return out
+
+
 def _ticket_has_low_quality_soccer_over_leg(ticket: dict) -> bool:
     """True when a soccer OVER leg fails the sport HQ gate (UNDER-preferred soft filter)."""
     for leg in ticket.get("legs") or []:
@@ -8288,6 +9924,15 @@ def _web_supplement_group_priority(group_name: str, sport_key: str) -> tuple[int
         if "standard" in gn:
             return (2, gn)
         return (1, gn)
+    if sport_key == "TENNIS":
+        # Prefer short Power / totals boards over long Goblin piles.
+        if "power 2" in gn or "core power 2" in gn:
+            return (0, gn)
+        if "power 3" in gn or "core power 3" in gn:
+            return (1, gn)
+        if "goblin" in gn:
+            return (3, gn)
+        return (2, gn)
     return (0, gn)
 
 
@@ -8362,8 +10007,9 @@ def append_in_season_web_supplement_groups(
         cands.sort(
             key=lambda item: _web_supplement_group_priority(str(item.get("group_name") or ""), sport_key)
         )
+        sport_cap = int(WEB_SUPPLEMENT_MAX_GROUPS.get(sport_key, max_groups_per_sport))
         for ng in cands:
-            if added_by_sport[sport_key] >= int(max_groups_per_sport):
+            if added_by_sport[sport_key] >= sport_cap:
                 break
             gn = str(ng.get("group_name") or "")
             if not gn or gn in existing_names:
@@ -8593,6 +10239,9 @@ def ticket_groups_to_payload(
                 "has_data_warning": False,
                 "strong_builder": bool(t.get("strong_builder")),
                 "strong_builder_pick": t.get("strong_builder_pick"),
+                "core_build": bool(t.get("core_build")),
+                "core_recipe": t.get("core_recipe"),
+                "core_label": t.get("core_label"),
                 "pool_policy": t.get("pool_policy"),
                 "probability_ladder": bool(t.get("probability_ladder")),
                 "high_probability_parlay": bool(t.get("high_probability_parlay")),
@@ -10020,6 +11669,8 @@ def write_web_outputs(
         apply_slate_ev_tier_recommendations(payload)
         _preserve_live_cdp_from_existing_web_json(payload, json_path)
         finalize_payload_display_payouts(payload)
+        if Path(str(json_filename or "tickets_latest.json")).name == "tickets_latest.json":
+            payload = prefer_main_min_payout_payload(payload)
         payload = _sanitize_for_json(payload)
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
@@ -10056,6 +11707,9 @@ def write_web_outputs(
     # Always harvest live floors from the file we are about to overwrite (same date).
     _preserve_live_cdp_from_existing_web_json(payload, json_path)
     finalize_payload_display_payouts(payload)
+    # Last filter: prefer ≥2x after all other gates + display floors are final.
+    if Path(str(json_filename or "tickets_latest.json")).name == "tickets_latest.json":
+        payload = prefer_main_min_payout_payload(payload)
     payload = _sanitize_for_json(payload)
     # Stamp run_id on live JSON when the full export already assigned one.
     if not payload.get("run_id"):
@@ -11021,9 +12675,15 @@ def _tennis_hit_rate_zero_like_proxy(df: pd.DataFrame, log_prefix: str) -> None:
     if proxy_col is None:
         return
     proxy = pd.to_numeric(df[proxy_col], errors="coerce")
-    if proxy.notna().any() and float(proxy.dropna().max()) > 1.5:
-        proxy = proxy / 100.0
-    proxy = proxy.clip(lower=0.52, upper=0.90)
+    if proxy.notna().any():
+        mx = float(proxy.dropna().max())
+        # L5/L10 hit counts (0–5 / 0–10) → rate; percentages (>10) → /100.
+        if 1.5 < mx <= 10.5:
+            denom = 5.0 if "l5" in proxy_col else 10.0
+            proxy = proxy / denom
+        elif mx > 10.5:
+            proxy = proxy / 100.0
+    proxy = proxy.clip(lower=TENNIS_HIT_RATE_PROXY_FLOOR, upper=TENNIS_HIT_RATE_PROXY_CAP)
     df["hit_rate"] = proxy.where(proxy.notna(), hr_now)
     print(
         f"  [{log_prefix}] Tennis hit_rate proxy applied from '{proxy_col}' "
@@ -11587,7 +13247,7 @@ def _tennis_board_hit_rate_proxy(df: pd.DataFrame) -> pd.DataFrame:
         return out
     high = bs >= 0.70
     proxy = (bs * 0.65).where(high, (bs * 0.58))
-    proxy = proxy.clip(0.52, 0.90)
+    proxy = proxy.clip(TENNIS_HIT_RATE_PROXY_FLOOR, TENNIS_HIT_RATE_PROXY_CAP)
     m0 = hr0 <= 0.001
     use = m0 & proxy.notna()
     out.loc[use, "hit_rate"] = proxy.loc[use]
@@ -12514,9 +14174,11 @@ def add_l5_play_side_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 def drop_demon_over_rows(df: Optional[pd.DataFrame], sport_label: str) -> Optional[pd.DataFrame]:
     """
-    PrizePicks Demon is a line-hardening pick type and is not offered on the OVER side for
-    these boards — upstream step8 can still emit Demon+OVER rows. Remove them so Excel
-    slates, Full Slate, ticket pools, and slate_latest.json never surface unbookable legs.
+    PrizePicks Demon is OVER-only (harder ladder). Drop Demon+UNDER artifacts so Excel
+    slates, Full Slate, ticket pools, and slate_latest.json never surface invalid sides.
+
+    Note: MAIN/STRONG tickets still exclude Demons entirely via ticket_pick_types
+    (Std+Gob only). This guard is product-side hygiene for Demon UNDER mislabels.
     """
     if df is None or len(df) == 0:
         return df
@@ -12524,10 +14186,13 @@ def drop_demon_over_rows(df: Optional[pd.DataFrame], sport_label: str) -> Option
         return df
     pt = df["pick_type"].astype(str).str.strip().str.upper()
     dr = df["direction"].astype(str).str.strip().str.upper()
-    bad = pt.eq("DEMON") & dr.eq("OVER")
+    bad = pt.eq("DEMON") & ~dr.eq("OVER")
     n_drop = int(bad.sum())
     if n_drop:
-        print(f"  [bookability] {sport_label}: dropping {n_drop} Demon+OVER row(s) (not a valid PP offering).")
+        print(
+            f"  [bookability] {sport_label}: dropping {n_drop} Demon non-OVER row(s) "
+            "(Demon is OVER-only)."
+        )
         return df.loc[~bad].copy()
     return df
 
@@ -12848,6 +14513,7 @@ class FunnelTracker:
         self.stage_order: list[str] = [
             "input",
             "after_prop_ban",
+            "after_mlb_construction_ban",
             "after_fantasy_score",
             "after_directional_l5_hr",
             "after_pick_type",
@@ -13031,6 +14697,12 @@ def filter_eligible(
     if "prop_type" in df.columns:
         prop_norm = df["prop_type"].apply(_norm_prop_label)
         _apply_gate(~prop_norm.isin(TICKET_EXCLUDED_PROPS), "prop_banned", "after_prop_ban")
+    # MLB construction hygiene (hitter Goblin OVER + Standard OVER) for FINAL/long/MAIN pools.
+    mlb_hygiene = df.apply(
+        lambda r: not _leg_mlb_construction_banned(r.to_dict()),
+        axis=1,
+    )
+    _apply_gate(mlb_hygiene, "mlb_construction_banned", "after_mlb_construction_ban")
     if "stat_coverage" in df.columns:
         cov = df["stat_coverage"].astype(str).str.strip().str.lower()
         _apply_gate(~cov.eq("unsupported"), "stat_coverage_unsupported", "after_stat_coverage")
@@ -13149,6 +14821,251 @@ _STRUCTURE_SPECS: dict[str, dict[str, object]] = {
     "power_std3": {"n_legs": 3, "pool": "standard", "flow": "power"},
     "goblin3": {"n_legs": 3, "pool": "goblin", "flow": "power"},
 }
+
+# Focused "core first" recipes per sport pipeline (Jul-20 win autopsy):
+# MLB Goblin pitcher OVER 2–3L Power; WNBA Goblin Flex 3 + Long Goblin Flex 4–6;
+# Tennis Goblin; Soccer Standard (UNDER-biased via soccer_allowed_leg).
+# WNBA Flex 4–6 are Goblin-long CORE slips; mixed MAIN still drops them via
+# filter_main_high_prob_payload max_keep (core_build respects length cap).
+CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
+    "MLB": [
+        {"structure": "power", "label": "Core Power 2", "variants": 3},
+        {"structure": "goblin3", "label": "Core Power 3", "variants": 3},
+    ],
+    "WNBA": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 3},
+        {"structure": "flex4", "label": "Core Flex 4", "variants": 2},
+        {"structure": "flex5", "label": "Core Flex 5", "variants": 2},
+        {"structure": "flex6", "label": "Core Flex 6", "variants": 2},
+    ],
+    "TENNIS": [
+        {"structure": "power", "label": "Core Power 2", "variants": 1},
+        {"structure": "goblin3", "label": "Core Power 3", "variants": 1},
+    ],
+    "SOCCER": [
+        {"structure": "standard", "label": "Core Standard 2", "variants": 2},
+        {"structure": "power_std3", "label": "Core Standard 3", "variants": 2},
+    ],
+    "NHL": [
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+    ],
+    "NBA": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+    ],
+    "NFL": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+    ],
+}
+
+CORE_BUILD_FIRST_DEFAULT: bool = os.getenv(
+    "PROPORACLE_CORE_BUILD_FIRST", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+
+# Prop focus for CORE boards (Jul-20 win autopsy + existing MAIN/STRONG gates).
+# Norms use the same keying as _norm_main_prop_key.
+CORE_PROP_FOCUS_NORMS: dict[str, frozenset[str]] = {
+    # MLB Goblin OVER — pitcher only (Hits Allowed led wins; avoid hitter Hits/TB).
+    "MLB": frozenset(MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS),
+    # WNBA Goblin — assists / 3PT led wins; rebounds OK on Goblin (Std rebounds OVER banned).
+    "WNBA": frozenset(
+        {
+            "assists",
+            "3ptmade",
+            "threepointsmade",
+            "threepointersmade",
+            "rebounds",
+            "defensiverebounds",
+            "points",  # secondary; keep thin for Flex 3 fill
+        }
+    ),
+    # Tennis Goblin OVER game totals only (aces/DF banned on MAIN).
+    "TENNIS": frozenset(
+        {
+            "totalgameswon",
+            "totalgames",
+            "gameswon",
+            "gamesplayed",
+        }
+    ),
+    # Soccer Standard — UNDER-friendly; shots/SOT/goals (shots OVER hard-gated on Std).
+    "SOCCER": frozenset(
+        {
+            "shots",
+            "shotsontarget",
+            "goals",
+            "fouls",
+            "tackles",
+        }
+    ),
+    "SOC": frozenset(
+        {
+            "shots",
+            "shotsontarget",
+            "goals",
+            "fouls",
+            "tackles",
+        }
+    ),
+    "NHL": frozenset(
+        {
+            "shotsongoal",
+            "sog",
+            "saves",
+            "blockedshots",
+            "points",
+            "assists",
+        }
+    ),
+}
+
+# Preferred direction for CORE prop focus (empty = both / sport gate decides).
+CORE_PROP_FOCUS_DIRECTION: dict[str, str] = {
+    "MLB": "OVER",
+    "WNBA": "OVER",
+    "TENNIS": "OVER",
+    # Soccer: prefer UNDER; keep blank so soccer_allowed_leg can still pass HQ OVER.
+    "SOCCER": "",
+    "SOC": "",
+    # NHL: graded history favors UNDER (SOG/Goals/Assists).
+    "NHL": "UNDER",
+}
+
+
+def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.DataFrame:
+    """Narrow eligible rows to the sport's core recipe + prop-focus universe."""
+    if pool_df is None or pool_df.empty:
+        return pool_df
+    out = pool_df.copy()
+    # Fantasy Score banned from CORE (and all ticket boards).
+    fant = _fantasy_prop_mask(out)
+    if fant.any():
+        out = out.loc[~fant].copy()
+    if out.empty:
+        return out
+    if "category_hr" not in out.columns:
+        out = _attach_category_hr_columns(out)
+    fail = _category_hr_fail_mask(out)
+    if fail.any():
+        kept = out.loc[~fail].copy()
+        if len(kept) >= 2:
+            out = kept
+    sp = str(sport_label or "").strip().upper()
+    if sp == "MLB":
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            out = out[pt.eq("goblin")].copy()
+    elif sp == "WNBA":
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            gob = out[pt.eq("goblin")].copy()
+            if len(gob) >= 3:
+                out = gob
+    elif sp in ("SOCCER", "SOC"):
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            std = out[pt.eq("standard")].copy()
+            if len(std) >= 2:
+                out = std
+    elif sp == "TENNIS":
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            gob = out[pt.eq("goblin")].copy()
+            if len(gob) >= 2:
+                out = gob
+    elif sp == "NHL":
+        if "pick_type" in out.columns:
+            pt = out["pick_type"].astype(str).str.strip().str.lower()
+            std = out[pt.eq("standard")].copy()
+            if len(std) >= 2:
+                out = std
+
+    want_dir = str(CORE_PROP_FOCUS_DIRECTION.get(sp) or "").strip().upper()
+    if want_dir in ("OVER", "UNDER") and "direction" in out.columns and not out.empty:
+        d = out["direction"].astype(str).str.strip().str.upper()
+        narrowed = out[d.eq(want_dir)].copy()
+        if len(narrowed) >= 2:
+            out = narrowed
+
+    focus = CORE_PROP_FOCUS_NORMS.get(sp)
+    if focus and "prop_type" in out.columns and not out.empty:
+        prop_n = out["prop_type"].map(_norm_main_prop_key)
+        focused = out[prop_n.isin(focus)].copy()
+        # Keep focus when enough legs remain; otherwise fall back so CORE still builds.
+        min_keep = 3 if sp in ("WNBA", "MLB") else 2
+        if len(focused) >= min_keep:
+            out = focused
+        else:
+            print(
+                f"  [core] {sp}: prop focus kept {len(focused)}/{len(out)} "
+                f"(below {min_keep}) — using broader pool"
+            )
+    return out.reset_index(drop=True)
+
+
+def build_core_pipeline_ticket_groups(
+    sport_pool_map: list[tuple[str, pd.DataFrame | None]],
+    *,
+    counters: dict | None = None,
+    max_ticket_legs: int = 6,
+    ticket_sort_mode: str = "rank",
+    ticket_gen_starts: int = 10,
+    prioritize_ticket_hit: bool = False,
+) -> list[tuple[str, list[dict], None]]:
+    """
+    Emit one focused core board per in-season sport pipeline before spray variants.
+    Returns (group_name, tickets, None) tuples ready for Excel/web assembly.
+    """
+    groups: list[tuple[str, list[dict], None]] = []
+    for sport_label, sdf in sport_pool_map:
+        if sdf is None or len(sdf) == 0:
+            continue
+        sp = str(sport_label or "").strip().upper()
+        recipes = CORE_PIPELINE_RECIPES.get(sp)
+        if not recipes:
+            continue
+        core_pool = _prepare_core_pipeline_pool(sp, sdf)
+        if core_pool is None or core_pool.empty:
+            print(f"  [core] {sp}: empty after core pool filter — skip")
+            continue
+        for recipe in recipes:
+            structure = str(recipe.get("structure") or "").strip()
+            label = str(recipe.get("label") or structure).strip()
+            variants = max(1, min(6, int(recipe.get("variants") or 1)))
+            spec = _STRUCTURE_SPECS.get(structure) or {}
+            nlegs = int(spec.get("n_legs") or 0)
+            if nlegs and nlegs > int(max_ticket_legs):
+                continue
+            tickets = build_structure_ticket_variants(
+                core_pool,
+                sp,
+                structure,
+                counters=counters,
+                relaxed=False,
+                prioritize_ticket_hit=prioritize_ticket_hit,
+                ticket_sort_mode=ticket_sort_mode,
+                ticket_gen_starts=ticket_gen_starts,
+                max_variants=variants,
+            )
+            if not tickets:
+                print(f"  [core] {sp} {label}: no ticket built")
+                continue
+            for i, t in enumerate(tickets, start=1):
+                t["core_build"] = True
+                t["core_recipe"] = f"{sp}:{structure}"
+                t["core_label"] = label
+                display = f"{sp} {label} #{i}"
+                groups.append((display, [t], None))
+                print(
+                    f"  [core] {display}: "
+                    f"{t.get('ticket_type')} {int(t.get('n_legs') or nlegs)}L "
+                    f"pwr={float(t.get('power_payout') or 0):.2f}x "
+                    f"flex={float(t.get('flex_payout') or 0):.2f}x "
+                    f"p_win={float(t.get('est_win_prob') or 0):.1%}"
+                )
+    return groups
 
 
 def build_single_structure_ticket(
@@ -13300,13 +15217,15 @@ def build_single_structure_ticket(
                 proxy = pd.to_numeric(cand[proxy_col], errors="coerce")
                 if proxy.dropna().max() > 1.5:
                     proxy = proxy / 100.0
-                proxy = proxy.clip(lower=0.52, upper=0.90)
+                proxy = proxy.clip(lower=TENNIS_HIT_RATE_PROXY_FLOOR, upper=TENNIS_HIT_RATE_PROXY_CAP)
                 cand["hit_rate"] = proxy.where(proxy.notna(), hr0)
                 print(f"  [TENNIS GATE TRACE] build_single_structure_ticket hit_rate proxy='{proxy_col}' applied")
             elif "blended_score" in cand.columns:
                 bs = pd.to_numeric(cand["blended_score"], errors="coerce")
                 high = bs >= 0.70
-                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(0.52, 0.90)
+                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(
+                    TENNIS_HIT_RATE_PROXY_FLOOR, TENNIS_HIT_RATE_PROXY_CAP
+                )
                 m0 = hr0 <= 0.001
                 use = m0 & proxy.notna()
                 cand.loc[use, "hit_rate"] = proxy.loc[use]
@@ -13496,12 +15415,14 @@ def build_structure_ticket_variants(
                 proxy = pd.to_numeric(cand[proxy_col], errors="coerce")
                 if proxy.dropna().max() > 1.5:
                     proxy = proxy / 100.0
-                proxy = proxy.clip(lower=0.52, upper=0.90)
+                proxy = proxy.clip(lower=TENNIS_HIT_RATE_PROXY_FLOOR, upper=TENNIS_HIT_RATE_PROXY_CAP)
                 cand["hit_rate"] = proxy.where(proxy.notna(), hr0)
             elif "blended_score" in cand.columns:
                 bs = pd.to_numeric(cand["blended_score"], errors="coerce")
                 high = bs >= 0.70
-                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(0.52, 0.90)
+                proxy = (bs * 0.65).where(high, (bs * 0.58)).clip(
+                    TENNIS_HIT_RATE_PROXY_FLOOR, TENNIS_HIT_RATE_PROXY_CAP
+                )
                 m0 = hr0 <= 0.001
                 use = m0 & proxy.notna()
                 cand.loc[use, "hit_rate"] = proxy.loc[use]
@@ -14067,17 +15988,23 @@ STRONG_BUILDER_CORE_PROPS_NORM: frozenset[str] = frozenset(
 STRONG_BUILDER_MLB_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
     for x in (
-        "hits",
-        "total bases",
-        "totalbases",
-        "strikeouts",
-        # singles removed — long-term OVER hit rate too weak for STRONG core
+        # hits / total bases removed 2026-07-18 — dominate miss volume on OVER Goblin
+        "strikeouts",  # pitcher Ks preferred; hitter Ks still need leg_prob floor
         "pitches thrown",
         "pitchesthrown",
         "pitching outs",
         "pitchingouts",
+        "earned runs allowed",
+        "earnedrunsallowed",
+        "hits allowed",
+        "hitsallowed",
+        "walks allowed",
+        "walksallowed",
     )
 )
+# Min leg_prob for STRONG candidates (MLB Goblin OVER uses the higher floor).
+STRONG_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_STRONG_MIN_LEG_PROB", "0.65"))
+STRONG_MLB_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_STRONG_MLB_MIN_LEG_PROB", "0.70"))
 STRONG_BUILDER_SOCCER_PROPS_NORM: frozenset[str] = frozenset(
     x.replace("+", "").replace(" ", "")
     for x in ("shots", "shots on target", "shotsontarget", "goals")
@@ -14116,9 +16043,9 @@ STRONG_MAX_PLAYER_APPEARANCES_PER_SLATE = max(
     1, int(os.getenv("PROPORACLE_STRONG_MAX_PLAYER_APPS", "2"))
 )
 # Max times the same player+prop may appear among STRONG tickets of one length
-# (e.g. ≤2 uses in 6-leg slips, and again ≤2 in 5-leg slips, independently).
+# (one section, e.g. STRONG 6-Leg). Default 1 — Ionescu rebounds once per section.
 STRONG_MAX_TICKETS_PER_PLAYER_PROP = max(
-    1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "2"))
+    1, int(os.getenv("PROPORACLE_STRONG_MAX_TICKETS_PER_PROP", "1"))
 )
 
 
@@ -14238,7 +16165,11 @@ def _strong_builder_prop_norm(v: object) -> str:
 
 
 def _strong_builder_prop_allowed(v: object, sport: object = None) -> bool:
+    if _is_fantasy_prop_label(v):
+        return False
     norm = _strong_builder_prop_norm(v)
+    if "fantasy" in norm:
+        return False
     sp = str(sport or "").upper().strip()
     if sp == "MLB":
         return norm in STRONG_BUILDER_MLB_PROPS_NORM
@@ -14372,7 +16303,19 @@ def _strong_candidate_legs(
     if out.empty:
         return out
     keep_idx = [idx for idx in out.index if _strong_sport_leg_allowed(out.loc[idx])]
-    return out.loc[keep_idx].copy() if keep_idx else out.iloc[0:0].copy()
+    if not keep_idx:
+        return out.iloc[0:0].copy()
+    filtered: list = []
+    for idx in keep_idx:
+        row = out.loc[idx]
+        row_d = row.to_dict() if isinstance(row, pd.Series) else dict(row)
+        lp = _leg_prob_for_p_win_from_mapping(row_d)
+        sp = str(row_d.get("sport") or "").strip().upper()
+        floor = float(STRONG_MLB_MIN_LEG_PROB) if sp == "MLB" else float(STRONG_MIN_LEG_PROB)
+        if lp < floor:
+            continue
+        filtered.append(idx)
+    return out.loc[filtered].copy() if filtered else out.iloc[0:0].copy()
 
 
 def _strong_candidate_legs_standard(df: pd.DataFrame) -> pd.DataFrame:
@@ -14494,9 +16437,9 @@ def build_strong_tickets(
       - standard_prob: Standard A/B with direction probability floors (O/U; no HOT req)
       - mixed: Goblin HOT ∪ Standard HOT; each slip must include both pick types
 
-    Prefers longer unique-player slips (6 → 5 → 4 → 3 → 2). By default exhausts
-    the unique-player pool (all gate-passing combos) instead of stopping at the
-    global --max-tickets board budget.
+    Prefers shorter unique-player slips within max_legs (default 3 → 2). By default
+    exhausts the unique-player pool (all gate-passing combos) instead of stopping at
+    the global --max-tickets board budget.
     """
     mode = str(pick_mode or "goblin").strip().lower()
     is_mixed = mode in ("mixed", "mix", "goblin_standard", "goblin_std")
@@ -14535,11 +16478,11 @@ def build_strong_tickets(
 
     tickets: list[dict] = []
     seen_keys: set[frozenset] = set()
-    # Counts are per leg-count so a prop can appear 2× in 6-legs and again 2× in 5-legs.
+    # Counts are per leg-count section (STRONG 6-Leg vs 5-Leg, etc.).
     player_prop_counts_by_n: dict[int, Counter[str]] = defaultdict(Counter)
     # Exhaust mode: scan the full unique-player combo space (no early scan abort).
     # Non-exhaust: keep a bounded scan for latency.
-    # Longer first so 2-leg filler cannot starve 3–6 when a tiny soft cap is used.
+    # Longer-first within the cap so 2-leg filler cannot starve 3 when a soft cap is used.
     leg_order = list(range(max_legs_i, 1, -1))
 
     for n_legs in leg_order:
@@ -14554,7 +16497,7 @@ def build_strong_tickets(
             if do_exhaust
             else max(8_000, cap * 800)
         )
-        # Soft per-length quotas in exhaust mode so longer stacks share the board.
+        # Soft per-length quotas in exhaust mode.
         n_budget = cap
         if do_exhaust:
             if n_legs >= 6:
@@ -14564,9 +16507,9 @@ def build_strong_tickets(
             elif n_legs == 4:
                 n_budget = min(cap, len(tickets) + 15)
             elif n_legs == 3:
-                n_budget = min(cap, len(tickets) + 20)
+                n_budget = min(cap, len(tickets) + 30)
             else:
-                n_budget = min(cap, len(tickets) + 40)
+                n_budget = min(cap, len(tickets) + 50)
         prop_counts_n = player_prop_counts_by_n[int(n_legs)]
         scanned = 0
         for combo in itertools.combinations(pool_rows, n_legs):
@@ -14603,7 +16546,14 @@ def build_strong_tickets(
 
             leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
             cmult, caudit = _correlation_multiplier_and_audit(rows)
-            ep = win_prob(leg_probs, n_legs) * cmult
+            ep = (
+                win_prob(
+                    leg_probs,
+                    n_legs,
+                    max_leg_prob=float(STRONG_MAX_LEG_PROB_FOR_P_WIN),
+                )
+                * cmult
+            )
             if ep < min_p_win:
                 continue
 
@@ -14676,6 +16626,232 @@ def build_strong_tickets(
     return tickets
 
 
+def _strong_ticket_leg_rows(ticket: Mapping[str, Any]) -> list[dict]:
+    """Normalize legs/rows from a STRONG slip into row dicts."""
+    raw = ticket.get("legs") if isinstance(ticket.get("legs"), (list, tuple)) else None
+    if not raw:
+        raw = ticket.get("rows") if isinstance(ticket.get("rows"), (list, tuple)) else []
+    out: list[dict] = []
+    for leg in raw or []:
+        if isinstance(leg, Mapping):
+            out.append(dict(leg))
+    return out
+
+
+def harvest_strong_slip_legs(
+    tickets: Sequence[Mapping[str, Any]] | None,
+    *,
+    source_min_legs: int | None = None,
+    source_max_legs: int | None = None,
+    goblin_only: bool = True,
+) -> list[dict]:
+    """
+    Collect unique player legs from production STRONG 2–3L slips only.
+
+    One best prop per player (quality / prob / hit-rate). Legs that never made a
+    STRONG short ticket are excluded — that is the Method-2 quality filter.
+    """
+    lo = int(source_min_legs if source_min_legs is not None else STRONG_RECOMBO_SOURCE_MIN_LEGS)
+    hi = int(source_max_legs if source_max_legs is not None else STRONG_RECOMBO_SOURCE_MAX_LEGS)
+    best: dict[str, tuple[tuple[float, float, float], dict]] = {}
+    for t in tickets or []:
+        if not isinstance(t, Mapping):
+            continue
+        if not t.get("strong_builder"):
+            continue
+        if t.get("strong_recombo"):
+            # Never re-harvest long recombo slips into the source pool.
+            continue
+        if goblin_only:
+            pick = str(t.get("strong_builder_pick") or "").strip().lower()
+            if pick in ("standard", "mixed"):
+                continue
+        n = _strong_ticket_leg_count(t)
+        if n < lo or n > hi:
+            continue
+        for row in _strong_ticket_leg_rows(t):
+            player = str(row.get("player") or "").strip().lower()
+            if not player:
+                continue
+            if goblin_only:
+                pt = str(row.get("pick_type") or "").strip().lower()
+                if pt and "goblin" not in pt:
+                    continue
+            try:
+                q = float(row.get("prop_quality_score") or 0.0)
+            except (TypeError, ValueError):
+                q = 0.0
+            try:
+                p = float(
+                    row.get("ml_prob")
+                    or row.get("leg_prob_used")
+                    or row.get("hit_prob_selected")
+                    or 0.0
+                )
+            except (TypeError, ValueError):
+                p = 0.0
+            try:
+                hr = float(row.get("hit_rate") or row.get("l5_side_hit_rate") or 0.0)
+            except (TypeError, ValueError):
+                hr = 0.0
+            score = (q, p, hr)
+            prev = best.get(player)
+            if prev is None or score > prev[0]:
+                best[player] = (score, dict(row))
+    ranked = sorted(best.values(), key=lambda item: item[0], reverse=True)
+    return [row for _, row in ranked]
+
+
+def build_strong_recombo_long_tickets(
+    source_tickets: Sequence[Mapping[str, Any]] | None,
+    *,
+    date_str: str = "",
+    max_tickets: int | None = None,
+    min_legs: int | None = None,
+    max_legs: int | None = None,
+    min_p_win_4leg: float | None = None,
+    min_p_win_5leg: float | None = None,
+    min_p_win_6leg: float | None = None,
+) -> list[dict]:
+    """
+    Recombine legs harvested from STRONG 2–3L slips into 4–6L shadow tickets.
+
+    Does not pull from the raw strong_builder candidate pool — only legs that
+    already cleared a short STRONG ticket. Prefer 4L; soft-starve 5–6L.
+    """
+    legs = harvest_strong_slip_legs(source_tickets)
+    n_harvest = len(legs)
+    lo = int(min_legs if min_legs is not None else STRONG_RECOMBO_MIN_LEGS)
+    hi = int(max_legs if max_legs is not None else STRONG_RECOMBO_MAX_LEGS)
+    lo = max(4, min(6, lo))
+    hi = max(lo, min(6, hi))
+    cap = int(max_tickets if max_tickets is not None else STRONG_RECOMBO_MAX_TICKETS)
+    floor_4 = float(min_p_win_4leg if min_p_win_4leg is not None else STRONG_RECOMBO_MIN_P_WIN_4LEG)
+    floor_5 = float(min_p_win_5leg if min_p_win_5leg is not None else STRONG_RECOMBO_MIN_P_WIN_5LEG)
+    floor_6 = float(min_p_win_6leg if min_p_win_6leg is not None else STRONG_RECOMBO_MIN_P_WIN_6LEG)
+    if n_harvest < lo:
+        print(
+            f"[strong-recombo] date={date_str or '?'} harvested={n_harvest} "
+            f"(need ≥{lo}) → 0 long slips"
+        )
+        return []
+
+    per_n_budget = {
+        4: int(STRONG_RECOMBO_MAX_4LEG),
+        5: int(STRONG_RECOMBO_MAX_5LEG),
+        6: int(STRONG_RECOMBO_MAX_6LEG),
+    }
+    tickets: list[dict] = []
+    seen_keys: set[frozenset] = set()
+    by_n_count: Counter[int] = Counter()
+    rolling_hr = _load_strong_player_rolling_hr()
+
+    # Prefer 4L first, then soft-starve 5–6 via quotas.
+    for n_legs in range(lo, hi + 1):
+        if len(legs) < n_legs:
+            continue
+        n_cap = per_n_budget.get(n_legs, 0)
+        if n_cap <= 0:
+            continue
+        min_p_win = _strong_min_p_win_for_legs(
+            n_legs, floor_4, floor_4, floor_4, floor_5, floor_6
+        )
+        # Scan bound: prefer quality-sorted head of harvest.
+        pool = legs[: max(n_legs + 8, min(len(legs), 16))]
+        if len(pool) < n_legs:
+            continue
+        scanned = 0
+        scan_cap = min(math.comb(len(pool), n_legs) + 1, max(2000, cap * 400))
+        for combo in itertools.combinations(pool, n_legs):
+            scanned += 1
+            if scanned > scan_cap:
+                break
+            if by_n_count[n_legs] >= n_cap or len(tickets) >= cap:
+                break
+            rows = list(combo)
+            if not _ticket_players_unique(rows):
+                continue
+            sports = {
+                str(r.get("sport", "")).strip().upper()
+                for r in rows
+                if str(r.get("sport", "")).strip()
+            }
+            if len(sports) > 1 and not STRONG_ALLOW_CROSS_SPORT:
+                continue
+            key = frozenset(_leg_fp_tuple(r) for r in rows)
+            if key in seen_keys:
+                continue
+            if not _strong_combo_players_ok(rows, rolling_hr):
+                continue
+            leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
+            cmult, caudit = _correlation_multiplier_and_audit(rows)
+            ep = (
+                win_prob(
+                    leg_probs,
+                    n_legs,
+                    max_leg_prob=float(STRONG_MAX_LEG_PROB_FOR_P_WIN),
+                )
+                * cmult
+            )
+            if ep < min_p_win:
+                continue
+            pout = PAYOUT.get(n_legs, {"power": 0, "flex": 0})
+            adj_power = calc_adjusted_payout(pout["power"], rows)
+            hrs = [float(r.get("hit_rate", 0.5) or 0.5) for r in rows]
+            rss = [float(r.get("rank_score", 0.0) or 0.0) for r in rows]
+            sport_label = next(iter(sports)) if len(sports) == 1 else "MIX"
+            tickets.append(
+                {
+                    "key": key,
+                    "rows": rows,
+                    "avg_hit_rate": float(np.mean(hrs)) if hrs else 0.0,
+                    "avg_rank_score": float(np.mean(rss)) if rss else 0.0,
+                    "est_win_prob": ep,
+                    "power_payout": adj_power,
+                    "flex_payout": calc_adjusted_payout(pout["flex"], rows),
+                    "base_power_payout": pout["power"],
+                    "payout_multiplier": round(adj_power / pout["power"], 4) if pout["power"] else 1.0,
+                    "ev_power": round(ep * adj_power, 4),
+                    "kelly_units": round(kelly_fraction(ep, adj_power, fraction=0.25), 2),
+                    "n_legs": n_legs,
+                    "ticket_type": "Power Play",
+                    "sport": sport_label,
+                    "strong_builder": True,
+                    "strong_recombo": True,
+                    "strong_builder_pick": "Goblin",
+                    "pool_policy": "strong_slip_recombo",
+                    "shadow_track": True,
+                    "correlation_multiplier": cmult,
+                    "correlation_audit": caudit,
+                    "leg_prob_sources": ",".join(
+                        sorted({src for _, src in leg_probs})
+                    ),
+                }
+            )
+            seen_keys.add(key)
+            by_n_count[n_legs] += 1
+
+    tickets.sort(
+        key=lambda t: (
+            int(t.get("n_legs") or 0),  # shorter recombo first after fill
+            -float(t.get("est_win_prob") or 0.0),
+            -float(t.get("avg_rank_score") or 0.0),
+        )
+    )
+    tickets = tickets[:cap]
+    print(
+        f"[strong-recombo] date={date_str or '?'} harvested={n_harvest} "
+        f"emitted={len(tickets)} "
+        + (
+            "leg mix: "
+            + ", ".join(f"{n}-leg={by_n_count[n]}" for n in sorted(by_n_count, reverse=True))
+            if tickets
+            else "(none cleared p_win floors)"
+        )
+    )
+    return tickets
+
+
 # ── Build tickets ──────────────────────────────────────────────────────────────
 def build_tickets(
     pool: pd.DataFrame,
@@ -14734,6 +16910,9 @@ def build_tickets(
                 continue
 
         if not _ticket_players_unique(rows):
+            continue
+
+        if _ticket_rows_mlb_construction_banned(rows):
             continue
 
         key = frozenset(_leg_fp_tuple(r) for r in rows)
@@ -14834,6 +17013,9 @@ def build_mixed_picktype_tickets(
             continue
 
         if not _ticket_players_unique(rows):
+            continue
+
+        if _ticket_rows_mlb_construction_banned(rows):
             continue
 
         key = frozenset(_leg_fp_tuple(r) for r in rows)
@@ -15020,7 +17202,8 @@ def build_final_web_ticket_groups(
             if cap is not None:
                 if base is None:
                     return float(cap)
-                return min(base, float(cap))
+                # Raise floors (like Soccer) — never relax global mins downward.
+                return max(base, float(cap))
         if str(label).strip().upper() in ("SOCCER", "SOC"):
             cap = SOCCER_LEG_MIN_HIT_RATE.get(int(n))
             if cap is not None:
@@ -15110,8 +17293,9 @@ def build_final_web_ticket_groups(
     if mlb_pool is not None and len(mlb_pool):
         mlb_f = apply_filters(mlb_pool)
         mlb_mix, mlb_std, mlb_gob = _split_sg(mlb_f)
-        _add_mixed_std_gob(mlb_mix, "MLB")
-        _add_std_only(mlb_std, "MLB")
+        mlb_ls = _mlb_leg_sizes_capped(leg_sizes)
+        _add_mixed_std_gob(mlb_mix, "MLB", mlb_ls)
+        _add_std_only(mlb_std, "MLB", mlb_ls)
 
     mix_frames = [f for f in (nba_mix, cbb_mix, nhl_mix, soc_mix, ten_mix, mlb_mix) if len(f) > 0]
     if mix_frames:
@@ -16904,14 +19088,15 @@ def main():
     )
     ap.add_argument(
         "--ticket-candidate-sort",
-        choices=("rank", "ml", "blend", "rule", "hot_hr"),
-        default="rule",
+        choices=("rank", "ml", "blend", "rule", "hot_hr", "winrate"),
+        default="winrate",
         dest="ticket_candidate_sort",
         help=(
-            "Order slate rows when choosing ticket legs. rank=rank_score only; ml=ml_prob first (NaN last); "
-            "blend=avg(ml_prob, sigmoid(rank_score)) with missing ml using sigmoid(rank) only; "
-            "rule=full context rules (remove Demon, L5/L10, defense, minutes, role, H2H, edge). "
-            "Default blend uses your step8 ML Prob column when present (same signal as _resolve_leg_prob priority)."
+            "Order slate rows when choosing ticket legs. "
+            "winrate=category_hr + recent form + model + defense + HOT (fantasy banned); "
+            "rule=L5/L10/defense/minutes/role/H2H/edge + category_hr; "
+            "rank=rank_score; ml=ml_prob; blend=ml+rank+context+category; hot_hr=L10/L5 HR. "
+            "Fantasy Score props are never ticket candidates."
         ),
     )
     ap.add_argument(
@@ -17022,6 +19207,21 @@ def main():
             "Search cross-sport combinations for best 3–6 leg parlays "
             "(one leg per sport; combinatorial top-N per sport)."
         ),
+    )
+    ap.add_argument(
+        "--core-build-first",
+        action=argparse.BooleanOptionalAction,
+        default=CORE_BUILD_FIRST_DEFAULT,
+        help=(
+            "Emit focused CORE recipes per sport pipeline before spray variants "
+            "(MLB Goblin pitcher Power 2–3, WNBA Goblin Flex 3–6, Tennis Goblin, Soccer Standard)."
+        ),
+    )
+    ap.add_argument(
+        "--core-only",
+        action="store_true",
+        default=False,
+        help="Build CORE pipeline recipes only (skip Standard/Goblin/Mixed spray + X-Sport).",
     )
     ap.add_argument("--min-hit-rate", type=float, default=0.65, dest="min_hit_rate")
     ap.add_argument("--min-edge", type=float, default=0.0, dest="min_edge")
@@ -17298,8 +19498,12 @@ def main():
     if nhl_structured_min_leg_hr is not None and float(nhl_structured_min_leg_hr) > 0.55:
         nhl_structured_min_leg_hr = 0.52
     tennis_structured_min_leg_hr = structured_min_leg_hr
-    if tennis_structured_min_leg_hr is not None and float(tennis_structured_min_leg_hr) > 0.55:
-        tennis_structured_min_leg_hr = 0.52
+    _tennis_floor = float(TENNIS_LEG_MIN_HIT_RATE.get(3, 0.72))
+    if tennis_structured_min_leg_hr is None:
+        tennis_structured_min_leg_hr = _tennis_floor
+    else:
+        # Jul-22/23: never relax Tennis below sport floors (old path forced 0.52).
+        tennis_structured_min_leg_hr = max(float(tennis_structured_min_leg_hr), _tennis_floor)
     print(f"[NHL TRACE] global structured_min_leg_hr={structured_min_leg_hr}")
     print(f"[NHL TRACE] NHL structured_min_leg_hr_override={nhl_structured_min_leg_hr}")
     print(f"[TENNIS TRACE] Tennis structured_min_leg_hr_override={tennis_structured_min_leg_hr}")
@@ -17451,7 +19655,13 @@ def main():
         print("  [Golf] skipped (empty --golf)")
 
     wnba = None
-    if str(args.wnba).strip():
+    if _wnba_family_off_season(args.date):
+        print(
+            f"  [WNBA] All-Star pause — skipped until {WNBA_OFF_SEASON_RESUME} "
+            f"(window {WNBA_ALLSTAR_PAUSE_START}..<resume; override WNBA_RESUME_DATE)"
+        )
+        _load_audit_row("WNBA", "", pd.DataFrame())
+    elif str(args.wnba).strip():
         try:
             wnba = load_wnba(args.wnba)
             wnba = enforce_target_date(
@@ -17736,6 +19946,14 @@ def main():
         print(f"  [reliability] loaded {len(reliability_index)} prop-direction buckets from {PROP_RELIABILITY_LATEST_PATH}")
     else:
         print("  [reliability] no reliability index found; continuing without reliability gate")
+    category_hr_index = _load_category_hr_index(CATEGORY_HR_LATEST_PATH)
+    if category_hr_index:
+        print(
+            f"  [category-hr] loaded {len(category_hr_index)} sport×prop×pick×dir buckets "
+            f"from {CATEGORY_HR_LATEST_PATH} (fantasy excluded)"
+        )
+    else:
+        print("  [category-hr] no category hit-rate index found; continuing without category prior")
     strat_index = _load_prop_strat_index()
     if strat_index:
         print(f"  [strat] loaded {len(strat_index)} trusted segment rows from {PROP_STRAT_BOARD_LATEST_PATH}")
@@ -17863,6 +20081,13 @@ def main():
         filtered_df = _attach_reliability_columns(filtered_df, reliability_index)
         filtered_df = _attach_strat_columns(filtered_df, strat_index)
         filtered_df = attach_stack_70_columns(filtered_df)
+        # Fantasy Score: hard ban from every ticket pool.
+        _fant_mask = _fantasy_prop_mask(filtered_df)
+        _fant_n = int(_fant_mask.sum())
+        if _fant_n:
+            filtered_df = filtered_df.loc[~_fant_mask].copy()
+            print(f"  [pool] Excluded {_fant_n} Fantasy Score legs (banned from tickets)")
+        filtered_df = _attach_category_hr_columns(filtered_df, category_hr_index)
         pre_void_df = filtered_df.copy()
         voided_excluded = 0
         demon_candidates = None
@@ -17961,7 +20186,7 @@ def main():
         if sport == "TENNIS":
             print(
                 f"  [main-pool] tennis allowed: {n_tennis_allowed} legs "
-                f"(Goblin OVER totals + Standard UNDER only)"
+                f"(totals Goblin OVER / Std O|U + L5 floors; Ace/DF banned)"
             )
         if sport in ("SOCCER", "SOC"):
             print(
@@ -18052,11 +20277,24 @@ def main():
                 filtered_df["rank_score"] = pd.to_numeric(filtered_df["rank_score"], errors="coerce").fillna(0.0) * strat_mult
 
         # L10, ml_prob, def_tier, cross-book edge, line movement, graded-history boosts.
+        # Jul-22 ≥60% cell allowlist + rolling category_hr≥60% soft-boost; weak lanes soft-downrank.
         _ctx_adj = context_signal_adjustment_series(filtered_df)
         _ga_boost = graded_analysis_boost_series(filtered_df, _graded_ctx_main)
+        _cat_boost = _category_hr_boost_series(filtered_df)
+        _cell_hr_boost = _cell_hr_priority_boost_series(filtered_df)
         filtered_df["context_signal_adj"] = _ctx_adj
         filtered_df["graded_history_boost"] = _ga_boost
-        _signal_bonus = _ctx_adj + _ga_boost
+        filtered_df["category_hr_boost"] = _cat_boost
+        filtered_df["cell_hr_priority_boost"] = _cell_hr_boost
+        _signal_bonus = _ctx_adj + _ga_boost + _cat_boost + _cell_hr_boost
+        _cell_hr_sum = _summarize_cell_hr_priority(filtered_df, _cell_hr_boost)
+        if _cell_hr_sum.get("boosted") or _cell_hr_sum.get("penalized"):
+            print(
+                "  [cell-hr-priority] "
+                f"boosted={_cell_hr_sum.get('boosted', 0)} "
+                f"penalized={_cell_hr_sum.get('penalized', 0)} "
+                "(Jul22 ≥60% n≥10 allowlist + rolling category_hr; weak Soccer/Tennis lanes)"
+            )
         if "rank_score" in filtered_df.columns:
             filtered_df["rank_score"] = (
                 pd.to_numeric(filtered_df["rank_score"], errors="coerce").fillna(0.0) + _signal_bonus
@@ -18065,6 +20303,24 @@ def main():
             filtered_df["blended_score"] = (
                 pd.to_numeric(filtered_df["blended_score"], errors="coerce").fillna(0.0) + _signal_bonus
             )
+
+        # Drop known-weak category lanes (n large enough); fantasy already removed.
+        _cat_fail = _category_hr_fail_mask(filtered_df)
+        _cat_fail_n = int(_cat_fail.sum())
+        if _cat_fail_n and _CATEGORY_HR_HARD_FILTER:
+            _kept = filtered_df.loc[~_cat_fail].copy()
+            # Only apply when enough legs remain so thin sports still build.
+            if len(_kept) >= max(4, int(len(filtered_df) * 0.35)):
+                filtered_df = _kept
+                print(
+                    f"  [category-hr] dropped {_cat_fail_n} weak category legs "
+                    f"(Goblin floor / Standard floor; fantasy already banned)"
+                )
+            else:
+                print(
+                    f"  [category-hr] skip hard filter ({_cat_fail_n} weak) — "
+                    f"would leave only {len(_kept)} legs"
+                )
 
         # Sport-specific hit rate floors based on empirical data
         effective_min_hit = args.min_hit_rate
@@ -19020,6 +21276,28 @@ def main():
     print(f"  [handoff] sports in eligible pool: {eligible_sports}")
     print(f"  [handoff] sports in assembly loop: {sports_to_build}")
 
+    # Core build first: one focused recipe board per sport pipeline before STRONG/spray.
+    if bool(getattr(args, "core_build_first", CORE_BUILD_FIRST_DEFAULT)):
+        core_groups = build_core_pipeline_ticket_groups(
+            sport_pool_map,
+            counters=counters,
+            max_ticket_legs=int(args.max_ticket_legs),
+            ticket_sort_mode=str(args.ticket_candidate_sort),
+            ticket_gen_starts=int(getattr(args, "ticket_gen_starts", 10) or 10),
+            prioritize_ticket_hit=bool(getattr(args, "prioritize_ticket_hit", False)),
+        )
+        if core_groups:
+            print(f"  [core] emitted {len(core_groups)} core group(s) across pipelines")
+            for gname, tickets, _ in core_groups:
+                if not tickets:
+                    continue
+                sname = _excel_ticket_sheet_title_unique(gname[:31], wb.sheetnames)
+                write_ticket_sheet(wb, tickets, sname, _header_for_sport(str(tickets[0].get("sport") or "")), label=gname)
+                nl = int(tickets[0].get("n_legs") or len(tickets[0].get("rows") or []))
+                _group_counts_by_size[gname][nl] += len(tickets)
+            for g in reversed(core_groups):
+                all_ticket_groups.insert(0, g)
+
     strong_pool_frames = [df for _, df in sport_pool_map if df is not None and len(df) > 0]
     if strong_pool_frames:
         strong_df = pd.concat(strong_pool_frames, ignore_index=True)
@@ -19151,6 +21429,9 @@ def main():
         if sdf is None or len(sdf) == 0:
             _zero_ticket_reasons[sport_label] = "empty eligible pool"
             continue
+        if bool(getattr(args, "core_only", False)):
+            print(f"  [core-only] skip spray for {sport_label}")
+            continue
         s_pool = sdf.copy()
         if "pick_type" in s_pool.columns:
             pt = s_pool["pick_type"].astype(str).str.upper().str.strip()
@@ -19175,7 +21456,11 @@ def main():
             _zero_ticket_reasons[sport_label] = "no 2-6 leg ticket passed uniqueness/payout constraints"
 
     x_frames = [df for _, df in sport_pool_map if df is not None and len(df) > 0]
-    if x_frames:
+    if not x_frames:
+        _zero_ticket_reasons["X-SPORT"] = "no eligible rows for cross-sport pool"
+    elif bool(getattr(args, "core_only", False)):
+        print("  [core-only] skip X-Sport spray")
+    else:
         x_all = pd.concat(x_frames, ignore_index=True)
         x_pt = x_all["pick_type"].astype(str).str.upper().str.strip() if "pick_type" in x_all.columns else pd.Series([""] * len(x_all))
         x_std = x_all[x_pt.eq("STANDARD")].copy()
@@ -19187,8 +21472,6 @@ def main():
         _emit_groups_for_pool("X-Sport Standard", "MIX", x_std, C["hdr_mix"], require_multi_sport=True)
         _emit_groups_for_pool("X-Sport Goblin", "MIX", x_gob, C["hdr_mix"], require_multi_sport=True)
         _emit_groups_for_pool("X-Sport Mixed", "MIX", x_mix, C["hdr_mix"], require_multi_sport=True, require_picktype_mix=True)
-    else:
-        _zero_ticket_reasons["X-SPORT"] = "no eligible rows for cross-sport pool"
 
     print("\n[Ticket Group Counts]")
     if _group_counts_by_size:
@@ -19347,7 +21630,9 @@ def main():
         print(f"  [long-legs] added {len(final_long)} long-leg sheet(s) for leg sizes {long_leg_sizes}")
     elif long_leg_sizes and bool(args.write_web):
         print(
-            f"  [long-legs] skipped (--write-web default; main emission already has 4–6 leg tickets). "
+            f"  [long-legs] skipped (--write-web default; MAIN is 2–3-leg only; "
+            f"5–6 long_parlay sidecar "
+            f"{'enabled' if LONG_PARLAY_ENABLED else 'disabled'}). "
             f"Pass --long-leg-supplement to add the slow extra workbook pass for sizes {long_leg_sizes}."
         )
 
@@ -19492,6 +21777,7 @@ def main():
                 graded_analysis=_load_graded_analysis(),
             )
             payload = inject_strong_builder_tickets(full_payload, payload)
+            payload = inject_core_build_tickets(full_payload, payload)
             if payload.get("pool_mode") != MAIN_POOL_MODE:
                 payload = inject_probability_ladder_groups(
                     full_payload,
@@ -19513,7 +21799,8 @@ def main():
             print(
                 f"  Web payload: {n_groups} groups, {n_slips} main slips "
                 f"({MAIN_GRADED_MIN_LEGS}-{MAIN_GRADED_MAX_LEGS} leg high-prob Std+Gob) | "
-                f"{n_long} long-parlay slips (5-6 leg, separate grade track)."
+                f"{n_long} long-parlay slips "
+                f"({'enabled' if LONG_PARLAY_ENABLED else 'disabled'} 5-6 track)."
             )
             gated_preview = filter_positive_ev_tickets_payload(
                 payload,
@@ -19526,6 +21813,22 @@ def main():
                 nba=nba,
                 nba1h=nba1h,
                 wnba=wnba,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            _emit_main_pool_mode_sidecars(
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                mlb=mlb,
+                soccer=soccer,
+                tennis=tennis,
+                nhl=nhl,
                 date_str=str(args.date),
                 thresholds=thresholds,
                 bankroll=max(0.0, float(args.bankroll)),
@@ -19567,6 +21870,14 @@ def main():
                 curve_stake_usd=float(args.curve_stake_usd),
             )
             _emit_strong_standard_prob_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_recombo_shadow_payload(
+                strong_tickets=_extract_strong_builder_slips(full_payload),
                 frames=_std_shadow_frames,
                 date_str=str(args.date),
                 thresholds=thresholds,
@@ -19640,6 +21951,7 @@ def main():
                 graded_analysis=_load_graded_analysis(),
             )
             payload = inject_strong_builder_tickets(full_payload, payload)
+            payload = inject_core_build_tickets(full_payload, payload)
             if payload.get("pool_mode") != MAIN_POOL_MODE:
                 payload = inject_probability_ladder_groups(
                     full_payload,
@@ -19661,7 +21973,8 @@ def main():
             print(
                 f"  Web payload: {n_groups} groups, {n_slips} main slips "
                 f"({MAIN_GRADED_MIN_LEGS}-{MAIN_GRADED_MAX_LEGS} leg high-prob Std+Gob) | "
-                f"{n_long} long-parlay slips (FINAL fallback)."
+                f"{n_long} long-parlay slips "
+                f"({'enabled' if LONG_PARLAY_ENABLED else 'disabled'} FINAL fallback)."
             )
             gated_preview = filter_positive_ev_tickets_payload(
                 payload,
@@ -19674,6 +21987,22 @@ def main():
                 nba=nba,
                 nba1h=nba1h,
                 wnba=wnba,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            _emit_main_pool_mode_sidecars(
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                mlb=mlb,
+                soccer=soccer,
+                tennis=tennis,
+                nhl=nhl,
                 date_str=str(args.date),
                 thresholds=thresholds,
                 bankroll=max(0.0, float(args.bankroll)),
@@ -19715,6 +22044,14 @@ def main():
                 curve_stake_usd=float(args.curve_stake_usd),
             )
             _emit_strong_standard_prob_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_recombo_shadow_payload(
+                strong_tickets=_extract_strong_builder_slips(full_payload),
                 frames=_std_shadow_frames,
                 date_str=str(args.date),
                 thresholds=thresholds,
@@ -20060,6 +22397,12 @@ def _normalize_payout_source(source: str | None) -> str:
     src = str(source or "").strip().lower()
     if src == "live_cdp":
         return "live_cdp"
+    if src == "sg_delta_live":
+        return "sg_delta_live"
+    if src == "sg_delta_verified":
+        return "sg_delta_verified"
+    if src == "pending_live":
+        return "pending_live"
     if src == "rate_card":
         return "rate_card"
     if src == "mix_grid_average":
@@ -20072,9 +22415,28 @@ def _normalize_payout_source(source: str | None) -> str:
 
 
 def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = None) -> float | None:
-    """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x."""
+    """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x.
+
+    When verified lines are required, only exact live_cdp floors are shown —
+    no peer SG-Δ, model, or cold-extrapolated fallback.
+    """
     pay = payout if isinstance(payout, dict) else {}
     ticket = ticket if isinstance(ticket, dict) else {}
+    src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if require_live_payout_display():
+        if src == "pending_live":
+            return None
+        if src and not is_verified_payout_source(src):
+            return None
+        for raw in (
+            pay.get("display_min_x") if is_verified_payout_source(src) or not src else None,
+            ticket.get("display_min_x") if is_verified_payout_source(src) or not src else None,
+            pay.get("power_min_x") if src in ("", "live_cdp", "sg_delta_live") else None,
+        ):
+            v = _safe_positive_float(raw)
+            if v is not None:
+                return v
+        return None
     for raw in (
         pay.get("display_min_x"),
         ticket.get("display_min_x"),
@@ -20091,14 +22453,29 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
 def _board_payout_label(display_x: float | None, source: str | None) -> tuple[str, str, str]:
     """
     Option A board payout copy: (mult_text, source_badge, title).
-    live_cdp → "2.2x" + "✓ live"; estimates use a leading ~.
+    live_cdp → "2.2x" + "✓ live"; sg_delta_verified → "2.2x" + "✓ lines";
+    pending_live → "—"; estimates use a leading ~.
     """
     src = _normalize_payout_source(source)
+    if src == "pending_live":
+        return (
+            "—",
+            "pending",
+            "Waiting for verified lines (live CDP or same-line SG-Δ evidence)",
+        )
     if display_x is None:
-        return "—", "est", "Board payout unavailable"
+        return "—", "pending" if require_live_payout_display() else "est", "Board payout unavailable"
     mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
     if src == "live_cdp":
         return f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
+    if src == "sg_delta_live":
+        return f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
+    if src == "sg_delta_verified":
+        return (
+            f"{mult}x",
+            "✓ lines",
+            f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
+        )
     if src == "rate_card":
         return f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
     if src == "mix_grid_average":
@@ -20115,6 +22492,12 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
     if badge_label is None:
         if src == "live_cdp":
             badge_label = "✓ live"
+        elif src == "sg_delta_live":
+            badge_label = "✓ live"
+        elif src == "sg_delta_verified":
+            badge_label = "✓ lines"
+        elif src == "pending_live":
+            badge_label = "pending"
         elif src == "rate_card":
             badge_label = "est"
         elif src == "mix_grid_average":
@@ -20209,6 +22592,8 @@ _TICKET_GROUP_SPORT_SORT_ORDER: dict[str, int] = {
 
 def _ticket_group_sort_rank(group_name: str) -> int:
     name = (group_name or "").upper()
+    if " CORE " in f" {name} " or name.startswith("CORE ") or " CORE" in name:
+        return -200
     if "PROBABILITY LADDER" in name:
         return -100
     sk = _group_sport(group_name)
@@ -20216,8 +22601,10 @@ def _ticket_group_sort_rank(group_name: str) -> int:
 
 
 def _ticket_group_picktype_rank(group_name: str) -> int:
-    """Order within a sport: Standard, Goblin, Mixed, then everything else."""
+    """Order within a sport: Core, Standard, Goblin, Mixed, then everything else."""
     name = (group_name or "").upper().replace("\u00a0", " ")
+    if " CORE " in f" {name} " or "CORE POWER" in name or "CORE FLEX" in name or "CORE STANDARD" in name:
+        return -1
     if " STANDARD" in name:
         return 0
     if " GOBLIN" in name:
@@ -20685,7 +23072,7 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
                 continue
-            if _winrate_ticket_same_game_bench_stack(t):
+            if _winrate_ticket_construction_reject(t):
                 continue
             if any(_winrate_leg_bench_risk(leg) for leg in (t.get("legs") or []) if isinstance(leg, dict)):
                 continue
@@ -21217,10 +23604,19 @@ def render_tickets_body_html(
 
             kpi_payout = board_pay_x
             kpi_source = board_pay_src
-            if kpi_payout is None:
+            # Do not substitute model power_payout when waiting on live_cdp.
+            if (
+                kpi_payout is None
+                and not require_live_payout_display()
+                and str(kpi_source or "").strip().lower() != "pending_live"
+            ):
                 kpi_payout = t_power_pay
                 board_mult_text, board_badge_label, board_title = _board_payout_label(
                     _safe_positive_float(kpi_payout), kpi_source
+                )
+            elif kpi_payout is None:
+                board_mult_text, board_badge_label, board_title = _board_payout_label(
+                    None, kpi_source
                 )
 
             warn_html = ('<span style="font-size:10px;color:var(--amber);margin-left:auto;">⚠ data warning</span>'

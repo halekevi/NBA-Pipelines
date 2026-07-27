@@ -681,36 +681,24 @@ def _resolve_void_pending_if_injury_dnp(
     injury_dnp_by_sport: dict[str, frozenset[tuple[str, str]]],
 ) -> str:
     """
-    When graded row is VOID with no usable actual (ticket eval shows UNGRADED / void-pending),
-    treat as a resolved VOID if the player appears on injuries_nba / injuries_nhl for that date
-    as Out, Day-To-Day, or Injured Reserve.
+    Settle void-pending UNGRADED legs when the graded row has no usable actual.
+
+    All sports: NO_ACTUAL / provider VOID with no numeric actual resolves to VOID so
+    the slip pays PrizePicks-style (voided legs drop; reduced leg-count tier) instead
+    of lingering pending or scoring as a miss.
+
+    Also: injury-list DNP (Out / Day-To-Day / IR) on NBA/NHL/etc. settles the same way.
     """
     if grade != "UNGRADED":
         return grade
     sport_u = str(leg.get("sport") or "").strip().upper().replace(" ", "")
-    prop_u = _prop_match_key_from_display(str(leg.get("prop_type") or ""))
     g = (graw or "").strip().upper()
     vn = str(vnote or "").strip().upper()
-    # NHL player "hits" frequently arrives as a provider-side VOID without a numeric
-    # player actual in the graded workbook. Resolve these to VOID so ticket payout
-    # can settle instead of lingering in UNGRADED/void-pending.
+    # All sports: DNP / scratch / no box score → settled VOID (not pending, not a miss).
     if (
-        sport_u == "NHL"
-        and prop_u in {"hits"}
-        and g in ("VOID", "PUSH", "N/A", "NA")
+        g in ("NO_ACTUAL", "VOID", "PUSH", "N/A", "NA", "")
         and not _finite_line_actual(actual, line_f)
-        and (not vn or vn in _VOID_PENDING_VOID_NOTES)
-    ):
-        return "VOID"
-    # MLB provider feeds frequently leave some props with NO_ACTUAL after game close
-    # (especially pitcher markets when a listed starter never appears). Resolve these
-    # as VOID so ticket payout can settle instead of lingering in pending state.
-    if (
-        sport_u == "MLB"
-        and prop_u in {"pitcherstrikeouts", "pitchingouts", "pitchesthrown", "hitsallowed", "walksallowed"}
-        and g in ("NO_ACTUAL", "VOID", "PUSH", "N/A", "NA", "")
-        and not _finite_line_actual(actual, line_f)
-        and (not vn or vn in _VOID_PENDING_VOID_NOTES)
+        and (not vn or vn in _VOID_PENDING_VOID_NOTES or g == "NO_ACTUAL")
     ):
         return "VOID"
     dnp_keys = injury_dnp_by_sport.get(sport_u)
@@ -1294,10 +1282,13 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         emoji = "❌"
         css = "loss"
         actual = 0.0
+        # Voids alone are never a miss: if every remaining leg hit but <2 playable
+        # legs remain, the slip refunds / no-contests — do not label as LOSS.
         if m == 0 and v > 0:
             result = "VOID_LOSS"
-            emoji = "⚠"
-            css = "void_loss"
+            emoji = "○"
+            css = "void"
+            actual = 0.0
     elif flex:
         if v > 0 and (n - v) < 3:
             # Voids dropped flex below 3 legs — pay as void-aware power play.
@@ -1308,29 +1299,30 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             css = "win"
             void_paid_as_power = True
         elif v > 0:
-            # Flex with voids: scale flex payout to remaining-leg tier, then lock to min-guarantee.
-            mult, kind = _effective_flex_multiplier(legs_for_payout, leg_grades, banner_flex, banner_pow, n)
-            banner_fb = float(banner_flex) if banner_flex > 0 else float(banner_pow)
-            locked = _locked_min_guarantee_multiplier(payd, ticket, banner_fb, n_legs=n)
-            if kind in ("sweep", "min_guarantee") and locked > 0:
-                actual = float(locked)
-                result = "WIN" if kind == "sweep" else "MIN GUARANTEE"
-                emoji = "✅" if kind == "sweep" else "🛡️"
-                css = "win" if kind == "sweep" else "min_guarantee"
+            # Flex with voids: always scale to the remaining-leg tier (3→2, 6→5, …).
+            # Do not reuse the original-n scraped lock — that would ignore the drop.
+            mult, kind = _effective_flex_multiplier(
+                legs_for_payout, leg_grades, banner_flex, banner_pow, n
+            )
+            actual = float(mult if mult is not None else 0.0)
+            if kind == "sweep":
+                result = "WIN"
+                emoji = "✅"
+                css = "win"
+            elif kind == "min_guarantee":
+                result = "MIN GUARANTEE"
+                emoji = "🛡️"
+                css = "min_guarantee"
+            elif kind == "power":
+                result = "WIN"
+                emoji = "✅"
+                css = "win"
+                void_paid_as_power = True
             else:
-                actual = float(mult if mult is not None else 0.0)
-                if kind == "sweep":
-                    result = "SWEEP"
-                    emoji = "🏆"
-                    css = "sweep"
-                elif kind == "min_guarantee":
-                    result = "MIN GUARANTEE"
-                    emoji = "🛡️"
-                    css = "min_guarantee"
-                else:
-                    result = "LOSS"
-                    emoji = "❌"
-                    css = "loss"
+                result = "LOSS"
+                emoji = "❌"
+                css = "loss"
+                actual = 0.0
         elif all_hit:
             # Site policy: Flex all-hit also locks to scraped min-guarantee (never Fantasy sweep).
             result = "WIN"
@@ -1357,13 +1349,16 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         emoji = "✅"
         css = "win"
         if v > 0:
-            # Prefer locked min scaled only when void helpers return nothing usable.
-            locked = _locked_min_guarantee_multiplier(payd, ticket, banner_pow, n_legs=n)
-            if locked > 0:
-                actual = float(locked)
+            # Prefer void-aware reduced-tier multiplier (3-leg→2-leg, 6→5, …).
+            # Only fall back to a scrape lock keyed on the *effective* leg count.
+            eff_pow = _effective_power_multiplier(legs_for_payout, leg_grades, banner_pow, n)
+            if eff_pow is not None and eff_pow > 0:
+                actual = float(eff_pow)
             else:
-                eff_pow = _effective_power_multiplier(legs_for_payout, leg_grades, banner_pow, n)
-                actual = float(eff_pow if eff_pow is not None else 0.0)
+                locked = _locked_min_guarantee_multiplier(
+                    payd, ticket, banner_pow, n_legs=max(0, n - v)
+                )
+                actual = float(locked) if locked > 0 else 0.0
             void_paid_as_power = True
         else:
             actual = float(
@@ -1449,7 +1444,10 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         else:
             detail = f"{result} — all {n} legs correct"
     elif result == "VOID_LOSS" and n:
-        detail = f"Voided legs prevented payout ({h_show} hit, {m_show} miss, {v} void)"
+        detail = (
+            f"Refund / no contest — {v} void left {eff_legs} playable leg(s) "
+            f"(need ≥2); voids drop off the slip and are not misses"
+        )
     elif result == "LOSS" and n:
         if v > 0:
             detail = f"{result} ({h_show} hit, {m_show} miss, {v} void)"
@@ -1473,8 +1471,9 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         "net_10": net_10,
     }
     if result == "VOID_LOSS":
-        out["result_display"] = "VOID / NO ACTION"
-    if v > 0 and result in ("WIN", "SWEEP", "MIN GUARANTEE"):
+        out["result_display"] = "REFUND / NO CONTEST"
+        out["omit_payout_block"] = True
+    if v > 0 and result in ("WIN", "SWEEP", "MIN GUARANTEE", "VOID_LOSS"):
         out["void_dropped_legs"] = int(v)
         out["effective_legs"] = int(eff_legs)
         out["void_paid_as_power"] = bool(void_paid_as_power)
@@ -1534,12 +1533,15 @@ def _append_grade_history(record: dict[str, Any]) -> None:
 EVAL_TRACK_LABELS: dict[str, str] = {
     "graded_main": "Graded Main Slate (high-prob Std+Gob)",
     "high_prob_std_gob": "High-prob Standard+Goblin MAIN (shipped tickets)",
+    "goblin_only": "Goblin-only MAIN board",
     "goblin_only_3leg": "Goblin-only 3-leg MAIN (legacy / shadow)",
+    "standard_only": "Standard-only MAIN board (UNDER + elite OVER)",
     "long_parlay": "Long Parlays (5-6 leg)",
     "high_leg_hr": "High Leg HR",
     "winrate_goblin_opt3_shadow": "Win-Rate Goblin Opt3 Shadow (Tier A)",
     "strong_standard_shadow": "STRONG Standard HOT Shadow",
     "strong_mix_shadow": "STRONG Mix Shadow (Goblin+Standard HOT)",
+    "strong_recombo_shadow": "STRONG Recombo Shadow (4-6L from STRONG 2-3L legs)",
 }
 
 
@@ -2622,7 +2624,7 @@ def _ticket_json_matches_date(path: Path, arg_date: str) -> bool:
 
 def find_goblin_only_3leg_ticket_json(arg_date: str) -> Path | None:
     """Shipped MAIN pool JSON (high_prob_std_gob or legacy goblin_only_3leg)."""
-    preferred_modes = ("high_prob_std_gob", "goblin_only_3leg")
+    preferred_modes = ("high_prob_std_gob", "goblin_only", "goblin_only_3leg", "standard_only")
     for jp in (
         REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_{arg_date}.json",
         REPO_ROOT / f"combined_slate_tickets_{arg_date}.json",
@@ -2799,6 +2801,30 @@ def find_strong_mix_shadow_payload_path(
     return None
 
 
+def find_strong_recombo_shadow_payload_path(
+    arg_date: str, override: Path | None = None
+) -> Path | None:
+    if override is not None:
+        return override if override.is_file() else None
+    for jp in (
+        REPO_ROOT / "ui_runner" / "data" / f"combined_slate_tickets_strong_recombo_{arg_date}.json",
+        REPO_ROOT / "ui_runner" / "data" / "strong_recombo_shadow_latest.json",
+        TEMPLATES_DIR / "strong_recombo_shadow_latest.json",
+    ):
+        if jp.is_file():
+            if jp.name.endswith("_latest.json"):
+                try:
+                    with jp.open(encoding="utf-8") as f:
+                        hdr = json.load(f)
+                    if str(hdr.get("date") or "")[:10] == arg_date:
+                        return jp
+                except (OSError, json.JSONDecodeError, TypeError):
+                    pass
+            else:
+                return jp
+    return None
+
+
 def _normalize_eval_track(raw: str | None) -> str:
     t = str(raw or "graded_main").strip().lower()
     if t in ("main", "graded_main"):
@@ -2830,6 +2856,15 @@ def _normalize_eval_track(raw: str | None) -> str:
         "mix_shadow",
     ):
         return "strong_mix_shadow"
+    if t in (
+        "strong_recombo_shadow",
+        "strong-recombo-shadow",
+        "strong_recombo",
+        "strong-recombo",
+        "recombo_shadow",
+        "recombo",
+    ):
+        return "strong_recombo_shadow"
     return "graded_main"
 
 
@@ -3282,10 +3317,16 @@ def _group_is_strong_mix(group_name: str) -> bool:
     return bool(re.match(r"^STRONG Mix(\s+\d+-Leg)?$", n, re.I))
 
 
-def _group_is_strong_shipped(group_name: str) -> bool:
-    """STRONG builder groups: legacy HOT, N-Leg, or Mix N-Leg."""
+def _group_is_strong_recombo(group_name: str) -> bool:
+    """STRONG Recombo 4–6L shadow groups (legs harvested from STRONG 2–3L)."""
     n = str(group_name or "").strip()
-    if _group_is_strong_mix(n):
+    return bool(re.match(r"^STRONG Recombo(\s+\d+-Leg)?$", n, re.I))
+
+
+def _group_is_strong_shipped(group_name: str) -> bool:
+    """STRONG builder groups: legacy HOT, N-Leg, Mix N-Leg, or Recombo N-Leg."""
+    n = str(group_name or "").strip()
+    if _group_is_strong_mix(n) or _group_is_strong_recombo(n):
         return True
     return bool(
         re.match(r"^STRONG(\s+Goblin\s+HOT|\s+\d+-Leg)$", n, re.I)
@@ -3321,14 +3362,25 @@ def _group_is_allowed(group_name: str, *, pool_mode: str = "") -> bool:
         return True
     if pool_mode in ("strong_mix_shadow", "strong_mix") and _group_is_strong_mix(group_name):
         return True
+    if pool_mode in ("strong_recombo_shadow", "strong_recombo", "strong_slip_recombo") and _group_is_strong_recombo(
+        group_name
+    ):
+        return True
     if _group_is_strong_standard_hot(group_name):
         # Always allow the shadow group name when present (track-local JSON).
         return True
     if _group_is_strong_mix(group_name):
         return True
+    if _group_is_strong_recombo(group_name):
+        return True
     if pool_mode == "high_prob_std_gob" and _group_is_high_prob_main_shipped(group_name):
         return True
-    if pool_mode == "goblin_only_3leg" and _group_is_goblin_only_3leg_shipped(group_name):
+    if pool_mode in ("goblin_only", "goblin_only_3leg") and _group_is_goblin_only_3leg_shipped(
+        group_name
+    ):
+        return True
+    if pool_mode == "standard_only" and _group_is_high_prob_main_shipped(group_name):
+        # Standard-only board uses "{Sport} N-Leg Standard" (and STRONG) names.
         return True
     # Older dated JSON may omit filters.pool_mode but still ship STRONG / N-Leg Goblin groups.
     if not pool_mode and (
@@ -3825,6 +3877,13 @@ def _build_html(
         if all(x == "VOID" for x in gs):
             continue
         pays_money = _ticket_pays_money(gname, gs)
+        # Void-only reductions that leave <2 playable legs refund — not a ticket loss.
+        if (
+            not pays_money
+            and isinstance(oc, dict)
+            and oc.get("result") == "VOID_LOSS"
+        ):
+            continue
         bucket = _ticket_sport_bucket_for_money_summary(gname, legs)
         if bucket not in sport_ticket_summary:
             sport_ticket_summary[bucket] = {"wins": 0, "losses": 0}
@@ -3908,7 +3967,12 @@ def _build_html(
     roi_pct = (100.0 * total_net_10 / (10 * n_pay)) if n_pay else 0.0
 
     pool_mode = _payload_pool_mode(payload)
-    if eval_track == "graded_main" and pool_mode in ("high_prob_std_gob", "goblin_only_3leg"):
+    if eval_track == "graded_main" and pool_mode in (
+        "high_prob_std_gob",
+        "goblin_only",
+        "goblin_only_3leg",
+        "standard_only",
+    ):
         display_track = pool_mode
     else:
         display_track = eval_track
@@ -4006,7 +4070,9 @@ def _build_html(
         "long_parlay": "Long Parlay Ticket Eval (5-6 leg)",
         "high_leg_hr": "High Leg HR Ticket Eval",
         "high_prob_std_gob": "High-prob Standard+Goblin MAIN Ticket Eval",
+        "goblin_only": "Goblin-only MAIN Ticket Eval",
         "goblin_only_3leg": "Goblin-only 3-leg MAIN Ticket Eval (legacy)",
+        "standard_only": "Standard-only MAIN Ticket Eval",
     }.get(display_track, "Ticket Eval (high-prob Std+Gob)")
     parts: list[str] = [
         "<!DOCTYPE html>",
@@ -5330,11 +5396,13 @@ def main() -> int:
             "winrate_goblin_opt3_shadow",
             "strong_standard_shadow",
             "strong_mix_shadow",
+            "strong_recombo_shadow",
         ),
         help=(
             "Ticket track: graded_main (2-4 leg, default), long_parlay (5-6 leg), "
             "high_leg_hr (win-rate panel), winrate_goblin_opt3_shadow (Goblin Tier A shadow), "
-            "strong_standard_shadow (STRONG Standard HOT), or strong_mix_shadow (Goblin+Standard HOT)."
+            "strong_standard_shadow (STRONG Standard HOT), strong_mix_shadow (Goblin+Standard HOT), "
+            "or strong_recombo_shadow (4-6L from STRONG 2-3L legs)."
         ),
     )
     ap.add_argument(
@@ -5413,6 +5481,17 @@ def main() -> int:
                     "(combined_slate_tickets_strong_mix_{date}.json)."
                 )
             return 1
+    elif eval_track == "strong_recombo_shadow":
+        tpath = find_strong_recombo_shadow_payload_path(arg_date, override=override_path)
+        if not tpath:
+            if override_raw:
+                print(f"ERROR: STRONG Recombo shadow file not found: {override_raw}")
+            else:
+                print(
+                    "ERROR: No STRONG Recombo shadow payload found "
+                    "(combined_slate_tickets_strong_recombo_{date}.json)."
+                )
+            return 1
     else:
         tpath = find_ticket_payload_path(arg_date, override=override_path)
         if not tpath:
@@ -5474,6 +5553,7 @@ def main() -> int:
         "winrate_goblin_opt3_shadow": f"ticket_eval_winrate_goblin_opt3_{arg_date}.html",
         "strong_standard_shadow": f"ticket_eval_strong_standard_{arg_date}.html",
         "strong_mix_shadow": f"ticket_eval_strong_mix_{arg_date}.html",
+        "strong_recombo_shadow": f"ticket_eval_strong_recombo_{arg_date}.html",
     }.get(eval_track, f"ticket_eval_{arg_date}.html")
     out_dated = TEMPLATES_DIR / dated_name
     try:

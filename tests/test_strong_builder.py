@@ -21,6 +21,7 @@ from combined_slate_tickets import (  # noqa: E402
     _apply_strong_per_slate_player_cap,
     _apply_strong_rolling_hr_gate,
     _emit_strong_mix_shadow_payload,
+    _emit_strong_recombo_shadow_payload,
     _emit_strong_standard_shadow_payload,
     _ok_strong_pair,
     _row_standard_high_prob_eligible,
@@ -31,7 +32,9 @@ from combined_slate_tickets import (  # noqa: E402
     _strong_candidate_legs_standard_prob,
     _strong_combo_players_ok,
     _ticket_rows_have_goblin_and_standard,
+    build_strong_recombo_long_tickets,
     build_strong_tickets,
+    harvest_strong_slip_legs,
     split_strong_tickets_by_leg_count,
 )
 from utils.ticket_ev_tiers import apply_slate_ev_tier_recommendations  # noqa: E402
@@ -951,3 +954,148 @@ def test_strong_mix_shadow_emit_does_not_touch_main(monkeypatch, tmp_path):
             picks = {str(leg.get("pick_type") or "").lower() for leg in legs}
             assert any("goblin" in p for p in picks)
             assert any("standard" in p for p in picks)
+
+
+def _fake_strong_short_tickets(n_players: int = 6) -> list[dict]:
+    """Synthetic STRONG 2L Goblin slips with unique players for recombo tests."""
+    tickets: list[dict] = []
+    for i in range(0, n_players, 2):
+        rows = []
+        for j in (i, i + 1):
+            if j >= n_players:
+                break
+            rows.append(
+                {
+                    "sport": "Tennis",
+                    "player": f"Strong Player {j}",
+                    "team": f"T{j}",
+                    "opp": f"O{j}",
+                    "prop_type": "Total Games",
+                    "pick_type": "Goblin",
+                    "tier": "A",
+                    "direction": "OVER",
+                    "line": 18.5,
+                    "hit_rate": 0.95,
+                    "rank_score": 90 - j,
+                    "ml_prob": 0.76,
+                    "l10_over": 9.0,
+                    "l10_under": 1.0,
+                    "l10_streak": "HOT",
+                    "prop_quality_score": 0.9 - 0.01 * j,
+                }
+            )
+        if len(rows) < 2:
+            continue
+        tickets.append(
+            {
+                "strong_builder": True,
+                "strong_builder_pick": "Goblin",
+                "pool_policy": "goblin_hot",
+                "n_legs": len(rows),
+                "rows": rows,
+                "est_win_prob": 0.52,
+            }
+        )
+    return tickets
+
+
+def test_harvest_strong_slip_legs_unique_players_only():
+    source = _fake_strong_short_tickets(6)
+    # Add a non-STRONG slip that must be ignored.
+    source.append(
+        {
+            "strong_builder": False,
+            "n_legs": 2,
+            "rows": [
+                {
+                    "sport": "Tennis",
+                    "player": "Noise Player",
+                    "prop_type": "Total Games",
+                    "pick_type": "Goblin",
+                    "ml_prob": 0.99,
+                    "hit_rate": 1.0,
+                    "prop_quality_score": 1.0,
+                },
+                {
+                    "sport": "Tennis",
+                    "player": "Noise Two",
+                    "prop_type": "Total Games",
+                    "pick_type": "Goblin",
+                    "ml_prob": 0.99,
+                    "hit_rate": 1.0,
+                    "prop_quality_score": 1.0,
+                },
+            ],
+        }
+    )
+    legs = harvest_strong_slip_legs(source)
+    players = {str(r.get("player")) for r in legs}
+    assert len(legs) == 6
+    assert "Noise Player" not in players
+    assert "Strong Player 0" in players
+
+
+def test_build_strong_recombo_long_tickets_from_short_strong_only():
+    source = _fake_strong_short_tickets(6)
+    tickets = build_strong_recombo_long_tickets(
+        source,
+        date_str="2026-07-27",
+        max_tickets=10,
+        min_legs=4,
+        max_legs=4,
+    )
+    assert tickets
+    assert all(int(t.get("n_legs") or 0) == 4 for t in tickets)
+    assert all(t.get("strong_recombo") is True for t in tickets)
+    assert all(t.get("shadow_track") is True for t in tickets)
+    assert all(t.get("pool_policy") == "strong_slip_recombo" for t in tickets)
+    # Every leg player must come from the STRONG short source set.
+    allowed = {f"Strong Player {i}" for i in range(6)}
+    for t in tickets:
+        players = {str(r.get("player")) for r in (t.get("rows") or [])}
+        assert players.issubset(allowed)
+        assert len(players) == 4
+
+
+def test_strong_recombo_shadow_emit_does_not_touch_main(monkeypatch, tmp_path):
+    written: list[str] = []
+
+    def _capture_write(path: str, payload) -> None:
+        written.append(os.path.normpath(path))
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).write_text(json.dumps(payload), encoding="utf-8")
+
+    monkeypatch.setattr(cst, "REPO_ROOT", str(tmp_path))
+    monkeypatch.setattr(cst, "_write_json_file", _capture_write)
+    monkeypatch.setattr(cst, "STRONG_RECOMBO_SHADOW_ENABLED", True)
+
+    _emit_strong_recombo_shadow_payload(
+        strong_tickets=_fake_strong_short_tickets(6),
+        date_str="2026-07-27",
+        thresholds={},
+        bankroll=100.0,
+        curve_stake_usd=1.0,
+        max_tickets=8,
+        min_legs=4,
+        max_legs=4,
+    )
+    assert written
+    for p in written:
+        name = Path(p).name.lower()
+        assert "tickets_latest" not in name
+        assert "strong_recombo" in name
+    dated = tmp_path / "ui_runner" / "data" / "combined_slate_tickets_strong_recombo_2026-07-27.json"
+    latest = tmp_path / "ui_runner" / "data" / "strong_recombo_shadow_latest.json"
+    assert dated.is_file()
+    assert latest.is_file()
+    payload = json.loads(dated.read_text(encoding="utf-8"))
+    assert payload.get("ticket_track") == "strong_recombo_shadow"
+    assert payload.get("shadow_track") is True
+    assert payload.get("pool_policy") == "strong_slip_recombo"
+    assert all(
+        str(g.get("group_name") or "").startswith("STRONG Recombo")
+        for g in payload.get("groups") or []
+    )
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    assert n_slips >= 1
+

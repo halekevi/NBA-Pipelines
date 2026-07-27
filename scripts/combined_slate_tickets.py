@@ -51,8 +51,8 @@ Ticket modes (defaults favor volume; optional strict mode):
 - --ticket-gen-starts (default 10): structured slips try K alternative first legs and keep the best modeled ticket payout (flex cash or all-hit prob).
 
 Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
-- PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 1.9) — prefer board Min Guarantee
-- PROPORACLE_SHORT_FLOOR_HARD_X (default 1.9) — hard cut for STRONG/short Goblin
+- PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X (default 1.5) — prefer board Min Guarantee
+- PROPORACLE_SHORT_FLOOR_HARD_X (default 1.5) — hard cut for STRONG/short Goblin
 - PROPORACLE_SHORT_FLOOR_HIGH_P_WIN (default 0.70) — sub-floor bypass
 - PROPORACLE_REQUIRE_LIVE_PAYOUT (default 1) — board floors must be exact live_cdp
 - PROPORACLE_ALLOW_SG_DELTA_PAYOUT (default 0) — opt-in peer SG-Δ stamps (untrusted)
@@ -3948,24 +3948,23 @@ MIN_WEB_DISPLAY_EST_WIN_PROB: float = 0.06
 
 # /tickets: hard floor for displayed/generated slip payout multipliers.
 MIN_WEB_PAYOUT_X: float = 3.0
-MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 1.9
-# Jul-25 graded book: 1.90x (66.7% WR) + 3.00x (+ROI) were the clear cash engines;
-# 1.60x and 5–6L / 8.4x+ destroyed ROI. Floor = 1.9×; prefer short 2-leg.
+MIN_WEB_PAYOUT_X_GOBLIN_SHORT: float = 1.5
+# Playable floor: live Min Guarantee ≥1.5x (was 1.9; Jul-25 still favored short 2–3L).
 # Env:
-#   PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X  (default 1.9) — prefer/rank floor
-#   PROPORACLE_SHORT_FLOOR_HARD_X          (default 1.9) — hard cut when preferred exist
+#   PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X  (default 1.5) — prefer/rank floor
+#   PROPORACLE_SHORT_FLOOR_HARD_X          (default 1.5) — hard cut when preferred exist
 #   PROPORACLE_SHORT_FLOOR_HIGH_P_WIN      (default 0.70) — bypass for sub-floor slips
 MAIN_PREFERRED_MIN_PAYOUT_X: float = float(
-    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "1.9")
+    os.getenv("PROPORACLE_MAIN_PREFERRED_MIN_PAYOUT_X", "1.5")
 )
-SHORT_FLOOR_HARD_X: float = float(os.getenv("PROPORACLE_SHORT_FLOOR_HARD_X", "1.9"))
+SHORT_FLOOR_HARD_X: float = float(os.getenv("PROPORACLE_SHORT_FLOOR_HARD_X", "1.5"))
 SHORT_FLOOR_HIGH_P_WIN: float = float(
     os.getenv("PROPORACLE_SHORT_FLOOR_HIGH_P_WIN", "0.70")
 )
 DEBUG_PAYOUT_DIAGNOSTIC: bool = os.getenv("PROPORACLE_DEBUG_PAYOUT", "false").lower() == "true"
 
 # /tickets page target volumes per sport after EV gate.
-# Jul-25: prioritize 2L (≥1.9x); keep light 3–4L; starve 5–6L long parlays.
+# Prefer 2L; keep light 3–4L; starve 5–6L long parlays.
 WEB_TICKET_TEMPLATE_BY_LEGS: dict[int, int] = {
     6: 0,
     5: 1,
@@ -8107,6 +8106,31 @@ STRONG_MIX_SHADOW_ENABLED: bool = os.getenv(
 STRONG_STANDARD_PROB_SHADOW_ENABLED: bool = os.getenv(
     "PROPORACLE_STRONG_STD_PROB_SHADOW", "1"
 ).strip().lower() not in ("0", "false", "no", "off")
+# STRONG Recombo shadow: 4–6L built ONLY from legs that already appear on
+# production STRONG 2–3L slips. Never injected into MAIN (shadow sleeve only).
+STRONG_RECOMBO_SHADOW_ENABLED: bool = os.getenv(
+    "PROPORACLE_STRONG_RECOMBO_SHADOW", "1"
+).strip().lower() not in ("0", "false", "no", "off")
+STRONG_RECOMBO_MIN_LEGS: int = max(4, min(6, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_LEGS", "4"))))
+STRONG_RECOMBO_MAX_LEGS: int = max(
+    STRONG_RECOMBO_MIN_LEGS,
+    min(6, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_LEGS", "6"))),
+)
+STRONG_RECOMBO_SOURCE_MIN_LEGS: int = max(2, min(3, int(os.getenv("PROPORACLE_STRONG_RECOMBO_SOURCE_MIN", "2"))))
+STRONG_RECOMBO_SOURCE_MAX_LEGS: int = max(
+    STRONG_RECOMBO_SOURCE_MIN_LEGS,
+    min(3, int(os.getenv("PROPORACLE_STRONG_RECOMBO_SOURCE_MAX", "3"))),
+)
+STRONG_RECOMBO_MAX_TICKETS: int = max(1, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_TICKETS", "20")))
+# Soft per-length quotas — prefer 4L, starve 5–6L.
+STRONG_RECOMBO_MAX_4LEG: int = max(0, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_4LEG", "12")))
+STRONG_RECOMBO_MAX_5LEG: int = max(0, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_5LEG", "6")))
+STRONG_RECOMBO_MAX_6LEG: int = max(0, int(os.getenv("PROPORACLE_STRONG_RECOMBO_MAX_6LEG", "4")))
+# Recombo p_win floors (slightly below production STRONG 4L so ~0.72^4 Goblin
+# stacks can clear; 5–6 stay loose but soft-starved by quota).
+STRONG_RECOMBO_MIN_P_WIN_4LEG: float = float(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_P_WIN_4LEG", "0.24"))
+STRONG_RECOMBO_MIN_P_WIN_5LEG: float = float(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_P_WIN_5LEG", "0.16"))
+STRONG_RECOMBO_MIN_P_WIN_6LEG: float = float(os.getenv("PROPORACLE_STRONG_RECOMBO_MIN_P_WIN_6LEG", "0.10"))
 MAIN_MLB_SHADOW_ALLOWED_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv("PROPORACLE_MAIN_MLB_SHADOW_SPORTS", "MLB").split(",")
@@ -9158,6 +9182,135 @@ def _emit_strong_mix_shadow_payload(
     _write_strong_mix_shadow_snapshot(payload, date_str)
 
 
+def _write_strong_recombo_shadow_snapshot(payload: dict, date_str: str) -> None:
+    """Persist STRONG Recombo 4–6L shadow (MAIN unchanged)."""
+    dated = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        f"combined_slate_tickets_strong_recombo_{date_str}.json",
+    )
+    latest = os.path.join(
+        REPO_ROOT,
+        "ui_runner",
+        "data",
+        "strong_recombo_shadow_latest.json",
+    )
+    _write_json_file(dated, payload)
+    _write_json_file(latest, payload)
+    n_slips = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [OK] STRONG Recombo shadow -> {dated} ({n_slips} slips; "
+        "production main unchanged)"
+    )
+
+
+def _strong_recombo_group_name(n_legs: int) -> str:
+    return f"STRONG Recombo {int(n_legs)}-Leg"
+
+
+def _emit_strong_recombo_shadow_payload(
+    *,
+    strong_tickets: Sequence[Mapping[str, Any]] | None = None,
+    frames: list | None = None,
+    date_str: str,
+    thresholds: dict,
+    bankroll: float,
+    curve_stake_usd: float,
+    max_tickets: int | None = None,
+    min_legs: int | None = None,
+    max_legs: int | None = None,
+) -> None:
+    """
+    Build + persist 4–6L tickets from legs that already appear on STRONG 2–3L slips.
+    Does not inject into MAIN / production STRONG board.
+    """
+    if not STRONG_RECOMBO_SHADOW_ENABLED:
+        print("  [shadow-recombo] skipped (PROPORACLE_STRONG_RECOMBO_SHADOW off)")
+        return
+
+    source = list(strong_tickets or [])
+    if not source and frames:
+        nonempty = [
+            f for f in frames if f is not None and hasattr(f, "__len__") and len(f) > 0
+        ]
+        if nonempty:
+            df = pd.concat(nonempty, ignore_index=True)
+            source = build_strong_tickets(
+                df,
+                date_str=str(date_str),
+                pick_mode="goblin",
+                max_tickets=None,
+                max_legs=int(STRONG_RECOMBO_SOURCE_MAX_LEGS),
+                exhaust_pool=True,
+            )
+    if not source:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_recombo_shadow",
+            "mode": "strong_recombo_shadow",
+            "pool_mode": "strong_recombo_shadow",
+            "shadow_track": True,
+            "pool_policy": "strong_slip_recombo",
+            "groups": [],
+        }
+        _write_strong_recombo_shadow_snapshot(empty, date_str)
+        print("  [shadow-recombo] 0 slips (no STRONG source legs; MAIN unchanged)")
+        return
+
+    tickets = build_strong_recombo_long_tickets(
+        source,
+        date_str=str(date_str),
+        max_tickets=max_tickets,
+        min_legs=min_legs,
+        max_legs=max_legs,
+    )
+    if not tickets:
+        empty = {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "date": str(date_str),
+            "ticket_track": "strong_recombo_shadow",
+            "mode": "strong_recombo_shadow",
+            "pool_mode": "strong_recombo_shadow",
+            "shadow_track": True,
+            "pool_policy": "strong_slip_recombo",
+            "source_strong_slips": len(source),
+            "groups": [],
+        }
+        _write_strong_recombo_shadow_snapshot(empty, date_str)
+        print("  [shadow-recombo] 0 recombo slips (MAIN unchanged)")
+        return
+
+    by_n: dict[int, list[dict]] = defaultdict(list)
+    for t in tickets:
+        by_n[_strong_ticket_leg_count(t)].append(t)
+    groups: list[tuple[str, list[dict], None]] = []
+    for n in sorted(by_n, reverse=True):
+        if n < 4:
+            continue
+        groups.append((_strong_recombo_group_name(n), by_n[n], None))
+    payload = ticket_groups_to_payload(
+        groups,
+        str(date_str),
+        {**(thresholds or {}), "pool_mode": "strong_recombo_shadow"},
+        bankroll=float(bankroll or 0.0),
+        curve_stake_usd=float(curve_stake_usd or 1.0),
+        ticket_track="strong_recombo_shadow",
+        payload_mode="strong_recombo_shadow",
+    )
+    payload["shadow_track"] = True
+    payload["pool_mode"] = "strong_recombo_shadow"
+    payload["pool_policy"] = "strong_slip_recombo"
+    payload["source_strong_slips"] = len(source)
+    n_shadow = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
+    print(
+        f"  [shadow-recombo] STRONG Recombo 4-6L: {n_shadow} slips "
+        f"from {len(source)} STRONG source slips (production main unchanged)"
+    )
+    _write_strong_recombo_shadow_snapshot(payload, date_str)
+
+
 def _emit_strong_standard_prob_shadow_payload(
     *,
     frames: list,
@@ -9567,13 +9720,13 @@ def _ticket_clears_payout_floor(
 
 def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     """
-    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 1.9).
+    Prefer slips at/above MAIN_PREFERRED_MIN_PAYOUT_X (default 1.5).
 
-    Jul-25: STRONG and short Goblin no longer auto-bypass low floors. Sub-floor
+    STRONG and short Goblin no longer auto-bypass low floors. Sub-floor
     slips ship only with very high p_win (SHORT_FLOOR_HIGH_P_WIN, default 0.70).
-    When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (1.9)
+    When preferred slips exist, hard-cut anything below SHORT_FLOOR_HARD_X (1.5)
     unless high-p_win bypass. If nothing preferred, still apply the hard cut
-    (cut volume) rather than shipping a board of ~1.4–1.6× losers.
+    (cut volume) rather than shipping a board of sub-floor losers.
 
     When PROPORACLE_REQUIRE_LIVE_PAYOUT=1 (default): only exact live_cdp floors
     ship. Pending / peer SG-Δ / unknown floors are deferred — empty board is
@@ -16466,6 +16619,232 @@ def build_strong_tickets(
     return tickets
 
 
+def _strong_ticket_leg_rows(ticket: Mapping[str, Any]) -> list[dict]:
+    """Normalize legs/rows from a STRONG slip into row dicts."""
+    raw = ticket.get("legs") if isinstance(ticket.get("legs"), (list, tuple)) else None
+    if not raw:
+        raw = ticket.get("rows") if isinstance(ticket.get("rows"), (list, tuple)) else []
+    out: list[dict] = []
+    for leg in raw or []:
+        if isinstance(leg, Mapping):
+            out.append(dict(leg))
+    return out
+
+
+def harvest_strong_slip_legs(
+    tickets: Sequence[Mapping[str, Any]] | None,
+    *,
+    source_min_legs: int | None = None,
+    source_max_legs: int | None = None,
+    goblin_only: bool = True,
+) -> list[dict]:
+    """
+    Collect unique player legs from production STRONG 2–3L slips only.
+
+    One best prop per player (quality / prob / hit-rate). Legs that never made a
+    STRONG short ticket are excluded — that is the Method-2 quality filter.
+    """
+    lo = int(source_min_legs if source_min_legs is not None else STRONG_RECOMBO_SOURCE_MIN_LEGS)
+    hi = int(source_max_legs if source_max_legs is not None else STRONG_RECOMBO_SOURCE_MAX_LEGS)
+    best: dict[str, tuple[tuple[float, float, float], dict]] = {}
+    for t in tickets or []:
+        if not isinstance(t, Mapping):
+            continue
+        if not t.get("strong_builder"):
+            continue
+        if t.get("strong_recombo"):
+            # Never re-harvest long recombo slips into the source pool.
+            continue
+        if goblin_only:
+            pick = str(t.get("strong_builder_pick") or "").strip().lower()
+            if pick in ("standard", "mixed"):
+                continue
+        n = _strong_ticket_leg_count(t)
+        if n < lo or n > hi:
+            continue
+        for row in _strong_ticket_leg_rows(t):
+            player = str(row.get("player") or "").strip().lower()
+            if not player:
+                continue
+            if goblin_only:
+                pt = str(row.get("pick_type") or "").strip().lower()
+                if pt and "goblin" not in pt:
+                    continue
+            try:
+                q = float(row.get("prop_quality_score") or 0.0)
+            except (TypeError, ValueError):
+                q = 0.0
+            try:
+                p = float(
+                    row.get("ml_prob")
+                    or row.get("leg_prob_used")
+                    or row.get("hit_prob_selected")
+                    or 0.0
+                )
+            except (TypeError, ValueError):
+                p = 0.0
+            try:
+                hr = float(row.get("hit_rate") or row.get("l5_side_hit_rate") or 0.0)
+            except (TypeError, ValueError):
+                hr = 0.0
+            score = (q, p, hr)
+            prev = best.get(player)
+            if prev is None or score > prev[0]:
+                best[player] = (score, dict(row))
+    ranked = sorted(best.values(), key=lambda item: item[0], reverse=True)
+    return [row for _, row in ranked]
+
+
+def build_strong_recombo_long_tickets(
+    source_tickets: Sequence[Mapping[str, Any]] | None,
+    *,
+    date_str: str = "",
+    max_tickets: int | None = None,
+    min_legs: int | None = None,
+    max_legs: int | None = None,
+    min_p_win_4leg: float | None = None,
+    min_p_win_5leg: float | None = None,
+    min_p_win_6leg: float | None = None,
+) -> list[dict]:
+    """
+    Recombine legs harvested from STRONG 2–3L slips into 4–6L shadow tickets.
+
+    Does not pull from the raw strong_builder candidate pool — only legs that
+    already cleared a short STRONG ticket. Prefer 4L; soft-starve 5–6L.
+    """
+    legs = harvest_strong_slip_legs(source_tickets)
+    n_harvest = len(legs)
+    lo = int(min_legs if min_legs is not None else STRONG_RECOMBO_MIN_LEGS)
+    hi = int(max_legs if max_legs is not None else STRONG_RECOMBO_MAX_LEGS)
+    lo = max(4, min(6, lo))
+    hi = max(lo, min(6, hi))
+    cap = int(max_tickets if max_tickets is not None else STRONG_RECOMBO_MAX_TICKETS)
+    floor_4 = float(min_p_win_4leg if min_p_win_4leg is not None else STRONG_RECOMBO_MIN_P_WIN_4LEG)
+    floor_5 = float(min_p_win_5leg if min_p_win_5leg is not None else STRONG_RECOMBO_MIN_P_WIN_5LEG)
+    floor_6 = float(min_p_win_6leg if min_p_win_6leg is not None else STRONG_RECOMBO_MIN_P_WIN_6LEG)
+    if n_harvest < lo:
+        print(
+            f"[strong-recombo] date={date_str or '?'} harvested={n_harvest} "
+            f"(need ≥{lo}) → 0 long slips"
+        )
+        return []
+
+    per_n_budget = {
+        4: int(STRONG_RECOMBO_MAX_4LEG),
+        5: int(STRONG_RECOMBO_MAX_5LEG),
+        6: int(STRONG_RECOMBO_MAX_6LEG),
+    }
+    tickets: list[dict] = []
+    seen_keys: set[frozenset] = set()
+    by_n_count: Counter[int] = Counter()
+    rolling_hr = _load_strong_player_rolling_hr()
+
+    # Prefer 4L first, then soft-starve 5–6 via quotas.
+    for n_legs in range(lo, hi + 1):
+        if len(legs) < n_legs:
+            continue
+        n_cap = per_n_budget.get(n_legs, 0)
+        if n_cap <= 0:
+            continue
+        min_p_win = _strong_min_p_win_for_legs(
+            n_legs, floor_4, floor_4, floor_4, floor_5, floor_6
+        )
+        # Scan bound: prefer quality-sorted head of harvest.
+        pool = legs[: max(n_legs + 8, min(len(legs), 16))]
+        if len(pool) < n_legs:
+            continue
+        scanned = 0
+        scan_cap = min(math.comb(len(pool), n_legs) + 1, max(2000, cap * 400))
+        for combo in itertools.combinations(pool, n_legs):
+            scanned += 1
+            if scanned > scan_cap:
+                break
+            if by_n_count[n_legs] >= n_cap or len(tickets) >= cap:
+                break
+            rows = list(combo)
+            if not _ticket_players_unique(rows):
+                continue
+            sports = {
+                str(r.get("sport", "")).strip().upper()
+                for r in rows
+                if str(r.get("sport", "")).strip()
+            }
+            if len(sports) > 1 and not STRONG_ALLOW_CROSS_SPORT:
+                continue
+            key = frozenset(_leg_fp_tuple(r) for r in rows)
+            if key in seen_keys:
+                continue
+            if not _strong_combo_players_ok(rows, rolling_hr):
+                continue
+            leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
+            cmult, caudit = _correlation_multiplier_and_audit(rows)
+            ep = (
+                win_prob(
+                    leg_probs,
+                    n_legs,
+                    max_leg_prob=float(STRONG_MAX_LEG_PROB_FOR_P_WIN),
+                )
+                * cmult
+            )
+            if ep < min_p_win:
+                continue
+            pout = PAYOUT.get(n_legs, {"power": 0, "flex": 0})
+            adj_power = calc_adjusted_payout(pout["power"], rows)
+            hrs = [float(r.get("hit_rate", 0.5) or 0.5) for r in rows]
+            rss = [float(r.get("rank_score", 0.0) or 0.0) for r in rows]
+            sport_label = next(iter(sports)) if len(sports) == 1 else "MIX"
+            tickets.append(
+                {
+                    "key": key,
+                    "rows": rows,
+                    "avg_hit_rate": float(np.mean(hrs)) if hrs else 0.0,
+                    "avg_rank_score": float(np.mean(rss)) if rss else 0.0,
+                    "est_win_prob": ep,
+                    "power_payout": adj_power,
+                    "flex_payout": calc_adjusted_payout(pout["flex"], rows),
+                    "base_power_payout": pout["power"],
+                    "payout_multiplier": round(adj_power / pout["power"], 4) if pout["power"] else 1.0,
+                    "ev_power": round(ep * adj_power, 4),
+                    "kelly_units": round(kelly_fraction(ep, adj_power, fraction=0.25), 2),
+                    "n_legs": n_legs,
+                    "ticket_type": "Power Play",
+                    "sport": sport_label,
+                    "strong_builder": True,
+                    "strong_recombo": True,
+                    "strong_builder_pick": "Goblin",
+                    "pool_policy": "strong_slip_recombo",
+                    "shadow_track": True,
+                    "correlation_multiplier": cmult,
+                    "correlation_audit": caudit,
+                    "leg_prob_sources": ",".join(
+                        sorted({src for _, src in leg_probs})
+                    ),
+                }
+            )
+            seen_keys.add(key)
+            by_n_count[n_legs] += 1
+
+    tickets.sort(
+        key=lambda t: (
+            int(t.get("n_legs") or 0),  # shorter recombo first after fill
+            -float(t.get("est_win_prob") or 0.0),
+            -float(t.get("avg_rank_score") or 0.0),
+        )
+    )
+    tickets = tickets[:cap]
+    print(
+        f"[strong-recombo] date={date_str or '?'} harvested={n_harvest} "
+        f"emitted={len(tickets)} "
+        + (
+            "leg mix: "
+            + ", ".join(f"{n}-leg={by_n_count[n]}" for n in sorted(by_n_count, reverse=True))
+            if tickets
+            else "(none cleared p_win floors)"
+        )
+    )
+    return tickets
+
+
 # ── Build tickets ──────────────────────────────────────────────────────────────
 def build_tickets(
     pool: pd.DataFrame,
@@ -21490,6 +21869,14 @@ def main():
                 bankroll=max(0.0, float(args.bankroll)),
                 curve_stake_usd=float(args.curve_stake_usd),
             )
+            _emit_strong_recombo_shadow_payload(
+                strong_tickets=_extract_strong_builder_slips(full_payload),
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
         else:
             print("  WARNING: workbook produced 0 groups — falling back to FINAL builder.")
             nhl_pool_web = pool(nhl) if nhl is not None and len(nhl) > 0 else None
@@ -21650,6 +22037,14 @@ def main():
                 curve_stake_usd=float(args.curve_stake_usd),
             )
             _emit_strong_standard_prob_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_recombo_shadow_payload(
+                strong_tickets=_extract_strong_builder_slips(full_payload),
                 frames=_std_shadow_frames,
                 date_str=str(args.date),
                 thresholds=thresholds,

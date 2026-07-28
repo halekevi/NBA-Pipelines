@@ -520,5 +520,34 @@
       "count": 0,
       "wins": 0
     }
+  },
+  {
+    "date": "2026-07-27",
+    "track": "high_prob_std_gob",
+    "n_tickets": 12,
+    "wins": 5,
+    "guarantees": 0,
+    "losses": 7,
+    "void_loss_ct": 5,
+    "win_rate": 0.4167,
+    "avg_ev_predicted": -0.0384,
+    "net_per_10": -3.44,
+    "roi_pct": -34.43,
+    "strong_tickets": {
+      "count": 3,
+      "wins": 1
+    },
+    "ok_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "marginal_tickets": {
+      "count": 3,
+      "wins": 2
+    },
+    "skip_tickets": {
+      "count": 6,
+      "wins": 2
+    }
   }
 ]

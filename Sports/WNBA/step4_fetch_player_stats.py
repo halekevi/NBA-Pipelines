@@ -80,7 +80,8 @@ SUMMARY_URL    = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/
 # Date windows for fetch skip (game days only — not the full ticket pause).
 # Team/gameNote detection in utils.allstar_filter is the primary guard.
 ALLSTAR_BREAKS: List[Tuple[str, str]] = [
-    ("2026-07-25", "2026-07-25"),  # AT&T WNBA All-Star Game (Team Coop vs Team Spoon)
+    ("2025-07-19", "2025-07-20"),  # Team Clark vs Team Collier
+    ("2026-07-25", "2026-07-25"),  # Team Coop vs Team Spoon
 ]
 
 WNBA_TEAM_KEY_MAP = {

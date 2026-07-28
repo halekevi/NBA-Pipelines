@@ -16,7 +16,8 @@ import pandas as pd
 # Explicit All-Star / Rising Stars / exhibition-squad abbreviations by sport.
 # Keep franchise codes out of these sets.
 ALLSTAR_TEAM_ABBREVS: dict[str, frozenset[str]] = {
-    "WNBA": frozenset({"COOP", "SPO"}),  # Team Coop / Team Spoon (2026 ASG)
+    # Named All-Star squads rotate yearly (Team Coop/Spoon, Clark/Collier, …).
+    "WNBA": frozenset({"COOP", "SPO", "CLA", "COL"}),
     "NBA": frozenset(
         {
             "STARS",
@@ -31,10 +32,83 @@ ALLSTAR_TEAM_ABBREVS: dict[str, frozenset[str]] = {
     "MLB": frozenset({"AL", "NL"}),  # All-Star Game squads only
 }
 
+# Known ESPN All-Star Game event ids (belt-and-suspenders with team codes).
+ALLSTAR_EVENT_IDS: dict[str, frozenset[str]] = {
+    "WNBA": frozenset(
+        {
+            "401781604",  # 2025 Team Clark vs Team Collier
+            "401857320",  # 2026 Team Coop vs Team Spoon
+        }
+    ),
+    "NBA": frozenset(),
+    "MLB": frozenset(),
+}
+
+# Full published All-Star Game rosters (normalized display names).
+# Used to purge ASG rows even if a squad abbrev is missing/unknown.
+WNBA_ALLSTAR_ROSTERS_BY_YEAR: dict[int, frozenset[str]] = {
+    2025: frozenset(
+        {
+            "a'ja wilson",
+            "aliyah boston",
+            "allisha gray",
+            "alyssa thomas",
+            "angel reese",
+            "breanna stewart",
+            "brionna jones",
+            "brittney sykes",
+            "courtney williams",
+            "gabby williams",
+            "jackie young",
+            "kayla mcbride",
+            "kayla thornton",
+            "kelsey mitchell",
+            "kelsey plum",
+            "kiki iriafen",
+            "napheesa collier",
+            "nneka ogwumike",
+            "paige bueckers",
+            "sabrina ionescu",
+            "skylar diggins",
+            "sonia citron",
+        }
+    ),
+    2026: frozenset(
+        {
+            "a'ja wilson",
+            "aliyah boston",
+            "allisha gray",
+            "angel reese",
+            "breanna stewart",
+            "caitlin clark",
+            "courtney williams",
+            "dominique malonga",
+            "gabby williams",
+            "jackie young",
+            "jessica shepard",
+            "jonquel jones",
+            "kahleah copper",
+            "kelsey mitchell",
+            "kelsey plum",
+            "kiki iriafen",
+            "marina mabrey",
+            "natasha howard",
+            "nneka ogwumike",
+            "olivia miles",
+            "paige bueckers",
+            "rhyne howard",
+            "sonia citron",
+        }
+    ),
+}
+
 # Optional hard date windows (inclusive) for known All-Star game days.
-# Prefer team/text detection; dates are a safety net for fetch skips.
+# Prefer team/text/event detection; dates are a safety net for fetch skips.
 ALLSTAR_DATE_WINDOWS: dict[str, tuple[tuple[str, str], ...]] = {
-    "WNBA": (("2026-07-25", "2026-07-25"),),
+    "WNBA": (
+        ("2025-07-19", "2025-07-20"),  # 2025 ASG (UTC/local boundary)
+        ("2026-07-25", "2026-07-25"),  # 2026 ASG
+    ),
     "NBA": (),
     "MLB": (),
 }
@@ -143,6 +217,28 @@ def is_allstar_date(day: object, sport: object = "WNBA") -> bool:
     return False
 
 
+def _norm_player(name: object) -> str:
+    s = _norm_text(name)
+    s = s.replace(".", "")
+    return s
+
+
+def is_wnba_allstar_roster_player(name: object, year: int) -> bool:
+    roster = WNBA_ALLSTAR_ROSTERS_BY_YEAR.get(int(year), frozenset())
+    return _norm_player(name) in roster
+
+
+def allstar_event_ids_for_sport(sport: object) -> frozenset[str]:
+    return ALLSTAR_EVENT_IDS.get(_canon_sport(sport), frozenset())
+
+
+def is_allstar_event_id(event_id: object, sport: object = "WNBA") -> bool:
+    eid = str(event_id or "").strip()
+    if not eid:
+        return False
+    return eid in allstar_event_ids_for_sport(sport)
+
+
 def is_espn_summary_allstar(summary: Mapping | None, sport: object = "WNBA") -> bool:
     """Detect All-Star from an ESPN site summary payload."""
     summary = summary or {}
@@ -155,6 +251,12 @@ def is_espn_summary_allstar(summary: Mapping | None, sport: object = "WNBA") -> 
     for comp in header.get("competitions") or []:
         if not isinstance(comp, dict):
             continue
+        ctype = comp.get("type") or {}
+        if isinstance(ctype, dict):
+            if str(ctype.get("abbreviation") or "").strip().upper() == "ALLSTAR":
+                return True
+            if is_allstar_text(ctype.get("name") or ctype.get("abbreviation")):
+                return True
         for note in comp.get("notes") or []:
             if isinstance(note, dict) and is_allstar_text(note.get("headline") or note.get("text")):
                 return True
@@ -165,6 +267,10 @@ def is_espn_summary_allstar(summary: Mapping | None, sport: object = "WNBA") -> 
                 continue
             team = c.get("team") or {}
             if is_allstar_team(team.get("abbreviation"), sport_u):
+                return True
+            loc = _norm_text(team.get("location") or team.get("displayName") or "")
+            # Named draft squads are "Team Coop", "Team Clark", etc.
+            if loc.startswith("team "):
                 return True
     return False
 
@@ -180,10 +286,40 @@ def allstar_game_row_mask(df: pd.DataFrame, sport: object = "WNBA") -> pd.Series
         for col in _TEAM_COLUMNS:
             if col in df.columns:
                 mask |= df[col].map(lambda x: _norm_team(x) in teams)
-    for col in ("game_date", "GAME_DATE", "date"):
+
+    for col in ("event_id", "EVENT_ID", "game_id"):
         if col in df.columns:
-            mask |= df[col].map(lambda x: is_allstar_date(x, sport_u))
+            mask |= df[col].map(lambda x: is_allstar_event_id(x, sport_u))
             break
+
+    date_col = next((c for c in ("game_date", "GAME_DATE", "date") if c in df.columns), None)
+    if date_col:
+        mask |= df[date_col].map(lambda x: is_allstar_date(x, sport_u))
+
+    # Roster × ASG-date: catch every All-Star player even if squad code drifts.
+    if sport_u == "WNBA" and date_col:
+        name_col = next(
+            (
+                c
+                for c in ("PLAYER_NAME", "player", "PLAYER", "athlete", "name")
+                if c in df.columns
+            ),
+            None,
+        )
+        if name_col:
+
+            def _roster_hit(row: pd.Series) -> bool:
+                raw = str(row.get(date_col) or "")[:10]
+                try:
+                    year = int(raw[:4])
+                except ValueError:
+                    return False
+                if not is_allstar_date(raw, "WNBA"):
+                    return False
+                return is_wnba_allstar_roster_player(row.get(name_col), year)
+
+            mask |= df.apply(_roster_hit, axis=1)
+
     for col in _TEXT_COLUMNS:
         if col in df.columns:
             mask |= df[col].map(is_allstar_text)

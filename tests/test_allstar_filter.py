@@ -17,8 +17,31 @@ from utils.allstar_filter import (
 def test_wnba_allstar_team_codes():
     assert is_allstar_team("COOP", "WNBA")
     assert is_allstar_team("spo", "WNBA")
+    assert is_allstar_team("CLA", "WNBA")
+    assert is_allstar_team("COL", "WNBA")
     assert not is_allstar_team("NY", "WNBA")
     assert not is_allstar_team("NYL", "WNBA")
+
+
+def test_drop_allstar_game_rows_purges_2025_roster_players():
+    df = pd.DataFrame(
+        {
+            "game_date": ["2025-07-20"] * 3 + ["2025-07-18"],
+            "TEAM": ["CLA", "COL", "CLA", "NY"],
+            "event_id": ["401781604", "401781604", "401781604", "999"],
+            "REB": [11, 9, 7, 8],
+            "PLAYER_NAME": [
+                "Breanna Stewart",
+                "A'ja Wilson",
+                "Kayla McBride",
+                "Breanna Stewart",
+            ],
+        }
+    )
+    filtered, n = drop_allstar_game_rows(df, sport="WNBA")
+    assert n == 3
+    assert list(filtered["PLAYER_NAME"]) == ["Breanna Stewart"]
+    assert list(filtered["REB"]) == [8]
 
 
 def test_allstar_text_detection():

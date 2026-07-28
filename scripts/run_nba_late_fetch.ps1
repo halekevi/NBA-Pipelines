@@ -80,6 +80,17 @@ function Get-VersionedPath([string]$Path) {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
         }
     }
+    # Sport-root live pointers: archive NoOverwrite baks under data/historical.
+    $sportsDir = Join-Path $Root "Sports"
+    $sportsPrefix = $sportsDir.TrimEnd('\') + '\'
+    if ($dir -and ($dir -eq $sportsDir -or $dir.StartsWith($sportsPrefix))) {
+        $rel = if ($dir.StartsWith($sportsPrefix)) { $dir.Substring($sportsPrefix.Length) } else { "" }
+        $sportName = if ($rel) { ($rel -split '[\\/]', 2)[0] } else { "misc" }
+        $dir = Join-Path $Root "data\historical\sport_root_backups\$sportName"
+        if (-not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+    }
     $name = [System.IO.Path]::GetFileNameWithoutExtension($Path)
     $ext = [System.IO.Path]::GetExtension($Path)
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"

@@ -115,6 +115,13 @@ mobile/www/uniform_tickets_*.json
 mobile/www/winrate_goblin_opt3_*.json
 !mobile/www/*_latest.json
 
+# Long-term sport artifact archive (moved from Sports/*/outputs and *.bak_*)
+# Keep data/historical/README.md tracked.
+data/historical/sport_outputs/
+data/historical/sport_root_backups/
+data/historical/sport_root_stale/
+data/historical/archive_manifest_*.txt
+
 # Daily reports and hot-player snapshots (accumulate endlessly)
 data/reports/void_validator/
 data/reports/miss_attribution/

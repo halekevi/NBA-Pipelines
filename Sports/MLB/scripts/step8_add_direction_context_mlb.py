@@ -45,7 +45,7 @@ from datetime import date
 
 
 def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
-    """Publish dated clean XLSX to repo outputs/<slate>/ and Sports/MLB/outputs/<slate>/ (matches NBA + WNBA pattern)."""
+    """Publish dated clean XLSX to repo outputs/<slate>/ only (canonical historical tree)."""
     src = Path(output_xlsx_path)
     if not src.is_file():
         return
@@ -54,14 +54,14 @@ def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
         d = date.today().isoformat()
     repo_root = Path(__file__).resolve().parents[3]
     dated_name = f"step8_mlb_direction_clean_{d}.xlsx"
-    for dated_dir in (repo_root / "outputs" / d, repo_root / "Sports" / "MLB" / "outputs" / d):
-        try:
-            dated_dir.mkdir(parents=True, exist_ok=True)
-            dated_path = dated_dir / dated_name
-            shutil.copy2(src, dated_path)
-            print(f"[MLB step8] Dated copy -> {dated_path}")
-        except Exception as e:
-            print(f"[MLB step8] WARN: dated copy failed ({dated_dir}): {e}")
+    dated_dir = repo_root / "outputs" / d
+    try:
+        dated_dir.mkdir(parents=True, exist_ok=True)
+        dated_path = dated_dir / dated_name
+        shutil.copy2(src, dated_path)
+        print(f"[MLB step8] Dated copy -> {dated_path}")
+    except Exception as e:
+        print(f"[MLB step8] WARN: dated copy failed ({dated_dir}): {e}")
 
 
 def _norm_pick_type(x: str) -> str:

@@ -43,6 +43,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
+from utils.allstar_filter import drop_allstar_props
 
 API_URL   = "https://api.prizepicks.com/projections"
 WARMUP_URL = "https://api.prizepicks.com/leagues"
@@ -1086,6 +1087,10 @@ def main():
         print(f"  Deduped: {before} → {after}")
 
     df = _apply_wnba_slate_date(df, args)
+
+    df, n_allstar = drop_allstar_props(df, sport=sport_tag)
+    if n_allstar:
+        print(f"  Dropped {n_allstar} All-Star prop row(s)")
 
     rows_n = len(df)
     if rows_n == 0:

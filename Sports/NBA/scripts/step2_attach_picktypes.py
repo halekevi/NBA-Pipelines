@@ -41,6 +41,7 @@ _PROPORACLE_ROOT = Path(__file__).resolve().parents[3]
 if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 from utils.fantasy_prop_filter import drop_fantasy_props
+from utils.allstar_filter import drop_allstar_props
 
 COMBO_SEP = "|"
 
@@ -291,6 +292,9 @@ def main() -> None:
     df, n_fantasy = drop_fantasy_props(df)
     if n_fantasy:
         print(f"  Dropped {n_fantasy} fantasy prop row(s)")
+    df, n_allstar = drop_allstar_props(df, sport="NBA")
+    if n_allstar:
+        print(f"  Dropped {n_allstar} All-Star prop row(s)")
 
     # ── Drop prop types with no stat backing or that are ungradeable ──
     EXCLUDE_PROPS = {

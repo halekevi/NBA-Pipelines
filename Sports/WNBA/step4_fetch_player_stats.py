@@ -57,6 +57,11 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from scripts.db_utils import ensure_wnba_schema, log_pipeline_health, open_db, upsert_rows
+from utils.allstar_filter import (
+    drop_allstar_game_rows,
+    is_allstar_date,
+    is_espn_summary_allstar,
+)
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
 ESPN_HEADERS = {
@@ -72,9 +77,10 @@ ESPN_HEADERS = {
 SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates={yyyymmdd}"
 SUMMARY_URL    = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event={event_id}"
 
-ALLSTAR_BREAKS: List[Tuple[str,str]] = [
-    # Add WNBA All-Star break dates each season here
-    # ("2026-07-18", "2026-07-20"),
+# Date windows for fetch skip (game days only — not the full ticket pause).
+# Team/gameNote detection in utils.allstar_filter is the primary guard.
+ALLSTAR_BREAKS: List[Tuple[str, str]] = [
+    ("2026-07-25", "2026-07-25"),  # AT&T WNBA All-Star Game (Team Coop vs Team Spoon)
 ]
 
 WNBA_TEAM_KEY_MAP = {
@@ -289,6 +295,9 @@ def _first_stat(stat_map: Dict[str, str], aliases: List[str]) -> str:
 
 
 def _is_allstar(dt: datetime) -> bool:
+    """True on configured All-Star game days (also see is_espn_summary_allstar)."""
+    if is_allstar_date(dt, sport="WNBA"):
+        return True
     d = dt.strftime("%Y-%m-%d")
     for start, end in ALLSTAR_BREAKS:
         if start <= d <= end:
@@ -796,6 +805,10 @@ def main():
     if cache_path.exists():
         print(f"→ Loading cache: {cache_path}")
         cache = pd.read_csv(cache_path, dtype=str, encoding="utf-8-sig").fillna("")
+        cache, n_as = drop_allstar_game_rows(cache, sport="WNBA")
+        if n_as:
+            print(f"→ Purged {n_as} All-Star game row(s) from ESPN cache")
+            cache.to_csv(cache_path, index=False, encoding="utf-8-sig")
     else:
         cache = pd.DataFrame()
 
@@ -837,8 +850,16 @@ def main():
             try:
                 url     = SUMMARY_URL.format(event_id=eid)
                 summary = espn_get(url, args.timeout, args.retries, args.sleep)
+                if is_espn_summary_allstar(summary, sport="WNBA"):
+                    print(f"  [SKIP] All-Star event {eid} on {yyyymmdd}")
+                    events_skipped += 1
+                    continue
                 df_box  = parse_boxscore(summary, scoreboard_date=d.strftime("%Y-%m-%d"))
                 if df_box.empty:
+                    events_skipped += 1
+                    continue
+                df_box, n_as_box = drop_allstar_game_rows(df_box, sport="WNBA")
+                if n_as_box or df_box.empty:
                     events_skipped += 1
                     continue
                 df_box["event_id"] = eid
@@ -935,6 +956,9 @@ def main():
         & (cache_dates >= pd.Timestamp(cutoff_stat))
         & (cache_dates <= pd.Timestamp(stat_target))
     ].copy()
+    cache_filt, n_as_filt = drop_allstar_game_rows(cache_filt, sport="WNBA")
+    if n_as_filt:
+        print(f"→ Excluded {n_as_filt} All-Star row(s) from rolling L5/L10 window")
     cache_filt = cache_filt.sort_values("game_date", ascending=False)
 
     # Build name→id map

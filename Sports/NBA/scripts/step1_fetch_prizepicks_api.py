@@ -53,6 +53,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from utils.fantasy_prop_filter import drop_fantasy_props
+from utils.allstar_filter import drop_allstar_props
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
 
 # PrizePicks sits behind Cloudflare; stdlib TLS (requests) is often JA3-flagged.
@@ -965,6 +966,9 @@ def main() -> None:
     df, n_fantasy = drop_fantasy_props(df)
     if n_fantasy:
         print(f"  Dropped {n_fantasy} fantasy prop row(s)")
+    df, n_allstar = drop_allstar_props(df, sport="NBA")
+    if n_allstar:
+        print(f"  Dropped {n_allstar} All-Star prop row(s)")
 
     if len(df) == 0:
         print(no_props_log_line("NBA", str(args.date).strip()))

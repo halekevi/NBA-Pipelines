@@ -233,22 +233,38 @@ def _resolve_prop(prop_norm: str, sport: str) -> Optional[str]:
 
 
 # ── Core DB query ──────────────────────────────────────────────────────────────
+def _allstar_team_exclusion_sql(sport: str, team_col: str = "team") -> tuple[str, tuple]:
+    """SQL fragment + params excluding All-Star squad team codes."""
+    try:
+        from utils.allstar_filter import allstar_teams_for_sport
+    except Exception:
+        return "1=1", ()
+    teams = sorted(allstar_teams_for_sport(sport))
+    if not teams:
+        return "1=1", ()
+    placeholders = ",".join("?" for _ in teams)
+    return f"upper(coalesce({team_col}, '')) NOT IN ({placeholders})", tuple(teams)
+
+
 def _query_vals(con: sqlite3.Connection, table: str, where_clause: str,
-                stat_expr: str, params: tuple, n: int) -> List[float]:
+                stat_expr: str, params: tuple, n: int,
+                *, sport: str = "") -> List[float]:
     """
     Generic indexed stat query.
     Returns up to n most-recent non-null values, newest first.
     """
+    exclude_sql, exclude_params = _allstar_team_exclusion_sql(sport or table)
     sql = f"""
         SELECT {stat_expr} AS val
         FROM {table}
         WHERE {where_clause}
           AND {stat_expr} IS NOT NULL
+          AND ({exclude_sql})
         ORDER BY game_date DESC
         LIMIT {n}
     """
     try:
-        rows = con.execute(sql, params).fetchall()
+        rows = con.execute(sql, tuple(params) + tuple(exclude_params)).fetchall()
         return [float(r[0]) for r in rows if r[0] is not None]
     except Exception:
         return []
@@ -284,16 +300,20 @@ def get_vals_nba(con: sqlite3.Connection, espn_id: str,
                 if len(parts) >= 2:
                     first, last = parts[0], parts[-1]
                     try:
+                        exclude_sql, exclude_params = _allstar_team_exclusion_sql("NBA")
                         sql = f"""
                             SELECT player, {expr} AS val
                             FROM nba
                             WHERE lower(player) LIKE ?
                               AND lower(player) LIKE ?
                               AND {expr} IS NOT NULL
+                              AND ({exclude_sql})
                             ORDER BY game_date DESC
                             LIMIT {n * 5}
                         """
-                        rows = con.execute(sql, (f"{first}%", f"%{last}")).fetchall()
+                        rows = con.execute(
+                            sql, (f"{first}%", f"%{last}") + tuple(exclude_params)
+                        ).fetchall()
                         vals = [
                             float(r[1]) for r in rows
                             if r[1] is not None and _nfkd_norm(r[0]) == norm_ascii

@@ -142,8 +142,18 @@ def main() -> None:
             try:
                 url = mod.SUMMARY_URL.format(event_id=eid)
                 summary = mod.espn_get(url, args.timeout, args.retries, args.sleep)
+                from utils.allstar_filter import drop_allstar_game_rows, is_espn_summary_allstar
+
+                if is_espn_summary_allstar(summary, sport="WNBA"):
+                    print(f"  [SKIP] All-Star event {eid} on {yyyymmdd}")
+                    events_skipped += 1
+                    continue
                 df_box = mod.parse_boxscore(summary, scoreboard_date=d.strftime("%Y-%m-%d"))
                 if df_box.empty:
+                    events_skipped += 1
+                    continue
+                df_box, n_as_box = drop_allstar_game_rows(df_box, sport="WNBA")
+                if n_as_box or df_box.empty:
                     events_skipped += 1
                     continue
                 df_box["event_id"] = eid

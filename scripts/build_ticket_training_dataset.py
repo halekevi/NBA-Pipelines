@@ -444,8 +444,9 @@ def _ticket_row(
     if not pending:
         if result in ("WIN", "SWEEP", "MIN GUARANTEE"):
             label_cash = 1
-        elif result in ("LOSS", "VOID_LOSS"):
+        elif result == "LOSS":
             label_cash = 0
+        # VOID_LOSS = refund after voids left <2 playable legs — not a cash label.
 
     actual_payout = _safe_float(outcome.get("actual_payout"))
     net_10 = _safe_float(outcome.get("net_10"))

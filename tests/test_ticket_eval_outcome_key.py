@@ -27,6 +27,133 @@ def test_money_outcome_all_hit_is_win_for_power_style_group():
     assert float(oc.get("actual_payout") or 0) > 0
 
 
+def test_power_void_pays_as_reduced_leg_tier_not_original_scrape():
+    """PrizePicks: void drops the leg; 3-leg with 1 void + 2 hits pays as 2-leg."""
+    from build_ticket_eval import _effective_power_multiplier  # noqa: E402
+
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "HIT", "VOID"]
+    legs = [{"pick_type": "Goblin"}, {"pick_type": "Goblin"}, {"pick_type": "Goblin"}]
+    banner = 6.0
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": banner,
+        "flex_payout": 3.0,
+        "legs": legs,
+        # Original 3-leg scrape must NOT win over reduced-tier math.
+        "payout": {"payout": 6.0, "min_guarantee": 6.0, "sweep_payout": 6.0},
+    }
+    assert _ticket_pays_money(gname, gs) is True
+    expected = _effective_power_multiplier(legs, gs, banner, 3)
+    assert expected is not None and expected < banner
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    assert oc.get("effective_legs") == 2
+    assert oc.get("void_dropped_legs") == 1
+    assert abs(float(oc.get("actual_payout") or 0) - float(expected)) < 1e-9
+
+
+def test_power_void_with_remaining_miss_is_loss_not_void_fail():
+    """A miss among remaining legs loses; the void itself is not the miss."""
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "MISS", "VOID"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 6.0,
+        "legs": [{"pick_type": "Goblin"}] * 3,
+        "payout": {"payout": 6.0},
+    }
+    assert _ticket_pays_money(gname, gs) is False
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "LOSS"
+
+
+def test_void_below_two_legs_is_refund_not_win_or_loss():
+    """Voids that leave <2 playable legs refund — no 1-leg tickets."""
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "VOID", "VOID"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 6.0,
+        "legs": [{"pick_type": "Goblin"}] * 3,
+        "payout": {"payout": 6.0},
+    }
+    assert _ticket_pays_money(gname, gs) is False
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "VOID_LOSS"
+    assert "REFUND" in str(oc.get("result_display") or "")
+    assert float(oc.get("actual_payout") or 0) == 0.0
+    assert float(oc.get("net_10")) == 0.0
+    assert oc.get("is_refund") is True
+
+
+def test_void_2leg_one_void_is_refund():
+    """A 2-leg with one void leaves 1 playable → refund (no 1-leg tickets)."""
+    gname = "MLB 2-Leg Goblin"
+    gs = ["HIT", "VOID"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 1.8,
+        "legs": [{"pick_type": "Goblin"}] * 2,
+        "payout": {"payout": 1.8},
+    }
+    assert _ticket_pays_money(gname, gs) is False
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "VOID_LOSS"
+    assert oc.get("is_refund") is True
+
+
+def test_void_resize_3_to_2_all_hit_is_win_not_refund():
+    """PrizePicks: one void on a 3-leg leaves a 2-leg; both hits → paid win."""
+    gname = "MLB 3-Leg Goblin"
+    gs = ["HIT", "HIT", "VOID"]
+    ticket = {
+        "ticket_no": 1,
+        "power_payout": 2.95,
+        "flex_payout": 1.47,
+        "legs": [{"pick_type": "Goblin"}] * 3,
+        "payout": {"payout": 2.95, "min_guarantee": 2.95},
+    }
+    assert _ticket_pays_money(gname, gs) is True
+    oc = _ticket_eval_money_outcome(gname, gs, ticket)
+    assert oc.get("result") == "WIN"
+    assert float(oc.get("actual_payout") or 0) > 0
+    assert int(oc.get("effective_legs") or 0) == 2
+    assert int(oc.get("void_dropped_legs") or 0) == 1
+
+
+def test_no_actual_resolves_to_void_for_all_sports():
+    from build_ticket_eval import _resolve_void_pending_if_injury_dnp  # noqa: E402
+
+    for sport, player, team, prop in (
+        ("MLB", "Bobby Witt Jr.", "KC", "Hits"),
+        ("WNBA", "Caitlin Clark", "IND", "Points"),
+        ("NBA", "LeBron James", "LAL", "Rebounds"),
+        ("NBA1H", "LeBron James", "LAL", "Points"),
+        ("NBA1Q", "LeBron James", "LAL", "Points"),
+        ("NHL", "Connor McDavid", "EDM", "Hits"),
+        ("SOCCER", "Lionel Messi", "MIA", "Shots"),
+        ("TENNIS", "Carlos Alcaraz", "", "Aces"),
+        ("NFL", "Patrick Mahomes", "KC", "Passing Yards"),
+        ("CFB", "Caleb Williams", "USC", "Passing Yards"),
+        ("CBB", "Zach Edey", "PUR", "Points"),
+        ("WCBB", "Caitlin Clark", "IOWA", "Points"),
+    ):
+        leg = {"sport": sport, "player": player, "team": team, "prop_type": prop}
+        assert (
+            _resolve_void_pending_if_injury_dnp(
+                "UNGRADED",
+                leg,
+                None,
+                0.5,
+                "VOID",
+                "NO_ACTUAL",
+                {},
+            )
+            == "VOID"
+        ), sport
+
+
 def test_power_goblin_all_hit_uses_scraped_min_not_classic_sweep():
     """3-leg Goblin Power must not grade Actual at Fantasy 6x when min lock is ~1.6x."""
     gname = "WNBA 3-Leg Goblin"

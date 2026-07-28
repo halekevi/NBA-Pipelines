@@ -1034,6 +1034,10 @@ def _effective_power_multiplier(
     Calibrates the banner multiplier so platform-specific scaling cancels out:
       banner_pow ≈ base[n] · (∏ mod_full) · platform_scale
       effective  ≈ base[eff] · (∏ mod_remaining) · platform_scale
+
+    PrizePicks voids drop off the slip (3→2, 5→4, …). A 2-leg floor applies —
+    if voids leave fewer than 2 playable legs, there is no paying 1-leg ticket
+    (caller treats that as a refund).
     """
     eff = n - sum(1 for g in leg_grades if g == "VOID")
     if eff < 2:
@@ -1072,6 +1076,7 @@ def _effective_flex_multiplier(
     eff = n - v
     h = sum(1 for g in leg_grades if g == "HIT")
     m = sum(1 for g in leg_grades if g == "MISS")
+    # No 1-leg tickets: voids that leave <2 playable legs refund the entry.
     if eff < 2:
         return None, "refund"
     # Once the slip drops below 3 legs, PrizePicks pays it as a power play.
@@ -1282,9 +1287,10 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         emoji = "❌"
         css = "loss"
         actual = 0.0
-        # Voids alone are never a miss: if every remaining leg hit but <2 playable
-        # legs remain, the slip refunds / no-contests — do not label as LOSS.
-        if m == 0 and v > 0:
+        # Voids drop off (3→2, 5→4, …) and pay the reduced tier when ≥2 legs
+        # remain and those hit. If voids leave <2 playable legs, PP refunds —
+        # there are no 1-leg tickets. That is not a miss / not a loss.
+        if m == 0 and v > 0 and (n - v) < 2:
             result = "VOID_LOSS"
             emoji = "○"
             css = "void"
@@ -1405,7 +1411,12 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             )
 
     gross_10 = round(10.0 * actual, 2)
-    net_10 = round(gross_10 - 10.0, 2)
+    # Refund when voids leave <2 playable legs: stake returned → net $0.
+    if result == "VOID_LOSS":
+        gross_10 = 10.0
+        net_10 = 0.0
+    else:
+        net_10 = round(gross_10 - 10.0, 2)
 
     if (
         not payd
@@ -1445,8 +1456,8 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             detail = f"{result} — all {n} legs correct"
     elif result == "VOID_LOSS" and n:
         detail = (
-            f"Refund / no contest — {v} void left {eff_legs} playable leg(s) "
-            f"(need ≥2); voids drop off the slip and are not misses"
+            f"Refund — {v} void dropped off; {eff_legs} playable leg(s) left "
+            f"(need ≥2; no 1-leg tickets). Stake returned; not a miss."
         )
     elif result == "LOSS" and n:
         if v > 0:
@@ -1471,8 +1482,9 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         "net_10": net_10,
     }
     if result == "VOID_LOSS":
-        out["result_display"] = "REFUND / NO CONTEST"
+        out["result_display"] = "REFUND"
         out["omit_payout_block"] = True
+        out["is_refund"] = True
     if v > 0 and result in ("WIN", "SWEEP", "MIN GUARANTEE", "VOID_LOSS"):
         out["void_dropped_legs"] = int(v)
         out["effective_legs"] = int(eff_legs)
@@ -1551,9 +1563,10 @@ def _ticket_pays_money(group_name: str, leg_grades: list[str]) -> bool:
 
     Voids drop off the slip and the ticket pays at the next-smaller leg tier:
       * Power: every remaining (non-void) leg must HIT, with ≥2 effective legs.
+        If voids leave <2 playable legs → refund (no 1-leg tickets).
       * Flex (3+ legs): if effective legs ≥3, allow one MISS at the smaller tier.
         If voids reduce the slip below 3 effective legs, treat as a power play
-        on the remaining legs.
+        on the remaining legs (still need ≥2).
     Caller must ensure no UNGRADED legs.
     """
     if not leg_grades or any(g == "UNGRADED" for g in leg_grades):
@@ -3742,10 +3755,20 @@ def _ticket_grade_payout_html(
         f"{float(pred_ev):.2f} — {esc(rec)}" if pred_ev is not None else f"N/A — {esc(rec) if rec else 'N/A'}"
     )
     pwin_pred = _fmt_pct_cell(pred_p)
-    is_money_loss = r in ("LOSS", "VOID_LOSS")
-    pwin_act = "❌" if is_money_loss else "✅"
-    ev_act = "-$10.00 on $10" if is_money_loss else f"+${gross:.2f} on $10"
-    entry_line = "Lost $10.00" if is_money_loss else f"Won ${gross:.2f}"
+    is_money_loss = r == "LOSS"
+    is_refund = r == "VOID_LOSS" or bool(oc.get("is_refund"))
+    if is_money_loss:
+        pwin_act = "❌"
+        ev_act = "-$10.00 on $10"
+        entry_line = "Lost $10.00"
+    elif is_refund:
+        pwin_act = "○"
+        ev_act = "$0.00 on $10 (refund)"
+        entry_line = "Refunded $10.00"
+    else:
+        pwin_act = "✅"
+        ev_act = f"+${gross:.2f} on $10"
+        entry_line = f"Won ${gross:.2f}"
     detail = esc(str(oc.get("result_detail") or r))
     return (
         '<div class="ticket-grade-payout">'
@@ -3877,7 +3900,7 @@ def _build_html(
         if all(x == "VOID" for x in gs):
             continue
         pays_money = _ticket_pays_money(gname, gs)
-        # Void-only reductions that leave <2 playable legs refund — not a ticket loss.
+        # Voids that leave <2 playable legs refund — exclude from W/L.
         if (
             not pays_money
             and isinstance(oc, dict)
@@ -3929,13 +3952,15 @@ def _build_html(
             continue
         pay_summary_rows.append(oc)
 
-    n_pay = len(pay_summary_rows)
-    wins_ct = sum(1 for oc in pay_summary_rows if oc.get("result") in ("WIN", "SWEEP"))
-    guar_ct = sum(1 for oc in pay_summary_rows if oc.get("result") == "MIN GUARANTEE")
-    loss_ct = sum(1 for oc in pay_summary_rows if oc.get("result") in ("LOSS", "VOID_LOSS"))
+    # Refunds (voids left <2 playable — no 1-leg tickets) are not scored W/L.
     void_loss_ct: int = sum(1 for oc in pay_summary_rows if oc.get("result") == "VOID_LOSS")
-    total_net_10 = sum(float(oc.get("net_10") or 0.0) for oc in pay_summary_rows)
-    evs = [float(oc["predicted_ev"]) for oc in pay_summary_rows if oc.get("predicted_ev") is not None]
+    scored_rows = [oc for oc in pay_summary_rows if oc.get("result") != "VOID_LOSS"]
+    n_pay = len(scored_rows)
+    wins_ct = sum(1 for oc in scored_rows if oc.get("result") in ("WIN", "SWEEP"))
+    guar_ct = sum(1 for oc in scored_rows if oc.get("result") == "MIN GUARANTEE")
+    loss_ct = sum(1 for oc in scored_rows if oc.get("result") == "LOSS")
+    total_net_10 = sum(float(oc.get("net_10") or 0.0) for oc in scored_rows)
+    evs = [float(oc["predicted_ev"]) for oc in scored_rows if oc.get("predicted_ev") is not None]
     avg_ev = sum(evs) / len(evs) if evs else None
 
     def _rec_bucket(rec: str) -> str:
@@ -3956,10 +3981,10 @@ def _build_html(
         "MARGINAL": {"count": 0, "wins": 0},
         "SKIP": {"count": 0, "wins": 0},
     }
-    for oc in pay_summary_rows:
+    for oc in scored_rows:
         bk = _rec_bucket(str(oc.get("recommendation_at_entry") or ""))
         buck[bk]["count"] += 1
-        if oc.get("result") not in ("LOSS", "VOID_LOSS"):
+        if oc.get("result") != "LOSS":
             buck[bk]["wins"] += 1
 
     win_rate_pay = (wins_ct + guar_ct) / n_pay if n_pay else 0.0
@@ -4024,8 +4049,8 @@ def _build_html(
         net_abs = abs(total_net_10)
         net_word = "profit" if total_net_10 >= 0 else "loss"
         net_sign = "+" if total_net_10 >= 0 else "−"
-        loss_subnote_html = (
-            f' <span class="grade-eval-subnote">(incl. {void_loss_ct} void-loss)</span>'
+        refund_note_html = (
+            f' <span class="ges-pill ges-guar">Refunds {void_loss_ct}</span>'
             if void_loss_ct > 0
             else ""
         )
@@ -4035,7 +4060,8 @@ def _build_html(
             '<div class="grade-eval-summary-line2">'
             f'<span class="ges-pill ges-win">Wins {wins_ct}</span>'
             f'<span class="ges-pill ges-guar">Guarantees {guar_ct}</span>'
-            f'<span class="ges-pill ges-loss">Losses {loss_ct}{loss_subnote_html}</span>'
+            f'<span class="ges-pill ges-loss">Losses {loss_ct}</span>'
+            f"{refund_note_html}"
             f'<span class="ges-pill ges-rate">{win_rate_pct:.0f}% win rate</span>'
             f'<span class="ges-pill ges-ev">Avg EV {avg_ev_s}</span>'
             "</div>"
@@ -4390,8 +4416,9 @@ def _build_html(
                     elif rtxt == "VOID_LOSS":
                         res_cls = "tg grade-ticket-result void-loss"
                         parts.append(
-                            f'<span class="{res_cls}">RESULT: {esc(rem)} VOID / NO ACTION'
-                            f' <span class="grade-ticket-result-label">(no cash)</span></span>'
+                            f'<span class="{res_cls}">RESULT: {esc(rem)} REFUND'
+                            f' <span class="grade-ticket-result-label">'
+                            f"(&lt;2 legs after void — stake returned)</span></span>"
                         )
                     else:
                         won = rtxt != "LOSS"

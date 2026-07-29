@@ -4766,15 +4766,16 @@ function _l5HitCount(val) {
 
 function _passesL5FilterForObjectRow(row, l5Mode) {
   if (!l5Mode) return true;
-  // L5 OVER/UNDER means that side's pick — not "any prop whose L5 history
-  // went under a lot" (that wrongly kept OVER cards with high l5_under).
   const dir = String(row?.dir || row?.direction || '').trim().toUpperCase();
+  const pick = String(row?.pick_type || row?.pick || '').trim().toLowerCase();
+  // Goblin/Demon soft OVERs do not belong in L5 UNDER.
+  if (l5Mode === 'UNDER' && (pick === 'goblin' || pick === 'demon')) return false;
   if (l5Mode === 'OVER') {
-    if (dir && dir !== 'OVER') return false;
+    if (dir !== 'OVER') return false;
     return (_l5HitCount(row?.l5_over) ?? -1) >= L5_FILTER_MIN_HITS;
   }
   if (l5Mode === 'UNDER') {
-    if (dir && dir !== 'UNDER') return false;
+    if (dir !== 'UNDER') return false;
     return (_l5HitCount(row?.l5_under) ?? -1) >= L5_FILTER_MIN_HITS;
   }
   return true;
@@ -5485,6 +5486,12 @@ function toggleL5Filter(sport, mode, btn) {
     document.getElementById(`sfb-${sport}-l5over`)?.classList.remove('on');
     document.getElementById(`sfb-${sport}-l5under`)?.classList.remove('on');
     btn?.classList.add('on');
+    if (mode === 'UNDER' && s.pick && String(s.pick).toLowerCase() !== 'standard') {
+      s.pick = null;
+      document.getElementById(`sfb-${sport}-goblin`)?.classList.remove('on');
+      document.getElementById(`sfb-${sport}-demon`)?.classList.remove('on');
+      document.getElementById(`sfb-${sport}-standard`)?.classList.remove('on');
+    }
   }
   scheduleRenderSlateTable(sport);
 }
@@ -5620,6 +5627,8 @@ function renderSlateTableDynamic(sport) {
       if (l5OverIdx >= 0 && (_l5HitCount(row[l5OverIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
     }
     if (state.l5 === 'UNDER') {
+      const pickVal = pickIdx >= 0 ? String(row[pickIdx] || '').trim().toLowerCase() : '';
+      if (pickVal === 'goblin' || pickVal === 'demon') return false;
       if (dirIdx >= 0 && String(row[dirIdx] || '').trim().toUpperCase() !== 'UNDER') return false;
       if (l5UnderIdx >= 0 && (_l5HitCount(row[l5UnderIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
     }

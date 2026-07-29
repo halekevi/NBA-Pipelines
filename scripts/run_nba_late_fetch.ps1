@@ -369,8 +369,9 @@ elseif ((Get-CsvDataRowCount -CsvPath $tennisStep1) -gt 0) {
     Copy-Step1Mirror -Source $tennisStep1 -MirrorPath (Join-Path $TennisDir "outputs\step1_tennis_props.csv")
 }
 
-# MLB — HTTP first (curl_cffi chrome131), then CDP, then Playwright (all --append)
-Write-Host "[LATE_FETCH] Fetching MLB props (append; HTTP → CDP → Playwright)..." -ForegroundColor Cyan
+# MLB — CDP-first when Chrome is listening (same DataDome pattern as WNBA).
+# HTTP full waves only when CDP is down; never burn 20–40 min of 403 stacks with CDP already up.
+Write-Host "[LATE_FETCH] Fetching MLB props (append)..." -ForegroundColor Cyan
 $MLBDir = Join-Path $SportsRoot "MLB"
 $mlbRunOut = Ensure-RunOutDir -SportTag "mlb"
 $mlbStep1 = Join-Path $mlbRunOut "step1_mlb_props.csv"
@@ -388,37 +389,39 @@ $mlbHttpArgs = @(
     "--api-403-cooldown-jitter-max", "40",
     "--append"
 )
-$mlbCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-$mlbCdpReachable = $false
-try {
-    $mlbCdpProbe = Invoke-RestMethod -Uri "$mlbCdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
-    if ($mlbCdpProbe) { $mlbCdpReachable = $true }
+$mlbCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { $CdpUrl }
+$mlbCdpReachable = $CdpReachable
+if (-not $mlbCdpReachable) {
+    try {
+        $mlbCdpProbe = Invoke-RestMethod -Uri "$mlbCdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
+        if ($mlbCdpProbe) { $mlbCdpReachable = $true }
+    }
+    catch { $mlbCdpReachable = $false }
 }
-catch { $mlbCdpReachable = $false }
 
 Push-Location $MLBDir
 try {
-    & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @mlbHttpArgs
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[LATE_FETCH] MLB HTTP step1 failed (exit $LASTEXITCODE) — trying CDP" -ForegroundColor Yellow
-        if ($mlbCdpReachable) {
-            Write-Host "[LATE_FETCH] MLB CDP attach: $mlbCdpUrl" -ForegroundColor DarkGray
-            & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
-                "--cdp" $mlbCdpUrl `
-                "--timeout" "120" `
-                "--retries" "1" `
-                "--retry_delay" "5" `
-                "--append" `
-                "--date" "$PipeDate" `
-                "--output" $mlbStep1
+    if ($mlbCdpReachable) {
+        Write-Host "[LATE_FETCH] MLB: CDP reachable — browser-first ($mlbCdpUrl)" -ForegroundColor DarkGray
+        & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
+            "--cdp" $mlbCdpUrl `
+            "--timeout" "120" `
+            "--retries" "1" `
+            "--retry_delay" "5" `
+            "--append" `
+            "--date" "$PipeDate" `
+            "--output" $mlbStep1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[LATE_FETCH] MLB CDP failed (exit $LASTEXITCODE) — HTTP fallback (full 403 backoff)" -ForegroundColor Yellow
+            & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @mlbHttpArgs
         }
     }
+    else {
+        Write-Host "[LATE_FETCH] MLB: CDP down — HTTP first (full 403 backoff)" -ForegroundColor DarkGray
+        & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @mlbHttpArgs
+    }
     if ($LASTEXITCODE -ne 0) {
-        if (-not $mlbCdpReachable) {
-            Write-Host "[LATE_FETCH] MLB CDP not reachable — trying Playwright" -ForegroundColor Yellow
-        } else {
-            Write-Host "[LATE_FETCH] MLB CDP step1 failed (exit $LASTEXITCODE) — trying Playwright" -ForegroundColor Yellow
-        }
+        Write-Host "[LATE_FETCH] MLB falling back to Playwright" -ForegroundColor Yellow
         & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
             "--playwright" `
             "--timeout" "240" `
@@ -448,7 +451,15 @@ if (-not (Test-Path $pipeScript)) {
     exit 1
 }
 
-Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -Date $PipeDate..."
+# Mid-day refresh: lower ticket-gen (5AM keeps default 64). Cuts combined rebuild wall time hard.
+$middayTicketStarts = 16
+if ($env:PROPORACLE_REFRESH_TICKET_GEN_STARTS) {
+    $parsedStarts = 0
+    if ([int]::TryParse("$($env:PROPORACLE_REFRESH_TICKET_GEN_STARTS)".Trim(), [ref]$parsedStarts) -and $parsedStarts -gt 0) {
+        $middayTicketStarts = $parsedStarts
+    }
+}
+Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -TicketGenStarts $middayTicketStarts -Date $PipeDate..."
 # Pipeline skips embedded CDP; after tickets we run an incremental payout UPDATE
 # (only slips missing live_cdp). MAIN full capture is PropOracle - Payout CDP @ 11:00 (after 10:30).
 if ($NoOverwrite) {
@@ -471,7 +482,7 @@ if ($NoOverwrite) {
         Preserve-ExistingFile -Path $pt -Reason "pre-LATE_FETCH pipeline snapshot"
     }
 }
-& pwsh -NoProfile -File $pipeScript -SkipFetch -SkipLivePayoutCapture -Date $PipeDate
+& pwsh -NoProfile -File $pipeScript -SkipFetch -SkipLivePayoutCapture -TicketGenStarts $middayTicketStarts -Date $PipeDate
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[LATE_FETCH] Pipeline failed (exit $LASTEXITCODE)" -ForegroundColor Red
     exit 1

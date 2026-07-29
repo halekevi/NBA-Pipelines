@@ -1035,7 +1035,9 @@ function Publish-LiveSiteJsonToMain {
     $stashed = $false
     Push-Location $MainRoot
     try {
-        if (git status --porcelain) {
+        # Stashing while already on main removes the just-built live JSON from the
+        # working tree; skip stash when Root is the main worktree.
+        if (($MainRoot -ne $Root) -and (git status --porcelain)) {
             git stash push -m "proporacle-live-publish-temp" 2>&1 | Out-Null
             if ($LASTEXITCODE -eq 0) { $stashed = $true }
         }
@@ -1044,11 +1046,25 @@ function Publish-LiveSiteJsonToMain {
         foreach ($rel in $toPublish) {
             $src = Join-Path $Root ($rel -replace "/", "\")
             $dst = Join-Path $MainRoot ($rel -replace "/", "\")
-            $dstDir = Split-Path $dst -Parent
-            if (-not (Test-Path -LiteralPath $dstDir)) {
-                New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+            # When daily/pipeline already runs inside the main worktree, src==dst —
+            # Copy-Item "overwrite with itself" errors and a pre-copy stash can hide
+            # the fresh Jul slate until pop. Skip copy; still stage for commit.
+            $samePath = $false
+            try {
+                if ((Test-Path -LiteralPath $src) -and (Test-Path -LiteralPath $dst)) {
+                    $samePath = (
+                        [IO.Path]::GetFullPath($src).TrimEnd('\') -eq
+                        [IO.Path]::GetFullPath($dst).TrimEnd('\')
+                    )
+                }
+            } catch { $samePath = ($src -eq $dst) }
+            if (-not $samePath) {
+                $dstDir = Split-Path $dst -Parent
+                if (-not (Test-Path -LiteralPath $dstDir)) {
+                    New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+                }
+                Copy-Item -LiteralPath $src -Destination $dst -Force
             }
-            Copy-Item -LiteralPath $src -Destination $dst -Force
             git add -- $rel 2>&1 | Out-Null
         }
 
@@ -1114,7 +1130,7 @@ function Run-GitPushGradeArtifacts {
     $stashed = $false
     Push-Location $MainRoot
     try {
-        if (git status --porcelain) {
+        if (($MainRoot -ne $Root) -and (git status --porcelain)) {
             git stash push -m "proporacle-grade-publish-temp" 2>&1 | Out-Null
             if ($LASTEXITCODE -eq 0) { $stashed = $true }
         }
@@ -1122,8 +1138,19 @@ function Run-GitPushGradeArtifacts {
         foreach ($rel in $toStage) {
             $src = Join-Path $Root ($rel -replace "/", "\")
             $dst = Join-Path $MainRoot ($rel -replace "/", "\")
-            New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-            Copy-Item -LiteralPath $src -Destination $dst -Force
+            $samePath = $false
+            try {
+                if ((Test-Path -LiteralPath $src) -and (Test-Path -LiteralPath $dst)) {
+                    $samePath = (
+                        [IO.Path]::GetFullPath($src).TrimEnd('\') -eq
+                        [IO.Path]::GetFullPath($dst).TrimEnd('\')
+                    )
+                }
+            } catch { $samePath = ($src -eq $dst) }
+            if (-not $samePath) {
+                New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                Copy-Item -LiteralPath $src -Destination $dst -Force
+            }
             git add -f -- $rel 2>&1 | Out-Null
             Write-Host "    staged: $rel" -ForegroundColor DarkGray
         }

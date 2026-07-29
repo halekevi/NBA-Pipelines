@@ -1825,8 +1825,28 @@ else {
 
 if ($ShouldRetrain) {
     Write-Host "`n[AUTO-RETRAIN] Triggered (7+ days since last training, or no log)." -ForegroundColor Cyan
+    # Only retrain sports that can have graded data in the current calendar window.
+    # Off-season scripts fail immediately (FileNotFoundError) and waste several minutes.
+    $NBA_SEASON_RESUME = "2026-10-01"
+    $NHL_SEASON_RESUME = "2026-09-01"
+    $gradeDate = if ($Date) { $Date } else { (Get-Date).ToString("yyyy-MM-dd") }
+    $allowRetrain = @{
+        "train_prop_model_mlb.py"     = $true
+        "train_prop_model_soccer.py"  = $true
+        "train_prop_model_nba.py"     = ($gradeDate -ge $NBA_SEASON_RESUME)
+        "train_prop_model_nba1h.py"   = ($gradeDate -ge $NBA_SEASON_RESUME)
+        "train_prop_model_nba1q.py"   = ($gradeDate -ge $NBA_SEASON_RESUME)
+        "train_prop_model_nhl.py"     = ($gradeDate -ge $NHL_SEASON_RESUME)
+        "train_prop_model_cbb.py"     = $false  # men's season ended; re-enable when CBB resumes
+    }
     $trainScripts = Get-ChildItem -Path (Join-Path $Root "scripts") -Filter "train_prop_model_*.py" | Sort-Object Name
     foreach ($s in $trainScripts) {
+        $allowed = $true
+        if ($allowRetrain.ContainsKey($s.Name)) { $allowed = [bool]$allowRetrain[$s.Name] }
+        if (-not $allowed) {
+            Write-Host "[AUTO-RETRAIN] Skipping $($s.Name) (off-season / no graded corpus expected)" -ForegroundColor DarkGray
+            continue
+        }
         Write-Host "[AUTO-RETRAIN] Running $($s.Name)..." -ForegroundColor Cyan
         Run-Py "Auto-Retrain $($s.BaseName)" $Root $s.FullName @()
     }

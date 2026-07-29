@@ -13,7 +13,9 @@
 #  DataDome: launch Chrome first: pwsh -File scripts\launch_prizepicks_chrome_cdp.ps1 -OpenBoard -LeagueId 3
 #    .\run_wnba_pipeline.ps1 -StatsFrom2025End           # Force step4 rolling stats through 2025-10-20 (overrides prior-season merge)
 #    .\run_wnba_pipeline.ps1 -NoStatsFrom2025End         # Step4: current season only (no 2025 merge in cache)
-#  Default step1: Sports\WNBA\step1_fetch_prizepicks.py (HTTP: warmup + chrome131 + session waves); NBA API script is fallback (chrome120).
+#  Default step1: browser/CDP when port 9222 is listening (avoids DataDome HTTP 403 stacks);
+#  otherwise Sports\WNBA\step1_fetch_prizepicks.py HTTP (warmup + chrome131 + session waves),
+#  then NBA API script fallback (chrome120). Pass -HttpOnly to force HTTP even if CDP is up.
 #  Env (optional): PROPORACLE_PP_CDP or PRIZEPICKS_CDP - same as -Cdp when -Cdp omitted.
 #
 #  Combined / game_date contract (2026-05): step1 anchors full-board game_date to --date;
@@ -315,10 +317,17 @@ if ($SkipFetch -and (Get-CsvDataRowCount -CsvPath $step1Csv) -eq 0) {
 if (-not $SkipFetch) {
     $cdpDefault = if ($Cdp) { $Cdp } else { "http://127.0.0.1:9222" }
     $cdpReachable = Test-CdpEndpoint -BaseUrl $cdpDefault
-    $browserFirst = $UsePlaywright -or $Cdp -or $PreferBrowser -or $CdpWhenListening
+    # When CDP Chrome is already listening (5AM C0a / launch_prizepicks_chrome_cdp), go browser-first.
+    # Avoids DataDome HTTP 403 backoff stacks (often 10–20+ min) while still keeping full HTTP
+    # retry/cooldown when CDP is down. -HttpOnly forces the HTTP path even if CDP is up.
+    $autoBrowserFirst = $cdpReachable -and -not $HttpOnly
+    $browserFirst = $UsePlaywright -or $Cdp -or $PreferBrowser -or $CdpWhenListening -or $autoBrowserFirst
     $useBrowserFirst = $browserFirst -and ($Cdp -or $UsePlaywright -or $cdpReachable)
 
     if ($useBrowserFirst) {
+        if ($autoBrowserFirst -and -not $PreferBrowser -and -not $CdpWhenListening -and -not $Cdp -and -not $UsePlaywright) {
+            Write-Host "  [WNBA step1] CDP listening at $cdpDefault — browser-first (skip HTTP 403 stacks)" -ForegroundColor DarkCyan
+        }
         if (-not $cdpReachable -and -not $UsePlaywright) {
             Write-Host "  [WNBA step1] WARN: CDP not reachable at $cdpDefault - launch Chrome:" -ForegroundColor Yellow
             Write-Host "    pwsh -File scripts\launch_prizepicks_chrome_cdp.ps1 -OpenBoard -LeagueId 3" -ForegroundColor Cyan
@@ -329,7 +338,17 @@ if (-not $SkipFetch) {
             elseif ($cdpReachable) { $browserCdp = $cdpDefault }
             $ok = Invoke-WnbaStep1Browser -CdpUrl $browserCdp -Label "WNBA Step 1 - Fetch PrizePicks (browser/CDP)"
         }
+        # If browser-first fails (cold tab / challenge), fall back to HTTP with full 403 handling.
+        if (-not $ok -and -not $HttpOnly) {
+            Write-Host "  [WNBA step1] Browser/CDP failed - falling back to HTTP (full 403 backoff)..." -ForegroundColor Yellow
+            $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP fallback, chrome131)"
+            if (-not $ok) {
+                Write-Host "  [WNBA step1] HTTP (chrome131) failed - retrying NBA API path (chrome120)..." -ForegroundColor Yellow
+                $ok = Invoke-WnbaStep1HttpNbaFallback
+            }
+        }
     } else {
+        # CDP down (or -HttpOnly): keep full HTTP waves + chrome120. Do not shorten 403 sleeps.
         if ($ok) {
             $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP, chrome131)"
         }
@@ -338,6 +357,8 @@ if (-not $SkipFetch) {
             $ok = Invoke-WnbaStep1HttpNbaFallback
         }
         if (-not $ok -and -not $HttpOnly -and -not $NoCdpFallback) {
+            # Re-probe: CDP may have come up during the HTTP wait.
+            $cdpReachable = Test-CdpEndpoint -BaseUrl $cdpDefault
             if ($cdpReachable) {
                 Write-Host "  [WNBA step1] HTTP blocked - retrying via Chrome CDP ($cdpDefault)..." -ForegroundColor Yellow
                 $ok = Invoke-WnbaStep1Browser -CdpUrl $cdpDefault -Label "WNBA Step 1 - Fetch PrizePicks (CDP fallback)"

@@ -1587,7 +1587,10 @@ if ($WNBAOnly) {
         Write-Host "  ERROR: WNBA runner not found: $wnbaPs1" -ForegroundColor Red
         exit 1
     }
-    $wnbaInvoke = @{ Date = $Date }
+    $wnbaInvoke = @{
+        Date = $Date
+        CdpWhenListening = $true
+    }
     # WNBA cache wipe only via scripts\run_wnba_pipeline.ps1 -RefreshCache (not NBA -RefreshCache).
     if ($SkipFetch) { $wnbaInvoke["SkipFetch"] = $true }
     if ($WNBACdp) { $wnbaInvoke["Cdp"] = $WNBACdp }
@@ -3414,7 +3417,11 @@ if ($wnbaParallel) {
         }
         Push-Location $RepoRoot
         try {
-            $wnbaInvoke = @{ Date = $PipelineDate }
+            $wnbaInvoke = @{
+                Date = $PipelineDate
+                # Prefer CDP when 9222 is up (avoids HTTP 403 stacks); HTTP full backoff if CDP down.
+                CdpWhenListening = $true
+            }
             # WNBA ESPN cache is independent of NBA -RefreshCache (do not wipe 6297-row backfill on full runs).
             if ($SkipFetchFlag) { $wnbaInvoke["SkipFetch"] = $true }
             if ($WnbaCdp) { $wnbaInvoke["Cdp"] = $WnbaCdp }

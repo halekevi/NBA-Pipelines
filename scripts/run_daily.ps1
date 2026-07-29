@@ -1089,7 +1089,13 @@ if (-not $SkipPipeline) {
     }
     # NHL PP skater cache (API). D-pair refresh (pairings.php, slate teams) runs in run_pipeline.ps1
     # as NHL Step 4b-pre after step4 and before step4b — requires step4 board for --slate-input.
-    if ($env:NST_ACCESS_KEY) {
+    # Skip entirely during NHL off-season (matches run_pipeline $NHL_SEASON_RESUME).
+    $NHL_SEASON_RESUME = "2026-09-01"
+    if ($Today -lt $NHL_SEASON_RESUME) {
+        Write-Host "[NHL] Off-season — skipping NHL PP cache refresh until $NHL_SEASON_RESUME" -ForegroundColor DarkGray
+        Write-Log "[NHL] NHL PP cache refresh: SKIP (off-season until $NHL_SEASON_RESUME)"
+    }
+    elseif ($env:NST_ACCESS_KEY) {
         Write-Host "[NHL] Refreshing NHL PP skater cache (NST D-pairs run in pipeline step 4b-pre)..." -ForegroundColor Cyan
         Write-Log "[NHL] NHL PP cache refresh: START"
         Push-Location $Root
@@ -1766,30 +1772,33 @@ foreach ($cp in $datedStep8Copies) {
 Write-Log "STEP D2b - Dated step8 snapshot backfill: OK"
 
 # =============================================================================
-# STEP D-ME – Rebuild matchup edge JSON for all sports (today's slate)
+# STEP D-ME – Rebuild matchup edge JSON for active summer sports
+# Combined (STEP D) already rebuilds matchup edge for sports it touches; this pass
+# refreshes live summer boards without re-walking off-season NBA/NHL/CBB/CFB.
 # =============================================================================
 $meScript = Join-Path $Root "scripts\build_matchup_edge_json.py"
 if (Test-Path $meScript) {
     Write-Log "STEP D-ME - Matchup edge rebuild: START"
     Push-Location $Root
     try {
-        & py -3.14 -X utf8 $meScript --sport all
-        if ($LASTEXITCODE -ne 0) {
-            Write-Log "STEP D-ME - Matchup edge rebuild: WARN (exit $LASTEXITCODE) — retrying active summer sports"
-            $meSports = @("mlb", "soccer", "tennis")
-            if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $meSports = @("mlb", "wnba", "soccer", "tennis") }
-            foreach ($meSport in $meSports) {
-                & py -3.14 -X utf8 $meScript --sport $meSport
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $LASTEXITCODE)"
-                }
-                else {
-                    Write-Log "STEP D-ME - Matchup edge ($meSport): OK"
-                }
+        $meSports = @("mlb", "soccer", "tennis")
+        if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $meSports = @("mlb", "wnba", "soccer", "tennis") }
+        $meOk = $true
+        foreach ($meSport in $meSports) {
+            & py -3.14 -X utf8 $meScript --sport $meSport
+            if ($LASTEXITCODE -ne 0) {
+                $meOk = $false
+                Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $LASTEXITCODE)"
+            }
+            else {
+                Write-Log "STEP D-ME - Matchup edge ($meSport): OK"
             }
         }
-        else {
+        if ($meOk) {
             Write-Log "STEP D-ME - Matchup edge rebuild: OK"
+        }
+        else {
+            Write-Log "STEP D-ME - Matchup edge rebuild: WARN (one or more sports failed)"
         }
     }
     catch {

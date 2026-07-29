@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="dark" data-ui-build="" data-deploy-sha="">
 <head>
 
@@ -4766,8 +4766,17 @@ function _l5HitCount(val) {
 
 function _passesL5FilterForObjectRow(row, l5Mode) {
   if (!l5Mode) return true;
-  if (l5Mode === 'OVER') return (_l5HitCount(row?.l5_over) ?? -1) >= L5_FILTER_MIN_HITS;
-  if (l5Mode === 'UNDER') return (_l5HitCount(row?.l5_under) ?? -1) >= L5_FILTER_MIN_HITS;
+  // L5 OVER/UNDER means that side's pick — not "any prop whose L5 history
+  // went under a lot" (that wrongly kept OVER cards with high l5_under).
+  const dir = String(row?.dir || row?.direction || '').trim().toUpperCase();
+  if (l5Mode === 'OVER') {
+    if (dir && dir !== 'OVER') return false;
+    return (_l5HitCount(row?.l5_over) ?? -1) >= L5_FILTER_MIN_HITS;
+  }
+  if (l5Mode === 'UNDER') {
+    if (dir && dir !== 'UNDER') return false;
+    return (_l5HitCount(row?.l5_under) ?? -1) >= L5_FILTER_MIN_HITS;
+  }
   return true;
 }
 
@@ -5606,8 +5615,14 @@ function renderSlateTableDynamic(sport) {
       const tv = String(row[tierIdx] == null ? '' : row[tierIdx]).trim().toUpperCase();
       if (tv !== String(state.tier).toUpperCase()) return false;
     }
-    if (state.l5 === 'OVER' && l5OverIdx >= 0 && (_l5HitCount(row[l5OverIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
-    if (state.l5 === 'UNDER' && l5UnderIdx >= 0 && (_l5HitCount(row[l5UnderIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
+    if (state.l5 === 'OVER') {
+      if (dirIdx >= 0 && String(row[dirIdx] || '').trim().toUpperCase() !== 'OVER') return false;
+      if (l5OverIdx >= 0 && (_l5HitCount(row[l5OverIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
+    }
+    if (state.l5 === 'UNDER') {
+      if (dirIdx >= 0 && String(row[dirIdx] || '').trim().toUpperCase() !== 'UNDER') return false;
+      if (l5UnderIdx >= 0 && (_l5HitCount(row[l5UnderIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
+    }
     if (state.platform) {
       const faux = {
         pick_platform: platformIdx >= 0 ? row[platformIdx] : 'prizepicks',

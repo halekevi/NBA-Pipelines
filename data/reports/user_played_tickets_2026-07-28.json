@@ -1,0 +1,251 @@
+{
+  "logged_at": "2026-07-29T11:13:20.657074+00:00",
+  "slate_date": "2026-07-28",
+  "source": "PrizePicks My Lineups screenshot + PropORACLE ticket_eval/graded_props",
+  "personal_played": {
+    "staked_usd": 60,
+    "returned_usd_expected": 36,
+    "net_usd_expected": -24,
+    "record": "1-2 (treating pending all-green tennis4 as win)",
+    "tickets": [
+      {
+        "id": "wnba5_goblin_power",
+        "sport": "WNBA",
+        "n_legs": 5,
+        "entry_usd": 20,
+        "payout_usd": 60,
+        "power_x": 3.0,
+        "result": "LOSS",
+        "hits": 2,
+        "misses": 3,
+        "returned_usd": 0,
+        "legs": [
+          {
+            "player": "Emily Engstler",
+            "prop": "Points",
+            "line": 5.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "ui": "LOSS",
+            "graded": {
+              "player": "Emily Engstler",
+              "prop": "Points",
+              "line": "5.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "VOID",
+              "hit": null,
+              "actual_value": "",
+              "sport": "WNBA"
+            }
+          },
+          {
+            "player": "Kayla McBride",
+            "prop": "Points",
+            "line": 15.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "ui": "WIN",
+            "graded": {
+              "player": "Kayla McBride",
+              "prop": "Points",
+              "line": "15.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "HIT",
+              "hit": 1,
+              "actual_value": "18.0",
+              "sport": "WNBA"
+            }
+          },
+          {
+            "player": "Breanna Stewart",
+            "prop": "Rebounds",
+            "line": 5.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "ui": "WIN",
+            "graded": {
+              "player": "Breanna Stewart",
+              "prop": "Rebounds",
+              "line": "5.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "VOID",
+              "hit": null,
+              "actual_value": "",
+              "sport": "WNBA"
+            }
+          },
+          {
+            "player": "Awa Fam",
+            "prop": "Rebounds",
+            "line": 5.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "ui": "LOSS",
+            "graded": {
+              "player": "Awa Fam",
+              "prop": "Rebounds",
+              "line": "5.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "MISS",
+              "hit": 0,
+              "actual_value": "5.0",
+              "sport": "WNBA"
+            }
+          },
+          {
+            "player": "Jonquel Jones",
+            "prop": "Rebounds",
+            "line": 6.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "ui": "LOSS",
+            "graded": {
+              "player": "Jonquel Jones",
+              "prop": "Rebounds",
+              "line": "6.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "VOID",
+              "hit": null,
+              "actual_value": "",
+              "sport": "WNBA"
+            }
+          }
+        ]
+      },
+      {
+        "id": "tennis4_power",
+        "sport": "Tennis",
+        "n_legs": 4,
+        "entry_usd": 20,
+        "payout_usd": 36,
+        "power_x": 1.8,
+        "result": "WIN_PENDING",
+        "hits": 4,
+        "misses": 0,
+        "returned_usd": 36,
+        "note": "All 4 legs green on PrizePicks Pending; treating as expected cash pending settlement.",
+        "legs": [
+          {
+            "player": "Shimabukuro",
+            "ui": "WIN",
+            "graded": {
+              "player": "Sho Shimabukuro",
+              "prop": "Total Games",
+              "line": "17.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "HIT",
+              "hit": 1,
+              "actual_value": "33.0",
+              "sport": "Tennis"
+            }
+          },
+          {
+            "player": "Atmane",
+            "ui": "WIN"
+          },
+          {
+            "player": "Tiafoe",
+            "ui": "WIN"
+          },
+          {
+            "player": "Landaluce",
+            "ui": "WIN"
+          }
+        ],
+        "settlement": "PENDING_ALL_GREEN_EXPECTED_WIN"
+      },
+      {
+        "id": "tennis2_shimabukuro_kenin",
+        "sport": "Tennis",
+        "n_legs": 2,
+        "entry_usd": 20,
+        "payout_usd": 30,
+        "power_x": 1.5,
+        "result": "LOSS",
+        "hits": 1,
+        "misses": 1,
+        "returned_usd": 0,
+        "legs": [
+          {
+            "player": "Shimabukuro",
+            "ui": "WIN",
+            "graded": {
+              "player": "Sho Shimabukuro",
+              "prop": "Total Games",
+              "line": "17.5",
+              "direction": "OVER",
+              "pick_type": "Goblin",
+              "result": "HIT",
+              "hit": 1,
+              "actual_value": "33.0",
+              "sport": "Tennis"
+            }
+          },
+          {
+            "player": "Kenin",
+            "ui": "LOSS"
+          }
+        ]
+      }
+    ],
+    "grader_vs_ui": {
+      "wnba5": {
+        "Emily Engstler": {
+          "ui": "LOSS",
+          "graded": "VOID"
+        },
+        "Kayla McBride": {
+          "ui": "WIN",
+          "graded": "HIT actual 18"
+        },
+        "Breanna Stewart": {
+          "ui": "WIN",
+          "graded": "VOID"
+        },
+        "Awa Fam": {
+          "ui": "LOSS",
+          "graded": "MISS actual 5.0"
+        },
+        "Jonquel Jones": {
+          "ui": "LOSS",
+          "graded": "VOID"
+        }
+      }
+    }
+  },
+  "proporacle_ticket_book": {
+    "date": "2026-07-28",
+    "source": "ui_runner/templates/ticket_eval_2026-07-28.html",
+    "wins": 51,
+    "losses": 38,
+    "void_loss": 10,
+    "void_slip": 1,
+    "decided": 89,
+    "win_rate_pct": 57.3,
+    "net_on_10_flat_usd": -71.48,
+    "stake_flat_usd": 890,
+    "summary_line": "\u2212$71.48 net on $890 ($10 flat) \u2014 loss; Wins 51; 57% win rate",
+    "by_family_approx": {
+      "Goblin/Winrate/won": 37,
+      "Goblin/Winrate/lost": 34,
+      "STRONG/won": 14,
+      "Goblin/Winrate/void-loss": 7,
+      "STRONG/lost": 4,
+      "STRONG/void-loss": 3,
+      "Goblin/Winrate/void-slip": 1
+    }
+  },
+  "notes": [
+    "WNBA 5-pick user-built all-Goblin OVER; Stewart 5.5 / Fam 5.5 / Jones 6.5 differed from board alts.",
+    "Tennis 4-pick all green on Pending \u2014 logged as expected WIN $36 pending settlement.",
+    "Tennis 2-pick lost on Kenin.",
+    "PrizePicks UI is ground truth for personal slips. Internal graded_props marked Engstler/Stewart/Jones as VOID while PP showed Engstler/Jones red and Stewart green \u2014 grader lag/void mismatch; do not override UI.",
+    "Fam graded MISS (5.0 actual vs 5.5 OVER). McBride HIT (18.0). Shimabukuro HIT (33.0 vs 17.5 goblin). Atmane/Tiafoe/Landaluce/Kenin not found in graded_props_2026-07-28.json."
+  ]
+}

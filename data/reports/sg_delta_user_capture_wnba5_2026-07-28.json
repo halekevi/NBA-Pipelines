@@ -1,0 +1,103 @@
+{
+  "date": "2026-07-28",
+  "captured_at": "2026-07-28T17:34:35.021538Z",
+  "ticket": {
+    "sport": "WNBA",
+    "n_legs": 5,
+    "composition": "0S+5G+0D",
+    "entry_usd": 20,
+    "payout_usd": 60,
+    "power_min_x": 3.0,
+    "legs": [
+      {
+        "player": "Emily Engstler",
+        "pos": "F",
+        "prop": "Points",
+        "line": 5.5,
+        "direction": "OVER",
+        "pick": "Goblin",
+        "std_line": 9.0,
+        "goblin_delta": 3.5,
+        "ml_prob": 0.841
+      },
+      {
+        "player": "Kayla McBride",
+        "pos": "G",
+        "prop": "Points",
+        "line": 15.5,
+        "direction": "OVER",
+        "pick": "Goblin",
+        "std_line": 17.5,
+        "goblin_delta": 2.0,
+        "ml_prob": 0.8456
+      },
+      {
+        "player": "Breanna Stewart",
+        "pos": "F",
+        "prop": "Rebounds",
+        "line": 5.5,
+        "direction": "OVER",
+        "pick": "Goblin",
+        "std_line": 8.5,
+        "goblin_delta": 3.0,
+        "ml_prob": 0.8496
+      },
+      {
+        "player": "Awa Fam",
+        "pos": "C",
+        "prop": "Rebounds",
+        "line": 5.5,
+        "direction": "OVER",
+        "pick": "Goblin",
+        "std_line": 6.5,
+        "goblin_delta": 1.0,
+        "ml_prob": 0.8134
+      },
+      {
+        "player": "Jonquel Jones",
+        "pos": "C",
+        "prop": "Rebounds",
+        "line": 6.5,
+        "direction": "OVER",
+        "pick": "Goblin",
+        "std_line": 9.0,
+        "goblin_delta": 2.5,
+        "ml_prob": 0.8463
+      }
+    ],
+    "goblin_delta_sig": "1+2+2.5+3+3.5"
+  },
+  "alignment": {
+    "vs_our_ticket_book": {
+      "Emily Engstler Points 5.5": "MATCH",
+      "Kayla McBride Points 15.5": "MATCH",
+      "Breanna Stewart Rebounds 5.5": "DIFF ours used 7.5 (harder)",
+      "Awa Fam Rebounds 5.5": "DIFF ours used 4.5 (easier than yours)",
+      "Jonquel Jones Rebounds 6.5": "DIFF ours used 7.5 (harder)"
+    },
+    "vs_rate_card_before_capture": "no exact 1+2+2.5+3+3.5 cell; nearest live_cdp 5G was 4.75x (1+1+1+1+1) / 5.75x (1+1+1.5+2+2) \u2014 user 3.0x is a NEW lower observation",
+    "historic_prop_hr": {
+      "Goblin OVER Points": "66.4%",
+      "Goblin OVER Rebounds": "66.6%"
+    },
+    "position_thesis": "Pts on F/G + Rebs on C/F; skipped Olivia Miles (G) rebounds \u2014 role-aligned"
+  },
+  "result": {
+    "status": "LOSS",
+    "hits": 2,
+    "misses": 3,
+    "hit_legs": [
+      "Kayla McBride Points 15.5",
+      "Breanna Stewart Rebounds 5.5"
+    ],
+    "miss_legs": [
+      "Emily Engstler Points 5.5",
+      "Awa Fam Rebounds 5.5",
+      "Jonquel Jones Rebounds 6.5"
+    ],
+    "entry_usd": 20,
+    "returned_usd": 0,
+    "net_usd": -20,
+    "logged_at": "2026-07-29T11:13:20.658215+00:00"
+  }
+}

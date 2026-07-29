@@ -87,17 +87,18 @@
     "hits": 2,
     "misses": 3,
     "hit_legs": [
-      "Kayla McBride Points 15.5",
-      "Breanna Stewart Rebounds 5.5"
+      "Emily Engstler Points 5.5 actual 7",
+      "Kayla McBride Points 15.5 actual 18"
     ],
     "miss_legs": [
-      "Emily Engstler Points 5.5",
-      "Awa Fam Rebounds 5.5",
-      "Jonquel Jones Rebounds 6.5"
+      "Breanna Stewart Rebounds 5.5 actual 4",
+      "Awa Fam Rebounds 5.5 actual 5",
+      "Jonquel Jones Rebounds 6.5 actual 5"
     ],
     "entry_usd": 20,
     "returned_usd": 0,
     "net_usd": -20,
-    "logged_at": "2026-07-29T11:13:20.658215+00:00"
+    "logged_at": "2026-07-29T11:25:00+00:00",
+    "source": "PrizePicks final slip screenshot"
   }
 }

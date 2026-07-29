@@ -1,12 +1,14 @@
 {
-  "logged_at": "2026-07-29T11:13:20.657074+00:00",
+  "logged_at": "2026-07-29T11:25:00+00:00",
   "slate_date": "2026-07-28",
-  "source": "PrizePicks My Lineups screenshot + PropORACLE ticket_eval/graded_props",
+  "source": "PrizePicks final slip screenshots (3/3 personal tickets)",
   "personal_played": {
+    "complete": true,
+    "ticket_count": 3,
     "staked_usd": 60,
-    "returned_usd_expected": 36,
-    "net_usd_expected": -24,
-    "record": "1-2 (treating pending all-green tennis4 as win)",
+    "returned_usd": 36,
+    "net_usd": -24,
+    "record": "1-2",
     "tickets": [
       {
         "id": "wnba5_goblin_power",
@@ -15,150 +17,125 @@
         "entry_usd": 20,
         "payout_usd": 60,
         "power_x": 3.0,
+        "composition": "0S+5G+0D",
         "result": "LOSS",
         "hits": 2,
         "misses": 3,
         "returned_usd": 0,
+        "net_usd": -20,
         "legs": [
           {
             "player": "Emily Engstler",
+            "pos": "F",
+            "game": "PDX 83 vs LVA 98",
             "prop": "Points",
             "line": 5.5,
             "dir": "OVER",
             "pick": "Goblin",
-            "ui": "LOSS",
-            "graded": {
-              "player": "Emily Engstler",
-              "prop": "Points",
-              "line": "5.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "VOID",
-              "hit": null,
-              "actual_value": "",
-              "sport": "WNBA"
-            }
+            "actual": 7,
+            "result": "WIN"
           },
           {
             "player": "Kayla McBride",
+            "pos": "G",
+            "game": "MIN 100 @ TOR 93",
             "prop": "Points",
             "line": 15.5,
             "dir": "OVER",
             "pick": "Goblin",
-            "ui": "WIN",
-            "graded": {
-              "player": "Kayla McBride",
-              "prop": "Points",
-              "line": "15.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "HIT",
-              "hit": 1,
-              "actual_value": "18.0",
-              "sport": "WNBA"
-            }
+            "actual": 18,
+            "result": "WIN"
           },
           {
             "player": "Breanna Stewart",
+            "pos": "F",
+            "game": "NYL 113 vs LAS 109",
             "prop": "Rebounds",
             "line": 5.5,
             "dir": "OVER",
             "pick": "Goblin",
-            "ui": "WIN",
-            "graded": {
-              "player": "Breanna Stewart",
-              "prop": "Rebounds",
-              "line": "5.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "VOID",
-              "hit": null,
-              "actual_value": "",
-              "sport": "WNBA"
-            }
+            "actual": 4,
+            "result": "LOSS"
           },
           {
             "player": "Awa Fam",
+            "pos": "C",
+            "game": "SEA 95 @ IND 105",
             "prop": "Rebounds",
             "line": 5.5,
             "dir": "OVER",
             "pick": "Goblin",
-            "ui": "LOSS",
-            "graded": {
-              "player": "Awa Fam",
-              "prop": "Rebounds",
-              "line": "5.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "MISS",
-              "hit": 0,
-              "actual_value": "5.0",
-              "sport": "WNBA"
-            }
+            "actual": 5,
+            "result": "LOSS"
           },
           {
             "player": "Jonquel Jones",
+            "pos": "C",
+            "game": "NYL 113 vs LAS 109",
             "prop": "Rebounds",
             "line": 6.5,
             "dir": "OVER",
             "pick": "Goblin",
-            "ui": "LOSS",
-            "graded": {
-              "player": "Jonquel Jones",
-              "prop": "Rebounds",
-              "line": "6.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "VOID",
-              "hit": null,
-              "actual_value": "",
-              "sport": "WNBA"
-            }
+            "actual": 5,
+            "result": "LOSS"
           }
         ]
       },
       {
-        "id": "tennis4_power",
+        "id": "tennis4_goblin_power",
         "sport": "Tennis",
         "n_legs": 4,
         "entry_usd": 20,
         "payout_usd": 36,
         "power_x": 1.8,
-        "result": "WIN_PENDING",
+        "composition": "0S+4G+0D",
+        "result": "WIN",
         "hits": 4,
         "misses": 0,
         "returned_usd": 36,
-        "note": "All 4 legs green on PrizePicks Pending; treating as expected cash pending settlement.",
+        "net_usd": 16,
         "legs": [
           {
-            "player": "Shimabukuro",
-            "ui": "WIN",
-            "graded": {
-              "player": "Sho Shimabukuro",
-              "prop": "Total Games",
-              "line": "17.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "HIT",
-              "hit": 1,
-              "actual_value": "33.0",
-              "sport": "Tennis"
-            }
+            "player": "Sho Shimabukuro",
+            "opp": "Rodrigo Pacheco Mendez",
+            "prop": "Total Games",
+            "line": 17.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "actual": 33,
+            "result": "WIN"
           },
           {
-            "player": "Atmane",
-            "ui": "WIN"
+            "player": "Terence Atmane",
+            "opp": "Frances Tiafoe",
+            "prop": "Total Games Won",
+            "line": 7.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "actual": 16,
+            "result": "WIN"
           },
           {
-            "player": "Tiafoe",
-            "ui": "WIN"
+            "player": "Frances Tiafoe",
+            "opp": "Terence Atmane",
+            "prop": "Total Games",
+            "line": 18.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "actual": 29,
+            "result": "WIN"
           },
           {
-            "player": "Landaluce",
-            "ui": "WIN"
+            "player": "Martin Landaluce",
+            "opp": "Michael Zheng",
+            "prop": "Total Games",
+            "line": 18.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "actual": 19,
+            "result": "WIN"
           }
-        ],
-        "settlement": "PENDING_ALL_GREEN_EXPECTED_WIN"
+        ]
       },
       {
         "id": "tennis2_shimabukuro_kenin",
@@ -167,57 +144,36 @@
         "entry_usd": 20,
         "payout_usd": 30,
         "power_x": 1.5,
+        "composition": "0S+2G+0D",
         "result": "LOSS",
         "hits": 1,
         "misses": 1,
         "returned_usd": 0,
+        "net_usd": -20,
         "legs": [
           {
-            "player": "Shimabukuro",
-            "ui": "WIN",
-            "graded": {
-              "player": "Sho Shimabukuro",
-              "prop": "Total Games",
-              "line": "17.5",
-              "direction": "OVER",
-              "pick_type": "Goblin",
-              "result": "HIT",
-              "hit": 1,
-              "actual_value": "33.0",
-              "sport": "Tennis"
-            }
+            "player": "Sho Shimabukuro",
+            "opp": "Rodrigo Pacheco Mendez",
+            "prop": "Total Games",
+            "line": 17.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "actual": 33,
+            "result": "WIN"
           },
           {
-            "player": "Kenin",
-            "ui": "LOSS"
+            "player": "Sofia Kenin",
+            "opp": "Emma Navarro",
+            "prop": "Total Games Won",
+            "line": 5.5,
+            "dir": "OVER",
+            "pick": "Goblin",
+            "actual": 5,
+            "result": "LOSS"
           }
         ]
       }
-    ],
-    "grader_vs_ui": {
-      "wnba5": {
-        "Emily Engstler": {
-          "ui": "LOSS",
-          "graded": "VOID"
-        },
-        "Kayla McBride": {
-          "ui": "WIN",
-          "graded": "HIT actual 18"
-        },
-        "Breanna Stewart": {
-          "ui": "WIN",
-          "graded": "VOID"
-        },
-        "Awa Fam": {
-          "ui": "LOSS",
-          "graded": "MISS actual 5.0"
-        },
-        "Jonquel Jones": {
-          "ui": "LOSS",
-          "graded": "VOID"
-        }
-      }
-    }
+    ]
   },
   "proporacle_ticket_book": {
     "date": "2026-07-28",
@@ -230,22 +186,13 @@
     "win_rate_pct": 57.3,
     "net_on_10_flat_usd": -71.48,
     "stake_flat_usd": 890,
-    "summary_line": "\u2212$71.48 net on $890 ($10 flat) \u2014 loss; Wins 51; 57% win rate",
-    "by_family_approx": {
-      "Goblin/Winrate/won": 37,
-      "Goblin/Winrate/lost": 34,
-      "STRONG/won": 14,
-      "Goblin/Winrate/void-loss": 7,
-      "STRONG/lost": 4,
-      "STRONG/void-loss": 3,
-      "Goblin/Winrate/void-slip": 1
-    }
+    "summary_line": "−$71.48 net on $890 ($10 flat) — loss; Wins 51; 57% win rate"
   },
   "notes": [
-    "WNBA 5-pick user-built all-Goblin OVER; Stewart 5.5 / Fam 5.5 / Jones 6.5 differed from board alts.",
-    "Tennis 4-pick all green on Pending \u2014 logged as expected WIN $36 pending settlement.",
-    "Tennis 2-pick lost on Kenin.",
-    "PrizePicks UI is ground truth for personal slips. Internal graded_props marked Engstler/Stewart/Jones as VOID while PP showed Engstler/Jones red and Stewart green \u2014 grader lag/void mismatch; do not override UI.",
-    "Fam graded MISS (5.0 actual vs 5.5 OVER). McBride HIT (18.0). Shimabukuro HIT (33.0 vs 17.5 goblin). Atmane/Tiafoe/Landaluce/Kenin not found in graded_props_2026-07-28.json."
+    "Full personal book for 2026-07-28: exactly these 3 tickets.",
+    "WNBA5 final: Engstler 7 and McBride 18 hit; Stewart 4 / Fam 5 / Jones 5 missed reb overs.",
+    "Earlier open-lineup glance had Stewart as green — final slip corrects Stewart to LOSS (4 vs 5.5).",
+    "Tennis4 cashed $36 (Landaluce 19 barely cleared 18.5).",
+    "Tennis2 lost on Kenin 5 vs 5.5 Games Won."
   ]
 }

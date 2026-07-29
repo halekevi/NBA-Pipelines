@@ -4,10 +4,9 @@
   Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with
   -SkipFetch -SkipLivePayoutCapture, then an incremental payout UPDATE (only-missing live floors).
 .NOTES
-  Scheduled via PropOracle - Refresh 9AM / 1030AM / 1PM (run_refresh_with_log.ps1).
-  Legacy PropORACLE_NBA_LateFetch / Refresh 11AM tasks should be removed.
+  Scheduled via PropOracle - Daily 8AM / Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
   First full fetch is Daily 5AM; these refreshes are line-move updates.
-  MAIN payout CDP is 5AM STEP D-payout; midday only fills new/missing slips (-UpdateOnly).
+  MAIN payout CDP is PropOracle - Payout CDP @ 11:00 (after 10:30 refresh); midday only fills new/missing slips (-UpdateOnly).
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>
@@ -64,12 +63,30 @@ Write-Host "[LATE_FETCH] Starting full slate re-fetch $(Get-Date -Format 'yyyy-M
 $PipeDate = Resolve-PipelineSlateDate
 Write-Host "[LATE_FETCH] Pipeline slate date: $PipeDate" -ForegroundColor Cyan
 
+# Keep in sync with run_pipeline.ps1 summer off-season gates. Fetching off-season
+# boards burns retries on 403s and can hang the whole refresh cadence for hours.
+$NBA_SEASON_RESUME = "2026-10-01"
+$NHL_SEASON_RESUME = "2026-09-01"
+$NBAOffSeason = ([datetime]::ParseExact($PipeDate, "yyyy-MM-dd", $null) -lt [datetime]::ParseExact($NBA_SEASON_RESUME, "yyyy-MM-dd", $null))
+$NHLOffSeason = ([datetime]::ParseExact($PipeDate, "yyyy-MM-dd", $null) -lt [datetime]::ParseExact($NHL_SEASON_RESUME, "yyyy-MM-dd", $null))
+
 function Get-VersionedPath([string]$Path) {
     $dir = Split-Path -Parent $Path
     # Never drop *.bak_* next to live templates (Flask/OneDrive thrash).
     $templatesDir = Join-Path $Root "ui_runner\templates"
     if ($dir -and ($dir -eq $templatesDir -or $dir.StartsWith(($templatesDir.TrimEnd('\') + '\')))) {
         $dir = Join-Path $Root "ui_runner\data\backups"
+        if (-not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+    }
+    # Sport-root live pointers: archive NoOverwrite baks under data/historical.
+    $sportsDir = Join-Path $Root "Sports"
+    $sportsPrefix = $sportsDir.TrimEnd('\') + '\'
+    if ($dir -and ($dir -eq $sportsDir -or $dir.StartsWith($sportsPrefix))) {
+        $rel = if ($dir.StartsWith($sportsPrefix)) { $dir.Substring($sportsPrefix.Length) } else { "" }
+        $sportName = if ($rel) { ($rel -split '[\\/]', 2)[0] } else { "misc" }
+        $dir = Join-Path $Root "data\historical\sport_root_backups\$sportName"
         if (-not (Test-Path $dir)) {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
         }
@@ -115,10 +132,64 @@ function Get-CsvDataRowCount([string]$CsvPath) {
 function Resolve-LateFetchMaxRetries {
     param([string]$Label)
     $lbl = "$Label".Trim()
+    # Cap HTTP retries low — 5 boards × multi-wave 403 cooldowns was hanging Soccer
+    # (and blocking MLB) for 30–120+ minutes during morning refresh.
+    if ($lbl -match '^(MANUAL_FULL|MANUAL_RECOVERY)') { return 5 }
     if ($lbl -match '^(MANUAL_1800|MANUAL_1[3-9]|1PM|2PM|3PM)') { return 2 }
-    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM)') { return 3 }
-    return 5
+    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM|1030AM|8AM|MANUAL_CDP)') { return 2 }
+    return 2
 }
+
+function Test-LateFetchCdp {
+    param([string]$BaseUrl = "http://127.0.0.1:9222")
+    try {
+        $u = ($BaseUrl.TrimEnd("/")) + "/json/version"
+        $null = Invoke-RestMethod -Uri $u -TimeoutSec 2 -ErrorAction Stop
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function Stop-ProcessTree {
+    param([int]$ProcessId)
+    try {
+        Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.ParentProcessId -eq $ProcessId } |
+            ForEach-Object { Stop-ProcessTree -ProcessId ([int]$_.ProcessId) }
+    }
+    catch { }
+    try { Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue } catch { }
+}
+
+function Invoke-TimedCommand {
+    param(
+        [string]$Label,
+        [string]$FilePath,
+        [string[]]$ArgumentList,
+        [string]$WorkingDirectory,
+        [int]$TimeoutSec
+    )
+    Write-Host "[LATE_FETCH] $Label (timeout ${TimeoutSec}s)..." -ForegroundColor DarkGray
+    $p = Start-Process -FilePath $FilePath `
+        -ArgumentList $ArgumentList `
+        -WorkingDirectory $WorkingDirectory `
+        -NoNewWindow -PassThru
+    if (-not $p) {
+        Write-Host "[LATE_FETCH] $Label failed to start" -ForegroundColor Red
+        return 1
+    }
+    $finished = $p.WaitForExit([Math]::Max(5, $TimeoutSec) * 1000)
+    if (-not $finished) {
+        Write-Host "[LATE_FETCH] $Label timed out after ${TimeoutSec}s — killing process tree" -ForegroundColor Yellow
+        Stop-ProcessTree -ProcessId $p.Id
+        try { $p.Refresh() } catch { }
+        return 124
+    }
+    return [int]$p.ExitCode
+}
+
 
 function Resolve-Step1MorningFallback {
     param(
@@ -146,46 +217,56 @@ function Resolve-Step1MorningFallback {
 
 $MaxRetries = Resolve-LateFetchMaxRetries -Label $RunLabel
 $Quiet403 = ($MaxRetries -le 2)
+$CdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+$CdpReachable = Test-LateFetchCdp -BaseUrl $CdpUrl
 if ($RunLabel) {
-    Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403" -ForegroundColor DarkGray
+    Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray
+}
+else {
+    Write-Host "[LATE_FETCH] max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray
 }
 
 # NBA — append; dated output + legacy mirror
-Write-Host "[LATE_FETCH] Fetching NBA props (append)..."
-$NBADir = Join-Path $SportsRoot "NBA"
-$nbaRunOut = Ensure-RunOutDir -SportTag "nba"
-$nbaStep1 = Join-Path $nbaRunOut "step1_pp_props_today.csv"
-$nbaLegacy = Join-Path $NBADir "data\outputs\step1_pp_props_today.csv"
-$nbaArgs = @(
-    "--league_id", "7",
-    "--game_mode", "pickem",
-    "--per_page", "250",
-    "--max_pages", "3",
-    "--retries", "$MaxRetries",
-    "--sleep", "2.0",
-    "--cooldown_seconds", "180",
-    "--max_cooldowns", "4",
-    "--jitter_seconds", "14.0",
-    "--append",
-    "--date", $PipeDate,
-    "--allow-nearest-future",
-    "--output", $nbaStep1
-)
-Push-Location $NBADir
-try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_api.py" @nbaArgs
-}
-finally {
-    Pop-Location
-}
-if ($LASTEXITCODE -ne 0) {
-    [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
-}
-elseif ((Get-CsvDataRowCount -CsvPath $nbaStep1) -gt 0) {
-    Copy-Step1Mirror -Source $nbaStep1 -MirrorPath $nbaLegacy
+if ($NBAOffSeason) {
+    Write-Host "[LATE_FETCH] Skipping NBA fetch (off-season until $NBA_SEASON_RESUME)" -ForegroundColor DarkGray
 }
 else {
-    [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    Write-Host "[LATE_FETCH] Fetching NBA props (append)..."
+    $NBADir = Join-Path $SportsRoot "NBA"
+    $nbaRunOut = Ensure-RunOutDir -SportTag "nba"
+    $nbaStep1 = Join-Path $nbaRunOut "step1_pp_props_today.csv"
+    $nbaLegacy = Join-Path $NBADir "data\outputs\step1_pp_props_today.csv"
+    $nbaArgs = @(
+        "--league_id", "7",
+        "--game_mode", "pickem",
+        "--per_page", "250",
+        "--max_pages", "3",
+        "--retries", "$MaxRetries",
+        "--sleep", "2.0",
+        "--cooldown_seconds", "180",
+        "--max_cooldowns", "4",
+        "--jitter_seconds", "14.0",
+        "--append",
+        "--date", $PipeDate,
+        "--allow-nearest-future",
+        "--output", $nbaStep1
+    )
+    Push-Location $NBADir
+    try {
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_api.py" @nbaArgs
+    }
+    finally {
+        Pop-Location
+    }
+    if ($LASTEXITCODE -ne 0) {
+        [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
+    elseif ((Get-CsvDataRowCount -CsvPath $nbaStep1) -gt 0) {
+        Copy-Step1Mirror -Source $nbaStep1 -MirrorPath $nbaLegacy
+    }
+    else {
+        [void](Resolve-Step1MorningFallback -Sport "NBA" -Step1Path $nbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
 }
 
 # WNBA — full step1 fetch into dated folder (pipeline -SkipFetch reads this path)
@@ -193,11 +274,17 @@ Write-Host "[LATE_FETCH] Fetching WNBA props..."
 $wnbaPs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
 $wnbaStep1 = Join-Path (Ensure-RunOutDir -SportTag "wnba") "step1_wnba_props.csv"
 if (Test-Path -LiteralPath $wnbaPs1) {
-    $wnbaArgs = @("-Date", $PipeDate, "-Step1Only", "-Max403Retries", $MaxRetries)
+    $wnbaArgs = @("-NoProfile", "-File", $wnbaPs1, "-Date", $PipeDate, "-Step1Only", "-Max403Retries", "$MaxRetries")
     if ($Quiet403) { $wnbaArgs += "-Quiet403" }
-    if ($RunLabel -match '^MANUAL_CDP') { $wnbaArgs += "-CdpWhenListening" }
-    & pwsh -NoProfile -File $wnbaPs1 @wnbaArgs
-    $wnbaFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
+    # Prefer CDP whenever Chrome is listening — not only MANUAL_CDP labels.
+    # HTTP-first with high retries was hanging refreshes on DataDome.
+    if ($CdpReachable) {
+        $wnbaArgs += "-CdpWhenListening"
+        Write-Host "[LATE_FETCH] WNBA: CDP reachable — browser-first" -ForegroundColor DarkGray
+    }
+    $wnbaTimeout = if ($CdpReachable) { 240 } else { 180 }
+    $wnbaExit = Invoke-TimedCommand -Label "WNBA step1" -FilePath "pwsh" -ArgumentList $wnbaArgs -WorkingDirectory $Root -TimeoutSec $wnbaTimeout
+    $wnbaFailed = ($wnbaExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
     if ($wnbaFailed) {
         [void](Resolve-Step1MorningFallback -Sport "WNBA" -Step1Path $wnbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
     }
@@ -207,38 +294,47 @@ else {
 }
 
 # NHL — append
-Write-Host "[LATE_FETCH] Fetching NHL props (append)..."
-$NHLDir = Join-Path $SportsRoot "NHL"
-$nhlRunOut = Ensure-RunOutDir -SportTag "nhl"
-$nhlStep1 = Join-Path $nhlRunOut "step1_nhl_props.csv"
-Push-Location $NHLDir
-try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--date" "$PipeDate" "--output" $nhlStep1 "--max-retries" "$MaxRetries"
+if ($NHLOffSeason) {
+    Write-Host "[LATE_FETCH] Skipping NHL fetch (off-season until $NHL_SEASON_RESUME)" -ForegroundColor DarkGray
 }
-finally {
-    Pop-Location
-}
-$nhlFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nhlStep1) -eq 0)
-if ($nhlFailed) {
-    [void](Resolve-Step1MorningFallback -Sport "NHL" -Step1Path $nhlStep1 -MaxRetries $MaxRetries -FetchFailed $true)
-}
-elseif ((Get-CsvDataRowCount -CsvPath $nhlStep1) -gt 0) {
-    Copy-Step1Mirror -Source $nhlStep1 -MirrorPath (Join-Path $NHLDir "outputs\step1_nhl_props.csv")
+else {
+    Write-Host "[LATE_FETCH] Fetching NHL props (append)..."
+    $NHLDir = Join-Path $SportsRoot "NHL"
+    $nhlRunOut = Ensure-RunOutDir -SportTag "nhl"
+    $nhlStep1 = Join-Path $nhlRunOut "step1_nhl_props.csv"
+    Push-Location $NHLDir
+    try {
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--date" "$PipeDate" "--output" $nhlStep1 "--max-retries" "$MaxRetries"
+    }
+    finally {
+        Pop-Location
+    }
+    $nhlFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nhlStep1) -eq 0)
+    if ($nhlFailed) {
+        [void](Resolve-Step1MorningFallback -Sport "NHL" -Step1Path $nhlStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
+    elseif ((Get-CsvDataRowCount -CsvPath $nhlStep1) -gt 0) {
+        Copy-Step1Mirror -Source $nhlStep1 -MirrorPath (Join-Path $NHLDir "outputs\step1_nhl_props.csv")
+    }
 }
 
-# Soccer
+# Soccer — CDP when available; otherwise fail-fast HTTP (never multi-board 90s cooldown stacks)
 Write-Host "[LATE_FETCH] Fetching Soccer props (append)..."
 $SoccerDir = Join-Path $SportsRoot "Soccer"
 $soccerRunOut = Ensure-RunOutDir -SportTag "soccer"
 $soccerStep1 = Join-Path $soccerRunOut "step1_soccer_props.csv"
-Push-Location $SoccerDir
-try {
-    & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--date" "$PipeDate" "--output" $soccerStep1 "--max-retries" "$MaxRetries"
+$soccerArgs = @(
+    "-3.14", ".\scripts\step1_fetch_prizepicks_soccer.py",
+    "--append", "--date", "$PipeDate", "--output", $soccerStep1,
+    "--max-retries", "$MaxRetries", "--fail-fast"
+)
+if ($CdpReachable) {
+    $soccerArgs += @("--cdp", $CdpUrl)
+    Write-Host "[LATE_FETCH] Soccer: CDP reachable — in-page fetch" -ForegroundColor DarkGray
 }
-finally {
-    Pop-Location
-}
-$soccerFailed = ($LASTEXITCODE -ne 0) -or ((Get-CsvDataRowCount -CsvPath $soccerStep1) -eq 0)
+$soccerTimeout = if ($CdpReachable) { 240 } else { 150 }
+$soccerExit = Invoke-TimedCommand -Label "Soccer step1" -FilePath "py" -ArgumentList $soccerArgs -WorkingDirectory $SoccerDir -TimeoutSec $soccerTimeout
+$soccerFailed = ($soccerExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $soccerStep1) -eq 0)
 if ($soccerFailed) {
     [void](Resolve-Step1MorningFallback -Sport "Soccer" -Step1Path $soccerStep1 -MaxRetries $MaxRetries -FetchFailed $true)
 }
@@ -246,8 +342,36 @@ elseif ((Get-CsvDataRowCount -CsvPath $soccerStep1) -gt 0) {
     Copy-Step1Mirror -Source $soccerStep1 -MirrorPath (Join-Path $SoccerDir "outputs\step1_soccer_props.csv")
 }
 
-# MLB — HTTP first (curl_cffi chrome131), then CDP, then Playwright (all --append)
-Write-Host "[LATE_FETCH] Fetching MLB props (append; HTTP → CDP → Playwright)..." -ForegroundColor Cyan
+# Tennis — CDP when available; otherwise fail-fast HTTP (was hanging morning refreshes)
+Write-Host "[LATE_FETCH] Fetching Tennis props..."
+$TennisDir = Join-Path $SportsRoot "Tennis"
+$tennisRunOut = Ensure-RunOutDir -SportTag "tennis"
+$tennisStep1 = Join-Path $tennisRunOut "step1_tennis_props.csv"
+$tennisArgs = @(
+    "-3.14", ".\scripts\step1_fetch_prizepicks_tennis.py",
+    "--league_id", "5",
+    "--output", $tennisStep1,
+    "--retries", "$MaxRetries",
+    "--fail-fast",
+    "--replace"
+)
+if ($CdpReachable) {
+    $tennisArgs += @("--cdp", $CdpUrl)
+    Write-Host "[LATE_FETCH] Tennis: CDP reachable — in-page fetch" -ForegroundColor DarkGray
+}
+$tennisTimeout = if ($CdpReachable) { 240 } else { 150 }
+$tennisExit = Invoke-TimedCommand -Label "Tennis step1" -FilePath "py" -ArgumentList $tennisArgs -WorkingDirectory $TennisDir -TimeoutSec $tennisTimeout
+$tennisFailed = ($tennisExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $tennisStep1) -eq 0)
+if ($tennisFailed) {
+    [void](Resolve-Step1MorningFallback -Sport "Tennis" -Step1Path $tennisStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+}
+elseif ((Get-CsvDataRowCount -CsvPath $tennisStep1) -gt 0) {
+    Copy-Step1Mirror -Source $tennisStep1 -MirrorPath (Join-Path $TennisDir "outputs\step1_tennis_props.csv")
+}
+
+# MLB — CDP-first when Chrome is listening (same DataDome pattern as WNBA).
+# HTTP full waves only when CDP is down; never burn 20–40 min of 403 stacks with CDP already up.
+Write-Host "[LATE_FETCH] Fetching MLB props (append)..." -ForegroundColor Cyan
 $MLBDir = Join-Path $SportsRoot "MLB"
 $mlbRunOut = Ensure-RunOutDir -SportTag "mlb"
 $mlbStep1 = Join-Path $mlbRunOut "step1_mlb_props.csv"
@@ -265,37 +389,39 @@ $mlbHttpArgs = @(
     "--api-403-cooldown-jitter-max", "40",
     "--append"
 )
-$mlbCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-$mlbCdpReachable = $false
-try {
-    $mlbCdpProbe = Invoke-RestMethod -Uri "$mlbCdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
-    if ($mlbCdpProbe) { $mlbCdpReachable = $true }
+$mlbCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { $CdpUrl }
+$mlbCdpReachable = $CdpReachable
+if (-not $mlbCdpReachable) {
+    try {
+        $mlbCdpProbe = Invoke-RestMethod -Uri "$mlbCdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
+        if ($mlbCdpProbe) { $mlbCdpReachable = $true }
+    }
+    catch { $mlbCdpReachable = $false }
 }
-catch { $mlbCdpReachable = $false }
 
 Push-Location $MLBDir
 try {
-    & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @mlbHttpArgs
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[LATE_FETCH] MLB HTTP step1 failed (exit $LASTEXITCODE) — trying CDP" -ForegroundColor Yellow
-        if ($mlbCdpReachable) {
-            Write-Host "[LATE_FETCH] MLB CDP attach: $mlbCdpUrl" -ForegroundColor DarkGray
-            & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
-                "--cdp" $mlbCdpUrl `
-                "--timeout" "120" `
-                "--retries" "1" `
-                "--retry_delay" "5" `
-                "--append" `
-                "--date" "$PipeDate" `
-                "--output" $mlbStep1
+    if ($mlbCdpReachable) {
+        Write-Host "[LATE_FETCH] MLB: CDP reachable — browser-first ($mlbCdpUrl)" -ForegroundColor DarkGray
+        & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
+            "--cdp" $mlbCdpUrl `
+            "--timeout" "120" `
+            "--retries" "1" `
+            "--retry_delay" "5" `
+            "--append" `
+            "--date" "$PipeDate" `
+            "--output" $mlbStep1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[LATE_FETCH] MLB CDP failed (exit $LASTEXITCODE) — HTTP fallback (full 403 backoff)" -ForegroundColor Yellow
+            & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @mlbHttpArgs
         }
     }
+    else {
+        Write-Host "[LATE_FETCH] MLB: CDP down — HTTP first (full 403 backoff)" -ForegroundColor DarkGray
+        & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @mlbHttpArgs
+    }
     if ($LASTEXITCODE -ne 0) {
-        if (-not $mlbCdpReachable) {
-            Write-Host "[LATE_FETCH] MLB CDP not reachable — trying Playwright" -ForegroundColor Yellow
-        } else {
-            Write-Host "[LATE_FETCH] MLB CDP step1 failed (exit $LASTEXITCODE) — trying Playwright" -ForegroundColor Yellow
-        }
+        Write-Host "[LATE_FETCH] MLB falling back to Playwright" -ForegroundColor Yellow
         & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
             "--playwright" `
             "--timeout" "240" `
@@ -325,9 +451,17 @@ if (-not (Test-Path $pipeScript)) {
     exit 1
 }
 
-Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -Date $PipeDate..."
+# Mid-day refresh: lower ticket-gen (5AM keeps default 64). Cuts combined rebuild wall time hard.
+$middayTicketStarts = 16
+if ($env:PROPORACLE_REFRESH_TICKET_GEN_STARTS) {
+    $parsedStarts = 0
+    if ([int]::TryParse("$($env:PROPORACLE_REFRESH_TICKET_GEN_STARTS)".Trim(), [ref]$parsedStarts) -and $parsedStarts -gt 0) {
+        $middayTicketStarts = $parsedStarts
+    }
+}
+Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -TicketGenStarts $middayTicketStarts -Date $PipeDate..."
 # Pipeline skips embedded CDP; after tickets we run an incremental payout UPDATE
-# (only slips missing live_cdp). MAIN full capture stays on 5AM STEP D-payout.
+# (only slips missing live_cdp). MAIN full capture is PropOracle - Payout CDP @ 11:00 (after 10:30).
 if ($NoOverwrite) {
     $preserveTargets = @(
         (Join-Path $Root "outputs\$PipeDate\combined_slate_tickets_$PipeDate.xlsx"),
@@ -348,7 +482,7 @@ if ($NoOverwrite) {
         Preserve-ExistingFile -Path $pt -Reason "pre-LATE_FETCH pipeline snapshot"
     }
 }
-& pwsh -NoProfile -File $pipeScript -SkipFetch -SkipLivePayoutCapture -Date $PipeDate
+& pwsh -NoProfile -File $pipeScript -SkipFetch -SkipLivePayoutCapture -TicketGenStarts $middayTicketStarts -Date $PipeDate
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[LATE_FETCH] Pipeline failed (exit $LASTEXITCODE)" -ForegroundColor Red
     exit 1

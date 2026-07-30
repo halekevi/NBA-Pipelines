@@ -1,7 +1,7 @@
 # ============================================================
 #  Register_Daily_Task.ps1
 #  PropOracle automation scheduler:
-#   - 12:00 AM / 1:00 AM  grader (yesterday; late results)
+#   - 1:00 AM  overnight grader (yesterday; late results) — single overnight slot
 #   - 3:00 AM  light tennis fetch only (NO ticket/web publish — 5AM owns the board)
 #   - 5:00 AM  first full daily (grade yesterday + multi-sport fetch + web; NO live CDP)
 #   - 8:00 AM  line-move refresh
@@ -57,12 +57,13 @@ $LegacyTasksToRemove = @(
     "PropOracle - Grader 5AM",
     "PropOracle - Daily 7AM",
     "PropOracle - Refresh 11AM",
-    # Early evening graders removed — keep only midnight + 1AM
+    # Early / extra overnight graders removed — keep only 1AM (+ grade inside Daily 5AM)
     "PropOracle - Grader 7PM",
     "PropOracle - Grader 8PM",
     "PropOracle - Grader 9PM",
     "PropOracle - Grader 10PM",
-    "PropOracle - Grader 11PM"
+    "PropOracle - Grader 11PM",
+    "PropOracle - Grader 12AM"
 )
 foreach ($legacy in $LegacyTasksToRemove) {
     $existing = Get-ScheduledTask -TaskName $legacy -ErrorAction SilentlyContinue
@@ -134,10 +135,9 @@ Register-PropTask `
     -ScriptPath $Script5 `
     -At "05:00"
 
-# Overnight graders only (yesterday slate; late results). No 7PM–11PM.
+# Single overnight grader (yesterday slate; late results). Final grade also runs inside Daily 5AM.
 $EveningGraderTasks = @(
-    @{ Name = "PropOracle - Grader 12AM"; At = "00:00" },
-    @{ Name = "PropOracle - Grader 1AM";  At = "01:00" }
+    @{ Name = "PropOracle - Grader 1AM"; At = "01:00" }
 )
 foreach ($eg in $EveningGraderTasks) {
     Register-PropTask `
@@ -205,12 +205,11 @@ Write-Host "  - PropOracle - Payout CDP (11:00 catchup)"
 Write-Host "  - PropOracle - Payout CDP Update (15:00 catchup)"
 Write-Host "  - PropOracle - Refresh 1PM (refresh + Force CDP)"
 Write-Host ""
-Write-Host "Removed early graders: 7PM / 8PM / 9PM / 10PM / 11PM" -ForegroundColor Yellow
+Write-Host "Removed extra graders: 7PM–12AM (keep 1AM + Daily 5AM grade only)" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM' | Select LastRunTime, LastTaskResult, NextRunTime"
-Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Grader 12AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Grader 1AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Payout CDP' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host ""

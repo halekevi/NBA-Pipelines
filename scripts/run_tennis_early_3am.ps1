@@ -9,7 +9,7 @@
   - Does NOT rebuild/publish tickets_latest — that used to stomp the overnight board
     before Daily 5AM owned the full multi-sport publish.
   - First full multi-sport daily is at 5:00 AM (run_daily_5am.ps1).
-  - Overnight graders: midnight + 1AM only (no 7PM–11PM).
+  - Overnight grader: 1AM only (plus grade inside Daily 5AM).
 
   Register via scripts\Register_Daily_Task.ps1 (task: PropOracle - Tennis Early 3AM).
 #>

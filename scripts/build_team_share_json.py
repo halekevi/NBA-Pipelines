@@ -18,7 +18,18 @@ if str(ROOT) not in sys.path:
 
 from utils.team_share import share_artifact_path, write_sport_share
 
-DEFAULT_SPORTS = ["wnba", "nba", "cbb", "wcbb", "mlb", "nhl", "tennis", "soccer", "nfl"]
+DEFAULT_SPORTS = [
+    "wnba",
+    "nba",
+    "cbb",
+    "wcbb",
+    "cfb",
+    "mlb",
+    "nhl",
+    "nfl",
+    "tennis",
+    "soccer",
+]
 
 
 def main() -> int:

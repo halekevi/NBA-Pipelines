@@ -5,13 +5,14 @@ Used by Matchup Edge enrichment and scripts/build_team_share_json.py.
 
 Feasible sports:
   wnba, nba, cbb, wcbb — full basketball boxscore share
+  cfb / ncaaf — pass/rush/rec yard share from cfb_boxscore_cache (ready for season)
   mlb — partial (hitter counting stats via long-format cache)
   nhl — partial (from proporacle_ref.db nhl table when present)
 
-Skipped:
+Skipped / deferred:
   tennis — no team
   soccer — weak/no TEAM on primary cache (defer)
-  nfl — boxscore cache often missing offseason
+  nfl — same football share path as CFB once nfl_boxscore_cache.csv exists
 """
 from __future__ import annotations
 
@@ -52,6 +53,14 @@ CAT_ID_TO_PROP: dict[str, str] = {
     "doubles": "Doubles",
     "sb": "Stolen Bases",
     "bb": "Walks",
+    # Football (CFB / NFL)
+    "pass_yds": "Pass Yards",
+    "rush_yds": "Rush Yards",
+    "rec_yds": "Receiving Yards",
+    "pass_td": "Pass TDs",
+    "rush_td": "Rush TDs",
+    "rec_td": "Receiving TDs",
+    "receptions": "Receptions",
 }
 
 SLATE_PROP_TO_SHARE: dict[str, str] = {
@@ -88,6 +97,18 @@ SLATE_PROP_TO_SHARE: dict[str, str] = {
     "doubles": "Doubles",
     "stolen bases": "Stolen Bases",
     "walks": "Walks",
+    "pass yards": "Pass Yards",
+    "passing yards": "Pass Yards",
+    "rush yards": "Rush Yards",
+    "rushing yards": "Rush Yards",
+    "receiving yards": "Receiving Yards",
+    "rec yards": "Receiving Yards",
+    "receptions": "Receptions",
+    "pass tds": "Pass TDs",
+    "passing touchdowns": "Pass TDs",
+    "rush tds": "Rush TDs",
+    "rushing touchdowns": "Rush TDs",
+    "receiving touchdowns": "Receiving TDs",
 }
 
 
@@ -112,6 +133,9 @@ def share_artifact_path(sport: str, repo: Path | None = None) -> Path:
         "wcbb": root / "Sports/CBB/data/wcbb_team_share.json",
         "mlb": root / "Sports/MLB/data/mlb_team_share.json",
         "nhl": root / "Sports/NHL/data/nhl_team_share.json",
+        "cfb": root / "Sports/CFB/data/cfb_team_share.json",
+        "ncaaf": root / "Sports/CFB/data/cfb_team_share.json",
+        "nfl": root / "Sports/NFL/data/nfl_team_share.json",
     }
     return mapping.get(sport, root / f"data/{sport}_team_share.json")
 
@@ -663,6 +687,170 @@ def build_nhl_share(repo: Path | None = None) -> dict[str, Any]:
     }
 
 
+def _football_team_id_map(root: Path, *, league: str) -> dict[str, str]:
+    """team_id -> abbr. Prefer CFB unit rankings; fall back to T{id}."""
+    out: dict[str, str] = {}
+    if league in ("cfb", "ncaaf"):
+        path = root / "Sports/CFB/data/reference/cfb_team_unit_rankings.csv"
+        if path.exists():
+            d = pd.read_csv(path, usecols=["team_id", "team_abbr"])
+            d["team_id"] = d["team_id"].astype(str)
+            d["team_abbr"] = d["team_abbr"].astype(str).str.strip().str.upper()
+            out.update(dict(zip(d["team_id"], d["team_abbr"])))
+    return out
+
+
+def build_football_share(
+    repo: Path | None = None,
+    *,
+    league: str = "cfb",
+    season: int | None = None,
+) -> dict[str, Any]:
+    """Pass / rush / receiving yard (and TD/REC) share for CFB or NFL.
+
+    CFB cache exists year-round from prior seasons — keep rebuilt so NCAAF is
+    ready when the slate goes active. NFL uses the same schema once
+    Sports/NFL/data/cache/nfl_boxscore_cache.csv is present.
+    """
+    root = repo or _REPO
+    sport = "cfb" if league in ("cfb", "ncaaf") else "nfl"
+    if sport == "cfb":
+        path = root / "Sports/CFB/data/cache/cfb_boxscore_cache.csv"
+    else:
+        path = root / "Sports/NFL/data/cache/nfl_boxscore_cache.csv"
+    if not path.exists():
+        return {
+            "sport": sport,
+            "applicable": False,
+            "reason": f"missing {path.name} — rebuild when {sport.upper()} season is active.",
+            "by_player": {},
+            "team_averages": {},
+        }
+
+    df = pd.read_csv(path)
+    if "SEASON" in df.columns and season is not None:
+        df = df[pd.to_numeric(df["SEASON"], errors="coerce") == int(season)].copy()
+    elif "SEASON" in df.columns and not df.empty:
+        # Prefer latest season in cache (keeps CFB ready between seasons)
+        latest = int(pd.to_numeric(df["SEASON"], errors="coerce").max())
+        df = df[pd.to_numeric(df["SEASON"], errors="coerce") == latest].copy()
+        season = latest
+
+    id_map = _football_team_id_map(root, league=sport)
+    df["team_id"] = df["team_id"].astype(str)
+    df["TEAM"] = df["team_id"].map(lambda i: id_map.get(str(i), f"T{i}"))
+    df["PLAYER"] = df["player_norm"].astype(str).str.title()
+    df["PLAYER_NORM"] = df["player_norm"].map(_norm_name)
+    df["event_id"] = df["event_id"].astype(str)
+
+    col_map = {
+        "Pass Yards": "PASS_YDS",
+        "Rush Yards": "RUSH_YDS",
+        "Receiving Yards": "REC_YDS",
+        "Receptions": "REC",
+        "Pass TDs": "PASS_TD",
+        "Rush TDs": "RUSH_TD",
+        "Receiving TDs": "REC_TD",
+    }
+    for src in col_map.values():
+        if src not in df.columns:
+            df[src] = 0.0
+        df[src] = pd.to_numeric(df[src], errors="coerce").fillna(0.0)
+
+    props = [name for name, col in col_map.items() if float(df[col].sum()) > 0]
+    if not props:
+        return {
+            "sport": sport,
+            "applicable": False,
+            "reason": "no football counting stats in cache",
+            "by_player": {},
+            "team_averages": {},
+        }
+
+    # Activity proxy when MIN is missing/zero for all
+    activity = df[[col_map[p] for p in props]].sum(axis=1)
+    if "MIN" in df.columns:
+        df["MIN"] = pd.to_numeric(df["MIN"], errors="coerce").fillna(0.0)
+        df.loc[df["MIN"] <= 0, "MIN"] = np.where(activity > 0, 1.0, 0.0)
+    else:
+        df["MIN"] = np.where(activity > 0, 1.0, 0.0)
+
+    cols = [col_map[p] for p in props]
+    tgt = df.groupby(["TEAM", "event_id"], as_index=False)[cols].sum()
+    team_avg = tgt.groupby("TEAM", as_index=False).agg(
+        games=("event_id", "nunique"), **{c: (c, "mean") for c in cols}
+    )
+    played = df[df["MIN"] > 0]
+    pavg = played.groupby(["TEAM", "PLAYER", "PLAYER_NORM"], as_index=False).agg(
+        games=("event_id", "nunique"),
+        MIN=("MIN", "mean"),
+        **{c: (c, "mean") for c in cols},
+    )
+
+    by_player: dict[str, Any] = {}
+    team_avgs_out: dict[str, Any] = {}
+    leaders: dict[str, Any] = {}
+    for _, tr in team_avg.iterrows():
+        team = str(tr["TEAM"])
+        team_avgs_out[team] = {
+            "games": int(tr["games"]),
+            **{name: round(float(tr[col_map[name]]), 2) for name in props},
+        }
+        leaders[team] = {}
+
+    merged = pavg.merge(team_avg, on="TEAM", suffixes=("", "_TEAM"))
+    min_games = 3 if sport == "cfb" else 4
+    for _, r in merged.iterrows():
+        if int(r["games"]) < min_games:
+            continue
+        team = str(r["TEAM"])
+        pn = str(r["PLAYER_NORM"])
+        for name in props:
+            col = col_map[name]
+            pval = float(r[col])
+            tval = float(r.get(f"{col}_TEAM", np.nan))
+            if not np.isfinite(tval) or tval <= 0:
+                continue
+            # Skip near-zero specialists for pass yards monopoly noise? keep all
+            rec = {
+                "player": str(r["PLAYER"]),
+                "player_norm": pn,
+                "team": team,
+                "prop": name,
+                "player_avg": round(pval, 2),
+                "team_avg": round(tval, 2),
+                "share_pct": round(100.0 * pval / tval, 1),
+                "games": int(r["games"]),
+                "min_avg": round(float(r["MIN"]), 1) if np.isfinite(r["MIN"]) else None,
+            }
+            by_player[f"{team}|{pn}|{name}"] = rec
+            leaders.setdefault(team, {}).setdefault(name, []).append(rec)
+
+    for team, props_d in leaders.items():
+        for prop, rows in props_d.items():
+            rows.sort(key=lambda x: -x["share_pct"])
+            leaders[team][prop] = rows[:10]
+
+    return {
+        "sport": sport,
+        "season": season,
+        "source": str(path.relative_to(root)),
+        "applicable": True,
+        "note": (
+            "NCAAF/CFB ready: Pass/Rush/Rec yards (+ TDs/REC) as % of team game totals. "
+            "Pass yards share is usually near-QB monopoly — still useful vs inflated Demon lines. "
+            "Refresh cache when the new season starts."
+        ),
+        "team_averages": team_avgs_out,
+        "leaders": leaders,
+        "by_player": by_player,
+        "props": props,
+        "team_aliases": {},
+        "player_count": len({k.split("|")[1] for k in by_player}),
+        "team_count": len(team_avgs_out),
+    }
+
+
 def build_sport_share(sport: str, repo: Path | None = None) -> dict[str, Any]:
     s = str(sport or "").strip().lower()
     if s == "wnba":
@@ -677,6 +865,10 @@ def build_sport_share(sport: str, repo: Path | None = None) -> dict[str, Any]:
         return build_mlb_share(repo)
     if s == "nhl":
         return build_nhl_share(repo)
+    if s in ("cfb", "ncaaf"):
+        return build_football_share(repo, league="cfb")
+    if s == "nfl":
+        return build_football_share(repo, league="nfl")
     if s == "tennis":
         return {
             "sport": "tennis",
@@ -690,14 +882,6 @@ def build_sport_share(sport: str, repo: Path | None = None) -> dict[str, Any]:
             "sport": "soccer",
             "applicable": False,
             "reason": "Team share deferred (sparse events / weak team linkage).",
-            "by_player": {},
-            "team_averages": {},
-        }
-    if s == "nfl":
-        return {
-            "sport": "nfl",
-            "applicable": False,
-            "reason": "nfl_boxscore_cache.csv missing — rebuild when season active.",
             "by_player": {},
             "team_averages": {},
         }

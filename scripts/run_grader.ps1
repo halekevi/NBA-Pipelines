@@ -1852,3 +1852,7 @@ if ($ShouldRetrain) {
     }
     Write-Host "[AUTO-RETRAIN] Complete." -ForegroundColor Green
 }
+
+# Explicit success — do not leak LASTEXITCODE from the last Run-Py / auto-retrain
+# failure into scheduled evening graders (Task Scheduler was showing Result=1 every night).
+exit 0

@@ -400,9 +400,7 @@
     teamSel.innerHTML = teams
       .map((t) => {
         const ab = t.slate_abbr || t.def_key;
-        const oppInfo = opponentForTeam(sport, ab);
-        const opp = oppInfo.oppName || oppInfo.opp || "";
-        const label = (t.name || ab) + (opp ? " vs " + opp : "");
+        const label = t.name || ab;
         return '<option value="' + esc(ab) + '">' + esc(label) + "</option>";
       })
       .join("");

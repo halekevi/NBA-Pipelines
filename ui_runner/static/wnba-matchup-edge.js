@@ -129,9 +129,7 @@
     );
     teamSel.innerHTML = teams
       .map((t) => {
-        const mu = (data.matchups || {})[t.slate_abbr] || {};
-        const opp = mu.opponent_name || mu.opponent_slate || "—";
-        const label = t.name + (mu.opponent_slate ? " vs " + opp : "");
+        const label = t.name || t.slate_abbr;
         return (
           '<option value="' +
           esc(t.slate_abbr) +

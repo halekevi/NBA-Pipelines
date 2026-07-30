@@ -1130,6 +1130,13 @@ _SLATE_SPORT_UI_KEYS = frozenset(
         "best_cross_book",
         "actual_series",
         "line_series",
+        "team_avg",
+        "share_pct",
+        "share_player_avg",
+        "share_vs_line",
+        "avg_vs_line",
+        "share_lean",
+        "line_as_pct_of_team",
         *(f"g{i}" for i in range(1, 11)),
         *(f"stat_g{i}" for i in range(1, 11)),
         *(f"line_g{i}" for i in range(1, 11)),
@@ -1366,6 +1373,14 @@ def _slim_slate_sport_payload(payload: dict) -> dict:
         if not isinstance(rows, list):
             slim_sports[k] = rows
             continue
+        try:
+            from utils.team_share import enrich_slate_rows
+
+            rows = enrich_slate_rows([r for r in rows if isinstance(r, dict)], str(k), repo=BASE_DIR) + [
+                r for r in rows if not isinstance(r, dict)
+            ]
+        except Exception:
+            pass
         slim_rows: list[Any] = []
         for r in rows:
             if isinstance(r, dict):
@@ -5656,6 +5671,20 @@ def api_slate_sport_single(sport: str):
             rows = list(rows) + list(sports.get("wcbb") or [])
         if not isinstance(rows, list):
             rows = []
+        try:
+            from utils.team_share import enrich_slate_rows
+
+            dict_rows = [r for r in rows if isinstance(r, dict)]
+            other = [r for r in rows if not isinstance(r, dict)]
+            # For combined cbb+wcbb, enrich each row by its own sport field when present
+            enriched: list[Any] = []
+            for r in dict_rows:
+                sk = str(r.get("sport") or sport_key).strip().lower() or sport_key
+                enrich_slate_rows([r], sk, repo=BASE_DIR)
+                enriched.append(r)
+            rows = enriched + other
+        except Exception:
+            pass
         slim_rows = [_slim_slate_sport_row(r) if isinstance(r, dict) else r for r in rows]
         if not slim_rows and sport_key == "wnba":
             slim_rows = _wnba_slate_rows_from_step8_fallback()
@@ -5874,6 +5903,18 @@ def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> d
     return payload
 
 
+def _enrich_matchup_edge_team_share(payload: dict[str, Any], sport_key: str) -> dict[str, Any]:
+    """Attach team_avg / share_pct / avg_vs_line onto Matchup Edge player rows."""
+    try:
+        from utils.team_share import enrich_matchup_edge_payload
+
+        return enrich_matchup_edge_payload(payload, sport_key, repo=BASE_DIR)
+    except Exception as exc:
+        if isinstance(payload, dict):
+            payload["team_share"] = {"applicable": False, "reason": f"enrich failed: {exc}"}
+        return payload
+
+
 def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
     sport_key = str(sport_key or "").strip().lower()
     json_name = f"{sport_key}_matchup_edge.json"
@@ -5885,7 +5926,8 @@ def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
         path = alt if alt.is_file() else path
     if path.is_file():
         payload = json.loads(path.read_text(encoding="utf-8"))
-        return _enrich_matchup_edge_opponents(payload, sport_key)
+        payload = _enrich_matchup_edge_opponents(payload, sport_key)
+        return _enrich_matchup_edge_team_share(payload, sport_key)
     build_script = BASE_DIR / "scripts" / "build_matchup_edge_json.py"
     if build_script.is_file():
         subprocess.run(
@@ -5897,7 +5939,8 @@ def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
         )
         if path.is_file():
             payload = json.loads(path.read_text(encoding="utf-8"))
-            return _enrich_matchup_edge_opponents(payload, sport_key)
+            payload = _enrich_matchup_edge_opponents(payload, sport_key)
+            return _enrich_matchup_edge_team_share(payload, sport_key)
     return {
         "sport": sport_key,
         "error": f"{json_name} not found — run scripts/build_matchup_edge_json.py --sport {sport_key}",
@@ -6294,7 +6337,7 @@ def _load_grade_history_rows() -> list[dict[str, Any]]:
                 "tickets": n_tickets,
                 "wins": wins,
                 "losses": losses,
-                "void_loss_ct": min(void_loss_ct, losses),
+                "void_loss_ct": void_loss_ct,
                 "guarantees": guarantees,
                 "decided": decided,
                 "paid": paid,

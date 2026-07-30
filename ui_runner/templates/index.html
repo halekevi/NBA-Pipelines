@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}" data-deploy-sha="{{ deploy_git_sha|default('', true) }}">
 <head>
 <meta charset="UTF-8"/>
@@ -1068,7 +1068,7 @@ body > nav.snav.glass-card {
 </style>
 <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="/static/mobile-content-width.css?v=20260716slatecards3"/>
-<link rel="stylesheet" href="/static/matchup-edge.css?v=20260720mefind1"/>
+<link rel="stylesheet" href="/static/matchup-edge.css?v=20260729findu1"/>
 <link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
 <link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
 </head>
@@ -2115,7 +2115,7 @@ body > nav.snav.glass-card {
             <div class="wnba-me-cards" id="wnba-me-cards"></div>
             <div class="wnba-me-table-wrap">
               <table class="wnba-me-table"><thead><tr>
-                <th>Player</th><th>Pos</th><th id="wnba-me-avg-h">Avg</th><th>Game score</th>
+                <th>Player</th><th>Pos</th><th id="wnba-me-avg-h">Avg</th><th>Share %</th><th>Team avg</th><th>vs line</th><th>Game score</th>
                 <th>Edge vs opp</th><th>Notes</th>
               </tr></thead><tbody id="wnba-me-tbody"></tbody></table>
             </div>
@@ -2298,7 +2298,7 @@ body > nav.snav.glass-card {
 </div>
 
 <script src="/static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="/static/matchup-edge.js?v=20260722opp2" defer></script>
+<script src="/static/matchup-edge.js?v=20260730share1" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -4464,8 +4464,18 @@ function _l5HitCount(val) {
 
 function _passesL5FilterForObjectRow(row, l5Mode) {
   if (!l5Mode) return true;
-  if (l5Mode === 'OVER') return (_l5HitCount(row?.l5_over) ?? -1) >= L5_FILTER_MIN_HITS;
-  if (l5Mode === 'UNDER') return (_l5HitCount(row?.l5_under) ?? -1) >= L5_FILTER_MIN_HITS;
+  const dir = String(row?.dir || row?.direction || '').trim().toUpperCase();
+  const pick = String(row?.pick_type || row?.pick || '').trim().toLowerCase();
+  // Goblin/Demon soft OVERs do not belong in L5 UNDER.
+  if (l5Mode === 'UNDER' && (pick === 'goblin' || pick === 'demon')) return false;
+  if (l5Mode === 'OVER') {
+    if (dir !== 'OVER') return false;
+    return (_l5HitCount(row?.l5_over) ?? -1) >= L5_FILTER_MIN_HITS;
+  }
+  if (l5Mode === 'UNDER') {
+    if (dir !== 'UNDER') return false;
+    return (_l5HitCount(row?.l5_under) ?? -1) >= L5_FILTER_MIN_HITS;
+  }
   return true;
 }
 
@@ -4526,6 +4536,7 @@ function injectSlateL5Buttons() {
     overBtn.id = `sfb-${sport}-l5over`;
     overBtn.type = 'button';
     overBtn.textContent = 'L5 OVER';
+    overBtn.title = 'OVER picks with ≥4/5 L5 overs vs the line';
     overBtn.onclick = () => toggleL5Filter(sport, 'OVER', overBtn);
 
     const underBtn = document.createElement('button');
@@ -4533,6 +4544,7 @@ function injectSlateL5Buttons() {
     underBtn.id = `sfb-${sport}-l5under`;
     underBtn.type = 'button';
     underBtn.textContent = 'L5 UNDER';
+    underBtn.title = 'Standard UNDER picks with ≥4/5 L5 unders (no Goblin/Demon)';
     underBtn.onclick = () => toggleL5Filter(sport, 'UNDER', underBtn);
 
     const tierGroup = bar.querySelector('.slate-tier-group');
@@ -5174,6 +5186,12 @@ function toggleL5Filter(sport, mode, btn) {
     document.getElementById(`sfb-${sport}-l5over`)?.classList.remove('on');
     document.getElementById(`sfb-${sport}-l5under`)?.classList.remove('on');
     btn?.classList.add('on');
+    if (mode === 'UNDER' && s.pick && String(s.pick).toLowerCase() !== 'standard') {
+      s.pick = null;
+      document.getElementById(`sfb-${sport}-goblin`)?.classList.remove('on');
+      document.getElementById(`sfb-${sport}-demon`)?.classList.remove('on');
+      document.getElementById(`sfb-${sport}-standard`)?.classList.remove('on');
+    }
   }
   scheduleRenderSlateTable(sport);
 }
@@ -5304,8 +5322,16 @@ function renderSlateTableDynamic(sport) {
       const tv = String(row[tierIdx] == null ? '' : row[tierIdx]).trim().toUpperCase();
       if (tv !== String(state.tier).toUpperCase()) return false;
     }
-    if (state.l5 === 'OVER' && l5OverIdx >= 0 && (_l5HitCount(row[l5OverIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
-    if (state.l5 === 'UNDER' && l5UnderIdx >= 0 && (_l5HitCount(row[l5UnderIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
+    if (state.l5 === 'OVER') {
+      if (dirIdx >= 0 && String(row[dirIdx] || '').trim().toUpperCase() !== 'OVER') return false;
+      if (l5OverIdx >= 0 && (_l5HitCount(row[l5OverIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
+    }
+    if (state.l5 === 'UNDER') {
+      const pickVal = pickIdx >= 0 ? String(row[pickIdx] || '').trim().toLowerCase() : '';
+      if (pickVal === 'goblin' || pickVal === 'demon') return false;
+      if (dirIdx >= 0 && String(row[dirIdx] || '').trim().toUpperCase() !== 'UNDER') return false;
+      if (l5UnderIdx >= 0 && (_l5HitCount(row[l5UnderIdx]) ?? -1) < L5_FILTER_MIN_HITS) return false;
+    }
     if (state.platform) {
       const faux = {
         pick_platform: platformIdx >= 0 ? row[platformIdx] : 'prizepicks',

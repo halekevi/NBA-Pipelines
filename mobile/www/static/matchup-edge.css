@@ -123,6 +123,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.me-find-status {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--muted2, #9aa);
+  min-height: 14px;
+  line-height: 1.3;
+}
 .me-find:disabled,
 .wnba-me-find:disabled {
   opacity: 0.35;
@@ -419,7 +426,7 @@
     padding: 0;
     white-space: normal;
   }
-  /* Cols: Player, Pos, Avg, Game score, Edge vs opp, Notes — show P0 */
+  /* Cols: Player, Pos, Avg, Share %, Team avg, vs line, Game score, Edge, Notes */
   .me-table tbody td:nth-child(1),
   .wnba-me-table tbody td:nth-child(1) {
     display: block;
@@ -427,13 +434,13 @@
     font-size: 14px;
     margin-bottom: 4px;
   }
-  .me-table tbody td:nth-child(5),
-  .wnba-me-table tbody td:nth-child(5) {
+  .me-table tbody td:nth-child(8),
+  .wnba-me-table tbody td:nth-child(8) {
     display: block;
     margin-bottom: 4px;
   }
-  .me-table tbody td:nth-child(6),
-  .wnba-me-table tbody td:nth-child(6) {
+  .me-table tbody td:nth-child(9),
+  .wnba-me-table tbody td:nth-child(9) {
     display: block;
     font-size: 11px;
     color: var(--muted2, #8b8b99);
@@ -442,7 +449,11 @@
   .me-table tbody td:nth-child(2),
   .wnba-me-table tbody td:nth-child(2),
   .me-table tbody td:nth-child(3),
-  .wnba-me-table tbody td:nth-child(3) {
+  .wnba-me-table tbody td:nth-child(3),
+  .me-table tbody td:nth-child(4),
+  .wnba-me-table tbody td:nth-child(4),
+  .me-table tbody td:nth-child(6),
+  .wnba-me-table tbody td:nth-child(6) {
     display: inline;
     font-size: 11px;
     color: var(--muted, rgba(255, 255, 255, 0.75));
@@ -451,5 +462,13 @@
   .me-table tbody td:nth-child(3)::before,
   .wnba-me-table tbody td:nth-child(3)::before {
     content: "Avg ";
+  }
+  .me-table tbody td:nth-child(4)::before,
+  .wnba-me-table tbody td:nth-child(4)::before {
+    content: "Share ";
+  }
+  .me-table tbody td:nth-child(6)::before,
+  .wnba-me-table tbody td:nth-child(6)::before {
+    content: "vs ";
   }
 }

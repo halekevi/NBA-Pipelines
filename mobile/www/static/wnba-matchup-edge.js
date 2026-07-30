@@ -66,7 +66,7 @@
       '<div class="wnba-me-cards" id="wnba-me-cards"></div>' +
       '<div class="wnba-me-table-wrap">' +
       '<table class="wnba-me-table"><thead><tr>' +
-      "<th>Player</th><th>Pos</th><th id='wnba-me-avg-h'>Avg</th><th>Game score</th>" +
+      "<th>Player</th><th>Pos</th><th id='wnba-me-avg-h'>Avg</th><th>Share %</th><th>Team avg</th><th>vs line</th><th>Game score</th>" +
       "<th>Edge vs opp</th><th>Notes</th>" +
       "</tr></thead><tbody id='wnba-me-tbody'></tbody></table>" +
       "</div>" +
@@ -129,9 +129,7 @@
     );
     teamSel.innerHTML = teams
       .map((t) => {
-        const mu = (data.matchups || {})[t.slate_abbr] || {};
-        const opp = mu.opponent_name || mu.opponent_slate || "—";
-        const label = t.name + (mu.opponent_slate ? " vs " + opp : "");
+        const label = t.name || t.slate_abbr;
         return (
           '<option value="' +
           esc(t.slate_abbr) +
@@ -234,6 +232,17 @@
             : p.bottom3_on_team
               ? ' <span class="wnba-me-rank-badge wnba-me-rank-b3">B' + esc(p.bottom_rank_on_team || "?") + "</span>"
               : "";
+          const share =
+            p.share_pct != null && p.share_pct !== ""
+              ? esc(p.share_pct) + "%"
+              : "—";
+          const teamAvg = p.team_avg != null && p.team_avg !== "" ? esc(p.team_avg) : "—";
+          let vsLine = "—";
+          if (p.avg_vs_line != null && p.avg_vs_line !== "") {
+            const lean = p.share_lean ? " " + esc(p.share_lean) : "";
+            const sign = Number(p.avg_vs_line) > 0 ? "+" : "";
+            vsLine = sign + esc(p.avg_vs_line) + lean;
+          }
           return (
           "<tr><td><strong>" +
           esc(p.player) +
@@ -243,6 +252,12 @@
           esc(p.pos || "—") +
           "</td><td>" +
           esc(p.season_avg) +
+          "</td><td>" +
+          share +
+          "</td><td>" +
+          teamAvg +
+          "</td><td>" +
+          vsLine +
           "</td><td>" +
           esc(p.game_score) +
           '</td><td><span class="wnba-me-edge ' +
@@ -303,10 +318,17 @@
       .filter((p) => p.edge === "TOP_UNDER" || p.edge === "OK_UNDER")
       .map((p) => p.player);
     const pool = wantUnder ? underPlayers : overPlayers;
-    const searchParts = [...pool, ...terms];
-    const search = searchParts[0] || terms[0] || "";
+    // Never fall back to a leftover name or category keyword for unders with an empty pool.
+    const search = pool[0] || (!wantUnder ? terms[0] : "") || "";
 
     const input = document.getElementById("sf-wnba");
+    if (!search) {
+      if (input) {
+        input.value = "";
+        if (typeof global.filterSlate === "function") global.filterSlate("wnba", "");
+      }
+      return;
+    }
     if (input) {
       input.value = search;
       if (typeof global.filterSlate === "function") global.filterSlate("wnba", search);

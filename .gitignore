@@ -250,3 +250,5 @@ data/reports/slip_slice_*.csv
 data/reports/slip_void_*.csv
 data/reports/supplement_sports_slices.csv
 data/reports/winrate_goblin_policy_backtest.json
+# Team-share leader sidecars (bulky; lean by_player JSON is enough for UI)
+**/*_team_share_leaders.json

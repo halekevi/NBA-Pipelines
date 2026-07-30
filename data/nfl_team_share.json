@@ -1,0 +1,7 @@
+{
+  "sport": "nfl",
+  "applicable": false,
+  "reason": "nfl_boxscore_cache.csv missing \u2014 rebuild when season active.",
+  "by_player": {},
+  "team_averages": {}
+}

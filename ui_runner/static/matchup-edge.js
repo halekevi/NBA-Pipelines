@@ -79,12 +79,77 @@
     );
   }
 
-  function underSearchPlayers(block) {
-    return (block?.players || []).filter((p) => isUnderEdge(p.edge) || isFadeCandidate(p));
+  function underSearchPlayers(block, preferVisibleBottom) {
+    let list = (block?.players || []).filter((p) => isUnderEdge(p.edge) || isFadeCandidate(p));
+    if (preferVisibleBottom) {
+      const bottom = list
+        .filter((p) => leaderSlice(p) === "bottom")
+        .sort((a, b) => (a.bottom_rank_on_team || 99) - (b.bottom_rank_on_team || 99));
+      if (bottom.length) list = bottom;
+      else
+        list = list
+          .slice()
+          .sort((a, b) => edgeRank(a.edge) - edgeRank(b.edge) || String(a.player).localeCompare(String(b.player)));
+    }
+    return list;
   }
 
   function blockHasUnderSignals(block) {
     return underSearchPlayers(block).length > 0;
+  }
+
+  function slateRowsForSport(sport) {
+    try {
+      if (global.SLATE_DATA && Array.isArray(global.SLATE_DATA[sport])) return global.SLATE_DATA[sport];
+    } catch (_) {}
+    return [];
+  }
+
+  function playerHasSlateMatch(sport, playerName, opts) {
+    const q = String(playerName || "")
+      .trim()
+      .toLowerCase();
+    if (!q) return false;
+    const dir = opts?.dir || null;
+    const pick = opts?.pick || null;
+    const propTerms = (opts?.propTerms || []).map((t) => String(t).toLowerCase()).filter(Boolean);
+    return slateRowsForSport(sport).some((r) => {
+      const pname = String(r.player || "").toLowerCase();
+      if (!pname.includes(q)) return false;
+      if (dir && r.dir !== dir) return false;
+      if (pick && r.pick_type !== pick) return false;
+      if (propTerms.length) {
+        const prop = String(r.prop || "").toLowerCase();
+        if (!propTerms.some((t) => prop.includes(t))) return false;
+      }
+      return true;
+    });
+  }
+
+  function pickSearchName(sport, names, opts) {
+    const seen = new Set();
+    for (const name of names) {
+      const key = String(name || "")
+        .trim()
+        .toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      if (playerHasSlateMatch(sport, name, opts)) return String(name).trim();
+    }
+    return "";
+  }
+
+  function setFindStatus(sport, msg) {
+    const panel = document.getElementById(panelId(sport));
+    const row = panel?.querySelector(".me-find-row, .wnba-me-find-row");
+    if (!row) return;
+    let el = row.querySelector(".me-find-status");
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "me-find-status";
+      row.appendChild(el);
+    }
+    el.textContent = msg || "";
   }
 
   function edgeRank(edge) {
@@ -248,7 +313,7 @@
       '<div class="me-table-wrap"><table class="me-table"><thead><tr>' +
       "<th>Player</th><th>Pos</th><th id='" +
       pid(sport, "avg-h") +
-      "'>Avg</th><th>Game score</th>" +
+      "'>Avg</th><th>Share %</th><th>Team avg</th><th>vs line</th><th>Game score</th>" +
       "<th>Edge vs opp</th><th>Notes</th>" +
       "</tr></thead><tbody id='" +
       pid(sport, "tbody") +
@@ -400,9 +465,7 @@
     teamSel.innerHTML = teams
       .map((t) => {
         const ab = t.slate_abbr || t.def_key;
-        const oppInfo = opponentForTeam(sport, ab);
-        const opp = oppInfo.oppName || oppInfo.opp || "";
-        const label = (t.name || ab) + (opp ? " vs " + opp : "");
+        const label = t.name || ab;
         return '<option value="' + esc(ab) + '">' + esc(label) + "</option>";
       })
       .join("");
@@ -677,6 +740,17 @@
       .map(
         (p) => {
           const rankBadge = playerRankBadge(p);
+          const share =
+            p.share_pct != null && p.share_pct !== ""
+              ? esc(p.share_pct) + "%"
+              : "—";
+          const teamAvg = p.team_avg != null && p.team_avg !== "" ? esc(p.team_avg) : "—";
+          let vsLine = "—";
+          if (p.avg_vs_line != null && p.avg_vs_line !== "") {
+            const lean = p.share_lean ? " " + esc(p.share_lean) : "";
+            const sign = Number(p.avg_vs_line) > 0 ? "+" : "";
+            vsLine = sign + esc(p.avg_vs_line) + lean;
+          }
           return (
           "<tr><td><strong>" +
           esc(p.player) +
@@ -686,6 +760,12 @@
           esc(p.pos || "—") +
           "</td><td>" +
           esc(p.season_avg) +
+          "</td><td>" +
+          share +
+          "</td><td>" +
+          teamAvg +
+          "</td><td>" +
+          vsLine +
           "</td><td>" +
           esc(p.game_score) +
           '</td><td><span class="me-edge ' +
@@ -761,13 +841,57 @@
       }
     }
     const block = currentBlock(sport);
-    const terms = PROP_SEARCH[document.getElementById(pid(sport, "cat"))?.value] || [];
-    const overPlayers = (block?.players || []).filter((p) => isOverEdge(p.edge)).map((p) => p.player);
-    const underPlayers = underSearchPlayers(block).map((p) => p.player);
+    const cat = document.getElementById(pid(sport, "cat"))?.value;
+    const terms = PROP_SEARCH[cat] || [];
+    const overPlayers = (block?.players || [])
+      .filter((p) => isOverEdge(p.edge))
+      .sort((a, b) => edgeRank(a.edge) - edgeRank(b.edge) || (a.rank_on_team || 99) - (b.rank_on_team || 99))
+      .map((p) => p.player);
+    // Unders: prefer visible bottom-5 fade/under edges — not an arbitrary roster fade
+    // (that used to dump a leftover/random name into the slate filter).
+    const underPlayers = underSearchPlayers(block, true).map((p) => p.player);
     const pool = wantUnder ? underPlayers : overPlayers;
-    const search = pool[0] || terms[0] || "";
+    const dir = wantUnder ? "UNDER" : "OVER";
+    const pick = wantUnder ? "Standard" : null;
+    // Prefer category match, then any prop for that player/dir (naming can differ).
+    let search = pickSearchName(sport, pool, { dir, pick, propTerms: terms });
+    if (!search) search = pickSearchName(sport, pool, { dir, pick });
+    if (!search && wantUnder) {
+      // Relax Standard-only if fade names only have Goblin/Demon unders (rare).
+      search = pickSearchName(sport, pool, { dir, pick: null });
+    }
+    if (!search && !wantUnder) {
+      search = pickSearchName(sport, pool, { dir, pick: null });
+    }
+    // Slate not loaded yet — still jump to the preferred edge player (not a leftover name).
+    if (!search && pool[0] && !slateRowsForSport(sport).length) {
+      search = String(pool[0]).trim();
+    }
+    // Last resort for overs only: category keyword (e.g. "points") — never invent a player name.
+    if (!search && !wantUnder && terms[0]) search = terms[0];
 
     const input = document.getElementById("sf-" + sport);
+    if (!search) {
+      if (input) {
+        input.value = "";
+        if (typeof global.filterSlate === "function") global.filterSlate(sport, "");
+      }
+      setFindStatus(
+        sport,
+        wantUnder
+          ? "No matching UNDER props on the slate for these fade edges"
+          : "No matching OVER props on the slate for these edges"
+      );
+      const dirBtnEmpty = document.getElementById("sfb-" + sport + (wantUnder ? "-under" : "-over"));
+      const otherDirEmpty = document.getElementById("sfb-" + sport + (wantUnder ? "-over" : "-under"));
+      if (otherDirEmpty?.classList.contains("on")) otherDirEmpty.click();
+      if (dirBtnEmpty && !dirBtnEmpty.classList.contains("on")) dirBtnEmpty.click();
+      if (wantUnder) applySlatePickFilter(sport, "Standard");
+      document.getElementById("st-" + sport)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      return;
+    }
+
+    setFindStatus(sport, "");
     if (input) {
       input.value = search;
       if (typeof global.filterSlate === "function") global.filterSlate(sport, search);

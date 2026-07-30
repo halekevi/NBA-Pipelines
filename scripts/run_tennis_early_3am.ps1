@@ -1,14 +1,15 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  3:00 AM ET light tennis fetch + ticket rebuild (pre-tip for ~4:00–5:30 AM matches).
+  3:00 AM ET light tennis fetch only (pre-tip data for ~4:00–5:30 AM matches).
 
 .DESCRIPTION
   - Pulls latest main (Railway tracks origin/main).
-  - Runs run_pipeline.ps1 -TennisOnly for Eastern today (same-day tennis_date).
-  - Combined slate / web tickets refresh after tennis; pipeline push publishes JSON.
+  - Runs run_pipeline.ps1 -TennisOnly -SkipCombined -SkipPush for Eastern today.
+  - Does NOT rebuild/publish tickets_latest — that used to stomp the overnight board
+    before Daily 5AM owned the full multi-sport publish.
   - First full multi-sport daily is at 5:00 AM (run_daily_5am.ps1).
-  - 8:00 AM is a line-move update refresh (run_daily_8am.ps1 → run_refresh_with_log).
+  - Overnight graders: midnight + 1AM only (no 7PM–11PM).
 
   Register via scripts\Register_Daily_Task.ps1 (task: PropOracle - Tennis Early 3AM).
 #>
@@ -96,13 +97,14 @@ if ($pullPrepExit -ne 0) {
 }
 
 $Today = Get-PropOracleEasternTodayYmd
-Write-Host "[3AM TENNIS] Light TennisOnly for Date=$Today TennisDate=$Today (same-day board)" -ForegroundColor Cyan
+Write-Host "[3AM TENNIS] Tennis fetch only Date=$Today TennisDate=$Today (SkipCombined/SkipPush — 5AM publishes board)" -ForegroundColor Cyan
 
 if (Test-Path $Snapshot) {
     & pwsh -NoProfile -File $Snapshot -Label "3AM TENNIS PRE" -WriteState
 }
 
-& pwsh -NoProfile -File $Pipeline -Date $Today -TennisDate $Today -TennisOnly -SkipDailyGrader
+# Fetch + build tennis step8 for early tips, but do not rewrite tickets_latest / git push.
+& pwsh -NoProfile -File $Pipeline -Date $Today -TennisDate $Today -TennisOnly -SkipCombined -SkipPush -SkipDailyGrader
 $pipeExit = $LASTEXITCODE
 
 if (Test-Path $Snapshot) {
@@ -118,6 +120,6 @@ if ($pipeExit -ne 0) {
     exit $pipeExit
 }
 
-Write-Host "[3AM TENNIS] Complete" -ForegroundColor Green
+Write-Host "[3AM TENNIS] Complete (tennis data only; board publish deferred to 5AM)" -ForegroundColor Green
 try { Stop-Transcript | Out-Null } catch { }
 exit 0

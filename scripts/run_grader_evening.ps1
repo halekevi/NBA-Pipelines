@@ -9,8 +9,8 @@
     - Transcript under logs/task_grader_*.log
     - run_grader.ps1 for yesterday's slate date
 
-  There is no 2AM grader task — cadence is 7PM, 8PM, 9PM, 10PM, 11PM, 12AM, 1AM,
-  then Tennis Early 3AM, then Daily 5AM (which also grades yesterday).
+  There is no 7PM–11PM grader task — cadence is midnight + 1AM only,
+  then Tennis Early 3AM (fetch only), then Daily 5AM (which also grades yesterday).
 #>
 param()
 

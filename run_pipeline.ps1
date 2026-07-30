@@ -1788,7 +1788,25 @@ if ($SoccerOnly) {
     Write-Host "[ SOCCER PIPELINE ]" -ForegroundColor Magenta
     Write-Host ""
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" "--output `"$SoccerRunOutDir\step1_soccer_props.csv`" --date $Date" } } else { Write-Host "  [Soccer] Skipping step1 fetch -- using existing $SoccerRunOutDir\step1_soccer_props.csv" -ForegroundColor DarkGray }
+    if (-not $SkipFetch) {
+        $soccerCdp = if ($env:PROPORACLE_PP_CDP) { "$($env:PROPORACLE_PP_CDP)".Trim() }
+                     elseif ($env:PRIZEPICKS_CDP) { "$($env:PRIZEPICKS_CDP)".Trim() }
+                     elseif ($WNBACdp) { "$WNBACdp".Trim() }
+                     else { "http://127.0.0.1:9222" }
+        $soccerStep1Args = "--output `"$SoccerRunOutDir\step1_soccer_props.csv`" --date $Date"
+        $cdpOk = $false
+        try {
+            $probe = Invoke-RestMethod -Uri "$($soccerCdp.TrimEnd('/'))/json/version" -TimeoutSec 2 -ErrorAction Stop
+            if ($probe) { $cdpOk = $true }
+        } catch { $cdpOk = $false }
+        if ($cdpOk) {
+            Write-Host "  [Soccer] CDP reachable at $soccerCdp - attaching for step1" -ForegroundColor DarkGray
+            $soccerStep1Args += " --cdp `"$soccerCdp`""
+        }
+        if ($ok) { $ok = Run-Step "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" $soccerStep1Args }
+    } else {
+        Write-Host "  [Soccer] Skipping step1 fetch -- using existing $SoccerRunOutDir\step1_soccer_props.csv" -ForegroundColor DarkGray
+    }
     if ($ok -and (Test-Step1NoSlate -CsvPath "$SoccerRunOutDir\step1_soccer_props.csv")) {
         Write-Host "  [Soccer] No slate today — skipping steps 2-8." -ForegroundColor DarkGray
         Clear-SoccerGeneratedOutputs -BaseDir $SoccerRunOutDir
@@ -2762,7 +2780,20 @@ $SoccerJob = Start-Job -ScriptBlock {
     }
     $ok = $true
     $soccerStep1 = Join-Path $SoccerRunOutDir "step1_soccer_props.csv"
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" "--output `"$soccerStep1`" --date $Date" } } else { Write-Output "[Soccer] Skipping step1 fetch" }
+    if (-not $SkipFetch) {
+        $soccerCdpJob = if ($env:PROPORACLE_PP_CDP) { "$($env:PROPORACLE_PP_CDP)".Trim() }
+                        elseif ($env:PRIZEPICKS_CDP) { "$($env:PRIZEPICKS_CDP)".Trim() }
+                        elseif ($CdpUrl) { "$CdpUrl".Trim() }
+                        else { "http://127.0.0.1:9222" }
+        $soccerStep1ArgsJob = "--output `"$soccerStep1`" --date $Date"
+        $cdpOkJob = $false
+        try {
+            $probeJob = Invoke-RestMethod -Uri "$($soccerCdpJob.TrimEnd('/'))/json/version" -TimeoutSec 2 -ErrorAction Stop
+            if ($probeJob) { $cdpOkJob = $true }
+        } catch { $cdpOkJob = $false }
+        if ($cdpOkJob) { $soccerStep1ArgsJob += " --cdp `"$soccerCdpJob`"" }
+        if ($ok) { $ok = Run-Step-Job "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" $soccerStep1ArgsJob }
+    } else { Write-Output "[Soccer] Skipping step1 fetch" }
     if ($ok -and (Test-Step1NoSlate-Job -CsvPath $soccerStep1)) {
         Write-Output "[Soccer] No slate today — skipping steps 2-8."
         Clear-SoccerGeneratedOutputs-Job -BaseDir $SoccerRunOutDir

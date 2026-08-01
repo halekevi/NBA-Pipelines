@@ -255,6 +255,7 @@ body::after{content:'';position:fixed;inset:0;
 .scard-icon.tennis{background:rgba(173,216,255,.1);border:1px solid rgba(173,216,255,.28);}
 .scard-icon.wnba{background:rgba(255,105,180,.1);border:1px solid rgba(255,105,180,.28);}
 .scard-icon.combined{background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);}
+.scard-icon.btr{background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.35);}
 .scard-body{flex:1;}
 .scard-title{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:2.5px;margin-bottom:6px;text-transform:uppercase;}
 .scard-val{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--text);letter-spacing:1px;}
@@ -1688,6 +1689,19 @@ body > nav.snav.glass-card {
           <span class="sbadge loading" id="sc-combined-badge">—</span>
         </div>
         <div class="scard-val" id="sc-combined-val">Checking...</div>
+      </div>
+
+      <div class="scard" id="sc-best-to-run" onclick="jumpToBestToRun()" style="cursor:pointer" title="Elite Standards + Goblins to run today">
+        <div class="scard-head">
+          <div class="scard-icon btr">
+            <svg class="db-icon" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5">
+              <path d="M12 3l2.2 6.6H21l-5.4 3.9 2.1 6.5L12 16.8 6.3 20l2.1-6.5L3 9.6h6.8L12 3z"/>
+            </svg>
+          </div>
+          <div class="scard-title">BEST TO RUN</div>
+          <span class="sbadge fresh" id="sc-best-to-run-badge">LIVE</span>
+        </div>
+        <div class="scard-val" id="sc-best-to-run-val">Standards + Goblins</div>
       </div>
 
     </div><!-- /header-row -->
@@ -4474,7 +4488,45 @@ function renderBestToRun() {
 
   const any = eliteStd.length + gobCount > 0;
   if (emptyEl) emptyEl.hidden = any;
+  const cat = document.getElementById("best-to-run-cat");
+  if (cat && any) cat.setAttribute("open", "");
+  const btrVal = document.getElementById("sc-best-to-run-val");
+  const btrBadge = document.getElementById("sc-best-to-run-badge");
+  if (btrVal) {
+    btrVal.textContent = any
+      ? `${eliteStd.length} Std · ${gobCount} Gob`
+      : "Waiting for slate…";
+  }
+  if (btrBadge) {
+    btrBadge.textContent = any ? "LIVE" : "…";
+    btrBadge.className = any ? "sbadge fresh" : "sbadge loading";
+  }
   wireBestToRunExpandHandlers();
+}
+
+/** Sport-row tab: jump to Best to Run and ensure cards are warmed on mobile. */
+async function jumpToBestToRun() {
+  const cat = document.getElementById("best-to-run-cat");
+  if (!cat) return;
+  cat.setAttribute("open", "");
+  try {
+    document.querySelectorAll("#slate-panel-header-row .scard.active").forEach((el) => {
+      el.classList.remove("active");
+    });
+    document.querySelectorAll(".slate-expand.open, .slate-expand.active").forEach((el) => {
+      el.classList.remove("open", "active");
+    });
+    document.getElementById("sc-best-to-run")?.classList.add("active");
+  } catch (e) {}
+  if (!ALL_SLATE.length) {
+    try {
+      await loadHomeCardsFromFullSlate();
+    } catch (e) {
+      console.warn("jumpToBestToRun warm:", e);
+    }
+  }
+  renderBestToRun();
+  cat.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function wireBestToRunExpandHandlers() {
@@ -5706,14 +5758,29 @@ function sortSlateDynamic(sport, key) {
   scheduleRenderSlateTable(sport);
 }
 
-// Keep edge/streak sections populated; warm only the default sport (lazy-load others on tab open).
-// Defer full /api/slate (multi-MB) until idle — sport table uses /api/slate-sport first.
+// Keep edge/streak/Best-to-Run sections populated; warm only the default sport table on boot.
+// Mobile used to skip all slate warming (skipHeavyCombinedSlate) — Best to Run / Top Edges stayed empty.
 (function bootHomeSlateUi() {
   try {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     fetchSlateSport(getDefaultBootSlateSport());
     autoOpenBootSlatePanel();
+    const warmHomeCards = () => {
+      try {
+        loadHomeCardsFromFullSlate()
+          .then(() => {
+            if (ALL_SLATE.length) {
+              renderEdges();
+              renderBestToRun();
+              renderStreaks();
+            }
+          })
+          .catch((e) => console.warn("warmHomeCards:", e));
+      } catch (e2) {
+        console.warn("warmHomeCards:", e2);
+      }
+    };
     const warmFullSlate = () => {
       try {
         loadSlateData().catch((e) => console.warn("deferred loadSlateData:", e));
@@ -5724,6 +5791,13 @@ function sortSlateDynamic(sport, key) {
     const skipHeavyCombinedSlate =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
+    // Always warm Best to Run / Top Edges / L5 from combined slate JSON (mobile + desktop).
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(warmHomeCards, { timeout: 2500 });
+    } else {
+      window.setTimeout(warmHomeCards, 600);
+    }
+    // Desktop: also merge ticket legs / history via full /api/slate.
     if (!skipHeavyCombinedSlate) {
       if (typeof window.requestIdleCallback === "function") {
         window.requestIdleCallback(warmFullSlate, { timeout: 4000 });
@@ -5731,6 +5805,14 @@ function sortSlateDynamic(sport, key) {
         window.setTimeout(warmFullSlate, 2500);
       }
     }
+    // Deep link: ?section=best
+    try {
+      if (new URLSearchParams(window.location.search).get("section") === "best") {
+        window.setTimeout(() => {
+          if (typeof jumpToBestToRun === "function") jumpToBestToRun();
+        }, 900);
+      }
+    } catch (eDeep) {}
   } catch (e) {
     console.error("home slate UI boot:", e);
   }
@@ -5764,6 +5846,7 @@ function sortSlateDynamic(sport, key) {
        Top Edges / L5 look empty even when cards had already loaded. */
     const keepOpen = new Set(["slate-explorer", "hot-players-cat", "best-to-run-cat", "top-edges", "l5-streaks-cat"]);
     if (edgesDeepLink) keepOpen.add("top-edges");
+    if (params.get("section") === "best") keepOpen.add("best-to-run-cat");
     document.querySelectorAll("details.home-cat").forEach((det) => {
       if (keepOpen.has(det.id)) {
         det.setAttribute("open", "");

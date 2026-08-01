@@ -1,41 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-ui-build="" data-deploy-sha="">
+<html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}" data-deploy-sha="{{ deploy_git_sha|default('', true) }}">
 <head>
-
-<script>
-async function fetch_smart(localPath) {
-  // If we have a remote override URL for this file type, prefer it
-  let remoteUrl = null;
-  if (localPath === 'slate_latest.json' && window.SLATE_JSON_URL) remoteUrl = window.SLATE_JSON_URL;
-  if (localPath === 'tickets_latest.json' && window.TICKETS_JSON_URL) remoteUrl = window.TICKETS_JSON_URL;
-
-  if (remoteUrl) {
-    try {
-      const resp = await fetch(remoteUrl, { cache: 'no-store' });
-      if (resp.ok) return resp;
-    } catch (e) {
-      console.warn("SmartFetch remote failed, falling back to local:", localPath, e);
-    }
-  }
-  return fetch(localPath, { cache: 'no-store' });
-}
-</script>
-
-<script defer src="static/proporacle-ota.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <script>(function(){try{var t=localStorage.getItem('proporacle-theme')||localStorage.getItem('theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
 <meta name="theme-color" content="#050505"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="proporacle-build" content=""/>
+<meta name="proporacle-build" content="{{ ui_build_id|default('', true) }}"/>
 <meta property="og:title" content="PropOracle — Home"/>
 <title>PropOracle — Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="static/global-scrollbar.css?v=20260531scroll"/>
-<link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
+<link rel="stylesheet" href="/static/global-scrollbar.css?v=20260531scroll"/>
+<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
+<link rel="stylesheet" href="/static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
 <style>
 :root{
   /* Hybrid liquid-glass palette */
@@ -220,6 +199,9 @@ body::after{content:'';position:fixed;inset:0;
 .streak-grid{display:grid;gap:clamp(8px,1.5vw,12px);grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));margin-bottom:18px;}
 .edge-source-note{font-size:11px;color:var(--muted2);line-height:1.45;max-width:70ch;margin:-6px 0 16px;letter-spacing:.02em;}
 .edge-bucket-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
+.btr-mix{font-size:12px;line-height:1.45;color:var(--text);background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.28);border-radius:12px;padding:10px 14px;margin:0 0 16px;letter-spacing:.02em;}
+.btr-mix strong{color:var(--accent);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:10px;display:block;margin-bottom:6px;}
+.btr-mix .btr-mix-legs{color:var(--muted);font-size:11px;}
 .edges-see-all{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:1px solid rgba(212,175,55,.28);padding:8px 16px;border-radius:999px;transition:background .15s,border-color .15s;white-space:nowrap;flex-shrink:0;}
 .edges-see-all:hover{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.45);}
 [data-theme="light"] .edges-see-all{border-color:rgba(75,111,150,.35);color:var(--accent);}
@@ -273,6 +255,7 @@ body::after{content:'';position:fixed;inset:0;
 .scard-icon.tennis{background:rgba(173,216,255,.1);border:1px solid rgba(173,216,255,.28);}
 .scard-icon.wnba{background:rgba(255,105,180,.1);border:1px solid rgba(255,105,180,.28);}
 .scard-icon.combined{background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);}
+.scard-icon.btr{background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.35);}
 .scard-body{flex:1;}
 .scard-title{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:2.5px;margin-bottom:6px;text-transform:uppercase;}
 .scard-val{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--text);letter-spacing:1px;}
@@ -1087,11 +1070,11 @@ body > nav.snav.glass-card {
 }
 
 </style>
-<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="static/mobile-content-width.css?v=20260716slatecards3"/>
-<link rel="stylesheet" href="static/matchup-edge.css?v=20260720mefind1"/>
-<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260720halfnav1"/>
-<link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
+<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
+<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260716slatecards3"/>
+<link rel="stylesheet" href="/static/matchup-edge.css?v=20260720mefind1"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
 </head>
 <body>
 
@@ -1106,24 +1089,24 @@ body > nav.snav.glass-card {
 <div class="mesh-bg" aria-hidden="true"></div>
 <div class="grain-layer" aria-hidden="true"></div>
 
-
-
-
-
+{% set nav_active = 'home' %}
+{# Set nav_active to: home | tickets | grades | income | payout (before include). Optional: nav_pill_suffix (default LIVE). #}
+{% set _na = nav_active|default('home') %}
+{% set _pill = nav_pill_suffix|default('LIVE') %}
 <nav class="snav glass-card">
   <div class="nav-accent"></div>
   <a class="snav-brand" href="index.html">
     <div class="hybrid-logo">
-      <img src="static/proporacle-logo-v3.png?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
+      <img src="{{ url_for('static', filename='proporacle-logo-v3.png') }}?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
       <span class="nav-brand brand-wordmark"><span class="wb-first">Prop</span><span class="oracle-word gold-shimmer">Oracle</span></span>
     </div>
   </a>
   <ul class="snav-links nav-links" id="nav-links">
-    <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
-    <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
-    <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
-    <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
+    <li><a href="index.html" class="{{ 'active' if _na == 'home' else '' }}"><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
+    <li><a href="tickets.html" class="{{ 'active' if _na == 'tickets' else '' }}"><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
+    <li><a href="grades.html" class="{{ 'active' if _na == 'grades' else '' }}" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
+    <li><a href="income.html" class="{{ 'active' if _na == 'income' else '' }}"><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="/payout" class="{{ 'active' if _na == 'payout' else '' }}"><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
     <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
@@ -1131,7 +1114,7 @@ body > nav.snav.glass-card {
       <span class="tt-icon tt-sun" style="display:none">☀️</span>
     </button>
     <div class="nav-live-cluster">
-      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span><span class="live-pill-sep">&nbsp;·&nbsp;</span></div>
+      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span><span class="live-pill-sep">&nbsp;·&nbsp;</span>{{ _pill }}</div>
       <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
         <div class="nav-slate-date" id="slate-date">—</div>
         <div class="nav-sync-line">
@@ -1144,11 +1127,11 @@ body > nav.snav.glass-card {
 </nav>
 
 <div class="mobile-menu" id="mobile-menu">
-  <a href="index.html" class="">🏠 Home</a>
-  <a href="tickets.html" class="">🎟 Tickets</a>
-  <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
-  <a href="income.html" class="">📈 Income</a>
-  <a href="payout.html" class="">💰 Payouts</a>
+  <a href="index.html" class="{{ 'active' if _na == 'home' else '' }}">🏠 Home</a>
+  <a href="tickets.html" class="{{ 'active' if _na == 'tickets' else '' }}">🎟 Tickets</a>
+  <a href="grades.html" class="{{ 'active' if _na == 'grades' else '' }}" title="Ticket evaluation hub">✏️ Grades</a>
+  <a href="income.html" class="{{ 'active' if _na == 'income' else '' }}">📈 Income</a>
+  <a href="/payout" class="{{ 'active' if _na == 'payout' else '' }}">💰 Payouts</a>
 </div>
 
 
@@ -1722,7 +1705,7 @@ body > nav.snav.glass-card {
         <div class="scard-val" id="sc-tennis-val">Checking...</div>
       </div>
 
-      <div class="scard loading" id="sc-wnba" onclick="toggleSlatePanel('wnba')">
+      <div class="scard loading" id="sc-wnba" data-offseason-resume="2026-07-28" onclick="toggleSlatePanel('wnba')">
         <div class="scard-head">
           <div class="scard-icon wnba">
             <svg class="db-icon" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="1.5">
@@ -1749,6 +1732,19 @@ body > nav.snav.glass-card {
           <span class="sbadge loading" id="sc-combined-badge">—</span>
         </div>
         <div class="scard-val" id="sc-combined-val">Checking...</div>
+      </div>
+
+      <div class="scard" id="sc-best-to-run" onclick="jumpToBestToRun()" style="cursor:pointer" title="Elite Standards + Goblins to run today">
+        <div class="scard-head">
+          <div class="scard-icon btr">
+            <svg class="db-icon" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5">
+              <path d="M12 3l2.2 6.6H21l-5.4 3.9 2.1 6.5L12 16.8 6.3 20l2.1-6.5L3 9.6h6.8L12 3z"/>
+            </svg>
+          </div>
+          <div class="scard-title">BEST TO RUN</div>
+          <span class="sbadge fresh" id="sc-best-to-run-badge">LIVE</span>
+        </div>
+        <div class="scard-val" id="sc-best-to-run-val">Standards + Goblins</div>
       </div>
 
     </div><!-- /header-row -->
@@ -2499,6 +2495,38 @@ body > nav.snav.glass-card {
     </div>
   </details>
 
+  <!-- BEST TO RUN — elite Standards + Goblins (L5 5/5, edge>0) -->
+  <details class="home-cat" id="best-to-run-cat" open>
+    <summary><span class="home-cat-title">Best to <span>Run</span></span></summary>
+    <div class="home-cat-body">
+      <div class="home-cat-flat" style="margin-bottom:12px;">
+        <div class="sec-header">
+          <div class="sec-title">Best to <span style="color:var(--accent)">Run</span></div>
+          <div class="sec-line"></div>
+          <span style="font-size:9px;color:var(--muted);letter-spacing:2px;">L5 5/5 · EDGE&gt;0</span>
+        </div>
+        <div id="btr-mix" class="btr-mix" hidden></div>
+        <div id="btr-empty" class="home-cat-empty-state" hidden>
+          <div class="hec-title">No Best to Run props yet</div>
+          <div>Waiting for Standard/Goblin legs with L5 5/5 and positive edge</div>
+        </div>
+
+        <div class="sub-header" style="color:var(--cyan);">
+          ELITE STANDARDS
+          <span class="sh-line" style="background:rgba(125,200,255,.2);"></span>
+        </div>
+        <div class="edge-bucket-label" style="color:var(--cyan);">L5 5/5 · L10 ≥ 80% · edge &gt; 0</div>
+        <div id="btr-standards" class="edge-grid" style="margin-bottom:18px;"></div>
+
+        <div class="sub-header" style="color:var(--purple);">
+          GOBLIN OVERS
+          <span class="sh-line" style="background:rgba(180,140,255,.2);"></span>
+        </div>
+        <div id="btr-goblins-host"></div>
+      </div>
+    </div>
+  </details>
+
   <!-- TOP EDGES — open by default so home cards are visible on first paint -->
   <details class="home-cat" id="top-edges" open>
     <summary><span class="home-cat-title">Top <span>Edges</span></span></summary>
@@ -2599,8 +2627,8 @@ body > nav.snav.glass-card {
   </div>
 </div>
 
-<script src="static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="static/matchup-edge.js?v=20260729team1" defer></script>
+<script src="/static/site-nav-chrome.js?v=20260412" defer></script>
+<script src="/static/matchup-edge.js?v=20260729team1" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -3678,6 +3706,7 @@ async function loadSlateData() {
       }
     }
     renderEdges();
+    renderBestToRun();
     renderStreaks();
     // Slate panel rows are fetched lazily per sport via /api/slate-sport/<sport>.
   })();
@@ -3917,7 +3946,7 @@ function sportDisplayLabel(rawSport) {
 async function refreshStatus() {
   let d = null;
   try {
-    const res = await fetch_smart('pipeline_status.json');
+    const res = await fetch("/api/pipeline/status", { cache: "no-store" });
     if (res.ok) d = await res.json();
   } catch (e) {}
   // Bundled / Capacitor WebView: no API — use static file from mobile/www (see generate_mobile_bundle.py).
@@ -4521,6 +4550,287 @@ function renderEdges() {
   }
 }
 
+/** Best to Run — stricter daily board (L5 5/5, edge>0; Standards also L10≥80%). */
+function isStandardPick(p) {
+  const t = String(p?.pick ?? p?.pick_type ?? "").trim().toLowerCase();
+  return t === "standard" || t === "std";
+}
+
+function isDemonPick(p) {
+  const t = String(p?.pick ?? p?.pick_type ?? "").trim().toLowerCase();
+  return t === "demon";
+}
+
+function btrBetSideHits(p, n) {
+  const d = String(p?.dir || "").trim().toUpperCase();
+  if (d === "UNDER") return resolvedUnderHits(p, n);
+  if (d === "OVER") return resolvedOverHits(p, n);
+  return null;
+}
+
+function btrPassesL5Perfect(p) {
+  const hits = btrBetSideHits(p, 5);
+  if (hits != null && hits >= 5) return true;
+  const sideHr = Number(p?.l5_side_hit_rate);
+  if (Number.isFinite(sideHr) && sideHr >= 0.999) return true;
+  const pct = topEdgeL5HitPct(p);
+  return Number.isFinite(pct) && pct >= 100;
+}
+
+function btrL10Rate(p) {
+  const hits = btrBetSideHits(p, 10);
+  if (hits == null) return 0;
+  return hits / 10;
+}
+
+function btrPropKey(p) {
+  return [
+    String(p?.sport || "").trim().toUpperCase(),
+    String(p?.player || "").trim().toLowerCase(),
+    String(p?.prop || "").trim().toLowerCase(),
+    String(p?.dir || "").trim().toUpperCase(),
+    String(p?.line ?? ""),
+  ].join("|");
+}
+
+function btrPlayerPropKey(p) {
+  return [
+    String(p?.sport || "").trim().toUpperCase(),
+    String(p?.player || "").trim().toLowerCase(),
+    String(p?.prop || "").trim().toLowerCase(),
+  ].join("|");
+}
+
+function btrFormatLeg(p) {
+  const side = String(p.dir || "").toUpperCase() === "UNDER" ? "U" : "O";
+  const line = (() => {
+    const v = coercePropLine(p);
+    return Number.isFinite(v) ? v : (p.line ?? "");
+  })();
+  const sport = sportDisplayLabel(p.sport) || String(p.sport || "").toUpperCase();
+  return `${p.player} ${side}${line} ${p.prop} (${sport})`;
+}
+
+function renderBestToRun() {
+  const stdEl = document.getElementById("btr-standards");
+  const gobHost = document.getElementById("btr-goblins-host");
+  const mixEl = document.getElementById("btr-mix");
+  const emptyEl = document.getElementById("btr-empty");
+  if (!stdEl || !gobHost) return;
+
+  stdEl.innerHTML = "";
+  gobHost.innerHTML = "";
+  if (mixEl) {
+    mixEl.hidden = true;
+    mixEl.innerHTML = "";
+  }
+  if (emptyEl) emptyEl.hidden = true;
+
+  const num = (x) => {
+    const v = Number(x);
+    return Number.isFinite(v) ? v : 0;
+  };
+  const tier = (p) => String(p?.tier || "").trim().toUpperCase();
+
+  const candidates = [];
+  for (const p of ALL_SLATE) {
+    if (!p || isDemonPick(p) || isFantasyScoreEdgePick(p)) continue;
+    if (tier(p) === "D") continue;
+    const dir = String(p.dir || "").trim().toUpperCase();
+    if (dir !== "OVER" && dir !== "UNDER") continue;
+    const edge = num(p.edge);
+    if (!(edge > 0)) continue;
+    if (!btrPassesL5Perfect(p)) continue;
+    const gob = isGoblinPick(p);
+    const std = isStandardPick(p);
+    if (!gob && !std) continue;
+    if (gob && dir !== "OVER") continue;
+    candidates.push(p);
+  }
+
+  const seen = new Set();
+  const uniq = [];
+  for (const p of candidates) {
+    const k = btrPropKey(p);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    uniq.push(p);
+  }
+
+  let eliteStd = uniq
+    .filter((p) => isStandardPick(p) && btrL10Rate(p) >= 0.8)
+    .sort((a, b) => {
+      const ed = num(b.edge) - num(a.edge);
+      if (ed) return ed;
+      const l10 = btrL10Rate(b) - btrL10Rate(a);
+      if (l10) return l10;
+      return num(b.hit) - num(a.hit);
+    });
+  eliteStd = pickPrimaryLineRows(eliteStd).slice(0, 6);
+
+  const goblins = uniq
+    .filter((p) => isGoblinPick(p))
+    .sort((a, b) => num(b.edge) - num(a.edge));
+  const bySport = new Map();
+  for (const p of goblins) {
+    const sk = String(p.sport || "").trim().toUpperCase() || "OTHER";
+    if (!bySport.has(sk)) bySport.set(sk, []);
+    bySport.get(sk).push(p);
+  }
+  // Prefer WNBA / MLB first in display order when present
+  const sportOrder = ["WNBA", "MLB", "SOCCER", "TENNIS", "NBA", "NHL", "NFL"];
+  const sportKeys = [
+    ...sportOrder.filter((s) => bySport.has(s)),
+    ...[...bySport.keys()].filter((s) => !sportOrder.includes(s)).sort(),
+  ];
+
+  const appendCards = (arr, el) => {
+    for (const p of arr) {
+      const idx = Math.max(0, ALL_SLATE.indexOf(p));
+      el.appendChild(buildEdgeCard(p, idx));
+      queueMicrotask(() => renderExpandChart(idx, EDGE_DISPLAY_PICK[idx] ?? p, "l5"));
+    }
+  };
+
+  appendCards(eliteStd, stdEl);
+  const stdLabel = stdEl.previousElementSibling;
+  if (stdLabel && stdLabel.classList.contains("edge-bucket-label")) {
+    stdLabel.hidden = eliteStd.length === 0;
+  }
+  const stdHeader = stdLabel && stdLabel.previousElementSibling;
+  if (stdHeader && stdHeader.classList && stdHeader.classList.contains("sub-header")) {
+    stdHeader.hidden = eliteStd.length === 0;
+  }
+  stdEl.hidden = eliteStd.length === 0;
+
+  let gobCount = 0;
+  for (const sk of sportKeys) {
+    const rows = pickPrimaryLineRows(bySport.get(sk) || []).slice(0, 6);
+    if (!rows.length) continue;
+    gobCount += rows.length;
+    const label = document.createElement("div");
+    label.className = "edge-bucket-label";
+    label.style.color = "var(--purple)";
+    label.textContent = `${sportDisplayLabel(sk) || sk} · L5 5/5 OVER`;
+    const grid = document.createElement("div");
+    grid.className = "edge-grid";
+    grid.dataset.btrSport = sk.toLowerCase();
+    grid.style.marginBottom = "18px";
+    gobHost.appendChild(label);
+    gobHost.appendChild(grid);
+    appendCards(rows, grid);
+  }
+  const gobHeader = gobHost.previousElementSibling;
+  if (gobHeader && gobHeader.classList && gobHeader.classList.contains("sub-header")) {
+    gobHeader.hidden = gobCount === 0;
+  }
+
+  // Suggested 6-leg: 3 Standards + 3 Goblins (cross-sport when possible)
+  const mixStd = [];
+  const seenPp = new Set();
+  for (const p of eliteStd) {
+    const k = btrPlayerPropKey(p);
+    if (seenPp.has(k)) continue;
+    seenPp.add(k);
+    mixStd.push(p);
+    if (mixStd.length >= 3) break;
+  }
+  const mixGob = [];
+  const preferSports = sportKeys.length ? sportKeys : ["WNBA", "MLB"];
+  for (const sk of preferSports) {
+    for (const p of bySport.get(sk) || []) {
+      const k = btrPlayerPropKey(p);
+      if (seenPp.has(k)) continue;
+      seenPp.add(k);
+      mixGob.push(p);
+      break;
+    }
+    if (mixGob.length >= 3) break;
+  }
+  if (mixGob.length < 3) {
+    for (const sk of sportKeys) {
+      for (const p of bySport.get(sk) || []) {
+        const k = btrPlayerPropKey(p);
+        if (seenPp.has(k)) continue;
+        seenPp.add(k);
+        mixGob.push(p);
+        if (mixGob.length >= 3) break;
+      }
+      if (mixGob.length >= 3) break;
+    }
+  }
+  const mixLegs = [...mixStd, ...mixGob].slice(0, 6);
+  if (mixEl && mixLegs.length >= 2) {
+    mixEl.hidden = false;
+    mixEl.innerHTML =
+      "<strong>Suggested mix</strong>" +
+      `<div class="btr-mix-legs">${mixLegs.map(btrFormatLeg).join(" · ")}</div>`;
+  }
+
+  const any = eliteStd.length + gobCount > 0;
+  if (emptyEl) emptyEl.hidden = any;
+  const cat = document.getElementById("best-to-run-cat");
+  if (cat && any) cat.setAttribute("open", "");
+  const btrVal = document.getElementById("sc-best-to-run-val");
+  const btrBadge = document.getElementById("sc-best-to-run-badge");
+  if (btrVal) {
+    btrVal.textContent = any
+      ? `${eliteStd.length} Std · ${gobCount} Gob`
+      : "Waiting for slate…";
+  }
+  if (btrBadge) {
+    btrBadge.textContent = any ? "LIVE" : "…";
+    btrBadge.className = any ? "sbadge fresh" : "sbadge loading";
+  }
+  wireBestToRunExpandHandlers();
+}
+
+/** Sport-row tab: jump to Best to Run and ensure cards are warmed on mobile. */
+async function jumpToBestToRun() {
+  const cat = document.getElementById("best-to-run-cat");
+  if (!cat) return;
+  cat.setAttribute("open", "");
+  try {
+    document.querySelectorAll("#slate-panel-header-row .scard.active").forEach((el) => {
+      el.classList.remove("active");
+    });
+    document.querySelectorAll(".slate-expand.open, .slate-expand.active").forEach((el) => {
+      el.classList.remove("open", "active");
+    });
+    document.getElementById("sc-best-to-run")?.classList.add("active");
+  } catch (e) {}
+  if (!ALL_SLATE.length) {
+    try {
+      await loadHomeCardsFromFullSlate();
+    } catch (e) {
+      console.warn("jumpToBestToRun warm:", e);
+    }
+  }
+  renderBestToRun();
+  cat.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function wireBestToRunExpandHandlers() {
+  const ids = ["btr-standards"];
+  document.querySelectorAll("#btr-goblins-host .edge-grid").forEach((el, i) => {
+    if (!el.id) el.id = `btr-goblin-grid-${i}`;
+    ids.push(el.id);
+  });
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.expandWired === "1") return;
+    el.dataset.expandWired = "1";
+    el.addEventListener("click", (e) => {
+      if (e.target.closest(".expand-tab")) return;
+      const card = e.target.closest(".edge-card");
+      if (!card) return;
+      const wasOpen = card.classList.contains("expanded");
+      el.querySelectorAll(".edge-card.expanded").forEach((c) => c.classList.remove("expanded"));
+      if (!wasOpen) card.classList.add("expanded");
+    });
+  });
+}
+
 function wireEdgeCardExpandHandlers() {
   ["over-edges-standard", "over-edges-goblin", "under-edges-standard"].forEach((id) => {
     const el = document.getElementById(id);
@@ -4838,6 +5148,7 @@ function injectSlateL5Buttons() {
     overBtn.id = `sfb-${sport}-l5over`;
     overBtn.type = 'button';
     overBtn.textContent = 'L5 OVER';
+    overBtn.title = 'OVER picks with ≥4/5 L5 overs vs the line';
     overBtn.onclick = () => toggleL5Filter(sport, 'OVER', overBtn);
 
     const underBtn = document.createElement('button');
@@ -4845,6 +5156,7 @@ function injectSlateL5Buttons() {
     underBtn.id = `sfb-${sport}-l5under`;
     underBtn.type = 'button';
     underBtn.textContent = 'L5 UNDER';
+    underBtn.title = 'Standard UNDER picks with ≥4/5 L5 unders (no Goblin/Demon)';
     underBtn.onclick = () => toggleL5Filter(sport, 'UNDER', underBtn);
 
     const tierGroup = bar.querySelector('.slate-tier-group');
@@ -5129,6 +5441,7 @@ function syncCardsFromCombinedRows(rows) {
   SLATE_CARDS_POPULATED = true;
   seedPlayerDataFromCardPicks(mapped);
   renderEdges();
+  renderBestToRun();
   renderStreaks();
   return true;
 }
@@ -5204,6 +5517,7 @@ function syncCardsFromCombinedSheet(columns, rows) {
   SLATE_CARDS_POPULATED = true;
   seedPlayerDataFromCardPicks(mapped);
   renderEdges();
+  renderBestToRun();
   renderStreaks();
   return true;
 }
@@ -5220,7 +5534,7 @@ async function fetchSlateSport(sport, opts = {}) {
     let rows = [];
     let source = "";
     try {
-      const res = await fetch_smart(`slate_sport_${encodeURIComponent(sport)}.json`);
+      const res = await fetch(`/api/slate-sport/${encodeURIComponent(sport)}`, {cache: 'no-store'});
       if (res.ok) {
         const d = await res.json();
         rows = Array.isArray(d.rows) ? d.rows : [];
@@ -5524,7 +5838,7 @@ async function loadCombinedFromMergedJson() {
     void loadSlateData().catch(() => {});
     let d = null;
     try {
-      const res = await fetch_smart('slate_sport_combined.json');
+      const res = await fetch('/api/slate-sport/combined', {cache: 'no-store'});
       if (res.ok) d = await res.json();
     } catch (e) {}
     if (!d || !Array.isArray(d.rows) || !d.rows.length) {
@@ -5556,7 +5870,7 @@ async function loadSlateExcel() {
   if (!_slateExcelPromise) {
     _slateExcelPromise = (async () => {
       try {
-        const r = await fetch_smart('slate_excel.json');
+        const r = await fetch('/api/slate-excel', {cache: 'no-store'});
         const d = await r.json();
         const sh = d.sheets && d.sheets.combined;
         if (sh && sh.columns && sh.rows && sh.rows.length) {
@@ -5725,14 +6039,29 @@ function sortSlateDynamic(sport, key) {
   scheduleRenderSlateTable(sport);
 }
 
-// Keep edge/streak sections populated; warm only the default sport (lazy-load others on tab open).
-// Defer full /api/slate (multi-MB) until idle — sport table uses /api/slate-sport first.
+// Keep edge/streak/Best-to-Run sections populated; warm only the default sport table on boot.
+// Mobile used to skip all slate warming (skipHeavyCombinedSlate) — Best to Run / Top Edges stayed empty.
 (function bootHomeSlateUi() {
   try {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     fetchSlateSport(getDefaultBootSlateSport());
     autoOpenBootSlatePanel();
+    const warmHomeCards = () => {
+      try {
+        loadHomeCardsFromFullSlate()
+          .then(() => {
+            if (ALL_SLATE.length) {
+              renderEdges();
+              renderBestToRun();
+              renderStreaks();
+            }
+          })
+          .catch((e) => console.warn("warmHomeCards:", e));
+      } catch (e2) {
+        console.warn("warmHomeCards:", e2);
+      }
+    };
     const warmFullSlate = () => {
       try {
         loadSlateData().catch((e) => console.warn("deferred loadSlateData:", e));
@@ -5743,6 +6072,13 @@ function sortSlateDynamic(sport, key) {
     const skipHeavyCombinedSlate =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
+    // Always warm Best to Run / Top Edges / L5 from combined slate JSON (mobile + desktop).
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(warmHomeCards, { timeout: 2500 });
+    } else {
+      window.setTimeout(warmHomeCards, 600);
+    }
+    // Desktop: also merge ticket legs / history via full /api/slate.
     if (!skipHeavyCombinedSlate) {
       if (typeof window.requestIdleCallback === "function") {
         window.requestIdleCallback(warmFullSlate, { timeout: 4000 });
@@ -5750,6 +6086,14 @@ function sortSlateDynamic(sport, key) {
         window.setTimeout(warmFullSlate, 2500);
       }
     }
+    // Deep link: ?section=best
+    try {
+      if (new URLSearchParams(window.location.search).get("section") === "best") {
+        window.setTimeout(() => {
+          if (typeof jumpToBestToRun === "function") jumpToBestToRun();
+        }, 900);
+      }
+    } catch (eDeep) {}
   } catch (e) {
     console.error("home slate UI boot:", e);
   }
@@ -5781,8 +6125,9 @@ function sortSlateDynamic(sport, key) {
     const edgesDeepLink = params.get("section") === "edges";
     /* Keep primary home data sections open — collapsing them made Hot Players /
        Top Edges / L5 look empty even when cards had already loaded. */
-    const keepOpen = new Set(["slate-explorer", "hot-players-cat", "top-edges", "l5-streaks-cat"]);
+    const keepOpen = new Set(["slate-explorer", "hot-players-cat", "best-to-run-cat", "top-edges", "l5-streaks-cat"]);
     if (edgesDeepLink) keepOpen.add("top-edges");
+    if (params.get("section") === "best") keepOpen.add("best-to-run-cat");
     document.querySelectorAll("details.home-cat").forEach((det) => {
       if (keepOpen.has(det.id)) {
         det.setAttribute("open", "");

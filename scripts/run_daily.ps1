@@ -1865,46 +1865,86 @@ else {
         if ($MainRoot -ne $Root) {
             Write-Log "STEP E - publishing via main worktree: $MainRoot"
         }
+        # Snapshot EVERY Railway-facing artifact before stash. A short list previously
+        # dropped slate_sport_*, slate_display_date, and *_matchup_edge.json into stash
+        # and never restored them — production Slate Explorer stayed STALE / matchup empty.
         $stepELiveRels = @(
             "ui_runner/templates/tickets_latest.json",
             "ui_runner/docs/tickets_latest.json",
             "mobile/www/tickets_latest.json",
             "ui_runner/templates/slate_latest.json",
             "mobile/www/slate_latest.json",
+            "ui_runner/templates/slate_display_date.json",
+            "mobile/www/slate_display_date.json",
             "ui_runner/templates/pipeline_status.json",
-            "mobile/www/pipeline_status.json"
+            "mobile/www/pipeline_status.json",
+            "mobile/www/sport_breakdown.json",
+            "ui_runner/templates/strong_recombo_shadow_latest.json",
+            "ui_runner/templates/strong_mix_shadow_latest.json"
+        )
+        $stepELiveGlobs = @(
+            "ui_runner/templates/slate_sport_*.json",
+            "mobile/www/slate_sport_*.json",
+            "ui_runner/templates/*_matchup_edge.json",
+            "mobile/www/data/*_matchup_edge.json"
         )
         # Snapshot live tickets from the daily run workspace before main-side staging.
         $stepELiveSnap = Join-Path $env:TEMP ("proporacle_step_e_live_" + [guid]::NewGuid().ToString("N"))
         New-Item -ItemType Directory -Path $stepELiveSnap -Force | Out-Null
-        foreach ($rel in $stepELiveRels) {
-            $src = Join-Path $Root ($rel -replace "/", "\")
-            if (Test-Path -LiteralPath $src) {
-                $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
-                New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-                Copy-Item -LiteralPath $src -Destination $dst -Force
+        function Save-StepELiveSnapshot {
+            param([string[]]$Rels, [string[]]$Globs)
+            foreach ($rel in $Rels) {
+                $src = Join-Path $Root ($rel -replace "/", "\")
+                if (Test-Path -LiteralPath $src) {
+                    $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                    Copy-Item -LiteralPath $src -Destination $dst -Force
+                }
+            }
+            foreach ($pattern in $Globs) {
+                $fullPattern = Join-Path $Root ($pattern -replace "/", "\")
+                $parent = Split-Path $fullPattern -Parent
+                $leaf = Split-Path $fullPattern -Leaf
+                if (-not (Test-Path -LiteralPath $parent)) { continue }
+                Get-ChildItem -LiteralPath $parent -Filter $leaf -File -ErrorAction SilentlyContinue | ForEach-Object {
+                    $rel = $_.FullName.Substring($Root.Length).TrimStart("\", "/").Replace("\", "/")
+                    $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                    Copy-Item -LiteralPath $_.FullName -Destination $dst -Force
+                }
             }
         }
+        function Restore-StepELiveSnapshot {
+            Get-ChildItem -LiteralPath $stepELiveSnap -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+                $rel = $_.FullName.Substring($stepELiveSnap.Length).TrimStart("\", "/").Replace("\", "/")
+                $dst = Join-Path $MainRoot ($rel -replace "/", "\")
+                New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                Copy-Item -LiteralPath $_.FullName -Destination $dst -Force
+            }
+        }
+        Save-StepELiveSnapshot -Rels $stepELiveRels -Globs $stepELiveGlobs
+        Write-Log "STEP E - live snapshot files: $((Get-ChildItem -LiteralPath $stepELiveSnap -Recurse -File -ErrorAction SilentlyContinue | Measure-Object).Count)"
 
         Push-Location $MainRoot
         $stepEStashed = $false
         try {
             if (git status --porcelain) {
+                # Same-worktree daily runs: stash can fail on locked large JSON (mlb slate)
+                # and previously orphaned publish artifacts. Snapshot above is source of truth.
                 Write-Log "STEP E - dirty main worktree; stashing before pull/commit"
-                git stash push -m "proporacle-step-e-temp-$Today" 2>&1 | ForEach-Object { Write-Log "STEP E - stash: $_" }
-                if ($LASTEXITCODE -eq 0) { $stepEStashed = $true }
+                git stash push -u -m "proporacle-step-e-temp-$Today" 2>&1 | ForEach-Object { Write-Log "STEP E - stash: $_" }
+                if ($LASTEXITCODE -eq 0) {
+                    $stepEStashed = $true
+                }
+                else {
+                    Write-Log "STEP E - stash: WARN (exit $LASTEXITCODE) — continuing with snapshot restore after pull"
+                }
             }
             git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log "STEP E - pull: $_" }
 
-            # Restore snapshotted live tickets onto main worktree
-            foreach ($rel in $stepELiveRels) {
-                $src = Join-Path $stepELiveSnap ($rel -replace "/", "\")
-                if (Test-Path -LiteralPath $src) {
-                    $dst = Join-Path $MainRoot ($rel -replace "/", "\")
-                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-                    Copy-Item -LiteralPath $src -Destination $dst -Force
-                }
-            }
+            # Restore snapshotted live web artifacts onto main worktree (full set)
+            Restore-StepELiveSnapshot
+            Write-Log "STEP E - restored live snapshot onto main worktree"
 
             # Also copy today's outputs/templates/mobile from run workspace when paths differ
             if ($MainRoot -ne $Root) {

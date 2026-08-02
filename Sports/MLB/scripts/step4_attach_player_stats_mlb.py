@@ -705,6 +705,47 @@ def update_cache(
     return cache, added
 
 
+def player_cache_max_date(
+    cache: pd.DataFrame,
+    player_id: str,
+    season: str,
+) -> Optional[pd.Timestamp]:
+    """Newest GAME_DATE in cache for this player+season (or None)."""
+    if cache is None or cache.empty:
+        return None
+    mask = (
+        (cache["MLB_PLAYER_ID"].astype(str) == str(player_id))
+        & (cache["SEASON"].astype(str) == str(season))
+    )
+    if not bool(mask.any()):
+        return None
+    dt = pd.to_datetime(cache.loc[mask, "GAME_DATE"], errors="coerce").max()
+    if pd.isna(dt):
+        return None
+    return pd.Timestamp(dt)
+
+
+def player_cache_is_stale(
+    cache: pd.DataFrame,
+    player_id: str,
+    season: str,
+    *,
+    stale_before: Optional[pd.Timestamp] = None,
+) -> bool:
+    """
+    True when cache has no rows or newest game is older than stale_before.
+
+    Default stale_before = yesterday (UTC date) so daily runs pull the prior
+    night's box scores instead of freezing on an old 10-game window.
+    """
+    max_dt = player_cache_max_date(cache, player_id, season)
+    if max_dt is None:
+        return True
+    if stale_before is None:
+        stale_before = pd.Timestamp(datetime.utcnow().date()) - pd.Timedelta(days=1)
+    return pd.Timestamp(max_dt).normalize() < pd.Timestamp(stale_before).normalize()
+
+
 def get_vals_from_cache(
     cache: pd.DataFrame,
     player_id: str,
@@ -905,13 +946,14 @@ def _process_slate_row_for_stats(
         pid = ids[0]
         cached_vals = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
         if allow_live_refresh:
-            if len(cached_vals) < 3:
-                key = (pid, ptype)
-                attempts = attempted_refresh.get(key, 0)
-            else:
-                attempts = max_refresh_attempts
-
-            if len(cached_vals) < 3 and attempts < max_refresh_attempts:
+            key = (pid, ptype)
+            attempts = attempted_refresh.get(key, 0)
+            # Refresh when thin OR when newest cached game is older than yesterday.
+            # Old logic only refreshed len<3, so hot players froze on July logs.
+            needs_refresh = (len(cached_vals) < 3) or player_cache_is_stale(
+                cache, pid, season
+            )
+            if needs_refresh and attempts < max_refresh_attempts:
                 attempted_refresh[key] = attempts + 1
                 cache, added = update_cache(cache, pid, ptype, season, n_games=n_games)
                 if added > 0:
@@ -941,13 +983,10 @@ def _process_slate_row_for_stats(
             sub_ptype = ptype
             cv = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
             if allow_live_refresh:
-                if len(cv) < 3:
-                    key = (pid, sub_ptype)
-                    attempts = attempted_refresh.get(key, 0)
-                else:
-                    attempts = max_refresh_attempts
-
-                if len(cv) < 3 and attempts < max_refresh_attempts:
+                key = (pid, sub_ptype)
+                attempts = attempted_refresh.get(key, 0)
+                needs_refresh = (len(cv) < 3) or player_cache_is_stale(cache, pid, season)
+                if needs_refresh and attempts < max_refresh_attempts:
                     attempted_refresh[key] = attempts + 1
                     cache, added = update_cache(cache, pid, sub_ptype, season, n_games=n_games)
                     if added > 0:

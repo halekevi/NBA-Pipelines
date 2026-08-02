@@ -4596,6 +4596,25 @@ function wireEdgeCardExpandHandlers() {
   });
 }
 
+function formatOppDef(p) {
+  if (!p) return "—";
+  const tier = p.def_tier != null && String(p.def_tier).trim() !== "" ? String(p.def_tier).trim() : "";
+  const rankRaw = p.opponent_def_rank;
+  const rankNum = rankRaw != null && rankRaw !== "" ? Number(rankRaw) : NaN;
+  const rank = Number.isFinite(rankNum) ? `#${Math.round(rankNum)}` : "";
+  if (tier && rank) return `${tier} · ${rank}`;
+  if (tier) return tier;
+  if (rank) return rank;
+  return "—";
+}
+
+function formatMatchupSignal(p) {
+  if (!p || p.def_matchup_signal == null || p.def_matchup_signal === "") return "—";
+  const n = Number(p.def_matchup_signal);
+  if (!Number.isFinite(n)) return "—";
+  return (n >= 0 ? "+" : "") + n.toFixed(1);
+}
+
 function openPropDetailPanel(p) {
   if (!p) return;
   const overlay = document.getElementById("prop-detail-overlay");
@@ -4628,8 +4647,8 @@ function openPropDetailPanel(p) {
     const mlStr = p.ml_prob != null ? (Number(p.ml_prob) * 100).toFixed(1) + "%" : "—";
     const rows = [
       ["TEAM", pct(p.team)], ["OPP", pct(p.opp)], ["TIER", pct(p.tier)],
-      ["RANK", pct(p.rank_score)], ["DEF", pct(p.def_tier)], ["ML PROB", mlStr],
-      ["EDGE", edgeStr], ["BOOK LINE", pct(p.book_line ?? p.prop_line ?? p.line)],
+      ["RANK", pct(p.rank_score)], ["OPP DEF", formatOppDef(p)], ["MATCHUP", formatMatchupSignal(p)],
+      ["ML PROB", mlStr], ["EDGE", edgeStr], ["BOOK LINE", pct(p.book_line ?? p.prop_line ?? p.line)],
       ["SEASON AVG", pct(p.season_avg)], ["PROJECTION", pct(p.projection)],
       ["GAME TIME", formatGameTimeDisplay(p.game_time)],
     ];

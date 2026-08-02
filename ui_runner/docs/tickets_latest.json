@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-01 12:42:57 UTC",
-  "date": "2026-08-01",
-  "tennis_date": "2026-08-01",
+  "generated_at": "2026-08-02 12:49:40 UTC",
+  "date": "2026-08-02",
+  "tennis_date": "2026-08-02",
   "filters": {
     "tiers": "A,B",
     "min_hit_rate": 0.72,
@@ -37,23 +37,23 @@
   "ticket_track": "graded_main",
   "mode": "graded_main",
   "groups": [],
-  "hot_legs": 109,
+  "hot_legs": 113,
   "cold_legs": 0,
   "tier_ev_thresholds": {
-    "strong": 0.32387000000000005,
-    "ok": 0.1321,
-    "marginal": 0.007509999999999957
+    "strong": 1.3254000000000001,
+    "ok": 0.1707,
+    "marginal": 0.034850000000000006
   },
   "tier_ev_thresholds_by_legs": {
     "2": {
-      "strong": 0.32386999999999994,
-      "ok": 0.15902,
-      "marginal": 0.06703
+      "strong": 0.5516949999999996,
+      "ok": 0.17586,
+      "marginal": 0.13439
     },
     "3": {
-      "strong": 0.4660799999999977,
-      "ok": -0.00287999999999998,
-      "marginal": -0.17058500000000001
+      "strong": 2.0197,
+      "ok": -0.0648,
+      "marginal": -0.1083
     }
   },
   "tier_ev_percentiles": {
@@ -76,8 +76,8 @@
     "require_hot_streak": true
   },
   "strong_gate_stats": {
-    "legs_checked": 61,
-    "failed_goblin": 2,
+    "legs_checked": 84,
+    "failed_goblin": 12,
     "failed_tier": 0,
     "failed_streak": 0
   },
@@ -116,9 +116,9 @@
   "main_default_legs": 3,
   "main_thin_pool_min_legs": 6,
   "allow_standard": true,
-  "strong_builder_count": 26,
-  "core_build_count": 6,
-  "run_id": "20260801_124257_697067",
+  "strong_builder_count": 30,
+  "core_build_count": 7,
+  "run_id": "20260802_124941_026816",
   "preferred_min_payout_x": 1.5,
   "short_floor_hard_x": 1.5,
   "short_floor_high_p_win": 0.7

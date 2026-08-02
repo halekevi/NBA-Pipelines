@@ -2298,6 +2298,7 @@ body > nav.snav.glass-card {
     <div class="sub-header" style="color:var(--amber);">
       ❄️ TOP UNDERS — LAST 5
       <span class="sh-line" style="background:rgba(255,192,107,.2);"></span>
+      <span style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-left:8px;">STANDARD ONLY</span>
     </div>
     <div id="l5-under-grid" class="streak-grid" style="margin-bottom:0;"></div>
   </div>
@@ -2324,6 +2325,7 @@ body > nav.snav.glass-card {
     <div class="sub-header" style="color:var(--amber);">
       ❄️ UNDER STREAKS — LAST 10
       <span class="sh-line" style="background:rgba(255,192,107,.2);"></span>
+      <span style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-left:8px;">STANDARD ONLY</span>
     </div>
     <div id="l10-under-grid" class="streak-grid" style="margin-bottom:0;"></div>
   </div>
@@ -4026,9 +4028,10 @@ function switchExpandTab(idx, tab, btn) {
   renderExpandChart(idx, p, tab);
 }
 
-/** UNDER edge display: Standard picks only (Goblin has no under side here). Real UNDER legs as-is; OVER legs → synthetic under card. */
+/** UNDER edge display: Standard picks only (Goblin/Demon have no under side here). Real UNDER legs as-is; OVER legs → synthetic under card. */
 function underEdgeDisplayPick(basePick) {
-  if (isGoblinPick(basePick)) return null;
+  if (isGoblinPick(basePick) || isDemonPick(basePick)) return null;
+  if (!isStandardPick(basePick)) return null;
 
   const dir = String(basePick.dir || "").trim().toUpperCase();
   if (dir === "UNDER") {
@@ -4785,11 +4788,11 @@ function renderStreaks() {
     return sortStreakRows([...byKey.values()]);
   }
 
-  /** Under-side streaks: Standard legs only; resolved L5/L10 under hits. */
+  /** Under-side streaks: Standard legs only (no Goblin/Demon). */
   function underStreakRows(n, minHits) {
     const out = [];
     for (const p of ALL_SLATE) {
-      if (isGoblinPick(p)) continue;
+      if (!isStandardPick(p) || isGoblinPick(p) || isDemonPick(p)) continue;
       if (isFantasyScoreEdgePick(p)) continue;
       const h = resolvedUnderHits(p, n);
       if (h === null || h < 1) continue;

@@ -4147,9 +4147,36 @@ function renderEdges() {
   }
   const stdO = overPrimary.filter((p) => !isGoblinPick(p));
   const gobO = overPrimary.filter((p) => isGoblinPick(p));
-  const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
-  stdO.sort(byEdgeDesc);
-  gobO.sort(byEdgeDesc);
+  // Prefer stronger L5 among similar edges so Best-to-Run 5/5s stay visible.
+  const byEdgeThenL5 = (a, b) => {
+    const ed = num(b.edge) - num(a.edge);
+    if (Math.abs(ed) > 0.05) return ed;
+    return (topEdgeL5HitPct(b, "OVER") || 0) - (topEdgeL5HitPct(a, "OVER") || 0);
+  };
+  stdO.sort(byEdgeThenL5);
+  gobO.sort(byEdgeThenL5);
+  // Pin Best-to-Run Std/Gob OVER legs into Top Edges when they clear the L5 gate.
+  const pinBtrIntoEdges = (bucket, gobOnly) => {
+    const seen = new Set(bucket.map((p) => btrPropKey(p)));
+    for (const p of ALL_SLATE) {
+      if (!p || isFantasyScoreEdgePick(p) || isDemonPick(p)) continue;
+      if (String(p.tier || "").trim().toUpperCase() === "D") continue;
+      if (String(p.dir || "").trim().toUpperCase() !== "OVER") continue;
+      if (!(num(p.edge) > 0) || !btrPassesL5Perfect(p)) continue;
+      const gob = isGoblinPick(p);
+      const std = isStandardPick(p);
+      if (gobOnly ? !gob : !std) continue;
+      if (!passesEdgeL5Gate(p, "OVER")) continue;
+      if (!passesTopEdgeEmpiricalSanity(p, "OVER")) continue;
+      const k = btrPropKey(p);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      bucket.push(p);
+    }
+    bucket.sort(byEdgeThenL5);
+  };
+  pinBtrIntoEdges(stdO, false);
+  pinBtrIntoEdges(gobO, true);
 
   const underSourceRows = collectUnderEdgeRows();
   const underByKey = new Map();
@@ -4687,16 +4714,78 @@ function streakCard(p, n) {
 }
 
 function renderStreaks() {
-  const STREAK_CARD_LIMIT = 10;
-  // Use REAL pipeline hit counts from /api/slate
-  function realHits(p, n) {
-    const dir = String(p.dir || "").trim().toUpperCase();
-    if (n === 5)  return dir === "OVER" ? (p.l5_over  ?? null) : (p.l5_under  ?? null);
-    if (n === 10) return dir === "OVER" ? (p.l10_over ?? null) : (p.l10_under ?? null);
+  // Cap keeps the homepage readable; pin + edge sort keeps Best-to-Run L5s visible.
+  const STREAK_CARD_LIMIT = 18;
+  const edgeNum = (p) => {
+    const v = Number(p?.edge);
+    return Number.isFinite(v) ? v : -Infinity;
+  };
+  const streakKey = (p) =>
+    [
+      String(p?.sport || "").trim().toUpperCase(),
+      String(p?.player || "").trim().toLowerCase(),
+      String(p?.prop || "").trim().toLowerCase(),
+      String(p?.pick || p?.pick_type || "").trim().toLowerCase(),
+      String(p?.dir || "").trim().toUpperCase(),
+      String(coercePropLine(p) ?? p?.line ?? ""),
+    ].join("|");
+
+  /** Same hit resolution as Best to Run / Top Edges (not raw l5_over alone). */
+  function sideHits(p, n, dirForce) {
+    const dir = String(dirForce || p?.dir || "").trim().toUpperCase();
+    if (dir === "UNDER") return resolvedUnderHits(p, n);
+    if (dir === "OVER") return resolvedOverHits(p, n);
     return null;
   }
 
-  /** Under-side streaks: Standard legs only; l{n}_under or complement of l{n}_over. */
+  function sortStreakRows(rows) {
+    return rows.slice().sort((a, b) => {
+      if (b.h !== a.h) return b.h - a.h;
+      const ed = edgeNum(b) - edgeNum(a);
+      if (ed) return ed;
+      return String(a.player || "").localeCompare(String(b.player || ""));
+    });
+  }
+
+  /** Prefer primary book lines so alt-lines don't crowd out elite L5s. */
+  function dedupeStreakRows(rows) {
+    return pickPrimaryLineRows(rows);
+  }
+
+  /**
+   * Pin Best-to-Run-quality legs (L5 5/5 + edge>0 Std/Gob) into the streak list
+   * so homepage sections stay consistent when hundreds of props share 5/5.
+   */
+  function pinBestToRunIntoStreaks(ranked, n, dir) {
+    const wantDir = String(dir || "OVER").trim().toUpperCase();
+    const pinned = [];
+    for (const p of ALL_SLATE) {
+      if (!p || isFantasyScoreEdgePick(p) || isDemonPick(p)) continue;
+      if (String(p.tier || "").trim().toUpperCase() === "D") continue;
+      const d = String(p.dir || "").trim().toUpperCase();
+      if (d !== wantDir) continue;
+      if (!(edgeNum(p) > 0)) continue;
+      if (!btrPassesL5Perfect(p)) continue;
+      const gob = isGoblinPick(p);
+      const std = isStandardPick(p);
+      if (!gob && !std) continue;
+      if (gob && wantDir !== "OVER") continue;
+      if (wantDir === "OVER" && n === 10 && btrL10Rate(p) < 0.8) continue;
+      const h = sideHits(p, n, wantDir);
+      if (h == null) continue;
+      if (n === 5 && h < 4) continue;
+      if (n === 10 && h < 8) continue;
+      pinned.push({ ...p, dir: wantDir, h });
+    }
+    const byKey = new Map();
+    for (const p of [...sortStreakRows(pinned), ...ranked]) {
+      const k = streakKey(p);
+      if (!byKey.has(k)) byKey.set(k, p);
+    }
+    return sortStreakRows([...byKey.values()]);
+  }
+
+  /** Under-side streaks: Standard legs only; resolved L5/L10 under hits. */
   function underStreakRows(n, minHits) {
     const out = [];
     for (const p of ALL_SLATE) {
@@ -4707,43 +4796,33 @@ function renderStreaks() {
       if (minHits != null && h < minHits) continue;
       out.push({ ...p, dir: "UNDER", h });
     }
-    out.sort((a, b) => b.h - a.h);
-    return out;
+    return sortStreakRows(dedupeStreakRows(out));
   }
 
-  const l5all = [...ALL_SLATE]
-    .filter((p) => !isFantasyScoreEdgePick(p))
-    .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
-    .filter(p => p.h !== null && p.h >= 4)
-    .sort((a, b) => b.h - a.h);
+  function overStreakRows(n, minHits) {
+    const out = [];
+    for (const p of ALL_SLATE) {
+      if (isFantasyScoreEdgePick(p)) continue;
+      if (String(p.dir || "").trim().toUpperCase() !== "OVER") continue;
+      const h = sideHits(p, n, "OVER");
+      if (h === null || h < 1) continue;
+      if (minHits != null && h < minHits) continue;
+      out.push({ ...p, dir: "OVER", h });
+    }
+    return sortStreakRows(dedupeStreakRows(out));
+  }
 
-  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5O = pinBestToRunIntoStreaks(overStreakRows(5, 4), 5, "OVER");
   let l5U = underStreakRows(5, 4);
   if (!l5O.length && !l5U.length) {
-    const soft = [...ALL_SLATE]
-      .filter((p) => !isFantasyScoreEdgePick(p))
-      .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
-      .filter(p => p.h !== null && p.h >= 1)
-      .sort((a, b) => b.h - a.h);
-    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5O = pinBestToRunIntoStreaks(overStreakRows(5, 1), 5, "OVER");
     l5U = underStreakRows(5, 1);
   }
 
-  const l10all = [...ALL_SLATE]
-    .filter((p) => !isFantasyScoreEdgePick(p))
-    .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
-    .filter(p => p.h !== null && p.h >= 8)
-    .sort((a, b) => b.h - a.h);
-
-  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10O = pinBestToRunIntoStreaks(overStreakRows(10, 8), 10, "OVER");
   let l10U = underStreakRows(10, 8);
   if (!l10O.length && !l10U.length) {
-    const soft = [...ALL_SLATE]
-      .filter((p) => !isFantasyScoreEdgePick(p))
-      .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
-      .filter(p => p.h !== null && p.h >= 1)
-      .sort((a, b) => b.h - a.h);
-    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10O = pinBestToRunIntoStreaks(overStreakRows(10, 1), 10, "OVER");
     l10U = underStreakRows(10, 1);
   }
 

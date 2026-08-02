@@ -1,20 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}" data-deploy-sha="{{ deploy_git_sha|default('', true) }}">
+<html lang="en" data-theme="dark" data-ui-build="" data-deploy-sha="">
 <head>
+
+<script>
+async function fetch_smart(localPath) {
+  // If we have a remote override URL for this file type, prefer it
+  let remoteUrl = null;
+  if (localPath === 'slate_latest.json' && window.SLATE_JSON_URL) remoteUrl = window.SLATE_JSON_URL;
+  if (localPath === 'tickets_latest.json' && window.TICKETS_JSON_URL) remoteUrl = window.TICKETS_JSON_URL;
+
+  if (remoteUrl) {
+    try {
+      const resp = await fetch(remoteUrl, { cache: 'no-store' });
+      if (resp.ok) return resp;
+    } catch (e) {
+      console.warn("SmartFetch remote failed, falling back to local:", localPath, e);
+    }
+  }
+  return fetch(localPath, { cache: 'no-store' });
+}
+</script>
+
+<script defer src="static/proporacle-ota.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <script>(function(){try{var t=localStorage.getItem('proporacle-theme')||localStorage.getItem('theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
 <meta name="theme-color" content="#050505"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="proporacle-build" content="{{ ui_build_id|default('', true) }}"/>
+<meta name="proporacle-build" content=""/>
 <meta property="og:title" content="PropOracle — Home"/>
 <title>PropOracle — Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/static/global-scrollbar.css?v=20260531scroll"/>
-<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
-<link rel="stylesheet" href="/static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
+<link rel="stylesheet" href="static/global-scrollbar.css?v=20260531scroll"/>
+<link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
+<link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
 <style>
 :root{
   /* Hybrid liquid-glass palette */
@@ -1070,11 +1091,11 @@ body > nav.snav.glass-card {
 }
 
 </style>
-<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260716slatecards3"/>
-<link rel="stylesheet" href="/static/matchup-edge.css?v=20260720mefind1"/>
-<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
-<link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
+<link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
+<link rel="stylesheet" href="static/mobile-content-width.css?v=20260716slatecards3"/>
+<link rel="stylesheet" href="static/matchup-edge.css?v=20260720mefind1"/>
+<link rel="stylesheet" href="static/site-nav-datetime.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
 </head>
 <body>
 
@@ -1089,24 +1110,24 @@ body > nav.snav.glass-card {
 <div class="mesh-bg" aria-hidden="true"></div>
 <div class="grain-layer" aria-hidden="true"></div>
 
-{% set nav_active = 'home' %}
-{# Set nav_active to: home | tickets | grades | income | payout (before include). Optional: nav_pill_suffix (default LIVE). #}
-{% set _na = nav_active|default('home') %}
-{% set _pill = nav_pill_suffix|default('LIVE') %}
+
+
+
+
 <nav class="snav glass-card">
   <div class="nav-accent"></div>
   <a class="snav-brand" href="index.html">
     <div class="hybrid-logo">
-      <img src="{{ url_for('static', filename='proporacle-logo-v3.png') }}?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
+      <img src="static/proporacle-logo-v3.png?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
       <span class="nav-brand brand-wordmark"><span class="wb-first">Prop</span><span class="oracle-word gold-shimmer">Oracle</span></span>
     </div>
   </a>
   <ul class="snav-links nav-links" id="nav-links">
-    <li><a href="index.html" class="{{ 'active' if _na == 'home' else '' }}"><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
-    <li><a href="tickets.html" class="{{ 'active' if _na == 'tickets' else '' }}"><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
-    <li><a href="grades.html" class="{{ 'active' if _na == 'grades' else '' }}" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
-    <li><a href="income.html" class="{{ 'active' if _na == 'income' else '' }}"><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
-    <li><a href="/payout" class="{{ 'active' if _na == 'payout' else '' }}"><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
+    <li><a href="index.html" class=""><span class="ni ni-ctrl"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 5.5V13h4V9h4v4h4V5.5L7 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/></svg></span> Home</a></li>
+    <li><a href="tickets.html" class=""><span class="ni ni-tick"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="3" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6h11" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/><circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="7" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/></svg></span> Tickets</a></li>
+    <li><a href="grades.html" class="" title="Ticket evaluation hub"><span class="ni ni-grade"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10.5L5.5 7l2.5 2.5L11 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><rect x="1.5" y="1.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg></span> Grades</a></li>
+    <li><a href="income.html" class=""><span class="ni ni-income"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V5M5 11V2M8 11V7M11 11V4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span> Income</a></li>
+    <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
     <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
@@ -1114,7 +1135,7 @@ body > nav.snav.glass-card {
       <span class="tt-icon tt-sun" style="display:none">☀️</span>
     </button>
     <div class="nav-live-cluster">
-      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span><span class="live-pill-sep">&nbsp;·&nbsp;</span>{{ _pill }}</div>
+      <div class="live-pill"><div class="live-dot"></div><span class="live-pill-brand">PropOracle</span><span class="live-pill-sep">&nbsp;·&nbsp;</span></div>
       <div class="nav-datetime-block" title="Slate date (top) and your device date & time (updates every second)">
         <div class="nav-slate-date" id="slate-date">—</div>
         <div class="nav-sync-line">
@@ -1127,11 +1148,11 @@ body > nav.snav.glass-card {
 </nav>
 
 <div class="mobile-menu" id="mobile-menu">
-  <a href="index.html" class="{{ 'active' if _na == 'home' else '' }}">🏠 Home</a>
-  <a href="tickets.html" class="{{ 'active' if _na == 'tickets' else '' }}">🎟 Tickets</a>
-  <a href="grades.html" class="{{ 'active' if _na == 'grades' else '' }}" title="Ticket evaluation hub">✏️ Grades</a>
-  <a href="income.html" class="{{ 'active' if _na == 'income' else '' }}">📈 Income</a>
-  <a href="/payout" class="{{ 'active' if _na == 'payout' else '' }}">💰 Payouts</a>
+  <a href="index.html" class="">🏠 Home</a>
+  <a href="tickets.html" class="">🎟 Tickets</a>
+  <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
+  <a href="income.html" class="">📈 Income</a>
+  <a href="payout.html" class="">💰 Payouts</a>
 </div>
 
 
@@ -2627,8 +2648,8 @@ body > nav.snav.glass-card {
   </div>
 </div>
 
-<script src="/static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="/static/matchup-edge.js?v=20260729team1" defer></script>
+<script src="static/site-nav-chrome.js?v=20260412" defer></script>
+<script src="static/matchup-edge.js?v=20260729team1" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -3946,7 +3967,7 @@ function sportDisplayLabel(rawSport) {
 async function refreshStatus() {
   let d = null;
   try {
-    const res = await fetch("/api/pipeline/status", { cache: "no-store" });
+    const res = await fetch_smart('pipeline_status.json');
     if (res.ok) d = await res.json();
   } catch (e) {}
   // Bundled / Capacitor WebView: no API — use static file from mobile/www (see generate_mobile_bundle.py).
@@ -4428,9 +4449,36 @@ function renderEdges() {
   }
   const stdO = overPrimary.filter((p) => !isGoblinPick(p));
   const gobO = overPrimary.filter((p) => isGoblinPick(p));
-  const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
-  stdO.sort(byEdgeDesc);
-  gobO.sort(byEdgeDesc);
+  // Prefer stronger L5 among similar edges so Best-to-Run 5/5s stay visible.
+  const byEdgeThenL5 = (a, b) => {
+    const ed = num(b.edge) - num(a.edge);
+    if (Math.abs(ed) > 0.05) return ed;
+    return (topEdgeL5HitPct(b, "OVER") || 0) - (topEdgeL5HitPct(a, "OVER") || 0);
+  };
+  stdO.sort(byEdgeThenL5);
+  gobO.sort(byEdgeThenL5);
+  // Pin Best-to-Run Std/Gob OVER legs into Top Edges when they clear the L5 gate.
+  const pinBtrIntoEdges = (bucket, gobOnly) => {
+    const seen = new Set(bucket.map((p) => btrPropKey(p)));
+    for (const p of ALL_SLATE) {
+      if (!p || isFantasyScoreEdgePick(p) || isDemonPick(p)) continue;
+      if (String(p.tier || "").trim().toUpperCase() === "D") continue;
+      if (String(p.dir || "").trim().toUpperCase() !== "OVER") continue;
+      if (!(num(p.edge) > 0) || !btrPassesL5Perfect(p)) continue;
+      const gob = isGoblinPick(p);
+      const std = isStandardPick(p);
+      if (gobOnly ? !gob : !std) continue;
+      if (!passesEdgeL5Gate(p, "OVER")) continue;
+      if (!passesTopEdgeEmpiricalSanity(p, "OVER")) continue;
+      const k = btrPropKey(p);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      bucket.push(p);
+    }
+    bucket.sort(byEdgeThenL5);
+  };
+  pinBtrIntoEdges(stdO, false);
+  pinBtrIntoEdges(gobO, true);
 
   const underSourceRows = collectUnderEdgeRows();
   const underByKey = new Map();
@@ -4968,16 +5016,78 @@ function streakCard(p, n) {
 }
 
 function renderStreaks() {
-  const STREAK_CARD_LIMIT = 10;
-  // Use REAL pipeline hit counts from /api/slate
-  function realHits(p, n) {
-    const dir = String(p.dir || "").trim().toUpperCase();
-    if (n === 5)  return dir === "OVER" ? (p.l5_over  ?? null) : (p.l5_under  ?? null);
-    if (n === 10) return dir === "OVER" ? (p.l10_over ?? null) : (p.l10_under ?? null);
+  // Cap keeps the homepage readable; pin + edge sort keeps Best-to-Run L5s visible.
+  const STREAK_CARD_LIMIT = 18;
+  const edgeNum = (p) => {
+    const v = Number(p?.edge);
+    return Number.isFinite(v) ? v : -Infinity;
+  };
+  const streakKey = (p) =>
+    [
+      String(p?.sport || "").trim().toUpperCase(),
+      String(p?.player || "").trim().toLowerCase(),
+      String(p?.prop || "").trim().toLowerCase(),
+      String(p?.pick || p?.pick_type || "").trim().toLowerCase(),
+      String(p?.dir || "").trim().toUpperCase(),
+      String(coercePropLine(p) ?? p?.line ?? ""),
+    ].join("|");
+
+  /** Same hit resolution as Best to Run / Top Edges (not raw l5_over alone). */
+  function sideHits(p, n, dirForce) {
+    const dir = String(dirForce || p?.dir || "").trim().toUpperCase();
+    if (dir === "UNDER") return resolvedUnderHits(p, n);
+    if (dir === "OVER") return resolvedOverHits(p, n);
     return null;
   }
 
-  /** Under-side streaks: Standard legs only; l{n}_under or complement of l{n}_over. */
+  function sortStreakRows(rows) {
+    return rows.slice().sort((a, b) => {
+      if (b.h !== a.h) return b.h - a.h;
+      const ed = edgeNum(b) - edgeNum(a);
+      if (ed) return ed;
+      return String(a.player || "").localeCompare(String(b.player || ""));
+    });
+  }
+
+  /** Prefer primary book lines so alt-lines don't crowd out elite L5s. */
+  function dedupeStreakRows(rows) {
+    return pickPrimaryLineRows(rows);
+  }
+
+  /**
+   * Pin Best-to-Run-quality legs (L5 5/5 + edge>0 Std/Gob) into the streak list
+   * so homepage sections stay consistent when hundreds of props share 5/5.
+   */
+  function pinBestToRunIntoStreaks(ranked, n, dir) {
+    const wantDir = String(dir || "OVER").trim().toUpperCase();
+    const pinned = [];
+    for (const p of ALL_SLATE) {
+      if (!p || isFantasyScoreEdgePick(p) || isDemonPick(p)) continue;
+      if (String(p.tier || "").trim().toUpperCase() === "D") continue;
+      const d = String(p.dir || "").trim().toUpperCase();
+      if (d !== wantDir) continue;
+      if (!(edgeNum(p) > 0)) continue;
+      if (!btrPassesL5Perfect(p)) continue;
+      const gob = isGoblinPick(p);
+      const std = isStandardPick(p);
+      if (!gob && !std) continue;
+      if (gob && wantDir !== "OVER") continue;
+      if (wantDir === "OVER" && n === 10 && btrL10Rate(p) < 0.8) continue;
+      const h = sideHits(p, n, wantDir);
+      if (h == null) continue;
+      if (n === 5 && h < 4) continue;
+      if (n === 10 && h < 8) continue;
+      pinned.push({ ...p, dir: wantDir, h });
+    }
+    const byKey = new Map();
+    for (const p of [...sortStreakRows(pinned), ...ranked]) {
+      const k = streakKey(p);
+      if (!byKey.has(k)) byKey.set(k, p);
+    }
+    return sortStreakRows([...byKey.values()]);
+  }
+
+  /** Under-side streaks: Standard legs only; resolved L5/L10 under hits. */
   function underStreakRows(n, minHits) {
     const out = [];
     for (const p of ALL_SLATE) {
@@ -4988,43 +5098,33 @@ function renderStreaks() {
       if (minHits != null && h < minHits) continue;
       out.push({ ...p, dir: "UNDER", h });
     }
-    out.sort((a, b) => b.h - a.h);
-    return out;
+    return sortStreakRows(dedupeStreakRows(out));
   }
 
-  const l5all = [...ALL_SLATE]
-    .filter((p) => !isFantasyScoreEdgePick(p))
-    .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
-    .filter(p => p.h !== null && p.h >= 4)
-    .sort((a, b) => b.h - a.h);
+  function overStreakRows(n, minHits) {
+    const out = [];
+    for (const p of ALL_SLATE) {
+      if (isFantasyScoreEdgePick(p)) continue;
+      if (String(p.dir || "").trim().toUpperCase() !== "OVER") continue;
+      const h = sideHits(p, n, "OVER");
+      if (h === null || h < 1) continue;
+      if (minHits != null && h < minHits) continue;
+      out.push({ ...p, dir: "OVER", h });
+    }
+    return sortStreakRows(dedupeStreakRows(out));
+  }
 
-  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5O = pinBestToRunIntoStreaks(overStreakRows(5, 4), 5, "OVER");
   let l5U = underStreakRows(5, 4);
   if (!l5O.length && !l5U.length) {
-    const soft = [...ALL_SLATE]
-      .filter((p) => !isFantasyScoreEdgePick(p))
-      .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
-      .filter(p => p.h !== null && p.h >= 1)
-      .sort((a, b) => b.h - a.h);
-    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5O = pinBestToRunIntoStreaks(overStreakRows(5, 1), 5, "OVER");
     l5U = underStreakRows(5, 1);
   }
 
-  const l10all = [...ALL_SLATE]
-    .filter((p) => !isFantasyScoreEdgePick(p))
-    .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
-    .filter(p => p.h !== null && p.h >= 8)
-    .sort((a, b) => b.h - a.h);
-
-  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10O = pinBestToRunIntoStreaks(overStreakRows(10, 8), 10, "OVER");
   let l10U = underStreakRows(10, 8);
   if (!l10O.length && !l10U.length) {
-    const soft = [...ALL_SLATE]
-      .filter((p) => !isFantasyScoreEdgePick(p))
-      .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
-      .filter(p => p.h !== null && p.h >= 1)
-      .sort((a, b) => b.h - a.h);
-    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10O = pinBestToRunIntoStreaks(overStreakRows(10, 1), 10, "OVER");
     l10U = underStreakRows(10, 1);
   }
 
@@ -5534,7 +5634,7 @@ async function fetchSlateSport(sport, opts = {}) {
     let rows = [];
     let source = "";
     try {
-      const res = await fetch(`/api/slate-sport/${encodeURIComponent(sport)}`, {cache: 'no-store'});
+      const res = await fetch_smart(`slate_sport_${encodeURIComponent(sport)}.json`);
       if (res.ok) {
         const d = await res.json();
         rows = Array.isArray(d.rows) ? d.rows : [];
@@ -5838,7 +5938,7 @@ async function loadCombinedFromMergedJson() {
     void loadSlateData().catch(() => {});
     let d = null;
     try {
-      const res = await fetch('/api/slate-sport/combined', {cache: 'no-store'});
+      const res = await fetch_smart('slate_sport_combined.json');
       if (res.ok) d = await res.json();
     } catch (e) {}
     if (!d || !Array.isArray(d.rows) || !d.rows.length) {
@@ -5870,7 +5970,7 @@ async function loadSlateExcel() {
   if (!_slateExcelPromise) {
     _slateExcelPromise = (async () => {
       try {
-        const r = await fetch('/api/slate-excel', {cache: 'no-store'});
+        const r = await fetch_smart('slate_excel.json');
         const d = await r.json();
         const sh = d.sheets && d.sheets.combined;
         if (sh && sh.columns && sh.rows && sh.rows.length) {

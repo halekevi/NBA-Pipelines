@@ -237,6 +237,7 @@ logs/_*.csv
 data/reports/probability_ladder_backtest*
 data/reports/ticket_diversity/
 data/reports/pp_line_move_*.csv
+data/line_move_snapshots/
 data/reports/backtest_june_tickets.csv
 data/reports/hit_miss_drivers/
 data/reports/slip_slice_*.csv

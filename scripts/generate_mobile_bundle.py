@@ -963,6 +963,7 @@ async function fetch_smart(localPath) {
         "uniform_tickets_latest.json",
         "uniform_tickets_dates.json",
         "uniform_tickets_backtest.json",
+        "line_move_timing.json",
     ):
         src_latest = TEMPLATES_DIR / latest_name
         if src_latest.exists():

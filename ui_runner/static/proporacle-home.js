@@ -3624,12 +3624,69 @@ function sortSlateDynamic(sport, key) {
 
 // Keep edge/streak/Best-to-Run sections populated; warm only the default sport table on boot.
 // Mobile used to skip all slate warming (skipHeavyCombinedSlate) — Best to Run / Top Edges stayed empty.
+async function loadLineTimingInsight() {
+  const headline = document.getElementById("line-timing-headline");
+  const windowsEl = document.getElementById("line-timing-windows");
+  const tipsEl = document.getElementById("line-timing-tips");
+  const metaEl = document.getElementById("line-timing-meta");
+  if (!headline || !windowsEl || !tipsEl) return;
+  let data = null;
+  try {
+    let res = await fetch("/api/line-move-timing", { cache: "no-store" });
+    if (!res.ok) res = await fetch("line_move_timing.json", { cache: "no-store" });
+    if (res.ok) data = await res.json();
+  } catch (e) {
+    console.warn("line timing load failed", e);
+  }
+  if (!data) {
+    headline.textContent = "Line-move timing still collecting.";
+    tipsEl.innerHTML = "<li>Keep 5AM + midday refreshes on to build history.</li>";
+    return;
+  }
+  headline.textContent = data.headline || "Standard line-move timing";
+  const roleColor = (role) => {
+    if (role === "favorable") return "var(--green)";
+    if (role === "unfavorable") return "var(--red)";
+    if (role === "high_volume") return "var(--amber)";
+    return "var(--muted2)";
+  };
+  const windows = Array.isArray(data.windows) ? data.windows : [];
+  windowsEl.innerHTML = windows
+    .slice(0, 4)
+    .map((w) => {
+      const label = w.label || w.id || "Window";
+      const fav = Number(w.fav_pct);
+      const unfav = Number(w.unfav_pct);
+      const moves = Number(w.moves) || 0;
+      const role = String(w.role || "mixed");
+      return `<div class="insight-card" style="min-width:0;">
+        <div class="insight-title" style="color:${roleColor(role)}">${label}</div>
+        <div class="insight-body">
+          <strong>${Number.isFinite(fav) ? fav.toFixed(0) : "—"}%</strong> favorable ·
+          <strong>${Number.isFinite(unfav) ? unfav.toFixed(0) : "—"}%</strong> unfavorable<br/>
+          <span style="opacity:.9">${moves} moves${w.days ? ` · ${w.days} days` : ""}</span>
+        </div>
+      </div>`;
+    })
+    .join("");
+  const tips = Array.isArray(data.tips) ? data.tips : [];
+  tipsEl.innerHTML = tips.map((t) => `<li>${String(t)}</li>`).join("");
+  if (metaEl) {
+    const days = data.sample_days != null ? data.sample_days : "—";
+    const range = Array.isArray(data.date_range) && data.date_range[0]
+      ? `${data.date_range[0]} → ${data.date_range[1] || data.date_range[0]}`
+      : "";
+    metaEl.textContent = `Sample: ${days} days${range ? ` (${range})` : ""}. Favorable = OVER line down / UNDER line up.`;
+  }
+}
+
 (function bootHomeSlateUi() {
   try {
     injectSlatePlatformButtons();
     injectSlateL5Buttons();
     fetchSlateSport(getDefaultBootSlateSport());
     autoOpenBootSlatePanel();
+    loadLineTimingInsight();
     const warmHomeCards = () => {
       try {
         loadHomeCardsFromFullSlate()

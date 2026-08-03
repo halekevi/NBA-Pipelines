@@ -5699,6 +5699,29 @@ def api_slate_cards():
         return jsonify({"ok": False, "error": str(e), "rows": []}), 500
 
 
+@app.get("/api/line-move-timing")
+def api_line_move_timing():
+    """Historical Standard line-move timing insight (first fetch → refreshes)."""
+    path = TEMPLATES_DIR / "line_move_timing.json"
+    if not path.is_file():
+        return jsonify(
+            {
+                "ok": False,
+                "headline": "Line-move timing still collecting.",
+                "tips": ["Keep 5AM + midday refreshes on to build history."],
+                "windows": [],
+            }
+        )
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            payload["ok"] = True
+            return jsonify(payload)
+    except (OSError, json.JSONDecodeError) as e:
+        return jsonify({"ok": False, "error": str(e), "windows": [], "tips": []}), 500
+    return jsonify({"ok": False, "error": "invalid payload", "windows": [], "tips": []}), 500
+
+
 @app.get("/api/slate-history")
 def api_slate_history():
     """Fetch game-log series for one prop (detail modal) without reloading the sport table."""

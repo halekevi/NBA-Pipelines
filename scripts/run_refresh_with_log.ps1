@@ -65,6 +65,27 @@ try {
     & pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
     $refreshExit = $LASTEXITCODE
 
+    # Slim Standard-line archive + website timing card (keeps history without relying on bak xlsx).
+    $LineSnap = Join-Path $Root "scripts\snapshot_pp_standard_lines.py"
+    $LinePublish = Join-Path $Root "scripts\publish_line_move_timing.py"
+    if ((Test-Path -LiteralPath $LineSnap) -and $refreshExit -eq 0) {
+        $snapDate = (Get-Date).ToString("yyyy-MM-dd")
+        try {
+            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+            $etNow = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
+            if ($etNow.Hour -ge 20) {
+                $snapDate = $etNow.Date.AddDays(1).ToString("yyyy-MM-dd")
+            } else {
+                $snapDate = $etNow.ToString("yyyy-MM-dd")
+            }
+        } catch { }
+        Write-Host "[REFRESH $RunLabel] Snapshot Standard lines ($snapDate / $RunLabel)..." -ForegroundColor DarkGray
+        & py -3.14 -X utf8 $LineSnap --date $snapDate --label $RunLabel
+        if (Test-Path -LiteralPath $LinePublish) {
+            & py -3.14 -X utf8 $LinePublish
+        }
+    }
+
     & pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[REFRESH $RunLabel] POST snapshot logging failed" -ForegroundColor Yellow

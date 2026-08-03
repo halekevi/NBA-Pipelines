@@ -1239,6 +1239,29 @@ if ($script:PipelineFailed) {
     }
 }
 
+# STEP D-linesnap — Slim Standard-line archive for line-move timing history (website card).
+$LineSnapScript = Join-Path $Root "scripts\snapshot_pp_standard_lines.py"
+$LinePublishScript = Join-Path $Root "scripts\publish_line_move_timing.py"
+if ((-not $script:PipelineFailed) -and (Test-Path -LiteralPath $LineSnapScript)) {
+    Write-Log "STEP D-linesnap - Standard line snapshot ($Today / 5AM): START"
+    try {
+        & py -3.14 -X utf8 $LineSnapScript --date $Today --label "5AM"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "STEP D-linesnap - Standard line snapshot: WARN (exit $LASTEXITCODE)"
+        } else {
+            Write-Log "STEP D-linesnap - Standard line snapshot: OK"
+        }
+        if (Test-Path -LiteralPath $LinePublishScript) {
+            & py -3.14 -X utf8 $LinePublishScript
+            Write-Log "STEP D-linesnap - Publish line_move_timing.json: exit $LASTEXITCODE"
+        }
+    } catch {
+        Write-Log "STEP D-linesnap - WARN ($($_.Exception.Message))"
+    }
+} else {
+    Write-Log "STEP D-linesnap - SKIPPED (pipeline failed or snapshot script missing)"
+}
+
 # =============================================================================
 # STEP D-payout — Live PrizePicks payout capture (OPT-IN only)
 # Default: skipped. MAIN scrape is PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00).

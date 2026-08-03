@@ -2006,7 +2006,7 @@ def _resolve_tennis_match_date_from_payload(
 ) -> str | None:
     """Tennis match day = payload tennis_date, else same calendar day as slate_date.
 
-    Early-AM board is fetched same day (3AM light + 7AM refresh). Legacy tickets
+    Early-AM board is fetched same day via Daily 5AM (+ later refreshes). Legacy tickets
     without tennis_date may still store next-day legs in game_time; prefer payload.
     """
     if not _payload_has_tennis_legs(payload):

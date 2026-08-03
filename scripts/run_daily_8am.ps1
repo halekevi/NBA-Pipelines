@@ -58,7 +58,7 @@ if ($branch -ne "main") {
 }
 
 Write-Host "[8AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
-# Same permanent fix as 3AM/5AM: never abort the run for generated publish JSON.
+# Same permanent fix as 5AM/8AM: never abort the run for generated publish JSON.
 $EnsurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
 if (-not (Test-Path -LiteralPath $EnsurePull)) {
     $EnsurePull = Join-Path $Root "scripts\Ensure-CleanPull.ps1"

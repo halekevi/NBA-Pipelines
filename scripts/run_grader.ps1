@@ -8,7 +8,7 @@ $Root = Split-Path $PSScriptRoot -Parent
 $SportsRoot = Join-Path $Root "Sports"
 $DateDir = Join-Path $Root "outputs\$Date"
 $CanonicalDateDir = Join-Path $DateDir "canonical"
-# Tennis: early-AM board fetched same calendar day (3AM light + 7AM refresh).
+# Tennis: same calendar day as -Date via Daily 5AM full pipeline (+ later refreshes).
 # -Date is the main sports grade day; tennis match day = payload tennis_date or -Date (same day).
 # Step8 may live under outputs/<match_day>/ or outputs/<match_day-1>/ (see Get-TennisStep8Candidates).
 $TennisSlateDate = $Date
@@ -49,7 +49,7 @@ function Get-TennisStep8Candidates {
         [string]$GradeDate,
         [string]$OffsetBundleDate
     )
-    # Tennis is fetched same calendar day (3AM / 7AM). Step8 may also live under
+    # Tennis is fetched same calendar day (Daily 5AM + later refreshes). Step8 may also live under
     # match_day-1 when an older evening pre-load wrote there. Prefer:
     #   outputs/<match_day>/tennis/     (same-day pipeline)
     #   outputs/<match_day-1>/tennis/   (legacy tonight-fetch / tomorrow-play)

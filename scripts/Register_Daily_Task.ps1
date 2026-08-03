@@ -2,7 +2,6 @@
 #  Register_Daily_Task.ps1
 #  PropOracle automation scheduler:
 #   - 1:00 AM  overnight grader (yesterday; late results) — single overnight slot
-#   - 3:00 AM  light tennis fetch only (NO ticket/web publish — 5AM owns the board)
 #   - 5:00 AM  first full daily (grade yesterday + multi-sport fetch + web; NO live CDP)
 #   - 8:00 AM  line-move refresh
 #   - 9:00 AM  line-move refresh
@@ -36,14 +35,13 @@ if (-not $PowerShellExe) {
 Write-Host "Registering tasks with: $PowerShellExe" -ForegroundColor Cyan
 Write-Host "Windows: one visible console (pwsh.exe directly; no cmd start wrapper)" -ForegroundColor Cyan
 
-$Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_daily_5am.ps1"
 $ScriptEvening = Join-Path $PipelineRoot "scripts\run_grader_evening.ps1"
 $Script8 = Join-Path $PipelineRoot "scripts\run_daily_8am.ps1"
 $ScriptPayout = Join-Path $PipelineRoot "scripts\run_payout_cdp.ps1"
 $ScriptRefresh = Join-Path $PipelineRoot "scripts\run_refresh_with_log.ps1"
 
-foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script8, $ScriptPayout, $ScriptRefresh)) {
+foreach ($s in @($Script5, $ScriptEvening, $Script8, $ScriptPayout, $ScriptRefresh)) {
     if (-not (Test-Path $s)) {
         Write-Error "Required script missing: $s"
         exit 1
@@ -63,7 +61,9 @@ $LegacyTasksToRemove = @(
     "PropOracle - Grader 9PM",
     "PropOracle - Grader 10PM",
     "PropOracle - Grader 11PM",
-    "PropOracle - Grader 12AM"
+    "PropOracle - Grader 12AM",
+    # Tennis early fetch retired — 5AM full daily owns all active sports including tennis
+    "PropOracle - Tennis Early 3AM"
 )
 foreach ($legacy in $LegacyTasksToRemove) {
     $existing = Get-ScheduledTask -TaskName $legacy -ErrorAction SilentlyContinue
@@ -122,12 +122,6 @@ function Register-PropTask {
 
     Write-Host "  Registered: $TaskName @ $At (visible window)" -ForegroundColor DarkGray
 }
-
-Register-PropTask `
-    -TaskName "PropOracle - Tennis Early 3AM" `
-    -Description "Light tennis fetch only (SkipCombined/SkipPush). 5AM owns multi-sport board publish. Opens visible PowerShell." `
-    -ScriptPath $Script3 `
-    -At "03:00"
 
 Register-PropTask `
     -TaskName "PropOracle - Daily 5AM" `
@@ -193,7 +187,6 @@ Register-PropTask `
 
 Write-Host ""
 Write-Host "Scheduler tasks registered (visible PowerShell windows)." -ForegroundColor Green
-Write-Host "  - PropOracle - Tennis Early 3AM (fetch only; no board publish)"
 Write-Host "  - PropOracle - Daily 5AM (initial full run + FillMissing CDP)"
 foreach ($eg in $EveningGraderTasks) {
     Write-Host "  - $($eg.Name)"
@@ -205,7 +198,7 @@ Write-Host "  - PropOracle - Payout CDP (11:00 catchup)"
 Write-Host "  - PropOracle - Payout CDP Update (15:00 catchup)"
 Write-Host "  - PropOracle - Refresh 1PM (refresh + Force CDP)"
 Write-Host ""
-Write-Host "Removed extra graders: 7PM–12AM (keep 1AM + Daily 5AM grade only)" -ForegroundColor Yellow
+Write-Host "Removed: Tennis Early 3AM (5AM owns all active sports) + graders 7PM–12AM" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"

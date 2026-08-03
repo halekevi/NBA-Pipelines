@@ -1,7 +1,7 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Shared pre-pull repair for scheduled PropOracle wrappers (3AM / 5AM / 8AM).
+  Shared pre-pull repair for scheduled PropOracle wrappers (5AM / 8AM).
 
 .DESCRIPTION
   Early runs were aborting with exit 128 whenever main_cp had unmerged index

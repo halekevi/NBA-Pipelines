@@ -4,13 +4,14 @@
 
   Evening grader wrapper:
     - Prefer main worktree (Railway publishes from origin/main)
-    - Ensure-CleanPull (same stash/repair as 5AM/3AM — raw git pull --ff-only
+    - Ensure-CleanPull (same stash/repair as 5AM/8AM — raw git pull --ff-only
       used to abort every night on dirty publish JSON)
     - Transcript under logs/task_grader_*.log
     - run_grader.ps1 for yesterday's slate date
 
-  Single overnight grader at 1AM only, then Tennis Early 3AM (fetch only),
-  then Daily 5AM (which also grades yesterday as the final publish pass).
+  Single overnight grader at 1AM only, then Daily 5AM (full multi-sport fetch + publish;
+  also grades yesterday as the final publish pass). Tennis is included in the 5AM full
+  daily (no separate early tennis task).
 #>
 param()
 

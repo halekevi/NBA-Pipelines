@@ -99,9 +99,9 @@ def slate_calendar_date_ymd() -> str:
 def default_tennis_match_date(bundle_date: str | None = None) -> str:
     """Tennis match day = same Eastern calendar day as the pipeline slate.
 
-    Early-AM tips (~4:00–5:30 ET) are fetched on that same calendar day (3AM light
-    run, then 7AM full daily refresh). Override with ``--tennis-date`` only when
-    the live board is exclusively another day.
+    Early-AM tips (~4:00–5:30 ET) are fetched on that same calendar day via the
+    Daily 5AM full pipeline (+ later refreshes). Override with ``--tennis-date``
+    only when the live board is exclusively another day.
     """
     raw = str(bundle_date or "").strip()[:10]
     if raw and re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):

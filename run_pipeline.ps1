@@ -125,7 +125,7 @@ if (-not $Date) {
 }
 
 # Tennis: early-AM board (~4:00–5:30 ET) → same Eastern calendar day as -Date.
-# 3AM light fetch + 7AM full daily both use today's board (refresh at 7AM).
+# Daily 5AM full pipeline (+ later refreshes) fetches today's board.
 # Override with -TennisDate when needed.
 function Get-PropOracleEasternTodayYmd {
     try {

@@ -44,7 +44,6 @@ function Normalize-DoubledQuotesAroundFileArg([string]$argLine) {
 }
 
 $names = @(
-    "PropOracle - Tennis Early 3AM",
     "PropOracle - Grader 5AM",
     "PropOracle - Grader 7PM",
     "PropOracle - Grader 8PM",
@@ -53,7 +52,9 @@ $names = @(
     "PropOracle - Grader 11PM",
     "PropOracle - Grader 12AM",
     "PropOracle - Grader 1AM",
+    "PropOracle - Daily 5AM",
     "PropOracle - Daily 7AM",
+    "PropOracle - Daily 8AM",
     "PropOracle - Refresh 9AM",
     "PropOracle - Refresh 1030AM",
     "PropOracle - Refresh 1PM",

@@ -1,0 +1,15 @@
+{
+  "date": "2026-08-03",
+  "root_cause": "PROPORACLE_REQUIRE_LIVE_PAYOUT=1 cut all MAIN slips after --write-web because payout_source=pending_live (no live_cdp >=1.5x). Combined builder had 13 WNBA MAIN slips; web filter emptied tickets_latest.",
+  "cdp_attempt": "run_live_payout_capture Force failed: 0/13 (PP board 0 cards; terms-agreement page).",
+  "fix": "Published 10 slips clearing model floor >=1.5x with REQUIRE_LIVE=0; deferred 3 Core Flex slips at model 0.5x.",
+  "final": {
+    "groups": 10,
+    "slips": 10,
+    "by_group": {
+      "WNBA 2-Leg Goblin": 5,
+      "WNBA 3-Leg Goblin": 5
+    }
+  },
+  "railway": "Live site still needs commit+push of ui_runner/templates/tickets_latest.json (or redeploy) \u2014 Railway often pulls raw GitHub / image templates."
+}

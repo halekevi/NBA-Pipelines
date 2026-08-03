@@ -9,12 +9,23 @@ from utils.hit_tracking_columns import (
     fill_l5_from_stat_games,
 )
 from utils.l5_recency_policy import (
+    L5_GE4_GATE_CLEAR_SPORTS,
     L5_PERFECT_EXTRA_BOOST,
     L5_PERFECT_GATE_CLEAR_SPORTS,
+    L5_PERFECT_ONLY_GATE_CLEAR_SPORTS,
+    MLB_STD_OVER_PERFECT_L5_PENALTY,
+    l5_clears_standard_prop_gate,
+    l5_gate_clear_min_hits,
     l5_perfect_gate_clear_sport,
     l5_perfect_score_boost_allowed,
+    mlb_standard_over_perfect_l5,
 )
-from utils.prop_signal_score import HOT_L5_PERFECT_BOOST, context_signal_adjustment_series
+from utils.prop_signal_score import (
+    HOT_L5_GE4_BOOST,
+    HOT_L5_PERFECT_BOOST,
+    MLB_STD_OVER_L5_PERFECT_PENALTY,
+    context_signal_adjustment_series,
+)
 
 
 def test_fill_l5_from_stat_games_counts_vs_line():
@@ -78,10 +89,11 @@ def test_soft_signal_gives_extra_boost_for_perfect_l5():
     assert float(HOT_L5_PERFECT_BOOST) == float(L5_PERFECT_EXTRA_BOOST)
 
 
-def test_mlb_standard_skips_perfect_l5_score_boost():
+def test_mlb_standard_over_perfect_l5_penalized():
     assert not l5_perfect_score_boost_allowed("MLB", "Standard")
     assert l5_perfect_score_boost_allowed("MLB", "Goblin")
-    assert l5_perfect_score_boost_allowed("NFL", "Standard")
+    assert mlb_standard_over_perfect_l5("MLB", "Standard", "OVER", 5.0)
+    assert not mlb_standard_over_perfect_l5("MLB", "Goblin", "OVER", 5.0)
 
     base = pd.DataFrame(
         {
@@ -94,11 +106,21 @@ def test_mlb_standard_skips_perfect_l5_score_boost():
         }
     )
     adj = context_signal_adjustment_series(base)
-    # No extra perfect bump for MLB Standards (both still get GE4 boost).
-    assert abs(float(adj.iloc[1] - adj.iloc[0])) < 1e-9
+    # L5=5: GE4 boost is reversed and avoid penalty applied vs L5=4 GE4-only.
+    expected = float(MLB_STD_OVER_L5_PERFECT_PENALTY - HOT_L5_GE4_BOOST)
+    assert abs(float(adj.iloc[1] - adj.iloc[0]) - expected) < 1e-9
+    assert float(MLB_STD_OVER_L5_PERFECT_PENALTY) == float(MLB_STD_OVER_PERFECT_L5_PENALTY)
 
 
-def test_gate_clear_sports_cover_remaining_slate():
+def test_gate_clear_thresholds_by_sport_family():
+    for sport in L5_GE4_GATE_CLEAR_SPORTS:
+        assert l5_gate_clear_min_hits(sport) == 4.0
+        assert l5_clears_standard_prop_gate(sport, 4.0)
+        assert not l5_clears_standard_prop_gate(sport, 3.0)
+    for sport in L5_PERFECT_ONLY_GATE_CLEAR_SPORTS:
+        assert l5_gate_clear_min_hits(sport) == 5.0
+        assert l5_clears_standard_prop_gate(sport, 5.0)
+        assert not l5_clears_standard_prop_gate(sport, 4.0)
     for sport in ("NBA", "NFL", "CBB", "WCBB", "CFB", "NHL", "WNBA"):
         assert sport in L5_PERFECT_GATE_CLEAR_SPORTS
         assert l5_perfect_gate_clear_sport(sport)

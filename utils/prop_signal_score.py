@@ -30,7 +30,9 @@ from utils.l5_recency_policy import (  # noqa: E402
     L5_GE4_MIN,
     L5_PERFECT,
     L5_PERFECT_EXTRA_BOOST,
+    MLB_STD_OVER_PERFECT_L5_PENALTY,
     l5_perfect_score_boost_allowed,
+    mlb_standard_over_perfect_l5,
 )
 
 # Graded-backed ticket scoring constants (all sports).
@@ -39,6 +41,7 @@ HOT_L10_BOOST = 0.12
 # (see utils.l5_recency_policy — MLB Standards skip the perfect bump).
 HOT_L5_GE4_BOOST = L5_GE4_BOOST
 HOT_L5_PERFECT_BOOST = L5_PERFECT_EXTRA_BOOST
+MLB_STD_OVER_L5_PERFECT_PENALTY = MLB_STD_OVER_PERFECT_L5_PENALTY
 COLD_L10_PENALTY = -0.08
 DEMON_OVER_PENALTY = -0.18
 WNBA_STD_OVER_D_PENALTY = -0.12
@@ -198,6 +201,23 @@ def context_signal_adjustment_series(df: pd.DataFrame) -> pd.Series:
         for sp, pk in zip(sport_u.tolist(), pick_raw.tolist())
     ]
     adj = adj + np.where(perfect_mask & np.asarray(perfect_ok, dtype=bool), HOT_L5_PERFECT_BOOST, 0.0)
+
+    # MLB Standard OVER at L5=5: reverse the GE4 bump and apply avoid penalty.
+    mlb_perfect_over = [
+        mlb_standard_over_perfect_l5(sp, pk, "OVER" if om else ("UNDER" if um else ""), hits)
+        for sp, pk, om, um, hits in zip(
+            sport_u.tolist(),
+            pick_raw.tolist(),
+            over_mask.tolist(),
+            under_mask.tolist(),
+            list(side_l5),
+        )
+    ]
+    adj = adj + np.where(
+        np.asarray(mlb_perfect_over, dtype=bool),
+        MLB_STD_OVER_L5_PERFECT_PENALTY - HOT_L5_GE4_BOOST,
+        0.0,
+    )
 
     streak = l10_streak_series(out)
     adj = adj + np.where(streak.eq("HOT"), HOT_L10_BOOST, 0.0)

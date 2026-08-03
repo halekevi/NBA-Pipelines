@@ -160,8 +160,9 @@ def test_standard_prop_gates_not_sport_wide():
 
 
 def test_standard_prop_gate_clears_on_perfect_l5():
-    """Perfect L5 clears gates for NBA/WNBA/CBB/…; MLB and Soccer stay gated."""
+    """Basketball clears at L5>=4; NFL/… at L5=5; MLB/Soccer never clear via L5."""
     from combined_slate_tickets import (
+        _leg_mlb_std_over_perfect_l5_avoid,
         _leg_standard_prop_direction_gated,
         _standard_prop_gate_l5_clears,
     )
@@ -171,10 +172,12 @@ def test_standard_prop_gate_clears_on_perfect_l5():
         "pick_type": "Standard",
         "direction": "OVER",
         "prop_type": "Pts+Rebs+Asts",
-        "l5_over": 4,
-        "l5_under": 1,
+        "l5_over": 3,
+        "l5_under": 2,
     }
     assert _leg_standard_prop_direction_gated(pra)
+    # L5>=4 clears basketball-family Standard gates.
+    assert not _leg_standard_prop_direction_gated({**pra, "l5_over": 4, "l5_under": 1})
     assert not _leg_standard_prop_direction_gated({**pra, "l5_over": 5, "l5_under": 0})
 
     pr = {
@@ -186,10 +189,14 @@ def test_standard_prop_gate_clears_on_perfect_l5():
         "l5_under": 2,
     }
     assert _leg_standard_prop_direction_gated(pr)
-    assert not _leg_standard_prop_direction_gated({**pr, "l5_over": 5.0})
+    assert not _leg_standard_prop_direction_gated({**pr, "l5_over": 4.0})
 
-    # Remaining sports share the L5=5 clear helper (even before sport-specific BAN rows exist).
-    for sport in ("NBA", "NFL", "CBB", "WCBB", "CFB", "NHL"):
+    for sport in ("NBA", "CBB", "WCBB"):
+        row = {**pra, "sport": sport, "l5_over": 4, "l5_under": 1}
+        assert _standard_prop_gate_l5_clears(row), sport
+        assert not _standard_prop_gate_l5_clears({**row, "l5_over": 3}), sport
+
+    for sport in ("NFL", "CFB", "NHL"):
         row = {**pra, "sport": sport, "l5_over": 5, "l5_under": 0}
         assert _standard_prop_gate_l5_clears(row), sport
         assert not _standard_prop_gate_l5_clears({**row, "l5_over": 4}), sport
@@ -204,7 +211,21 @@ def test_standard_prop_gate_clears_on_perfect_l5():
     }
     assert not _standard_prop_gate_l5_clears(hits)
     assert _leg_standard_prop_direction_gated(hits)
-    assert _leg_standard_prop_direction_gated({**hits, "l5_over": 4})
+    assert _leg_mlb_std_over_perfect_l5_avoid(hits)
+    assert not _leg_mlb_std_over_perfect_l5_avoid({**hits, "l5_over": 4})
+    assert not _leg_mlb_std_over_perfect_l5_avoid({**hits, "pick_type": "Goblin"})
+
+    # Non-gated MLB Std OVER still avoided at L5=5 (hygiene beyond ledger BAN).
+    strikeouts = {
+        "sport": "MLB",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Batter Strikeouts",
+        "l5_over": 5,
+        "l5_under": 0,
+    }
+    assert not _leg_standard_prop_direction_gated(strikeouts)
+    assert _leg_mlb_std_over_perfect_l5_avoid(strikeouts)
 
     soccer_shots = {
         "sport": "SOCCER",

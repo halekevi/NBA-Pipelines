@@ -185,7 +185,9 @@ from utils.prop_signal_score import l10_streak_series
 from utils.l5_recency_policy import (
     L5_PERFECT as _STANDARD_PROP_GATE_L5_PERFECT,
     L5_PERFECT_GATE_CLEAR_SPORTS as _STANDARD_PROP_GATE_L5_CLEAR_SPORTS,
+    l5_clears_standard_prop_gate as _l5_clears_standard_prop_gate,
     l5_perfect_gate_clear_sport as _l5_perfect_gate_clear_sport,
+    mlb_standard_over_perfect_l5 as _mlb_standard_over_perfect_l5,
 )
 from utils.ticket_ev_tiers import (
     STRONG_ALLOW_CROSS_SPORT,
@@ -5543,9 +5545,9 @@ def _norm_main_prop_key(prop: object) -> str:
 # and need prop-level hygiene — not sport-wide OVER bans.
 # Keys: (sport, prop_norm, direction)
 #
-# L5 exception (Aug 2026): Jul 10–19 as-of rebuild — perfect L5 helps
-# basketball-family Standards; hurts MLB Std OVER. Clear list lives in
-# utils.l5_recency_policy.L5_PERFECT_GATE_CLEAR_SPORTS.
+# L5 exception (Aug 2026): Jul 10–19 as-of rebuild — basketball Standards
+# clear at L5>=4; NFL/CFB/NHL/… at L5=5. MLB/Soccer never clear via L5;
+# MLB Std OVER at L5=5 is hard-avoided (see mlb_standard_over_perfect_l5).
 _STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
     {
         # MLB
@@ -5579,9 +5581,9 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
         ("SOC", "shots", "OVER"),
     }
 )
-# L5 exception: perfect directional L5 clears Standard prop gates for sports in
-# utils.l5_recency_policy.L5_PERFECT_GATE_CLEAR_SPORTS (NBA/NFL/CBB/WCBB/CFB/…).
-# MLB stays gated — as-of Jul 10–19 Std OVER 45% → 33% at L5=5.
+# L5 exception: directional L5 clears Standard prop gates per
+# utils.l5_recency_policy (basketball family at L5>=4; NFL/CFB/NHL/… at L5=5).
+# MLB/Soccer never clear via L5; MLB Std OVER at L5=5 is additionally avoided.
 
 
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
@@ -5629,25 +5631,42 @@ def _row_directional_l5_hits(row_d: dict) -> float | None:
 
 
 def _standard_prop_gate_l5_clears(row_d: dict) -> bool:
-    """True when directional L5 is a perfect 5/5 on a sport that benefits from it."""
+    """True when directional L5 meets the sport's Standard gate-clear floor."""
     if not _l5_perfect_gate_clear_sport(row_d.get("sport")):
         return False
     hits = _row_directional_l5_hits(row_d)
-    if hits is None:
-        return False
-    return float(hits) >= float(_STANDARD_PROP_GATE_L5_PERFECT) - 1e-9
+    return _l5_clears_standard_prop_gate(row_d.get("sport"), hits)
+
+
+def _leg_mlb_std_over_perfect_l5_avoid(row_d: dict | pd.Series) -> bool:
+    """
+    Drop MLB Standard OVER legs with directional L5=5/5.
+
+    As-of Jul 10-19: MLB Std OVER ~45% overall -> ~33% at perfect L5 - treat as
+    hard hygiene, not a soft nudge.
+    """
+    if isinstance(row_d, pd.Series):
+        row_d = row_d.to_dict()
+    else:
+        row_d = dict(row_d)
+    return _mlb_standard_over_perfect_l5(
+        row_d.get("sport"),
+        row_d.get("pick_type") or row_d.get("pick"),
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction"),
+        _row_directional_l5_hits(row_d),
+    )
 
 
 def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     """
-    True when this Standard leg's sport×prop×direction is banned or hard-gated.
+    True when this Standard leg's sport x prop x direction is banned or hard-gated.
 
-    Goblin legs always return False here — payouts improve on Standards, so we
+    Goblin legs always return False here - payouts improve on Standards, so we
     gate those props tightly while leaving easier Goblin hits alone.
 
-    Exception: perfect directional L5 (5/5) clears the gate for sports in
-    L5_PERFECT_GATE_CLEAR_SPORTS (NBA/WNBA/CBB/WCBB/NFL/CFB/NHL/…). MLB and
-    Soccer stay gated even at L5=5.
+    Exception: directional L5 clears the gate for clear-eligible sports
+    (basketball L5>=4; NFL/CFB/NHL/Tennis/Golf L5=5). MLB and Soccer never
+    clear via L5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
@@ -5714,13 +5733,18 @@ def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
 def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
     """
     Shared hygiene for MAIN / FINAL / long-parlay builders:
-    banned MLB Goblin OVER props + Standard prop×direction ledger gates.
+    banned MLB Goblin OVER props + Standard prop×direction ledger gates +
+    MLB Standard OVER at perfect L5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
     else:
         row_d = dict(row_d)
-    return _main_leg_prop_banned(row_d) or _leg_standard_prop_direction_gated(row_d)
+    return (
+        _main_leg_prop_banned(row_d)
+        or _leg_standard_prop_direction_gated(row_d)
+        or _leg_mlb_std_over_perfect_l5_avoid(row_d)
+    )
 
 
 def _ticket_rows_mlb_construction_banned(rows: list) -> bool:
@@ -6230,6 +6254,8 @@ def _row_win_rate_eligible(
     # Qualified Standard: prop×direction ledger + sport hygiene + OVER elite stack.
     if qualify_standard and ("standard" in pt) and ("goblin" not in pt):
         if _leg_standard_prop_direction_gated(row_d):
+            return False
+        if _leg_mlb_std_over_perfect_l5_avoid(row_d):
             return False
         if not _standard_high_prob_leg_allowed(row_d):
             return False

@@ -4,8 +4,9 @@ Cross-sport L5 recency policy (Jul 10–19 2026 as-of rebuild).
 Findings:
 - L5 >= 4 lifts Goblins / most Std OVER across sports (stable default bar).
 - L5 == 5 adds more lift for WNBA / Tennis Goblin; hurts MLB Standard OVER.
-- Standard prop-direction gate clear on perfect L5 is WNBA-family only until
-  sport-specific evidence says otherwise.
+- Basketball-family Standard prop gates clear at L5 >= 4 (WNBA evidence).
+- Other clear-eligible sports still require perfect L5 = 5.
+- MLB Standard OVER at L5 = 5 is avoided / penalized (45% → ~33% HR).
 """
 
 from __future__ import annotations
@@ -21,11 +22,11 @@ L5_COLD_MAX: float = 2.0
 L5_GE4_BOOST: float = 0.08
 L5_PERFECT_EXTRA_BOOST: float = 0.06
 L5_COLD_PENALTY: float = -0.05
+# Strong enough to push MLB Std OVER L5=5 below GE4 peers in sort.
+MLB_STD_OVER_PERFECT_L5_PENALTY: float = -0.15
 
-# Perfect L5 clears Standard prop×direction ledger gates for these sports.
-# MLB excluded (as-of: Std OVER 45% → 33% at L5=5). Soccer kept gated pending
-# sport-specific Standard evidence (shots OVER ban remains hard).
-L5_PERFECT_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
+# Basketball family: clear Standard prop×direction ledger gates at L5 >= 4.
+L5_GE4_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
     {
         "WNBA",
         "NBA",
@@ -33,12 +34,23 @@ L5_PERFECT_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
         "NBA1Q",
         "CBB",
         "WCBB",
+    }
+)
+
+# Non-basketball: clear only on perfect L5 = 5 (pending denser graded evidence).
+L5_PERFECT_ONLY_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
+    {
         "NFL",
         "CFB",
         "NHL",
         "TENNIS",
         "GOLF",
     }
+)
+
+# Union — any sport that may clear Standard gates via L5 recency.
+L5_PERFECT_GATE_CLEAR_SPORTS: frozenset[str] = (
+    L5_GE4_GATE_CLEAR_SPORTS | L5_PERFECT_ONLY_GATE_CLEAR_SPORTS
 )
 
 # Extra L5=5 scoring bump is skipped here (as-of study: MLB Std OVER 45% → 33%).
@@ -53,13 +65,45 @@ def _norm_pick(pick: object) -> str:
     return str(pick or "").strip().lower()
 
 
+def _norm_direction(direction: object) -> str:
+    return str(direction or "").strip().upper()
+
+
 def is_standard_pick(pick: object) -> bool:
     p = _norm_pick(pick)
     return "standard" in p and "goblin" not in p and "demon" not in p
 
 
+def l5_gate_clear_min_hits(sport: object) -> float | None:
+    """
+    Minimum directional L5 hits to clear a Standard prop×direction ledger gate.
+
+    Returns None when the sport never clears via L5 (MLB, Soccer, …).
+    """
+    sport_u = _norm_sport(sport)
+    if sport_u in L5_GE4_GATE_CLEAR_SPORTS:
+        return L5_GE4_MIN
+    if sport_u in L5_PERFECT_ONLY_GATE_CLEAR_SPORTS:
+        return L5_PERFECT
+    return None
+
+
 def l5_perfect_gate_clear_sport(sport: object) -> bool:
-    return _norm_sport(sport) in L5_PERFECT_GATE_CLEAR_SPORTS
+    """True when this sport can clear Standard gates via L5 (at its sport threshold)."""
+    return l5_gate_clear_min_hits(sport) is not None
+
+
+def l5_clears_standard_prop_gate(sport: object, hits: float | None) -> bool:
+    """True when directional L5 hits meet the sport's Standard gate-clear floor."""
+    if hits is None:
+        return False
+    mn = l5_gate_clear_min_hits(sport)
+    if mn is None:
+        return False
+    try:
+        return float(hits) >= float(mn) - 1e-9
+    except (TypeError, ValueError):
+        return False
 
 
 def l5_perfect_score_boost_allowed(
@@ -79,6 +123,27 @@ def l5_perfect_score_boost_allowed(
     if pick_type is None:
         return False
     return not is_standard_pick(pick_type)
+
+
+def mlb_standard_over_perfect_l5(
+    sport: object,
+    pick_type: object | None,
+    direction: object | None,
+    hits: float | None,
+) -> bool:
+    """True for MLB Standard OVER with directional L5 == 5 (negative lift in study)."""
+    if _norm_sport(sport) != "MLB":
+        return False
+    if not is_standard_pick(pick_type):
+        return False
+    if _norm_direction(direction) != "OVER":
+        return False
+    if hits is None:
+        return False
+    try:
+        return float(hits) >= L5_PERFECT - 1e-9
+    except (TypeError, ValueError):
+        return False
 
 
 def directional_l5_is_ge4(hits: float | None) -> bool:

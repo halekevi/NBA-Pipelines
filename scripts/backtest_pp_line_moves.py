@@ -52,8 +52,9 @@ _BAK_RE = re.compile(
 )
 _CACHE_DIR = _REPO / "data" / "cache" / "pp_line_move_slates"
 
-# Ordered refresh windows (11AM kept for historical backups only; live schedule is 9/1030/1).
-RUN_ORDER = ("9AM", "1030AM", "11AM", "1PM")
+# Ordered windows from first fetch → midday refreshes.
+# 5AM/8AM = early board (Daily 5AM / Daily 8AM bak stamps); 11AM historical only.
+RUN_ORDER = ("5AM", "8AM", "9AM", "1030AM", "11AM", "1PM")
 
 
 def _norm(raw: Any) -> str:
@@ -70,13 +71,18 @@ def _to_float(raw: Any) -> float | None:
 
 
 def _hour_to_run(hour: int) -> str | None:
+    # Bak stamp is usually when the prior slate was copied at refresh start.
+    if hour in (4, 5, 6, 7):
+        return "5AM"
+    if hour == 8:
+        return "8AM"
     if hour == 9:
         return "9AM"
     if hour == 10:
         return "1030AM"
     if hour == 11:
         return "11AM"
-    if hour == 13:
+    if hour in (12, 13, 14):
         return "1PM"
     return None
 
@@ -210,13 +216,17 @@ def _discover_backups(
     outputs_dir: Path,
     json_backups_dir: Path,
     min_date: str,
+    extra_outputs: list[Path] | None = None,
 ) -> list[dict[str, Any]]:
     """Prefer xlsx (full slate); fall back to json ticket legs for same stamp."""
     by_stamp: dict[tuple[str, str], dict[str, Any]] = {}
-    search_roots = [
+    search_roots: list[tuple[Path, str]] = [
         (outputs_dir, ".xlsx"),
         (json_backups_dir, ".json"),
     ]
+    for extra in extra_outputs or []:
+        if extra.is_dir():
+            search_roots.append((extra, ".xlsx"))
     for root, ext in search_roots:
         if not root.is_dir():
             continue
@@ -412,8 +422,11 @@ def run_backtest(
     standard_only: bool,
     outputs_dir: Path,
     json_backups_dir: Path,
+    extra_outputs: list[Path] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    backups = _discover_backups(outputs_dir, json_backups_dir, min_date)
+    backups = _discover_backups(
+        outputs_dir, json_backups_dir, min_date, extra_outputs=extra_outputs
+    )
     by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for b in backups:
         by_date[b["slate_date"]].append(b)
@@ -525,6 +538,15 @@ def run_backtest(
                     "avg_abs_delta": round(g["abs_delta"].mean(), 3),
                     "median_abs_delta": round(g["abs_delta"].median(), 3),
                     "pct_favorable": round(100 * g["moved_favorable"].mean(), 1),
+                    "pct_unfavorable": round(100 * (1.0 - g["moved_favorable"].mean()), 1),
+                    "favorable_n": int(g["moved_favorable"].sum()),
+                    "unfavorable_n": int((~g["moved_favorable"]).sum()),
+                    "fav_abs_sum": round(
+                        g.loc[g["moved_favorable"], "abs_delta"].sum(), 2
+                    ),
+                    "unfav_abs_sum": round(
+                        g.loc[~g["moved_favorable"], "abs_delta"].sum(), 2
+                    ),
                     "slate_days": g["slate_date"].nunique(),
                 }
             )
@@ -589,8 +611,14 @@ def _print_hit_timing(legs: pd.DataFrame) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Backtest PP line moves across refresh runs.")
-    ap.add_argument("--from", dest="min_date", default="2026-05-07", help="Min slate date YYYY-MM-DD")
+    ap.add_argument("--from", dest="min_date", default="2026-05-01", help="Min slate date YYYY-MM-DD")
     ap.add_argument("--outputs", default=str(_REPO / "outputs"), help="outputs/ root")
+    ap.add_argument(
+        "--extra-outputs",
+        nargs="*",
+        default=[],
+        help="Additional outputs/ roots to scan for bak xlsx",
+    )
     ap.add_argument(
         "--json-backups",
         default=str(_REPO / "ui_runner" / "data" / "backups"),
@@ -600,11 +628,13 @@ def main() -> int:
     ap.add_argument("--csv", default="", help="Write leg-level CSV to this path")
     args = ap.parse_args()
 
+    extra = [Path(p).expanduser().resolve() for p in (args.extra_outputs or [])]
     summary, transitions, legs, daily, by_sport = run_backtest(
         min_date=str(args.min_date).strip()[:10],
         standard_only=bool(args.standard_only),
         outputs_dir=Path(args.outputs).expanduser().resolve(),
         json_backups_dir=Path(args.json_backups).expanduser().resolve(),
+        extra_outputs=extra,
     )
 
     n_days = daily["slate_date"].nunique() if not daily.empty else 0
@@ -618,6 +648,87 @@ def main() -> int:
 
     print("\n=== Movement volume by transition ===")
     print(summary.to_string(index=False))
+
+    if not transitions.empty:
+        print("\n=== Favorable vs unfavorable (Standard line vs pick direction) ===")
+        print("  Favorable: OVER line down / UNDER line up. Unfavorable: opposite.")
+        rows = []
+        for new_run, g in transitions.groupby("new_run", sort=False):
+            fav = g[g["moved_favorable"]]
+            unfav = g[~g["moved_favorable"]]
+            rows.append(
+                {
+                    "into_window": new_run,
+                    "moves": len(g),
+                    "fav_n": len(fav),
+                    "unfav_n": len(unfav),
+                    "fav_pct": round(100 * len(fav) / len(g), 1),
+                    "unfav_pct": round(100 * len(unfav) / len(g), 1),
+                    "avg_abs": round(g["abs_delta"].mean(), 3),
+                    "fav_abs_sum": round(fav["abs_delta"].sum(), 1),
+                    "unfav_abs_sum": round(unfav["abs_delta"].sum(), 1),
+                    "net_fav_abs": round(fav["abs_delta"].sum() - unfav["abs_delta"].sum(), 1),
+                }
+            )
+        dest_df = pd.DataFrame(rows)
+        order = {r: i for i, r in enumerate(RUN_ORDER)}
+        dest_df["_o"] = dest_df["into_window"].map(lambda x: order.get(x, 99))
+        dest_df = dest_df.sort_values("_o").drop(columns="_o")
+        print(dest_df.to_string(index=False))
+
+        # Cumulative first→later from adjacent chain isn't enough; recompute from legs
+        # when present, else skip (full-slate first→later added in run_backtest reports).
+        print("\n=== First snapshot → later windows (graded legs with multi-run lines) ===")
+        first_later_rows = []
+        if not legs.empty:
+            for later in RUN_ORDER[1:]:
+                col = f"line_{later}"
+                first_cols = [f"line_{r}" for r in RUN_ORDER]
+                sub = legs[legs[col].notna()].copy()
+                if sub.empty:
+                    continue
+                deltas = []
+                favs = []
+                for _, r in sub.iterrows():
+                    first_line = None
+                    for fc in first_cols:
+                        if fc == col:
+                            break
+                        v = r.get(fc)
+                        if pd.notna(v):
+                            first_line = float(v)
+                            break
+                    if first_line is None:
+                        continue
+                    cur = float(r[col])
+                    if abs(cur - first_line) < 1e-9:
+                        continue
+                    d = cur - first_line
+                    direction = str(r["direction"])
+                    fav = (direction == "OVER" and d < 0) or (direction == "UNDER" and d > 0)
+                    deltas.append(abs(d))
+                    favs.append(fav)
+                if not deltas:
+                    continue
+                fav_n = sum(1 for x in favs if x)
+                unfav_n = len(favs) - fav_n
+                first_later_rows.append(
+                    {
+                        "vs_first→": later,
+                        "moved_legs": len(deltas),
+                        "fav_n": fav_n,
+                        "unfav_n": unfav_n,
+                        "fav_pct": round(100 * fav_n / len(deltas), 1),
+                        "unfav_pct": round(100 * unfav_n / len(deltas), 1),
+                        "avg_abs": round(sum(deltas) / len(deltas), 3),
+                    }
+                )
+            if first_later_rows:
+                print(pd.DataFrame(first_later_rows).to_string(index=False))
+            else:
+                print("  (no graded multi-run moved legs; use adjacent transitions above)")
+        else:
+            print("  (no graded legs; adjacent transitions above are the main signal)")
 
     if not by_sport.empty:
         top = by_sport.sort_values("move_count", ascending=False).head(12)

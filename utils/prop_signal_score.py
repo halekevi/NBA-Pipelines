@@ -23,11 +23,22 @@ from scripts.l10_streak_utils import (  # noqa: E402
     finalize_l10_ui_columns,
 )
 from utils.defense_tiers import normalize_def_tier_label  # noqa: E402
+from utils.l5_recency_policy import (  # noqa: E402
+    L5_COLD_MAX,
+    L5_COLD_PENALTY,
+    L5_GE4_BOOST,
+    L5_GE4_MIN,
+    L5_PERFECT,
+    L5_PERFECT_EXTRA_BOOST,
+    l5_perfect_score_boost_allowed,
+)
 
 # Graded-backed ticket scoring constants (all sports).
 HOT_L10_BOOST = 0.12
-# Jul 10–19 WNBA graded: directional L5=5/5 lifted Std ~+22pts / Goblin ~+10pts HR.
-HOT_L5_PERFECT_BOOST = 0.06
+# Prefer directional L5 >= 4 across sports; extra bump at perfect 5/5
+# (see utils.l5_recency_policy — MLB Standards skip the perfect bump).
+HOT_L5_GE4_BOOST = L5_GE4_BOOST
+HOT_L5_PERFECT_BOOST = L5_PERFECT_EXTRA_BOOST
 COLD_L10_PENALTY = -0.08
 DEMON_OVER_PENALTY = -0.18
 WNBA_STD_OVER_D_PENALTY = -0.12
@@ -168,25 +179,32 @@ def context_signal_adjustment_series(df: pd.DataFrame) -> pd.Series:
     adj = adj + np.where(
         pd.isna(side_l5),
         0.0,
-        np.where(side_l5 >= 4, 0.06, np.where(side_l5 <= 2, -0.05, 0.0)),
+        np.where(
+            side_l5 >= L5_GE4_MIN - 1e-9,
+            HOT_L5_GE4_BOOST,
+            np.where(side_l5 <= L5_COLD_MAX + 1e-9, L5_COLD_PENALTY, 0.0),
+        ),
     )
-    # Extra bump for perfect L5 (on top of the >=4 bump above).
-    adj = adj + np.where(
-        (~pd.isna(side_l5)) & (side_l5 >= 5.0 - 1e-9),
-        HOT_L5_PERFECT_BOOST,
-        0.0,
-    )
+
+    pick_raw = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.lower()
+    is_demon = pick_raw.str.contains("demon", na=False)
+    is_standard = ~pick_raw.str.contains("goblin", na=False) & ~is_demon
+    sport_u = out.get("sport", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
+
+    # Extra bump for perfect L5 (on top of >=4). MLB Standards excluded.
+    perfect_mask = (~pd.isna(side_l5)) & (side_l5 >= L5_PERFECT - 1e-9)
+    perfect_ok = [
+        l5_perfect_score_boost_allowed(sp, pk)
+        for sp, pk in zip(sport_u.tolist(), pick_raw.tolist())
+    ]
+    adj = adj + np.where(perfect_mask & np.asarray(perfect_ok, dtype=bool), HOT_L5_PERFECT_BOOST, 0.0)
 
     streak = l10_streak_series(out)
     adj = adj + np.where(streak.eq("HOT"), HOT_L10_BOOST, 0.0)
     adj = adj + np.where(streak.eq("COLD"), COLD_L10_PENALTY, 0.0)
 
-    pick_raw = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.lower()
-    is_demon = pick_raw.str.contains("demon", na=False)
-    is_standard = ~pick_raw.str.contains("goblin", na=False) & ~is_demon
     adj = adj + np.where(is_demon & over_mask, DEMON_OVER_PENALTY, 0.0)
 
-    sport_u = out.get("sport", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
     tier_u = out.get("tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
     adj = adj + np.where(
         sport_u.eq("WNBA") & is_standard & over_mask & tier_u.eq("D"),

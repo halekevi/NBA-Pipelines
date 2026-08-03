@@ -103,6 +103,56 @@ def _normalize_rate(series: pd.Series) -> pd.Series:
     return np.where(s > 1.0, s / 100.0, s)
 
 
+def assign_l5_aliases_from_hits(
+    df: pd.DataFrame,
+    mask: pd.Series | None,
+    over,
+    under,
+    push=None,
+) -> pd.DataFrame:
+    """
+    Dual-write L5 hit counts to all common aliases used by step8 / tickets / UI.
+
+    Writes ``l5_over`` / ``l5_under`` / ``last5_over`` / ``last5_under`` and, when
+    present or created, ``line_hits_*_5``. Call from sport step5 after computing
+    over5/under5 so NBA/NFL/CBB/WCBB/CFB/etc match Soccer/Golf dual-write.
+    """
+    if df is None or df.empty:
+        return df
+    out = df
+    cols = ("l5_over", "l5_under", "last5_over", "last5_under", "line_hits_over_5", "line_hits_under_5")
+    for col in cols:
+        if col not in out.columns:
+            out[col] = np.nan
+    if push is not None:
+        for col in ("last5_push", "line_hits_push_5"):
+            if col not in out.columns:
+                out[col] = np.nan
+
+    if mask is None:
+        out["l5_over"] = over
+        out["l5_under"] = under
+        out["last5_over"] = over
+        out["last5_under"] = under
+        out["line_hits_over_5"] = over
+        out["line_hits_under_5"] = under
+        if push is not None:
+            out["last5_push"] = push
+            out["line_hits_push_5"] = push
+        return out
+
+    out.loc[mask, "l5_over"] = over
+    out.loc[mask, "l5_under"] = under
+    out.loc[mask, "last5_over"] = over
+    out.loc[mask, "last5_under"] = under
+    out.loc[mask, "line_hits_over_5"] = over
+    out.loc[mask, "line_hits_under_5"] = under
+    if push is not None:
+        out.loc[mask, "last5_push"] = push
+        out.loc[mask, "line_hits_push_5"] = push
+    return out
+
+
 def fill_l5_from_stat_games(
     df: pd.DataFrame,
     *,

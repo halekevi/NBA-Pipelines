@@ -160,8 +160,11 @@ def test_standard_prop_gates_not_sport_wide():
 
 
 def test_standard_prop_gate_clears_on_perfect_l5():
-    """WNBA ledger ban/hard_gate clears at L5=5/5; MLB stays gated (negative lift)."""
-    from combined_slate_tickets import _leg_standard_prop_direction_gated
+    """Perfect L5 clears gates for NBA/WNBA/CBB/…; MLB and Soccer stay gated."""
+    from combined_slate_tickets import (
+        _leg_standard_prop_direction_gated,
+        _standard_prop_gate_l5_clears,
+    )
 
     pra = {
         "sport": "WNBA",
@@ -185,6 +188,12 @@ def test_standard_prop_gate_clears_on_perfect_l5():
     assert _leg_standard_prop_direction_gated(pr)
     assert not _leg_standard_prop_direction_gated({**pr, "l5_over": 5.0})
 
+    # Remaining sports share the L5=5 clear helper (even before sport-specific BAN rows exist).
+    for sport in ("NBA", "NFL", "CBB", "WCBB", "CFB", "NHL"):
+        row = {**pra, "sport": sport, "l5_over": 5, "l5_under": 0}
+        assert _standard_prop_gate_l5_clears(row), sport
+        assert not _standard_prop_gate_l5_clears({**row, "l5_over": 4}), sport
+
     hits = {
         "sport": "MLB",
         "pick_type": "Standard",
@@ -193,8 +202,20 @@ def test_standard_prop_gate_clears_on_perfect_l5():
         "l5_over": 5,
         "l5_under": 0,
     }
+    assert not _standard_prop_gate_l5_clears(hits)
     assert _leg_standard_prop_direction_gated(hits)
     assert _leg_standard_prop_direction_gated({**hits, "l5_over": 4})
+
+    soccer_shots = {
+        "sport": "SOCCER",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Shots",
+        "l5_over": 5,
+        "l5_under": 0,
+    }
+    assert not _standard_prop_gate_l5_clears(soccer_shots)
+    assert _leg_standard_prop_direction_gated(soccer_shots)
 
 
 

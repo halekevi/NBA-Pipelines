@@ -132,6 +132,9 @@ def main() -> None:
     df.loc[ok5, "last5_over"] = over5.values
     df.loc[ok5, "last5_under"] = under5.values
     df.loc[ok5, "last5_push"] = push5.values
+    _ensure_cols(df, ["l5_over", "l5_under"])
+    df.loc[ok5, "l5_over"] = over5.values
+    df.loc[ok5, "l5_under"] = under5.values
 
     stat10 = _get_stat_cols(df, 10)
     if stat10:

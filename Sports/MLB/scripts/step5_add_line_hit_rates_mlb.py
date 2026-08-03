@@ -23,6 +23,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from scripts.l10_streak_utils import finalize_l10_ui_columns
+from utils.hit_tracking_columns import assign_l5_aliases_from_hits
 from utils.h2h_stats import init_mlb_h2h_placeholder, print_h2h_stats
 from utils.line_movement import (
     enrich_with_line_movement,
@@ -188,6 +189,7 @@ def main() -> None:
     df.loc[ok5, "line_hit_rate_under_5"]    = urp5.values
     df.loc[ok5, "line_hit_rate_over_ou_5"]  = orou5.values
     df.loc[ok5, "line_hit_rate_under_ou_5"] = urou5.values
+    assign_l5_aliases_from_hits(df, ok5, over5.values, under5.values, push5.values)
     _apply_reliability_gate(df, ok5)
 
     if args.compute10:

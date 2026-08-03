@@ -613,6 +613,10 @@ def main():
             o["line_hits_over_5"]         = over5
             o["line_hits_under_5"]        = under5
             o["line_hits_push_5"]         = push5
+            o["last5_over"]               = over5
+            o["last5_under"]              = under5
+            o["l5_over"]                  = over5
+            o["l5_under"]                 = under5
             o["line_hit_rate_over_5"]     = round(hr_ov5,    3) if hr_ov5    is not None else ""
             o["line_hit_rate_under_5"]    = round(hr_un5,    3) if hr_un5    is not None else ""
             o["line_hit_rate_over_ou_5"]  = round(hr_ov_ou5, 3) if hr_ov_ou5 is not None else ""

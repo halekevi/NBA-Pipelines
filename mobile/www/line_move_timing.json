@@ -1,0 +1,76 @@
+{
+  "updated_at": "2026-08-03T12:02:59+00:00",
+  "sample_days": 26,
+  "snapshot_days": 1,
+  "date_range": [
+    "2026-05-10",
+    "2026-07-30"
+  ],
+  "headline": "Standard lines move most into 1PM (37% favorable / 63% unfavorable).",
+  "windows": [
+    {
+      "id": "8AM",
+      "label": "Into 8AM",
+      "moves": 15,
+      "days": 7,
+      "fav_pct": 46.7,
+      "unfav_pct": 53.3,
+      "avg_abs": 1.2,
+      "net_fav_abs": 1.0,
+      "role": "mixed"
+    },
+    {
+      "id": "9AM",
+      "label": "Into 9AM",
+      "moves": 8,
+      "days": 2,
+      "fav_pct": 37.5,
+      "unfav_pct": 62.5,
+      "avg_abs": 0.875,
+      "net_fav_abs": 0.0,
+      "role": "unfavorable"
+    },
+    {
+      "id": "1030AM",
+      "label": "Into 1030AM",
+      "moves": 34,
+      "days": 10,
+      "fav_pct": 26.5,
+      "unfav_pct": 73.5,
+      "avg_abs": 1.691,
+      "net_fav_abs": -28.5,
+      "role": "unfavorable"
+    },
+    {
+      "id": "11AM",
+      "label": "Into 11AM",
+      "moves": 14,
+      "days": 6,
+      "fav_pct": 50.0,
+      "unfav_pct": 50.0,
+      "avg_abs": 1.464,
+      "net_fav_abs": -2.5,
+      "role": "mixed"
+    },
+    {
+      "id": "1PM",
+      "label": "Into 1PM",
+      "moves": 51,
+      "days": 14,
+      "fav_pct": 37.3,
+      "unfav_pct": 62.7,
+      "avg_abs": 2.706,
+      "net_fav_abs": -41.0,
+      "role": "unfavorable"
+    }
+  ],
+  "tips": [
+    "Most Standard line movement lands into 1PM (51 moves across 14 days).",
+    "Most unfavorable stretch historically: into 1030AM (73.5% against your direction).",
+    "Practical: lock strong Standard overs earlier when you can; re-check mid-morning (≈10:30) before afternoon slips."
+  ],
+  "definitions": {
+    "favorable": "OVER line down or UNDER line up vs prior refresh",
+    "unfavorable": "OVER line up or UNDER line down vs prior refresh"
+  }
+}

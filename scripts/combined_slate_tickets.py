@@ -5538,9 +5538,8 @@ def _norm_main_prop_key(prop: object) -> str:
 # and need prop-level hygiene — not sport-wide OVER bans.
 # Keys: (sport, prop_norm, direction)
 #
-# L5 exception (Aug 2026): Jul 10–19 WNBA graded slate showed gated Std OVER
-# HR ~54% overall but ~71% when directional L5 was 5/5 (PRA/PR/PA/REB). Keep the
-# ledger gate, but clear it when the selected side is a perfect L5.
+# L5 exception (Aug 2026): as-of Jul 10–19 — WNBA Std benefits at L5=5/5;
+# MLB Std OVER worsens. Clear gates for WNBA only (see L5_CLEAR_SPORTS).
 _STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
     {
         # MLB
@@ -5574,8 +5573,10 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
         ("SOC", "shots", "OVER"),
     }
 )
-# Perfect directional L5 clears ban/hard_gate (hit count 5/5 or side rate 1.0).
+# L5 exception: as-of Jul 10–19 rebuild — WNBA Std benefits at L5=5; MLB Std OVER worsens.
+# Clear ledger gates for WNBA only.
 _STANDARD_PROP_GATE_L5_PERFECT: float = 5.0
+_STANDARD_PROP_GATE_L5_CLEAR_SPORTS: frozenset[str] = frozenset({"WNBA"})
 
 
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
@@ -5623,7 +5624,10 @@ def _row_directional_l5_hits(row_d: dict) -> float | None:
 
 
 def _standard_prop_gate_l5_clears(row_d: dict) -> bool:
-    """True when directional L5 is a perfect 5/5 — clears ban/hard_gate."""
+    """True when directional L5 is a perfect 5/5 on a sport that benefits from it."""
+    sport = str(row_d.get("sport") or "").strip().upper()
+    if sport not in _STANDARD_PROP_GATE_L5_CLEAR_SPORTS:
+        return False
     hits = _row_directional_l5_hits(row_d)
     if hits is None:
         return False
@@ -5637,8 +5641,8 @@ def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     Goblin legs always return False here — payouts improve on Standards, so we
     gate those props tightly while leaving easier Goblin hits alone.
 
-    Exception: perfect directional L5 (5/5) clears the gate. Jul 10–19 WNBA
-    graded slate: gated Std OVER ~54% overall vs ~71% at L5=5/5.
+    Exception: WNBA only — perfect directional L5 (5/5) clears the gate.
+    As-of Jul 10–19: WNBA Std OVER ~+21pts at L5=5; MLB Std OVER ~-12pts.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()

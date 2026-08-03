@@ -159,6 +159,47 @@ def test_standard_prop_gates_not_sport_wide():
     )
 
 
+def test_standard_prop_gate_clears_on_perfect_l5():
+    """Ledger ban/hard_gate clears when directional L5 is 5/5."""
+    from combined_slate_tickets import _leg_standard_prop_direction_gated
+
+    # WNBA PRA OVER ban — blocked without L5, open at 5/5
+    pra = {
+        "sport": "WNBA",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Pts+Rebs+Asts",
+        "l5_over": 4,
+        "l5_under": 1,
+    }
+    assert _leg_standard_prop_direction_gated(pra)
+    assert not _leg_standard_prop_direction_gated({**pra, "l5_over": 5, "l5_under": 0})
+
+    # WNBA Pts+Rebs OVER hard_gate — same L5 exception
+    pr = {
+        "sport": "WNBA",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Pts+Rebs",
+        "l5_over": 3,
+        "l5_under": 2,
+    }
+    assert _leg_standard_prop_direction_gated(pr)
+    assert not _leg_standard_prop_direction_gated({**pr, "l5_over": 5.0})
+
+    # MLB Hits OVER also clears on perfect L5 (shared rule)
+    hits = {
+        "sport": "MLB",
+        "pick_type": "Standard",
+        "direction": "OVER",
+        "prop_type": "Hits",
+        "l5_over": 5,
+        "l5_under": 0,
+    }
+    assert not _leg_standard_prop_direction_gated(hits)
+    assert _leg_standard_prop_direction_gated({**hits, "l5_over": 4})
+
+
 def test_standard_direction_floors_by_sport():
     assert _standard_direction_floor(
         {"sport": "MLB", "direction": "UNDER", "pick_type": "Standard"}

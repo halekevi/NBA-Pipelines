@@ -161,7 +161,7 @@ def test_mlb_goblin_hits_banned_on_main():
 
 
 def test_mlb_standard_over_banned_on_main():
-    """Ledger-gated Standard props (Hits OVER) stay off MAIN; Singles OVER can pass gate."""
+    """Ledger-gated Standard props (Hits OVER) stay off MAIN unless L5 is 5/5."""
     hits = {
         "sport": "MLB",
         "pick_type": "standard",
@@ -180,6 +180,10 @@ def test_mlb_standard_over_banned_on_main():
     assert cst._leg_standard_prop_direction_gated(hits)
     assert not cst._leg_standard_prop_direction_gated(
         {**hits, "prop_type": "Singles"}
+    )
+    # Perfect L5 clears the Hits OVER Standard gate
+    assert not cst._leg_standard_prop_direction_gated(
+        {**hits, "l5_over": 5, "l5_under": 0}
     )
 
 

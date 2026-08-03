@@ -5537,6 +5537,10 @@ def _norm_main_prop_key(prop: object) -> str:
 # Goblins stay mostly open (easier hit / lower payout); Standards carry payout upside
 # and need prop-level hygiene — not sport-wide OVER bans.
 # Keys: (sport, prop_norm, direction)
+#
+# L5 exception (Aug 2026): Jul 10–19 WNBA graded slate showed gated Std OVER
+# HR ~54% overall but ~71% when directional L5 was 5/5 (PRA/PR/PA/REB). Keep the
+# ledger gate, but clear it when the selected side is a perfect L5.
 _STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
     {
         # MLB
@@ -5570,6 +5574,8 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
         ("SOC", "shots", "OVER"),
     }
 )
+# Perfect directional L5 clears ban/hard_gate (hit count 5/5 or side rate 1.0).
+_STANDARD_PROP_GATE_L5_PERFECT: float = 5.0
 
 
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
@@ -5588,12 +5594,51 @@ def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
     return (sport, prop, direction)
 
 
+def _row_directional_l5_hits(row_d: dict) -> float | None:
+    """Directional L5 hit count (0–5) for the leg's selected side, or None if missing."""
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    if direction == "UNDER":
+        keys = ("l5_under", "last5_under", "L5 Under", "l5_side_hits")
+    elif direction == "OVER":
+        keys = ("l5_over", "last5_over", "L5 Over", "l5_side_hits")
+    else:
+        return None
+    for k in keys:
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.notna(v):
+            return float(v)
+    # Rate aliases (0–1 or 0–100).
+    for k in ("l5_side_hit_rate", "hit_rate_l5", "last5_hit_rate"):
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.isna(v):
+            continue
+        rate = float(v)
+        if rate > 1.0:
+            rate /= 100.0
+        if 0.0 <= rate <= 1.0:
+            return rate * 5.0
+    return None
+
+
+def _standard_prop_gate_l5_clears(row_d: dict) -> bool:
+    """True when directional L5 is a perfect 5/5 — clears ban/hard_gate."""
+    hits = _row_directional_l5_hits(row_d)
+    if hits is None:
+        return False
+    return float(hits) >= _STANDARD_PROP_GATE_L5_PERFECT - 1e-9
+
+
 def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     """
     True when this Standard leg's sport×prop×direction is banned or hard-gated.
 
     Goblin legs always return False here — payouts improve on Standards, so we
     gate those props tightly while leaving easier Goblin hits alone.
+
+    Exception: perfect directional L5 (5/5) clears the gate. Jul 10–19 WNBA
+    graded slate: gated Std OVER ~54% overall vs ~71% at L5=5/5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
@@ -5602,7 +5647,11 @@ def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     key = _standard_prop_gate_key(row_d)
     if key is None:
         return False
-    return key in _STANDARD_PROP_GATE_BAN or key in _STANDARD_PROP_GATE_HARD
+    if key not in _STANDARD_PROP_GATE_BAN and key not in _STANDARD_PROP_GATE_HARD:
+        return False
+    if _standard_prop_gate_l5_clears(row_d):
+        return False
+    return True
 
 
 def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:

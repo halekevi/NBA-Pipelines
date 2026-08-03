@@ -253,11 +253,18 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
 
     l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
     l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
+    # Prefer explicit hit counts from step5/6 before approximating from hit-rate.
+    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
+    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("line_hits_under_5", np.nan), errors="coerce"))
+    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
+    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
     # Approximate L5 split from hr5 when explicit counts are absent.
     l5_over_fallback = (hr5.fillna(0.5) * 5.0).round().clip(0, 5)
     l5_under_fallback = (5 - l5_over_fallback).clip(0, 5)
     df2["last5_over"] = l5_over.fillna(l5_over_fallback)
     df2["last5_under"] = l5_under.fillna(l5_under_fallback)
+    df2["l5_over"] = df2["last5_over"]
+    df2["l5_under"] = df2["last5_under"]
 
     if "line" in df2.columns:
         df2 = finalize_l10_ui_columns(df2, line_col="line")

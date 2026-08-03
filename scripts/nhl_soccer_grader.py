@@ -30,6 +30,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from utils.slate_fields import first_numeric_in_slate_row, first_over_under_in_slate_row
 from scripts.l10_streak_utils import enrich_graded_l10_columns, _L10_SLATE_RENAME
+from utils.hit_tracking_columns import attach_hit_window_columns
 
 # ── Column maps: step8 slate → canonical graded output ────────────────────────
 # These match what build_grade_report.py's normalize() function expects
@@ -62,6 +63,17 @@ NHL_SLATE_MAP = {
     "scoring_tier":  "scoring_tier",
     "pp_tier":       "pp_tier",
     "toi_avg_L10":   "toi_avg",
+    # L5 hit counts (step8 over_L5_raw / L5 Over)
+    "L5 Over":       "l5_over",
+    "L5 Under":      "l5_under",
+    "l5_over":       "l5_over",
+    "l5_under":      "l5_under",
+    "over_L5_raw":   "l5_over",
+    "under_L5_raw":  "l5_under",
+    "over_L5":       "l5_over",
+    "under_L5":      "l5_under",
+    "last5_over":    "l5_over",
+    "last5_under":   "l5_under",
 }
 
 SOCCER_SLATE_MAP = {
@@ -129,6 +141,17 @@ SOCCER_SLATE_MAP = {
     "Projection":          "projection",
     "Direction":           "bet_direction",
     "Final Bet Direction": "bet_direction",
+    # L5 hit counts — required for graded_props / L5=5/5 ticket gates
+    "L5 Over":             "l5_over",
+    "L5 Under":            "l5_under",
+    "l5_over":             "l5_over",
+    "l5_under":            "l5_under",
+    "last5_over":          "l5_over",
+    "last5_under":         "l5_under",
+    "line_hits_over_5":    "l5_over",
+    "line_hits_under_5":   "l5_under",
+    "over_L5_raw":         "l5_over",
+    "under_L5_raw":        "l5_under",
 }
 MLB_SLATE_MAP = {
     # Title Case (what step8_mlb_direction_clean.xlsx actually has)
@@ -149,8 +172,17 @@ MLB_SLATE_MAP = {
     "Hit Rate (5g)":    "hit_rate_raw",
     "Last 5 Avg":       "avg_L5",
     "Season Avg":       "avg_season",
-    "L5 Over":          "over_L5_raw",
-    "L5 Under":         "under_L5_raw",
+    # Prefer canonical l5_* (also keep over_L5_raw aliases via coalesce below)
+    "L5 Over":          "l5_over",
+    "L5 Under":         "l5_under",
+    "l5_over":          "l5_over",
+    "l5_under":         "l5_under",
+    "last5_over":       "l5_over",
+    "last5_under":      "l5_under",
+    "over_L5_raw":      "l5_over",
+    "under_L5_raw":     "l5_under",
+    "line_hits_over_5": "l5_over",
+    "line_hits_under_5":"l5_under",
     "Pick Type":        "pick_type",
     "Deviation Level":  "deviation_level",
     "Min Tier":         "minutes_tier",
@@ -284,6 +316,29 @@ def load_slate(path: Path, sport: str, grade_date: str = None) -> pd.DataFrame:
                 print(f"  [ColMap] All cols after rename: {list(df.columns)}")
     else:
         df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
+
+    # Coalesce L5 aliases (L5 Over / over_L5_raw / line_hits_*) → l5_over/l5_under
+    # so Box Raw and graded_props always carry directional L5 hit counts.
+    try:
+        line_col = "line" if "line" in df.columns else None
+        if line_col:
+            df = attach_hit_window_columns(df, line_col=line_col)
+        else:
+            for src, dst in (
+                ("over_L5_raw", "l5_over"),
+                ("under_L5_raw", "l5_under"),
+                ("last5_over", "l5_over"),
+                ("last5_under", "l5_under"),
+            ):
+                if src in df.columns:
+                    if dst not in df.columns:
+                        df[dst] = pd.to_numeric(df[src], errors="coerce")
+                    else:
+                        df[dst] = pd.to_numeric(df[dst], errors="coerce").combine_first(
+                            pd.to_numeric(df[src], errors="coerce")
+                        )
+    except Exception as exc:
+        print(f"  [L5] warning: could not coalesce L5 columns ({exc})")
 
     # Ensure pick_type exists and is usable.
     # Some historical NHL/Soccer files include pick_type but leave rows blank/(missing).
@@ -1088,6 +1143,7 @@ def save_graded(df: pd.DataFrame, out_path: Path, sport: str, date_str: str):
                'bet_direction','tier','def_tier','minutes_tier','position_group',
                'edge','hit_rate','projection','rank_score','ml_prob','ml_edge',
                'edge_score','blended_score',
+               'l5_over','l5_under','last5_over','last5_under',
                'l10_over','l10_under','l10_games_played','l10_streak',
                'deviation_level',
                'actual','result','margin','void_reason_grade']
@@ -1096,6 +1152,7 @@ def save_graded(df: pd.DataFrame, out_path: Path, sport: str, date_str: str):
                   'line':7,'bet_direction':10,'tier':5,'def_tier':10,'minutes_tier':12,
                   'position_group':14,'edge':8,'hit_rate':10,'projection':12,'rank_score':12,
                   'ml_prob':10,'ml_edge':10,                  'edge_score':11,'blended_score':12,
+                  'l5_over':8,'l5_under':8,'last5_over':9,'last5_under':9,
                   'l10_over':9,'l10_under':9,'l10_games_played':10,'l10_streak':10,
                   'deviation_level':8,
                   'actual':9,'result':8,'margin':8,'void_reason_grade':22}

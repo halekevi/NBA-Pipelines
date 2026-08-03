@@ -26,6 +26,8 @@ from utils.defense_tiers import normalize_def_tier_label  # noqa: E402
 
 # Graded-backed ticket scoring constants (all sports).
 HOT_L10_BOOST = 0.12
+# Jul 10–19 WNBA graded: directional L5=5/5 lifted Std ~+22pts / Goblin ~+10pts HR.
+HOT_L5_PERFECT_BOOST = 0.06
 COLD_L10_PENALTY = -0.08
 DEMON_OVER_PENALTY = -0.18
 WNBA_STD_OVER_D_PENALTY = -0.12
@@ -167,6 +169,12 @@ def context_signal_adjustment_series(df: pd.DataFrame) -> pd.Series:
         pd.isna(side_l5),
         0.0,
         np.where(side_l5 >= 4, 0.06, np.where(side_l5 <= 2, -0.05, 0.0)),
+    )
+    # Extra bump for perfect L5 (on top of the >=4 bump above).
+    adj = adj + np.where(
+        (~pd.isna(side_l5)) & (side_l5 >= 5.0 - 1e-9),
+        HOT_L5_PERFECT_BOOST,
+        0.0,
     )
 
     streak = l10_streak_series(out)

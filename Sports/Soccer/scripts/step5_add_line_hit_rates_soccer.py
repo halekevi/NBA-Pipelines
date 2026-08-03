@@ -130,6 +130,12 @@ def main() -> None:
     df.loc[ok5, "line_hit_rate_under_5"]    = urp5.values
     df.loc[ok5, "line_hit_rate_over_ou_5"]  = orou5.values
     df.loc[ok5, "line_hit_rate_under_ou_5"] = urou5.values
+    # Dual-write Golf/WNBA aliases so step8 clean xlsx always has L5 Over/Under.
+    _ensure_cols(df, ["last5_over", "last5_under", "l5_over", "l5_under"])
+    df.loc[ok5, "last5_over"] = over5.values
+    df.loc[ok5, "last5_under"] = under5.values
+    df.loc[ok5, "l5_over"] = over5.values
+    df.loc[ok5, "l5_under"] = under5.values
 
     if args.compute10:
         stat10 = _get_stat_cols(df, 10)

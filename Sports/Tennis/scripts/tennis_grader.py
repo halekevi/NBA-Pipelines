@@ -325,6 +325,12 @@ def main() -> None:
                 "edge": _slate_field(r, "edge", "Edge"),
                 "pick_type": _slate_field(r, "pick_type", "Pick Type"),
                 "deviation_level": _slate_field(r, "deviation_level", "Deviation Level"),
+                "l5_over": _slate_field(
+                    r, "l5_over", "L5 Over", "last5_over", "line_hits_over_5", "over_L5_raw"
+                ),
+                "l5_under": _slate_field(
+                    r, "l5_under", "L5 Under", "last5_under", "line_hits_under_5", "under_L5_raw"
+                ),
                 "l10_over": _slate_field(r, "l10_over", "L10 Over", "line_hits_over_10"),
                 "l10_under": _slate_field(r, "l10_under", "L10 Under", "line_hits_under_10"),
                 "l10_streak": _slate_field(r, "l10_streak", "L10 Streak"),

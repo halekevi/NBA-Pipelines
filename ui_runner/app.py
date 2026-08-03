@@ -75,6 +75,11 @@ from utils.proporacle_data_root import (
     load_best_grade_history_runs,
     persistent_data_dir,
 )
+from utils.slate_ui_slim import (
+    card_score as _slate_card_score,
+    history_only as _slate_history_only,
+    slim_row as _slate_ui_slim_row,
+)
 from scripts.payout_leg_resolver import PayoutLegResolver
 
 UI_DIR        = Path(__file__).resolve().parent         # all UI assets live here (ui_runner/)
@@ -302,11 +307,14 @@ def post_process_response(response):
         response.headers.setdefault("Access-Control-Allow-Origin", "*")
         response.headers.setdefault("Access-Control-Allow-Methods", "GET, OPTIONS")
         response.headers.setdefault("Access-Control-Allow-Headers", "*")
-    # Cache static CSS/JS for 1 hour (images/fonts keep same policy)
+    # Versioned static CSS/JS (?v=) can be cached long; unversioned stay short-lived.
     if request.path.startswith("/static/") and any(request.path.endswith(e) for e in _STATIC_EXTS):
         if "Cache-Control" not in response.headers:
-            if request.path.endswith((".css", ".js")):
-                response.headers["Cache-Control"] = "public, max-age=3600"
+            has_v = bool(request.args.get("v"))
+            if request.path.endswith((".css", ".js")) and has_v:
+                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+            elif request.path.endswith((".css", ".js")):
+                response.headers["Cache-Control"] = "public, max-age=86400"
             else:
                 response.headers["Cache-Control"] = "public, max-age=86400"
 
@@ -716,20 +724,19 @@ def _gz_json_response(key: str, build_fn, ttl: float = 300.0):
             gz_bytes = buf.getvalue()
             _gz_cache[key] = (gz_bytes, time.time())
 
-    _JSON_CC = "no-cache, must-revalidate, max-age=0"
+    # Short browser cache; in-memory gzip cache + mtime bust keys keep freshness.
+    _JSON_CC = "public, max-age=60, must-revalidate"
     if "gzip" in request.headers.get("Accept-Encoding", ""):
         resp = app.response_class(gz_bytes, status=200, mimetype="application/json")
         resp.headers["Content-Encoding"] = "gzip"
         resp.headers["Content-Length"]   = len(gz_bytes)
         resp.headers["Vary"]             = "Accept-Encoding"
         resp.headers["Cache-Control"]    = _JSON_CC
-        resp.headers["Pragma"]           = "no-cache"
         return resp
     # Non-gzip client: decompress inline (rare — all modern browsers support gzip)
     with gzip.GzipFile(fileobj=io.BytesIO(gz_bytes)) as f:
         resp = app.response_class(f.read(), status=200, mimetype="application/json")
         resp.headers["Cache-Control"] = _JSON_CC
-        resp.headers["Pragma"]        = "no-cache"
         return resp
 
 
@@ -1091,53 +1098,13 @@ def _selected_slate_sport_payload() -> dict:
 
 
 # Home slate explorer table + detail modal charts (see templates/index.html).
-_SLATE_SPORT_UI_KEYS = frozenset(
-    {
-        "tier",
-        "rank_score",
-        "player",
-        "team",
-        "opp",
-        "prop",
-        "pick_type",
-        "line",
-        "dir",
-        "edge",
-        "abs_edge",
-        "projection",
-        "hit_rate",
-        "l5_avg",
-        "l5_over",
-        "l5_under",
-        "l5_games_played",
-        "l10_over",
-        "l10_under",
-        "l10_games_played",
-        "season_avg",
-        "ml_prob",
-        "def_tier",
-        "standard_line",
-        "standard_projection",
-        "opponent_def_rank",
-        "image_url",
-        "game_date",
-        "game_time",
-        "sport",
-        "pick_platform",
-        "line_underdog",
-        "line_draftkings",
-        "cross_edge_vs_pp",
-        "best_cross_book",
-        "actual_series",
-        "line_series",
-        *(f"g{i}" for i in range(1, 11)),
-        *(f"stat_g{i}" for i in range(1, 11)),
-        *(f"line_g{i}" for i in range(1, 11)),
-    }
-)
+# List payloads omit history series; detail/cards opt back in via include_history.
+_SLATE_SPORT_UI_KEYS = frozenset()  # legacy name kept for imports; prefer utils.slate_ui_slim
 
 
-def _merged_combined_slim_rows(payload: dict) -> list[dict[str, Any]]:
+def _merged_combined_slim_rows(
+    payload: dict, *, include_history: bool = False
+) -> list[dict[str, Any]]:
     """All sports from slate_latest (or ticket_eval when selected), Full Slate–style merge for COMBINED."""
     sports = (payload or {}).get("sports") or {}
     out: list[dict[str, Any]] = []
@@ -1150,7 +1117,7 @@ def _merged_combined_slim_rows(payload: dict) -> list[dict[str, Any]]:
         for r in v:
             if not isinstance(r, dict):
                 continue
-            slim = _slim_slate_sport_row(r)
+            slim = _slim_slate_sport_row(r, include_history=include_history)
             if "sport" not in slim:
                 lab = str(r.get("sport") or "").strip().upper()
                 slim["sport"] = lab or sk.upper()
@@ -1170,7 +1137,9 @@ def _merged_combined_slim_rows(payload: dict) -> list[dict[str, Any]]:
     return _filter_slate_explorer_rows(out)
 
 
-def _wnba_slate_rows_from_step8_fallback() -> list[dict[str, Any]]:
+def _wnba_slate_rows_from_step8_fallback(
+    *, include_history: bool = False
+) -> list[dict[str, Any]]:
     """
     slate_latest.json often omits WNBA after a standalone run (combined --write-web not re-run).
     If step8 exists on disk, build the same row shape the explorer expects.
@@ -1225,65 +1194,16 @@ def _wnba_slate_rows_from_step8_fallback() -> list[dict[str, Any]]:
                 continue
             rr = dict(r)
             rr["sport"] = "WNBA"
-            out_fb.append(_slim_slate_sport_row(rr))
+            out_fb.append(_slim_slate_sport_row(rr, include_history=include_history))
         return out_fb
     finally:
         if path_inserted and sys.path and sys.path[0] == scripts_dir:
             sys.path.pop(0)
 
 
-def _slim_slate_sport_cell(key: str, v: Any) -> Any:
-    """Normalize values for smaller JSON and stable sorting in the client."""
-    if v is None:
-        return None
-    if isinstance(v, str):
-        s = v.strip()
-        if key == "pick_platform":
-            return s.lower().replace(" ", "") if s else None
-        return s if s else None
-    if isinstance(v, bool):
-        return v
-    if isinstance(v, (int, float)):
-        if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
-            return None
-        if key in ("edge", "rank_score", "abs_edge", "ml_prob"):
-            return round(float(v), 4)
-        if key == "hit_rate":
-            return round(float(v), 6)
-        if key == "opponent_def_rank":
-            fv = float(v)
-            if fv.is_integer():
-                return int(fv)
-            return round(fv, 4)
-        if key in (
-            "line",
-            "l5_over",
-            "l5_under",
-            "l10_over",
-            "l10_under",
-            "projection",
-            "standard_line",
-            "season_avg",
-        ):
-            fv = float(v)
-            if fv.is_integer():
-                return int(fv)
-            return round(fv, 3)
-        return v
-    return v
-
-
-def _slim_slate_sport_row(r: dict) -> dict:
-    """One slate row: only UI keys, omit nulls / blanks after coercion."""
-    slim: dict[str, Any] = {}
-    for kk in _SLATE_SPORT_UI_KEYS:
-        if kk not in r:
-            continue
-        cv = _slim_slate_sport_cell(kk, r[kk])
-        if cv is None:
-            continue
-        slim[kk] = cv
-    return slim
+def _slim_slate_sport_row(r: dict, *, include_history: bool = False) -> dict:
+    """One slate row: UI keys only; history series omitted unless requested."""
+    return _slate_ui_slim_row(r, include_history=include_history)
 
 
 def _filter_invalid_demon_slate_rows(rows: list[Any]) -> list[Any]:
@@ -1350,7 +1270,7 @@ def _api_slate_pick_abs_edge(record: dict[str, Any]) -> float:
     return round(abs(ef), 4)
 
 
-def _slim_slate_sport_payload(payload: dict) -> dict:
+def _slim_slate_sport_payload(payload: dict, *, include_history: bool = False) -> dict:
     """Drop unused columns from /api/slate-sport to shrink the gzipped JSON payload."""
     if not isinstance(payload, dict):
         return payload
@@ -1369,7 +1289,7 @@ def _slim_slate_sport_payload(payload: dict) -> dict:
         slim_rows: list[Any] = []
         for r in rows:
             if isinstance(r, dict):
-                slim_rows.append(_slim_slate_sport_row(r))
+                slim_rows.append(_slim_slate_sport_row(r, include_history=include_history))
             else:
                 slim_rows.append(r)
         slim_sports[k] = _filter_slate_explorer_rows(slim_rows)
@@ -1378,6 +1298,61 @@ def _slim_slate_sport_payload(payload: dict) -> dict:
         "generated_at": payload.get("generated_at"),
         "sports": slim_sports,
     }
+
+
+def _build_slate_cards_payload(payload: dict, *, max_rows: int = 400) -> dict:
+    """Compact combined rows (with history) for Best-to-Run / Edges / L5 home cards."""
+    rows = _merged_combined_slim_rows(payload, include_history=True)
+    rows = sorted(rows, key=_slate_card_score, reverse=True)
+    if max_rows > 0 and len(rows) > max_rows:
+        rows = rows[:max_rows]
+    return {
+        "ok": True,
+        "date": payload.get("date"),
+        "generated_at": payload.get("generated_at"),
+        "rows": rows,
+        "truncated": len(rows),
+    }
+
+
+def _find_raw_slate_row(
+    payload: dict, *, sport: str, player: str, prop: str, line: str
+) -> dict | None:
+    sports = (payload or {}).get("sports") or {}
+    sk = str(sport or "").strip().lower()
+    candidates: list[dict] = []
+    if sk == "combined" or not sk:
+        for k, v in sports.items():
+            if str(k).lower() == "combined" or not isinstance(v, list):
+                continue
+            for r in v:
+                if isinstance(r, dict):
+                    candidates.append(r)
+    else:
+        rows = sports.get(sk) or []
+        if sk == "cbb":
+            rows = list(rows) + list(sports.get("wcbb") or [])
+        if isinstance(rows, list):
+            candidates = [r for r in rows if isinstance(r, dict)]
+    player_l = str(player or "").strip().lower()
+    prop_l = str(prop or "").strip().lower()
+    try:
+        line_f = float(line) if line not in (None, "") else None
+    except (TypeError, ValueError):
+        line_f = None
+    for r in candidates:
+        if str(r.get("player") or "").strip().lower() != player_l:
+            continue
+        if str(r.get("prop") or "").strip().lower() != prop_l:
+            continue
+        if line_f is not None:
+            try:
+                if abs(float(r.get("line")) - line_f) > 1e-6:
+                    continue
+            except (TypeError, ValueError):
+                continue
+        return r
+    return None
 
 
 def _slate_counts() -> tuple[dict[str, int], dict]:
@@ -5603,8 +5578,8 @@ def api_slate_sport():
         return jsonify({"error": str(e), "sports": {}}), 404
     try:
         return _gz_json_response(
-            f"slate-sport-slim-v2:{_explorer_json_gz_bust_token()}",
-            lambda: _slim_slate_sport_payload(_selected_slate_sport_payload()),
+            f"slate-sport-slim-v3-list:{_explorer_json_gz_bust_token()}",
+            lambda: _slim_slate_sport_payload(_selected_slate_sport_payload(), include_history=False),
             ttl=_PIPELINE_JSON_TTL,
         )
     except Exception as e:
@@ -5617,6 +5592,7 @@ def api_slate_sport_single(sport: str):
     Per-sport lazy slate endpoint for the home explorer.
     Uses the same source as /api/slate-sport (slate_latest.json or ticket_eval per SLATE_SPORT_SOURCE).
     sport=combined returns the merged Full Slate (all sports).
+    Pass include_history=1 to include actual_series / g1..g10 (detail charts).
     """
     if not (
         _template_json_available("slate_latest.json")
@@ -5634,6 +5610,13 @@ def api_slate_sport_single(sport: str):
     if not sport_key:
         return jsonify({"error": "missing sport key", "sport": sport_key, "rows": []}), 400
 
+    include_history = str(request.args.get("include_history") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
     try:
         _selected_slate_sport_payload()
     except ValueError as e:
@@ -5643,11 +5626,12 @@ def api_slate_sport_single(sport: str):
         payload = _selected_slate_sport_payload()
         sports = (payload or {}).get("sports") or {}
         if sport_key == "combined":
-            slim_rows = _merged_combined_slim_rows(payload)
+            slim_rows = _merged_combined_slim_rows(payload, include_history=include_history)
             return {
                 "date": payload.get("date"),
                 "generated_at": payload.get("generated_at"),
                 "sport": sport_key,
+                "include_history": include_history,
                 "rows": slim_rows,
             }
         rows = sports.get(sport_key) or []
@@ -5656,25 +5640,94 @@ def api_slate_sport_single(sport: str):
             rows = list(rows) + list(sports.get("wcbb") or [])
         if not isinstance(rows, list):
             rows = []
-        slim_rows = [_slim_slate_sport_row(r) if isinstance(r, dict) else r for r in rows]
+        slim_rows = [
+            _slim_slate_sport_row(r, include_history=include_history)
+            if isinstance(r, dict)
+            else r
+            for r in rows
+        ]
         if not slim_rows and sport_key == "wnba":
-            slim_rows = _wnba_slate_rows_from_step8_fallback()
+            slim_rows = _wnba_slate_rows_from_step8_fallback(include_history=include_history)
         slim_rows = _filter_slate_explorer_rows(slim_rows)
         return {
             "date": payload.get("date"),
             "generated_at": payload.get("generated_at"),
             "sport": sport_key,
+            "include_history": include_history,
             "rows": slim_rows,
         }
 
     try:
+        hist_tag = "hist" if include_history else "list"
         return _gz_json_response(
-            f"slate-sport-single-v1:{sport_key}:{_explorer_json_gz_bust_token()}",
+            f"slate-sport-single-v2:{sport_key}:{hist_tag}:{_explorer_json_gz_bust_token()}",
             _build,
             ttl=60.0,
         )
     except Exception as e:
         return jsonify({"error": str(e), "sport": sport_key, "rows": []}), 500
+
+
+@app.get("/api/slate-cards")
+def api_slate_cards():
+    """Small combined payload for home Best-to-Run / Top Edges / streak cards."""
+    if not (
+        _template_json_available("slate_latest.json")
+        or _template_json_available("ticket_eval_slate_latest.json")
+    ):
+        return jsonify({"ok": False, "error": "No slate JSON", "rows": []}), 404
+    try:
+        _selected_slate_sport_payload()
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e), "rows": []}), 404
+
+    try:
+        max_rows = int(request.args.get("max") or 400)
+    except (TypeError, ValueError):
+        max_rows = 400
+    max_rows = max(50, min(max_rows, 1200))
+
+    try:
+        return _gz_json_response(
+            f"slate-cards-v1:{max_rows}:{_explorer_json_gz_bust_token()}",
+            lambda: _build_slate_cards_payload(
+                _selected_slate_sport_payload(), max_rows=max_rows
+            ),
+            ttl=60.0,
+        )
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e), "rows": []}), 500
+
+
+@app.get("/api/slate-history")
+def api_slate_history():
+    """Fetch game-log series for one prop (detail modal) without reloading the sport table."""
+    if not (
+        _template_json_available("slate_latest.json")
+        or _template_json_available("ticket_eval_slate_latest.json")
+    ):
+        return jsonify({"ok": False, "error": "No slate JSON"}), 404
+    sport = str(request.args.get("sport") or "").strip()
+    player = str(request.args.get("player") or "").strip()
+    prop = str(request.args.get("prop") or "").strip()
+    line = str(request.args.get("line") or "").strip()
+    if not (player and prop):
+        return jsonify({"ok": False, "error": "player and prop required"}), 400
+    try:
+        payload = _selected_slate_sport_payload()
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 404
+    raw = _find_raw_slate_row(payload, sport=sport, player=player, prop=prop, line=line)
+    if raw is None and str(sport or "").strip().lower() == "wnba":
+        for r in _wnba_slate_rows_from_step8_fallback(include_history=True):
+            if str(r.get("player") or "").strip().lower() != player.lower():
+                continue
+            if str(r.get("prop") or "").strip().lower() != prop.lower():
+                continue
+            return jsonify({"ok": True, "history": r})
+    if raw is None:
+        return jsonify({"ok": False, "error": "row not found"}), 404
+    return jsonify({"ok": True, "history": _slate_history_only(raw)})
 
 
 def _matchup_edge_slate_paths(sport_key: str) -> list[Path]:

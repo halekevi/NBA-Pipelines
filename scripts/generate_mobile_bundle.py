@@ -10,7 +10,10 @@ from zoneinfo import ZoneInfo
 import combined_slate_tickets
 
 # Dated grade/ticket artifacts kept in mobile/www (plus always-copied *_latest.*).
+# Keep grades/ticket_eval thin for OTA size; full archives remain on the server.
 MAX_DATED_DAYS = 7
+MAX_GRADED_PROPS_DAYS = 1
+MAX_TICKET_EVAL_DAYS = 1
 
 _ROOT_FOR_UTILS = Path(__file__).resolve().parent.parent
 if str(_ROOT_FOR_UTILS) not in sys.path:
@@ -371,7 +374,13 @@ def _resolve_tickets_latest_for_mobile(root_dir: Path, templates_dir: Path) -> P
     return templates
 
 
-def _merged_combined_rows_for_mobile(sports_payload: dict) -> list:
+def _slim_mobile_row(row: dict, *, include_history: bool = False) -> dict:
+    from utils.slate_ui_slim import slim_row
+
+    return slim_row(row, include_history=include_history)
+
+
+def _merged_combined_rows_for_mobile(sports_payload: dict, *, include_history: bool = False) -> list:
     """All sport rows merged + sorted by rank_score (matches app /api/slate-sport/combined)."""
     out = []
     for sk, rows in (sports_payload or {}).items():
@@ -383,7 +392,7 @@ def _merged_combined_rows_for_mobile(sports_payload: dict) -> list:
         for r in rows:
             if not isinstance(r, dict):
                 continue
-            row = dict(r)
+            row = _slim_mobile_row(dict(r), include_history=include_history)
             if not str(row.get("sport") or "").strip():
                 row["sport"] = str(sk).strip().upper()
             out.append(row)
@@ -918,6 +927,7 @@ async function fetch_smart(localPath) {
         MOBILE_WWW_DIR,
         "ticket_eval_*.html",
         r"ticket_eval_(\d{4}-\d{2}-\d{2})\.html",
+        max_days=MAX_TICKET_EVAL_DAYS,
     )
     pruned_total += n
 
@@ -926,6 +936,7 @@ async function fetch_smart(localPath) {
         MOBILE_WWW_DIR,
         "graded_props_*.json",
         r"graded_props_(\d{4}-\d{2}-\d{2})\.json",
+        max_days=MAX_GRADED_PROPS_DAYS,
     )
     pruned_total += n
 
@@ -1057,18 +1068,59 @@ async function fetch_smart(localPath) {
             encoding="utf-8"
         )
 
-        # Static replacements for /api/slate-sport/<sport>
+        # Static replacements for /api/slate-sport/<sport> (list-slim, no history series)
         for sport_key, rows in sports_payload.items():
             safe_rows = rows if isinstance(rows, list) else []
+            slim_rows = [
+                _slim_mobile_row(r, include_history=False)
+                for r in safe_rows
+                if isinstance(r, dict)
+            ]
             (MOBILE_WWW_DIR / f"slate_sport_{sport_key}.json").write_text(
-                json.dumps({"ok": True, "sport": sport_key, "rows": safe_rows}, ensure_ascii=True),
-                encoding="utf-8"
+                json.dumps(
+                    {"ok": True, "sport": sport_key, "include_history": False, "rows": slim_rows},
+                    ensure_ascii=True,
+                ),
+                encoding="utf-8",
             )
 
-        merged_combined = _merged_combined_rows_for_mobile(sports_payload)
+        merged_combined = _merged_combined_rows_for_mobile(sports_payload, include_history=False)
         (MOBILE_WWW_DIR / "slate_sport_combined.json").write_text(
-            json.dumps({"ok": True, "sport": "combined", "rows": merged_combined}, ensure_ascii=True),
-            encoding="utf-8"
+            json.dumps(
+                {
+                    "ok": True,
+                    "sport": "combined",
+                    "include_history": False,
+                    "rows": merged_combined,
+                },
+                ensure_ascii=True,
+            ),
+            encoding="utf-8",
+        )
+
+        # Offline home-card payload (history kept, capped) — mirrors /api/slate-cards
+        from utils.slate_ui_slim import card_score as _card_score
+
+        card_rows = _merged_combined_rows_for_mobile(sports_payload, include_history=True)
+        card_rows = sorted(card_rows, key=_card_score, reverse=True)[:400]
+        (MOBILE_WWW_DIR / "slate_cards.json").write_text(
+            json.dumps(
+                {
+                    "ok": True,
+                    "date": slate_payload.get("date") if isinstance(slate_payload, dict) else None,
+                    "generated_at": slate_payload.get("generated_at")
+                    if isinstance(slate_payload, dict)
+                    else None,
+                    "rows": card_rows,
+                    "truncated": len(card_rows),
+                },
+                ensure_ascii=True,
+            ),
+            encoding="utf-8",
+        )
+        print(
+            f"[mobile] slim slate_sport_*.json + slate_cards.json "
+            f"(cards={len(card_rows)}, combined={len(merged_combined)})"
         )
 
         # Static replacement for /api/pipeline/status (used by home status cards).

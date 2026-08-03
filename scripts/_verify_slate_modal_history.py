@@ -49,7 +49,7 @@ def main() -> int:
 
     ok = True
     for label, raw in [("COMBO", combo), ("SINGLE", single)]:
-        slim = _slim_slate_sport_row(raw)
+        slim = _slim_slate_sport_row(raw, include_history=True)
         hist = history_series_for_pick(slim, 5)
         act = slim.get("actual_series") or []
         print(f"=== {label}: {raw['player']} | {raw['prop']} ===")

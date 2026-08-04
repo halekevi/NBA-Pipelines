@@ -1,10 +1,12 @@
 """
-Cross-sport L5 recency policy (Jul 10–19 2026 as-of rebuild).
+Cross-sport L5 recency policy (Jul 10–19 2026 as-of rebuild + Aug 2026 soccer grades).
 
 Findings:
 - L5 >= 4 lifts Goblins / most Std OVER across sports (stable default bar).
 - L5 == 5 adds more lift for WNBA / Tennis Goblin; hurts MLB Standard OVER.
 - Basketball-family Standard prop gates clear at L5 >= 4 (WNBA evidence).
+- Soccer Standard gates also clear at L5 >= 4 (graded ~99k props: +42pp overall;
+  Shots +41pp, Saves +34pp). Passes/tackles/clearances stay ticket-banned.
 - Other clear-eligible sports still require perfect L5 = 5.
 - MLB Standard OVER at L5 = 5 is avoided / penalized (45% → ~33% HR).
 """
@@ -25,7 +27,7 @@ L5_COLD_PENALTY: float = -0.05
 # Strong enough to push MLB Std OVER L5=5 below GE4 peers in sort.
 MLB_STD_OVER_PERFECT_L5_PENALTY: float = -0.15
 
-# Basketball family: clear Standard prop×direction ledger gates at L5 >= 4.
+# Clear Standard prop×direction ledger gates at L5 >= 4.
 L5_GE4_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
     {
         "WNBA",
@@ -34,10 +36,12 @@ L5_GE4_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
         "NBA1Q",
         "CBB",
         "WCBB",
+        "SOCCER",
+        "SOC",
     }
 )
 
-# Non-basketball: clear only on perfect L5 = 5 (pending denser graded evidence).
+# Non-basketball / non-soccer: clear only on perfect L5 = 5 (pending denser graded evidence).
 L5_PERFECT_ONLY_GATE_CLEAR_SPORTS: frozenset[str] = frozenset(
     {
         "NFL",
@@ -78,7 +82,7 @@ def l5_gate_clear_min_hits(sport: object) -> float | None:
     """
     Minimum directional L5 hits to clear a Standard prop×direction ledger gate.
 
-    Returns None when the sport never clears via L5 (MLB, Soccer, …).
+    Returns None when the sport never clears via L5 (MLB, …).
     """
     sport_u = _norm_sport(sport)
     if sport_u in L5_GE4_GATE_CLEAR_SPORTS:

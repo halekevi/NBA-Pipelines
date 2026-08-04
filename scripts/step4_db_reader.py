@@ -172,19 +172,10 @@ _NHL_PROP_MAP = {
 }
 
 # ── Soccer prop → DB column ────────────────────────────────────────────────────
-# ESPN summary rosters do not expose per-player values for these; DB columns stay
-# NULL. Resolve as unsupported so step4 emits UNSUPPORTED_PROP, not NO_DATA.
-_SOCCER_ESPN_UNSUPPORTED = frozenset({
-    "passes",
-    "pa",
-    "tackles",
-    "tk",
-    "clearances",
-    "attempted dribbles",
-    "attempteddribbles",
-    "attempted_dribbles",
-})
-
+# Passes / tackles / clearances / dribbles: schema + parser exist in
+# build_boxscore_ref.py, but ESPN summaries currently leave those columns NULL
+# (~0% fill over recent soccer rows). Map them anyway so L5 fills automatically
+# if ESPN starts exposing the stats; empty logs still yield NO_DATA / MISSING.
 _SOCCER_PROP_MAP = {
     "shots on target":         "sog",
     "shots_on_target":         "sog",
@@ -211,6 +202,17 @@ _SOCCER_PROP_MAP = {
     "shots assisted":          "kp",
     "minutes":                 "minutes_played",
     "minutes played":          "minutes_played",
+    # Weak / often-null ESPN markets (ticket-banned; L5 when DB fills).
+    "passes":                  "pa",
+    "passes attempted":        "pa",
+    "pa":                      "pa",
+    "tackles":                 "tk",
+    "tk":                      "tk",
+    "clearances":              "clearances",
+    "attempted dribbles":      "dribble_attempts",
+    "attempteddribbles":       "dribble_attempts",
+    "attempted_dribbles":      "dribble_attempts",
+    "dribbles":                "dribble_attempts",
 }
 
 
@@ -226,8 +228,6 @@ def _resolve_prop(prop_norm: str, sport: str) -> Optional[str]:
             return None
         return _NHL_PROP_MAP.get(p)
     if sport == "soccer":
-        if p in _SOCCER_ESPN_UNSUPPORTED:
-            return None
         return _SOCCER_PROP_MAP.get(p)
     return None
 

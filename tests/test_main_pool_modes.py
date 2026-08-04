@@ -160,7 +160,7 @@ def test_standard_prop_gates_not_sport_wide():
 
 
 def test_standard_prop_gate_clears_on_perfect_l5():
-    """Basketball clears at L5>=4; NFL/… at L5=5; MLB/Soccer never clear via L5."""
+    """Basketball/Soccer clear at L5>=4; NFL/… at L5=5; MLB never clears via L5."""
     from combined_slate_tickets import (
         _leg_mlb_std_over_perfect_l5_avoid,
         _leg_standard_prop_direction_gated,
@@ -235,8 +235,12 @@ def test_standard_prop_gate_clears_on_perfect_l5():
         "l5_over": 5,
         "l5_under": 0,
     }
-    assert not _standard_prop_gate_l5_clears(soccer_shots)
-    assert _leg_standard_prop_direction_gated(soccer_shots)
+    # Soccer clears Standard shots OVER hard-gate at L5>=4 (Aug 2026 grades).
+    assert _standard_prop_gate_l5_clears(soccer_shots)
+    assert not _leg_standard_prop_direction_gated(soccer_shots)
+    assert _standard_prop_gate_l5_clears({**soccer_shots, "l5_over": 4})
+    assert not _standard_prop_gate_l5_clears({**soccer_shots, "l5_over": 3})
+    assert _leg_standard_prop_direction_gated({**soccer_shots, "l5_over": 3})
 
 
 

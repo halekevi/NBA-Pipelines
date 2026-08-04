@@ -121,8 +121,10 @@ def test_gate_clear_thresholds_by_sport_family():
         assert l5_gate_clear_min_hits(sport) == 5.0
         assert l5_clears_standard_prop_gate(sport, 5.0)
         assert not l5_clears_standard_prop_gate(sport, 4.0)
-    for sport in ("NBA", "NFL", "CBB", "WCBB", "CFB", "NHL", "WNBA"):
+    for sport in ("NBA", "NFL", "CBB", "WCBB", "CFB", "NHL", "WNBA", "SOCCER"):
         assert sport in L5_PERFECT_GATE_CLEAR_SPORTS
         assert l5_perfect_gate_clear_sport(sport)
     assert not l5_perfect_gate_clear_sport("MLB")
-    assert not l5_perfect_gate_clear_sport("SOCCER")
+    assert l5_gate_clear_min_hits("SOCCER") == 4.0
+    assert l5_clears_standard_prop_gate("SOCCER", 4.0)
+    assert not l5_clears_standard_prop_gate("SOCCER", 3.0)

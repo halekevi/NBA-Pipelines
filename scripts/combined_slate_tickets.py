@@ -3066,6 +3066,7 @@ SOCCER_EXCLUDED_PROPS = {
     "tackles",
     "fouls",
     "clearances",
+    "attempted dribbles",
 }
 
 # Soccer-only ticket gates (independent of NHL/Tennis/MLB).
@@ -5549,7 +5550,8 @@ def _norm_main_prop_key(prop: object) -> str:
 # Keys: (sport, prop_norm, direction)
 #
 # L5 exception (Aug 2026): Jul 10–19 as-of rebuild — basketball Standards
-# clear at L5>=4; NFL/CFB/NHL/… at L5=5. MLB/Soccer never clear via L5;
+# clear at L5>=4; Soccer also clears at L5>=4 (graded +42pp overall);
+# NFL/CFB/NHL/… at L5=5. MLB never clears via L5;
 # MLB Std OVER at L5=5 is hard-avoided (see mlb_standard_over_perfect_l5).
 _STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
     {
@@ -5586,7 +5588,7 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
 )
 # L5 exception: directional L5 clears Standard prop gates per
 # utils.l5_recency_policy (basketball family at L5>=4; NFL/CFB/NHL/… at L5=5).
-# MLB/Soccer never clear via L5; MLB Std OVER at L5=5 is additionally avoided.
+# MLB never clears via L5; MLB Std OVER at L5=5 is additionally avoided.
 
 
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
@@ -5668,8 +5670,8 @@ def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     gate those props tightly while leaving easier Goblin hits alone.
 
     Exception: directional L5 clears the gate for clear-eligible sports
-    (basketball L5>=4; NFL/CFB/NHL/Tennis/Golf L5=5). MLB and Soccer never
-    clear via L5.
+    (basketball/Soccer L5>=4; NFL/CFB/NHL/Tennis/Golf L5=5). MLB never
+    clears via L5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()

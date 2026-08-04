@@ -946,9 +946,15 @@ SOCCER_STAT_MAP = {
     "a":   ["A", "GOALASSISTS", "ASSISTS", "AST"],
     # Goalkeeper saves — ESPN uses SV; also index by name "saves" for robustness
     "sv":  ["SV", "SAVES", "SVS", "GOALSAVE", "GOALSAVED"],
-    "pa":  ["PA", "TOTALPASS", "PASSES", "PS"],
+    "pa":  [
+        "PA", "TOTALPASS", "PASSES", "PS", "PASSATTEMPTED", "PASSATTEMPTS",
+        "TOTALPASSES", "PASSESTOTAL", "ACCURATEPASSES",
+    ],
     "kp":  ["KP", "KEYPASS", "KEYPASSES"],
-    "tk":  ["TK", "TOTALTACKLE", "TACKLES", "TCKS", "TOTALTACKLES", "EFFECTIVETACKLES"],
+    "tk":  [
+        "TK", "TOTALTACKLE", "TACKLES", "TCKS", "TOTALTACKLES", "EFFECTIVETACKLES",
+        "TACKLESTOTAL", "WONTACKLES",
+    ],
     "fc":  ["FC", "FOULSCOMMITTED", "FL", "FOULS"],
     "yc":  ["YC", "YELLOWCARDS", "YELLOW"],
     "min": ["MIN", "MINSPLAYED", "MINUTESPLAYED", "TIMEPLAYED"],
@@ -957,11 +963,12 @@ SOCCER_STAT_MAP = {
     # Outfield defending / dribbling — only present on some ESPN payloads / stat shapes.
     "clr": [
         "CLR", "CL", "CLEARANCES", "CLEARANCE", "TOTALCLEARANCE", "EFFECTIVECLEARANCE",
-        "DEFENDINGCLEARANCES", "DEFCLEARANCES",
+        "DEFENDINGCLEARANCES", "DEFCLEARANCES", "BALLCLEARANCE",
     ],
     "drib": [
         "DRI", "DR", "DRB", "ATTEMPTEDDRIBBLES", "DRIBBLEATTEMPTS", "DRIBBLESATTEMPTED",
         "TAKEONS", "TAKEON", "TOTALDRIBBLES", "ONBALLCARRIES", "UNSUCCESSFULTAKEONS",
+        "TAKEONSTOTAL", "DRIBBLESTOTAL",
     ],
 }
 

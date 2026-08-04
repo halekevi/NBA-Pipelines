@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03 10:12:12 UTC",
+  "generated_at": "2026-08-04 00:24:27 UTC",
   "date": "2026-08-03",
   "tennis_date": "2026-08-03",
   "filters": {
@@ -14,7 +14,7 @@
     "high_conviction": false,
     "prioritize_ticket_hit": true,
     "ticket_candidate_sort": "rule",
-    "ticket_gen_starts": 64,
+    "ticket_gen_starts": 16,
     "nba_structured_variants": 8,
     "min_leg_hit_rate": null,
     "structured_min_leg_hit_rate": null,
@@ -37,23 +37,23 @@
   "ticket_track": "graded_main",
   "mode": "graded_main",
   "groups": [],
-  "hot_legs": 76,
+  "hot_legs": 44,
   "cold_legs": 0,
   "tier_ev_thresholds": {
-    "strong": 1.14105,
-    "ok": 0.2448,
-    "marginal": -0.006655000000000001
+    "strong": 0.6716249999999977,
+    "ok": 0.32392000000000004,
+    "marginal": 0.0138
   },
   "tier_ev_thresholds_by_legs": {
     "2": {
-      "strong": 0.2448,
-      "ok": 0.08875999999999999,
-      "marginal": -0.006655000000000001
+      "strong": 0.6716249999999977,
+      "ok": 0.32392000000000004,
+      "marginal": 0.0138
     },
     "3": {
-      "strong": 1.2170999999999996,
-      "ok": 0.6521200000000003,
-      "marginal": -0.003625000000000128
+      "strong": 1.3976999999999995,
+      "ok": 0.33471999999999996,
+      "marginal": 0.0138
     }
   },
   "tier_ev_percentiles": {
@@ -76,8 +76,8 @@
     "require_hot_streak": true
   },
   "strong_gate_stats": {
-    "legs_checked": 27,
-    "failed_goblin": 2,
+    "legs_checked": 2,
+    "failed_goblin": 0,
     "failed_tier": 0,
     "failed_streak": 0
   },
@@ -116,8 +116,9 @@
   "main_default_legs": 3,
   "main_thin_pool_min_legs": 6,
   "allow_standard": true,
-  "strong_builder_count": 11,
+  "strong_builder_count": 1,
   "core_build_count": 6,
+  "run_id": "20260804_002428_071416",
   "preferred_min_payout_x": 1.5,
   "short_floor_hard_x": 1.5,
   "short_floor_high_p_win": 0.7

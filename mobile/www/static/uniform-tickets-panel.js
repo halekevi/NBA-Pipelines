@@ -34,7 +34,7 @@
   };
   const fmt2 = (v) => (v === null || v === undefined || Number.isNaN(Number(v)) ? '—' : Number(v).toFixed(2));
 
-  // Season consistency leaders (shared with homepage badge when available).
+  // Season line-class consistency leaders (GOB / STD / UND).
   const consStore = (window.__CONS_LEADERS = window.__CONS_LEADERS || {
     ready: false,
     byKey: new Map(),
@@ -53,8 +53,29 @@
     };
     return aliases[t] || t;
   }
-  function consKey(sport, player, prop, dir) {
-    return [String(sport || '').toUpperCase(), consNormName(player), consNormProp(prop), String(dir || '').toUpperCase()].join('|');
+  function consNormPick(pt) {
+    const s = String(pt || '').toLowerCase();
+    if (s.includes('goblin')) return 'Goblin';
+    if (s.includes('demon')) return 'Demon';
+    if (s.includes('standard')) return 'Standard';
+    return 'Other';
+  }
+  function consPickClass(pickType, dir) {
+    const pick = consNormPick(pickType);
+    let d = String(dir || '').toUpperCase();
+    if (d === 'O' || d === 'MORE') d = 'OVER';
+    if (d === 'U' || d === 'LESS' || d === 'LOWER') d = 'UNDER';
+    if (pick === 'Goblin' && d === 'OVER') return 'goblin_over';
+    if (pick === 'Standard' && d === 'OVER') return 'standard_over';
+    if (pick === 'Standard' && d === 'UNDER') return 'standard_under';
+    if (pick === 'Goblin' && d === 'UNDER') return 'goblin_under';
+    return null;
+  }
+  function consBadgePrefix(pc) {
+    return ({ goblin_over: 'GOB', standard_over: 'STD', standard_under: 'UND', goblin_under: 'UND' })[pc] || 'CONS';
+  }
+  function consKey(sport, player, prop, pickClass) {
+    return [String(sport || '').toUpperCase(), consNormName(player), consNormProp(prop), String(pickClass || '')].join('|');
   }
   async function ensureConsLeaders() {
     if (consStore.ready) return true;
@@ -73,7 +94,9 @@
         if (Number.isFinite(band)) consStore.band = band;
         for (const r of (data.match_index || data.leaders || [])) {
           if (!r || !r.player) continue;
-          const k = consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, r.direction);
+          const pc = r.pick_class || consPickClass(r.pick_type, r.direction);
+          if (!pc) continue;
+          const k = consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, pc);
           const prev = consStore.byKey.get(k);
           if (!prev || Number(r.score || 0) > Number(prev.score || 0)) consStore.byKey.set(k, r);
         }
@@ -85,10 +108,12 @@
             let dir = String(p.direction || p.dir || '').toUpperCase();
             if (dir === 'O' || dir === 'MORE') dir = 'OVER';
             if (dir === 'U' || dir === 'LESS' || dir === 'LOWER') dir = 'UNDER';
-            const row = consStore.byKey.get(consKey(p.sport, p.player, p.prop || p.prop_type, dir));
+            const pc = consPickClass(p.pick_type, dir);
+            if (!pc) return null;
+            const row = consStore.byKey.get(consKey(p.sport, p.player, p.prop || p.prop_type, pc));
             if (!row) return null;
             const slateLine = Number(p.line);
-            const leaderLine = Number(row.line);
+            const leaderLine = Number(row.reference_line != null ? row.reference_line : row.line);
             if (Number.isFinite(slateLine) && Number.isFinite(leaderLine)) {
               if (Math.abs(slateLine - leaderLine) > (consStore.band + 1e-9)) return null;
             }
@@ -282,13 +307,17 @@
           prop: propStr || leg.prop_type,
           direction: dirStr,
           line: leg.line,
+          pick_type: leg.pick_type,
         });
         if (hit) {
           const hr = hit.hit_rate != null ? Math.round(Number(hit.hit_rate) * 100) + '%' : '?';
+          const prefix = hit.badge_prefix || ({
+            goblin_over: 'GOB', standard_over: 'STD', standard_under: 'UND', goblin_under: 'UND',
+          })[hit.pick_class] || 'CONS';
           consBadge = el('span', {
-            class: 'cons-line-badge',
-            title: `Season consistent ${hit.direction} ${hit.prop} · ${hr} (n=${hit.sample_n})`,
-          }, [`📌 CONS ${hr}`]);
+            class: `cons-line-badge cons-${String(prefix).toLowerCase()}`,
+            title: `Season ${hit.pick_class || hit.pick_type || ''} ${hit.direction} ${hit.prop} · ${hr} (n=${hit.sample_n})`,
+          }, [`📌 ${prefix} ${hr}`]);
         }
       }
     } catch (_) { /* ignore */ }

@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """
-Build season-window consistency leaders (player × prop × direction × pick).
+Build season-window consistency leaders by line-class (GOB / STD / UND).
+
+Each leader row is keyed by sport × player × prop × pick_class:
+  goblin_over      → badge GOB xx%   (% OVER Goblin line)
+  standard_over    → badge STD xx%   (% OVER Standard line)
+  standard_under   → badge UND xx%   (% UNDER Standard line)
+  goblin_under     → badge UND xx%   (only when sample is material)
+
+Demon is never mixed into Goblin/Standard rates.
 
 Reads graded_props_*.json from each sport's season opener (or 2026-01-01 when
 unclear) through latest graded day. MLB ASG 2026-07-13..15 excluded.
@@ -9,6 +17,7 @@ Artifacts:
   data/slate_consistency/consistency_leaders_latest.json
   data/reports/consistency_leaders_tables_latest.json
   ui_runner/data/consistency_leaders_latest.json
+  ui_runner/templates/consistency_leaders_latest.json
   mobile/www/consistency_leaders_latest.json
 
 CLI:
@@ -44,16 +53,30 @@ BASES = [REPO / "ui_runner" / "templates", REPO / "mobile" / "www"]
 OUT_PRIMARY = REPO / "data" / "slate_consistency" / "consistency_leaders_latest.json"
 OUT_TABLES = REPO / "data" / "reports" / "consistency_leaders_tables_latest.json"
 OUT_UI = REPO / "ui_runner" / "data" / "consistency_leaders_latest.json"
+OUT_TEMPLATES = REPO / "ui_runner" / "templates" / "consistency_leaders_latest.json"
 OUT_MOBILE = REPO / "mobile" / "www" / "consistency_leaders_latest.json"
 
 # Minimum decided legs to surface a leader (Standard slightly higher).
 MIN_N_STANDARD = 12
 MIN_N_GOBLIN = 10
-MIN_N_DEMON = 10
-MIN_N_OTHER = 12
+# Goblin UNDER is rare — require a material sample before surfacing UND.
+MIN_N_GOBLIN_UNDER = 12
 MIN_HR = 0.62
 LINE_BAND = 0.5  # ± band for matching slate lines
 TOP_PER_CELL = 8
+
+# Badge-facing pick classes only (Demon / Other excluded).
+PICK_CLASS_GOBLIN_OVER = "goblin_over"
+PICK_CLASS_STANDARD_OVER = "standard_over"
+PICK_CLASS_STANDARD_UNDER = "standard_under"
+PICK_CLASS_GOBLIN_UNDER = "goblin_under"
+
+PICK_CLASS_BADGE = {
+    PICK_CLASS_GOBLIN_OVER: "GOB",
+    PICK_CLASS_STANDARD_OVER: "STD",
+    PICK_CLASS_STANDARD_UNDER: "UND",
+    PICK_CLASS_GOBLIN_UNDER: "UND",
+}
 
 
 def _utc_now() -> str:
@@ -186,14 +209,29 @@ def _dir_l10(r: dict, direction: str) -> float | None:
     return None
 
 
-def _min_n_for_pick(pick: str) -> int:
-    if pick == "Standard":
+def _pick_class(pick: str, direction: str) -> str | None:
+    """Map graded pick_type + direction → badge pick_class (None = skip)."""
+    if pick == "Goblin" and direction == "OVER":
+        return PICK_CLASS_GOBLIN_OVER
+    if pick == "Standard" and direction == "OVER":
+        return PICK_CLASS_STANDARD_OVER
+    if pick == "Standard" and direction == "UNDER":
+        return PICK_CLASS_STANDARD_UNDER
+    if pick == "Goblin" and direction == "UNDER":
+        return PICK_CLASS_GOBLIN_UNDER
+    return None  # Demon / Other never enter leaders
+
+
+def _min_n_for_class(pick_class: str) -> int:
+    if pick_class == PICK_CLASS_STANDARD_OVER:
         return MIN_N_STANDARD
-    if pick == "Goblin":
+    if pick_class == PICK_CLASS_STANDARD_UNDER:
+        return MIN_N_STANDARD
+    if pick_class == PICK_CLASS_GOBLIN_OVER:
         return MIN_N_GOBLIN
-    if pick == "Demon":
-        return MIN_N_DEMON
-    return MIN_N_OTHER
+    if pick_class == PICK_CLASS_GOBLIN_UNDER:
+        return MIN_N_GOBLIN_UNDER
+    return MIN_N_STANDARD
 
 
 def _iter_dates(d0: str, d1: str) -> list[str]:
@@ -293,9 +331,9 @@ class Agg:
         prop: str,
         direction: str,
         pick_type: str,
+        pick_class: str,
         window_from: str,
         window_to: str,
-        demon_only: bool = False,
     ) -> dict[str, Any]:
         ml = self.mode_line()
         # Modal-line share: how often the most common offered line appears.
@@ -309,6 +347,7 @@ class Agg:
             score += (l5_avg / 5.0) * 0.05
         if l10_avg is not None:
             score += (l10_avg / 10.0) * 0.03
+        badge = PICK_CLASS_BADGE[pick_class]
         return {
             "sport": sport,
             "player": self.player,
@@ -317,7 +356,10 @@ class Agg:
             "prop_key": prop,
             "direction": direction,
             "pick_type": pick_type,
+            "pick_class": pick_class,
+            "badge_prefix": badge,
             "line": ml,
+            "reference_line": ml,
             "line_band": LINE_BAND,
             "lines_seen": dict(self.lines.most_common(5)),
             "modal_line_share": round(modal_share, 4),
@@ -330,8 +372,6 @@ class Agg:
             "last_date": max(self.dates) if self.dates else None,
             "window": {"from": window_from, "to": window_to},
             "score": round(score, 5),
-            "demon_only": demon_only,
-            "note": "Demon-only (no Goblin sample)" if demon_only else None,
         }
 
 
@@ -406,8 +446,8 @@ def scan(
     return bags, meta
 
 
-def _qualify(row: dict, pick: str) -> bool:
-    return row["sample_n"] >= _min_n_for_pick(pick) and row["hit_rate"] >= MIN_HR
+def _qualify(row: dict, pick_class: str) -> bool:
+    return row["sample_n"] >= _min_n_for_class(pick_class) and row["hit_rate"] >= MIN_HR
 
 
 def build_leaders(
@@ -421,57 +461,57 @@ def build_leaders(
     leaders: list[dict] = []
     tables: dict[str, Any] = {}
 
-    # Detect Demon-only (no Goblin sample for same player/prop/dir)
-    goblin_keys = {
-        (s, pn, prop, d) for (s, pn, prop, d, pick) in bags if pick == "Goblin"
-    }
-
-    # Group by sport × prop × direction × pick_type
+    # Group by sport × prop × pick_class (direction implied by class)
     cells: dict[tuple, list[dict]] = defaultdict(list)
     for (sport, pn, prop, direction, pick), agg in bags.items():
+        pick_class = _pick_class(pick, direction)
+        if pick_class is None:
+            continue  # Demon / Other excluded
         w_from = sport_from_date(sport)
-        demon_only = False
-        if pick == "Demon" and (sport, pn, prop, direction) not in goblin_keys:
-            demon_only = True
         row = agg.to_row(
             sport=sport,
             prop=prop,
             direction=direction,
             pick_type=pick,
+            pick_class=pick_class,
             window_from=w_from,
             window_to=date_to,
-            demon_only=demon_only,
         )
-        if not _qualify(row, pick):
+        if not _qualify(row, pick_class):
             continue
-        cells[(sport, prop, direction, pick)].append(row)
+        cells[(sport, prop, pick_class)].append(row)
 
     for cell_key, rows in cells.items():
         rows.sort(key=lambda r: (-r["score"], -r["sample_n"], -r["hit_rate"]))
         top_rows = rows[:top]
         leaders.extend(top_rows)
-        sport, prop, direction, pick = cell_key
-        tables.setdefault(sport, {}).setdefault(prop, {}).setdefault(direction, {})[pick] = [
+        sport, prop, pick_class = cell_key
+        direction = top_rows[0]["direction"] if top_rows else ""
+        tables.setdefault(sport, {}).setdefault(prop, {}).setdefault(pick_class, {
+            "direction": direction,
+            "badge": PICK_CLASS_BADGE[pick_class],
+            "rows": [],
+        })
+        tables[sport][prop][pick_class]["rows"] = [
             {
                 "player": r["player"],
                 "line": r["line"],
+                "reference_line": r["reference_line"],
                 "hit_rate": r["hit_rate"],
                 "sample_n": r["sample_n"],
                 "l5_avg": r["l5_avg"],
                 "l10_avg": r["l10_avg"],
-                "demon_only": r["demon_only"],
                 "window": r["window"],
             }
             for r in top_rows
         ]
 
-    # Flat match index for UI: sport|player_norm|prop_key|direction → best row
+    # Flat match index: one row per sport|player|prop|pick_class
     match_index: list[dict] = []
     seen_match: set[tuple] = set()
     for r in sorted(leaders, key=lambda x: (-x["score"], -x["sample_n"])):
-        mk = (r["sport"], r["player_norm"], r["prop_key"], r["direction"])
+        mk = (r["sport"], r["player_norm"], r["prop_key"], r["pick_class"])
         if mk in seen_match:
-            # Keep best-scoring pick_type per player/prop/dir for slate badge
             continue
         seen_match.add(mk)
         match_index.append(
@@ -483,14 +523,16 @@ def build_leaders(
                 "prop_key": r["prop_key"],
                 "direction": r["direction"],
                 "pick_type": r["pick_type"],
+                "pick_class": r["pick_class"],
+                "badge_prefix": r["badge_prefix"],
                 "line": r["line"],
+                "reference_line": r["reference_line"],
                 "line_band": r["line_band"],
                 "hit_rate": r["hit_rate"],
                 "sample_n": r["sample_n"],
                 "l5_avg": r["l5_avg"],
                 "l10_avg": r["l10_avg"],
                 "window": r["window"],
-                "demon_only": r["demon_only"],
                 "score": r["score"],
             }
         )
@@ -499,6 +541,7 @@ def build_leaders(
     for sport in ACTIVE_SPORTS:
         days = meta["by_sport_days"].get(sport) or []
         sport_leaders = [r for r in leaders if r["sport"] == sport]
+        by_class = Counter(r["pick_class"] for r in sport_leaders)
         by_sport_summary[sport] = {
             "from": sport_from_date(sport),
             "from_note": SPORT_FROM_NOTES.get(sport, ""),
@@ -506,6 +549,7 @@ def build_leaders(
             "last_graded": days[-1] if days else None,
             "days": len(days),
             "n_leaders": len(sport_leaders),
+            "by_pick_class": dict(by_class),
         }
 
     payload = {
@@ -515,11 +559,13 @@ def build_leaders(
         "mlb_asg_skipped": meta.get("mlb_asg_skipped") or [],
         "min_hr": MIN_HR,
         "min_n": {
-            "Standard": MIN_N_STANDARD,
-            "Goblin": MIN_N_GOBLIN,
-            "Demon": MIN_N_DEMON,
-            "Other": MIN_N_OTHER,
+            "goblin_over": MIN_N_GOBLIN,
+            "standard_over": MIN_N_STANDARD,
+            "standard_under": MIN_N_STANDARD,
+            "goblin_under": MIN_N_GOBLIN_UNDER,
         },
+        "pick_classes": list(PICK_CLASS_BADGE.keys()),
+        "badge_prefixes": dict(PICK_CLASS_BADGE),
         "line_band": LINE_BAND,
         "top_per_cell": top,
         "n_legs_scanned": meta.get("n_legs"),
@@ -530,9 +576,11 @@ def build_leaders(
         "match_index": match_index,
         "note": (
             "Season-window consistency leaders from graded_props. "
-            "Grouped by sport × prop × OVER/UNDER × pick_type; "
-            "ranked by HR + sample + L5/L10. Match slate rows via "
-            "match_index on player+prop+dir with line within ±line_band."
+            "Keyed by sport × player × prop × pick_class "
+            "(goblin_over / standard_over / standard_under; "
+            "goblin_under only when material). Demon excluded. "
+            "Match slate rows via match_index on player+prop+pick_class "
+            "with line within ±line_band. Badges: GOB / STD / UND."
         ),
     }
     tables_payload = {
@@ -542,6 +590,7 @@ def build_leaders(
         "mlb_asg_skipped": payload["mlb_asg_skipped"],
         "tables": tables,
         "sports": by_sport_summary,
+        "badge_prefixes": dict(PICK_CLASS_BADGE),
     }
     return payload, tables_payload
 
@@ -575,21 +624,25 @@ def main() -> None:
     _write_json(OUT_PRIMARY, payload)
     _write_json(OUT_TABLES, tables)
     _write_json(OUT_UI, payload)
+    _write_json(OUT_TEMPLATES, payload)
     _write_json(OUT_MOBILE, payload)
 
     # Compact console tables (top cells)
-    print("\n=== TOP CONSISTENCY LEADERS (sample) ===")
+    print("\n=== TOP LINE-CLASS CONSISTENCY LEADERS (sample) ===")
     for sport in ACTIVE_SPORTS:
         sport_rows = [r for r in payload["leaders"] if r["sport"] == sport]
         sport_rows.sort(key=lambda r: (-r["score"], -r["sample_n"]))
-        print(f"\n--- {sport} (from {sport_from_date(sport)}) top 12 ---")
+        by_pc = payload["sports"][sport].get("by_pick_class") or {}
+        print(
+            f"\n--- {sport} (from {sport_from_date(sport)}) "
+            f"n={len(sport_rows)} classes={by_pc} top 12 ---"
+        )
         for r in sport_rows[:12]:
-            line_s = f"{r['line']:.1f}" if r["line"] is not None else "?"
-            note = " [Demon-only]" if r.get("demon_only") else ""
+            line_s = f"{r['reference_line']:.1f}" if r["reference_line"] is not None else "?"
             print(
-                f"  {r['pick_type']:8s} {r['direction']:5s} {r['prop']:22s} "
+                f"  {r['badge_prefix']:3s} {r['pick_class']:15s} {r['prop']:22s} "
                 f"{r['player'][:28]:28s} @{line_s:>5s}  "
-                f"HR={r['hit_rate']*100:5.1f}% n={r['sample_n']:3d}{note}"
+                f"HR={r['hit_rate']*100:5.1f}% n={r['sample_n']:3d}"
             )
 
 

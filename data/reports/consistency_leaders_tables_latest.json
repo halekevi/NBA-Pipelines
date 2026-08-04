@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T20:17:52Z",
+  "generated_at": "2026-08-04T23:32:00Z",
   "to": "2026-08-03",
   "sport_from_dates": {
     "WNBA": {
@@ -27,16 +27,18 @@
   "tables": {
     "SOCCER": {
       "shots": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Lionel Messi",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.9091,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -45,11 +47,11 @@
             {
               "player": "Michael Olise",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 2.5,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -58,132 +60,30 @@
             {
               "player": "Bruno Fernandes",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.7273,
               "sample_n": 11,
               "l5_avg": 2.5,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Demon": [
-            {
-              "player": "Evander",
-              "line": 4.5,
-              "hit_rate": 0.7895,
-              "sample_n": 19,
-              "l5_avg": 1.857,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Ra\u00fal Jim\u00e9nez",
-              "line": 3.5,
-              "hit_rate": 0.7273,
-              "sample_n": 11,
-              "l5_avg": 0.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Ibrahim Maza",
-              "line": 1.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": 2.5,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Preston Judd",
-              "line": 3.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": 1.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Enzo Fern\u00e1ndez",
-              "line": 2.5,
-              "hit_rate": 0.6923,
-              "sample_n": 13,
-              "l5_avg": 1.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Lionel Messi",
-              "line": 5.5,
-              "hit_rate": 0.65,
-              "sample_n": 20,
-              "l5_avg": 2.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Miguel Almir\u00f3n",
-              "line": 2.5,
-              "hit_rate": 0.6364,
-              "sample_n": 11,
-              "l5_avg": 1.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Bruno Guimar\u00e3es",
-              "line": 0.5,
-              "hit_rate": 0.6364,
-              "sample_n": 11,
-              "l5_avg": 0.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Mateusz Bogusz",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8,
               "sample_n": 15,
               "l5_avg": 2.133,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -192,11 +92,11 @@
             {
               "player": "Peyton Miller",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 1.333,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -205,11 +105,11 @@
             {
               "player": "Zavier Gozo",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.417,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -219,124 +119,37 @@
         }
       },
       "goalie saves": {
-        "OVER": {
-          "Demon": [
-            {
-              "player": "Bart Verbruggen",
-              "line": 2.5,
-              "hit_rate": 0.8333,
-              "sample_n": 12,
-              "l5_avg": 1.667,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Brad Stuver",
-              "line": 4.5,
-              "hit_rate": 0.8,
-              "sample_n": 15,
-              "l5_avg": 2.5,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Diogo Costa",
-              "line": 3.5,
-              "hit_rate": 0.8,
-              "sample_n": 15,
-              "l5_avg": null,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Finn Dahmen",
-              "line": 4.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": 2.4,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Sean Johnson",
-              "line": 2.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": 1.714,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Daniel Heuer Fernandes",
-              "line": 4.5,
-              "hit_rate": 0.6667,
-              "sample_n": 12,
-              "l5_avg": 2.0,
-              "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Michael Zetterer",
-              "line": 4.5,
-              "hit_rate": 0.6429,
-              "sample_n": 14,
-              "l5_avg": 1.143,
-              "l10_avg": null,
-              "demon_only": true,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Alisson Becker",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Marko Dmitrovic",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": 2.667,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -345,11 +158,11 @@
             {
               "player": "Arnau Tenas",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 0.833,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -359,16 +172,18 @@
         }
       },
       "shots on target": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Lionel Messi",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -380,16 +195,18 @@
     },
     "MLB": {
       "total bases": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Joshua Kuroda-Grauer",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 1.0,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 4.455,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -398,11 +215,11 @@
             {
               "player": "Ryan Jeffers",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8462,
               "sample_n": 26,
               "l5_avg": 3.538,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -411,11 +228,11 @@
             {
               "player": "Zack Gelof",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7907,
               "sample_n": 43,
               "l5_avg": 4.414,
               "l10_avg": 9.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -424,11 +241,11 @@
             {
               "player": "Konnor Griffin",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8,
               "sample_n": 35,
               "l5_avg": 4.0,
               "l10_avg": 7.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -437,11 +254,11 @@
             {
               "player": "Jeremy Pe\u00f1a",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7778,
               "sample_n": 54,
               "l5_avg": 4.0,
               "l10_avg": 7.636,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -450,11 +267,11 @@
             {
               "player": "Otto Lopez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7788,
               "sample_n": 104,
               "l5_avg": 3.262,
               "l10_avg": 8.41,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -463,11 +280,11 @@
             {
               "player": "Jackson Chourio",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7534,
               "sample_n": 73,
               "l5_avg": 3.556,
               "l10_avg": 6.595,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -476,26 +293,30 @@
             {
               "player": "Ernie Clement",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7426,
               "sample_n": 101,
               "l5_avg": 3.627,
               "l10_avg": 7.353,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Gabriel Arias",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 2.0,
               "l10_avg": 5.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -504,11 +325,11 @@
             {
               "player": "Jorge Soler",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 21,
               "l5_avg": 3.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -517,11 +338,11 @@
             {
               "player": "Spencer Horwitz",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -530,11 +351,11 @@
             {
               "player": "Ezequiel Duran",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.091,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -543,11 +364,11 @@
             {
               "player": "Joe Mack",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6364,
               "sample_n": 22,
               "l5_avg": 3.0,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -556,11 +377,11 @@
             {
               "player": "Zach McKinstry",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.625,
               "sample_n": 24,
               "l5_avg": 2.833,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -569,11 +390,11 @@
             {
               "player": "Kyle Higashioka",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.7,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -581,16 +402,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Leo Rivas",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7647,
               "sample_n": 17,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -599,11 +422,11 @@
             {
               "player": "Alex Bregman",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 3.545,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -612,11 +435,11 @@
             {
               "player": "Esteury Ruiz",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 4.0,
               "l10_avg": 8.143,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -625,11 +448,11 @@
             {
               "player": "Juan Soto",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.7,
               "sample_n": 20,
               "l5_avg": 3.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -638,11 +461,11 @@
             {
               "player": "Mike Yastrzemski",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6875,
               "sample_n": 16,
               "l5_avg": 3.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -651,11 +474,11 @@
             {
               "player": "Vlad Guerrero Jr.",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": 5.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -664,11 +487,11 @@
             {
               "player": "Corbin Carroll",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -677,11 +500,11 @@
             {
               "player": "Drew Gilbert",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 3.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -691,16 +514,18 @@
         }
       },
       "hits": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Joshua Kuroda-Grauer",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 4.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -709,11 +534,11 @@
             {
               "player": "Ryan Jeffers",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8462,
               "sample_n": 26,
               "l5_avg": 3.462,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -722,11 +547,11 @@
             {
               "player": "Zack Gelof",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7907,
               "sample_n": 43,
               "l5_avg": 4.414,
               "l10_avg": 9.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -735,11 +560,11 @@
             {
               "player": "Konnor Griffin",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8,
               "sample_n": 35,
               "l5_avg": 4.0,
               "l10_avg": 7.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -748,11 +573,11 @@
             {
               "player": "Jeremy Pe\u00f1a",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7778,
               "sample_n": 54,
               "l5_avg": 4.0,
               "l10_avg": 7.545,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -761,11 +586,11 @@
             {
               "player": "Otto Lopez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.78,
               "sample_n": 100,
               "l5_avg": 3.234,
               "l10_avg": 8.528,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -774,11 +599,11 @@
             {
               "player": "Luis Arraez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 80,
               "l5_avg": 4.4,
               "l10_avg": 8.545,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -787,65 +612,11 @@
             {
               "player": "Jackson Chourio",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7536,
               "sample_n": 69,
               "l5_avg": 3.806,
               "l10_avg": 6.889,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Standard": [
-            {
-              "player": "Joe Mack",
-              "line": 0.5,
-              "hit_rate": 0.6667,
-              "sample_n": 18,
-              "l5_avg": 3.0,
-              "l10_avg": 3.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Zach McKinstry",
-              "line": 0.5,
-              "hit_rate": 0.6667,
-              "sample_n": 15,
-              "l5_avg": 3.0,
-              "l10_avg": 4.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Hao-Yu Lee",
-              "line": 0.5,
-              "hit_rate": 0.6429,
-              "sample_n": 14,
-              "l5_avg": 2.0,
-              "l10_avg": 3.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Jeremiah Jackson",
-              "line": 0.5,
-              "hit_rate": 0.6429,
-              "sample_n": 14,
-              "l5_avg": 2.0,
-              "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -853,16 +624,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Rodolfo Dur\u00e1n",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8462,
               "sample_n": 13,
               "l5_avg": 3.0,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -871,11 +644,11 @@
             {
               "player": "Luke Raley",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7895,
               "sample_n": 19,
               "l5_avg": 2.938,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -884,11 +657,11 @@
             {
               "player": "Leo Rivas",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7647,
               "sample_n": 17,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -897,11 +670,11 @@
             {
               "player": "Sung-Mun Song",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7222,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -910,11 +683,11 @@
             {
               "player": "Mike Yastrzemski",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7333,
               "sample_n": 15,
               "l5_avg": 3.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -923,11 +696,11 @@
             {
               "player": "Esteury Ruiz",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 4.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -936,11 +709,11 @@
             {
               "player": "Jake Rogers",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": 4.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -949,11 +722,69 @@
             {
               "player": "Danny Jansen",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 2.857,
               "l10_avg": null,
-              "demon_only": false,
+              "window": {
+                "from": "2026-03-30",
+                "to": "2026-08-03"
+              }
+            }
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
+            {
+              "player": "Joe Mack",
+              "line": 0.5,
+              "reference_line": 0.5,
+              "hit_rate": 0.6667,
+              "sample_n": 18,
+              "l5_avg": 3.0,
+              "l10_avg": 3.0,
+              "window": {
+                "from": "2026-03-30",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Zach McKinstry",
+              "line": 0.5,
+              "reference_line": 0.5,
+              "hit_rate": 0.6667,
+              "sample_n": 15,
+              "l5_avg": 3.0,
+              "l10_avg": 4.0,
+              "window": {
+                "from": "2026-03-30",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Hao-Yu Lee",
+              "line": 0.5,
+              "reference_line": 0.5,
+              "hit_rate": 0.6429,
+              "sample_n": 14,
+              "l5_avg": 2.0,
+              "l10_avg": 3.0,
+              "window": {
+                "from": "2026-03-30",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Jeremiah Jackson",
+              "line": 0.5,
+              "reference_line": 0.5,
+              "hit_rate": 0.6429,
+              "sample_n": 14,
+              "l5_avg": 2.0,
+              "l10_avg": null,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -963,16 +794,18 @@
         }
       },
       "walks": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Will Smith",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -981,11 +814,11 @@
             {
               "player": "Mike Trout",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.625,
               "sample_n": 24,
               "l5_avg": 3.474,
               "l10_avg": 6.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -993,31 +826,18 @@
             }
           ]
         },
-        "OVER": {
-          "Demon": [
-            {
-              "player": "Gary S\u00e1nchez",
-              "line": 0.5,
-              "hit_rate": 0.6957,
-              "sample_n": 23,
-              "l5_avg": 0.286,
-              "l10_avg": 2.333,
-              "demon_only": true,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Munetaka Murakami",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 4.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1026,11 +846,11 @@
             {
               "player": "Max Muncy",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 1.571,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1040,16 +860,18 @@
         }
       },
       "pitcher strikeouts": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Dylan Cease",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 1.0,
               "sample_n": 23,
               "l5_avg": 2.5,
               "l10_avg": 8.214,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1058,11 +880,11 @@
             {
               "player": "Troy Melton",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 1.0,
               "sample_n": 17,
               "l5_avg": 1.0,
               "l10_avg": 1.077,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1071,11 +893,11 @@
             {
               "player": "Sean Burke",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.95,
               "sample_n": 20,
               "l5_avg": 3.857,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1084,11 +906,11 @@
             {
               "player": "Brandon Young",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9474,
               "sample_n": 19,
               "l5_avg": 3.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1097,11 +919,11 @@
             {
               "player": "Shohei Ohtani",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.9231,
               "sample_n": 13,
               "l5_avg": 3.429,
               "l10_avg": 5.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1110,11 +932,11 @@
             {
               "player": "Carlos Rod\u00f3n",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.9412,
               "sample_n": 17,
               "l5_avg": 1.6,
               "l10_avg": 2.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1123,11 +945,11 @@
             {
               "player": "Ranger Suarez",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.9048,
               "sample_n": 21,
               "l5_avg": 2.778,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1136,26 +958,30 @@
             {
               "player": "Griffin Jax",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.9167,
               "sample_n": 24,
               "l5_avg": 1.143,
               "l10_avg": 1.643,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Dylan Cease",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": 3.0,
               "l10_avg": 5.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1164,11 +990,11 @@
             {
               "player": "Nolan McLean",
               "line": 6.0,
+              "reference_line": 6.0,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 2.714,
               "l10_avg": 5.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1177,11 +1003,11 @@
             {
               "player": "Kyle Leahy",
               "line": 4.0,
+              "reference_line": 4.0,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 2.5,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1190,11 +1016,11 @@
             {
               "player": "Cade Cavalli",
               "line": 5.0,
+              "reference_line": 5.0,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.778,
               "l10_avg": 5.143,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1202,16 +1028,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Eric Lauer",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.8667,
               "sample_n": 15,
               "l5_avg": 4.3,
               "l10_avg": 5.6,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1220,11 +1048,11 @@
             {
               "player": "Logan Gilbert",
               "line": 6.0,
+              "reference_line": 6.0,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 3.273,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1234,16 +1062,18 @@
         }
       },
       "walks allowed": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Payton Tolle",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 1.0,
               "sample_n": 14,
               "l5_avg": 3.833,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1252,11 +1082,11 @@
             {
               "player": "Christian Scott",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 1.0,
               "sample_n": 10,
               "l5_avg": 3.75,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1265,11 +1095,11 @@
             {
               "player": "Logan Gilbert",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9375,
               "sample_n": 16,
               "l5_avg": 4.889,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1278,11 +1108,11 @@
             {
               "player": "Bubba Chandler",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": 4.333,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1291,11 +1121,11 @@
             {
               "player": "Framber Valdez",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9231,
               "sample_n": 13,
               "l5_avg": 3.6,
               "l10_avg": 8.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1304,11 +1134,11 @@
             {
               "player": "Eric Lauer",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": 3.333,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1317,11 +1147,11 @@
             {
               "player": "Nathan Eovaldi",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": 3.4,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1330,11 +1160,11 @@
             {
               "player": "Shota Imanaga",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9091,
               "sample_n": 11,
               "l5_avg": 3.75,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1344,16 +1174,18 @@
         }
       },
       "hits allowed": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Shane Baz",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.9394,
               "sample_n": 33,
               "l5_avg": 3.286,
               "l10_avg": 8.273,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1362,11 +1194,11 @@
             {
               "player": "Braxton Ashcraft",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.9474,
               "sample_n": 19,
               "l5_avg": 4.2,
               "l10_avg": 8.125,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1375,11 +1207,11 @@
             {
               "player": "George Kirby",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8889,
               "sample_n": 18,
               "l5_avg": 4.25,
               "l10_avg": 9.571,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1388,11 +1220,11 @@
             {
               "player": "Jacob deGrom",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.8947,
               "sample_n": 19,
               "l5_avg": 3.625,
               "l10_avg": 7.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1401,11 +1233,11 @@
             {
               "player": "Randy V\u00e1squez",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8846,
               "sample_n": 26,
               "l5_avg": 2.944,
               "l10_avg": 8.4,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1414,11 +1246,11 @@
             {
               "player": "Parker Messick",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.8889,
               "sample_n": 18,
               "l5_avg": 4.333,
               "l10_avg": 6.091,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1427,11 +1259,11 @@
             {
               "player": "Shane Drohan",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.9286,
               "sample_n": 14,
               "l5_avg": 1.0,
               "l10_avg": 5.556,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1440,26 +1272,11 @@
             {
               "player": "Patrick Corbin",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8824,
               "sample_n": 17,
               "l5_avg": 4.0,
               "l10_avg": 7.5,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Spencer Miles",
-              "line": 5.5,
-              "hit_rate": 0.6364,
-              "sample_n": 11,
-              "l5_avg": 0.0,
-              "l10_avg": 0.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1469,16 +1286,18 @@
         }
       },
       "pitching outs": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Sandy Alcantara",
               "line": 17.5,
+              "reference_line": 17.5,
               "hit_rate": 0.9231,
               "sample_n": 13,
               "l5_avg": 3.0,
               "l10_avg": 7.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1487,11 +1306,11 @@
             {
               "player": "Michael Wacha",
               "line": 17.5,
+              "reference_line": 17.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": 4.0,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1500,11 +1319,11 @@
             {
               "player": "Griffin Jax",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.9091,
               "sample_n": 11,
               "l5_avg": 2.0,
               "l10_avg": 2.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1513,11 +1332,11 @@
             {
               "player": "Bubba Chandler",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": 3.833,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1526,11 +1345,11 @@
             {
               "player": "Brady Singer",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": 4.0,
               "l10_avg": 5.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1539,11 +1358,11 @@
             {
               "player": "Seth Lugo",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": 2.2,
               "l10_avg": 8.6,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1552,11 +1371,11 @@
             {
               "player": "Sonny Gray",
               "line": 17.5,
+              "reference_line": 17.5,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 4.333,
               "l10_avg": 4.4,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1565,54 +1384,30 @@
             {
               "player": "Walker Buehler",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 3.333,
               "l10_avg": 7.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Demon": [
-            {
-              "player": "Jake Bennett",
-              "line": 15.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": 1.0,
-              "l10_avg": 1.429,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Tomoyuki Sugano",
-              "line": 15.5,
-              "hit_rate": 0.6429,
-              "sample_n": 14,
-              "l5_avg": 1.8,
-              "l10_avg": 3.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Payton Tolle",
               "line": 15.5,
+              "reference_line": 15.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.75,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1622,16 +1417,18 @@
         }
       },
       "runs": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "James Wood",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6585,
               "sample_n": 41,
               "l5_avg": 1.533,
               "l10_avg": 8.038,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1640,11 +1437,11 @@
             {
               "player": "Aaron Judge",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 27,
               "l5_avg": 4.625,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1653,11 +1450,11 @@
             {
               "player": "Seiya Suzuki",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 21,
               "l5_avg": 3.812,
               "l10_avg": 4.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1666,26 +1463,30 @@
             {
               "player": "Ketel Marte",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6364,
               "sample_n": 22,
               "l5_avg": 1.333,
               "l10_avg": 2.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Ozzie Albies",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.0,
               "l10_avg": 5.091,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1694,11 +1495,11 @@
             {
               "player": "Wyatt Langford",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6471,
               "sample_n": 17,
               "l5_avg": 2.5,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1706,16 +1507,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "MJ Melendez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7692,
               "sample_n": 13,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1724,11 +1527,11 @@
             {
               "player": "Sal Stewart",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 26,
               "l5_avg": 4.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1737,11 +1540,11 @@
             {
               "player": "Max Muncy",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.833,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1750,11 +1553,11 @@
             {
               "player": "Carson Kelly",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1763,11 +1566,11 @@
             {
               "player": "Garrett Mitchell",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 3.125,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1777,16 +1580,18 @@
         }
       },
       "hitter strikeouts": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Luis Rengifo",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 4.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1795,11 +1600,11 @@
             {
               "player": "Bo Bichette",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.64,
               "sample_n": 25,
               "l5_avg": 4.0,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1808,11 +1613,11 @@
             {
               "player": "Chase DeLauter",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6842,
               "sample_n": 19,
               "l5_avg": 2.5,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1821,11 +1626,11 @@
             {
               "player": "Tyrone Taylor",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1834,11 +1639,11 @@
             {
               "player": "Isiah Kiner-Falefa",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6471,
               "sample_n": 17,
               "l5_avg": 3.714,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1847,11 +1652,11 @@
             {
               "player": "Josh Naylor",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 3.0,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1860,11 +1665,11 @@
             {
               "player": "Mauricio Dub\u00f3n",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 5.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1873,11 +1678,11 @@
             {
               "player": "Sam Antonacci",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1885,16 +1690,18 @@
             }
           ]
         },
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Ram\u00f3n Laureano",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9167,
               "sample_n": 36,
               "l5_avg": 3.655,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1903,11 +1710,11 @@
             {
               "player": "Ian Happ",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8718,
               "sample_n": 78,
               "l5_avg": 4.0,
               "l10_avg": 8.412,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1916,11 +1723,11 @@
             {
               "player": "Hunter Goodman",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8649,
               "sample_n": 74,
               "l5_avg": 2.711,
               "l10_avg": 8.412,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1929,11 +1736,11 @@
             {
               "player": "Eugenio Su\u00e1rez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8478,
               "sample_n": 46,
               "l5_avg": 4.0,
               "l10_avg": 6.704,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1942,11 +1749,11 @@
             {
               "player": "Esmerlyn Valdez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.88,
               "sample_n": 25,
               "l5_avg": 3.0,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1955,11 +1762,11 @@
             {
               "player": "Zach Neto",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8354,
               "sample_n": 79,
               "l5_avg": 3.452,
               "l10_avg": 5.941,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1968,11 +1775,11 @@
             {
               "player": "Colt Emerson",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8409,
               "sample_n": 44,
               "l5_avg": 2.75,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -1981,26 +1788,30 @@
             {
               "player": "Oneil Cruz",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8571,
               "sample_n": 14,
               "l5_avg": 4.857,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Justin Crawford",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 20,
               "l5_avg": 3.867,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2009,11 +1820,11 @@
             {
               "player": "Nolan Arenado",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2022,11 +1833,11 @@
             {
               "player": "Marcus Semien",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 2.923,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2035,11 +1846,11 @@
             {
               "player": "Mauricio Dub\u00f3n",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": 2.727,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2048,11 +1859,11 @@
             {
               "player": "Caleb Durbin",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.0,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2061,11 +1872,11 @@
             {
               "player": "Drew Gilbert",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6316,
               "sample_n": 19,
               "l5_avg": 3.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2075,16 +1886,18 @@
         }
       },
       "pitches thrown": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Andrew Abbott",
               "line": 87.5,
+              "reference_line": 87.5,
               "hit_rate": 1.0,
               "sample_n": 10,
               "l5_avg": 3.25,
               "l10_avg": 7.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2093,11 +1906,11 @@
             {
               "player": "Brady Singer",
               "line": 85.5,
+              "reference_line": 85.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": 3.4,
               "l10_avg": 3.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2106,11 +1919,11 @@
             {
               "player": "Seth Lugo",
               "line": 84.5,
+              "reference_line": 84.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": 4.25,
               "l10_avg": 9.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2119,11 +1932,11 @@
             {
               "player": "Freddy Peralta",
               "line": 89.5,
+              "reference_line": 89.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": 4.0,
               "l10_avg": 9.2,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2132,11 +1945,11 @@
             {
               "player": "Sandy Alcantara",
               "line": 94.5,
+              "reference_line": 94.5,
               "hit_rate": 0.8667,
               "sample_n": 15,
               "l5_avg": 4.75,
               "l10_avg": 8.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2145,11 +1958,11 @@
             {
               "player": "Jacob deGrom",
               "line": 88.5,
+              "reference_line": 88.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": 4.167,
               "l10_avg": 7.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2158,11 +1971,11 @@
             {
               "player": "Cristopher S\u00e1nchez",
               "line": 92.5,
+              "reference_line": 92.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": 3.75,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2171,11 +1984,11 @@
             {
               "player": "Eduardo Rodriguez",
               "line": 88.5,
+              "reference_line": 88.5,
               "hit_rate": 0.8,
               "sample_n": 15,
               "l5_avg": 4.5,
               "l10_avg": 8.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2185,16 +1998,18 @@
         }
       },
       "plate appearances": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Brandon Lowe",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2203,11 +2018,11 @@
             {
               "player": "Christian Yelich",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": null,
               "l10_avg": 7.571,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2216,11 +2031,11 @@
             {
               "player": "Pete Crow-Armstrong",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.7143,
               "sample_n": 21,
               "l5_avg": null,
               "l10_avg": 5.385,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2229,11 +2044,11 @@
             {
               "player": "Otto Lopez",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.7,
               "sample_n": 10,
               "l5_avg": null,
               "l10_avg": 5.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2242,11 +2057,11 @@
             {
               "player": "Yordan Alvarez",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.7,
               "sample_n": 10,
               "l5_avg": null,
               "l10_avg": 4.2,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2255,11 +2070,11 @@
             {
               "player": "Fernando Tatis Jr.",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6471,
               "sample_n": 17,
               "l5_avg": null,
               "l10_avg": 4.455,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2268,39 +2083,11 @@
             {
               "player": "George Springer",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 0.0,
               "l10_avg": null,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Michael Busch",
-              "line": 4.5,
-              "hit_rate": 0.7059,
-              "sample_n": 17,
-              "l5_avg": null,
-              "l10_avg": 3.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Michael Harris II",
-              "line": 4.5,
-              "hit_rate": 0.625,
-              "sample_n": 16,
-              "l5_avg": null,
-              "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2310,16 +2097,18 @@
         }
       },
       "singles": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Jake McCarthy",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 26,
               "l5_avg": 3.0,
               "l10_avg": 6.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2328,11 +2117,11 @@
             {
               "player": "Steven Kwan",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 1.833,
               "l10_avg": 6.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2341,11 +2130,11 @@
             {
               "player": "Otto Lopez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6538,
               "sample_n": 52,
               "l5_avg": 3.0,
               "l10_avg": 6.968,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2354,11 +2143,11 @@
             {
               "player": "Xavier Edwards",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6591,
               "sample_n": 44,
               "l5_avg": 2.0,
               "l10_avg": 6.037,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2367,11 +2156,11 @@
             {
               "player": "Sam Antonacci",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6667,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2380,11 +2169,11 @@
             {
               "player": "Luis Arraez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6346,
               "sample_n": 52,
               "l5_avg": 3.0,
               "l10_avg": 7.194,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2393,11 +2182,11 @@
             {
               "player": "Ceddanne Rafaela",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6522,
               "sample_n": 23,
               "l5_avg": 4.0,
               "l10_avg": 6.375,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2406,26 +2195,30 @@
             {
               "player": "Trea Turner",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6364,
               "sample_n": 44,
               "l5_avg": 2.938,
               "l10_avg": 5.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Jackson Chourio",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8235,
               "sample_n": 17,
               "l5_avg": 3.889,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2434,11 +2227,11 @@
             {
               "player": "Pete Crow-Armstrong",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7778,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2447,11 +2240,11 @@
             {
               "player": "Alejandro Kirk",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2460,11 +2253,11 @@
             {
               "player": "Josh Jung",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 2.125,
               "l10_avg": 7.429,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2473,11 +2266,11 @@
             {
               "player": "Freddie Freeman",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7391,
               "sample_n": 23,
               "l5_avg": null,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2486,11 +2279,11 @@
             {
               "player": "Justin Crawford",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2499,11 +2292,11 @@
             {
               "player": "Bryson Stott",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7222,
               "sample_n": 18,
               "l5_avg": 2.167,
               "l10_avg": 3.091,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2512,26 +2305,11 @@
             {
               "player": "Gabriel Moreno",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7059,
               "sample_n": 17,
               "l5_avg": 2.0,
               "l10_avg": 5.182,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Jhonny Pereda",
-              "line": 0.5,
-              "hit_rate": 0.7333,
-              "sample_n": 15,
-              "l5_avg": 1.0,
-              "l10_avg": 1.0,
-              "demon_only": true,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2539,16 +2317,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Manny Machado",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 5.0,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2557,11 +2337,11 @@
             {
               "player": "Luis Garc\u00eda Jr.",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7222,
               "sample_n": 18,
               "l5_avg": 3.0,
               "l10_avg": 8.143,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2570,11 +2350,11 @@
             {
               "player": "Travis Bazzana",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7083,
               "sample_n": 24,
               "l5_avg": 3.0,
               "l10_avg": 7.273,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2583,11 +2363,11 @@
             {
               "player": "Jose Altuve",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2596,11 +2376,11 @@
             {
               "player": "Nolan Arenado",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 4.0,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2609,11 +2389,11 @@
             {
               "player": "A.J. Ewing",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 2.0,
               "l10_avg": 2.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2622,11 +2402,11 @@
             {
               "player": "Jasson Dom\u00ednguez",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7059,
               "sample_n": 17,
               "l5_avg": null,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2635,11 +2415,11 @@
             {
               "player": "Javier Sanoja",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.6522,
               "sample_n": 23,
               "l5_avg": 4.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2649,16 +2429,18 @@
         }
       },
       "hits + runs + rbis": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Zack Gelof",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9394,
               "sample_n": 33,
               "l5_avg": 4.833,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2667,11 +2449,11 @@
             {
               "player": "Munetaka Murakami",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9286,
               "sample_n": 14,
               "l5_avg": 3.0,
               "l10_avg": 6.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2680,11 +2462,11 @@
             {
               "player": "Ryan Jeffers",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9412,
               "sample_n": 17,
               "l5_avg": null,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2693,11 +2475,11 @@
             {
               "player": "Ryan Vilade",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.913,
               "sample_n": 23,
               "l5_avg": 2.0,
               "l10_avg": 6.1,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2706,11 +2488,11 @@
             {
               "player": "Konnor Griffin",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8889,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": 7.267,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2719,11 +2501,11 @@
             {
               "player": "Ceddanne Rafaela",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8356,
               "sample_n": 73,
               "l5_avg": 4.8,
               "l10_avg": 7.619,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2732,11 +2514,11 @@
             {
               "player": "Isaac Paredes",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.84,
               "sample_n": 50,
               "l5_avg": 3.0,
               "l10_avg": 7.577,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2745,26 +2527,30 @@
             {
               "player": "Pete Crow-Armstrong",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8312,
               "sample_n": 77,
               "l5_avg": 3.905,
               "l10_avg": 7.372,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Pete Crow-Armstrong",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8667,
               "sample_n": 15,
               "l5_avg": 3.667,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2773,11 +2559,11 @@
             {
               "player": "Gabriel Moreno",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8235,
               "sample_n": 17,
               "l5_avg": 2.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2786,11 +2572,11 @@
             {
               "player": "Wyatt Langford",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 4.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2799,11 +2585,11 @@
             {
               "player": "Jackson Chourio",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 2.667,
               "l10_avg": 5.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2812,11 +2598,11 @@
             {
               "player": "Alec Burleson",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 2.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2825,11 +2611,11 @@
             {
               "player": "Randy Arozarena",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.7059,
               "sample_n": 17,
               "l5_avg": 2.0,
               "l10_avg": 4.846,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2838,11 +2624,11 @@
             {
               "player": "Ceddanne Rafaela",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6667,
               "sample_n": 18,
               "l5_avg": 4.0,
               "l10_avg": 5.909,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2851,11 +2637,11 @@
             {
               "player": "Willson Contreras",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": null,
               "l10_avg": 5.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2863,16 +2649,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Juan Soto",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.7917,
               "sample_n": 24,
               "l5_avg": 4.0,
               "l10_avg": 6.111,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2881,11 +2669,11 @@
             {
               "player": "Javier Sanoja",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 5.0,
               "l10_avg": 9.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2894,11 +2682,11 @@
             {
               "player": "Nathaniel Lowe",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 4.0,
               "l10_avg": 7.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2907,11 +2695,11 @@
             {
               "player": "Jazz Chisholm Jr.",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 4.0,
               "l10_avg": 6.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2920,11 +2708,11 @@
             {
               "player": "Jac Caglianone",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 5.0,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2933,11 +2721,11 @@
             {
               "player": "Kerry Carpenter",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 5.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2946,11 +2734,11 @@
             {
               "player": "Jake Burger",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6316,
               "sample_n": 19,
               "l5_avg": 4.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2959,11 +2747,11 @@
             {
               "player": "Christian Walker",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6471,
               "sample_n": 17,
               "l5_avg": 3.0,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2973,16 +2761,18 @@
         }
       },
       "hitter fantasy score": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Braden Montgomery",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 1.0,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -2991,11 +2781,11 @@
             {
               "player": "Bryan Reynolds",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9231,
               "sample_n": 13,
               "l5_avg": null,
               "l10_avg": 7.9,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3004,11 +2794,11 @@
             {
               "player": "Andy Pages",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 8.6,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3017,11 +2807,11 @@
             {
               "player": "Pete Crow-Armstrong",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 8.556,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3030,11 +2820,11 @@
             {
               "player": "Freddie Freeman",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 8.1,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3043,11 +2833,11 @@
             {
               "player": "Riley Greene",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 7.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3056,11 +2846,11 @@
             {
               "player": "Fernando Tatis Jr.",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 6.9,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3069,26 +2859,30 @@
             {
               "player": "Steven Kwan",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 6.4,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Miguel Vargas",
               "line": 5.0,
+              "reference_line": 5.0,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3097,11 +2891,11 @@
             {
               "player": "Bryan Reynolds",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 5.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3110,11 +2904,11 @@
             {
               "player": "TJ Rumfield",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.7857,
               "sample_n": 14,
               "l5_avg": null,
               "l10_avg": 4.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3123,11 +2917,11 @@
             {
               "player": "Pete Crow-Armstrong",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.7692,
               "sample_n": 13,
               "l5_avg": null,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3136,11 +2930,11 @@
             {
               "player": "Cedric Mullins",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.7692,
               "sample_n": 13,
               "l5_avg": null,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3149,11 +2943,11 @@
             {
               "player": "Brooks Lee",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": null,
               "l10_avg": 4.615,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3162,11 +2956,11 @@
             {
               "player": "Sal Stewart",
               "line": 5.0,
+              "reference_line": 5.0,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": null,
               "l10_avg": 3.545,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3175,78 +2969,11 @@
             {
               "player": "Brice Turang",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 6.8,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Junior Caminero",
-              "line": 10.5,
-              "hit_rate": 0.75,
-              "sample_n": 12,
-              "l5_avg": null,
-              "l10_avg": 2.889,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Cedric Mullins",
-              "line": 9.5,
-              "hit_rate": 0.6667,
-              "sample_n": 12,
-              "l5_avg": null,
-              "l10_avg": 3.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Kahlil Watson",
-              "line": 6.5,
-              "hit_rate": 0.6667,
-              "sample_n": 12,
-              "l5_avg": null,
-              "l10_avg": 0.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Otto Lopez",
-              "line": 10.5,
-              "hit_rate": 0.6364,
-              "sample_n": 11,
-              "l5_avg": null,
-              "l10_avg": 5.111,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Mookie Betts",
-              "line": 9.5,
-              "hit_rate": 0.6364,
-              "sample_n": 11,
-              "l5_avg": null,
-              "l10_avg": 1.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3254,16 +2981,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Lourdes Gurriel Jr.",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": null,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3272,11 +3001,11 @@
             {
               "player": "Casey Schmitt",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 7.444,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3285,11 +3014,11 @@
             {
               "player": "Noelvi Marte",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3299,16 +3028,18 @@
         }
       },
       "earned runs allowed": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Gerrit Cole",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 1.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3317,11 +3048,11 @@
             {
               "player": "MacKenzie Gore",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9231,
               "sample_n": 13,
               "l5_avg": null,
               "l10_avg": 7.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3330,11 +3061,11 @@
             {
               "player": "Walker Buehler",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": null,
               "l10_avg": 8.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3343,11 +3074,11 @@
             {
               "player": "Paul Skenes",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9091,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 4.636,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3356,11 +3087,11 @@
             {
               "player": "Anthony Kay",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": null,
               "l10_avg": 6.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3369,11 +3100,11 @@
             {
               "player": "Dean Kremer",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9091,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 2.182,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3382,11 +3113,11 @@
             {
               "player": "Jos\u00e9 Soriano",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 6.111,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3395,26 +3126,11 @@
             {
               "player": "Davis Martin",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": null,
               "l10_avg": 5.727,
-              "demon_only": false,
-              "window": {
-                "from": "2026-03-30",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Noah Cameron",
-              "line": 3.5,
-              "hit_rate": 0.6364,
-              "sample_n": 11,
-              "l5_avg": null,
-              "l10_avg": 1.667,
-              "demon_only": false,
               "window": {
                 "from": "2026-03-30",
                 "to": "2026-08-03"
@@ -3426,16 +3142,18 @@
     },
     "WNBA": {
       "points": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Jessica Shepard",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.8,
               "sample_n": 20,
               "l5_avg": 3.4,
               "l10_avg": 6.05,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3444,11 +3162,11 @@
             {
               "player": "Angel Reese",
               "line": 13.5,
+              "reference_line": 13.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 3.125,
               "l10_avg": 5.688,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3457,11 +3175,11 @@
             {
               "player": "Kayla McBride",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.7059,
               "sample_n": 17,
               "l5_avg": 3.125,
               "l10_avg": 5.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3470,11 +3188,11 @@
             {
               "player": "Kelsey Mitchell",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 3.583,
               "l10_avg": 6.583,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3483,11 +3201,11 @@
             {
               "player": "Paige Bueckers",
               "line": 18.5,
+              "reference_line": 18.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": 2.933,
               "l10_avg": 6.077,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3496,11 +3214,11 @@
             {
               "player": "Aliyah Boston",
               "line": 16.5,
+              "reference_line": 16.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.938,
               "l10_avg": 5.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3509,26 +3227,30 @@
             {
               "player": "Kahleah Copper",
               "line": 18.5,
+              "reference_line": 18.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.688,
               "l10_avg": 4.625,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Goblin": [
+          ]
+        },
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Courtney Vandersloot",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.9474,
               "sample_n": 19,
               "l5_avg": 4.053,
               "l10_avg": 7.632,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3537,11 +3259,11 @@
             {
               "player": "Jessica Shepard",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.8889,
               "sample_n": 45,
               "l5_avg": 4.222,
               "l10_avg": 7.889,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3550,11 +3272,11 @@
             {
               "player": "Kayla McBride",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.8871,
               "sample_n": 62,
               "l5_avg": 4.113,
               "l10_avg": 7.774,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3563,11 +3285,11 @@
             {
               "player": "Olivia Nelson-Ododa",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 0.8947,
               "sample_n": 19,
               "l5_avg": 4.368,
               "l10_avg": 8.105,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3576,11 +3298,11 @@
             {
               "player": "Kiki Rice",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.9091,
               "sample_n": 11,
               "l5_avg": 4.273,
               "l10_avg": 5.545,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3589,11 +3311,11 @@
             {
               "player": "Kelsey Mitchell",
               "line": 17.5,
+              "reference_line": 17.5,
               "hit_rate": 0.8413,
               "sample_n": 63,
               "l5_avg": 3.857,
               "l10_avg": 7.413,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3602,11 +3324,11 @@
             {
               "player": "Aliyah Boston",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.8393,
               "sample_n": 56,
               "l5_avg": 3.732,
               "l10_avg": 6.786,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3615,11 +3337,11 @@
             {
               "player": "Jackie Young",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8246,
               "sample_n": 57,
               "l5_avg": 3.386,
               "l10_avg": 7.145,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3627,16 +3349,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Veronica Burton",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.7692,
               "sample_n": 13,
               "l5_avg": 3.5,
               "l10_avg": 6.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3645,11 +3369,11 @@
             {
               "player": "Kamilla Cardoso",
               "line": 13.5,
+              "reference_line": 13.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.286,
               "l10_avg": 6.143,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3658,11 +3382,11 @@
             {
               "player": "Dearica Hamby",
               "line": 15.5,
+              "reference_line": 15.5,
               "hit_rate": 0.6316,
               "sample_n": 19,
               "l5_avg": 3.111,
               "l10_avg": 5.944,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3671,11 +3395,11 @@
             {
               "player": "Allisha Gray",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 2.643,
               "l10_avg": 6.071,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3685,16 +3409,18 @@
         }
       },
       "rebounds": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Paige Bueckers",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.8378,
               "sample_n": 37,
               "l5_avg": 3.811,
               "l10_avg": 7.389,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3703,11 +3429,11 @@
             {
               "player": "Maria Conde",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.8667,
               "sample_n": 15,
               "l5_avg": 3.4,
               "l10_avg": 7.733,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3716,11 +3442,11 @@
             {
               "player": "Bridget Carleton",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.8387,
               "sample_n": 31,
               "l5_avg": 3.645,
               "l10_avg": 7.323,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3729,11 +3455,11 @@
             {
               "player": "Isabelle Harrison",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8333,
               "sample_n": 24,
               "l5_avg": 4.0,
               "l10_avg": 7.292,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3742,11 +3468,11 @@
             {
               "player": "Kahleah Copper",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.8065,
               "sample_n": 31,
               "l5_avg": 4.379,
               "l10_avg": 7.69,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3755,11 +3481,11 @@
             {
               "player": "Jonquel Jones",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.7937,
               "sample_n": 63,
               "l5_avg": 4.148,
               "l10_avg": 7.525,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3768,11 +3494,11 @@
             {
               "player": "Awa Fam",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.8056,
               "sample_n": 36,
               "l5_avg": 3.806,
               "l10_avg": 6.694,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3781,26 +3507,49 @@
             {
               "player": "Emily Engstler",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.8065,
               "sample_n": 31,
               "l5_avg": 3.839,
               "l10_avg": 6.935,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
+            {
+              "player": "Janelle Sala\u00fcn",
+              "line": 4.0,
+              "reference_line": 4.0,
+              "hit_rate": 0.6429,
+              "sample_n": 14,
+              "l5_avg": null,
+              "l10_avg": null,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            }
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Shakira Austin",
               "line": 8.0,
+              "reference_line": 8.0,
               "hit_rate": 0.6875,
               "sample_n": 16,
               "l5_avg": 3.125,
               "l10_avg": 5.938,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3809,43 +3558,11 @@
             {
               "player": "Jonquel Jones",
               "line": 9.0,
+              "reference_line": 9.0,
               "hit_rate": 0.6471,
               "sample_n": 17,
               "l5_avg": 3.176,
               "l10_avg": 4.588,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Isabelle Harrison",
-              "line": 6.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": 1.1,
-              "l10_avg": 1.6,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            }
-          ]
-        },
-        "UNDER": {
-          "Standard": [
-            {
-              "player": "Janelle Sala\u00fcn",
-              "line": 4.0,
-              "hit_rate": 0.6429,
-              "sample_n": 14,
-              "l5_avg": null,
-              "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3855,16 +3572,18 @@
         }
       },
       "3-pt made": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Paige Bueckers",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 1.0,
               "sample_n": 11,
               "l5_avg": 3.364,
               "l10_avg": 8.1,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3873,11 +3592,11 @@
             {
               "player": "Aliyah Boston",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9231,
               "sample_n": 13,
               "l5_avg": 4.308,
               "l10_avg": 8.385,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3886,11 +3605,11 @@
             {
               "player": "Nneka Ogwumike",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9048,
               "sample_n": 21,
               "l5_avg": 4.238,
               "l10_avg": 8.286,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3899,11 +3618,11 @@
             {
               "player": "Awa Fam",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": 4.333,
               "l10_avg": 7.583,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3912,11 +3631,11 @@
             {
               "player": "Nia Coffey",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8824,
               "sample_n": 17,
               "l5_avg": 4.059,
               "l10_avg": 8.118,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3925,11 +3644,11 @@
             {
               "player": "Kelsey Mitchell",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8621,
               "sample_n": 29,
               "l5_avg": 3.759,
               "l10_avg": 8.138,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3938,11 +3657,11 @@
             {
               "player": "Jewell Loyd",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": 3.833,
               "l10_avg": 7.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3951,11 +3670,11 @@
             {
               "player": "Marine Johannes",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8182,
               "sample_n": 11,
               "l5_avg": 4.2,
               "l10_avg": 7.9,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3965,16 +3684,18 @@
         }
       },
       "assists": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Nneka Ogwumike",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.88,
               "sample_n": 25,
               "l5_avg": 4.28,
               "l10_avg": 8.24,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3983,11 +3704,11 @@
             {
               "player": "Chelsea Gray",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.8511,
               "sample_n": 47,
               "l5_avg": 4.489,
               "l10_avg": 8.356,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -3996,11 +3717,11 @@
             {
               "player": "Rae Burrell",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": 3.5,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4009,11 +3730,11 @@
             {
               "player": "Sonia Citron",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.8438,
               "sample_n": 32,
               "l5_avg": 3.7,
               "l10_avg": 6.733,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4022,11 +3743,11 @@
             {
               "player": "Marina Mabrey",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.8333,
               "sample_n": 24,
               "l5_avg": 3.417,
               "l10_avg": 7.083,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4035,11 +3756,11 @@
             {
               "player": "Breanna Stewart",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.7949,
               "sample_n": 39,
               "l5_avg": 3.316,
               "l10_avg": 6.658,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4048,11 +3769,11 @@
             {
               "player": "Natasha Howard",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.8095,
               "sample_n": 21,
               "l5_avg": 3.952,
               "l10_avg": 7.714,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4061,26 +3782,30 @@
             {
               "player": "Jordin Canada",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.7727,
               "sample_n": 44,
               "l5_avg": 3.886,
               "l10_avg": 6.886,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Jackie Young",
               "line": 6.0,
+              "reference_line": 6.0,
               "hit_rate": 0.6875,
               "sample_n": 16,
               "l5_avg": 2.312,
               "l10_avg": 5.438,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4089,11 +3814,11 @@
             {
               "player": "Jordin Canada",
               "line": 6.0,
+              "reference_line": 6.0,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.375,
               "l10_avg": 4.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4103,16 +3828,18 @@
         }
       },
       "pts+rebs+asts": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Kelsey Mitchell",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 1.0,
               "sample_n": 29,
               "l5_avg": 4.379,
               "l10_avg": 7.897,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4121,11 +3848,11 @@
             {
               "player": "Leonie Fiebich",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.9,
               "sample_n": 10,
               "l5_avg": 4.2,
               "l10_avg": 7.2,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4134,11 +3861,11 @@
             {
               "player": "Jessica Shepard",
               "line": 24.5,
+              "reference_line": 24.5,
               "hit_rate": 0.8571,
               "sample_n": 35,
               "l5_avg": 3.971,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4147,11 +3874,11 @@
             {
               "player": "Nneka Ogwumike",
               "line": 24.5,
+              "reference_line": 24.5,
               "hit_rate": 0.8378,
               "sample_n": 37,
               "l5_avg": 3.73,
               "l10_avg": 7.459,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4160,11 +3887,11 @@
             {
               "player": "Awa Fam",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8462,
               "sample_n": 26,
               "l5_avg": 3.538,
               "l10_avg": 6.308,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4173,11 +3900,11 @@
             {
               "player": "Paige Bueckers",
               "line": 24.5,
+              "reference_line": 24.5,
               "hit_rate": 0.8158,
               "sample_n": 38,
               "l5_avg": 3.895,
               "l10_avg": 7.658,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4186,11 +3913,11 @@
             {
               "player": "Kayla McBride",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.8235,
               "sample_n": 34,
               "l5_avg": 3.647,
               "l10_avg": 6.824,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4199,26 +3926,30 @@
             {
               "player": "Rae Burrell",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8462,
               "sample_n": 13,
               "l5_avg": 3.308,
               "l10_avg": 6.462,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Jessica Shepard",
               "line": 28.5,
+              "reference_line": 28.5,
               "hit_rate": 0.7727,
               "sample_n": 22,
               "l5_avg": 2.864,
               "l10_avg": 5.136,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4227,11 +3958,11 @@
             {
               "player": "Olivia Miles",
               "line": 29.5,
+              "reference_line": 29.5,
               "hit_rate": 0.75,
               "sample_n": 20,
               "l5_avg": 3.35,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4240,11 +3971,11 @@
             {
               "player": "Kelsey Mitchell",
               "line": 26.5,
+              "reference_line": 26.5,
               "hit_rate": 0.7368,
               "sample_n": 19,
               "l5_avg": 3.211,
               "l10_avg": 5.789,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4253,11 +3984,11 @@
             {
               "player": "Rhyne Howard",
               "line": 25.5,
+              "reference_line": 25.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 2.917,
               "l10_avg": 5.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4266,11 +3997,11 @@
             {
               "player": "Jackie Young",
               "line": 27.5,
+              "reference_line": 27.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": 3.133,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4279,11 +4010,11 @@
             {
               "player": "Natisha Hiedeman",
               "line": 22.5,
+              "reference_line": 22.5,
               "hit_rate": 0.65,
               "sample_n": 20,
               "l5_avg": 3.2,
               "l10_avg": 5.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4292,11 +4023,11 @@
             {
               "player": "Nneka Ogwumike",
               "line": 25.5,
+              "reference_line": 25.5,
               "hit_rate": 0.6364,
               "sample_n": 22,
               "l5_avg": 2.864,
               "l10_avg": 5.636,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4305,11 +4036,11 @@
             {
               "player": "Emily Engstler",
               "line": 16.5,
+              "reference_line": 16.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 2.857,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4319,16 +4050,18 @@
         }
       },
       "pts+rebs": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Jessica Shepard",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.9048,
               "sample_n": 21,
               "l5_avg": 4.619,
               "l10_avg": 8.429,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4337,11 +4070,11 @@
             {
               "player": "Kiki Iriafen",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.8788,
               "sample_n": 33,
               "l5_avg": 3.875,
               "l10_avg": 7.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4350,11 +4083,11 @@
             {
               "player": "Kelsey Mitchell",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.875,
               "sample_n": 16,
               "l5_avg": 4.188,
               "l10_avg": 7.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4363,11 +4096,11 @@
             {
               "player": "Awa Fam",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.875,
               "sample_n": 16,
               "l5_avg": 3.875,
               "l10_avg": 7.625,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4376,11 +4109,11 @@
             {
               "player": "Paige Bueckers",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.8636,
               "sample_n": 22,
               "l5_avg": 3.727,
               "l10_avg": 7.227,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4389,11 +4122,11 @@
             {
               "player": "Kayla McBride",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8214,
               "sample_n": 28,
               "l5_avg": 4.036,
               "l10_avg": 7.536,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4402,11 +4135,11 @@
             {
               "player": "Olivia Nelson-Ododa",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": 4.167,
               "l10_avg": 7.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4415,26 +4148,49 @@
             {
               "player": "Kahleah Copper",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.8,
               "sample_n": 25,
               "l5_avg": 4.208,
               "l10_avg": 7.708,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
+            {
+              "player": "DeWanna Bonner",
+              "line": 18.5,
+              "reference_line": 18.5,
+              "hit_rate": 0.6923,
+              "sample_n": 13,
+              "l5_avg": 3.417,
+              "l10_avg": 6.417,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            }
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Paige Bueckers",
               "line": 22.5,
+              "reference_line": 22.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 3.062,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4443,11 +4199,11 @@
             {
               "player": "Jessica Shepard",
               "line": 22.5,
+              "reference_line": 22.5,
               "hit_rate": 0.7143,
               "sample_n": 21,
               "l5_avg": 3.19,
               "l10_avg": 5.762,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4456,11 +4212,11 @@
             {
               "player": "Olivia Miles",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.6667,
               "sample_n": 21,
               "l5_avg": 3.095,
               "l10_avg": 5.381,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4469,11 +4225,11 @@
             {
               "player": "Gabby Williams",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.333,
               "l10_avg": 5.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4482,11 +4238,11 @@
             {
               "player": "Kayla McBride",
               "line": 18.5,
+              "reference_line": 18.5,
               "hit_rate": 0.6471,
               "sample_n": 17,
               "l5_avg": 3.471,
               "l10_avg": 5.765,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4495,28 +4251,11 @@
             {
               "player": "Emily Engstler",
               "line": 14.0,
+              "reference_line": 14.0,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 2.929,
               "l10_avg": 5.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            }
-          ]
-        },
-        "UNDER": {
-          "Standard": [
-            {
-              "player": "DeWanna Bonner",
-              "line": 18.5,
-              "hit_rate": 0.6923,
-              "sample_n": 13,
-              "l5_avg": 3.417,
-              "l10_avg": 6.417,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4526,16 +4265,18 @@
         }
       },
       "pts+asts": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Kelsey Mitchell",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.9545,
               "sample_n": 22,
               "l5_avg": 4.0,
               "l10_avg": 7.318,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4544,11 +4285,11 @@
             {
               "player": "Kayla McBride",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.92,
               "sample_n": 25,
               "l5_avg": 4.16,
               "l10_avg": 7.32,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4557,11 +4298,11 @@
             {
               "player": "Flau'jae Johnson",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8824,
               "sample_n": 17,
               "l5_avg": 3.353,
               "l10_avg": 6.706,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4570,11 +4311,11 @@
             {
               "player": "Paige Bueckers",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.8462,
               "sample_n": 26,
               "l5_avg": 3.808,
               "l10_avg": 7.615,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4583,11 +4324,11 @@
             {
               "player": "Chelsea Gray",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.8333,
               "sample_n": 30,
               "l5_avg": 3.793,
               "l10_avg": 7.69,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4596,11 +4337,11 @@
             {
               "player": "Kahleah Copper",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.8125,
               "sample_n": 16,
               "l5_avg": 3.625,
               "l10_avg": 6.625,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4609,11 +4350,11 @@
             {
               "player": "Jessica Shepard",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.7826,
               "sample_n": 23,
               "l5_avg": 3.913,
               "l10_avg": 7.565,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4622,91 +4363,11 @@
             {
               "player": "Angel Reese",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.7826,
               "sample_n": 23,
               "l5_avg": 3.696,
               "l10_avg": 6.739,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Standard": [
-            {
-              "player": "Kelsey Mitchell",
-              "line": 22.5,
-              "hit_rate": 0.9286,
-              "sample_n": 14,
-              "l5_avg": 3.429,
-              "l10_avg": 6.214,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Kayla McBride",
-              "line": 16.5,
-              "hit_rate": 0.8125,
-              "sample_n": 16,
-              "l5_avg": 3.188,
-              "l10_avg": 4.75,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Jessica Shepard",
-              "line": 18.5,
-              "hit_rate": 0.6818,
-              "sample_n": 22,
-              "l5_avg": 2.682,
-              "l10_avg": 5.182,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Olivia Miles",
-              "line": 24.5,
-              "hit_rate": 0.6667,
-              "sample_n": 18,
-              "l5_avg": 3.167,
-              "l10_avg": 5.722,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Flau'jae Johnson",
-              "line": 14.5,
-              "hit_rate": 0.6667,
-              "sample_n": 12,
-              "l5_avg": 2.917,
-              "l10_avg": 5.583,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Jackie Young",
-              "line": 22.5,
-              "hit_rate": 0.625,
-              "sample_n": 16,
-              "l5_avg": 3.125,
-              "l10_avg": 6.312,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4714,16 +4375,18 @@
             }
           ]
         },
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Veronica Burton",
               "line": 18.5,
+              "reference_line": 18.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 3.667,
               "l10_avg": 6.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4732,11 +4395,95 @@
             {
               "player": "Gabby Williams",
               "line": 16.5,
+              "reference_line": 16.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.7,
               "l10_avg": 5.5,
-              "demon_only": false,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            }
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
+            {
+              "player": "Kelsey Mitchell",
+              "line": 22.5,
+              "reference_line": 22.5,
+              "hit_rate": 0.9286,
+              "sample_n": 14,
+              "l5_avg": 3.429,
+              "l10_avg": 6.214,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Kayla McBride",
+              "line": 16.5,
+              "reference_line": 16.5,
+              "hit_rate": 0.8125,
+              "sample_n": 16,
+              "l5_avg": 3.188,
+              "l10_avg": 4.75,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Jessica Shepard",
+              "line": 18.5,
+              "reference_line": 18.5,
+              "hit_rate": 0.6818,
+              "sample_n": 22,
+              "l5_avg": 2.682,
+              "l10_avg": 5.182,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Olivia Miles",
+              "line": 24.5,
+              "reference_line": 24.5,
+              "hit_rate": 0.6667,
+              "sample_n": 18,
+              "l5_avg": 3.167,
+              "l10_avg": 5.722,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Flau'jae Johnson",
+              "line": 14.5,
+              "reference_line": 14.5,
+              "hit_rate": 0.6667,
+              "sample_n": 12,
+              "l5_avg": 2.917,
+              "l10_avg": 5.583,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            },
+            {
+              "player": "Jackie Young",
+              "line": 22.5,
+              "reference_line": 22.5,
+              "hit_rate": 0.625,
+              "sample_n": 16,
+              "l5_avg": 3.125,
+              "l10_avg": 6.312,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4746,16 +4493,18 @@
         }
       },
       "offensive rebounds": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Kayla Thornton",
               "line": 1.5,
+              "reference_line": 1.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4765,16 +4514,18 @@
         }
       },
       "rebs+asts": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Kiki Iriafen",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.875,
               "sample_n": 16,
               "l5_avg": 3.625,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4783,11 +4534,11 @@
             {
               "player": "Sonia Citron",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.8182,
               "sample_n": 22,
               "l5_avg": 3.773,
               "l10_avg": 7.182,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4796,11 +4547,11 @@
             {
               "player": "Natasha Howard",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.7917,
               "sample_n": 24,
               "l5_avg": 3.458,
               "l10_avg": 7.042,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4809,11 +4560,11 @@
             {
               "player": "Nneka Ogwumike",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.7857,
               "sample_n": 28,
               "l5_avg": 3.214,
               "l10_avg": 6.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4822,11 +4573,11 @@
             {
               "player": "Shakira Austin",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.7778,
               "sample_n": 27,
               "l5_avg": 3.778,
               "l10_avg": 7.37,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4835,11 +4586,11 @@
             {
               "player": "Dominique Malonga",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.8,
               "sample_n": 15,
               "l5_avg": 3.533,
               "l10_avg": 6.267,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4848,11 +4599,11 @@
             {
               "player": "Olivia Nelson-Ododa",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 3.0,
               "l10_avg": 5.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4861,26 +4612,30 @@
             {
               "player": "Marina Mabrey",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.7778,
               "sample_n": 18,
               "l5_avg": 3.389,
               "l10_avg": 6.944,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Standard": [
+          ]
+        },
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Olivia Miles",
               "line": 10.5,
+              "reference_line": 10.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 2.417,
               "l10_avg": 4.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4889,11 +4644,11 @@
             {
               "player": "Jessica Shepard",
               "line": 16.5,
+              "reference_line": 16.5,
               "hit_rate": 0.7059,
               "sample_n": 17,
               "l5_avg": 3.0,
               "l10_avg": 5.471,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4902,11 +4657,11 @@
             {
               "player": "Nneka Ogwumike",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.6316,
               "sample_n": 19,
               "l5_avg": 2.737,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4915,11 +4670,11 @@
             {
               "player": "Breanna Stewart",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.875,
               "l10_avg": 5.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4929,16 +4684,18 @@
         }
       },
       "fg attempted": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Shakira Austin",
               "line": 12.0,
+              "reference_line": 12.0,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 2.833,
               "l10_avg": 5.25,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4947,11 +4704,11 @@
             {
               "player": "Alyssa Thomas",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.583,
               "l10_avg": 6.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4960,11 +4717,11 @@
             {
               "player": "Sonia Citron",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.75,
               "l10_avg": 5.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4973,11 +4730,11 @@
             {
               "player": "Courtney Williams",
               "line": 14.5,
+              "reference_line": 14.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.583,
               "l10_avg": 5.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -4985,16 +4742,18 @@
             }
           ]
         },
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Kayla McBride",
               "line": 12.0,
+              "reference_line": 12.0,
               "hit_rate": 0.8,
               "sample_n": 15,
               "l5_avg": 2.8,
               "l10_avg": 5.067,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5003,11 +4762,11 @@
             {
               "player": "Jessica Shepard",
               "line": 8.5,
+              "reference_line": 8.5,
               "hit_rate": 0.75,
               "sample_n": 16,
               "l5_avg": 3.125,
               "l10_avg": 5.875,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5016,11 +4775,11 @@
             {
               "player": "Natisha Hiedeman",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 0.6875,
               "sample_n": 16,
               "l5_avg": 2.75,
               "l10_avg": 5.062,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5029,11 +4788,11 @@
             {
               "player": "Azzi Fudd",
               "line": 12.5,
+              "reference_line": 12.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.583,
               "l10_avg": 5.917,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5042,11 +4801,11 @@
             {
               "player": "Angel Reese",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 2.857,
               "l10_avg": 5.429,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5055,11 +4814,11 @@
             {
               "player": "Olivia Miles",
               "line": 10.5,
+              "reference_line": 10.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 2.643,
               "l10_avg": 4.857,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5069,16 +4828,18 @@
         }
       },
       "defensive rebounds": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Angel Reese",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 0.6842,
               "sample_n": 19,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5087,11 +4848,11 @@
             {
               "player": "Alyssa Thomas",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.6875,
               "sample_n": 16,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5101,16 +4862,18 @@
         }
       },
       "two pointers made": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Jonquel Jones",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 3.333,
               "l10_avg": 6.917,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5119,11 +4882,11 @@
             {
               "player": "Skylar Diggins",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 3.083,
               "l10_avg": 5.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5132,11 +4895,11 @@
             {
               "player": "Arike Ogunbowale",
               "line": 3.0,
+              "reference_line": 3.0,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.643,
               "l10_avg": 6.643,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5144,16 +4907,18 @@
             }
           ]
         },
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Kelsey Mitchell",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.833,
               "l10_avg": 5.083,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5163,16 +4928,18 @@
         }
       },
       "3-pt attempted": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Paige Bueckers",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": 3.417,
               "l10_avg": 6.167,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5181,11 +4948,11 @@
             {
               "player": "Jonquel Jones",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.7368,
               "sample_n": 19,
               "l5_avg": 2.895,
               "l10_avg": 5.632,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5194,11 +4961,11 @@
             {
               "player": "Nneka Ogwumike",
               "line": 2.5,
+              "reference_line": 2.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 3.077,
               "l10_avg": 5.769,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5208,16 +4975,18 @@
         }
       },
       "free throws made": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Kahleah Copper",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 3.583,
               "l10_avg": 5.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5226,11 +4995,11 @@
             {
               "player": "Sonia Citron",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.6667,
               "sample_n": 15,
               "l5_avg": 2.667,
               "l10_avg": 4.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5240,16 +5009,18 @@
         }
       },
       "free throws attempted": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Kahleah Copper",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.9167,
               "sample_n": 12,
               "l5_avg": 3.583,
               "l10_avg": 5.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5258,11 +5029,11 @@
             {
               "player": "Allisha Gray",
               "line": 5.0,
+              "reference_line": 5.0,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.167,
               "l10_avg": 4.083,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5271,11 +5042,11 @@
             {
               "player": "Jonquel Jones",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 3.143,
               "l10_avg": 5.929,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5284,11 +5055,11 @@
             {
               "player": "Angel Reese",
               "line": 5.0,
+              "reference_line": 5.0,
               "hit_rate": 0.625,
               "sample_n": 16,
               "l5_avg": 2.875,
               "l10_avg": 5.938,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5298,16 +5069,18 @@
         }
       },
       "fantasy score": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Jonquel Jones",
               "line": 30.0,
+              "reference_line": 30.0,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 3.143,
               "l10_avg": 5.429,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5316,11 +5089,11 @@
             {
               "player": "Kamilla Cardoso",
               "line": 30.5,
+              "reference_line": 30.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 2.786,
               "l10_avg": 5.143,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5329,11 +5102,11 @@
             {
               "player": "Aliyah Boston",
               "line": 31.5,
+              "reference_line": 31.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.75,
               "l10_avg": 4.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5342,26 +5115,49 @@
             {
               "player": "Kayla McBride",
               "line": 25.5,
+              "reference_line": 25.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 3.214,
               "l10_avg": 6.286,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Goblin": [
+          ]
+        },
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
+            {
+              "player": "Carla Leite",
+              "line": 26.5,
+              "reference_line": 26.5,
+              "hit_rate": 0.6667,
+              "sample_n": 12,
+              "l5_avg": 3.5,
+              "l10_avg": 6.833,
+              "window": {
+                "from": "2026-05-01",
+                "to": "2026-08-03"
+              }
+            }
+          ]
+        },
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Jackie Young",
               "line": 29.0,
+              "reference_line": 29.0,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 4.4,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5370,11 +5166,11 @@
             {
               "player": "Jessica Shepard",
               "line": 29.0,
+              "reference_line": 29.0,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 4.2,
               "l10_avg": 7.3,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5383,11 +5179,11 @@
             {
               "player": "Chelsea Gray",
               "line": 23.5,
+              "reference_line": 23.5,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 3.8,
               "l10_avg": 7.8,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5396,11 +5192,11 @@
             {
               "player": "NaLyssa Smith",
               "line": 17.0,
+              "reference_line": 17.0,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 3.2,
               "l10_avg": 6.7,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5409,11 +5205,11 @@
             {
               "player": "Veronica Burton",
               "line": 23.5,
+              "reference_line": 23.5,
               "hit_rate": 0.8,
               "sample_n": 10,
               "l5_avg": 3.2,
               "l10_avg": 6.4,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5422,28 +5218,11 @@
             {
               "player": "Azzi Fudd",
               "line": 19.0,
+              "reference_line": 19.0,
               "hit_rate": 0.7,
               "sample_n": 10,
               "l5_avg": 3.6,
               "l10_avg": 6.4,
-              "demon_only": false,
-              "window": {
-                "from": "2026-05-01",
-                "to": "2026-08-03"
-              }
-            }
-          ]
-        },
-        "UNDER": {
-          "Standard": [
-            {
-              "player": "Carla Leite",
-              "line": 26.5,
-              "hit_rate": 0.6667,
-              "sample_n": 12,
-              "l5_avg": 3.5,
-              "l10_avg": 6.833,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5453,16 +5232,18 @@
         }
       },
       "double-double": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Angel Reese",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": null,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5472,16 +5253,18 @@
         }
       },
       "fg made": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Jessica Shepard",
               "line": 5.0,
+              "reference_line": 5.0,
               "hit_rate": 0.8125,
               "sample_n": 16,
               "l5_avg": 3.188,
               "l10_avg": 6.188,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5490,11 +5273,11 @@
             {
               "player": "Natisha Hiedeman",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.7692,
               "sample_n": 13,
               "l5_avg": 3.615,
               "l10_avg": 6.846,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5503,11 +5286,11 @@
             {
               "player": "Jonquel Jones",
               "line": 4.5,
+              "reference_line": 4.5,
               "hit_rate": 0.75,
               "sample_n": 12,
               "l5_avg": 3.167,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5516,11 +5299,11 @@
             {
               "player": "Kelsey Mitchell",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 2.714,
               "l10_avg": 5.071,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5529,11 +5312,11 @@
             {
               "player": "Flau'jae Johnson",
               "line": 3.5,
+              "reference_line": 3.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 3.357,
               "l10_avg": 5.357,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5543,16 +5326,18 @@
         }
       },
       "two pointers attempted": {
-        "UNDER": {
-          "Standard": [
+        "standard_under": {
+          "direction": "UNDER",
+          "badge": "UND",
+          "rows": [
             {
               "player": "Jonquel Jones",
               "line": 5.5,
+              "reference_line": 5.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 3.385,
               "l10_avg": 6.231,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5560,16 +5345,18 @@
             }
           ]
         },
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Natisha Hiedeman",
               "line": 6.5,
+              "reference_line": 6.5,
               "hit_rate": 0.7857,
               "sample_n": 14,
               "l5_avg": 2.786,
               "l10_avg": 5.143,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5578,11 +5365,11 @@
             {
               "player": "Olivia Miles",
               "line": 8.5,
+              "reference_line": 8.5,
               "hit_rate": 0.6667,
               "sample_n": 12,
               "l5_avg": 2.5,
               "l10_avg": 4.917,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5592,16 +5379,18 @@
         }
       },
       "blocked shots": {
-        "OVER": {
-          "Goblin": [
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Jonquel Jones",
               "line": 0.5,
+              "reference_line": 0.5,
               "hit_rate": 0.8333,
               "sample_n": 12,
               "l5_avg": 3.25,
               "l10_avg": 7.083,
-              "demon_only": false,
               "window": {
                 "from": "2026-05-01",
                 "to": "2026-08-03"
@@ -5613,31 +5402,37 @@
     },
     "TENNIS": {
       "total games won": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Luciano Darderi",
               "line": 12.5,
+              "reference_line": 12.5,
               "hit_rate": 0.9286,
               "sample_n": 14,
               "l5_avg": 0.833,
               "l10_avg": 7.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Goblin": [
+          ]
+        },
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Frances Tiafoe",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 1.0,
               "sample_n": 23,
               "l5_avg": 1.727,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5646,11 +5441,11 @@
             {
               "player": "Jaime Faria",
               "line": 17.5,
+              "reference_line": 17.5,
               "hit_rate": 1.0,
               "sample_n": 13,
               "l5_avg": 2.222,
               "l10_avg": 5.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5659,11 +5454,11 @@
             {
               "player": "Anna Kalinskaya",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 1.0,
               "sample_n": 11,
               "l5_avg": 1.25,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5672,11 +5467,11 @@
             {
               "player": "Liudmila Samsonova",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 8.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5685,11 +5480,11 @@
             {
               "player": "Jil Teichmann",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": 2.0,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5698,11 +5493,11 @@
             {
               "player": "Paula Badosa",
               "line": 9.5,
+              "reference_line": 9.5,
               "hit_rate": 1.0,
               "sample_n": 12,
               "l5_avg": null,
               "l10_avg": 5.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5711,11 +5506,11 @@
             {
               "player": "Victoria Mboko",
               "line": 11.5,
+              "reference_line": 11.5,
               "hit_rate": 1.0,
               "sample_n": 11,
               "l5_avg": 1.727,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5724,52 +5519,11 @@
             {
               "player": "Dalibor Svrcina",
               "line": 7.5,
+              "reference_line": 7.5,
               "hit_rate": 1.0,
               "sample_n": 10,
               "l5_avg": null,
               "l10_avg": 4.7,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Novak Djokovic",
-              "line": 23.5,
-              "hit_rate": 0.8,
-              "sample_n": 10,
-              "l5_avg": 2.0,
-              "l10_avg": 1.333,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Ashlyn Krueger",
-              "line": 12.5,
-              "hit_rate": 0.6923,
-              "sample_n": 13,
-              "l5_avg": 2.0,
-              "l10_avg": 3.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Felix Auger-Aliassime",
-              "line": 24.5,
-              "hit_rate": 0.6316,
-              "sample_n": 19,
-              "l5_avg": 0.333,
-              "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5779,16 +5533,18 @@
         }
       },
       "total games": {
-        "OVER": {
-          "Standard": [
+        "standard_over": {
+          "direction": "OVER",
+          "badge": "STD",
+          "rows": [
             {
               "player": "Andrey Rublev",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 0.7143,
               "sample_n": 14,
               "l5_avg": 0.714,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5797,11 +5553,11 @@
             {
               "player": "Hamad Medjedovic",
               "line": 20.5,
+              "reference_line": 20.5,
               "hit_rate": 0.6923,
               "sample_n": 13,
               "l5_avg": 0.538,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5810,26 +5566,30 @@
             {
               "player": "Frances Tiafoe",
               "line": 22.5,
+              "reference_line": 22.5,
               "hit_rate": 0.6429,
               "sample_n": 14,
               "l5_avg": 2.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
               }
             }
-          ],
-          "Goblin": [
+          ]
+        },
+        "goblin_over": {
+          "direction": "OVER",
+          "badge": "GOB",
+          "rows": [
             {
               "player": "Frances Tiafoe",
               "line": 20.5,
+              "reference_line": 20.5,
               "hit_rate": 1.0,
               "sample_n": 19,
               "l5_avg": 2.125,
               "l10_avg": 9.333,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5838,11 +5598,11 @@
             {
               "player": "Andrey Rublev",
               "line": 32.5,
+              "reference_line": 32.5,
               "hit_rate": 1.0,
               "sample_n": 15,
               "l5_avg": 0.846,
               "l10_avg": 10.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5851,11 +5611,11 @@
             {
               "player": "Rebeka Masarova",
               "line": 18.5,
+              "reference_line": 18.5,
               "hit_rate": 1.0,
               "sample_n": 10,
               "l5_avg": 2.0,
               "l10_avg": 8.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5864,11 +5624,11 @@
             {
               "player": "Daria Kasatkina",
               "line": 17.5,
+              "reference_line": 17.5,
               "hit_rate": 1.0,
               "sample_n": 10,
               "l5_avg": 2.125,
               "l10_avg": 7.5,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5877,11 +5637,11 @@
             {
               "player": "Naomi Osaka",
               "line": 19.5,
+              "reference_line": 19.5,
               "hit_rate": 1.0,
               "sample_n": 13,
               "l5_avg": 2.0,
               "l10_avg": 6.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5890,11 +5650,11 @@
             {
               "player": "Novak Djokovic",
               "line": 33.5,
+              "reference_line": 33.5,
               "hit_rate": 1.0,
               "sample_n": 11,
               "l5_avg": 2.0,
               "l10_avg": 3.0,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5903,11 +5663,11 @@
             {
               "player": "Aryna Sabalenka",
               "line": 16.5,
+              "reference_line": 16.5,
               "hit_rate": 1.0,
               "sample_n": 13,
               "l5_avg": 1.3,
               "l10_avg": null,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -5916,117 +5676,11 @@
             {
               "player": "Emma Navarro",
               "line": 18.5,
+              "reference_line": 18.5,
               "hit_rate": 0.9524,
               "sample_n": 21,
               "l5_avg": 2.0,
               "l10_avg": 6.5,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            }
-          ],
-          "Demon": [
-            {
-              "player": "Rebeka Masarova",
-              "line": 23.5,
-              "hit_rate": 0.9167,
-              "sample_n": 12,
-              "l5_avg": null,
-              "l10_avg": 4.333,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Novak Djokovic",
-              "line": 44.5,
-              "hit_rate": 0.9,
-              "sample_n": 10,
-              "l5_avg": 1.143,
-              "l10_avg": 1.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Jakub Mensik",
-              "line": 46.5,
-              "hit_rate": 0.8,
-              "sample_n": 15,
-              "l5_avg": 2.0,
-              "l10_avg": 4.667,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Frances Tiafoe",
-              "line": 28.5,
-              "hit_rate": 0.7778,
-              "sample_n": 18,
-              "l5_avg": 1.2,
-              "l10_avg": 7.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Tamara Zidansek",
-              "line": 24.5,
-              "hit_rate": 0.75,
-              "sample_n": 12,
-              "l5_avg": 2.0,
-              "l10_avg": 3.556,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Juan Manuel Cerundolo",
-              "line": 43.5,
-              "hit_rate": 0.75,
-              "sample_n": 12,
-              "l5_avg": 0.0,
-              "l10_avg": 6.667,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Karen Khachanov",
-              "line": 45.5,
-              "hit_rate": 0.7333,
-              "sample_n": 15,
-              "l5_avg": 0.333,
-              "l10_avg": 1.0,
-              "demon_only": false,
-              "window": {
-                "from": "2026-01-01",
-                "to": "2026-08-03"
-              }
-            },
-            {
-              "player": "Zeynep Sonmez",
-              "line": 22.5,
-              "hit_rate": 0.7,
-              "sample_n": 10,
-              "l5_avg": null,
-              "l10_avg": 2.75,
-              "demon_only": false,
               "window": {
                 "from": "2026-01-01",
                 "to": "2026-08-03"
@@ -6044,7 +5698,12 @@
       "first_graded": "2026-05-01",
       "last_graded": "2026-07-29",
       "days": 68,
-      "n_leaders": 155
+      "n_leaders": 154,
+      "by_pick_class": {
+        "standard_over": 62,
+        "goblin_over": 72,
+        "standard_under": 20
+      }
     },
     "MLB": {
       "from": "2026-03-30",
@@ -6052,7 +5711,12 @@
       "first_graded": "2026-03-30",
       "last_graded": "2026-07-29",
       "days": 119,
-      "n_leaders": 222
+      "n_leaders": 209,
+      "by_pick_class": {
+        "goblin_over": 107,
+        "standard_over": 50,
+        "standard_under": 52
+      }
     },
     "SOCCER": {
       "from": "2026-01-01",
@@ -6060,7 +5724,11 @@
       "first_graded": "2026-03-10",
       "last_graded": "2026-07-29",
       "days": 97,
-      "n_leaders": 25
+      "n_leaders": 10,
+      "by_pick_class": {
+        "goblin_over": 5,
+        "standard_over": 5
+      }
     },
     "TENNIS": {
       "from": "2026-01-01",
@@ -6068,7 +5736,17 @@
       "first_graded": "2026-05-04",
       "last_graded": "2026-08-03",
       "days": 56,
-      "n_leaders": 31
+      "n_leaders": 20,
+      "by_pick_class": {
+        "standard_over": 4,
+        "goblin_over": 16
+      }
     }
+  },
+  "badge_prefixes": {
+    "goblin_over": "GOB",
+    "standard_over": "STD",
+    "standard_under": "UND",
+    "goblin_under": "UND"
   }
 }

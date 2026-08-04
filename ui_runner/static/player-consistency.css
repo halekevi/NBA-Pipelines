@@ -765,7 +765,7 @@
   }
 }
 
-/* Season consistency leader badge (slate / tickets / edges) */
+/* Season line-class consistency badge (GOB / STD / UND) */
 .cons-line-badge {
   font-size: 10px;
   font-weight: 700;
@@ -777,4 +777,17 @@
   background: rgba(212, 175, 55, 0.12);
   color: var(--accent-gold, #d4af37);
   border: 1px solid rgba(212, 175, 55, 0.4);
+}
+.cons-line-badge.cons-gob {
+  background: rgba(212, 175, 55, 0.14);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+.cons-line-badge.cons-std {
+  background: rgba(212, 175, 55, 0.10);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+.cons-line-badge.cons-und {
+  background: rgba(196, 160, 48, 0.10);
+  border-color: rgba(196, 160, 48, 0.4);
+  color: #c9a227;
 }

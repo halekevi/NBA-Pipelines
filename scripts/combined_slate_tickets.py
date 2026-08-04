@@ -5304,7 +5304,7 @@ def _l10_streak_badge_html(leg: dict) -> str:
 
 
 def _cons_line_badge_html(leg: dict) -> str:
-    """Season consistency-leader badge when player+prop+dir+line match."""
+    """Season line-class badge (GOB / STD / UND) when class+line match."""
     try:
         from utils.consistency_leaders_match import cons_line_badge_html
 

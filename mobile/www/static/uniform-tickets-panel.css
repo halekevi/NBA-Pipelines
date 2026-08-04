@@ -282,6 +282,19 @@
   color: #d4af37;
   border: 1px solid rgba(212, 175, 55, 0.4);
 }
+.utp-leg-name .cons-line-badge.cons-gob {
+  background: rgba(212, 175, 55, 0.14);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+.utp-leg-name .cons-line-badge.cons-std {
+  background: rgba(212, 175, 55, 0.10);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+.utp-leg-name .cons-line-badge.cons-und {
+  background: rgba(196, 160, 48, 0.10);
+  border-color: rgba(196, 160, 48, 0.4);
+  color: #c9a227;
+}
 .utp-leg-line { color: var(--utp-muted); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .utp-leg-result {
   font-size: 10.5px;

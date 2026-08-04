@@ -384,6 +384,9 @@ body::after{content:'';position:fixed;inset:0;
 .l10-streak-badge.l10-hot{background:rgba(125,255,203,.12);color:var(--green);border:1px solid rgba(125,255,203,.35);}
 .l10-streak-badge.l10-cold{background:rgba(100,180,255,.12);color:#7eb8ff;border:1px solid rgba(100,180,255,.35);}
 .cons-line-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;background:rgba(212,175,55,.12);color:var(--accent-gold,#d4af37);border:1px solid rgba(212,175,55,.4);}
+.cons-line-badge.cons-gob{background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.5);}
+.cons-line-badge.cons-std{background:rgba(212,175,55,.10);border-color:rgba(212,175,55,.35);}
+.cons-line-badge.cons-und{background:rgba(196,160,48,.10);border-color:rgba(196,160,48,.4);color:#c9a227;}
 .l10-bar-wrap{margin-top:10px;font-size:11px;color:var(--muted);}
 .l10-bar{font-family:ui-monospace,monospace;letter-spacing:.06em;font-size:12px;line-height:1.4;}
 .l10-bar-over{color:var(--green);}
@@ -3162,7 +3165,7 @@ function l10StreakBadgeHtml(p) {
   return "";
 }
 
-/** Season consistency-leader match index (player×prop×dir×line band). */
+/** Season line-class consistency leaders (GOB / STD / UND). */
 window.__CONS_LEADERS = window.__CONS_LEADERS || { ready: false, byKey: new Map(), band: 0.5 };
 function _consNormName(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
@@ -3178,8 +3181,29 @@ function _consNormProp(s) {
   };
   return aliases[t] || t;
 }
-function _consKey(sport, player, prop, dir) {
-  return [String(sport || "").toUpperCase(), _consNormName(player), _consNormProp(prop), String(dir || "").toUpperCase()].join("|");
+function _consNormPick(pt) {
+  const s = String(pt || "").toLowerCase();
+  if (s.includes("goblin")) return "Goblin";
+  if (s.includes("demon")) return "Demon";
+  if (s.includes("standard")) return "Standard";
+  return "Other";
+}
+function _consPickClass(pickType, dir) {
+  const pick = _consNormPick(pickType);
+  let d = String(dir || "").toUpperCase();
+  if (d === "O" || d === "MORE") d = "OVER";
+  if (d === "U" || d === "LESS" || d === "LOWER") d = "UNDER";
+  if (pick === "Goblin" && d === "OVER") return "goblin_over";
+  if (pick === "Standard" && d === "OVER") return "standard_over";
+  if (pick === "Standard" && d === "UNDER") return "standard_under";
+  if (pick === "Goblin" && d === "UNDER") return "goblin_under";
+  return null;
+}
+function _consBadgePrefix(pc) {
+  return ({ goblin_over: "GOB", standard_over: "STD", standard_under: "UND", goblin_under: "UND" })[pc] || "CONS";
+}
+function _consKey(sport, player, prop, pickClass) {
+  return [String(sport || "").toUpperCase(), _consNormName(player), _consNormProp(prop), String(pickClass || "")].join("|");
 }
 async function ensureConsistencyLeaders() {
   const store = window.__CONS_LEADERS;
@@ -3196,7 +3220,9 @@ async function ensureConsistencyLeaders() {
       const rows = data.match_index || data.leaders || [];
       for (const r of rows) {
         if (!r || !r.player) continue;
-        const k = _consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, r.direction);
+        const pc = r.pick_class || _consPickClass(r.pick_type, r.direction);
+        if (!pc) continue;
+        const k = _consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, pc);
         const prev = store.byKey.get(k);
         if (!prev || Number(r.score || 0) > Number(prev.score || 0)) store.byKey.set(k, r);
       }
@@ -3214,11 +3240,13 @@ function matchConsistencyLeader(p) {
   let dir = String(p.direction || p.dir || "").toUpperCase();
   if (dir === "O" || dir === "MORE") dir = "OVER";
   if (dir === "U" || dir === "LESS" || dir === "LOWER") dir = "UNDER";
-  const k = _consKey(p.sport, p.player, p.prop || p.prop_type, dir);
+  const pc = _consPickClass(p.pick_type, dir);
+  if (!pc) return null;
+  const k = _consKey(p.sport, p.player, p.prop || p.prop_type, pc);
   const row = store.byKey.get(k);
   if (!row) return null;
   const slateLine = Number(p.line);
-  const leaderLine = Number(row.line);
+  const leaderLine = Number(row.reference_line != null ? row.reference_line : row.line);
   if (Number.isFinite(slateLine) && Number.isFinite(leaderLine)) {
     if (Math.abs(slateLine - leaderLine) > (store.band + 1e-9)) return null;
   }
@@ -3229,10 +3257,11 @@ function consLineBadgeHtml(p) {
   if (!row) return "";
   const hr = row.hit_rate != null ? Math.round(Number(row.hit_rate) * 100) + "%" : "?";
   const n = row.sample_n != null ? row.sample_n : "?";
-  const line = row.line != null ? Number(row.line).toFixed(1) : "?";
-  const tip = `Season consistent ${row.direction} ${row.prop} @${line} · ${hr} (n=${n}) · ${row.pick_type || ""}`
-    + (row.demon_only ? " · Demon-only" : "");
-  return `<span class="cons-line-badge" title="${tip.replace(/"/g, "&quot;")}">📌 CONS ${hr}</span>`;
+  const lineVal = row.reference_line != null ? row.reference_line : row.line;
+  const line = lineVal != null ? Number(lineVal).toFixed(1) : "?";
+  const prefix = row.badge_prefix || _consBadgePrefix(row.pick_class);
+  const tip = `Season ${row.pick_class || row.pick_type || ""} ${row.direction} ${row.prop} @${line} · ${hr} (n=${n})`;
+  return `<span class="cons-line-badge cons-${String(prefix).toLowerCase()}" title="${tip.replace(/"/g, "&quot;")}">📌 ${prefix} ${hr}</span>`;
 }
 ensureConsistencyLeaders().then((ok) => {
   if (ok && typeof scheduleRenderSlateTable === "function") {

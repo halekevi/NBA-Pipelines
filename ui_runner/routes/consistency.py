@@ -289,10 +289,11 @@ def hot_players_track_record():
 
 @consistency_bp.route("/api/consistency-leaders")
 def consistency_leaders():
-    """Season-window consistency leaders (player × prop × dir × pick)."""
+    """Season-window line-class consistency leaders (GOB / STD / UND)."""
     candidates = (
         REPO_ROOT / "data" / "slate_consistency" / "consistency_leaders_latest.json",
         REPO_ROOT / "ui_runner" / "data" / "consistency_leaders_latest.json",
+        REPO_ROOT / "ui_runner" / "templates" / "consistency_leaders_latest.json",
         Path(__file__).resolve().parents[1] / "data" / "consistency_leaders_latest.json",
     )
     for path in candidates:

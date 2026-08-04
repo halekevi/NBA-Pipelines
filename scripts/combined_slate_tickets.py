@@ -99,9 +99,9 @@ def slate_calendar_date_ymd() -> str:
 def default_tennis_match_date(bundle_date: str | None = None) -> str:
     """Tennis match day = same Eastern calendar day as the pipeline slate.
 
-    Early-AM tips (~4:00–5:30 ET) are fetched on that same calendar day via the
-    Daily 5AM full pipeline (+ later refreshes). Override with ``--tennis-date``
-    only when the live board is exclusively another day.
+    Early-AM tips (~4:00–5:30 ET) are fetched on that same calendar day (3AM light
+    run, then 7AM full daily refresh). Override with ``--tennis-date`` only when
+    the live board is exclusively another day.
     """
     raw = str(bundle_date or "").strip()[:10]
     if raw and re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):
@@ -182,6 +182,13 @@ from utils.ticket_tier_defense_gates import (
     tier_defense_exclusion_mask,
 )
 from utils.prop_signal_score import l10_streak_series
+from utils.l5_recency_policy import (
+    L5_PERFECT as _STANDARD_PROP_GATE_L5_PERFECT,
+    L5_PERFECT_GATE_CLEAR_SPORTS as _STANDARD_PROP_GATE_L5_CLEAR_SPORTS,
+    l5_clears_standard_prop_gate as _l5_clears_standard_prop_gate,
+    l5_perfect_gate_clear_sport as _l5_perfect_gate_clear_sport,
+    mlb_standard_over_perfect_l5 as _mlb_standard_over_perfect_l5,
+)
 from utils.ticket_ev_tiers import (
     STRONG_ALLOW_CROSS_SPORT,
     STRONG_MAX_LEG_PROB_FOR_P_WIN,
@@ -256,7 +263,7 @@ WNBA_ALLSTAR_PAUSE_START = (
     or "2026-07-19"
 )
 DEFAULT_SOCCER_PATH = os.path.join(REPO_ROOT, "Sports", "Soccer", "outputs", "step8_soccer_direction_clean.xlsx")
-DEFAULT_TENNIS_PATH = os.path.join(REPO_ROOT, "Tennis", "outputs", "step8_tennis_direction_clean.xlsx")
+DEFAULT_TENNIS_PATH = os.path.join(REPO_ROOT, "Sports", "Tennis", "outputs", "step8_tennis_direction_clean.xlsx")
 DEFAULT_GOLF_PATH = os.path.join(REPO_ROOT, "Sports", "Golf", "outputs", "step8_golf_direction_clean.xlsx")
 DEFAULT_WNBA_PATH = os.path.join(REPO_ROOT, "Sports", "WNBA", "outputs", "step8_wnba_direction_clean.xlsx")
 DEFAULT_NHL_PATH = os.path.join(REPO_ROOT, "Sports", "NHL", "outputs", "step8_nhl_direction_clean.xlsx")
@@ -462,6 +469,7 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
             os.path.join(out, "soccer", "step8_soccer_direction_clean.xlsx"),
             os.path.join(out, f"step8_soccer_direction_clean_{d}.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "Soccer", "outputs", "step8_soccer_direction_clean.xlsx"),
+            os.path.join(REPO_ROOT, "Sports", "Soccer", "step8_soccer_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Soccer", "outputs", "step8_soccer_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Soccer", "step8_soccer_direction_clean.xlsx"),
         )
@@ -474,6 +482,7 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
             os.path.join(out, "tennis", "step8_tennis_direction_clean.xlsx"),
             os.path.join(out, "step8_tennis_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "Tennis", "outputs", "step8_tennis_direction_clean.xlsx"),
+            os.path.join(REPO_ROOT, "Sports", "Tennis", "step8_tennis_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Tennis", "outputs", "step8_tennis_direction_clean.xlsx"),
         )
 
@@ -504,6 +513,7 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
         args.mlb = _first_existing_path(
             os.path.join(out, "mlb", "step8_mlb_direction_clean.xlsx"),
             os.path.join(out, f"step8_mlb_direction_clean_{d}.xlsx"),
+            os.path.join(REPO_ROOT, "Sports", "MLB", "outputs", "step8_mlb_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "MLB", "step8_mlb_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "MLB", "step8_mlb_direction_clean.xlsx"),
         )
@@ -5537,6 +5547,10 @@ def _norm_main_prop_key(prop: object) -> str:
 # Goblins stay mostly open (easier hit / lower payout); Standards carry payout upside
 # and need prop-level hygiene — not sport-wide OVER bans.
 # Keys: (sport, prop_norm, direction)
+#
+# L5 exception (Aug 2026): Jul 10–19 as-of rebuild — basketball Standards
+# clear at L5>=4; NFL/CFB/NHL/… at L5=5. MLB/Soccer never clear via L5;
+# MLB Std OVER at L5=5 is hard-avoided (see mlb_standard_over_perfect_l5).
 _STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
     {
         # MLB
@@ -5570,6 +5584,9 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
         ("SOC", "shots", "OVER"),
     }
 )
+# L5 exception: directional L5 clears Standard prop gates per
+# utils.l5_recency_policy (basketball family at L5>=4; NFL/CFB/NHL/… at L5=5).
+# MLB/Soccer never clear via L5; MLB Std OVER at L5=5 is additionally avoided.
 
 
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
@@ -5588,12 +5605,71 @@ def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
     return (sport, prop, direction)
 
 
+def _row_directional_l5_hits(row_d: dict) -> float | None:
+    """Directional L5 hit count (0–5) for the leg's selected side, or None if missing."""
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    if direction == "UNDER":
+        keys = ("l5_under", "last5_under", "L5 Under", "l5_side_hits")
+    elif direction == "OVER":
+        keys = ("l5_over", "last5_over", "L5 Over", "l5_side_hits")
+    else:
+        return None
+    for k in keys:
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.notna(v):
+            return float(v)
+    # Rate aliases (0–1 or 0–100).
+    for k in ("l5_side_hit_rate", "hit_rate_l5", "last5_hit_rate"):
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.isna(v):
+            continue
+        rate = float(v)
+        if rate > 1.0:
+            rate /= 100.0
+        if 0.0 <= rate <= 1.0:
+            return rate * 5.0
+    return None
+
+
+def _standard_prop_gate_l5_clears(row_d: dict) -> bool:
+    """True when directional L5 meets the sport's Standard gate-clear floor."""
+    if not _l5_perfect_gate_clear_sport(row_d.get("sport")):
+        return False
+    hits = _row_directional_l5_hits(row_d)
+    return _l5_clears_standard_prop_gate(row_d.get("sport"), hits)
+
+
+def _leg_mlb_std_over_perfect_l5_avoid(row_d: dict | pd.Series) -> bool:
+    """
+    Drop MLB Standard OVER legs with directional L5=5/5.
+
+    As-of Jul 10-19: MLB Std OVER ~45% overall -> ~33% at perfect L5 - treat as
+    hard hygiene, not a soft nudge.
+    """
+    if isinstance(row_d, pd.Series):
+        row_d = row_d.to_dict()
+    else:
+        row_d = dict(row_d)
+    return _mlb_standard_over_perfect_l5(
+        row_d.get("sport"),
+        row_d.get("pick_type") or row_d.get("pick"),
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction"),
+        _row_directional_l5_hits(row_d),
+    )
+
+
 def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     """
-    True when this Standard leg's sport×prop×direction is banned or hard-gated.
+    True when this Standard leg's sport x prop x direction is banned or hard-gated.
 
-    Goblin legs always return False here — payouts improve on Standards, so we
+    Goblin legs always return False here - payouts improve on Standards, so we
     gate those props tightly while leaving easier Goblin hits alone.
+
+    Exception: directional L5 clears the gate for clear-eligible sports
+    (basketball L5>=4; NFL/CFB/NHL/Tennis/Golf L5=5). MLB and Soccer never
+    clear via L5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
@@ -5602,7 +5678,11 @@ def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     key = _standard_prop_gate_key(row_d)
     if key is None:
         return False
-    return key in _STANDARD_PROP_GATE_BAN or key in _STANDARD_PROP_GATE_HARD
+    if key not in _STANDARD_PROP_GATE_BAN and key not in _STANDARD_PROP_GATE_HARD:
+        return False
+    if _standard_prop_gate_l5_clears(row_d):
+        return False
+    return True
 
 
 def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:
@@ -5656,13 +5736,18 @@ def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
 def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
     """
     Shared hygiene for MAIN / FINAL / long-parlay builders:
-    banned MLB Goblin OVER props + Standard prop×direction ledger gates.
+    banned MLB Goblin OVER props + Standard prop×direction ledger gates +
+    MLB Standard OVER at perfect L5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
     else:
         row_d = dict(row_d)
-    return _main_leg_prop_banned(row_d) or _leg_standard_prop_direction_gated(row_d)
+    return (
+        _main_leg_prop_banned(row_d)
+        or _leg_standard_prop_direction_gated(row_d)
+        or _leg_mlb_std_over_perfect_l5_avoid(row_d)
+    )
 
 
 def _ticket_rows_mlb_construction_banned(rows: list) -> bool:
@@ -6172,6 +6257,8 @@ def _row_win_rate_eligible(
     # Qualified Standard: prop×direction ledger + sport hygiene + OVER elite stack.
     if qualify_standard and ("standard" in pt) and ("goblin" not in pt):
         if _leg_standard_prop_direction_gated(row_d):
+            return False
+        if _leg_mlb_std_over_perfect_l5_avoid(row_d):
             return False
         if not _standard_high_prob_leg_allowed(row_d):
             return False
@@ -9736,8 +9823,8 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     (cut volume) rather than shipping a board of sub-floor losers.
 
     When PROPORACLE_REQUIRE_LIVE_PAYOUT=1 (default): only exact live_cdp floors
-    ship. Pending / peer SG-Δ / unknown floors are deferred — empty board is
-    correct when nothing has a verified ≥floor capture yet.
+    ship when any exist. If every slip is still pending live CDP, keep a
+    soft pending board (hard floor with allow_unknown) instead of wiping blank.
     """
     preferred_x = float(MAIN_PREFERRED_MIN_PAYOUT_X)
     hard_x = float(SHORT_FLOOR_HARD_X)
@@ -9808,6 +9895,34 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
             )
         return hard_only
     if n_defer:
+        # Soften empty-board wipe: when every slip is still pending live CDP
+        # (common before 11AM Payout CDP), keep the board with unknown floors
+        # allowed through the hard gate so /tickets is not wiped blank.
+        if require_live and not preferred and not hard_only:
+            soft: list[dict] = []
+            for g in groups:
+                if not isinstance(g, dict):
+                    continue
+                kept = []
+                for t in g.get("tickets") or []:
+                    if not isinstance(t, dict):
+                        continue
+                    if hard_x <= 0 or _ticket_clears_payout_floor(
+                        t, floor_x=hard_x, allow_unknown=True
+                    ):
+                        kept.append(t)
+                if kept:
+                    ng = dict(g)
+                    ng["tickets"] = kept
+                    ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(kept[0], ng))
+                    soft.append(ng)
+            if soft:
+                print(
+                    f"  [web] last filter: live_cdp pending for all {n_defer} slips — "
+                    f"keeping {sum(len(g.get('tickets') or []) for g in soft)} with "
+                    f"pending floors (hard ≥{hard_x:g}x allow_unknown) until CDP fills"
+                )
+                return soft
         print(
             f"  [web] last filter: cut all {n_defer} slips "
             f"(need live_cdp ≥{hard_x:g}x"

@@ -58,13 +58,18 @@ if ($branch -ne "main") {
 }
 
 Write-Host "[8AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
-# Same permanent fix as 5AM/8AM: never abort the run for generated publish JSON.
+# Same permanent fix as 3AM/5AM: never abort the run for generated publish JSON.
 $EnsurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
 if (-not (Test-Path -LiteralPath $EnsurePull)) {
     $EnsurePull = Join-Path $Root "scripts\Ensure-CleanPull.ps1"
 }
 & pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[8AM UPDATE]" -StashMessage ("proporacle-8am-pre-pull-{0:yyyyMMdd_HHmmss}" -f (Get-Date))
 $pullPrepExit = $LASTEXITCODE
+if ($pullPrepExit -eq 2) {
+    Write-Host "[8AM UPDATE] Source conflict reported — retrying publish-artifact repair..." -ForegroundColor Yellow
+    & pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[8AM UPDATE]" -SkipPull
+    $pullPrepExit = $LASTEXITCODE
+}
 if ($pullPrepExit -eq 2) {
     Write-Host "[8AM UPDATE] FAILED: source-code conflicts block pull (resolve manually)." -ForegroundColor Red
     exit 128

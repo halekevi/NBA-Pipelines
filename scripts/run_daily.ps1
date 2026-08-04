@@ -6,12 +6,14 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (D-payout) live CDP FillMissing
+         → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
-         Live PrizePicks CDP payout scrape is a separate scheduled task (PropOracle - Payout CDP @ 11:00)
-         via scripts\run_payout_cdp.ps1 — not part of 5AM, so the board can publish without waiting on Chrome.
-         Pass -RunLivePayout to opt back into STEP D-payout for a manual full daily.
-         Tennis: -TennisDate defaults to same day as -Date (5AM full daily + later refreshes); override when needed.
+         Board floors require exact per-ticket live_cdp (peer SG-Δ rate cards off by default).
+         STEP D-payout: initial FillMissing after Combined; pass -SkipLivePayout to skip.
+         Mid-day 8/9/10:30/1 refreshes Force re-scrape CDP after prop/line updates.
+         11:00 / 15:00 Payout CDP tasks are catchup only.
+         Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
          Combined slate (STEP D via run_pipeline.ps1) fetches Underdog + DraftKings by default; set PROPORACLE_SKIP_ALT_BOOKS=1 or pass -SkipAltBooks to run_pipeline to disable.
          Use -SkipFetch to skip A1 and C0b. -SkipGameLines skips C0. -SkipPeriodHistorySync skips C0b only.
@@ -50,8 +52,10 @@ param(
     [int]$TicketModelTopN = 10,
     # When set, run STEP D1 ticket-model dataset/train/eval (default off — use on retrain days).
     [switch]$RunTicketModels,
-    # Opt-in: run live PrizePicks CDP in this daily (default off — use PropOracle - Payout CDP @ 11AM).
-    [switch]$RunLivePayout
+    # Legacy alias: live CDP now runs by default after Combined (exact live_cdp required).
+    [switch]$RunLivePayout,
+    # Skip STEP D-payout live CDP scrape (board floors stay pending until Payout CDP task).
+    [switch]$SkipLivePayout
 )
 
 $ErrorActionPreference = "Continue"
@@ -198,6 +202,18 @@ function Get-VersionedPath([string]$Path) {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
         }
     }
+    # Sport-root live pointers: archive NoOverwrite baks under data/historical
+    # instead of stacking GB of *.bak_* beside Railway/combined loaders.
+    $sportsDir = Join-Path $Root "Sports"
+    $sportsPrefix = $sportsDir.TrimEnd('\') + '\'
+    if ($dir -and ($dir -eq $sportsDir -or $dir.StartsWith($sportsPrefix))) {
+        $rel = if ($dir.StartsWith($sportsPrefix)) { $dir.Substring($sportsPrefix.Length) } else { "" }
+        $sportName = if ($rel) { ($rel -split '[\\/]', 2)[0] } else { "misc" }
+        $dir = Join-Path $Root "data\historical\sport_root_backups\$sportName"
+        if (-not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        }
+    }
     $name = [System.IO.Path]::GetFileNameWithoutExtension($Path)
     $ext = [System.IO.Path]::GetExtension($Path)
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -326,14 +342,18 @@ function Get-MissingTodaySlateOutputs {
             (Join-Path $SportsRoot "NHL\step8_nhl_direction_clean.xlsx")
         )
         "step8_soccer_direction_clean_$RunDate.xlsx" = @(
+            (Join-Path $outDir "soccer\step8_soccer_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Soccer\outputs\step8_soccer_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Soccer\step8_soccer_direction_clean.xlsx")
         )
         "step8_mlb_direction_clean_$RunDate.xlsx" = @(
+            (Join-Path $outDir "mlb\step8_mlb_direction_clean.xlsx"),
             (Join-Path $SportsRoot "MLB\outputs\step8_mlb_direction_clean.xlsx"),
             (Join-Path $SportsRoot "MLB\step8_mlb_direction_clean.xlsx")
         )
         "step8_tennis_direction_clean_$tennisDated.xlsx" = @(
+            (Join-Path $outDir "tennis\step8_tennis_direction_clean_$tennisDated.xlsx"),
+            (Join-Path $outDir "tennis\step8_tennis_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Tennis\step8_tennis_direction_clean.xlsx")
         )
@@ -357,8 +377,15 @@ function Get-MissingTodaySlateOutputs {
             $resolved = $false
             foreach ($fallback in @($fallbackRoots[$name])) {
                 if (Test-Path $fallback) {
-                    $resolved = $true
-                    break
+                    try {
+                        if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Force -Path $outDir | Out-Null }
+                        Copy-Item -LiteralPath $fallback -Destination $p -Force -ErrorAction Stop
+                        Write-Log "  [dated-step8] repaired $name from $fallback"
+                        $resolved = $true
+                        break
+                    } catch {
+                        Write-Log "  [dated-step8] WARN: could not repair $name from $fallback ($($_.Exception.Message))"
+                    }
                 }
             }
             if ($resolved) { continue }
@@ -1239,41 +1266,18 @@ if ($script:PipelineFailed) {
     }
 }
 
-# STEP D-linesnap — Slim Standard-line archive for line-move timing history (website card).
-$LineSnapScript = Join-Path $Root "scripts\snapshot_pp_standard_lines.py"
-$LinePublishScript = Join-Path $Root "scripts\publish_line_move_timing.py"
-if ((-not $script:PipelineFailed) -and (Test-Path -LiteralPath $LineSnapScript)) {
-    Write-Log "STEP D-linesnap - Standard line snapshot ($Today / 5AM): START"
-    try {
-        & py -3.14 -X utf8 $LineSnapScript --date $Today --label "5AM"
-        if ($LASTEXITCODE -ne 0) {
-            Write-Log "STEP D-linesnap - Standard line snapshot: WARN (exit $LASTEXITCODE)"
-        } else {
-            Write-Log "STEP D-linesnap - Standard line snapshot: OK"
-        }
-        if (Test-Path -LiteralPath $LinePublishScript) {
-            & py -3.14 -X utf8 $LinePublishScript
-            Write-Log "STEP D-linesnap - Publish line_move_timing.json: exit $LASTEXITCODE"
-        }
-    } catch {
-        Write-Log "STEP D-linesnap - WARN ($($_.Exception.Message))"
-    }
-} else {
-    Write-Log "STEP D-linesnap - SKIPPED (pipeline failed or snapshot script missing)"
-}
-
 # =============================================================================
-# STEP D-payout — Live PrizePicks payout capture (OPT-IN only)
-# Default: skipped. MAIN scrape is PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00).
-# Midday refreshes still call run_live_payout_capture.ps1 -UpdateOnly for missing floors.
-# Pass -RunLivePayout for a one-shot full daily that includes CDP.
+# STEP D-payout — Live PrizePicks payout capture (REQUIRED for board floors)
+# Exact per-ticket live_cdp only — peer SG-Δ rate cards are not trusted.
+# Default: FillMissingTickets after Combined (initial board pricing).
+# Mid-day refreshes Force re-scrape after prop/line updates; 11:00/15:00 are catchup.
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
 }
-elseif (-not $RunLivePayout) {
-    Write-Host "  [SKIP] Live payout CDP — separate PropOracle - Payout CDP task (pass -RunLivePayout to include)" -ForegroundColor DarkGray
-    Write-Log "STEP D-payout - Live payout capture: SKIPPED (default; use Payout CDP task or -RunLivePayout)"
+elseif ($SkipLivePayout -and -not $RunLivePayout) {
+    Write-Host "  [SKIP] Live payout CDP (-SkipLivePayout)" -ForegroundColor DarkGray
+    Write-Log "STEP D-payout - Live payout capture: SKIPPED (-SkipLivePayout)"
 }
 else {
     $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
@@ -1289,9 +1293,9 @@ else {
         Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
     }
     else {
-        Write-Log "STEP D-payout - Live payout capture + verify: START (-RunLivePayout)"
+        Write-Log "STEP D-payout - Live payout capture + verify: START (exact live_cdp required)"
         try {
-            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -RebuildRateCard
+            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -UpdateOnly
             Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
         }
         catch {
@@ -1888,86 +1892,46 @@ else {
         if ($MainRoot -ne $Root) {
             Write-Log "STEP E - publishing via main worktree: $MainRoot"
         }
-        # Snapshot EVERY Railway-facing artifact before stash. A short list previously
-        # dropped slate_sport_*, slate_display_date, and *_matchup_edge.json into stash
-        # and never restored them — production Slate Explorer stayed STALE / matchup empty.
         $stepELiveRels = @(
             "ui_runner/templates/tickets_latest.json",
             "ui_runner/docs/tickets_latest.json",
             "mobile/www/tickets_latest.json",
             "ui_runner/templates/slate_latest.json",
             "mobile/www/slate_latest.json",
-            "ui_runner/templates/slate_display_date.json",
-            "mobile/www/slate_display_date.json",
             "ui_runner/templates/pipeline_status.json",
-            "mobile/www/pipeline_status.json",
-            "mobile/www/sport_breakdown.json",
-            "ui_runner/templates/strong_recombo_shadow_latest.json",
-            "ui_runner/templates/strong_mix_shadow_latest.json"
-        )
-        $stepELiveGlobs = @(
-            "ui_runner/templates/slate_sport_*.json",
-            "mobile/www/slate_sport_*.json",
-            "ui_runner/templates/*_matchup_edge.json",
-            "mobile/www/data/*_matchup_edge.json"
+            "mobile/www/pipeline_status.json"
         )
         # Snapshot live tickets from the daily run workspace before main-side staging.
         $stepELiveSnap = Join-Path $env:TEMP ("proporacle_step_e_live_" + [guid]::NewGuid().ToString("N"))
         New-Item -ItemType Directory -Path $stepELiveSnap -Force | Out-Null
-        function Save-StepELiveSnapshot {
-            param([string[]]$Rels, [string[]]$Globs)
-            foreach ($rel in $Rels) {
-                $src = Join-Path $Root ($rel -replace "/", "\")
-                if (Test-Path -LiteralPath $src) {
-                    $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
-                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-                    Copy-Item -LiteralPath $src -Destination $dst -Force
-                }
-            }
-            foreach ($pattern in $Globs) {
-                $fullPattern = Join-Path $Root ($pattern -replace "/", "\")
-                $parent = Split-Path $fullPattern -Parent
-                $leaf = Split-Path $fullPattern -Leaf
-                if (-not (Test-Path -LiteralPath $parent)) { continue }
-                Get-ChildItem -LiteralPath $parent -Filter $leaf -File -ErrorAction SilentlyContinue | ForEach-Object {
-                    $rel = $_.FullName.Substring($Root.Length).TrimStart("\", "/").Replace("\", "/")
-                    $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
-                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-                    Copy-Item -LiteralPath $_.FullName -Destination $dst -Force
-                }
-            }
-        }
-        function Restore-StepELiveSnapshot {
-            Get-ChildItem -LiteralPath $stepELiveSnap -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
-                $rel = $_.FullName.Substring($stepELiveSnap.Length).TrimStart("\", "/").Replace("\", "/")
-                $dst = Join-Path $MainRoot ($rel -replace "/", "\")
+        foreach ($rel in $stepELiveRels) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+            if (Test-Path -LiteralPath $src) {
+                $dst = Join-Path $stepELiveSnap ($rel -replace "/", "\")
                 New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-                Copy-Item -LiteralPath $_.FullName -Destination $dst -Force
+                Copy-Item -LiteralPath $src -Destination $dst -Force
             }
         }
-        Save-StepELiveSnapshot -Rels $stepELiveRels -Globs $stepELiveGlobs
-        Write-Log "STEP E - live snapshot files: $((Get-ChildItem -LiteralPath $stepELiveSnap -Recurse -File -ErrorAction SilentlyContinue | Measure-Object).Count)"
 
         Push-Location $MainRoot
         $stepEStashed = $false
         try {
             if (git status --porcelain) {
-                # Same-worktree daily runs: stash can fail on locked large JSON (mlb slate)
-                # and previously orphaned publish artifacts. Snapshot above is source of truth.
                 Write-Log "STEP E - dirty main worktree; stashing before pull/commit"
-                git stash push -u -m "proporacle-step-e-temp-$Today" 2>&1 | ForEach-Object { Write-Log "STEP E - stash: $_" }
-                if ($LASTEXITCODE -eq 0) {
-                    $stepEStashed = $true
-                }
-                else {
-                    Write-Log "STEP E - stash: WARN (exit $LASTEXITCODE) — continuing with snapshot restore after pull"
-                }
+                git stash push -m "proporacle-step-e-temp-$Today" 2>&1 | ForEach-Object { Write-Log "STEP E - stash: $_" }
+                if ($LASTEXITCODE -eq 0) { $stepEStashed = $true }
             }
             git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log "STEP E - pull: $_" }
 
-            # Restore snapshotted live web artifacts onto main worktree (full set)
-            Restore-StepELiveSnapshot
-            Write-Log "STEP E - restored live snapshot onto main worktree"
+            # Restore snapshotted live tickets onto main worktree
+            foreach ($rel in $stepELiveRels) {
+                $src = Join-Path $stepELiveSnap ($rel -replace "/", "\")
+                if (Test-Path -LiteralPath $src) {
+                    $dst = Join-Path $MainRoot ($rel -replace "/", "\")
+                    New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+                    Copy-Item -LiteralPath $src -Destination $dst -Force
+                }
+            }
 
             # Also copy today's outputs/templates/mobile from run workspace when paths differ
             if ($MainRoot -ne $Root) {

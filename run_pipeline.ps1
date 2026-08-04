@@ -22,6 +22,7 @@
 #    .\run_pipeline.ps1 -ForceWNBA           # Include WNBA in full parallel run before season start (QA)
 #    .\run_pipeline.ps1 -CombinedOnly          # Re-run combined + web tickets (multi-sport /tickets JSON)
 #    .\run_pipeline.ps1 -CombinedOnly -WebEvOnly   # Stricter /tickets: positive-EV gate only (+ Tennis bypass)
+#    .\run_pipeline.ps1 -CombinedOnly -TicketGenStarts 16 -SkipLivePayoutCapture  # Mid-day fast rebuild
 #    After tickets: live PP payout scrape via CDP (scripts\run_live_payout_capture.ps1) unless -SkipLivePayoutCapture
 #    .\run_pipeline.ps1 -SkipFetch             # Skip step1 fetch for whatever sport(s) run
 #    .\run_pipeline.ps1 -NBAOnly -SkipFetch    # NBA steps 2-8 + Combined
@@ -45,8 +46,10 @@
 # ENTRY POINTS
 #   Full daily run  : scripts\run_daily.ps1 [-Date YYYY-MM-DD]
 #     STEP C calls  : run_pipeline.ps1 -Date $Today -ForceAll -SkipCombined -SkipPush
-#     STEP D calls  : run_pipeline.ps1 -Date $Today -CombinedOnly -DQWarnOnly
-#   Manual rebuild  : .\run_pipeline.ps1 -Date YYYY-MM-DD [-CombinedOnly]
+#     STEP D calls  : run_pipeline.ps1 -Date $Today -CombinedOnly -DQWarnOnly -SkipLivePayoutCapture
+#                     (CDP once in STEP D-payout)
+#   Mid-day rebuild : scripts\run_fast_rebuild.ps1 [-CombinedOnly | -MLBOnly | …]
+#   Manual rebuild  : .\run_pipeline.ps1 -Date YYYY-MM-DD [-CombinedOnly] [-TicketGenStarts N]
 #
 # ============================================================
 param(
@@ -76,6 +79,8 @@ param(
     [switch]$RunPayoutEngine,
     # After combined tickets: CDP scrape MAIN/STRONG power_min_x onto tickets_latest (default on when CDP up).
     [switch]$SkipLivePayoutCapture,
+    # Combined ticket candidate search starts (default 64 AM publish; use 8-16 for mid-day rebuilds).
+    [int]$TicketGenStarts = 0,
     # Skip Soccer defense refresh network fetch (use cached cache\soccer_defense_summary.csv).
     [switch]$SkipDefenseRefresh,
     # Used by scripts/run_daily.ps1 to execute sport pipelines in STEP C
@@ -92,12 +97,40 @@ param(
     # Compatibility flag passed by run_daily combined-only invocation.
     # Intentionally no-op here; ticket quality warnings are handled inside downstream scripts.
     [switch]$DQWarnOnly,
+    # Seconds between parallel sport Start-Job launches (reduces PrizePicks stampede). 0 disables.
+    # Default 20; override with -FetchStaggerSeconds or env PROPORACLE_FETCH_STAGGER_SEC.
+    [int]$FetchStaggerSeconds = -1,
+    [switch]$NoFetchStagger,
     # Chrome CDP URL for WNBA step1 (PrizePicks); parallel WNBA job receives this explicitly (env may not propagate).
     [string]$WNBACdp = ""
 )
 
 $ErrorActionPreference = "Continue"
 $script:CombinedRanThisSession = $false
+
+# Parallel step1 stagger: avoid all sports hitting PrizePicks at once.
+if ($NoFetchStagger) {
+    $FetchStaggerSeconds = 0
+} elseif ($FetchStaggerSeconds -lt 0) {
+    $envStagger = "$($env:PROPORACLE_FETCH_STAGGER_SEC)".Trim()
+    if ($envStagger -match '^\d+$') {
+        $FetchStaggerSeconds = [int]$envStagger
+    } else {
+        $FetchStaggerSeconds = 20
+    }
+}
+$script:FetchJobsStarted = 0
+function Wait-FetchStagger {
+    if ($SkipFetch -or $FetchStaggerSeconds -le 0) {
+        $script:FetchJobsStarted++
+        return
+    }
+    if ($script:FetchJobsStarted -gt 0) {
+        Write-Host "  [fetch-stagger] pausing ${FetchStaggerSeconds}s before next sport job..." -ForegroundColor DarkCyan
+        Start-Sleep -Seconds $FetchStaggerSeconds
+    }
+    $script:FetchJobsStarted++
+}
 
 if (-not $OddsApiKey) {
     $OddsApiKey = [string]$env:ODDS_API_KEY
@@ -125,7 +158,7 @@ if (-not $Date) {
 }
 
 # Tennis: early-AM board (~4:00–5:30 ET) → same Eastern calendar day as -Date.
-# Daily 5AM full pipeline (+ later refreshes) fetches today's board.
+# 3AM light fetch + 7AM full daily both use today's board (refresh at 7AM).
 # Override with -TennisDate when needed.
 function Get-PropOracleEasternTodayYmd {
     try {
@@ -156,23 +189,12 @@ if ($MLBVerify -and -not $MLBOnly) {
 }
 
 # MLB step4 ESPN/cache season: use slate calendar year (2026 slates must not pass --season 2025).
-# CFB: before late August use prior completed season (rankings/stats empty for the upcoming year).
 try {
-    $slateDt = [datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
-    $MLBSeasonYear = $slateDt.Year
-    if ($slateDt.Month -lt 8 -or ($slateDt.Month -eq 8 -and $slateDt.Day -lt 20)) {
-        $CFBSeasonYear = $slateDt.Year - 1
-    } else {
-        $CFBSeasonYear = $slateDt.Year
-    }
+    $MLBSeasonYear = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Year
+    $CFBSeasonYear = $MLBSeasonYear
 } catch {
     $MLBSeasonYear = (Get-Date).Year
-    $now = Get-Date
-    if ($now.Month -lt 8 -or ($now.Month -eq 8 -and $now.Day -lt 20)) {
-        $CFBSeasonYear = $now.Year - 1
-    } else {
-        $CFBSeasonYear = $now.Year
-    }
+    $CFBSeasonYear = $MLBSeasonYear
 }
 
 $StartTime = Get-Date
@@ -198,6 +220,15 @@ $NFLDir    = Join-Path $SportsRoot "NFL"
 # WNBA regular season: include in full parallel runs on/after this date (ISO yyyy-MM-dd).
 # 2026 opener starts May 1, so keep WNBA active for same-day fresh slates.
 $WNBA_SEASON_START = "2026-05-01"
+# WNBA All-Star mid-season pause: skip [PAUSE_START, RESUME). Resume on/after RESUME.
+# Override: $env:WNBA_RESUME_DATE / $env:WNBA_PAUSE_START (or PROPORACLE_WNBA_*).
+$WNBA_SEASON_RESUME = "2026-07-28"
+if ($env:WNBA_RESUME_DATE) { $WNBA_SEASON_RESUME = $env:WNBA_RESUME_DATE.Trim() }
+elseif ($env:PROPORACLE_WNBA_RESUME) { $WNBA_SEASON_RESUME = $env:PROPORACLE_WNBA_RESUME.Trim() }
+$WNBA_ALLSTAR_PAUSE_START = "2026-07-19"
+if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.Trim() }
+elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
+$WNBAOffSeason = ($Date -ge $WNBA_ALLSTAR_PAUSE_START) -and ($Date -lt $WNBA_SEASON_RESUME)
 
 # NBA off-season: pause NBA / NBA1H / NBA1Q until this date (summer ops).
 $NBA_SEASON_RESUME = "2026-10-01"
@@ -432,23 +463,52 @@ function Get-MlbStep1HttpArgList {
         [string]$PipelineDate,
         [string]$OutputPath,
         [switch]$Append,
-        [switch]$AllowNearestFuture
+        [switch]$AllowNearestFuture,
+        [switch]$FailFast403
     )
-    $list = @(
-        "--date", $PipelineDate,
-        "--output", $OutputPath,
-        "--per-page", "250",
-        "--max-pages", "10",
-        "--api-retries", "5",
-        "--api-session-waves", "3",
-        "--api-403-cooldown-after", "5",
-        "--api-403-cooldown-seconds", "90",
-        "--api-403-cooldown-jitter-min", "12",
-        "--api-403-cooldown-jitter-max", "40"
-    )
+    if ($FailFast403) {
+        $list = @(
+            "--date", $PipelineDate,
+            "--output", $OutputPath,
+            "--per-page", "250",
+            "--max-pages", "10",
+            "--api-retries", "2",
+            "--api-session-waves", "1",
+            "--api-403-cooldown-after", "1",
+            "--api-403-cooldown-seconds", "12",
+            "--api-403-cooldown-jitter-min", "2",
+            "--api-403-cooldown-jitter-max", "6"
+        )
+    } else {
+        $list = @(
+            "--date", $PipelineDate,
+            "--output", $OutputPath,
+            "--per-page", "250",
+            "--max-pages", "10",
+            "--api-retries", "5",
+            "--api-session-waves", "3",
+            "--api-403-cooldown-after", "5",
+            "--api-403-cooldown-seconds", "90",
+            "--api-403-cooldown-jitter-min", "12",
+            "--api-403-cooldown-jitter-max", "40"
+        )
+    }
     if ($Append) { $list += "--append" }
     if ($AllowNearestFuture) { $list += "--allow-nearest-future" }
     return $list
+}
+
+function Test-MlbCdpReachable {
+    param([string]$CdpUrl = "")
+    if (-not $CdpUrl) {
+        $CdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+    }
+    try {
+        $probe = Invoke-RestMethod -Uri "$CdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
+        return [bool]$probe
+    } catch {
+        return $false
+    }
 }
 
 function Invoke-MLBStep1Fetch {
@@ -464,7 +524,13 @@ function Invoke-MLBStep1Fetch {
         $env:PYTHONIOENCODING = "utf-8"
         $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"   # match WNBA — chrome120 hits DataDome 403
 
-        $httpArgs = Get-MlbStep1HttpArgList -PipelineDate $PipelineDate -OutputPath $OutputPath
+        $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+        $cdpReachable = Test-MlbCdpReachable -CdpUrl $cdpUrl
+        if ($cdpReachable) {
+            Write-Host "      [MLB] CDP up - using fail-fast HTTP (quick 403 exit -> CDP)" -ForegroundColor DarkCyan
+        }
+
+        $httpArgs = Get-MlbStep1HttpArgList -PipelineDate $PipelineDate -OutputPath $OutputPath -FailFast403:$cdpReachable
         $cmdHttpDisplay = "py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py $($httpArgs -join ' ')"
         Write-Host "        CMD: $cmdHttpDisplay" -ForegroundColor DarkGray
         $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @httpArgs 2>&1
@@ -480,13 +546,6 @@ function Invoke-MLBStep1Fetch {
         } else {
             Write-Host "      MLB HTTP fetch failed (exit $exit); falling back to CDP..." -ForegroundColor Yellow
         }
-
-        $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-        $cdpReachable = $false
-        try {
-            $probe = Invoke-RestMethod -Uri "$cdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
-            if ($probe) { $cdpReachable = $true }
-        } catch { $cdpReachable = $false }
 
         if ($cdpReachable) {
             $cmd0Display = "py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py --cdp $cdpUrl --date $PipelineDate --output $OutputPath"
@@ -854,11 +913,17 @@ function Publish-MlbStep8Artifacts {
         return
     }
     $sportRoot = Join-Path $MLBDir "step8_mlb_direction_clean.xlsx"
+    $sportOutDir = Join-Path $MLBDir "outputs"
+    $sportOut = Join-Path $sportOutDir "step8_mlb_direction_clean.xlsx"
     try {
+        if (-not (Test-Path -LiteralPath $sportOutDir)) {
+            New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
+        }
         Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
-        Write-Host "  [MLB publish] Railway sport root -> $sportRoot" -ForegroundColor DarkGray
+        Copy-Item -LiteralPath $step8Clean -Destination $sportOut -Force -ErrorAction Stop
+        Write-Host "  [MLB publish] Railway sport root + outputs -> $sportRoot" -ForegroundColor DarkGray
     } catch {
-        Write-Host "  [MLB publish] WARN: could not copy to sport root: $_" -ForegroundColor Yellow
+        Write-Host "  [MLB publish] WARN: could not copy to sport root/outputs: $_" -ForegroundColor Yellow
     }
     Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName "step8_mlb_direction_clean_$Date.xlsx" -Label "MLB"
     $pubScript = Join-Path $Root "scripts\_publish_mlb_slate_only.py"
@@ -875,6 +940,66 @@ function Publish-MlbStep8Artifacts {
             Pop-Location
         }
     }
+}
+
+# -- Soccer/Tennis: mirror step8 to sport root + outputs + dated outputs/<date>/ --
+function Publish-SoccerStep8Artifacts {
+    param([string]$Reason = "")
+    $step8Clean = Join-Path $SoccerRunOutDir "step8_soccer_direction_clean.xlsx"
+    if (-not (Test-Path -LiteralPath $step8Clean)) {
+        Write-Host "  [Soccer publish] skip - no step8_soccer_direction_clean.xlsx" -ForegroundColor DarkGray
+        return
+    }
+    if (-not (Test-ValidXlsx -Path $step8Clean)) {
+        Write-Host "  [Soccer publish] skip - corrupt step8 xlsx" -ForegroundColor Yellow
+        return
+    }
+    $sportOutDir = Join-Path $SoccerDir "outputs"
+    $sportOut = Join-Path $sportOutDir "step8_soccer_direction_clean.xlsx"
+    $sportRoot = Join-Path $SoccerDir "step8_soccer_direction_clean.xlsx"
+    try {
+        if (-not (Test-Path -LiteralPath $sportOutDir)) {
+            New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
+        }
+        Copy-Item -LiteralPath $step8Clean -Destination $sportOut -Force -ErrorAction Stop
+        Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
+        $tag = if ($Reason) { " ($Reason)" } else { "" }
+        Write-Host "  [Soccer publish] sport outputs + root$tag" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "  [Soccer publish] WARN: could not mirror to Sports/Soccer: $_" -ForegroundColor Yellow
+    }
+    Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName "step8_soccer_direction_clean_$Date.xlsx" -Label "Soccer"
+}
+
+function Publish-TennisStep8Artifacts {
+    param([string]$Reason = "")
+    $step8Clean = Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx"
+    if (-not (Test-Path -LiteralPath $step8Clean)) {
+        Write-Host "  [Tennis publish] skip - no step8_tennis_direction_clean.xlsx" -ForegroundColor DarkGray
+        return
+    }
+    if (-not (Test-ValidXlsx -Path $step8Clean)) {
+        Write-Host "  [Tennis publish] skip - corrupt step8 xlsx" -ForegroundColor Yellow
+        return
+    }
+    $sportOutDir = Join-Path $TennisDir "outputs"
+    $sportOut = Join-Path $sportOutDir "step8_tennis_direction_clean.xlsx"
+    $sportRoot = Join-Path $TennisDir "step8_tennis_direction_clean.xlsx"
+    $tennisDatedName = "step8_tennis_direction_clean_$TennisDate.xlsx"
+    try {
+        if (-not (Test-Path -LiteralPath $sportOutDir)) {
+            New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
+        }
+        Copy-Item -LiteralPath $step8Clean -Destination $sportOut -Force -ErrorAction Stop
+        Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
+        $runDated = Join-Path $TennisRunOutDir $tennisDatedName
+        Copy-Item -LiteralPath $step8Clean -Destination $runDated -Force -ErrorAction SilentlyContinue
+        $tag = if ($Reason) { " ($Reason)" } else { "" }
+        Write-Host "  [Tennis publish] sport outputs + root$tag" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "  [Tennis publish] WARN: could not mirror to Sports/Tennis: $_" -ForegroundColor Yellow
+    }
+    Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName $tennisDatedName -Label "Tennis"
 }
 
 # -- NHL step4b-pre: slate D-pairs (pairings.php) then step4b attach --
@@ -1303,7 +1428,15 @@ function Run-Combined {
 
     # Keep strict date checks for NBA-family slates so /tickets never shows yesterday as today.
     # --also-win-rate: emit tickets_winrate_latest.json in the same process (no 2nd Python launch).
-    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts 64 --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
+    # TicketGenStarts: 0 → env PROPORACLE_TICKET_GEN_STARTS → default 64 (AM). Mid-day: pass 8-16.
+    $ticketStarts = 64
+    if ($TicketGenStarts -gt 0) {
+        $ticketStarts = [Math]::Max(1, $TicketGenStarts)
+    } elseif ($env:PROPORACLE_TICKET_GEN_STARTS -match '^\d+$' -and [int]$env:PROPORACLE_TICKET_GEN_STARTS -gt 0) {
+        $ticketStarts = [int]$env:PROPORACLE_TICKET_GEN_STARTS
+    }
+    Write-Host "  [combined] ticket-gen-starts=$ticketStarts" -ForegroundColor DarkGray
+    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts $ticketStarts --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
     if (-not $WebEvOnly) {
         $CombinedArgs += " --no-web-ev-gate"
     }
@@ -1332,11 +1465,21 @@ function Run-Combined {
         # Keep Matchup Edge JSON in lockstep with combined slate/ticket publish.
         # Includes WNBA (slate_sport_wnba.json) — must run after --write-web writes all slate_sport_*.json.
         # Per-sport failures (e.g. NHL off-season) must not abort MLB/WNBA/Tennis publish.
-        $okMatchupEdge = Run-Step "Build Matchup Edge JSON (all sports)" $Root ".\scripts\build_matchup_edge_json.py" "--sport all"
+        # Hard timeout: a wedged --sport all (CPU-idle py launcher) previously blocked
+        # mid-day refresh from ever reaching post-pipeline payout UPDATE → empty /tickets.
+        $matchupEdgeTimeoutSec = 600
+        if ($env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC -match '^\d+$' -and [int]$env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC -gt 0) {
+            $matchupEdgeTimeoutSec = [int]$env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC
+        }
+        $okMatchupEdge = Run-Step "Build Matchup Edge JSON (all sports)" $Root ".\scripts\build_matchup_edge_json.py" "--sport all" -TimeoutSeconds $matchupEdgeTimeoutSec
         if (-not $okMatchupEdge) {
-            Write-Host "  [matchup-edge] WARN: full build failed — retrying active summer sports individually..." -ForegroundColor Yellow
+            Write-Host "  [matchup-edge] WARN: full build failed/timed out — retrying active summer sports individually..." -ForegroundColor Yellow
             foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
-                $meOk = Run-Step "Build Matchup Edge ($meSport)" $Root ".\scripts\build_matchup_edge_json.py" "--sport $meSport"
+                if ($meSport -eq "wnba" -and $WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+                    Write-Host "  [matchup-edge] SKIP wnba (All-Star pause until $WNBA_SEASON_RESUME)" -ForegroundColor DarkGray
+                    continue
+                }
+                $meOk = Run-Step "Build Matchup Edge ($meSport)" $Root ".\scripts\build_matchup_edge_json.py" "--sport $meSport" -TimeoutSeconds ([Math]::Max(180, [int]($matchupEdgeTimeoutSec / 2)))
                 if (-not $meOk) {
                     Write-Host "  [matchup-edge] WARN: $meSport still failed; panel may be stale." -ForegroundColor Yellow
                 }
@@ -1498,6 +1641,17 @@ if ($CombinedOnly) {
 #  WNBA ONLY
 # =============================================================================
 if ($WNBAOnly) {
+    if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+        Write-Host "  [WNBA] All-Star pause — paused until $WNBA_SEASON_RESUME (use -ForceWNBA to run)" -ForegroundColor DarkGray
+        Write-PipelineSlateStatusJson -RunDate $Date -Sports @{
+            wnba = "off_season"
+            wnba1h = "off_season"
+            wnba1q = "off_season"
+        }
+        Run-Combined "after WNBA (all-star pause)"
+        Print-Done
+        exit 0
+    }
     Write-Host "[ WNBA PIPELINE ]" -ForegroundColor Magenta
     Write-Host "  Delegating to scripts\run_wnba_pipeline.ps1 ..." -ForegroundColor DarkGray
     $wnbaPs1 = Join-Path $Root "scripts\run_wnba_pipeline.ps1"
@@ -1675,7 +1829,8 @@ if ($MLBOnly) {
     }
     if ($ok) { $ok = Run-Step "MLB Step 2 - Attach Pick Types"  $MLBDir ".\scripts\step2_attach_picktypes_mlb.py"       "--input `"$MLBRunOutDir\step1_mlb_props.csv`" --output `"$MLBRunOutDir\step2_mlb_picktypes.csv`" --id_lookup_timeout_s 6 --id_lookup_retries 2 --id_lookup_budget_s 180" }
     if ($ok) { $ok = Run-Step "MLB Step 3 - Attach Defense"     $MLBDir ".\scripts\step3_attach_defense_mlb.py"         "--input `"$MLBRunOutDir\step2_mlb_picktypes.csv`" --defense mlb_defense_summary.csv --output `"$MLBRunOutDir\step3_mlb_with_defense.csv`"" }
-    if ($ok) { $ok = Run-Step "MLB Step 4 - Player Stats"       $MLBDir ".\scripts\step4_attach_player_stats_mlb.py"    "--input `"$MLBRunOutDir\step3_mlb_with_defense.csv`" --cache mlb_stats_cache.csv --output `"$MLBRunOutDir\step4_mlb_with_stats.csv`" --season $MLBSeasonYear" -TimeoutSeconds 1200 }
+    # Large boards (8k+ props) routinely exceed 20m when Stats API is slow; keep headroom.
+    if ($ok) { $ok = Run-Step "MLB Step 4 - Player Stats"       $MLBDir ".\scripts\step4_attach_player_stats_mlb.py"    "--input `"$MLBRunOutDir\step3_mlb_with_defense.csv`" --cache mlb_stats_cache.csv --output `"$MLBRunOutDir\step4_mlb_with_stats.csv`" --season $MLBSeasonYear" -TimeoutSeconds 3600 }
     # Step 4b — Lineup context (batting order, confirmed starters); non-fatal
     if ($ok) {
         Write-Host "  --> MLB Step 4a - Pitching staff cache" -ForegroundColor Cyan
@@ -1811,7 +1966,7 @@ if ($SoccerOnly) {
             if ($probe) { $cdpOk = $true }
         } catch { $cdpOk = $false }
         if ($cdpOk) {
-            Write-Host "  [Soccer] CDP reachable at $soccerCdp - attaching for step1" -ForegroundColor DarkGray
+            Write-Host "  [Soccer] CDP reachable at $soccerCdp — attaching for step1" -ForegroundColor DarkGray
             $soccerStep1Args += " --cdp `"$soccerCdp`""
         }
         if ($ok) { $ok = Run-Step "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" $soccerStep1Args }
@@ -1856,6 +2011,7 @@ if ($SoccerOnly) {
     if ($ok) { $ok = Run-Step "Soccer Step 7 - Rank Props"         $SoccerDir ".\scripts\step7_rank_props_soccer.py"             "--input `"$SoccerRunOutDir\step6_soccer_role_context.csv`" --output `"$SoccerRunOutDir\step7_soccer_ranked.xlsx`"" }
     if ($ok) { Invoke-PropOracleStep7b "Soccer" "$SoccerRunOutDir\step7_soccer_ranked.xlsx" }
     if ($ok) { $ok = Run-Step "Soccer Step 8 - Direction Context"  $SoccerDir (Join-Path $SportsRoot "Soccer\scripts\step8_add_direction_context_soccer.py")  "--input `"$SoccerRunOutDir\step7_soccer_ranked.xlsx`" --sheet ALL --output `"$SoccerRunOutDir\step8_soccer_direction.csv`" --xlsx `"$SoccerRunOutDir\step8_soccer_direction_clean.xlsx`" --date $Date" }
+    if ($ok) { Publish-SoccerStep8Artifacts -Reason "Soccer-only" }
     Write-Host ""
     if ($ok) { Write-Host "  Soccer complete." -ForegroundColor Green } else { Write-Host "  Soccer FAILED." -ForegroundColor Red }
     if ($ok) { Run-Combined "after Soccer" }
@@ -1948,7 +2104,13 @@ if ($TennisOnly) {
     Write-Host "  [Tennis] Step1 loads the full PrizePicks tennis board (often spans several days). Step8 --date keeps only rows for $TennisDate." -ForegroundColor DarkGray
     $ok = $true
     if (-not $SkipFetch) {
-        if ($ok) { $ok = Run-Step "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`"" }
+        $tennisCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+        $tennisStep1Args = "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
+        if (Test-MlbCdpReachable -CdpUrl $tennisCdpUrl) {
+            Write-Host "  [Tennis] CDP reachable — fetching via Chrome" -ForegroundColor DarkGray
+            $tennisStep1Args += " --cdp `"$tennisCdpUrl`""
+        }
+        if ($ok) { $ok = Run-Step "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" $tennisStep1Args }
     } else {
         Write-Host "  [Tennis] Skipping step1 fetch -- using existing $TennisRunOutDir\step1_tennis_props.csv" -ForegroundColor DarkGray
     }
@@ -1971,10 +2133,7 @@ if ($TennisOnly) {
     }
     if ($ok) { $ok = Run-Step "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $SportsRoot "Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
     if ($ok) {
-        Copy-DatedSlateOutput `
-            -SourcePath (Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx") `
-            -DatedFileName "step8_tennis_direction_clean_$TennisDate.xlsx" `
-            -Label "Tennis"
+        Publish-TennisStep8Artifacts -Reason "Tennis-only"
     }
     Write-Host ""
     if ($ok) { Write-Host "  Tennis complete." -ForegroundColor Green } else { Write-Host "  Tennis FAILED." -ForegroundColor Red }
@@ -2183,45 +2342,45 @@ if ($NBAOnly) {
 }
 
 # =============================================================================
-#  FULL PARALLEL RUN  (NBA + CBB + NHL + Soccer + MLB + NFL [+ WNBA when in season])
+#  FULL PARALLEL RUN  (active summer: Soccer + Tennis + MLB [+ WNBA when in season]
+#  Off-season scaffolding kept for NBA/NHL/NFL/CFB/CBB/Golf — not run as in-season)
 # =============================================================================
-if ($NBAOffSeason -and $NHLOffSeason) {
-    Write-Host "  [SKIP] NBA/NHL off-season -- skipping DB backfill and cache refresh" -ForegroundColor DarkGray
+# Active in-season set (summer 2026): MLB, Soccer, Tennis, WNBA (date-gated).
+# proporacle_ref DB backfill currently supports soccer among that set (not nba/nhl).
+if ($RefreshCache -and -not $NBAOffSeason) {
+    Write-Host "  [Cache] Wiping ESPN cache files..." -ForegroundColor Yellow
+    Remove-Item (Join-Path $NBADir "nba_espn_boxscore_cache.csv") -Force -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $NBADir "nba_to_espn_id_map.csv")      -Force -ErrorAction SilentlyContinue
+    Write-Host "  [Cache] Done." -ForegroundColor Green
     Write-Host ""
+} elseif (-not $NBAOffSeason) {
+    Check-AutoRefreshCache
 } else {
-    if ($RefreshCache -and -not $NBAOffSeason) {
-        Write-Host "  [Cache] Wiping ESPN cache files..." -ForegroundColor Yellow
-        Remove-Item (Join-Path $NBADir "nba_espn_boxscore_cache.csv") -Force -ErrorAction SilentlyContinue
-        Remove-Item (Join-Path $NBADir "nba_to_espn_id_map.csv")      -Force -ErrorAction SilentlyContinue
-        Write-Host "  [Cache] Done." -ForegroundColor Green
-        Write-Host ""
-    } elseif (-not $NBAOffSeason) {
-        Check-AutoRefreshCache
-    } else {
-        Write-Host "  [SKIP] NBA off-season -- skipping NBA cache refresh" -ForegroundColor DarkGray
-    }
-
-    # -- Backfill boxscore DB for last 3 days (active sports only) ------------
-    Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
-    Write-Host "  Syncing proporacle_ref.db for last 3 days..." -ForegroundColor DarkGray
-    $backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
-    if (Test-Path $backfillScript) {
-        $bfSports = @("soccer")
-        if (-not $NBAOffSeason) { $bfSports = @("nba") + $bfSports }
-        if (-not $NHLOffSeason) { $bfSports = @("nhl") + $bfSports }
-        $bfSportsArg = ($bfSports -join " ")
-        $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports $bfSportsArg" 2>&1
-        foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
-        Write-Host "  DB backfill complete ($bfSportsArg)." -ForegroundColor Green
-    } else {
-        Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
-    }
-    Write-Host ""
+    Write-Host "  [SKIP] NBA off-season -- skipping NBA cache refresh" -ForegroundColor DarkGray
 }
 
+# -- Backfill boxscore DB for last 3 days (active summer sports only) ----------
+Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
+Write-Host "  Syncing proporacle_ref.db for last 3 days (active: soccer)..." -ForegroundColor DarkGray
+$backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
+if (Test-Path $backfillScript) {
+    # Do not backfill nba/nhl/cbb while those sports are off-season scaffolding.
+    # MLB/Tennis/WNBA use sport-local caches; soccer is the live proporacle_ref sport.
+    $bfSports = @("soccer")
+    $bfSportsArg = ($bfSports -join " ")
+    $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports $bfSportsArg" 2>&1
+    foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
+    Write-Host "  DB backfill complete ($bfSportsArg)." -ForegroundColor Green
+} else {
+    Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
+}
+Write-Host ""
+
 if (Test-Path (Join-Path $NBADir "RUN_COMPLETE.flag")) { Remove-Item (Join-Path $NBADir "RUN_COMPLETE.flag") -Force }
-$wnbaParallel = ($ForceWNBA.IsPresent -or ($Date -ge $WNBA_SEASON_START))
-if (-not $wnbaParallel) {
+$wnbaParallel = ($ForceWNBA.IsPresent -or (($Date -ge $WNBA_SEASON_START) -and -not $WNBAOffSeason))
+if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+    Write-Host "  [WNBA] All-Star pause — skipped until $WNBA_SEASON_RESUME (pause start $WNBA_ALLSTAR_PAUSE_START; use -ForceWNBA)." -ForegroundColor DarkGray
+} elseif (-not $wnbaParallel) {
     Write-Host "  [WNBA] Parallel job skipped until $WNBA_SEASON_START (use -ForceWNBA to run early)." -ForegroundColor DarkGray
 }
 
@@ -2251,8 +2410,17 @@ if (-not $CFB_PARALLEL_ACTIVE) {
     Write-Host "  [CFB] Parallel job skipped (off-season for $Date; active months Aug–Jan)." -ForegroundColor DarkGray
 }
 
+# Golf: keep -GolfOnly scaffolding; not in active summer in-season parallel set.
+$GOLF_PARALLEL_ACTIVE = $false
+if (-not $GOLF_PARALLEL_ACTIVE) {
+    Write-Host "  [Golf] Parallel job skipped (not in active summer in-season set: MLB/Soccer/Tennis/WNBA)." -ForegroundColor DarkGray
+}
+
 if ($NBAOffSeason) {
     Write-Host "  [NBA] Off-season — paused until 2026-10-01" -ForegroundColor DarkGray
+}
+if ($NHLOffSeason) {
+    Write-Host "  [NHL] Off-season — paused until $NHL_SEASON_RESUME" -ForegroundColor DarkGray
 }
 
 $parallelLabel = if ($wnbaParallel) {
@@ -2262,12 +2430,17 @@ $parallelLabel = if ($wnbaParallel) {
 }
 Write-Host $parallelLabel -ForegroundColor Magenta
 Write-Host ""
-Write-Host "  Starting all pipelines simultaneously..." -ForegroundColor Cyan
+if ($SkipFetch -or $FetchStaggerSeconds -le 0) {
+    Write-Host "  Starting all pipelines simultaneously..." -ForegroundColor Cyan
+} else {
+    Write-Host "  Starting sport pipelines with ${FetchStaggerSeconds}s fetch stagger..." -ForegroundColor Cyan
+}
 Write-Host ""
 
 # -- NBA Job ------------------------------------------------------------------
 $NBAJob = $null
 if (-not $NBAOffSeason) {
+Wait-FetchStagger
 $NBAJob = Start-Job -ScriptBlock {
     param($NBADir, $Date, $OddsApiKey, $SkipFetch, $RepoRoot, $NBARunOutDir, $OffSeason)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2452,6 +2625,7 @@ $NBAJob = Start-Job -ScriptBlock {
 # -- CBB Job ------------------------------------------------------------------
 $CBBJob = $null
 if ($CBB_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $CBBJob = Start-Job -ScriptBlock {
     param($CBBDir, $Date, $SkipFetch, $RepoRoot, $CBBRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2504,24 +2678,14 @@ $CBBJob = Start-Job -ScriptBlock {
 # -- CFB Job ------------------------------------------------------------------
 $CFBJob = $null
 if ($CFB_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $CFBJob = Start-Job -ScriptBlock {
     param($CFBDir, $Date, $SkipFetch, $RepoRoot, $CFBRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
     try {
-        $slateDt = [datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
-        # Before late August, prior completed season still owns rankings/stats.
-        if ($slateDt.Month -lt 8 -or ($slateDt.Month -eq 8 -and $slateDt.Day -lt 20)) {
-            $cfbSeason = $slateDt.Year - 1
-        } else {
-            $cfbSeason = $slateDt.Year
-        }
+        $cfbSeason = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Year
     } catch {
-        $now = Get-Date
-        if ($now.Month -lt 8 -or ($now.Month -eq 8 -and $now.Day -lt 20)) {
-            $cfbSeason = $now.Year - 1
-        } else {
-            $cfbSeason = $now.Year
-        }
+        $cfbSeason = (Get-Date).Year
     }
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
@@ -2582,6 +2746,7 @@ $NHLJob = $null
 if ($NHLOffSeason) {
     Write-Host "  [NHL] Off-season — paused until $NHL_SEASON_RESUME" -ForegroundColor DarkGray
 } else {
+Wait-FetchStagger
 $NHLJob = Start-Job -ScriptBlock {
     param($NHLDir, $SkipFetch, $RepoRoot, $Date, $NHLRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2747,6 +2912,7 @@ $NHLJob = Start-Job -ScriptBlock {
 }
 
 # -- Soccer Job ---------------------------------------------------------------
+Wait-FetchStagger
 $SoccerJob = Start-Job -ScriptBlock {
     param($SoccerDir, $Date, $SkipFetch, $RepoRoot, $SkipDefenseRefresh, $SoccerRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2802,7 +2968,7 @@ $SoccerJob = Start-Job -ScriptBlock {
     }
     $ok = $true
     $soccerStep1 = Join-Path $SoccerRunOutDir "step1_soccer_props.csv"
-    if (-not $SkipFetch) {
+        if (-not $SkipFetch) {
         $soccerCdpJob = if ($env:PROPORACLE_PP_CDP) { "$($env:PROPORACLE_PP_CDP)".Trim() }
                         elseif ($env:PRIZEPICKS_CDP) { "$($env:PRIZEPICKS_CDP)".Trim() }
                         elseif ($CdpUrl) { "$CdpUrl".Trim() }
@@ -2855,8 +3021,11 @@ $SoccerJob = Start-Job -ScriptBlock {
 } -ArgumentList $SoccerDir, $Date, $SkipFetch, $Root, [bool]$SkipDefenseRefresh, $SoccerRunOutDir
 
 # -- Tennis Job ---------------------------------------------------------------
+Wait-FetchStagger
+$TennisCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+$TennisCdpReachable = Test-MlbCdpReachable -CdpUrl $TennisCdpUrl
 $TennisJob = Start-Job -ScriptBlock {
-    param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir)
+    param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir, $CdpUrl, $CdpReachable)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
@@ -2894,7 +3063,14 @@ $TennisJob = Start-Job -ScriptBlock {
     }
     Write-Output "[TENNIS] Step8 filters to ET date $TennisDate; step1 loads full PrizePicks tennis board (may include several calendar days)"
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`"" } } else { Write-Output "[Tennis] Skipping step1 fetch" }
+    if (-not $SkipFetch) {
+        $tennisStep1Args = "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
+        if ($CdpReachable -and $CdpUrl) {
+            Write-Output "[TENNIS] CDP reachable — fetching via Chrome"
+            $tennisStep1Args += " --cdp `"$CdpUrl`""
+        }
+        if ($ok) { $ok = Run-Step-Job "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" $tennisStep1Args }
+    } else { Write-Output "[Tennis] Skipping step1 fetch" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" "--input `"$TennisRunOutDir\step1_tennis_props.csv`" --output `"$TennisRunOutDir\step2_tennis_picktypes.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" "--input `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --output `"$TennisRunOutDir\step3_tennis_with_defense.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source sackmann --history-n 20" }
@@ -2912,9 +3088,12 @@ $TennisJob = Start-Job -ScriptBlock {
     }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $RepoRoot "Sports\Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
     return $ok
-} -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir
+} -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir, $TennisCdpUrl, $TennisCdpReachable
 
 # -- Golf Job (PGA — step1 → step2 → step4 → step5 → step7 → step8) -----------
+$GolfJob = $null
+if ($GOLF_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $GolfJob = Start-Job -ScriptBlock {
     param($GolfDir, $Date, $SkipFetch, $GolfRunOutDir, $RepoRoot)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -2993,9 +3172,11 @@ $GolfJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "Golf Step 8 - Direction Context" $GolfDir ".\scripts\step8_add_direction_context_golf.py" "--input `"$GolfRunOutDir\step7_golf_ranked.xlsx`" --sheet ALL --output `"$GolfRunOutDir\step8_golf_direction.csv`" --xlsx `"$GolfRunOutDir\step8_golf_direction_clean.xlsx`" --date $Date" }
     return $ok
 } -ArgumentList $GolfDir, $Date, $SkipFetch, $GolfRunOutDir, $Root
+} # end GOLF_PARALLEL_ACTIVE
 
 # -- MLB Job ------------------------------------------------------------------
 # MLB activated April 2026
+Wait-FetchStagger
 $MLBJob = Start-Job -ScriptBlock {
     param($MLBDir, $Date, $SkipFetch, $RepoRoot, $MLBRunOutDir, $MlbSeasonYear)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -3034,20 +3215,36 @@ $MLBJob = Start-Job -ScriptBlock {
             [string]$PipelineDate,
             [string]$OutputPath,
             [switch]$Append,
-            [switch]$AllowNearestFuture
+            [switch]$AllowNearestFuture,
+            [switch]$FailFast403
         )
-        $list = @(
-            "--date", $PipelineDate,
-            "--output", $OutputPath,
-            "--per-page", "250",
-            "--max-pages", "10",
-            "--api-retries", "5",
-            "--api-session-waves", "3",
-            "--api-403-cooldown-after", "5",
-            "--api-403-cooldown-seconds", "90",
-            "--api-403-cooldown-jitter-min", "12",
-            "--api-403-cooldown-jitter-max", "40"
-        )
+        if ($FailFast403) {
+            $list = @(
+                "--date", $PipelineDate,
+                "--output", $OutputPath,
+                "--per-page", "250",
+                "--max-pages", "10",
+                "--api-retries", "2",
+                "--api-session-waves", "1",
+                "--api-403-cooldown-after", "1",
+                "--api-403-cooldown-seconds", "12",
+                "--api-403-cooldown-jitter-min", "2",
+                "--api-403-cooldown-jitter-max", "6"
+            )
+        } else {
+            $list = @(
+                "--date", $PipelineDate,
+                "--output", $OutputPath,
+                "--per-page", "250",
+                "--max-pages", "10",
+                "--api-retries", "5",
+                "--api-session-waves", "3",
+                "--api-403-cooldown-after", "5",
+                "--api-403-cooldown-seconds", "90",
+                "--api-403-cooldown-jitter-min", "12",
+                "--api-403-cooldown-jitter-max", "40"
+            )
+        }
         if ($Append) { $list += "--append" }
         if ($AllowNearestFuture) { $list += "--allow-nearest-future" }
         return $list
@@ -3061,7 +3258,17 @@ $MLBJob = Start-Job -ScriptBlock {
             $env:PYTHONIOENCODING = "utf-8"
             $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
 
-            $httpArgs = Get-MlbStep1HttpArgList-Job -PipelineDate $PipelineDate -OutputPath $OutputPath
+            $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
+            $cdpReachable = $false
+            try {
+                $probe = Invoke-RestMethod -Uri "$cdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
+                if ($probe) { $cdpReachable = $true }
+            } catch { $cdpReachable = $false }
+            if ($cdpReachable) {
+                Write-Output "[MLB] CDP up - using fail-fast HTTP (quick 403 exit -> CDP)"
+            }
+
+            $httpArgs = Get-MlbStep1HttpArgList-Job -PipelineDate $PipelineDate -OutputPath $OutputPath -FailFast403:$cdpReachable
             Write-Output "        CMD: py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py $($httpArgs -join ' ')"
             $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" @httpArgs 2>&1
             $exit = $LASTEXITCODE
@@ -3076,13 +3283,6 @@ $MLBJob = Start-Job -ScriptBlock {
             } else {
                 Write-Output "[MLB] HTTP failed (exit $exit); falling back to CDP"
             }
-
-            $cdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-            $cdpReachable = $false
-            try {
-                $probe = Invoke-RestMethod -Uri "$cdpUrl/json/version" -TimeoutSec 2 -ErrorAction Stop
-                if ($probe) { $cdpReachable = $true }
-            } catch { $cdpReachable = $false }
 
             if ($cdpReachable) {
                 Write-Output "        CMD: py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py --cdp $cdpUrl --date $PipelineDate --output $OutputPath"
@@ -3276,6 +3476,7 @@ $MLBJob = Start-Job -ScriptBlock {
 # -- WNBA Job (parallel full run from $WNBA_SEASON_START; optional -ForceWNBA) ---
 $WNBAJob = $null
 if ($wnbaParallel) {
+    Wait-FetchStagger
     $WNBAJob = Start-Job -ScriptBlock {
         param($RepoRoot, $PipelineDate, $SkipFetchFlag, $WnbaCdp)
         $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -3311,6 +3512,7 @@ if ($wnbaParallel) {
 # -- NFL Job ------------------------------------------------------------------
 $NFLJob = $null
 if ($NFL_PARALLEL_ACTIVE) {
+Wait-FetchStagger
 $NFLJob = Start-Job -ScriptBlock {
     param($NFLDir, $Date, $SkipFetch, $RepoRoot, $DefenseSeason, $NFLRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
@@ -3369,7 +3571,7 @@ $NFLJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "NFL Step 4 - Defense Rankings" $NFLDir ".\scripts\step4_defense_rankings.py" "--season $DefenseSeason --output data\defense_rankings.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 4b - Team Last-5 Form" $NFLDir ".\scripts\step4b_team_last5_games.py" "--season $DefenseSeason --output data\nfl_team_last5.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 3 - Merge Defense" $NFLDir ".\scripts\step3_merge_defense_nfl.py" "--defense-source auto --team-form data\nfl_team_last5.csv" }
-    if ($ok) { $ok = Run-Step-Job "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input data\outputs\step3_nfl_with_defense.csv --output data\outputs\step5_nfl_with_stats.csv --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 320" }
+    if ($ok) { $ok = Run-Step-Job "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input data\outputs\step3_nfl_with_defense.csv --output data\outputs\step5_nfl_with_stats.csv --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 120" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 6 - Hit Rates" $NFLDir ".\scripts\step6_historical_hit_rates.py" "--input data\outputs\step5_nfl_with_stats.csv --output data\outputs\step6_hit_rates.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 7 - Rank Props" $NFLDir ".\scripts\step7_rank_props_nfl.py" "--output `"$NFLRunOutDir\step7_nfl_ranked.xlsx`"" }
     if ($ok) { Invoke-Step7b-Job "NFL" $RepoRoot "$NFLRunOutDir\step7_nfl_ranked.xlsx" }
@@ -3444,7 +3646,7 @@ if (-not $SoccerSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOu
     Clear-SoccerGeneratedOutputs -BaseDir $SoccerRunOutDir
     $SoccerSuccess = $true
 }
-$GolfSuccess   = Test-Path (Join-Path $GolfRunOutDir "step8_golf_direction_clean.xlsx")
+$GolfSuccess   = if (-not $GOLF_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $GolfRunOutDir "step8_golf_direction_clean.xlsx") }
 if (-not $GolfSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $GolfRunOutDir "step1_golf_props.csv"))) {
     Write-Host "  [Golf] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-GolfGeneratedOutputs -BaseDir $GolfRunOutDir
@@ -3519,11 +3721,11 @@ if ($NBAOffSeason) {
     $nba1qNoSlate = $NBA1QSuccess -and -not (Test-Path (Join-Path $OutDir "nba1q\step8_nba1q_direction_clean.xlsx"))
 }
 
-if ($TennisSuccess) {
-    Copy-DatedSlateOutput `
-        -SourcePath (Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx") `
-        -DatedFileName "step8_tennis_direction_clean_$TennisDate.xlsx" `
-        -Label "Tennis"
+if ($TennisSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv"))) {
+    Publish-TennisStep8Artifacts -Reason "parallel"
+}
+if ($SoccerSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv"))) {
+    Publish-SoccerStep8Artifacts -Reason "parallel"
 }
 if ($GolfSuccess) {
     Copy-DatedSlateOutput `
@@ -3560,12 +3762,16 @@ $slateStatusSports = @{
     soccer = if ($soccerNoSlate) { "no_slate" } elseif ($SoccerSuccess) { "complete" } else { "failed" }
     mlb    = if ($mlbNoSlate) { "no_slate" } elseif ($MLBSuccess) { "complete" } else { "failed" }
     tennis = if ($tennisNoSlate) { "no_slate" } elseif ($TennisSuccess) { "complete" } else { "failed" }
-    golf   = if ($golfNoSlate) { "no_slate" } elseif ($GolfSuccess) { "complete" } else { "failed" }
+    golf   = if (-not $GOLF_PARALLEL_ACTIVE) { "off_season" } elseif ($golfNoSlate) { "no_slate" } elseif ($GolfSuccess) { "complete" } else { "failed" }
     cbb    = if (-not $CBB_PARALLEL_ACTIVE) { "off_season" } elseif ($CBBSuccess) { "complete" } else { "failed" }
     cfb    = if (-not $CFB_PARALLEL_ACTIVE) { "off_season" } elseif ($CFBSuccess) { "complete" } else { "failed" }
     nfl    = if (-not $NFL_PARALLEL_ACTIVE) { "off_season" } elseif ($NFLSuccess) { "complete" } else { "failed" }
 }
-if ($wnbaParallel) {
+if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+    $slateStatusSports["wnba"] = "off_season"
+    $slateStatusSports["wnba1h"] = "off_season"
+    $slateStatusSports["wnba1q"] = "off_season"
+} elseif ($wnbaParallel) {
     $slateStatusSports["wnba"] = if ($wnbaNoSlate) { "no_slate" } elseif ($WNBASuccess) { "complete" } else { "failed" }
 }
 Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
@@ -3578,7 +3784,7 @@ Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
     @{ Name="Soccer"; Ok=$SoccerSuccess; Skip=$false; NoSlate=$soccerNoSlate },
     @{ Name="MLB";    Ok=$MLBSuccess; Skip=$false; NoSlate=$mlbNoSlate },
     @{ Name="Tennis"; Ok=$TennisSuccess; Skip=$false },
-    @{ Name="Golf";   Ok=$GolfSuccess; Skip=$false; NoSlate=$golfNoSlate },
+    @{ Name="Golf";   Ok=$GolfSuccess; Skip=(-not $GOLF_PARALLEL_ACTIVE); NoSlate=$golfNoSlate },
     @{ Name="NFL";    Ok=$NFLSuccess; Skip=(-not $NFL_PARALLEL_ACTIVE) }
 ) | ForEach-Object {
     if ($_.Skip) {
@@ -3591,7 +3797,9 @@ Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
         Write-Host "  $($_.Name) FAILED."  -ForegroundColor Red
     }
 }
-if ($wnbaParallel) {
+if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
+    Write-Host "  WNBA skipped (All-Star pause until $WNBA_SEASON_RESUME)." -ForegroundColor DarkGray
+} elseif ($wnbaParallel) {
     if ($WNBASuccess) { Write-Host "  WNBA complete." -ForegroundColor Green }
     else { Write-Host "  WNBA FAILED." -ForegroundColor Red }
 }

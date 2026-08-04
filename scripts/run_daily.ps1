@@ -10,8 +10,9 @@
          → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
          → (F) optional night poll of historical actuals.
          Board floors require exact per-ticket live_cdp (peer SG-Δ rate cards off by default).
-         STEP D-payout runs FillMissingTickets after Combined; pass -SkipLivePayout to skip.
-         MAIN PropOracle - Payout CDP @ 11:00 (run_payout_cdp.ps1) still runs as the full scrape.
+         STEP D-payout: initial FillMissing after Combined; pass -SkipLivePayout to skip.
+         Mid-day 8/9/10:30/1 refreshes Force re-scrape CDP after prop/line updates.
+         11:00 / 15:00 Payout CDP tasks are catchup only.
          Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
          Combined slate (STEP D via run_pipeline.ps1) fetches Underdog + DraftKings by default; set PROPORACLE_SKIP_ALT_BOOKS=1 or pass -SkipAltBooks to run_pipeline to disable.
@@ -341,14 +342,18 @@ function Get-MissingTodaySlateOutputs {
             (Join-Path $SportsRoot "NHL\step8_nhl_direction_clean.xlsx")
         )
         "step8_soccer_direction_clean_$RunDate.xlsx" = @(
+            (Join-Path $outDir "soccer\step8_soccer_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Soccer\outputs\step8_soccer_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Soccer\step8_soccer_direction_clean.xlsx")
         )
         "step8_mlb_direction_clean_$RunDate.xlsx" = @(
+            (Join-Path $outDir "mlb\step8_mlb_direction_clean.xlsx"),
             (Join-Path $SportsRoot "MLB\outputs\step8_mlb_direction_clean.xlsx"),
             (Join-Path $SportsRoot "MLB\step8_mlb_direction_clean.xlsx")
         )
         "step8_tennis_direction_clean_$tennisDated.xlsx" = @(
+            (Join-Path $outDir "tennis\step8_tennis_direction_clean_$tennisDated.xlsx"),
+            (Join-Path $outDir "tennis\step8_tennis_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Tennis\outputs\step8_tennis_direction_clean.xlsx"),
             (Join-Path $SportsRoot "Tennis\step8_tennis_direction_clean.xlsx")
         )
@@ -372,8 +377,15 @@ function Get-MissingTodaySlateOutputs {
             $resolved = $false
             foreach ($fallback in @($fallbackRoots[$name])) {
                 if (Test-Path $fallback) {
-                    $resolved = $true
-                    break
+                    try {
+                        if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Force -Path $outDir | Out-Null }
+                        Copy-Item -LiteralPath $fallback -Destination $p -Force -ErrorAction Stop
+                        Write-Log "  [dated-step8] repaired $name from $fallback"
+                        $resolved = $true
+                        break
+                    } catch {
+                        Write-Log "  [dated-step8] WARN: could not repair $name from $fallback ($($_.Exception.Message))"
+                    }
                 }
             }
             if ($resolved) { continue }
@@ -1257,8 +1269,8 @@ if ($script:PipelineFailed) {
 # =============================================================================
 # STEP D-payout — Live PrizePicks payout capture (REQUIRED for board floors)
 # Exact per-ticket live_cdp only — peer SG-Δ rate cards are not trusted.
-# Default: FillMissingTickets after Combined. Pass -SkipLivePayout to skip.
-# MAIN scrape still also runs via PropOracle - Payout CDP (run_payout_cdp.ps1).
+# Default: FillMissingTickets after Combined (initial board pricing).
+# Mid-day refreshes Force re-scrape after prop/line updates; 11:00/15:00 are catchup.
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"

@@ -263,7 +263,7 @@ WNBA_ALLSTAR_PAUSE_START = (
     or "2026-07-19"
 )
 DEFAULT_SOCCER_PATH = os.path.join(REPO_ROOT, "Sports", "Soccer", "outputs", "step8_soccer_direction_clean.xlsx")
-DEFAULT_TENNIS_PATH = os.path.join(REPO_ROOT, "Tennis", "outputs", "step8_tennis_direction_clean.xlsx")
+DEFAULT_TENNIS_PATH = os.path.join(REPO_ROOT, "Sports", "Tennis", "outputs", "step8_tennis_direction_clean.xlsx")
 DEFAULT_GOLF_PATH = os.path.join(REPO_ROOT, "Sports", "Golf", "outputs", "step8_golf_direction_clean.xlsx")
 DEFAULT_WNBA_PATH = os.path.join(REPO_ROOT, "Sports", "WNBA", "outputs", "step8_wnba_direction_clean.xlsx")
 DEFAULT_NHL_PATH = os.path.join(REPO_ROOT, "Sports", "NHL", "outputs", "step8_nhl_direction_clean.xlsx")
@@ -469,6 +469,7 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
             os.path.join(out, "soccer", "step8_soccer_direction_clean.xlsx"),
             os.path.join(out, f"step8_soccer_direction_clean_{d}.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "Soccer", "outputs", "step8_soccer_direction_clean.xlsx"),
+            os.path.join(REPO_ROOT, "Sports", "Soccer", "step8_soccer_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Soccer", "outputs", "step8_soccer_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Soccer", "step8_soccer_direction_clean.xlsx"),
         )
@@ -481,6 +482,7 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
             os.path.join(out, "tennis", "step8_tennis_direction_clean.xlsx"),
             os.path.join(out, "step8_tennis_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "Tennis", "outputs", "step8_tennis_direction_clean.xlsx"),
+            os.path.join(REPO_ROOT, "Sports", "Tennis", "step8_tennis_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Tennis", "outputs", "step8_tennis_direction_clean.xlsx"),
         )
 
@@ -511,6 +513,7 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
         args.mlb = _first_existing_path(
             os.path.join(out, "mlb", "step8_mlb_direction_clean.xlsx"),
             os.path.join(out, f"step8_mlb_direction_clean_{d}.xlsx"),
+            os.path.join(REPO_ROOT, "Sports", "MLB", "outputs", "step8_mlb_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "MLB", "step8_mlb_direction_clean.xlsx"),
             os.path.join(REPO_ROOT, "MLB", "step8_mlb_direction_clean.xlsx"),
         )
@@ -9820,8 +9823,8 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
     (cut volume) rather than shipping a board of sub-floor losers.
 
     When PROPORACLE_REQUIRE_LIVE_PAYOUT=1 (default): only exact live_cdp floors
-    ship. Pending / peer SG-Δ / unknown floors are deferred — empty board is
-    correct when nothing has a verified ≥floor capture yet.
+    ship when any exist. If every slip is still pending live CDP, keep a
+    soft pending board (hard floor with allow_unknown) instead of wiping blank.
     """
     preferred_x = float(MAIN_PREFERRED_MIN_PAYOUT_X)
     hard_x = float(SHORT_FLOOR_HARD_X)
@@ -9892,6 +9895,34 @@ def _prefer_main_payout_floor_groups(groups: list[dict]) -> list[dict]:
             )
         return hard_only
     if n_defer:
+        # Soften empty-board wipe: when every slip is still pending live CDP
+        # (common before 11AM Payout CDP), keep the board with unknown floors
+        # allowed through the hard gate so /tickets is not wiped blank.
+        if require_live and not preferred and not hard_only:
+            soft: list[dict] = []
+            for g in groups:
+                if not isinstance(g, dict):
+                    continue
+                kept = []
+                for t in g.get("tickets") or []:
+                    if not isinstance(t, dict):
+                        continue
+                    if hard_x <= 0 or _ticket_clears_payout_floor(
+                        t, floor_x=hard_x, allow_unknown=True
+                    ):
+                        kept.append(t)
+                if kept:
+                    ng = dict(g)
+                    ng["tickets"] = kept
+                    ng["n_legs"] = int(ng.get("n_legs") or _slip_leg_count(kept[0], ng))
+                    soft.append(ng)
+            if soft:
+                print(
+                    f"  [web] last filter: live_cdp pending for all {n_defer} slips — "
+                    f"keeping {sum(len(g.get('tickets') or []) for g in soft)} with "
+                    f"pending floors (hard ≥{hard_x:g}x allow_unknown) until CDP fills"
+                )
+                return soft
         print(
             f"  [web] last filter: cut all {n_defer} slips "
             f"(need live_cdp ≥{hard_x:g}x"

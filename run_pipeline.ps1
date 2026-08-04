@@ -913,11 +913,17 @@ function Publish-MlbStep8Artifacts {
         return
     }
     $sportRoot = Join-Path $MLBDir "step8_mlb_direction_clean.xlsx"
+    $sportOutDir = Join-Path $MLBDir "outputs"
+    $sportOut = Join-Path $sportOutDir "step8_mlb_direction_clean.xlsx"
     try {
+        if (-not (Test-Path -LiteralPath $sportOutDir)) {
+            New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
+        }
         Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
-        Write-Host "  [MLB publish] Railway sport root -> $sportRoot" -ForegroundColor DarkGray
+        Copy-Item -LiteralPath $step8Clean -Destination $sportOut -Force -ErrorAction Stop
+        Write-Host "  [MLB publish] Railway sport root + outputs -> $sportRoot" -ForegroundColor DarkGray
     } catch {
-        Write-Host "  [MLB publish] WARN: could not copy to sport root: $_" -ForegroundColor Yellow
+        Write-Host "  [MLB publish] WARN: could not copy to sport root/outputs: $_" -ForegroundColor Yellow
     }
     Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName "step8_mlb_direction_clean_$Date.xlsx" -Label "MLB"
     $pubScript = Join-Path $Root "scripts\_publish_mlb_slate_only.py"
@@ -934,6 +940,66 @@ function Publish-MlbStep8Artifacts {
             Pop-Location
         }
     }
+}
+
+# -- Soccer/Tennis: mirror step8 to sport root + outputs + dated outputs/<date>/ --
+function Publish-SoccerStep8Artifacts {
+    param([string]$Reason = "")
+    $step8Clean = Join-Path $SoccerRunOutDir "step8_soccer_direction_clean.xlsx"
+    if (-not (Test-Path -LiteralPath $step8Clean)) {
+        Write-Host "  [Soccer publish] skip - no step8_soccer_direction_clean.xlsx" -ForegroundColor DarkGray
+        return
+    }
+    if (-not (Test-ValidXlsx -Path $step8Clean)) {
+        Write-Host "  [Soccer publish] skip - corrupt step8 xlsx" -ForegroundColor Yellow
+        return
+    }
+    $sportOutDir = Join-Path $SoccerDir "outputs"
+    $sportOut = Join-Path $sportOutDir "step8_soccer_direction_clean.xlsx"
+    $sportRoot = Join-Path $SoccerDir "step8_soccer_direction_clean.xlsx"
+    try {
+        if (-not (Test-Path -LiteralPath $sportOutDir)) {
+            New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
+        }
+        Copy-Item -LiteralPath $step8Clean -Destination $sportOut -Force -ErrorAction Stop
+        Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
+        $tag = if ($Reason) { " ($Reason)" } else { "" }
+        Write-Host "  [Soccer publish] sport outputs + root$tag" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "  [Soccer publish] WARN: could not mirror to Sports/Soccer: $_" -ForegroundColor Yellow
+    }
+    Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName "step8_soccer_direction_clean_$Date.xlsx" -Label "Soccer"
+}
+
+function Publish-TennisStep8Artifacts {
+    param([string]$Reason = "")
+    $step8Clean = Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx"
+    if (-not (Test-Path -LiteralPath $step8Clean)) {
+        Write-Host "  [Tennis publish] skip - no step8_tennis_direction_clean.xlsx" -ForegroundColor DarkGray
+        return
+    }
+    if (-not (Test-ValidXlsx -Path $step8Clean)) {
+        Write-Host "  [Tennis publish] skip - corrupt step8 xlsx" -ForegroundColor Yellow
+        return
+    }
+    $sportOutDir = Join-Path $TennisDir "outputs"
+    $sportOut = Join-Path $sportOutDir "step8_tennis_direction_clean.xlsx"
+    $sportRoot = Join-Path $TennisDir "step8_tennis_direction_clean.xlsx"
+    $tennisDatedName = "step8_tennis_direction_clean_$TennisDate.xlsx"
+    try {
+        if (-not (Test-Path -LiteralPath $sportOutDir)) {
+            New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
+        }
+        Copy-Item -LiteralPath $step8Clean -Destination $sportOut -Force -ErrorAction Stop
+        Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
+        $runDated = Join-Path $TennisRunOutDir $tennisDatedName
+        Copy-Item -LiteralPath $step8Clean -Destination $runDated -Force -ErrorAction SilentlyContinue
+        $tag = if ($Reason) { " ($Reason)" } else { "" }
+        Write-Host "  [Tennis publish] sport outputs + root$tag" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "  [Tennis publish] WARN: could not mirror to Sports/Tennis: $_" -ForegroundColor Yellow
+    }
+    Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName $tennisDatedName -Label "Tennis"
 }
 
 # -- NHL step4b-pre: slate D-pairs (pairings.php) then step4b attach --
@@ -1399,15 +1465,21 @@ function Run-Combined {
         # Keep Matchup Edge JSON in lockstep with combined slate/ticket publish.
         # Includes WNBA (slate_sport_wnba.json) — must run after --write-web writes all slate_sport_*.json.
         # Per-sport failures (e.g. NHL off-season) must not abort MLB/WNBA/Tennis publish.
-        $okMatchupEdge = Run-Step "Build Matchup Edge JSON (all sports)" $Root ".\scripts\build_matchup_edge_json.py" "--sport all"
+        # Hard timeout: a wedged --sport all (CPU-idle py launcher) previously blocked
+        # mid-day refresh from ever reaching post-pipeline payout UPDATE → empty /tickets.
+        $matchupEdgeTimeoutSec = 600
+        if ($env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC -match '^\d+$' -and [int]$env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC -gt 0) {
+            $matchupEdgeTimeoutSec = [int]$env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC
+        }
+        $okMatchupEdge = Run-Step "Build Matchup Edge JSON (all sports)" $Root ".\scripts\build_matchup_edge_json.py" "--sport all" -TimeoutSeconds $matchupEdgeTimeoutSec
         if (-not $okMatchupEdge) {
-            Write-Host "  [matchup-edge] WARN: full build failed — retrying active summer sports individually..." -ForegroundColor Yellow
+            Write-Host "  [matchup-edge] WARN: full build failed/timed out — retrying active summer sports individually..." -ForegroundColor Yellow
             foreach ($meSport in @("mlb", "wnba", "soccer", "tennis")) {
                 if ($meSport -eq "wnba" -and $WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
                     Write-Host "  [matchup-edge] SKIP wnba (All-Star pause until $WNBA_SEASON_RESUME)" -ForegroundColor DarkGray
                     continue
                 }
-                $meOk = Run-Step "Build Matchup Edge ($meSport)" $Root ".\scripts\build_matchup_edge_json.py" "--sport $meSport"
+                $meOk = Run-Step "Build Matchup Edge ($meSport)" $Root ".\scripts\build_matchup_edge_json.py" "--sport $meSport" -TimeoutSeconds ([Math]::Max(180, [int]($matchupEdgeTimeoutSec / 2)))
                 if (-not $meOk) {
                     Write-Host "  [matchup-edge] WARN: $meSport still failed; panel may be stale." -ForegroundColor Yellow
                 }
@@ -1939,6 +2011,7 @@ if ($SoccerOnly) {
     if ($ok) { $ok = Run-Step "Soccer Step 7 - Rank Props"         $SoccerDir ".\scripts\step7_rank_props_soccer.py"             "--input `"$SoccerRunOutDir\step6_soccer_role_context.csv`" --output `"$SoccerRunOutDir\step7_soccer_ranked.xlsx`"" }
     if ($ok) { Invoke-PropOracleStep7b "Soccer" "$SoccerRunOutDir\step7_soccer_ranked.xlsx" }
     if ($ok) { $ok = Run-Step "Soccer Step 8 - Direction Context"  $SoccerDir (Join-Path $SportsRoot "Soccer\scripts\step8_add_direction_context_soccer.py")  "--input `"$SoccerRunOutDir\step7_soccer_ranked.xlsx`" --sheet ALL --output `"$SoccerRunOutDir\step8_soccer_direction.csv`" --xlsx `"$SoccerRunOutDir\step8_soccer_direction_clean.xlsx`" --date $Date" }
+    if ($ok) { Publish-SoccerStep8Artifacts -Reason "Soccer-only" }
     Write-Host ""
     if ($ok) { Write-Host "  Soccer complete." -ForegroundColor Green } else { Write-Host "  Soccer FAILED." -ForegroundColor Red }
     if ($ok) { Run-Combined "after Soccer" }
@@ -2060,10 +2133,7 @@ if ($TennisOnly) {
     }
     if ($ok) { $ok = Run-Step "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $SportsRoot "Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
     if ($ok) {
-        Copy-DatedSlateOutput `
-            -SourcePath (Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx") `
-            -DatedFileName "step8_tennis_direction_clean_$TennisDate.xlsx" `
-            -Label "Tennis"
+        Publish-TennisStep8Artifacts -Reason "Tennis-only"
     }
     Write-Host ""
     if ($ok) { Write-Host "  Tennis complete." -ForegroundColor Green } else { Write-Host "  Tennis FAILED." -ForegroundColor Red }
@@ -3651,11 +3721,11 @@ if ($NBAOffSeason) {
     $nba1qNoSlate = $NBA1QSuccess -and -not (Test-Path (Join-Path $OutDir "nba1q\step8_nba1q_direction_clean.xlsx"))
 }
 
-if ($TennisSuccess) {
-    Copy-DatedSlateOutput `
-        -SourcePath (Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx") `
-        -DatedFileName "step8_tennis_direction_clean_$TennisDate.xlsx" `
-        -Label "Tennis"
+if ($TennisSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv"))) {
+    Publish-TennisStep8Artifacts -Reason "parallel"
+}
+if ($SoccerSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv"))) {
+    Publish-SoccerStep8Artifacts -Reason "parallel"
 }
 if ($GolfSuccess) {
     Copy-DatedSlateOutput `

@@ -2,7 +2,7 @@
 """
 step1_fetch_prizepicks_tennis.py — PrizePicks Tennis projections (API, NBA-style fetch).
 
-Default: auto-detect league_id among candidates (14, 20, 7, 9, 12, 15) using
+Default: league_id=5 (PrizePicks TENNIS). Pass --league_id auto to scan candidates using
 tennis-like prop names vs NBA stat noise.
 
 Optional --cdp attaches to warmed Chrome (DataDome bypass). --fail-fast keeps
@@ -378,8 +378,8 @@ def main() -> None:
     ap.add_argument("--output", default="outputs/step1_tennis_props.csv")
     ap.add_argument(
         "--league_id",
-        default="auto",
-        help="PrizePicks league_id, or 'auto' to scan candidates",
+        default="5",
+        help="PrizePicks tennis league_id (default 5). Pass 'auto' to scan candidates.",
     )
     ap.add_argument("--per_page", type=int, default=250)
     ap.add_argument("--max_pages", type=int, default=10)

@@ -65,9 +65,11 @@ DB_PATH = Path(__file__).resolve().parent.parent / "data" / "cache" / "proporacl
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        "(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
     ),
     "Accept": "application/json",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.espn.com/",
 }
 
 # requests.Session is not documented as thread-safe; use one session per worker thread.
@@ -121,7 +123,8 @@ NHL_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summ
 SOC_SCOREBOARD  = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/scoreboard?dates={date}"
 SOC_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
 
-# Soccer leagues to cover
+# Soccer leagues to cover (club + FIFA tournaments PrizePicks posts).
+# fifa.world = World Cup finals/knockouts — required for June–July L5 history.
 SOCCER_LEAGUES = [
     ("eng.1",          "EPL"),
     ("esp.1",          "La Liga"),
@@ -131,8 +134,13 @@ SOCCER_LEAGUES = [
     ("usa.1",          "MLS"),
     ("usa.nwsl",       "NWSL"),
     ("uefa.champions", "UCL"),
+    ("uefa.europa",    "UEL"),
     ("uefa.nations",   "UEFA Nations League"),
+    ("fifa.world",     "World Cup"),
+    ("fifa.friendly",  "FIFA Friendlies"),
     ("fifa.worldq.uefa", "FIFA World Cup Qualifying - UEFA"),
+    ("fifa.worldq.conmebol", "FIFA World Cup Qualifying - CONMEBOL"),
+    ("fifa.worldq.concacaf", "FIFA World Cup Qualifying - CONCACAF"),
     ("arg.1",          "Argentina"),
     ("bra.1",          "Brasileirao"),
     ("mex.1",          "Liga MX"),
@@ -487,10 +495,15 @@ def _get(url: str, retries: int = 3) -> Optional[dict]:
     for attempt in range(1, retries + 1):
         try:
             r = _http_session().get(url, timeout=20)
-            if r.status_code == 429:
-                wait = 30 * attempt
-                print(f"    ⚠️  429 rate-limit — sleeping {wait}s")
+            if r.status_code in (429, 403):
+                wait = 20 * attempt
+                print(f"    ⚠️  {r.status_code} — sleeping {wait}s then retry ({attempt}/{retries})")
                 time.sleep(wait)
+                # Drop sticky session cookies that can trip ESPN bot checks.
+                try:
+                    _http_session().cookies.clear()
+                except Exception:
+                    pass
                 continue
             if r.status_code == 404:
                 return None

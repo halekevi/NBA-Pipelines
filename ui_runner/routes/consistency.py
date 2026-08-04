@@ -285,3 +285,28 @@ def hot_players_track_record():
             "latest_graded_date": None,
         }
     )
+
+
+@consistency_bp.route("/api/consistency-leaders")
+def consistency_leaders():
+    """Season-window consistency leaders (player × prop × dir × pick)."""
+    candidates = (
+        REPO_ROOT / "data" / "slate_consistency" / "consistency_leaders_latest.json",
+        REPO_ROOT / "ui_runner" / "data" / "consistency_leaders_latest.json",
+        Path(__file__).resolve().parents[1] / "data" / "consistency_leaders_latest.json",
+    )
+    for path in candidates:
+        if path.is_file():
+            try:
+                return jsonify(json.loads(path.read_text(encoding="utf-8")))
+            except (OSError, json.JSONDecodeError):
+                continue
+    return jsonify(
+        {
+            "generated_at": None,
+            "leaders": [],
+            "match_index": [],
+            "sports": {},
+            "note": "consistency_leaders_latest.json not found",
+        }
+    )

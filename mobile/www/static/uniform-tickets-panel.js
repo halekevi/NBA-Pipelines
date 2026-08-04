@@ -34,6 +34,75 @@
   };
   const fmt2 = (v) => (v === null || v === undefined || Number.isNaN(Number(v)) ? '—' : Number(v).toFixed(2));
 
+  // Season consistency leaders (shared with homepage badge when available).
+  const consStore = (window.__CONS_LEADERS = window.__CONS_LEADERS || {
+    ready: false,
+    byKey: new Map(),
+    band: 0.5,
+  });
+  function consNormName(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  }
+  function consNormProp(s) {
+    let t = String(s || '').toLowerCase().replace(/_/g, ' ').replace(/\+/g, ' + ').replace(/\s+/g, ' ').trim();
+    const aliases = {
+      pts: 'points', reb: 'rebounds', rebs: 'rebounds', ast: 'assists', asts: 'assists',
+      pra: 'pts+rebs+asts', pr: 'pts+rebs', pa: 'pts+asts', ra: 'rebs+asts',
+      'pts + rebs + asts': 'pts+rebs+asts', 'pts + rebs': 'pts+rebs', 'pts + asts': 'pts+asts',
+      'rebs + asts': 'rebs+asts', '3pm': '3-pt made', blocks: 'blocked shots',
+    };
+    return aliases[t] || t;
+  }
+  function consKey(sport, player, prop, dir) {
+    return [String(sport || '').toUpperCase(), consNormName(player), consNormProp(prop), String(dir || '').toUpperCase()].join('|');
+  }
+  async function ensureConsLeaders() {
+    if (consStore.ready) return true;
+    if (typeof window.ensureConsistencyLeaders === 'function') {
+      const ok = await window.ensureConsistencyLeaders();
+      if (ok) return true;
+    }
+    if (consStore.loading) return false;
+    consStore.loading = true;
+    for (const url of ['/api/consistency-leaders', 'consistency_leaders_latest.json', '/data/consistency_leaders_latest.json']) {
+      try {
+        const resp = await fetch(url, { cache: 'no-store' });
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        const band = Number(data.line_band);
+        if (Number.isFinite(band)) consStore.band = band;
+        for (const r of (data.match_index || data.leaders || [])) {
+          if (!r || !r.player) continue;
+          const k = consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, r.direction);
+          const prev = consStore.byKey.get(k);
+          if (!prev || Number(r.score || 0) > Number(prev.score || 0)) consStore.byKey.set(k, r);
+        }
+        consStore.ready = true;
+        consStore.loading = false;
+        if (typeof window.matchConsistencyLeader !== 'function') {
+          window.matchConsistencyLeader = function (p) {
+            if (!consStore.ready || !p) return null;
+            let dir = String(p.direction || p.dir || '').toUpperCase();
+            if (dir === 'O' || dir === 'MORE') dir = 'OVER';
+            if (dir === 'U' || dir === 'LESS' || dir === 'LOWER') dir = 'UNDER';
+            const row = consStore.byKey.get(consKey(p.sport, p.player, p.prop || p.prop_type, dir));
+            if (!row) return null;
+            const slateLine = Number(p.line);
+            const leaderLine = Number(row.line);
+            if (Number.isFinite(slateLine) && Number.isFinite(leaderLine)) {
+              if (Math.abs(slateLine - leaderLine) > (consStore.band + 1e-9)) return null;
+            }
+            return row;
+          };
+        }
+        return true;
+      } catch (_) { /* next */ }
+    }
+    consStore.loading = false;
+    return false;
+  }
+  ensureConsLeaders();
+
   const evClass = (v) => {
     const f = Number(v);
     if (!Number.isFinite(f)) return 'utp-num-flat';
@@ -204,9 +273,30 @@
     const resultClass = result === 'HIT' || result === 'MISS' ? result : 'OTHER';
     const probStr = leg.est_p == null ? '' : ` · ${fmtPct(leg.est_p)}`;
     const pickType = leg.pick_type ? ` · ${leg.pick_type}` : '';
+    let consBadge = null;
+    try {
+      if (typeof window.matchConsistencyLeader === 'function') {
+        const hit = window.matchConsistencyLeader({
+          sport: sportStr,
+          player: playerStr,
+          prop: propStr || leg.prop_type,
+          direction: dirStr,
+          line: leg.line,
+        });
+        if (hit) {
+          const hr = hit.hit_rate != null ? Math.round(Number(hit.hit_rate) * 100) + '%' : '?';
+          consBadge = el('span', {
+            class: 'cons-line-badge',
+            title: `Season consistent ${hit.direction} ${hit.prop} · ${hr} (n=${hit.sample_n})`,
+          }, [`📌 CONS ${hr}`]);
+        }
+      }
+    } catch (_) { /* ignore */ }
+    const nameKids = [`${playerStr} — ${propStr}`];
+    if (consBadge) nameKids.push(consBadge);
     return el('li', { class: 'utp-leg' }, [
       el('div', { class: 'utp-leg-main' }, [
-        el('div', { class: 'utp-leg-name', title: `${playerStr} — ${propStr}` }, [`${playerStr} — ${propStr}`]),
+        el('div', { class: 'utp-leg-name', title: `${playerStr} — ${propStr}` }, nameKids),
         el('div', { class: 'utp-leg-line' }, [
           `${sportStr}${teamStr ? ` · ${teamStr}` : ''} · ${dirStr} ${lineStr}${pickType}${probStr}`.trim(),
         ]),

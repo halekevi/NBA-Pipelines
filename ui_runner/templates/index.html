@@ -362,6 +362,7 @@ body::after{content:'';position:fixed;inset:0;
 .l10-streak-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;}
 .l10-streak-badge.l10-hot{background:rgba(125,255,203,.12);color:var(--green);border:1px solid rgba(125,255,203,.35);}
 .l10-streak-badge.l10-cold{background:rgba(100,180,255,.12);color:#7eb8ff;border:1px solid rgba(100,180,255,.35);}
+.cons-line-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;background:rgba(212,175,55,.12);color:var(--accent-gold,#d4af37);border:1px solid rgba(212,175,55,.4);}
 .l10-bar-wrap{margin-top:10px;font-size:11px;color:var(--muted);}
 .l10-bar{font-family:ui-monospace,monospace;letter-spacing:.06em;font-size:12px;line-height:1.4;}
 .l10-bar-over{color:var(--green);}
@@ -2859,6 +2860,86 @@ function l10StreakBadgeHtml(p) {
   return "";
 }
 
+/** Season consistency-leader match index (player×prop×dir×line band). */
+window.__CONS_LEADERS = window.__CONS_LEADERS || { ready: false, byKey: new Map(), band: 0.5 };
+function _consNormName(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
+function _consNormProp(s) {
+  let t = String(s || "").toLowerCase().replace(/_/g, " ").replace(/\+/g, " + ").replace(/\s+/g, " ").trim();
+  const aliases = {
+    pts: "points", reb: "rebounds", rebs: "rebounds", ast: "assists", asts: "assists",
+    pra: "pts+rebs+asts", pr: "pts+rebs", pa: "pts+asts", ra: "rebs+asts",
+    "pts + rebs + asts": "pts+rebs+asts", "pts + rebs": "pts+rebs", "pts + asts": "pts+asts",
+    "rebs + asts": "rebs+asts", "3pm": "3-pt made", blocks: "blocked shots",
+    "g+a": "goals+assists", "goals + assists": "goals+assists",
+  };
+  return aliases[t] || t;
+}
+function _consKey(sport, player, prop, dir) {
+  return [String(sport || "").toUpperCase(), _consNormName(player), _consNormProp(prop), String(dir || "").toUpperCase()].join("|");
+}
+async function ensureConsistencyLeaders() {
+  const store = window.__CONS_LEADERS;
+  if (store.ready || store.loading) return store.ready;
+  store.loading = true;
+  const urls = ["/api/consistency-leaders", "consistency_leaders_latest.json", "/data/consistency_leaders_latest.json"];
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url, { cache: "no-store" });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const band = Number(data.line_band);
+      if (Number.isFinite(band)) store.band = band;
+      const rows = data.match_index || data.leaders || [];
+      for (const r of rows) {
+        if (!r || !r.player) continue;
+        const k = _consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, r.direction);
+        const prev = store.byKey.get(k);
+        if (!prev || Number(r.score || 0) > Number(prev.score || 0)) store.byKey.set(k, r);
+      }
+      store.ready = true;
+      store.loading = false;
+      return true;
+    } catch (_) { /* try next */ }
+  }
+  store.loading = false;
+  return false;
+}
+function matchConsistencyLeader(p) {
+  const store = window.__CONS_LEADERS;
+  if (!store.ready || !p) return null;
+  let dir = String(p.direction || p.dir || "").toUpperCase();
+  if (dir === "O" || dir === "MORE") dir = "OVER";
+  if (dir === "U" || dir === "LESS" || dir === "LOWER") dir = "UNDER";
+  const k = _consKey(p.sport, p.player, p.prop || p.prop_type, dir);
+  const row = store.byKey.get(k);
+  if (!row) return null;
+  const slateLine = Number(p.line);
+  const leaderLine = Number(row.line);
+  if (Number.isFinite(slateLine) && Number.isFinite(leaderLine)) {
+    if (Math.abs(slateLine - leaderLine) > (store.band + 1e-9)) return null;
+  }
+  return row;
+}
+function consLineBadgeHtml(p) {
+  const row = matchConsistencyLeader(p);
+  if (!row) return "";
+  const hr = row.hit_rate != null ? Math.round(Number(row.hit_rate) * 100) + "%" : "?";
+  const n = row.sample_n != null ? row.sample_n : "?";
+  const line = row.line != null ? Number(row.line).toFixed(1) : "?";
+  const tip = `Season consistent ${row.direction} ${row.prop} @${line} · ${hr} (n=${n}) · ${row.pick_type || ""}`
+    + (row.demon_only ? " · Demon-only" : "");
+  return `<span class="cons-line-badge" title="${tip.replace(/"/g, "&quot;")}">📌 CONS ${hr}</span>`;
+}
+ensureConsistencyLeaders().then((ok) => {
+  if (ok && typeof scheduleRenderSlateTable === "function") {
+    try {
+      Object.keys(window.SLATE_DATA || {}).forEach((sp) => scheduleRenderSlateTable(sp));
+    } catch (_) { /* ignore */ }
+  }
+});
+
 function confDotHtml(p) {
   const t = String(p?.confidence_tier || 'TRACKING').trim().toUpperCase();
   const cls = { HIGH: 'conf-high', MEDIUM: 'conf-medium', LOW: 'conf-low' }[t] || 'conf-tracking';
@@ -3868,7 +3949,7 @@ function buildEdgeCard(p, idx) {
         </div>
       </div>
       <div class="edge-row edge-row-main">
-        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}</div>
+        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
         <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
       </div>
       <div class="edge-row edge-row-tags">
@@ -5071,7 +5152,7 @@ function renderSlateTable(sport) {
     return `<tr class="slate-row-clickable" data-slate-idx="${rowIdx}">
       <td class="scol-tier"><span class="tier-badge ${tierCls}">${r.tier || '?'}</span>${confDotHtml(r)}</td>
       <td class="scol-rank slate-rank-cell">${rankStr}</td>
-      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}</td>
+      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}${consLineBadgeHtml(r)}</td>
       <td class="scol-team" style="color:var(--muted);" title="${r.team || ''}">${r.team || '—'}</td>
       <td class="scol-opp" style="color:var(--muted);" title="${r.opp || ''}">${r.opp || '—'}</td>
       <td class="scol-prop" style="color:var(--text);">${r.prop || '—'}</td>

@@ -5303,6 +5303,16 @@ def _l10_streak_badge_html(leg: dict) -> str:
     return ""
 
 
+def _cons_line_badge_html(leg: dict) -> str:
+    """Season consistency-leader badge when player+prop+dir+line match."""
+    try:
+        from utils.consistency_leaders_match import cons_line_badge_html
+
+        return cons_line_badge_html(leg if isinstance(leg, dict) else {})
+    except Exception:
+        return ""
+
+
 def _resolve_l5_cols(row: pd.Series, direction: str) -> tuple[float, float]:
     """
     Return (l5_hits, l5_games_played) for the play direction.
@@ -22499,6 +22509,18 @@ _TICKETS_BUILT_PAYOUT_CSS = """<style>
   color: #7eb8ff;
   border: 1px solid rgba(100,180,255,.35);
 }
+.tickets-built .cons-line-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  background: rgba(212,175,55,.12);
+  color: #d4af37;
+  border: 1px solid rgba(212,175,55,.4);
+}
 .tickets-built .kpi-val.l10-hot-count { color: #00ff88; }
 .tickets-built .kpi-val.l10-cold-count { color: #7eb8ff; }
 </style>"""
@@ -23900,7 +23922,7 @@ def render_tickets_body_html(
               <div class="pwrap">
                 {av_html}
                 <div>
-                  <div style="font-weight:600;font-size:14px;">{_h(player)}{_l10_streak_badge_html(leg)}</div>
+                  <div style="font-weight:600;font-size:14px;">{_h(player)}{_l10_streak_badge_html(leg)}{_cons_line_badge_html(leg)}</div>
                   <div style="font-size:12px;color:var(--muted);">{_h(matchup)}</div>
                 </div>
               </div>

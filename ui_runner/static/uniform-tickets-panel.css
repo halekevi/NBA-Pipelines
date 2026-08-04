@@ -270,6 +270,18 @@
 }
 .utp-leg-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .utp-leg-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.utp-leg-name .cons-line-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  background: rgba(212, 175, 55, 0.12);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
 .utp-leg-line { color: var(--utp-muted); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .utp-leg-result {
   font-size: 10.5px;

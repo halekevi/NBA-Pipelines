@@ -764,3 +764,17 @@
     background: rgba(255, 255, 255, 0.72);
   }
 }
+
+/* Season consistency leader badge (slate / tickets / edges) */
+.cons-line-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--accent-gold, #d4af37);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}

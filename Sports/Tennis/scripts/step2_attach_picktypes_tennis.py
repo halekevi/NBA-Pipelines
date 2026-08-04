@@ -74,6 +74,8 @@ def main() -> None:
         "sets_won",
         "match_total_games",
         "break_points_won",
+        "total_sets",
+        "total_tie_breaks",
     }
     df["unsupported_prop"] = (~df["prop_norm"].isin(supported)).astype(int)
 

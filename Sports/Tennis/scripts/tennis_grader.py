@@ -25,7 +25,16 @@ if str(_REPO_ROOT) not in sys.path:
 from tennis_shared import iter_scoreboard_matches, norm_key, norm_key_candidates, norm_tennis_prop
 from scripts.l10_streak_utils import enrich_graded_l10_columns
 
-VALID_TENNIS_PROPS = {"aces", "double_faults", "games_won", "sets_won", "match_total_games"}
+VALID_TENNIS_PROPS = {
+    "aces",
+    "double_faults",
+    "games_won",
+    "sets_won",
+    "match_total_games",
+    "total_sets",
+    "total_tie_breaks",
+    "break_points_won",
+}
 
 
 def _actual_key(prop_norm: str) -> str | None:
@@ -35,6 +44,9 @@ def _actual_key(prop_norm: str) -> str | None:
         "games_won": "games_won",
         "sets_won": "sets_won",
         "match_total_games": "match_total_games",
+        "total_sets": "total_sets",
+        "total_tie_breaks": "total_tie_breaks",
+        "break_points_won": "break_points_won",
     }
     return m.get(prop_norm)
 
@@ -280,6 +292,13 @@ def main() -> None:
                 "games_won": float(m.get("games_won") or 0),
                 "sets_won": float(m.get("sets_won") or 0),
                 "match_total_games": float(m.get("match_total_games") or 0),
+                "total_sets": float(m.get("total_sets") or 0),
+                "total_tie_breaks": float(m.get("total_tie_breaks") or 0),
+                "break_points_won": (
+                    float(m["break_points_won"])
+                    if m.get("break_points_won") is not None
+                    else None
+                ),
             }
 
     rows: list[dict[str, object]] = []

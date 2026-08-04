@@ -119,6 +119,10 @@ _SACKMANN_PROP_MAP: dict[str, tuple[str, ...]] = {
     "games_won": ("games_won",),
     "sets_won": ("sets_won",),
     "match_total_games": ("match_total_games",),
+    # Match-level markets (same value on both player rows for a given match).
+    "total_sets": ("total_sets",),
+    "total_tie_breaks": ("total_tie_breaks",),
+    "break_points_won": ("break_points_won",),
 }
 
 
@@ -208,6 +212,22 @@ def _sets_won_from_linescores(comp: dict[str, Any], other: dict[str, Any] | None
     return float(won)
 
 
+def _tiebreaks_from_linescores(comp: dict[str, Any], other: dict[str, Any] | None) -> float:
+    """Count completed sets that finished 7-6 / 6-7 (standard set tiebreak)."""
+    ls = comp.get("linescores") or []
+    ols = (other or {}).get("linescores") or []
+    n = 0
+    for i, cur in enumerate(ls):
+        try:
+            gv = int(float(cur.get("value") or 0))
+            ov = int(float(ols[i].get("value") or 0)) if i < len(ols) else 0
+        except (TypeError, ValueError, IndexError):
+            continue
+        if (gv == 7 and ov == 6) or (gv == 6 and ov == 7):
+            n += 1
+    return float(n)
+
+
 def _comp_status_final(comp: dict[str, Any]) -> bool:
     st = (comp.get("status") or {}).get("type") or {}
     return str(st.get("name") or "").upper() == "STATUS_FINAL"
@@ -244,6 +264,19 @@ def iter_scoreboard_matches(tour: str) -> Iterator[dict[str, Any]]:
                     if dbl is None:
                         dbl = 0.0
                     sw = _sets_won_from_linescores(c, other_c)
+                    opp_sw = _sets_won_from_linescores(other_c, c) if other_c is not None else 0.0
+                    total_sets = float(sw + opp_sw) if (sw or opp_sw) else float(
+                        max(len(c.get("linescores") or []), len((other_c or {}).get("linescores") or []))
+                    )
+                    tb = _tiebreaks_from_linescores(c, other_c)
+                    bp = _stat_from_competitor(
+                        c,
+                        "breakpoints won",
+                        "break pointswon",
+                        "breakpointsWon",
+                        "bp won",
+                        "breakswon",
+                    )
                     opp = ""
                     if other_c is not None:
                         a2 = other_c.get("athlete") or {}
@@ -260,6 +293,9 @@ def iter_scoreboard_matches(tour: str) -> Iterator[dict[str, Any]]:
                         "aces": float(aces),
                         "double_faults": float(dbl),
                         "sets_won": float(sw),
+                        "total_sets": float(total_sets),
+                        "total_tie_breaks": float(tb),
+                        "break_points_won": float(bp) if bp is not None else None,
                     }
 
 
@@ -300,6 +336,13 @@ def build_player_stats_index(
                 "aces": float(m.get("aces") or 0),
                 "double_faults": float(m.get("double_faults") or 0),
                 "sets_won": float(m.get("sets_won") or 0),
+                "total_sets": float(m.get("total_sets") or 0),
+                "total_tie_breaks": float(m.get("total_tie_breaks") or 0),
+                "break_points_won": (
+                    float(m["break_points_won"])
+                    if m.get("break_points_won") is not None
+                    else None
+                ),
             }
     return by_player
 
@@ -379,12 +422,20 @@ PROP_NORM_MAP = {
     "double fault": "double_faults",
     "break point": "break_points_won",
     "break points won": "break_points_won",
+    "breakpoints won": "break_points_won",
     "games won": "games_won",
     "total games": "match_total_games",
     "match total games": "match_total_games",
     "match games": "match_total_games",
     "sets won": "sets_won",
     "set won": "sets_won",
+    # PrizePicks board labels (match-level).
+    "total sets": "total_sets",
+    "total set": "total_sets",
+    "total tie breaks": "total_tie_breaks",
+    "total tie break": "total_tie_breaks",
+    "tie breaks": "total_tie_breaks",
+    "tie break": "total_tie_breaks",
 }
 
 
@@ -396,6 +447,13 @@ def norm_tennis_prop(raw: str) -> str:
     s2 = re.sub(r"\s+", " ", s2).strip()
     if s2 in PROP_NORM_MAP:
         return PROP_NORM_MAP[s2]
+    # Prefer specific phrases before fuzzy substring matches.
+    if "tie" in s2 and "break" in s2:
+        return "total_tie_breaks"
+    if "break" in s2 and "point" in s2:
+        return "break_points_won"
+    if "total" in s2 and "set" in s2:
+        return "total_sets"
     for k, v in PROP_NORM_MAP.items():
         if k in s2:
             return v
@@ -409,16 +467,17 @@ def norm_tennis_prop(raw: str) -> str:
 
 
 def history_value_key(prop_norm: str) -> str | None:
-    if prop_norm == "games_won":
-        return "games_won"
-    if prop_norm == "match_total_games":
-        return "match_total_games"
-    if prop_norm == "aces":
-        return "aces"
-    if prop_norm == "double_faults":
-        return "double_faults"
-    if prop_norm == "sets_won":
-        return "sets_won"
+    if prop_norm in (
+        "games_won",
+        "match_total_games",
+        "aces",
+        "double_faults",
+        "sets_won",
+        "total_sets",
+        "total_tie_breaks",
+        "break_points_won",
+    ):
+        return prop_norm
     return None
 
 
@@ -480,6 +539,7 @@ def _parse_score_both_sides(score: str) -> dict[str, Any] | None:
         return None
     w_games = l_games = w_sets = l_sets = 0
     total = 0
+    tiebreaks = 0
     for a, b in sets:
         try:
             wi, li = int(a), int(b)
@@ -492,10 +552,16 @@ def _parse_score_both_sides(score: str) -> dict[str, Any] | None:
             w_sets += 1
         elif li > wi:
             l_sets += 1
+        # Standard set TB finishes 7-6 / 6-7 (optional (n) already stripped by regex).
+        if (wi == 7 and li == 6) or (wi == 6 and li == 7):
+            tiebreaks += 1
     if total <= 0:
         return None
+    total_sets = float(w_sets + l_sets)
     return {
         "match_total_games": float(total),
+        "total_sets": total_sets,
+        "total_tie_breaks": float(tiebreaks),
         "winner": {"games_won": float(w_games), "sets_won": float(w_sets)},
         "loser": {"games_won": float(l_games), "sets_won": float(l_sets)},
     }
@@ -511,12 +577,19 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
     need = {"winner_name", "loser_name", "tourney_date", "score", "w_ace", "l_ace", "w_df", "l_df"}
     if not need.issubset(set(matches.columns)):
         return {}
+    has_bp = {"w_bpSaved", "w_bpFaced", "l_bpSaved", "l_bpFaced"}.issubset(set(matches.columns))
 
     index: dict[str, list[dict[str, Any]]] = {}
 
     def _append(pk: str, rec: dict[str, Any]) -> None:
         if pk:
             index.setdefault(pk, []).append(rec)
+
+    def _f(row: Any, col: str) -> float:
+        try:
+            return float(row.get(col))
+        except (TypeError, ValueError):
+            return float("nan")
 
     for _, rd in matches.iterrows():
         w_name = str(rd.get("winner_name") or "")
@@ -525,24 +598,26 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
         score = str(rd.get("score") or "")
         parsed = _parse_score_both_sides(score)
         mtg = parsed["match_total_games"] if parsed else None
+        total_sets = parsed["total_sets"] if parsed else None
+        total_tb = parsed["total_tie_breaks"] if parsed else None
         w_side = parsed["winner"] if parsed else {}
         l_side = parsed["loser"] if parsed else {}
-        try:
-            w_ace = float(rd.get("w_ace"))
-        except (TypeError, ValueError):
-            w_ace = float("nan")
-        try:
-            l_ace = float(rd.get("l_ace"))
-        except (TypeError, ValueError):
-            l_ace = float("nan")
-        try:
-            w_df = float(rd.get("w_df"))
-        except (TypeError, ValueError):
-            w_df = float("nan")
-        try:
-            l_df = float(rd.get("l_df"))
-        except (TypeError, ValueError):
-            l_df = float("nan")
+        w_ace = _f(rd, "w_ace")
+        l_ace = _f(rd, "l_ace")
+        w_df = _f(rd, "w_df")
+        l_df = _f(rd, "l_df")
+
+        # Breaks converted = opponent break points faced - saved.
+        w_bp = l_bp = float("nan")
+        if has_bp:
+            try:
+                w_bp = float(rd.get("l_bpFaced")) - float(rd.get("l_bpSaved"))
+            except (TypeError, ValueError):
+                w_bp = float("nan")
+            try:
+                l_bp = float(rd.get("w_bpFaced")) - float(rd.get("w_bpSaved"))
+            except (TypeError, ValueError):
+                l_bp = float("nan")
 
         _append(
             norm_key(w_name),
@@ -553,6 +628,9 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
                 "games_won": w_side.get("games_won"),
                 "sets_won": w_side.get("sets_won"),
                 "match_total_games": mtg,
+                "total_sets": total_sets,
+                "total_tie_breaks": total_tb,
+                "break_points_won": w_bp,
             },
         )
         _append(
@@ -564,6 +642,9 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
                 "games_won": l_side.get("games_won"),
                 "sets_won": l_side.get("sets_won"),
                 "match_total_games": mtg,
+                "total_sets": total_sets,
+                "total_tie_breaks": total_tb,
+                "break_points_won": l_bp,
             },
         )
 

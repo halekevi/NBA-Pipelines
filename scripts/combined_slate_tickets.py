@@ -325,6 +325,15 @@ def _wnba_family_off_season(slate_date: str) -> bool:
         return False
 
 
+def _mlb_allstar_break(slate_date: str) -> bool:
+    """True when MLB slate date falls in the configured All-Star break window."""
+    try:
+        from utils.allstar_filter import is_allstar_date
+    except Exception:
+        return False
+    return bool(is_allstar_date(slate_date, sport="MLB"))
+
+
 _PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset()  # use dated resumes in _sport_slug_off_season
 
 
@@ -391,6 +400,8 @@ def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
     if sl == "nhl" and _nhl_off_season(slate_date):
         return True
     if sl in ("wnba", "wnba1h", "wnba1q") and _wnba_family_off_season(slate_date):
+        return True
+    if sl == "mlb" and _mlb_allstar_break(slate_date):
         return True
     return False
 
@@ -19694,11 +19705,18 @@ def main():
         cbb = pd.DataFrame()
     else:
         print(f"Loading CBB slate from {args.cbb}...")
-        cbb = load_cbb(args.cbb)
-        cbb = enforce_target_date(
-            cbb, "CBB", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
-        )
-        print(f"  {len(cbb)} CBB props loaded")
+        try:
+            cbb = load_cbb(args.cbb)
+            cbb = enforce_target_date(
+                cbb, "CBB", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
+            )
+            print(f"  {len(cbb)} CBB props loaded")
+        except (FileNotFoundError, OSError) as e:
+            print(
+                f"  WARNING: CBB slate unavailable ({type(e).__name__}: {e}); "
+                "continuing with 0 CBB props."
+            )
+            cbb = pd.DataFrame()
         _load_audit_row("CBB", args.cbb, cbb)
 
     nhl = None
@@ -19805,7 +19823,13 @@ def main():
 
     mlb = None
     mlb_path = str(args.mlb or "").strip()
-    if mlb_path:
+    if _mlb_allstar_break(args.date):
+        print(
+            f"  [MLB] All-Star break — skipped ({args.date}; "
+            "utils.allstar_filter ALLSTAR_DATE_WINDOWS['MLB'])"
+        )
+        _load_audit_row("MLB", "", pd.DataFrame())
+    elif mlb_path:
         try:
             mlb = load_mlb(mlb_path)
             mlb = enforce_target_date(

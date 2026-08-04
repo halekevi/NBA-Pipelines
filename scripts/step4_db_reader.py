@@ -246,6 +246,15 @@ def _allstar_team_exclusion_sql(sport: str, team_col: str = "team") -> tuple[str
     return f"upper(coalesce({team_col}, '')) NOT IN ({placeholders})", tuple(teams)
 
 
+def _allstar_date_exclusion_sql(sport: str, date_col: str = "game_date") -> tuple[str, tuple]:
+    """SQL fragment + params excluding configured All-Star date windows."""
+    try:
+        from utils.allstar_filter import allstar_date_exclusion_sql
+    except Exception:
+        return "1=1", ()
+    return allstar_date_exclusion_sql(sport, date_col=date_col)
+
+
 def _query_vals(con: sqlite3.Connection, table: str, where_clause: str,
                 stat_expr: str, params: tuple, n: int,
                 *, sport: str = "") -> List[float]:
@@ -253,18 +262,23 @@ def _query_vals(con: sqlite3.Connection, table: str, where_clause: str,
     Generic indexed stat query.
     Returns up to n most-recent non-null values, newest first.
     """
-    exclude_sql, exclude_params = _allstar_team_exclusion_sql(sport or table)
+    sport_key = sport or table
+    exclude_sql, exclude_params = _allstar_team_exclusion_sql(sport_key)
+    date_sql, date_params = _allstar_date_exclusion_sql(sport_key)
     sql = f"""
         SELECT {stat_expr} AS val
         FROM {table}
         WHERE {where_clause}
           AND {stat_expr} IS NOT NULL
           AND ({exclude_sql})
+          AND ({date_sql})
         ORDER BY game_date DESC
         LIMIT {n}
     """
     try:
-        rows = con.execute(sql, tuple(params) + tuple(exclude_params)).fetchall()
+        rows = con.execute(
+            sql, tuple(params) + tuple(exclude_params) + tuple(date_params)
+        ).fetchall()
         return [float(r[0]) for r in rows if r[0] is not None]
     except Exception:
         return []

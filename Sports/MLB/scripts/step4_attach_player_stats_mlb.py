@@ -48,6 +48,7 @@ for _p in (_PROPORACLE_ROOT, _SCRIPTS_ROOT):
         sys.path.insert(0, str(_p))
 
 from scripts.db_utils import ensure_mlb_schema, log_pipeline_health, open_db, upsert_rows
+from utils.allstar_filter import drop_allstar_game_rows, is_allstar_date, is_allstar_team
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
 COMBO_SEP = "|"
@@ -644,6 +645,13 @@ def update_cache(
         date_str = str(split.get("date", "")).strip()
         if not game_id:
             continue
+        # Skip All-Star break / AL-NL exhibition rows (not regular-season L5).
+        if is_allstar_date(date_str, sport="MLB"):
+            continue
+        team_abbr = str((split.get("team") or {}).get("abbreviation", "")).strip()
+        opp_abbr = str((split.get("opponent") or {}).get("abbreviation", "")).strip()
+        if is_allstar_team(team_abbr, "MLB") or is_allstar_team(opp_abbr, "MLB"):
+            continue
         cached_props = cached_props_by_game.get(game_id, set())
         props_to_write = [p for p in prop_list if p not in cached_props]
         if not props_to_write:
@@ -705,6 +713,14 @@ def update_cache(
     return cache, added
 
 
+def _filter_mlb_cache_allstar(cache: pd.DataFrame) -> pd.DataFrame:
+    """Drop All-Star break / AL-NL exhibition rows from the stats cache frame."""
+    if cache is None or cache.empty:
+        return cache
+    out, _n = drop_allstar_game_rows(cache, sport="MLB")
+    return out
+
+
 def get_vals_from_cache(
     cache: pd.DataFrame,
     player_id: str,
@@ -724,6 +740,11 @@ def get_vals_from_cache(
         return []
 
     sub["GAME_DATE"] = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
+    # Exclude All-Star break dates from L5 windows.
+    keep = ~sub["GAME_DATE"].map(lambda x: is_allstar_date(x, sport="MLB"))
+    sub = sub.loc[keep]
+    if sub.empty:
+        return []
     sub = sub.sort_values("GAME_DATE", ascending=False)
     vals = pd.to_numeric(sub["STAT_VALUE"], errors="coerce").dropna().tolist()
     return vals[:n]
@@ -750,6 +771,10 @@ def get_vals_vs_opp_from_cache(
     if sub.empty:
         return []
     sub["GAME_DATE"] = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
+    keep = ~sub["GAME_DATE"].map(lambda x: is_allstar_date(x, sport="MLB"))
+    sub = sub.loc[keep]
+    if sub.empty:
+        return []
     sub = sub.sort_values("GAME_DATE", ascending=False)
     vals = pd.to_numeric(sub["STAT_VALUE"], errors="coerce").dropna().tolist()
     return vals[:n]
@@ -1030,6 +1055,11 @@ def main() -> None:
 
     cache_path = Path(args.cache)
     cache      = load_cache(cache_path)
+    cache_n0 = len(cache)
+    cache = _filter_mlb_cache_allstar(cache)
+    if len(cache) < cache_n0:
+        print(f"  Purged {cache_n0 - len(cache)} All-Star break row(s) from cache")
+        save_cache(cache, cache_path)
 
     N         = int(args.n)
     stat_cols = [f"stat_g{i}" for i in range(1, N + 1)]

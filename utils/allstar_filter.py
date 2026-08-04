@@ -102,15 +102,22 @@ WNBA_ALLSTAR_ROSTERS_BY_YEAR: dict[int, frozenset[str]] = {
     ),
 }
 
-# Optional hard date windows (inclusive) for known All-Star game days.
-# Prefer team/text/event detection; dates are a safety net for fetch skips.
+# Optional hard date windows (inclusive) for known All-Star game days / breaks.
+# Prefer team/text/event detection; dates are a safety net for fetch skips and
+# for sports (MLB) where the midsummer classic has a multi-day regular-season pause.
 ALLSTAR_DATE_WINDOWS: dict[str, tuple[tuple[str, str], ...]] = {
     "WNBA": (
         ("2025-07-19", "2025-07-20"),  # 2025 ASG (UTC/local boundary)
         ("2026-07-25", "2026-07-25"),  # 2026 ASG
     ),
     "NBA": (),
-    "MLB": (),
+    # MLB: no regular-season games during the All-Star break. Official 2026
+    # All-Star Week is Jul 10–14 (game Jul 14); regular season pause in cache /
+    # graded shells is Jul 13–15 (Derby / ASG / travel). 2025 pause Jul 14–17.
+    "MLB": (
+        ("2025-07-14", "2025-07-17"),
+        ("2026-07-13", "2026-07-15"),
+    ),
 }
 
 _TEAM_COLUMNS: tuple[str, ...] = (
@@ -215,6 +222,26 @@ def is_allstar_date(day: object, sport: object = "WNBA") -> bool:
         if start <= d <= end:
             return True
     return False
+
+
+def allstar_date_exclusion_sql(
+    sport: object, date_col: str = "game_date"
+) -> tuple[str, tuple]:
+    """
+    SQL fragment + params excluding configured All-Star date windows.
+
+    Returns ``(\"1=1\", ())`` when the sport has no date windows.
+    """
+    sport_u = _canon_sport(sport)
+    windows = ALLSTAR_DATE_WINDOWS.get(sport_u) or ()
+    if not windows:
+        return "1=1", ()
+    parts: list[str] = []
+    params: list[str] = []
+    for start_s, end_s in windows:
+        parts.append(f"NOT (substr(cast({date_col} as text),1,10) BETWEEN ? AND ?)")
+        params.extend([start_s[:10], end_s[:10]])
+    return " AND ".join(parts), tuple(params)
 
 
 def _norm_player(name: object) -> str:

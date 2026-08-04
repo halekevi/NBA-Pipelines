@@ -55,6 +55,21 @@ def test_wnba_allstar_date_window():
     assert not is_allstar_date("2026-07-22", "WNBA")
 
 
+def test_mlb_allstar_date_window():
+    assert is_allstar_team("AL", "MLB")
+    assert is_allstar_team("NL", "MLB")
+    assert not is_allstar_team("NYY", "MLB")
+    # 2026 break (Derby / ASG / travel) — regular season still played Jul 10–12
+    assert is_allstar_date("2026-07-13", "MLB")
+    assert is_allstar_date("2026-07-14", "MLB")
+    assert is_allstar_date("2026-07-15", "MLB")
+    assert not is_allstar_date("2026-07-12", "MLB")
+    assert not is_allstar_date("2026-07-16", "MLB")
+    # 2025 break
+    assert is_allstar_date("2025-07-15", "MLB")
+    assert not is_allstar_date("2025-07-13", "MLB")
+
+
 def test_drop_allstar_game_rows_fixes_stewart_l5():
     df = pd.DataFrame(
         {
@@ -92,6 +107,22 @@ def test_drop_allstar_props_by_team():
     out, n = drop_allstar_props(df, sport="WNBA")
     assert n == 1
     assert list(out["player"]) == ["B"]
+
+
+def test_drop_mlb_allstar_props_by_date():
+    df = pd.DataFrame(
+        {
+            "player": ["A", "B", "C"],
+            "team": ["NYY", "BOS", "AL"],
+            "opp_team": ["BOS", "NYY", "NL"],
+            "prop_type": ["Hits", "Hits", "Hits"],
+            "game_date": ["2026-07-12", "2026-07-14", "2026-07-16"],
+            "line": [0.5, 0.5, 0.5],
+        }
+    )
+    out, n = drop_allstar_props(df, sport="MLB")
+    assert n == 2  # Jul 14 date + AL squad
+    assert list(out["player"]) == ["A"]
 
 
 def test_espn_summary_allstar_game_note():

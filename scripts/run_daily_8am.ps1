@@ -66,6 +66,11 @@ if (-not (Test-Path -LiteralPath $EnsurePull)) {
 & pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[8AM UPDATE]" -StashMessage ("proporacle-8am-pre-pull-{0:yyyyMMdd_HHmmss}" -f (Get-Date))
 $pullPrepExit = $LASTEXITCODE
 if ($pullPrepExit -eq 2) {
+    Write-Host "[8AM UPDATE] Source conflict reported — retrying publish-artifact repair..." -ForegroundColor Yellow
+    & pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[8AM UPDATE]" -SkipPull
+    $pullPrepExit = $LASTEXITCODE
+}
+if ($pullPrepExit -eq 2) {
     Write-Host "[8AM UPDATE] FAILED: source-code conflicts block pull (resolve manually)." -ForegroundColor Red
     exit 128
 }

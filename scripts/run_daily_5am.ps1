@@ -73,16 +73,22 @@ $WrapperLog = Join-Path $LogsDir ("task_5am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-D
 try { Start-Transcript -Path $WrapperLog -Append | Out-Null } catch { }
 
 Write-Host "[5AM DAILY] Pulling latest repository (main)..." -ForegroundColor Cyan
-# Permanent fix: generated publish JSON (tickets_latest / pipeline_status /
-# sport_breakdown) used to leave orphaned unmerged index entries and abort every
-# early run with exit 128 before STEP C. Repair + continue — never skip the daily
-# for those artifacts. Real source conflicts still abort (exit 2).
+# Permanent fix: generated publish JSON (tickets_latest / tickets_winrate_latest /
+# pipeline_status / sport_breakdown / slate_sport_*) used to leave orphaned
+# unmerged index entries and abort every early run with exit 128 before STEP A/C.
+# Ensure-CleanPull clears those; only real source-code conflicts abort (exit 2).
 $EnsurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
 if (-not (Test-Path -LiteralPath $EnsurePull)) {
     $EnsurePull = Join-Path $Root "scripts\Ensure-CleanPull.ps1"
 }
 & pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[5AM DAILY]" -StashMessage ("proporacle-5am-pre-pull-{0:yyyyMMdd_HHmmss}" -f (Get-Date))
 $pullPrepExit = $LASTEXITCODE
+if ($pullPrepExit -eq 2) {
+    # One retry after publish-only repair (handles leftover winrate/slate stages).
+    Write-Host "[5AM DAILY] Source conflict reported — retrying publish-artifact repair..." -ForegroundColor Yellow
+    & pwsh -NoProfile -File $EnsurePull -RepoRoot $Root -Label "[5AM DAILY]" -SkipPull
+    $pullPrepExit = $LASTEXITCODE
+}
 if ($pullPrepExit -eq 2) {
     Write-Host "[5AM DAILY] FAILED: source-code conflicts block pull (resolve manually)." -ForegroundColor Red
     try { Stop-Transcript | Out-Null } catch { }

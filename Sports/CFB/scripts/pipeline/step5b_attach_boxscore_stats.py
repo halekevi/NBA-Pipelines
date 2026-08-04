@@ -80,9 +80,9 @@ def date_range(end_date: dt.date, days_back: int) -> List[str]:
 
 
 def pull_scoreboard(d: str) -> dict:
+    # Do NOT pass groups=50 — ESPN treats it as a tiny subset filter on dated
+    # scoreboards (~4–6 games/day). Omit groups to get the full slate (~50–60).
     params = {"dates": d, "limit": "500"}
-    if ESPN_LEAGUE == "college-football":
-        params["groups"] = "50"
     return request_json(ESPN_SCOREBOARD_URL.format(league=ESPN_LEAGUE), params=params, sleep=0.10) or {}
 
 

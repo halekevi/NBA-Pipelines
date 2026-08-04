@@ -156,12 +156,23 @@ if ($MLBVerify -and -not $MLBOnly) {
 }
 
 # MLB step4 ESPN/cache season: use slate calendar year (2026 slates must not pass --season 2025).
+# CFB: before late August use prior completed season (rankings/stats empty for the upcoming year).
 try {
-    $MLBSeasonYear = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Year
-    $CFBSeasonYear = $MLBSeasonYear
+    $slateDt = [datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
+    $MLBSeasonYear = $slateDt.Year
+    if ($slateDt.Month -lt 8 -or ($slateDt.Month -eq 8 -and $slateDt.Day -lt 20)) {
+        $CFBSeasonYear = $slateDt.Year - 1
+    } else {
+        $CFBSeasonYear = $slateDt.Year
+    }
 } catch {
     $MLBSeasonYear = (Get-Date).Year
-    $CFBSeasonYear = $MLBSeasonYear
+    $now = Get-Date
+    if ($now.Month -lt 8 -or ($now.Month -eq 8 -and $now.Day -lt 20)) {
+        $CFBSeasonYear = $now.Year - 1
+    } else {
+        $CFBSeasonYear = $now.Year
+    }
 }
 
 $StartTime = Get-Date
@@ -2497,9 +2508,20 @@ $CFBJob = Start-Job -ScriptBlock {
     param($CFBDir, $Date, $SkipFetch, $RepoRoot, $CFBRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
     try {
-        $cfbSeason = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Year
+        $slateDt = [datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
+        # Before late August, prior completed season still owns rankings/stats.
+        if ($slateDt.Month -lt 8 -or ($slateDt.Month -eq 8 -and $slateDt.Day -lt 20)) {
+            $cfbSeason = $slateDt.Year - 1
+        } else {
+            $cfbSeason = $slateDt.Year
+        }
     } catch {
-        $cfbSeason = (Get-Date).Year
+        $now = Get-Date
+        if ($now.Month -lt 8 -or ($now.Month -eq 8 -and $now.Day -lt 20)) {
+            $cfbSeason = $now.Year - 1
+        } else {
+            $cfbSeason = $now.Year
+        }
     }
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
@@ -3347,7 +3369,7 @@ $NFLJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "NFL Step 4 - Defense Rankings" $NFLDir ".\scripts\step4_defense_rankings.py" "--season $DefenseSeason --output data\defense_rankings.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 4b - Team Last-5 Form" $NFLDir ".\scripts\step4b_team_last5_games.py" "--season $DefenseSeason --output data\nfl_team_last5.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 3 - Merge Defense" $NFLDir ".\scripts\step3_merge_defense_nfl.py" "--defense-source auto --team-form data\nfl_team_last5.csv" }
-    if ($ok) { $ok = Run-Step-Job "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input data\outputs\step3_nfl_with_defense.csv --output data\outputs\step5_nfl_with_stats.csv --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 120" }
+    if ($ok) { $ok = Run-Step-Job "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input data\outputs\step3_nfl_with_defense.csv --output data\outputs\step5_nfl_with_stats.csv --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 320" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 6 - Hit Rates" $NFLDir ".\scripts\step6_historical_hit_rates.py" "--input data\outputs\step5_nfl_with_stats.csv --output data\outputs\step6_hit_rates.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 7 - Rank Props" $NFLDir ".\scripts\step7_rank_props_nfl.py" "--output `"$NFLRunOutDir\step7_nfl_ranked.xlsx`"" }
     if ($ok) { Invoke-Step7b-Job "NFL" $RepoRoot "$NFLRunOutDir\step7_nfl_ranked.xlsx" }

@@ -32,7 +32,8 @@ def main() -> None:
     if "--cache" not in argv:
         argv.extend(["--cache", "data/cache/nfl_boxscore_cache.csv"])
     if "--days" not in argv:
-        argv.extend(["--days", "120"])
+        # Season-open needs prior-year games (~Sep→Feb). 120 days is too short in September.
+        argv.extend(["--days", "320"])
     sys.argv = argv
     runpy.run_path(str(_ENGINE), run_name="__main__")
 

@@ -32,7 +32,7 @@ Full parallel run includes CFB when the slate date is in **Aug–Jan** (off-seas
 ## Data files
 
 - `data/reference/ncaa_football_athletes_master.csv` — bootstrap ESPN athlete map (grows over time)
-- `data/reference/cfb_def_rankings.csv` — team defense ranks (placeholder from CBB template until CFB-specific table is built)
+- `data/reference/cfb_def_rankings.csv` — FBS defensive ranks derived from `cfb_team_unit_rankings.csv` (points allowed)
 - `data/cache/cfb_boxscore_cache.csv` — ESPN college-football game logs (populate via backfill + step5b)
 
 ## Rolling stats (L5 / L10) — backfill prior season

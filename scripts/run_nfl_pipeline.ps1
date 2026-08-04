@@ -133,7 +133,7 @@ if ($ok -and (Test-Path -LiteralPath $s3)) {
     Copy-Item -LiteralPath $s3 -Destination $s3dated -Force
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input `"$s3`" --output `"$s5`" --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 120"
+    $ok = Run-Step "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input `"$s3`" --output `"$s5`" --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 320"
 }
 if ($ok) {
     $ok = Run-Step "NFL Step 6 - Hit Rates" $NFLDir ".\scripts\step6_historical_hit_rates.py" "--input `"$s5`" --output `"$s6`""

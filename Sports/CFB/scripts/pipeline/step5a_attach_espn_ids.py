@@ -127,7 +127,7 @@ def espn_search_player(name: str, team_abbr: str = "") -> tuple[str, str]:
         r = requests.get(
             ESPN_SEARCH,
             params={"query": name, "limit": "5", "type": "athlete",
-                    "sport": "football", "league": "mens-college-basketball"},
+                    "sport": "football", "league": "college-football"},
             headers=HEADERS, timeout=10,
         )
         r.raise_for_status()

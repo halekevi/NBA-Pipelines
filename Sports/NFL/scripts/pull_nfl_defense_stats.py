@@ -220,7 +220,8 @@ def main() -> int:
         time.sleep(REQUEST_DELAY_S)
 
         parsed = parse_team_defense_stats(payload)
-        row_season = int(args.season) if args.season else season
+        # Always label with the resolved season that has standings (not the empty hint year).
+        row_season = season
         g = pa_map.get(abbr, {}).get("games", 17.0)
         pa_total = pa_map.get(abbr, {}).get("points_against", float("nan"))
         pa_pg = float(pa_total) / float(g) if g and pa_total == pa_total else float("nan")

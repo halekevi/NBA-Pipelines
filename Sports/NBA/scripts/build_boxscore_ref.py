@@ -115,7 +115,7 @@ NHL_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summ
 SOC_SCOREBOARD  = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/scoreboard?dates={date}"
 SOC_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
 
-# Soccer leagues to cover
+# Soccer leagues to cover (keep in sync with scripts/build_boxscore_ref.py).
 SOCCER_LEAGUES = [
     ("eng.1",          "EPL"),
     ("esp.1",          "La Liga"),
@@ -123,7 +123,15 @@ SOCCER_LEAGUES = [
     ("ita.1",          "Serie A"),
     ("fra.1",          "Ligue 1"),
     ("usa.1",          "MLS"),
+    ("usa.nwsl",       "NWSL"),
     ("uefa.champions", "UCL"),
+    ("uefa.europa",    "UEL"),
+    ("uefa.nations",   "UEFA Nations League"),
+    ("fifa.world",     "World Cup"),
+    ("fifa.friendly",  "FIFA Friendlies"),
+    ("fifa.worldq.uefa", "FIFA World Cup Qualifying - UEFA"),
+    ("fifa.worldq.conmebol", "FIFA World Cup Qualifying - CONMEBOL"),
+    ("fifa.worldq.concacaf", "FIFA World Cup Qualifying - CONCACAF"),
     ("arg.1",          "Argentina"),
     ("bra.1",          "Brasileirao"),
     ("mex.1",          "Liga MX"),

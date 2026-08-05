@@ -353,6 +353,11 @@ body::after{content:'';position:fixed;inset:0;
 .l10-streak-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;}
 .l10-streak-badge.l10-hot{background:rgba(125,255,203,.12);color:var(--green);border:1px solid rgba(125,255,203,.35);}
 .l10-streak-badge.l10-cold{background:rgba(100,180,255,.12);color:#7eb8ff;border:1px solid rgba(100,180,255,.35);}
+/* Season line-class consistency badge (GOB / STD / UND) */
+.cons-line-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;background:rgba(212,175,55,.12);color:var(--accent-gold,#d4af37);border:1px solid rgba(212,175,55,.4);}
+.cons-line-badge.cons-gob{background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.5);}
+.cons-line-badge.cons-std{background:rgba(212,175,55,.10);border-color:rgba(212,175,55,.35);}
+.cons-line-badge.cons-und{background:rgba(196,160,48,.10);border-color:rgba(196,160,48,.4);color:#c9a227;}
 .l10-bar-wrap{margin-top:10px;font-size:11px;color:var(--muted);}
 .l10-bar{font-family:ui-monospace,monospace;letter-spacing:.06em;font-size:12px;line-height:1.4;}
 .l10-bar-over{color:var(--green);}

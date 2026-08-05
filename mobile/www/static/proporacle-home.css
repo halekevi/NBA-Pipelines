@@ -163,6 +163,11 @@ body::after{content:'';position:fixed;inset:0;
 .gold-shimmer{background:linear-gradient(to bottom,#d4af37,#f7ef8a);-webkit-background-clip:text;background-clip:text;color:transparent;}
 .insight-card{padding:24px;transition:transform .3s ease,border-color .3s ease;}
 .insight-card:hover{transform:translateY(-5px);border-color:var(--accent-gold);}
+.insight-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.insight-grid .insight-card{padding:14px 16px;background:var(--glass,rgba(255,255,255,.04));border:1px solid var(--glass-bd,rgba(255,255,255,.08));border-radius:12px;}
+.insight-grid .insight-title{font-weight:700;font-size:13px;margin-bottom:6px;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+.insight-grid .insight-body{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2,#9aa);line-height:1.55;}
+.insight-grid .insight-body strong{color:var(--text,#eee);}
 .edge-badge{color:#00ffcc;font-weight:800;text-shadow:0 0 10px rgba(0,255,204,0.5);}
 [data-theme="light"] .glass-card{background:rgba(200,215,235,0.72);backdrop-filter:blur(15px) saturate(180%);-webkit-backdrop-filter:blur(15px) saturate(180%);border:1px solid rgba(120,150,185,0.35);}
 
@@ -348,6 +353,11 @@ body::after{content:'';position:fixed;inset:0;
 .l10-streak-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;}
 .l10-streak-badge.l10-hot{background:rgba(125,255,203,.12);color:var(--green);border:1px solid rgba(125,255,203,.35);}
 .l10-streak-badge.l10-cold{background:rgba(100,180,255,.12);color:#7eb8ff;border:1px solid rgba(100,180,255,.35);}
+/* Season line-class consistency badge (GOB / STD / UND) */
+.cons-line-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;background:rgba(212,175,55,.12);color:var(--accent-gold,#d4af37);border:1px solid rgba(212,175,55,.4);}
+.cons-line-badge.cons-gob{background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.5);}
+.cons-line-badge.cons-std{background:rgba(212,175,55,.10);border-color:rgba(212,175,55,.35);}
+.cons-line-badge.cons-und{background:rgba(196,160,48,.10);border-color:rgba(196,160,48,.4);color:#c9a227;}
 .l10-bar-wrap{margin-top:10px;font-size:11px;color:var(--muted);}
 .l10-bar{font-family:ui-monospace,monospace;letter-spacing:.06em;font-size:12px;line-height:1.4;}
 .l10-bar-over{color:var(--green);}

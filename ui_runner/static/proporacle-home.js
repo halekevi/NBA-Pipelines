@@ -538,6 +538,119 @@ function streakHits(raw, n) {
   return Math.max(0, Math.min(n, Math.round(x)));
 }
 
+/** Season line-class consistency leaders (GOB / STD / UND). */
+window.__CONS_LEADERS = window.__CONS_LEADERS || { ready: false, byKey: new Map(), band: 0.5 };
+function _consNormName(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
+function _consNormProp(s) {
+  let t = String(s || "").toLowerCase().replace(/_/g, " ").replace(/\+/g, " + ").replace(/\s+/g, " ").trim();
+  const aliases = {
+    pts: "points", reb: "rebounds", rebs: "rebounds", ast: "assists", asts: "assists",
+    pra: "pts+rebs+asts", pr: "pts+rebs", pa: "pts+asts", ra: "rebs+asts",
+    "pts + rebs + asts": "pts+rebs+asts", "pts + rebs": "pts+rebs", "pts + asts": "pts+asts",
+    "rebs + asts": "rebs+asts", "3pm": "3-pt made", blocks: "blocked shots",
+    "g+a": "goals+assists", "goals + assists": "goals+assists",
+  };
+  return aliases[t] || t;
+}
+function _consNormPick(pt) {
+  const s = String(pt || "").toLowerCase();
+  if (s.includes("goblin")) return "Goblin";
+  if (s.includes("demon")) return "Demon";
+  if (s.includes("standard")) return "Standard";
+  return "Other";
+}
+function _consPickClass(pickType, dir) {
+  const pick = _consNormPick(pickType);
+  let d = String(dir || "").toUpperCase();
+  if (d === "O" || d === "MORE") d = "OVER";
+  if (d === "U" || d === "LESS" || d === "LOWER") d = "UNDER";
+  if (pick === "Goblin" && d === "OVER") return "goblin_over";
+  if (pick === "Standard" && d === "OVER") return "standard_over";
+  if (pick === "Standard" && d === "UNDER") return "standard_under";
+  if (pick === "Goblin" && d === "UNDER") return "goblin_under";
+  return null;
+}
+function _consBadgePrefix(pc) {
+  return ({ goblin_over: "GOB", standard_over: "STD", standard_under: "UND", goblin_under: "UND" })[pc] || "CONS";
+}
+function _consKey(sport, player, prop, pickClass) {
+  return [String(sport || "").toUpperCase(), _consNormName(player), _consNormProp(prop), String(pickClass || "")].join("|");
+}
+async function ensureConsistencyLeaders() {
+  const store = window.__CONS_LEADERS;
+  if (store.ready || store.loading) return store.ready;
+  store.loading = true;
+  const urls = ["/api/consistency-leaders", "consistency_leaders_latest.json", "/data/consistency_leaders_latest.json"];
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url, { cache: "no-store" });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const band = Number(data.line_band);
+      if (Number.isFinite(band)) store.band = band;
+      const rows = data.match_index || data.leaders || [];
+      for (const r of rows) {
+        if (!r || !r.player) continue;
+        const pc = r.pick_class || _consPickClass(r.pick_type, r.direction);
+        if (!pc) continue;
+        const k = _consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, pc);
+        const prev = store.byKey.get(k);
+        if (!prev || Number(r.score || 0) > Number(prev.score || 0)) store.byKey.set(k, r);
+      }
+      store.ready = true;
+      store.loading = false;
+      return true;
+    } catch (_) { /* try next */ }
+  }
+  store.loading = false;
+  return false;
+}
+function matchConsistencyLeader(p) {
+  const store = window.__CONS_LEADERS;
+  if (!store.ready || !p) return null;
+  let dir = String(p.direction || p.dir || "").toUpperCase();
+  if (dir === "O" || dir === "MORE") dir = "OVER";
+  if (dir === "U" || dir === "LESS" || dir === "LOWER") dir = "UNDER";
+  // Home Top Edges / ALL_SLATE use `pick`; slate tables use `pick_type`.
+  const pc = _consPickClass(p.pick_type || p.pick, dir);
+  if (!pc) return null;
+  const k = _consKey(p.sport, p.player, p.prop || p.prop_type, pc);
+  const row = store.byKey.get(k);
+  if (!row) return null;
+  const slateLine = Number(p.line);
+  const leaderLine = Number(row.reference_line != null ? row.reference_line : row.line);
+  if (Number.isFinite(slateLine) && Number.isFinite(leaderLine)) {
+    if (Math.abs(slateLine - leaderLine) > (store.band + 1e-9)) return null;
+  }
+  return row;
+}
+function consLineBadgeHtml(p) {
+  const row = matchConsistencyLeader(p);
+  if (!row) return "";
+  const hr = row.hit_rate != null ? Math.round(Number(row.hit_rate) * 100) + "%" : "?";
+  const n = row.sample_n != null ? row.sample_n : "?";
+  const lineVal = row.reference_line != null ? row.reference_line : row.line;
+  const line = lineVal != null ? Number(lineVal).toFixed(1) : "?";
+  const prefix = row.badge_prefix || _consBadgePrefix(row.pick_class);
+  const tip = `Season ${row.pick_class || row.pick_type || ""} ${row.direction} ${row.prop} @${line} · ${hr} (n=${n})`;
+  return `<span class="cons-line-badge cons-${String(prefix).toLowerCase()}" title="${tip.replace(/"/g, "&quot;")}">📌 ${prefix} ${hr}</span>`;
+}
+ensureConsistencyLeaders().then((ok) => {
+  if (!ok) return;
+  try {
+    if (typeof scheduleRenderSlateTable === "function") {
+      Object.keys(window.SLATE_DATA || {}).forEach((sp) => scheduleRenderSlateTable(sp));
+    }
+  } catch (_) { /* ignore */ }
+  // Top Edges often paint before leaders finish loading — refresh badges.
+  try {
+    if (typeof renderEdges === "function" && typeof ALL_SLATE !== "undefined" && ALL_SLATE.length) {
+      renderEdges();
+    }
+  } catch (_) { /* ignore */ }
+});
 /** HOT/COLD L10 badge for edge cards and slate rows (NEUTRAL → nothing). */
 function l10StreakBadgeHtml(p) {
   const streak = String(p?.l10_streak || "").trim().toUpperCase();
@@ -1599,7 +1712,7 @@ function buildEdgeCard(p, idx) {
         </div>
       </div>
       <div class="edge-row edge-row-main">
-        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}</div>
+        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
         <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
       </div>
       <div class="edge-row edge-row-tags">
@@ -3216,7 +3329,7 @@ function renderSlateTable(sport) {
     return `<tr class="slate-row-clickable" data-slate-idx="${rowIdx}">
       <td class="scol-tier"><span class="tier-badge ${tierCls}">${r.tier || '?'}</span>${confDotHtml(r)}</td>
       <td class="scol-rank slate-rank-cell">${rankStr}</td>
-      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}</td>
+      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}${consLineBadgeHtml(r)}</td>
       <td class="scol-team" style="color:var(--muted);" title="${r.team || ''}">${r.team || '—'}</td>
       <td class="scol-opp" style="color:var(--muted);" title="${r.opp || ''}">${r.opp || '—'}</td>
       <td class="scol-prop" style="color:var(--text);">${r.prop || '—'}</td>

@@ -3240,7 +3240,8 @@ function matchConsistencyLeader(p) {
   let dir = String(p.direction || p.dir || "").toUpperCase();
   if (dir === "O" || dir === "MORE") dir = "OVER";
   if (dir === "U" || dir === "LESS" || dir === "LOWER") dir = "UNDER";
-  const pc = _consPickClass(p.pick_type, dir);
+  // Home Top Edges / ALL_SLATE use `pick`; slate tables use `pick_type`.
+  const pc = _consPickClass(p.pick_type || p.pick, dir);
   if (!pc) return null;
   const k = _consKey(p.sport, p.player, p.prop || p.prop_type, pc);
   const row = store.byKey.get(k);
@@ -3264,11 +3265,18 @@ function consLineBadgeHtml(p) {
   return `<span class="cons-line-badge cons-${String(prefix).toLowerCase()}" title="${tip.replace(/"/g, "&quot;")}">📌 ${prefix} ${hr}</span>`;
 }
 ensureConsistencyLeaders().then((ok) => {
-  if (ok && typeof scheduleRenderSlateTable === "function") {
-    try {
+  if (!ok) return;
+  try {
+    if (typeof scheduleRenderSlateTable === "function") {
       Object.keys(window.SLATE_DATA || {}).forEach((sp) => scheduleRenderSlateTable(sp));
-    } catch (_) { /* ignore */ }
-  }
+    }
+  } catch (_) { /* ignore */ }
+  // Top Edges often paint before leaders finish loading — refresh badges.
+  try {
+    if (typeof renderEdges === "function" && typeof ALL_SLATE !== "undefined" && ALL_SLATE.length) {
+      renderEdges();
+    }
+  } catch (_) { /* ignore */ }
 });
 
 function confDotHtml(p) {

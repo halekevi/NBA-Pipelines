@@ -108,7 +108,7 @@
             let dir = String(p.direction || p.dir || '').toUpperCase();
             if (dir === 'O' || dir === 'MORE') dir = 'OVER';
             if (dir === 'U' || dir === 'LESS' || dir === 'LOWER') dir = 'UNDER';
-            const pc = consPickClass(p.pick_type, dir);
+            const pc = consPickClass(p.pick_type || p.pick, dir);
             if (!pc) return null;
             const row = consStore.byKey.get(consKey(p.sport, p.player, p.prop || p.prop_type, pc));
             if (!row) return null;

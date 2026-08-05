@@ -312,6 +312,9 @@ body::after{content:'';position:fixed;inset:0;
 .edge-avatar.over{background:rgba(125,255,203,.1);border:1px solid rgba(125,255,203,.25);color:var(--green);}
 .edge-avatar.under{background:rgba(255,192,107,.1);border:1px solid rgba(255,192,107,.25);color:var(--amber);}
 .edge-info{min-width:0;}
+.edge-name-wrap{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;max-width:100%;}
+.edge-name-wrap .edge-name{flex:1 1 auto;min-width:0;}
+.edge-name-wrap .cons-line-badge{flex:0 0 auto;margin-left:0;}
 .edge-name{flex:1 1 auto;font-size:clamp(12px,1.2vw,14px);font-weight:600;color:var(--text);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;min-width:0;}
 .edge-prop{flex:0 1 auto;max-width:58%;font-size:clamp(10px,1vw,11px);color:var(--muted);letter-spacing:0;font-family:"Inter",sans-serif;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;min-width:0;}
 .edge-tags{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;overflow:hidden;}
@@ -354,7 +357,7 @@ body::after{content:'';position:fixed;inset:0;
 .l10-streak-badge.l10-hot{background:rgba(125,255,203,.12);color:var(--green);border:1px solid rgba(125,255,203,.35);}
 .l10-streak-badge.l10-cold{background:rgba(100,180,255,.12);color:#7eb8ff;border:1px solid rgba(100,180,255,.35);}
 /* Season line-class consistency badge (GOB / STD / UND) */
-.cons-line-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;background:rgba(212,175,55,.12);color:var(--accent-gold,#d4af37);border:1px solid rgba(212,175,55,.4);}
+.cons-line-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle;white-space:nowrap;flex-shrink:0;background:rgba(212,175,55,.12);color:var(--accent-gold,#d4af37);border:1px solid rgba(212,175,55,.4);}
 .cons-line-badge.cons-gob{background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.5);}
 .cons-line-badge.cons-std{background:rgba(212,175,55,.10);border-color:rgba(212,175,55,.35);}
 .cons-line-badge.cons-und{background:rgba(196,160,48,.10);border-color:rgba(196,160,48,.4);color:#c9a227;}

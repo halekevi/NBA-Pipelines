@@ -37,7 +37,7 @@ async function fetch_smart(localPath) {
 <link rel="stylesheet" href="static/global-scrollbar.css?v=20260531scroll"/>
 <link rel="stylesheet" href="static/light-theme-dim-overrides.css?v=20260419perf2"/>
 <link rel="stylesheet" href="static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
-<link rel="stylesheet" href="static/proporacle-home.css?v=20260804cons1"/>
+<link rel="stylesheet" href="static/proporacle-home.css?v=20260804cons2"/>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="static/mobile-content-width.css?v=20260716slatecards3"/>
 <link rel="stylesheet" href="static/matchup-edge.css?v=20260720mefind1" media="print" onload="this.media='all'"/>
@@ -1464,6 +1464,24 @@ async function fetch_smart(localPath) {
     </div>
   </details>
 
+  <!-- LINE TIMING — when Standard lines move most (favorable vs unfavorable) -->
+  <details class="home-cat" id="line-timing-cat" open>
+    <summary><span class="home-cat-title">Line <span>Timing</span></span></summary>
+    <div class="home-cat-body">
+      <div class="home-cat-flat" style="margin-bottom:12px;">
+        <div class="sec-header">
+          <div class="sec-title">Line <span style="color:var(--accent)">Timing</span></div>
+          <div class="sec-line"></div>
+          <span style="font-size:9px;color:var(--muted);letter-spacing:2px;">STANDARD · VS FIRST FETCH</span>
+        </div>
+        <div id="line-timing-headline" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--text);margin:8px 0 12px;line-height:1.45;"></div>
+        <div id="line-timing-windows" class="insight-grid" style="margin-bottom:12px;"></div>
+        <ul id="line-timing-tips" style="margin:0;padding-left:18px;font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2);line-height:1.55;"></ul>
+        <div id="line-timing-meta" style="margin-top:10px;font-size:10px;color:var(--muted);letter-spacing:.5px;"></div>
+      </div>
+    </div>
+  </details>
+
   <!-- BEST TO RUN — elite Standards + Goblins (L5 5/5, edge>0) -->
   <details class="home-cat" id="best-to-run-cat" open>
     <summary><span class="home-cat-title">Best to <span>Run</span></span></summary>
@@ -1600,7 +1618,7 @@ async function fetch_smart(localPath) {
 
 <script src="static/site-nav-chrome.js?v=20260412" defer></script>
 <script src="static/matchup-edge.js?v=20260729team1" defer></script>
-<script src="static/proporacle-home.js?v=20260804cons1" defer></script>
+<script src="static/proporacle-home.js?v=20260804cons2" defer></script>
 
 <script>
 (function initHomePipelineAndDefaults() {
@@ -1627,7 +1645,7 @@ async function fetch_smart(localPath) {
     const edgesDeepLink = params.get("section") === "edges";
     /* Keep primary home data sections open — collapsing them made Hot Players /
        Top Edges / L5 look empty even when cards had already loaded. */
-    const keepOpen = new Set(["slate-explorer", "hot-players-cat", "best-to-run-cat", "top-edges", "l5-streaks-cat"]);
+    const keepOpen = new Set(["slate-explorer", "hot-players-cat", "line-timing-cat", "best-to-run-cat", "top-edges", "l5-streaks-cat"]);
     if (edgesDeepLink) keepOpen.add("top-edges");
     if (params.get("section") === "best") keepOpen.add("best-to-run-cat");
     document.querySelectorAll("details.home-cat").forEach((det) => {

@@ -1,0 +1,34 @@
+{
+  "sport": "mlb",
+  "display_name": "MLB",
+  "matchup_mode": "team",
+  "prop_scope": "hitter",
+  "generated_at": "2026-08-05T10:49:28.077081+00:00",
+  "error": "No tonight MLB slate matchups (empty or missing board): H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\ui_runner\\templates\\slate_sport_mlb.json. Publish slate_sport_mlb.json via MLB pipeline / --write-web.",
+  "teams": [],
+  "categories": [
+    {
+      "id": "hits",
+      "label": "Hits",
+      "threshold": 1.0
+    },
+    {
+      "id": "total_bases",
+      "label": "Total bases",
+      "threshold": 1.5
+    },
+    {
+      "id": "home_runs",
+      "label": "Home runs",
+      "threshold": 0.5
+    },
+    {
+      "id": "rbi",
+      "label": "RBI",
+      "threshold": 0.8
+    }
+  ],
+  "matchups": {},
+  "players_by_team_cat": {},
+  "edge_legend": {}
+}

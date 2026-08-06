@@ -635,8 +635,8 @@ SOCCER_SCOREBOARD_BASE_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/
 SOCCER_SUMMARY_BASE_WEB    = "https://site.web.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
 
 
-def _espn_soccer_get(url_api: str, url_web: str):
-    """GET ESPN soccer JSON; fall back to site.web.api on 403/empty failure."""
+def _espn_site_get(url_api: str, url_web: str):
+    """GET ESPN site JSON; fall back to site.web.api on 403/empty failure."""
     last_err = None
     for url in (url_api, url_web):
         try:
@@ -649,7 +649,21 @@ def _espn_soccer_get(url_api: str, url_web: str):
         except Exception as e:
             last_err = e
             continue
-    raise RuntimeError(last_err or "ESPN soccer fetch failed")
+    raise RuntimeError(last_err or "ESPN site fetch failed")
+
+
+def _espn_soccer_get(url_api: str, url_web: str):
+    """GET ESPN soccer JSON; fall back to site.web.api on 403/empty failure."""
+    return _espn_site_get(url_api, url_web)
+
+
+def _espn_basketball_urls(path_and_query: str) -> tuple[str, str]:
+    """Return (site.api, site.web.api) URLs for a basketball path+query suffix."""
+    suffix = path_and_query.lstrip("/")
+    return (
+        f"https://site.api.espn.com/apis/site/v2/sports/basketball/{suffix}",
+        f"https://site.web.api.espn.com/apis/site/v2/sports/basketball/{suffix}",
+    )
 
 
 ESPN_TO_SLATE_ABBREV = {
@@ -666,13 +680,12 @@ ESPN_TO_SLATE_ABBREV = {
 
 def _fetch_scoreboard_page(sport_path, date_espn, group_id=None, page=1):
     """Single scoreboard page fetch. Returns (events, page_count)."""
-    base = (f"https://site.api.espn.com/apis/site/v2/sports/basketball"
-            f"/{sport_path}/scoreboard?dates={date_espn}&limit=100&page={page}")
+    q = f"{sport_path}/scoreboard?dates={date_espn}&limit=100&page={page}"
     if group_id:
-        base += f"&groups={group_id}"
+        q += f"&groups={group_id}"
+    url_api, url_web = _espn_basketball_urls(q)
     try:
-        r = requests.get(base, headers=HEADERS, timeout=20)
-        r.raise_for_status()
+        r = _espn_site_get(url_api, url_web)
         data = r.json()
         return data.get('events', []), data.get('pageCount', 1)
     except Exception as e:
@@ -864,13 +877,9 @@ def fetch_sport(sport_path, date_str, window=2, nba_extra_days: int = 0):
         graded_event_ids.add(event_id)
 
         print(f"  Grading: {game_name}")
-        box_url = (
-            f"https://site.api.espn.com/apis/site/v2/sports/basketball"
-            f"/{sport_path}/summary?event={event_id}"
-        )
+        box_api, box_web = _espn_basketball_urls(f"{sport_path}/summary?event={event_id}")
         try:
-            br = requests.get(box_url, headers=HEADERS, timeout=20)
-            br.raise_for_status()
+            br = _espn_site_get(box_api, box_web)
             box = br.json()
             time.sleep(0.25)
         except Exception as e:

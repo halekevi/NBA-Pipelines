@@ -612,6 +612,8 @@ SOCCER_LEAGUES = [
     ("usa.nwsl", "NWSL"),
     ("arg.1",  "Argentina"),
     ("mex.1",  "Liga MX"),
+    ("concacaf.leagues.cup", "Leagues Cup"),
+    ("concacaf.champions", "Concacaf Champions Cup"),
     # Brazilian Série A — frequent on PP soccer boards (Corinthians, Botafogo, etc.).
     ("bra.1",  "Brazil Serie A"),
     # sau.1 (Saudi Pro League): ESPN scoreboard/summary often 400 — skip; no reliable boxscore.
@@ -628,6 +630,41 @@ SOCCER_LEAGUES = [
 ]
 SOCCER_SCOREBOARD_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/scoreboard?dates={date_espn}"
 SOCCER_SUMMARY_BASE    = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
+# site.api often 403s from cloud/datacenter IPs; site.web.api accepts browser UA.
+SOCCER_SCOREBOARD_BASE_WEB = "https://site.web.api.espn.com/apis/site/v2/sports/soccer/{league}/scoreboard?dates={date_espn}"
+SOCCER_SUMMARY_BASE_WEB    = "https://site.web.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
+
+
+def _espn_site_get(url_api: str, url_web: str):
+    """GET ESPN site JSON; fall back to site.web.api on 403/empty failure."""
+    last_err = None
+    for url in (url_api, url_web):
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=20)
+            if r.status_code == 403:
+                last_err = f"403 from {url.split('//')[1].split('/')[0]}"
+                continue
+            r.raise_for_status()
+            return r
+        except Exception as e:
+            last_err = e
+            continue
+    raise RuntimeError(last_err or "ESPN site fetch failed")
+
+
+def _espn_soccer_get(url_api: str, url_web: str):
+    """GET ESPN soccer JSON; fall back to site.web.api on 403/empty failure."""
+    return _espn_site_get(url_api, url_web)
+
+
+def _espn_basketball_urls(path_and_query: str) -> tuple[str, str]:
+    """Return (site.api, site.web.api) URLs for a basketball path+query suffix."""
+    suffix = path_and_query.lstrip("/")
+    return (
+        f"https://site.api.espn.com/apis/site/v2/sports/basketball/{suffix}",
+        f"https://site.web.api.espn.com/apis/site/v2/sports/basketball/{suffix}",
+    )
+
 
 ESPN_TO_SLATE_ABBREV = {
     "NCSU": "NCST",   # NC State (ESPN=NCSU, slate=NCST)
@@ -643,13 +680,12 @@ ESPN_TO_SLATE_ABBREV = {
 
 def _fetch_scoreboard_page(sport_path, date_espn, group_id=None, page=1):
     """Single scoreboard page fetch. Returns (events, page_count)."""
-    base = (f"https://site.api.espn.com/apis/site/v2/sports/basketball"
-            f"/{sport_path}/scoreboard?dates={date_espn}&limit=100&page={page}")
+    q = f"{sport_path}/scoreboard?dates={date_espn}&limit=100&page={page}"
     if group_id:
-        base += f"&groups={group_id}"
+        q += f"&groups={group_id}"
+    url_api, url_web = _espn_basketball_urls(q)
     try:
-        r = requests.get(base, headers=HEADERS, timeout=20)
-        r.raise_for_status()
+        r = _espn_site_get(url_api, url_web)
         data = r.json()
         return data.get('events', []), data.get('pageCount', 1)
     except Exception as e:
@@ -841,13 +877,9 @@ def fetch_sport(sport_path, date_str, window=2, nba_extra_days: int = 0):
         graded_event_ids.add(event_id)
 
         print(f"  Grading: {game_name}")
-        box_url = (
-            f"https://site.api.espn.com/apis/site/v2/sports/basketball"
-            f"/{sport_path}/summary?event={event_id}"
-        )
+        box_api, box_web = _espn_basketball_urls(f"{sport_path}/summary?event={event_id}")
         try:
-            br = requests.get(box_url, headers=HEADERS, timeout=20)
-            br.raise_for_status()
+            br = _espn_site_get(box_api, box_web)
             box = br.json()
             time.sleep(0.25)
         except Exception as e:
@@ -1739,8 +1771,8 @@ def fetch_soccer(date_str, adjacent_days: int = 1):
         for league_id, league_name in SOCCER_LEAGUES:
             try:
                 url = SOCCER_SCOREBOARD_BASE.format(league=league_id, date_espn=date_espn)
-                r = requests.get(url, headers=HEADERS, timeout=20)
-                r.raise_for_status()
+                url_web = SOCCER_SCOREBOARD_BASE_WEB.format(league=league_id, date_espn=date_espn)
+                r = _espn_soccer_get(url, url_web)
                 events = r.json().get("events", [])
                 if not events:
                     continue
@@ -1760,8 +1792,8 @@ def fetch_soccer(date_str, adjacent_days: int = 1):
                     print(f"    Grading: {game_name}")
                     try:
                         sum_url = SOCCER_SUMMARY_BASE.format(league=league_id, event_id=event_id)
-                        br = requests.get(sum_url, headers=HEADERS, timeout=20)
-                        br.raise_for_status()
+                        sum_url_web = SOCCER_SUMMARY_BASE_WEB.format(league=league_id, event_id=event_id)
+                        br = _espn_soccer_get(sum_url, sum_url_web)
                         box_json = br.json()
                         game_rows = parse_soccer_boxscore(box_json, league_id)
                         all_rows.extend(game_rows)

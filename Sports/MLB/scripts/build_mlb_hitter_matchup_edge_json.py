@@ -241,10 +241,18 @@ def build_payload(
     pp_by_player = build_slate_pp_lookup(slate_rows, CATEGORIES, team_normalize=_slate_team)
     slate_team_by_player, pos_by_player, roster_by_team = _slate_roster_maps(slate_path)
 
-    names = _analyze._load_player_names(
-        id_cache_path,
-        [slate_path, _MLB / "step8_mlb_direction.csv"],
-    )
+    # Prefer CSV/XLSX name sources only — never pass slate_sport_*.json here
+    # (pd.read_csv on JSON hangs for many minutes; see _load_player_names).
+    name_slate_paths = [
+        p
+        for p in (
+            _MLB / "step8_mlb_direction.csv",
+            _MLB / "step8_mlb_direction_clean.xlsx",
+            slate_path,
+        )
+        if p.suffix.lower() in (".csv", ".xlsx", ".xls")
+    ]
+    names = _analyze._load_player_names(id_cache_path, name_slate_paths)
     logs, _stats = _analyze._load_game_logs(cache_path, str(season) if season else None)
     if logs.empty:
         return {

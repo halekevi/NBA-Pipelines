@@ -5358,14 +5358,25 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
     """
     Selection / est_win_prob leg probability.
     Prefer pipeline_read enrichment (hit_prob_actionable); else empirical/ML/rank/edge chain.
+    Tennis: skip enrichment HR proxies when calibrated ml_prob exists — actionable/selected
+    often mirror perfect L5 (0.95–1.0) and overstate ticket P(win).
     """
-    for key, src in (
-        ("hit_prob_actionable", "hit_prob_actionable"),
-        ("hit_prob_selected", "hit_prob_selected"),
-    ):
-        p = _to_prob_0_1(row.get(key))
-        if p is not None:
-            return _clip_prob(p, src), src
+    sport = str(row.get("sport", "") or "").strip().upper()
+    mlp_early = pd.to_numeric(row.get("ml_prob"), errors="coerce")
+    tennis_prefer_ml = (
+        sport == "TENNIS"
+        and pd.notna(mlp_early)
+        and 0.0 < float(mlp_early) < 1.0
+    )
+
+    if not tennis_prefer_ml:
+        for key, src in (
+            ("hit_prob_actionable", "hit_prob_actionable"),
+            ("hit_prob_selected", "hit_prob_selected"),
+        ):
+            p = _to_prob_0_1(row.get(key))
+            if p is not None:
+                return _clip_prob(p, src), src
 
     direction = str(
         row.get("bet_direction") or row.get("direction_used") or row.get("direction") or "OVER"
@@ -5412,7 +5423,6 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
     l5_hits, l5_gp = _resolve_l5_cols(row, direction)
     l5_n = l5_gp
     pick_type = str(row.get("pick_type", "") or "").strip().lower()
-    sport = str(row.get("sport", "") or "").strip().upper()
 
     if "demon" in pick_type and sport in ("NHL", "SOCCER", "SOC"):
         hr = _to_prob_0_1(hr_raw)

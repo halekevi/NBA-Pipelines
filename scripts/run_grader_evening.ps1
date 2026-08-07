@@ -10,7 +10,7 @@
     - run_grader.ps1 for yesterday's slate date
 
   Single overnight grader at 1AM only, then Tennis Early 3AM (fetch only),
-  then Daily 5AM (which also grades yesterday as the final publish pass).
+  then Daily 5AM (pipeline/publish; skips grader when overnight outputs exist).
 #>
 param()
 

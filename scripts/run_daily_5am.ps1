@@ -1,10 +1,12 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Scheduled 5:00 AM full daily: git pull main, run_daily.ps1 (grade yesterday + today's pipeline), prop snapshot.
+  Scheduled 5:00 AM full daily: git pull main, run_daily.ps1 (today's pipeline + publish), prop snapshot.
 
 .NOTES
   First big multi-sport run of the day. Publishes fresh slate_latest / tickets for the home page.
+  Yesterday grading is owned by PropOracle - Grader 1AM (run_grader_evening.ps1). This wrapper
+  passes -SkipGrader unless overnight graded outputs are missing (safety fallback).
   Live PrizePicks CDP payout is NOT in this job — see PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00 after 10:30 refresh).
   Refresh cadence: 8 / 9 / 10:30 / 1 (PP line moves often hit ~10:30–11).
   3:00 AM remains light TennisOnly.
@@ -98,8 +100,26 @@ if ($pullPrepExit -ne 0) {
     Write-Host "[5AM DAILY] Pull prep warned (exit $pullPrepExit); continuing with local tree." -ForegroundColor Yellow
 }
 
-Write-Host "[5AM DAILY] Running full run_daily.ps1 (includes grader)..." -ForegroundColor Cyan
-& pwsh -NoProfile -File $Daily
+# Overnight 1AM grader owns yesterday. Fall back only if those outputs never landed.
+$Yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
+$gradedProbe = @(
+    (Join-Path $Root "outputs\$Yesterday\graded_mlb_$Yesterday.xlsx"),
+    (Join-Path $Root "outputs\$Yesterday\graded_soccer_$Yesterday.xlsx"),
+    (Join-Path $Root "outputs\$Yesterday\graded_wnba_$Yesterday.xlsx")
+)
+$missingOvernight = @($gradedProbe | Where-Object { -not (Test-Path -LiteralPath $_) })
+$dailyArgs = @()
+if ($missingOvernight.Count -eq 0) {
+    $dailyArgs += "-SkipGrader"
+    Write-Host "[5AM DAILY] Running run_daily.ps1 -SkipGrader (1AM overnight grade present)..." -ForegroundColor Cyan
+}
+else {
+    Write-Host "[5AM DAILY] Overnight grade incomplete — running run_daily.ps1 WITH grader fallback..." -ForegroundColor Yellow
+    foreach ($m in $missingOvernight) {
+        Write-Host "  missing -> $m" -ForegroundColor DarkYellow
+    }
+}
+& pwsh -NoProfile -File $Daily @dailyArgs
 $dailyExit = $LASTEXITCODE
 
 Write-Host "[5AM DAILY] Logging fetched prop snapshot..." -ForegroundColor Cyan

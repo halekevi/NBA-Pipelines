@@ -572,40 +572,39 @@ else {
 }
 
 # =============================================================================
-# STEP A-track — Model performance + shadow comparison (after grader)
+# STEP A-track — Model performance + shadow comparison
+# Runs even when -SkipGrader (overnight 1AM already graded; tracking still useful at 5AM).
 # =============================================================================
-if (-not $SkipGrader) {
-    Write-Host "=== STEP: Model Performance Tracking ===" -ForegroundColor Cyan
-    Write-Log "STEP A-track - Model performance: START"
-    Push-Location $Root
-    try {
-        $trackAcc = Join-Path $Root "scripts\track_prediction_accuracy.py"
-        $trackPerf = Join-Path $Root "scripts\track_model_performance.py"
-        $compareShadow = Join-Path $Root "scripts\compare_shadow_vs_live.py"
-        if (Test-Path $trackAcc) {
-            & py -3.14 -X utf8 $trackAcc --days 30
-            if ($LASTEXITCODE -ne 0) { Write-Warning "track_prediction_accuracy.py exited $LASTEXITCODE" }
-        }
-        if (Test-Path $trackPerf) {
-            & py -3.14 -X utf8 $trackPerf
-            if ($LASTEXITCODE -ne 0) { Write-Warning "track_model_performance.py exited $LASTEXITCODE" }
-            Write-Host "  [A-track] NBA1H AUC monitor (post-tracker)" -ForegroundColor DarkGray
-            & py -3.14 -X utf8 $trackPerf --nba1h-monitor --date $Yesterday
-            if ($LASTEXITCODE -ne 0) { Write-Warning "NBA1H monitor exited $LASTEXITCODE" }
-        }
-        if (Test-Path $compareShadow) {
-            & py -3.14 -X utf8 $compareShadow --days 7
-            if ($LASTEXITCODE -ne 0) { Write-Warning "compare_shadow_vs_live.py exited $LASTEXITCODE" }
-        }
-        Write-Log "STEP A-track - Model performance: OK"
+Write-Host "=== STEP: Model Performance Tracking ===" -ForegroundColor Cyan
+Write-Log "STEP A-track - Model performance: START"
+Push-Location $Root
+try {
+    $trackAcc = Join-Path $Root "scripts\track_prediction_accuracy.py"
+    $trackPerf = Join-Path $Root "scripts\track_model_performance.py"
+    $compareShadow = Join-Path $Root "scripts\compare_shadow_vs_live.py"
+    if (Test-Path $trackAcc) {
+        & py -3.14 -X utf8 $trackAcc --days 30
+        if ($LASTEXITCODE -ne 0) { Write-Warning "track_prediction_accuracy.py exited $LASTEXITCODE" }
     }
-    catch {
-        Write-Warning "Model performance tracking failed: $($_.Exception.Message)"
-        Write-Log "STEP A-track - Model performance: WARN ($($_.Exception.Message))"
+    if (Test-Path $trackPerf) {
+        & py -3.14 -X utf8 $trackPerf
+        if ($LASTEXITCODE -ne 0) { Write-Warning "track_model_performance.py exited $LASTEXITCODE" }
+        Write-Host "  [A-track] NBA1H AUC monitor (post-tracker)" -ForegroundColor DarkGray
+        & py -3.14 -X utf8 $trackPerf --nba1h-monitor --date $Yesterday
+        if ($LASTEXITCODE -ne 0) { Write-Warning "NBA1H monitor exited $LASTEXITCODE" }
     }
-    finally {
-        Pop-Location
+    if (Test-Path $compareShadow) {
+        & py -3.14 -X utf8 $compareShadow --days 7
+        if ($LASTEXITCODE -ne 0) { Write-Warning "compare_shadow_vs_live.py exited $LASTEXITCODE" }
     }
+    Write-Log "STEP A-track - Model performance: OK"
+}
+catch {
+    Write-Warning "Model performance tracking failed: $($_.Exception.Message)"
+    Write-Log "STEP A-track - Model performance: WARN ($($_.Exception.Message))"
+}
+finally {
+    Pop-Location
 }
 
 # =============================================================================

@@ -325,6 +325,15 @@ def _wnba_family_off_season(slate_date: str) -> bool:
         return False
 
 
+def _mlb_allstar_break(slate_date: str) -> bool:
+    """True when MLB slate date falls in the configured All-Star break window."""
+    try:
+        from utils.allstar_filter import is_allstar_date
+    except Exception:
+        return False
+    return bool(is_allstar_date(slate_date, sport="MLB"))
+
+
 _PERMANENT_OFF_SEASON_SPORT_SLUGS = frozenset()  # use dated resumes in _sport_slug_off_season
 
 
@@ -391,6 +400,8 @@ def _sport_slug_off_season(sport_slug: str, slate_date: str) -> bool:
     if sl == "nhl" and _nhl_off_season(slate_date):
         return True
     if sl in ("wnba", "wnba1h", "wnba1q") and _wnba_family_off_season(slate_date):
+        return True
+    if sl == "mlb" and _mlb_allstar_break(slate_date):
         return True
     return False
 
@@ -3066,6 +3077,7 @@ SOCCER_EXCLUDED_PROPS = {
     "tackles",
     "fouls",
     "clearances",
+    "attempted dribbles",
 }
 
 # Soccer-only ticket gates (independent of NHL/Tennis/MLB).
@@ -5291,6 +5303,16 @@ def _l10_streak_badge_html(leg: dict) -> str:
     return ""
 
 
+def _cons_line_badge_html(leg: dict) -> str:
+    """Season line-class badge (GOB / STD / UND) when class+line match."""
+    try:
+        from utils.consistency_leaders_match import cons_line_badge_html
+
+        return cons_line_badge_html(leg if isinstance(leg, dict) else {})
+    except Exception:
+        return ""
+
+
 def _resolve_l5_cols(row: pd.Series, direction: str) -> tuple[float, float]:
     """
     Return (l5_hits, l5_games_played) for the play direction.
@@ -5406,7 +5428,16 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
         demon_prob = min(ml_prob, 0.72)
         return _clip_prob(demon_prob, "ml_prob_demon"), "ml_prob_demon"
 
-    if hr_raw is not None and str(hr_raw).strip() != "" and l5_n >= 3.0:
+    # L5 / directional HR is a strong short-sample signal for most sports, but Tennis
+    # line HRs (often 4–5/5 → 0.80–0.85 after cap) systematically overstate ticket
+    # P(win) vs calibrated ml_prob (calibration top-bin ~0.71 pred / ~0.44 actual).
+    # Prefer ml_prob for Tennis; fall through to L5 only when ml_prob is missing.
+    if (
+        sport != "TENNIS"
+        and hr_raw is not None
+        and str(hr_raw).strip() != ""
+        and l5_n >= 3.0
+    ):
         try:
             hit_prob = float(hr_raw)
             if hit_prob > 1.0:
@@ -5429,6 +5460,17 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
             except Exception:
                 pass
         return _clip_prob(ml_val, "ml_prob"), "ml_prob"
+
+    # Tennis fallback: only now use L5/HR if ml_prob was unavailable.
+    if sport == "TENNIS" and hr_raw is not None and str(hr_raw).strip() != "" and l5_n >= 3.0:
+        try:
+            hit_prob = float(hr_raw)
+            if hit_prob > 1.0:
+                hit_prob = hit_prob / 100.0
+            hit_prob = max(0.50, min(_leg_l5_hit_prob_cap(row), hit_prob))
+            return hit_prob, f"{hr_source}_tennis_fallback"
+        except (TypeError, ValueError):
+            pass
 
     # Priority 2: rank_score sigmoid (composite signal).
     rs = pd.to_numeric(row.get("rank_score"), errors="coerce")
@@ -5549,7 +5591,8 @@ def _norm_main_prop_key(prop: object) -> str:
 # Keys: (sport, prop_norm, direction)
 #
 # L5 exception (Aug 2026): Jul 10–19 as-of rebuild — basketball Standards
-# clear at L5>=4; NFL/CFB/NHL/… at L5=5. MLB/Soccer never clear via L5;
+# clear at L5>=4; Soccer also clears at L5>=4 (graded +42pp overall);
+# NFL/CFB/NHL/… at L5=5. MLB never clears via L5;
 # MLB Std OVER at L5=5 is hard-avoided (see mlb_standard_over_perfect_l5).
 _STANDARD_PROP_GATE_BAN: frozenset[tuple[str, str, str]] = frozenset(
     {
@@ -5586,7 +5629,7 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
 )
 # L5 exception: directional L5 clears Standard prop gates per
 # utils.l5_recency_policy (basketball family at L5>=4; NFL/CFB/NHL/… at L5=5).
-# MLB/Soccer never clear via L5; MLB Std OVER at L5=5 is additionally avoided.
+# MLB never clears via L5; MLB Std OVER at L5=5 is additionally avoided.
 
 
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
@@ -5668,8 +5711,8 @@ def _leg_standard_prop_direction_gated(row_d: dict | pd.Series) -> bool:
     gate those props tightly while leaving easier Goblin hits alone.
 
     Exception: directional L5 clears the gate for clear-eligible sports
-    (basketball L5>=4; NFL/CFB/NHL/Tennis/Golf L5=5). MLB and Soccer never
-    clear via L5.
+    (basketball/Soccer L5>=4; NFL/CFB/NHL/Tennis/Golf L5=5). MLB never
+    clears via L5.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
@@ -19692,11 +19735,18 @@ def main():
         cbb = pd.DataFrame()
     else:
         print(f"Loading CBB slate from {args.cbb}...")
-        cbb = load_cbb(args.cbb)
-        cbb = enforce_target_date(
-            cbb, "CBB", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
-        )
-        print(f"  {len(cbb)} CBB props loaded")
+        try:
+            cbb = load_cbb(args.cbb)
+            cbb = enforce_target_date(
+                cbb, "CBB", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
+            )
+            print(f"  {len(cbb)} CBB props loaded")
+        except (FileNotFoundError, OSError) as e:
+            print(
+                f"  WARNING: CBB slate unavailable ({type(e).__name__}: {e}); "
+                "continuing with 0 CBB props."
+            )
+            cbb = pd.DataFrame()
         _load_audit_row("CBB", args.cbb, cbb)
 
     nhl = None
@@ -19803,7 +19853,13 @@ def main():
 
     mlb = None
     mlb_path = str(args.mlb or "").strip()
-    if mlb_path:
+    if _mlb_allstar_break(args.date):
+        print(
+            f"  [MLB] All-Star break — skipped ({args.date}; "
+            "utils.allstar_filter ALLSTAR_DATE_WINDOWS['MLB'])"
+        )
+        _load_audit_row("MLB", "", pd.DataFrame())
+    elif mlb_path:
         try:
             mlb = load_mlb(mlb_path)
             mlb = enforce_target_date(
@@ -22473,6 +22529,18 @@ _TICKETS_BUILT_PAYOUT_CSS = """<style>
   color: #7eb8ff;
   border: 1px solid rgba(100,180,255,.35);
 }
+.tickets-built .cons-line-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  background: rgba(212,175,55,.12);
+  color: #d4af37;
+  border: 1px solid rgba(212,175,55,.4);
+}
 .tickets-built .kpi-val.l10-hot-count { color: #00ff88; }
 .tickets-built .kpi-val.l10-cold-count { color: #7eb8ff; }
 </style>"""
@@ -23874,7 +23942,7 @@ def render_tickets_body_html(
               <div class="pwrap">
                 {av_html}
                 <div>
-                  <div style="font-weight:600;font-size:14px;">{_h(player)}{_l10_streak_badge_html(leg)}</div>
+                  <div style="font-weight:600;font-size:14px;">{_h(player)}{_l10_streak_badge_html(leg)}{_cons_line_badge_html(leg)}</div>
                   <div style="font-size:12px;color:var(--muted);">{_h(matchup)}</div>
                 </div>
               </div>

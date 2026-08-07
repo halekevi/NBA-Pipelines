@@ -24,8 +24,9 @@ from edge_feature_engineering import (  # type: ignore
     fill_minutes_cv_median_by_sport,
 )
 
-# Shared with step7b_edge_score. Recalibrated 2026-06 via scripts/recalibrate_ml_prob_scalars.py.
-# SOCCER OVER slices use observed hit-rate targets (not 50% policy).
+# Shared with step7b_edge_score. Recalibrated 2026-07-18:
+#   MLB+WNBA (policy targets), SOCCER Goblin OVER + TENNIS (actual-target).
+# Demons excluded from ticket-eligible fits.
 ML_PROB_CALIBRATION_SCALARS: dict[tuple[str, str, str], float] = {
     ("NBA", "standard", "OVER"): 0.8187,
     ("NBA", "goblin", "OVER"): 0.8805,
@@ -34,19 +35,19 @@ ML_PROB_CALIBRATION_SCALARS: dict[tuple[str, str, str], float] = {
     ("NHL", "standard", "UNDER"): 0.7676,
     ("NHL", "goblin", "OVER"): 2.2124,
     ("NHL", "demon", "OVER"): 1.8855,
-    ("MLB", "standard", "OVER"): 0.9553,
-    ("MLB", "goblin", "OVER"): 1.0244,
+    ("MLB", "standard", "OVER"): 0.956,
+    ("MLB", "goblin", "OVER"): 1.1788,
     ("MLB", "demon", "OVER"): 1.4152,
-    ("MLB", "standard", "UNDER"): 1.0285,
+    ("MLB", "standard", "UNDER"): 1.0866,
     ("SOCCER", "standard", "OVER"): 0.4675,
     # step7b replaces ml_prob via the unified edge model (independent of step7 prop_model).
-    ("SOCCER", "goblin", "OVER"): 0.25,
+    ("SOCCER", "goblin", "OVER"): 1.81,
     ("SOCCER", "demon", "OVER"): 2.121,
     ("SOCCER", "goblin", "UNDER"): 0.9423,
     ("SOCCER", "standard", "UNDER"): 1.6788,
-    ("WNBA", "standard", "OVER"): 0.7211,
-    ("WNBA", "standard", "UNDER"): 1.2274,
-    ("WNBA", "goblin", "OVER"): 0.7989,
+    ("WNBA", "standard", "OVER"): 0.6936,
+    ("WNBA", "standard", "UNDER"): 0.688,
+    ("WNBA", "goblin", "OVER"): 0.8343,
     ("WNBA", "demon", "OVER"): 2.2358,
     ("CBB", "goblin", "OVER"): 0.8054,
     ("CBB", "standard", "OVER"): 0.9911,
@@ -56,14 +57,21 @@ ML_PROB_CALIBRATION_SCALARS: dict[tuple[str, str, str], float] = {
     ("NBA1Q", "standard", "UNDER"): 0.679,
     ("NBA1H", "standard", "OVER"): 0.5838,
     ("NBA1H", "standard", "UNDER"): 0.6275,
-    ("TENNIS", "goblin", "OVER"): 0.8407,
-    ("TENNIS", "standard", "OVER"): 0.9062,
-    ("TENNIS", "standard", "UNDER"): 1.3042,
+    ("TENNIS", "goblin", "OVER"): 0.963,
+    ("TENNIS", "standard", "OVER"): 0.9159,
+    ("TENNIS", "standard", "UNDER"): 1.4058,
 }
 
 _SLICE_CAL_PATH: Path | None = None
 _SLICE_CAL_MTIME: float | None = None
 _SLICE_CAL_BUNDLE: dict | None = None
+
+_EDGE_MODEL_PATH: Path | None = None
+_EDGE_MODEL_MTIME: float | None = None
+_EDGE_MODEL: object | None = None
+_EDGE_FEATS_PATH: Path | None = None
+_EDGE_FEATS_MTIME: float | None = None
+_EDGE_FEATS: list[str] | None = None
 
 
 def _load_slice_calibrators(models_dir: Path) -> dict | None:
@@ -84,6 +92,51 @@ def _load_slice_calibrators(models_dir: Path) -> dict | None:
     _SLICE_CAL_MTIME = mt
     return _SLICE_CAL_BUNDLE
 
+
+def load_unified_edge_model(models_dir: Path | None = None) -> tuple[object, list[str]] | None:
+    """
+    Load ``edge_model_unified.pkl`` + feature list with process-level mtime cache.
+
+    Safe across repeated step7b / backfill / tennis re-score calls in one process.
+    """
+    global _EDGE_MODEL_PATH, _EDGE_MODEL_MTIME, _EDGE_MODEL
+    global _EDGE_FEATS_PATH, _EDGE_FEATS_MTIME, _EDGE_FEATS
+    mdir = Path(models_dir) if models_dir is not None else (repo_root() / "models")
+    model_path = mdir / "edge_model_unified.pkl"
+    feat_path = mdir / "edge_model_features.json"
+    if not model_path.is_file() or not feat_path.is_file():
+        return None
+    try:
+        model_mt = float(model_path.stat().st_mtime)
+        feat_mt = float(feat_path.stat().st_mtime)
+    except OSError:
+        return None
+    model_ok = (
+        _EDGE_MODEL is not None
+        and _EDGE_MODEL_PATH == model_path.resolve()
+        and _EDGE_MODEL_MTIME == model_mt
+    )
+    feats_ok = (
+        _EDGE_FEATS is not None
+        and _EDGE_FEATS_PATH == feat_path.resolve()
+        and _EDGE_FEATS_MTIME == feat_mt
+    )
+    if model_ok and feats_ok:
+        return _EDGE_MODEL, list(_EDGE_FEATS)
+    try:
+        if not feats_ok:
+            _EDGE_FEATS = list(json.loads(feat_path.read_text(encoding="utf-8")))
+            _EDGE_FEATS_PATH = feat_path.resolve()
+            _EDGE_FEATS_MTIME = feat_mt
+        if not model_ok:
+            _EDGE_MODEL = joblib.load(model_path)
+            _EDGE_MODEL_PATH = model_path.resolve()
+            _EDGE_MODEL_MTIME = model_mt
+    except Exception:
+        return None
+    if _EDGE_MODEL is None or _EDGE_FEATS is None:
+        return None
+    return _EDGE_MODEL, list(_EDGE_FEATS)
 
 def apply_ml_prob_post_calibration(
     p_platt: np.ndarray,
@@ -181,11 +234,10 @@ def predict_unified_edge_scores(
     """
     root = repo_root()
     mdir = models_dir or (root / "models")
-    model_path = mdir / "edge_model_unified.pkl"
-    feat_path = mdir / "edge_model_features.json"
-    if not model_path.is_file() or not feat_path.is_file():
+    loaded = load_unified_edge_model(mdir)
+    if loaded is None:
         return None
-    feats = json.loads(feat_path.read_text(encoding="utf-8"))
+    model, feats = loaded
     aug = augment_graded_box_raw_for_edge(df)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)
@@ -201,10 +253,6 @@ def predict_unified_edge_scores(
         if np.isnan(med):
             med = 0.0
         df2[c] = ser.fillna(med)
-    try:
-        model = joblib.load(model_path)
-    except Exception:
-        return None
     X = df2[feats].astype(float)
     spu = str(sport_for_model or "").strip().upper()
     p_platt = np.asarray(model.predict_proba(X)[:, 1], dtype=float)

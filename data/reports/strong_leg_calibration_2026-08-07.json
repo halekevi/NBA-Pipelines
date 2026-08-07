@@ -1,0 +1,82 @@
+{
+  "generated_at": "2026-08-07T17:24:42.403667Z",
+  "min_date": "2026-07-01",
+  "board_legs_loaded": 360,
+  "focus_legs": 215,
+  "graded_rows": 242156,
+  "matched_legs": 203,
+  "board_matched_by_sport": {
+    "MLB": {
+      "n_matched": 4,
+      "n_with_pred": 4,
+      "mean_pred": 0.72,
+      "actual_hr": 1.0,
+      "calibration_gap": -0.28,
+      "overconfident": false,
+      "mean_edge": 2.9,
+      "mean_prop_quality": 0.6482,
+      "strong_n": 0,
+      "ok_n": 4
+    },
+    "TENNIS": {
+      "n_matched": 136,
+      "n_with_pred": 136,
+      "mean_pred": 0.72,
+      "actual_hr": 0.75,
+      "calibration_gap": -0.03,
+      "overconfident": false,
+      "mean_edge": 8.806,
+      "mean_prop_quality": 0.9065,
+      "strong_n": 102,
+      "ok_n": 34
+    },
+    "WNBA": {
+      "n_matched": 63,
+      "n_with_pred": 63,
+      "mean_pred": 0.72,
+      "actual_hr": 0.6508,
+      "calibration_gap": 0.0692,
+      "overconfident": false,
+      "mean_edge": 6.786,
+      "mean_prop_quality": 0.9033,
+      "strong_n": 0,
+      "ok_n": 63
+    }
+  },
+  "retrain_window_by_sport": {
+    "MLB": {
+      "n": 83053,
+      "mean_pred": 0.5527,
+      "actual_hr": 0.2874,
+      "calibration_gap": 0.2653,
+      "overconfident": true
+    },
+    "SOCCER": {
+      "n": 7905,
+      "mean_pred": 0.2287,
+      "actual_hr": 0.1701,
+      "calibration_gap": 0.0586,
+      "overconfident": false
+    },
+    "TENNIS": {
+      "n": 3139,
+      "mean_pred": 0.2867,
+      "actual_hr": 0.2185,
+      "calibration_gap": 0.0681,
+      "overconfident": false
+    },
+    "WNBA": {
+      "n": 6218,
+      "mean_pred": 0.6833,
+      "actual_hr": 0.5883,
+      "calibration_gap": 0.095,
+      "overconfident": true
+    }
+  },
+  "current_board_mean_edge_by_sport": {
+    "TENNIS": 8.814,
+    "MLB": 2.9,
+    "WNBA": 6.51
+  },
+  "recommendations": []
+}

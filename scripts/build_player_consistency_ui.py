@@ -41,6 +41,11 @@ SLATE_PATHS = (
     REPO_ROOT / "mobile" / "www" / "slate_latest.json",
 )
 
+TICKETS_PATHS = (
+    REPO_ROOT / "ui_runner" / "templates" / "tickets_latest.json",
+    REPO_ROOT / "mobile" / "www" / "tickets_latest.json",
+)
+
 # Per-sport minimum graded props for a (prop, direction) slice to surface in UI.
 _SPORT_MIN: dict[str, int | None] = {
     "NBA1H": None,  # use dynamic rule instead
@@ -331,6 +336,23 @@ def _normalize_slate_sport(raw: str) -> str:
     return SPORT_ALIASES.get(key, str(raw or "").strip().upper())
 
 
+def slate_pair_key(player: str, sport: str) -> tuple[str, str]:
+    """Canonical (name, sport) key matching slate_latest pair sets."""
+    return (_norm_name(player), _normalize_slate_sport(sport))
+
+
+def _sport_level_slate_date(data: dict, sport_key: str) -> str:
+    """Top-level tennis_date / soccer_date when row game_date is stale."""
+    key = str(sport_key or "").strip().lower()
+    field = {
+        "tennis": "tennis_date",
+        "soccer": "soccer_date",
+    }.get(key)
+    if not field:
+        return ""
+    return str(data.get(field) or "")[:10]
+
+
 def _players_from_slate_json(
     data: dict,
     today_str: str | None = None,
@@ -345,24 +367,29 @@ def _players_from_slate_json(
         if not isinstance(rows, list):
             continue
         sport_norm = _normalize_slate_sport(str(sport_key))
+        # Tennis/soccer often keep stale per-row game_date while slate marks
+        # the board day via tennis_date / soccer_date.
+        sport_day = _sport_level_slate_date(data, str(sport_key))
+        trust_sport_day = bool(sport_day and sport_day == td)
         for row in rows:
             if not isinstance(row, dict):
                 continue
-            gd = str(row.get("game_date") or "").strip()[:10]
-            if gd and gd != td:
-                continue
-            if not gd:
-                gt = str(row.get("game_time") or "").strip()
-                m = re.match(r"^(\d{4}-\d{2}-\d{2})", gt)
-                if m and m.group(1) != td:
+            if not trust_sport_day:
+                gd = str(row.get("game_date") or "").strip()[:10]
+                if gd and gd != td:
                     continue
+                if not gd:
+                    gt = str(row.get("game_time") or "").strip()
+                    m = re.match(r"^(\d{4}-\d{2}-\d{2})", gt)
+                    if m and m.group(1) != td:
+                        continue
             name = row.get("player") or row.get("player_name") or ""
             if not name:
                 continue
             clean = str(name).strip()
             players.add(clean)
             row_sport = row.get("sport") or sport_key
-            pairs.add((_norm_name(clean), _normalize_slate_sport(str(row_sport))))
+            pairs.add(slate_pair_key(clean, str(row_sport) if row_sport else sport_norm))
     return players, pairs
 
 
@@ -374,6 +401,47 @@ def _eastern_today_ymd() -> str:
         return datetime.now(ZoneInfo("America/New_York")).date().strftime("%Y-%m-%d")
     except Exception:
         return str(date.today())
+
+
+def _players_from_tickets_json(
+    data: dict,
+    today_str: str | None = None,
+) -> tuple[set[str], set[tuple[str, str]]]:
+    """Supplement slate pairs from published tickets (helps when tennis dates are stale)."""
+    players: set[str] = set()
+    pairs: set[tuple[str, str]] = set()
+    td = str(today_str or date.today())[:10]
+    board_date = str(data.get("date") or data.get("tennis_date") or "")[:10]
+    if board_date and board_date != td:
+        return players, pairs
+
+    def _add_leg(leg: dict) -> None:
+        if not isinstance(leg, dict):
+            return
+        name = leg.get("player") or leg.get("player_name") or ""
+        sport = leg.get("sport") or ""
+        if not name or not sport:
+            return
+        clean = str(name).strip()
+        players.add(clean)
+        pairs.add(slate_pair_key(clean, str(sport)))
+
+    for group in data.get("groups") or []:
+        if not isinstance(group, dict):
+            continue
+        for ticket in group.get("tickets") or []:
+            if not isinstance(ticket, dict):
+                continue
+            for leg in ticket.get("legs") or []:
+                _add_leg(leg)
+        for leg in group.get("legs") or []:
+            _add_leg(leg)
+    for key in ("hot_legs", "cold_legs"):
+        legs = data.get(key)
+        if isinstance(legs, list):
+            for leg in legs:
+                _add_leg(leg)
+    return players, pairs
 
 
 def load_today_slate() -> tuple[set[str], set[tuple[str, str]]]:
@@ -392,6 +460,18 @@ def load_today_slate() -> tuple[set[str], set[tuple[str, str]]]:
         if names:
             players.update(names)
             pairs.update(slate_pairs)
+
+    for path in TICKETS_PATHS:
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        names, ticket_pairs = _players_from_tickets_json(data, today_str)
+        if names:
+            players.update(names)
+            pairs.update(ticket_pairs)
 
     step8_dir = CACHE_DIR
     for sport_file in step8_dir.glob("step8_*.json"):
@@ -412,9 +492,9 @@ def load_today_slate() -> tuple[set[str], set[tuple[str, str]]]:
             clean = str(name).strip()
             players.add(clean)
             pairs.add(
-                (
-                    _norm_name(clean),
-                    _normalize_slate_sport(str(pick.get("sport") or sport_file.stem.replace("step8_", ""))),
+                slate_pair_key(
+                    clean,
+                    str(pick.get("sport") or sport_file.stem.replace("step8_", "")),
                 )
             )
 
@@ -429,10 +509,9 @@ def tag_today_slate(
     today_norm = {_norm_name(p) for p in today_players}
     pair_set = slate_pairs or set()
     for r in records:
-        norm = _norm_name(r["player"])
-        sport_u = str(r.get("sport", "")).upper()
-        on_pair = (norm, sport_u) in pair_set if pair_set else False
-        r["on_today_slate"] = norm in today_norm or on_pair
+        pair = slate_pair_key(str(r.get("player") or ""), str(r.get("sport") or ""))
+        on_pair = pair in pair_set if pair_set else False
+        r["on_today_slate"] = pair[0] in today_norm or on_pair
     return records
 
 
@@ -458,7 +537,7 @@ def select_top_records(
         chosen = group_list[:top_n]
         chosen_keys = {(r["player"], r["sport"]) for r in chosen}
         for r in group_list[top_n:]:
-            pair = (_norm_name(r["player"]), sport_u)
+            pair = slate_pair_key(str(r.get("player") or ""), str(r.get("sport") or ""))
             if pair in slate_pairs and (r["player"], r["sport"]) not in chosen_keys:
                 chosen.append(r)
                 chosen_keys.add((r["player"], r["sport"]))

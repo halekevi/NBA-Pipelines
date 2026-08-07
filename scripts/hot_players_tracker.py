@@ -79,9 +79,10 @@ def load_consistency_cache_path() -> Path:
 def _player_on_slate(p: dict, slate_pairs: set[tuple[str, str]]) -> bool:
     if not slate_pairs:
         return False
-    name = str(p.get("player") or "").strip().lower()
-    sport = str(p.get("sport") or "").upper().strip()
-    return bool(name and sport and (name, sport) in slate_pairs)
+    from scripts.build_player_consistency_ui import slate_pair_key
+
+    pair = slate_pair_key(str(p.get("player") or ""), str(p.get("sport") or ""))
+    return bool(pair[0] and pair[1] and pair in slate_pairs)
 
 
 def _resolve_display_prop(player: dict) -> dict | None:

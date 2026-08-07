@@ -162,8 +162,16 @@ def _load_player_names(id_cache: Path, slate_paths: list[Path]) -> dict[str, str
     for sp in slate_paths:
         if not sp.is_file():
             continue
+        # Never pd.read_csv a .json slate — pandas crawls multi-MB JSON as CSV
+        # for many minutes (this was blocking STEP D-ME ~90m on daily runs).
+        suf = sp.suffix.lower()
+        if suf not in (".csv", ".xlsx", ".xls"):
+            continue
         try:
-            sl = pd.read_csv(sp, encoding="utf-8-sig", low_memory=False)
+            if suf == ".csv":
+                sl = pd.read_csv(sp, encoding="utf-8-sig", low_memory=False)
+            else:
+                sl = pd.read_excel(sp, dtype=str)
         except Exception:
             continue
         pid_col = next((c for c in ("mlb_player_id", "MLB_PLAYER_ID") if c in sl.columns), None)

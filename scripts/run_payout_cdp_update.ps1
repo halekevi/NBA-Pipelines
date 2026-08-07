@@ -1,13 +1,11 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Afternoon UpdateOnly live PrizePicks CDP fill for slips still missing live_cdp.
+  Manual afternoon FillMissing live PrizePicks CDP for slips still missing live_cdp.
 
 .NOTES
-  MAIN capture is PropOracle - Payout CDP @ 11:00.
-  Ticket rebuilds after 11:00 often leave the board on pending_live; this job
-  re-scrapes only missing slips (FillMissingTickets) so the board recovers.
-  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Payout CDP Update" @ 15:00.
+  Not scheduled. Primary scrapes ride with 8/9/10:30/1 refreshes after fetch.
+  Use only for manual catchup when a refresh left pending_live.
 #>
 param(
     [string]$Date = ""

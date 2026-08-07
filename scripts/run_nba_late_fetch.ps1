@@ -1,12 +1,14 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Mid-day full slate refresh: re-fetch all sports with step1 --append, then full pipeline with
-  -SkipFetch -SkipLivePayoutCapture, then an incremental payout UPDATE (only-missing live floors).
+  Mid-day slate refresh: re-fetch props/lines (step1 --append), rebuild tickets, then re-scrape
+  PrizePicks CDP payout floors for the new board.
 .NOTES
-  Scheduled via PropOracle - Daily 8AM / Refresh 9AM / 11AM / 1PM (run_refresh_with_log.ps1).
-  First full fetch is Daily 5AM; these refreshes are line-move updates.
-  MAIN payout CDP is PropOracle - Payout CDP @ 11:00 (after 10:30 refresh); midday only fills new/missing slips (-UpdateOnly).
+  Cadence: Daily 8AM / Refresh 9AM / 1030AM / 1PM (run_refresh_with_log.ps1).
+  5AM is the initial full daily; these runs only update props/lines + redo ticket CDP rates.
+  Pipeline uses -SkipLivePayoutCapture so rebuild stays fast; CDP runs immediately after.
+  Separate PropOracle - Payout CDP @ 11:00 / Update @ 15:00 are retired —
+  CDP runs only after this fetch/rebuild (or manual run_payout_cdp.ps1).
   Writes step1 CSVs under outputs\<date>\<sport>\ (same paths as run_pipeline.ps1 -SkipFetch).
   Per-sport step1 failures are non-fatal; pipeline failure exits 1.
 #>
@@ -460,8 +462,9 @@ if ($env:PROPORACLE_REFRESH_TICKET_GEN_STARTS) {
     }
 }
 Write-Host "[LATE_FETCH] Running full pipeline -SkipFetch -SkipLivePayoutCapture -TicketGenStarts $middayTicketStarts -Date $PipeDate..."
-# Pipeline skips embedded CDP; after tickets we run an incremental payout UPDATE
-# (only slips missing live_cdp). MAIN full capture is PropOracle - Payout CDP @ 11:00 (after 10:30).
+# Pipeline skips embedded CDP (keeps rebuild fast). Immediately after tickets we
+# Force re-scrape live floors so /tickets is priced from this refresh — not deferred
+# to a later refresh. Standalone 11:00/15:00 Payout CDP tasks are retired.
 if ($NoOverwrite) {
     $preserveTargets = @(
         (Join-Path $Root "outputs\$PipeDate\combined_slate_tickets_$PipeDate.xlsx"),
@@ -490,15 +493,33 @@ if ($LASTEXITCODE -ne 0) {
 
 $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
 if (Test-Path -LiteralPath $livePayScript) {
-    Write-Host "[LATE_FETCH] Incremental payout UPDATE (only slips missing live_cdp)..." -ForegroundColor Cyan
+    # New tickets after a line-move rebuild need fresh live_cdp (≥1.5x) or the web
+    # filter ships an empty board. Re-scrape all MAIN/STRONG slips (Force) so moved
+    # lines get new floors — UpdateOnly/missing-only is not enough.
+    $cdpReady = $false
     try {
-        & pwsh -NoProfile -File $livePayScript -Date $PipeDate -Root $Root -UpdateOnly
-        Write-Host "[LATE_FETCH] Payout update exit $LASTEXITCODE" -ForegroundColor DarkGray
-    } catch {
-        Write-Host "[LATE_FETCH] WARN: payout update failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
+        $null = Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/version" -TimeoutSec 2 -ErrorAction Stop
+        $cdpReady = $true
+    } catch { }
+    if ($cdpReady) {
+        Write-Host "[LATE_FETCH] CDP payout re-scrape (Force + FillMissing) after prop/line refresh..." -ForegroundColor Cyan
+        try {
+            & pwsh -NoProfile -File $livePayScript -Date $PipeDate -Root $Root -Force -FillMissingTickets -RebuildRateCard
+            Write-Host "[LATE_FETCH] Payout re-scrape exit $LASTEXITCODE" -ForegroundColor DarkGray
+        } catch {
+            Write-Host "[LATE_FETCH] WARN: payout re-scrape failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "[LATE_FETCH] WARN: CDP down — board stays pending_live until next refresh with Chrome up (or manual run_payout_cdp.ps1)" -ForegroundColor Yellow
+        try {
+            & pwsh -NoProfile -File $livePayScript -Date $PipeDate -Root $Root -UpdateOnly
+            Write-Host "[LATE_FETCH] Payout audit exit $LASTEXITCODE" -ForegroundColor DarkGray
+        } catch {
+            Write-Host "[LATE_FETCH] WARN: payout audit failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
+        }
     }
 } else {
-    Write-Host "[LATE_FETCH] WARN: run_live_payout_capture.ps1 missing — skip payout update" -ForegroundColor Yellow
+    Write-Host "[LATE_FETCH] WARN: run_live_payout_capture.ps1 missing — skip payout re-scrape" -ForegroundColor Yellow
 }
 
 Write-Host "[LATE_FETCH] Done $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green

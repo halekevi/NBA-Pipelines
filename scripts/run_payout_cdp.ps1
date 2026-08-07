@@ -1,13 +1,12 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Dedicated live PrizePicks CDP payout capture (MAIN/STRONG floors).
+  Manual live PrizePicks CDP payout capture (MAIN/STRONG floors).
 
 .NOTES
-  Separated from Daily 5AM so the slate can publish without waiting on Chrome.
-  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Payout CDP" @ 11:00
-  (after the 10:30 line-move refresh — PP often moves hard ~10:30–11).
-  Midday refreshes still run -UpdateOnly for slips that remain missing live_cdp.
+  Not scheduled. Primary ticket CDP rides with each mid-day refresh after fetch
+  (8/9/10:30/1 → run_nba_late_fetch Force re-scrape). Use this script only for
+  manual catchup when a refresh left pending_live or CDP was down.
 #>
 param(
     [string]$Date = ""

@@ -194,7 +194,7 @@ Register-PropTask `
 Write-Host ""
 Write-Host "Scheduler tasks registered (visible PowerShell windows)." -ForegroundColor Green
 Write-Host "  - PropOracle - Tennis Early 3AM (fetch only; no board publish)"
-Write-Host "  - PropOracle - Daily 5AM (initial full run + FillMissing CDP)"
+Write-Host "  - PropOracle - Daily 5AM (initial full run; CDP floors deferred to 8AM+)"
 foreach ($eg in $EveningGraderTasks) {
     Write-Host "  - $($eg.Name)"
 }

@@ -2,12 +2,16 @@
 """
 step1_fetch_prizepicks_tennis.py — PrizePicks Tennis projections (API, NBA-style fetch).
 
-Default: auto-detect league_id among candidates (14, 20, 7, 9, 12, 15) using
+Default: league_id=5 (PrizePicks TENNIS). Pass --league_id auto to scan candidates using
 tennis-like prop names vs NBA stat noise.
+
+Optional --cdp attaches to warmed Chrome (DataDome bypass). --fail-fast keeps
+HTTP from burning long 403 cooldown stacks during refresh.
 
 Run:
   py -3.14 Tennis/scripts/step1_fetch_prizepicks_tennis.py
   py -3.14 Tennis/scripts/step1_fetch_prizepicks_tennis.py --list-leagues
+  py -3.14 Tennis/scripts/step1_fetch_prizepicks_tennis.py --cdp http://127.0.0.1:9222 --fail-fast
 """
 
 from __future__ import annotations
@@ -31,6 +35,8 @@ except Exception:
 
 # Tennis/scripts -> repo root is parents[3].
 REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 LEAGUES_URL = "https://api.prizepicks.com/leagues"
 
@@ -298,6 +304,70 @@ def build_tennis_rows(data: list[dict], included: list[dict], nba_mod: Any) -> l
     return rows
 
 
+def fetch_tennis_via_cdp(
+    league_id: str,
+    *,
+    cdp_url: str,
+    per_page: int = 250,
+    attach_timeout_ms: int = 30_000,
+    request_timeout_ms: int = 25_000,
+) -> tuple[list[dict], list[dict]]:
+    """Fetch tennis projections via warmed Chrome CDP (DataDome bypass)."""
+    from playwright.sync_api import sync_playwright
+
+    from utils.prizepicks_cdp import (
+        align_cdp_context_for_datadome,
+        cdp_board_ready,
+        connect_over_cdp,
+        fetch_projections_inpage,
+        pick_cdp_warmed_page,
+    )
+
+    with sync_playwright() as p:
+        browser = connect_over_cdp(p, cdp_url, timeout_ms=attach_timeout_ms)
+        if not browser.contexts:
+            raise RuntimeError("CDP browser has no contexts; start Chrome with --remote-debugging-port.")
+        context = browser.contexts[0]
+        print("  Using browser context[0] (existing session / cookies).")
+        align_cdp_context_for_datadome(context)
+        opened_new = False
+        page = pick_cdp_warmed_page(context, league_id)
+        if page is not None:
+            print(f"  Reusing warmed PP tab: {page.url}")
+        else:
+            page = context.new_page()
+            opened_new = True
+            print("  No warmed PP tab found — opened new page (solve DataDome in Chrome if 403).")
+        page.set_default_timeout(max(30_000, int(request_timeout_ms) + 5_000))
+        if not cdp_board_ready(page, league_id):
+            board_url = f"https://app.prizepicks.com/board?league_id={league_id}"
+            page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_timeout(2000)
+            page.goto(board_url, wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_timeout(3000)
+        else:
+            try:
+                page.bring_to_front()
+            except Exception:
+                pass
+            page.wait_for_timeout(1000)
+
+        data, included, status, url = fetch_projections_inpage(
+            page,
+            league_id,
+            per_page=per_page,
+            request_timeout_ms=request_timeout_ms,
+        )
+        print(f"  [CDP] status={status} rows={len(data)} url={url}")
+        if opened_new:
+            try:
+                page.close()
+            except Exception:
+                pass
+        browser.close()
+    return data, included
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -308,8 +378,8 @@ def main() -> None:
     ap.add_argument("--output", default="outputs/step1_tennis_props.csv")
     ap.add_argument(
         "--league_id",
-        default="auto",
-        help="PrizePicks league_id, or 'auto' to scan candidates",
+        default="5",
+        help="PrizePicks tennis league_id (default 5). Pass 'auto' to scan candidates.",
     )
     ap.add_argument("--per_page", type=int, default=250)
     ap.add_argument("--max_pages", type=int, default=10)
@@ -317,7 +387,24 @@ def main() -> None:
     ap.add_argument("--min_rows", type=int, default=5)
     ap.add_argument("--min_teams", type=int, default=1)
     ap.add_argument("--replace", action="store_true", help="Do not merge with existing output")
+    ap.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Short HTTP path: 1 session wave, no long 403 cooldown stacks.",
+    )
+    ap.add_argument(
+        "--cdp",
+        default="",
+        help="Attach to Chrome DevTools (e.g. http://127.0.0.1:9222) and fetch in-page.",
+    )
+    ap.add_argument(
+        "--cdp-attach-timeout-ms",
+        type=int,
+        default=30_000,
+        help="CDP connect_over_cdp timeout in ms (default 30000).",
+    )
     args = ap.parse_args()
+    fail_fast = bool(args.fail_fast) or bool(str(args.cdp).strip())
 
     if args.list_leagues:
         print("[Tennis step1] Starting...")
@@ -325,6 +412,8 @@ def main() -> None:
         return
 
     print("[Tennis step1] Starting...")
+    if fail_fast:
+        print("  [mode] fail-fast HTTP (or CDP) — no long 403 cooldown stacks")
     nba = _load_nba_step1()
 
     root = Path(__file__).resolve().parent.parent
@@ -380,17 +469,28 @@ def main() -> None:
         print("[Tennis step1] Auto-detecting tennis league_id (first page each)...", flush=True)
         start = time.time()
         for lid in candidates:
-            if time.time() - start > 90:
-                print("[Tennis step1] Auto-detect timed out after 90s.", flush=True)
+            if time.time() - start > (45 if fail_fast else 90):
+                print("[Tennis step1] Auto-detect timed out.", flush=True)
                 break
             try:
-                time.sleep(2.75)
-                data, inc = nba.fetch_projections(
-                    league_id=lid,
-                    per_page=args.per_page,
-                    max_pages=1,
-                    retries=args.retries,
-                )
+                if not fail_fast:
+                    time.sleep(2.75)
+                fetch_kw: dict[str, Any] = {
+                    "league_id": lid,
+                    "per_page": args.per_page,
+                    "max_pages": 1,
+                    "retries": min(2, int(args.retries)) if fail_fast else args.retries,
+                }
+                if fail_fast:
+                    fetch_kw.update(
+                        first_page_waves=1,
+                        forbid_cooldown_threshold=99,
+                        forbid_max_cooldown_windows=0,
+                        inter_page_delay=(0.4, 1.0),
+                        session_jitter=(0.2, 0.8),
+                        wave_gap_seconds=(0.5, 1.0),
+                    )
+                data, inc = nba.fetch_projections(**fetch_kw)
                 rows = build_tennis_rows(data, inc, nba)
                 df_try = pd.DataFrame(rows)
                 sc = _tennis_league_score(df_try)
@@ -409,19 +509,46 @@ def main() -> None:
     else:
         use_id = str(args.league_id).strip()
 
-    try:
-        data, included = nba.fetch_projections(
-            league_id=use_id,
-            per_page=args.per_page,
-            max_pages=args.max_pages,
-            retries=args.retries,
-        )
-    except Exception as e:
-        if _fallback_to_existing_csv(f"fetch failed ({e})"):
-            print("[Tennis step1] BOARD_OK_FALLBACK")
-            return
-        print(f"[Tennis step1] Fetch failed: {e}")
-        sys.exit(1)
+    data: list[dict] = []
+    included: list[dict] = []
+    cdp_url = str(args.cdp or "").strip()
+    if cdp_url:
+        try:
+            print(f"[Tennis step1] CDP fetch league_id={use_id}...")
+            data, included = fetch_tennis_via_cdp(
+                use_id,
+                cdp_url=cdp_url,
+                per_page=int(args.per_page),
+                attach_timeout_ms=int(args.cdp_attach_timeout_ms),
+            )
+        except Exception as e:
+            print(f"[Tennis step1] CDP failed ({type(e).__name__}: {e}) — falling back to fail-fast HTTP")
+            cdp_url = ""
+
+    if not cdp_url:
+        try:
+            fetch_kw = {
+                "league_id": use_id,
+                "per_page": args.per_page,
+                "max_pages": min(4, int(args.max_pages)) if fail_fast else args.max_pages,
+                "retries": min(2, int(args.retries)) if fail_fast else args.retries,
+            }
+            if fail_fast:
+                fetch_kw.update(
+                    first_page_waves=1,
+                    forbid_cooldown_threshold=99,
+                    forbid_max_cooldown_windows=0,
+                    inter_page_delay=(0.4, 1.0),
+                    session_jitter=(0.2, 0.8),
+                    wave_gap_seconds=(0.5, 1.0),
+                )
+            data, included = nba.fetch_projections(**fetch_kw)
+        except Exception as e:
+            if _fallback_to_existing_csv(f"fetch failed ({e})"):
+                print("[Tennis step1] BOARD_OK_FALLBACK")
+                return
+            print(f"[Tennis step1] Fetch failed: {e}")
+            sys.exit(1)
 
     if not data:
         if _fallback_to_existing_csv("no projections returned"):

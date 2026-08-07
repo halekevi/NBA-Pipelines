@@ -412934,7 +412934,7 @@
       "tier": "B",
       "edge": "3.7",
       "ml_prob": "0.58",
-      "actual_value": "13.0",
+      "actual_value": "7.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -412976,12 +412976,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "HIT",
+      "result": "MISS",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 1,
+      "hit": 0,
       "graded_at": ""
     },
     {
@@ -412996,7 +412996,7 @@
       "tier": "B",
       "edge": "3.7",
       "ml_prob": "0.58",
-      "actual_value": "13.0",
+      "actual_value": "7.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -413038,12 +413038,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "HIT",
+      "result": "MISS",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 1,
+      "hit": 0,
       "graded_at": ""
     },
     {
@@ -442170,7 +442170,7 @@
       "tier": "B",
       "def": "avg",
       "decided": 13,
-      "hits": 11
+      "hits": 9
     },
     {
       "prop": "3-PT Attempted",

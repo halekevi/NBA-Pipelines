@@ -2,11 +2,11 @@
 # ============================================================
 #  Live PrizePicks payout capture (post-ticket step)
 #
-#  Two-tier model:
-#    MAIN (PropOracle - Payout CDP @ 11:00, after 10:30 refresh): scrape MAIN/STRONG
-#      slips missing live floors, then verify + rebuild rate card.
-#    UPDATE (8/9/10:30/1 refreshes): only slips still missing live_cdp.
-#    5AM daily does NOT run live CDP by default (pass -RunLivePayout to opt in).
+#  Cadence model:
+#    5AM daily: initial FillMissing after Combined (STEP D-payout).
+#    8/9/10:30/1 refreshes: Force re-scrape after prop/line rebuild (run_nba_late_fetch).
+#    PropOracle - Payout CDP @ 11:00 + Update @ 15:00: catchup/backup only
+#      (if a refresh hung or CDP was down).
 #
 #  Steps:
 #    1) CDP scrape of generated MAIN/STRONG slips → power_min_x
@@ -425,9 +425,20 @@ try {
             "--output", $payoutOut,
             "--date", $Date,
             "--cdp-url", $CdpUrl,
-            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min",
-            "--max-runtime-sec", "$runtimeSec"
+            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min"
         )
+        # --max-runtime-sec landed on feature before main's collect_payout_data.py;
+        # only pass it when supported so midday UPDATE does not hard-fail.
+        $supportsMaxRuntime = $false
+        try {
+            $helpText = & py -3.14 -X utf8 $payoutScript --help 2>&1 | Out-String
+            if ($helpText -match "max-runtime-sec") { $supportsMaxRuntime = $true }
+        } catch { }
+        if ($supportsMaxRuntime) {
+            $ticketArgs += @("--max-runtime-sec", "$runtimeSec")
+        } else {
+            Write-Host "  [PAYOUT] collect_payout_data.py has no --max-runtime-sec — relying on wrapper timeout only" -ForegroundColor DarkGray
+        }
         if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
         if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
         if ($Gentle) { $ticketArgs += "--gentle" }

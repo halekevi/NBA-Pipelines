@@ -32,7 +32,7 @@ SAMPLES_DIR = ROOT / "data" / "payout_samples"
 PAYOUT_LADDER_LIVE_CDP_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
 DEBUG_DIR = ROOT / "data" / "debug"
 PAYOUT_LOCK_PATH = ROOT / "data" / "cache" / "payout_capture.lock"
-PAYOUT_LOCK_TTL_HOURS = 6.0
+PAYOUT_LOCK_TTL_HOURS = 2.0
 _PAYOUT_LOCK_HELD_BY_US = False
 
 
@@ -204,7 +204,27 @@ def parse_card_lines(lines: list[str]) -> tuple[str | None, float | None, str | 
 
 
 def _norm(s: Any) -> str:
-    return re.sub(r"\s+", " ", str(s or "").strip().lower())
+    text = re.sub(r"\s+", " ", str(s or "").strip().lower())
+    # PrizePicks card titles often append role suffixes (" - Player", " - Attacker").
+    text = re.sub(
+        r"\s*-\s*(player|attacker|midfielder|defender|goalkeeper|goalie|pitcher|"
+        r"hitter|guard|forward|center|wing|coach)\s*$",
+        "",
+        text,
+    )
+    return text.strip()
+
+
+def _norm_player_display(s: Any) -> str:
+    """Strip role suffixes from board player labels without lowercasing for logs."""
+    text = re.sub(r"\s+", " ", str(s or "").strip())
+    return re.sub(
+        r"\s*-\s*(Player|Attacker|Midfielder|Defender|Goalkeeper|Goalie|Pitcher|"
+        r"Hitter|Guard|Forward|Center|Wing|Coach)\s*$",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    ).strip()
 
 
 def _pick_col(df: pd.DataFrame, names: list[str]) -> str | None:
@@ -324,6 +344,12 @@ def connect_existing_browser(cdp_url: str, *, cdp_timeout_ms: int = 45_000):
             if "prizepicks" in (pg.url or "").lower():
                 page = pg
                 break
+        # Prevent Playwright ops from hanging forever when Chrome/CDP is half-dead.
+        try:
+            page.set_default_timeout(20_000)
+            page.set_default_navigation_timeout(45_000)
+        except Exception:
+            pass
         return p, browser, context, page
     except Exception as e:
         print("Could not attach to Chrome CDP (timed out or refused).")
@@ -355,7 +381,14 @@ def find_prizepicks_frame(page):
     """Find the frame that contains the actual projection board content."""
     for frame in page.frames:
         try:
-            text = frame.evaluate("() => (document.body && document.body.innerText) ? document.body.innerText : ''")
+            # Bound hung iframes — evaluate alone can idle forever on a dead CDP target.
+            frame.wait_for_function(
+                "() => !!(document.body && document.body.innerText)",
+                timeout=5_000,
+            )
+            text = frame.evaluate(
+                "() => (document.body && document.body.innerText) ? document.body.innerText : ''"
+            )
             if any(x in text for x in ["Turnovers", "Points", "Assists", "Rebounds", "More", "Less", "Popular"]):
                 print(f"[FRAME] Found content in frame: {frame.url}")
                 return frame
@@ -474,6 +507,18 @@ def prop_type_to_board_filter(prop: str) -> str:
         "pra": "Pts+Reb+Ast",
         "points+rebounds+assists": "Pts+Reb+Ast",
         "fantasyscore": "Fantasy Score",
+        "hitterfs": "Hitter Fantasy Score",
+        "hitterfantasyscore": "Hitter Fantasy Score",
+        "pitcherfs": "Pitcher Fantasy Score",
+        "pitcherfantasyscore": "Pitcher Fantasy Score",
+        "hits+runs+rbis": "Hits+Runs+RBIs",
+        "hits-runs-rbis": "Hits+Runs+RBIs",
+        "hitsrunsrbis": "Hits+Runs+RBIs",
+        "ks": "Pitcher Strikeouts",
+        "strikeouts": "Pitcher Strikeouts",
+        "pitcherstrikeouts": "Pitcher Strikeouts",
+        "tb": "Total Bases",
+        "totalbases": "Total Bases",
         "fgmade": "FG Made",
         "fgattempted": "FG Attempted",
         "freethrowsmade": "Free Throws Made",
@@ -884,10 +929,12 @@ def _rebind_more_btn(frame, player: str, prop: str):
             if not (np == cp or np in cp or cp in np):
                 continue
         return c.get("more_btn"), c
-    # name-only fallback
-    for c in cards:
-        if nt in _norm(c.get("player")) or _norm(c.get("player")) in nt:
-            return c.get("more_btn"), c
+    # Name-only fallback is unsafe when a prop was requested: it binds the wrong
+    # face (e.g. 3PTM 0.5 Goblin while probing Points) and poisons Δ catalog.
+    if not np:
+        for c in cards:
+            if nt in _norm(c.get("player")) or _norm(c.get("player")) in nt:
+                return c.get("more_btn"), c
     return None, None
 
 
@@ -995,12 +1042,18 @@ def _click_player_direction(frame, matched_name: str, direction: str, prop: str)
         return False
     try:
         if str(direction).upper() == "OVER":
-            target["more_btn"].click(timeout=900)
+            try:
+                target["more_btn"].click(timeout=900)
+            except Exception:
+                target["more_btn"].click(force=True, timeout=2000)
         else:
             try:
                 target["more_btn"].locator("xpath=../..//button[contains(., 'Less')]").first.click(timeout=900)
             except Exception:
-                frame.get_by_text("Less", exact=True).first.click(timeout=900)
+                try:
+                    frame.get_by_text("Less", exact=True).first.click(timeout=900)
+                except Exception:
+                    frame.get_by_text("Less", exact=True).first.click(force=True, timeout=2000)
         frame.wait_for_timeout(500)
         return True
     except Exception as e:
@@ -1011,7 +1064,12 @@ def _click_player_direction(frame, matched_name: str, direction: str, prop: str)
 def click_leg(frame, card: dict, direction: str) -> bool:
     try:
         if direction.upper() in ["OVER", "MORE"]:
-            card["more_btn"].click(timeout=1200)
+            try:
+                card["more_btn"].click(timeout=1200)
+            except Exception:
+                # Overlays / unstable layout often block Playwright's actionability
+                # checks; force-click still selects the leg on PrizePicks.
+                card["more_btn"].click(force=True, timeout=2000)
         else:
             found_less = card["more_btn"].evaluate(
                 """
@@ -1028,7 +1086,10 @@ def click_leg(frame, card: dict, direction: str) -> bool:
                 """
             )
             if not found_less:
-                frame.get_by_text("Less").nth(0).click(timeout=1200)
+                try:
+                    frame.get_by_text("Less").nth(0).click(timeout=1200)
+                except Exception:
+                    frame.get_by_text("Less").nth(0).click(force=True, timeout=2000)
         frame.wait_for_timeout(400)
         return True
     except Exception as e:
@@ -1077,16 +1138,27 @@ def extract_multiplier_from_any(value: Any) -> float | None:
 
 def clear_slip(frame):
     try:
+        # Prefer exact Clear on the Current Lineup panel (force past overlays).
         for txt in ["Clear", "Clear All", "Remove All"]:
-            b = frame.get_by_text(txt, exact=False).first
-            if b.count() > 0:
+            locs = [
+                frame.get_by_role("button", name=re.compile(rf"^{re.escape(txt)}$", re.I)),
+                frame.get_by_text(txt, exact=True),
+                frame.get_by_text(txt, exact=False),
+            ]
+            for loc in locs:
                 try:
-                    b.click(timeout=500)
-                    frame.wait_for_timeout(600)
+                    if loc.count() <= 0:
+                        continue
+                    btn = loc.first
+                    try:
+                        btn.click(timeout=800)
+                    except Exception:
+                        btn.click(force=True, timeout=1500)
+                    frame.wait_for_timeout(700)
                     print("[SLIP] Cleared")
                     return
                 except Exception:
-                    pass
+                    continue
         for sel in [
             "button[aria-label*='remove']",
             "button[aria-label*='delete']",
@@ -1098,7 +1170,7 @@ def clear_slip(frame):
             n = min(btns.count(), 20)
             for _ in range(n):
                 try:
-                    btns.nth(0).click(timeout=300)
+                    btns.nth(0).click(force=True, timeout=500)
                     frame.wait_for_timeout(250)
                 except Exception:
                     break
@@ -1115,19 +1187,45 @@ def verify_slip_empty(frame, page=None) -> tuple[bool, object]:
                 f"  [WARN] Slip not empty after clear: "
                 f"{n_selected[0]} players still selected"
             )
-            clear_slip(frame)
-            frame.wait_for_timeout(1000)
-            text2 = frame.evaluate("() => document.body.innerText")
-            n_selected2 = re.findall(r"(\d+)\s*Players?\s*Selected", text2, re.IGNORECASE)
-            if n_selected2 and int(n_selected2[0]) > 0:
-                print("  [WARN] Slip still not empty after retry; reconnecting frame")
-                if page is not None:
+            for _attempt in range(3):
+                clear_slip(frame)
+                dismiss_modal(frame, page) if page is not None else None
+                frame.wait_for_timeout(800)
+                text2 = frame.evaluate("() => document.body.innerText")
+                n_selected2 = re.findall(
+                    r"(\d+)\s*Players?\s*Selected", text2, re.IGNORECASE
+                )
+                if not n_selected2 or int(n_selected2[0]) <= 0:
+                    return True, frame
+            print("  [WARN] Slip still not empty after retry; reconnecting frame")
+            if page is not None:
+                try:
+                    # Hard navigation reset often unsticks a wedged lineup panel.
+                    # Stay on the current board URL when possible (do not force WNBA).
                     try:
-                        frame = find_prizepicks_frame(page)
-                        ensure_popular_filter(frame, page)
-                        dismiss_modal(frame, page)
-                    except Exception as e:
-                        print(f"  [WARN] Frame reconnect failed: {e}")
+                        cur = str(page.url or "")
+                        if "prizepicks.com" in cur and "board" in cur:
+                            page.reload(wait_until="domcontentloaded", timeout=45000)
+                        else:
+                            page.goto(
+                                "https://app.prizepicks.com/board",
+                                wait_until="domcontentloaded",
+                                timeout=45000,
+                            )
+                        page.wait_for_timeout(2000)
+                    except Exception:
+                        pass
+                    frame = find_prizepicks_frame(page)
+                    ensure_popular_filter(frame, page)
+                    dismiss_modal(frame, page)
+                    clear_slip(frame)
+                    frame.wait_for_timeout(800)
+                    text3 = frame.evaluate("() => document.body.innerText")
+                    n3 = re.findall(r"(\d+)\s*Players?\s*Selected", text3, re.IGNORECASE)
+                    if not n3 or int(n3[0]) <= 0:
+                        return True, frame
+                except Exception as e:
+                    print(f"  [WARN] Frame reconnect failed: {e}")
                 return False, frame
         return True, frame
     except Exception:
@@ -1262,6 +1360,7 @@ def expand_card_pool(frame, page) -> list[dict]:
         "Pitcher Strikeouts",
         "Hitter Fantasy Score",
         "Hits-Runs-RBIs",
+        "Hits+Runs+RBIs",
         "Points",
         "Assists",
         "Rebounds",
@@ -1651,11 +1750,44 @@ def add_leg(
         pick_type = "standard"
     line = leg.get("line")
     try:
-        ensure_popular_filter(frame, page)
         tab = prop_type_to_board_filter(prop)
-        _switch_board_filter(frame, page, tab)
         dismiss_modal(frame, page)
         _scroll_board_for_lazy_load(page)
+
+        print(
+            f"[LOOKUP] Target player={player} prop={prop} line={line} "
+            f"pick={pick_type} dir={direction} tab={tab} "
+            f"strict={strict_lines} require_line={require_line}"
+        )
+
+        # Resolve on the current league board FIRST. Switching Popular/prop chips
+        # often remounts a different sport board (e.g. tennis -> WNBA) and loses
+        # the players we already navigated to via league_id.
+        cards = get_all_cards(frame)
+        target = _resolve_ticket_leg_card(
+            player,
+            prop,
+            line,
+            pick_type,
+            cards,
+            strict=strict_lines,
+            require_line=require_line,
+        )
+        if target is None:
+            ensure_popular_filter(frame, page)
+            _switch_board_filter(frame, page, tab)
+            dismiss_modal(frame, page)
+            _scroll_board_for_lazy_load(page)
+            cards = get_all_cards(frame)
+            target = _resolve_ticket_leg_card(
+                player,
+                prop,
+                line,
+                pick_type,
+                cards,
+                strict=strict_lines,
+                require_line=require_line,
+            )
 
         visible_players, best_sel, sel_counts = _collect_visible_players(frame)
         if not _LOOKUP_DIAG_PRINTED:
@@ -1667,23 +1799,6 @@ def add_leg(
             for nm in visible_players[:5]:
                 print(f"  - {nm}")
             _LOOKUP_DIAG_PRINTED = True
-
-        print(
-            f"[LOOKUP] Target player={player} prop={prop} line={line} "
-            f"pick={pick_type} dir={direction} tab={tab} "
-            f"strict={strict_lines} require_line={require_line}"
-        )
-
-        cards = get_all_cards(frame)
-        target = _resolve_ticket_leg_card(
-            player,
-            prop,
-            line,
-            pick_type,
-            cards,
-            strict=strict_lines,
-            require_line=require_line,
-        )
 
         # If we landed on the right badge but wrong line, cycle the dual-arrow swap.
         if (
@@ -1773,7 +1888,7 @@ def add_leg(
                     want_line=line,
                     require_line=bool(require_line),
                     # Cap swaps — 14 re-parses of 60+ cards is what makes captures run hours.
-                    max_clicks=6 if require_line else 10,
+                    max_clicks=12 if require_line else 10,
                 )
                 cards = get_all_cards(frame)
                 target = _resolve_ticket_leg_card(
@@ -1845,6 +1960,19 @@ def add_leg(
                 f"{target.get('prop_type')} {target.get('line')} "
                 f"({target.get('pick_type')})"
             )
+            # Never More-click a face whose line ≠ planned Goblin/Demon line under
+            # strict mode — that stamps a false Δ (std face looks like a miss).
+            if (
+                strict_lines
+                and line is not None
+                and str(line).strip() != ""
+                and _line_key(target.get("line")) != _line_key(line)
+            ):
+                print(
+                    f"[LOOKUP] refuse click: board line={target.get('line')} "
+                    f"!= planned {line} (pick={target.get('pick_type')})"
+                )
+                return False
             if click_leg(frame, target, direction):
                 return True
 
@@ -2085,14 +2213,35 @@ def read_slip(
 
         n_selected = re.findall(r"(\d+)\s*Players?\s*Selected", slip_section, re.IGNORECASE)
         n_selected_int = int(n_selected[0]) if n_selected else None
+
+        # Prefer the ticket_type subsection — UI often shows Flex then Power together.
+        parse_section = slip_section
+        tt = str(ticket_type or "power").lower().strip()
+        if tt == "power":
+            pp = re.search(
+                r"Power\s*Play\b(.*?)(?:Reversion lineup|Entry Fee|Deposit Funds|$)",
+                slip_section,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if pp:
+                parse_section = pp.group(0)
+        elif tt == "flex":
+            fp = re.search(
+                r"Flex\s*Play\b(.*?)(?:Power\s*Play\b|Reversion lineup|Entry Fee|Deposit Funds|$)",
+                slip_section,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if fp:
+                parse_section = fp.group(0)
+
         first_place = re.findall(
             r"1st\s*place\s*pays[\s\n]*(\d+\.?\d*)[Xx]",
-            slip_section,
+            parse_section,
             re.IGNORECASE,
         )
         correct_pays = re.findall(
             r"(\d+)\s*correct\s*pays[\s\n]*(\d+\.?\d*)[Xx]",
-            slip_section,
+            parse_section,
             re.IGNORECASE,
         )
 
@@ -2817,7 +2966,28 @@ def write_payout_patch_and_apply_to_tickets(
                     n_kept_live += 1
                     continue
 
-                # Uncaptured + no prior live: mix-grid average, else model estimate
+                # Uncaptured + no prior live: never invent mix/fallback when live required.
+                require_live = True
+                try:
+                    import combined_slate_tickets as _cst
+
+                    require_live = bool(_cst.require_live_payout_display())
+                except Exception:
+                    require_live = (
+                        str(__import__("os").environ.get("PROPORACLE_REQUIRE_LIVE_PAYOUT") or "1")
+                        .strip()
+                        .lower()
+                        not in ("0", "false", "no", "off")
+                    )
+                if require_live:
+                    pay["payout_source"] = "pending_live"
+                    pay.pop("display_min_x", None)
+                    t.pop("display_min_x", None)
+                    t["payout"] = pay
+                    n_fallback += 1  # counted as non-live pending
+                    continue
+
+                # Legacy path: mix-grid average, else model estimate
                 legs = t.get("legs") if isinstance(t.get("legs"), list) else []
                 n_legs = len(legs) or int(t.get("n_legs") or 0)
                 avg = mix_avg.get((int(n_legs), int(_goblin_n(legs))))
@@ -2867,7 +3037,7 @@ def write_payout_patch_and_apply_to_tickets(
         sync_tickets_json_mirrors(data, date_str=date_str, primary=tickets_path)
         print(
             f"[PAYOUT] write-back live_cdp={n_patched} kept_live={n_kept_live} "
-            f"fallback={n_fallback} in {tickets_path}"
+            f"non_live_or_pending={n_fallback} in {tickets_path}"
         )
 
     # Feed /payout Rate cards + ladder table with live Goblin composition floors.
@@ -2949,6 +3119,7 @@ def capture_tickets_from_board(
     require_line: bool | None = None,
     gentle: bool = False,
     only_missing_live: bool = False,
+    max_runtime_sec: float = 0.0,
 ) -> int:
     """Build each MAIN/STRONG slip on PrizePicks and capture min/first payouts.
 
@@ -2957,11 +3128,14 @@ def capture_tickets_from_board(
     still requiring the badge (used by ladder live-board validation).
     gentle=True: human-paced delays + random cooloff between slips (less DataDome).
     only_missing_live=True: skip slips that already have payout_source=live_cdp.
+    max_runtime_sec>0: stop after wall-clock budget and save whatever was captured.
     """
     if require_line is None:
         require_line = bool(strict_lines)
     if gentle:
         delay_sec = max(float(delay_sec), 2.0)
+    deadline = (time.monotonic() + float(max_runtime_sec)) if float(max_runtime_sec or 0) > 0 else None
+    timed_out = False
     slips = load_main_strong_tickets(tickets_path, only_missing_live=only_missing_live)
     fp_info = main_strong_tickets_fingerprint(tickets_path)
     if not slips:
@@ -3033,11 +3207,14 @@ def capture_tickets_from_board(
         f"require_line={'on' if require_line else 'off'} "
         f"gentle={'on' if gentle else 'off'} "
         f"only_missing_live={'on' if only_missing_live else 'off'} "
-        f"delay={delay_sec:.1f}s)"
+        f"delay={delay_sec:.1f}s"
+        f"{f'; max_runtime={int(max_runtime_sec)}s' if deadline else ''})"
     )
 
     want_flex = "flex_min" in fields
+    print(f"[PAYOUT] attaching CDP {cdp_url} ...", flush=True)
     p, browser, context, page = connect_existing_browser(cdp_url)
+    print(f"[PAYOUT] CDP attached; page={page.url!r}", flush=True)
     page.wait_for_timeout(1500 if gentle else 500)
     captured: list[dict] = []
     n_ok = n_failed = n_partial = 0
@@ -3051,11 +3228,21 @@ def capture_tickets_from_board(
             active_sport = first_sport
             if gentle:
                 page.wait_for_timeout(int(random.uniform(2000, 4000)))
+        print("[PAYOUT] locating PrizePicks board frame ...", flush=True)
         frame = find_prizepicks_frame(page)
         ensure_popular_filter(frame, page)
         dismiss_modal(frame, page)
+        print("[PAYOUT] board ready — starting slips", flush=True)
 
         for i, slip in enumerate(slips_sorted, 1):
+            if deadline is not None and time.monotonic() >= deadline:
+                timed_out = True
+                print(
+                    f"[PAYOUT] max runtime reached after {i - 1}/{len(slips_sorted)} slips — "
+                    "saving partial capture",
+                    flush=True,
+                )
+                break
             if gentle and i > 1:
                 cool = random.uniform(2.5, 5.5)
                 print(f"[PAYOUT] gentle cooloff {cool:.1f}s before next slip...")
@@ -3097,6 +3284,22 @@ def capture_tickets_from_board(
             }
 
             try:
+                n_need_pre = int(slip.get("n_legs") or len(slip.get("legs") or []) or 2)
+                if n_need_pre >= 3:
+                    try:
+                        # Reset to THIS slip's league — never hardcode WNBA (league_id=3).
+                        reset_sport = slip_sport or active_sport or first_sport or "NBA"
+                        navigate_board_for_sport(page, reset_sport, settle_ms=2000 if gentle else 1000)
+                        active_sport = str(reset_sport or active_sport or "").strip().upper()
+                        frame = find_prizepicks_frame(page)
+                        ensure_popular_filter(frame, page)
+                        dismiss_modal(frame, page)
+                        print(
+                            f"[PAYOUT] hard board reset before multi-leg slip "
+                            f"(sport={active_sport or reset_sport})"
+                        )
+                    except Exception as e:
+                        print(f"[PAYOUT] WARN hard reset failed: {e}")
                 clear_slip(frame)
                 _, frame = verify_slip_empty(frame, page)
                 dismiss_modal(frame, page)
@@ -3139,10 +3342,119 @@ def capture_tickets_from_board(
                     clear_slip(frame)
                     continue
 
+                n_slip = power_slip.get("n_selected")
+                try:
+                    n_slip_i = int(n_slip) if n_slip is not None else int(clicked)
+                except (TypeError, ValueError):
+                    n_slip_i = int(clicked)
+                if n_slip_i != int(n_need):
+                    rec["error"] = f"slip_n_{n_slip_i}_expected_{n_need}"
+                    print(f"  [WARN] reject contaminated slip: {rec['error']}")
+                    n_failed += 1
+                    captured.append(_project_capture_fields(rec, fields))
+                    clear_slip(frame)
+                    continue
+
+                # Soft player check: planned surnames should appear in slip text.
+                raw_slip = _norm(
+                    power_slip.get("raw_slip_section") or power_slip.get("raw_text") or ""
+                )
+                raw_slip_disp = str(
+                    power_slip.get("raw_slip_section") or power_slip.get("raw_text") or ""
+                )
+                if raw_slip:
+                    miss = []
+                    for leg in slip.get("legs") or []:
+                        name = str(leg.get("player") or "").strip()
+                        if not name:
+                            continue
+                        parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
+                        surname = parts[-1] if parts else name
+                        if _norm(surname) not in raw_slip:
+                            miss.append(name)
+                    if miss:
+                        rec["error"] = f"slip_missing_players:{','.join(miss)}"
+                        print(f"  [WARN] reject slip player mismatch: {miss}")
+                        n_failed += 1
+                        captured.append(_project_capture_fields(rec, fields))
+                        clear_slip(frame)
+                        continue
+                    # When strict_lines: planned lines must appear on the slip
+                    # *for that player* (not anywhere in the panel). Matching
+                    # bare "17" against "17.5Points" previously falsely passed
+                    # Goblin-Δ stamps when a co-leg carried a .5 line.
+                    if strict_lines:
+                        line_miss = []
+                        for leg in slip.get("legs") or []:
+                            name = str(leg.get("player") or "").strip()
+                            try:
+                                want = float(leg.get("line"))
+                            except (TypeError, ValueError):
+                                continue
+                            if not name:
+                                continue
+                            parts = [p for p in re.split(r"[^A-Za-z]+", name) if len(p) >= 3]
+                            surname = parts[-1] if parts else name
+                            # Slice slip text from this surname to the next known surname.
+                            low = raw_slip_disp.lower()
+                            sn_l = surname.lower()
+                            idx = low.find(sn_l)
+                            if idx < 0:
+                                line_miss.append(f"{name}:{want:g}")
+                                continue
+                            next_idx = len(raw_slip_disp)
+                            for other in slip.get("legs") or []:
+                                oname = str(other.get("player") or "").strip()
+                                if not oname or oname == name:
+                                    continue
+                                oparts = [
+                                    p for p in re.split(r"[^A-Za-z]+", oname) if len(p) >= 3
+                                ]
+                                osn = (oparts[-1] if oparts else oname).lower()
+                                j = low.find(osn, idx + len(sn_l))
+                                if j >= 0:
+                                    next_idx = min(next_idx, j)
+                            chunk = raw_slip_disp[idx:next_idx]
+                            # Prefer exact line tokens next to Points / on own line.
+                            line_ok = bool(
+                                re.search(
+                                    rf"(?<![\d.]){re.escape(f'{want:g}')}(?![\d.])",
+                                    chunk,
+                                )
+                                or re.search(
+                                    rf"(?<![\d.]){re.escape(f'{want:.1f}')}(?![\d.])",
+                                    chunk,
+                                )
+                            )
+                            if not line_ok:
+                                line_miss.append(f"{name}:{want:g}")
+                        if line_miss:
+                            rec["error"] = f"slip_missing_lines:{','.join(line_miss)}"
+                            print(f"  [WARN] reject slip line mismatch: {line_miss}")
+                            n_failed += 1
+                            captured.append(_project_capture_fields(rec, fields))
+                            clear_slip(frame)
+                            continue
+
                 power_min = power_slip.get("min_guarantee_payout")
                 power_first = power_slip.get("first_place_payout") or power_slip.get(
                     "displayed_multiplier"
                 )
+                # first < min usually means Flex leaked into Power parse — reject.
+                try:
+                    if (
+                        power_min is not None
+                        and power_first is not None
+                        and float(power_first) + 1e-9 < float(power_min)
+                    ):
+                        rec["error"] = f"first_lt_min:{power_first}<{power_min}"
+                        print(f"  [WARN] reject inconsistent power payouts: {rec['error']}")
+                        n_failed += 1
+                        captured.append(_project_capture_fields(rec, fields))
+                        clear_slip(frame)
+                        continue
+                except (TypeError, ValueError):
+                    pass
                 rec["power_min_x"] = power_min
                 rec["power_first_x"] = power_first
                 rec["min_guarantee"] = power_min
@@ -3227,6 +3539,8 @@ def capture_tickets_from_board(
         "primary_field": "power_min_x",
         "entry_amount": entry_amount,
         "only_missing_live": bool(only_missing_live),
+        "timed_out": bool(timed_out),
+        "max_runtime_sec": float(max_runtime_sec or 0),
         "slips": captured,
         "summary": {
             "n_total": len(captured),
@@ -3236,6 +3550,7 @@ def capture_tickets_from_board(
             "n_strong": sum(1 for s in captured if s.get("slip_type") == "strong"),
             "n_main": sum(1 for s in captured if s.get("slip_type") == "main"),
             "n_skipped_live": int(fp_info.get("n_live") or 0) if only_missing_live else 0,
+            "timed_out": bool(timed_out),
         },
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -3245,7 +3560,8 @@ def capture_tickets_from_board(
     print(f"[PAYOUT] Saved -> {output_path}")
     print(
         f"[PAYOUT] ok={n_ok} partial={n_partial} failed={n_failed} "
-        f"(primary field=power_min_x)"
+        f"(primary field=power_min_x"
+        f"{'; timed_out=1' if timed_out else ''})"
     )
     if write_back and captured:
         try:
@@ -3256,6 +3572,9 @@ def capture_tickets_from_board(
             )
         except Exception as e:
             print(f"[PAYOUT] WARN: write-back failed: {e}")
+    # Partial capture after budget is still success if anything landed.
+    if timed_out and (n_ok + n_partial) == 0 and captured:
+        return 1
     return 0 if (n_ok + n_partial) > 0 or not captured else 1
 
 
@@ -3791,6 +4110,59 @@ def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
     }
 
 
+def _parse_leg_start_dt(leg: dict) -> datetime | None:
+    """Best-effort parse of a leg's game start time (tz-aware UTC when possible)."""
+    if not isinstance(leg, dict):
+        return None
+    raw = None
+    for k in (
+        "event_start_time",
+        "start_time",
+        "game_start_time",
+        "commence_time",
+        "game_time",
+    ):
+        v = leg.get(k)
+        if v not in (None, ""):
+            raw = v
+            break
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    try:
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        # Naive timestamps are treated as UTC to avoid false pre-tip.
+        from datetime import timezone as _tz
+
+        dt = dt.replace(tzinfo=_tz.utc)
+    return dt
+
+
+def capture_has_tipped_leg(rec: dict, *, now: datetime | None = None) -> bool:
+    """True when any leg has a parseable start_time at/before now (post-tip).
+
+    Goblin payout floors change after tip — tipped captures must not feed the
+    SG-Δ rate card as pre-game truth. Returns False when start times are missing
+    (caller should treat that as unverified, not as safe).
+    """
+    from datetime import timezone as _tz
+
+    now = now or datetime.now(_tz.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=_tz.utc)
+    legs = rec.get("legs") if isinstance(rec.get("legs"), list) else []
+    for leg in legs:
+        st = _parse_leg_start_dt(leg if isinstance(leg, dict) else {})
+        if st is not None and st <= now.astimezone(st.tzinfo):
+            return True
+    return False
+
+
 def sync_captures_to_payout_ladder_live(
     captured: list[dict],
     *,
@@ -3798,6 +4170,7 @@ def sync_captures_to_payout_ladder_live(
     output_path: Path | None = None,
     tickets_path: Path | None = None,
     keep_same_date: bool = False,
+    allow_tipped: bool = False,
 ) -> dict[str, Any]:
     """
     Upsert live CDP captures into ui_runner/data/payout_ladder_live_cdp.json.
@@ -3808,6 +4181,9 @@ def sync_captures_to_payout_ladder_live(
     capture batch (full ticket scrape).
     keep_same_date=True: keep prior same-date rows and upsert by dedupe key
     (ladder validation merge).
+
+    By default, slips with any tipped/in-progress leg (parseable start_time <= now)
+    are skipped — Goblin floors shift post-tip and must not pollute the rate card.
     """
     date_str = str(date_str or "").strip()[:10]
     output_path = output_path or PAYOUT_LADDER_LIVE_CDP_PATH
@@ -3840,6 +4216,8 @@ def sync_captures_to_payout_ladder_live(
         # Keep scanning so validation tickets + tickets_latest can both enrich.
 
     enriched_captured: list[dict] = []
+    n_skip_tipped = 0
+    n_skip_no_floor = 0
     for rec in captured or []:
         if not isinstance(rec, dict):
             continue
@@ -3871,7 +4249,44 @@ def sync_captures_to_payout_ladder_live(
                 merged_legs.append(m)
             if merged_legs:
                 row["legs"] = merged_legs
+        # Require a real Min Guarantee floor (never sync partials with null power_min_x).
+        try:
+            floor = float(row.get("power_min_x") or row.get("min_x") or 0)
+        except (TypeError, ValueError):
+            floor = 0.0
+        if floor <= 0:
+            n_skip_no_floor += 1
+            continue
+        if not allow_tipped and capture_has_tipped_leg(row):
+            n_skip_tipped += 1
+            print(
+                f"[PAYOUT] SKIP tipped-game capture (not rate-card truth): "
+                f"{row.get('ticket_id')}"
+            )
+            continue
+        # Ambiguous tip status is also unsafe — Goblin floors shift after tip.
+        if not allow_tipped:
+            legs_chk = row.get("legs") if isinstance(row.get("legs"), list) else []
+            missing_start = False
+            for leg in legs_chk:
+                if not isinstance(leg, dict):
+                    continue
+                if _parse_leg_start_dt(leg) is None:
+                    missing_start = True
+                    break
+            if missing_start or not legs_chk:
+                n_skip_tipped += 1
+                print(
+                    f"[PAYOUT] SKIP capture with missing/unverified start_time: "
+                    f"{row.get('ticket_id')}"
+                )
+                continue
         enriched_captured.append(row)
+    if n_skip_tipped or n_skip_no_floor:
+        print(
+            f"[PAYOUT] tip/floor filter: skipped tipped={n_skip_tipped} "
+            f"no_floor={n_skip_no_floor} kept={len(enriched_captured)}"
+        )
 
     prior: dict[str, Any] = {"schema_version": 1, "date": date_str, "rows": []}
     if output_path.is_file():
@@ -3903,14 +4318,19 @@ def sync_captures_to_payout_ladder_live(
         if key not in rows_by_id:
             n_new += 1
         rows_by_id[key] = row
+    def _sort_key(r: dict) -> tuple:
+        gd = r.get("goblin_deltas")
+        if isinstance(gd, list):
+            gd_s = "+".join(str(x) for x in gd)
+        else:
+            gd_s = str(gd or "")
+        return (str(r.get("leg_composition") or ""), gd_s, str(r.get("ticket_id") or ""))
+
     out = {
         "schema_version": 1,
         "date": date_str,
         "generated_at": datetime.utcnow().isoformat() + "Z",
-        "rows": sorted(
-            rows_by_id.values(),
-            key=lambda r: (r.get("leg_composition") or "", r.get("goblin_deltas") or "", r.get("ticket_id") or ""),
-        ),
+        "rows": sorted(rows_by_id.values(), key=_sort_key),
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -4178,6 +4598,10 @@ def run_mix_grid_capture(
                                     "source_filter": card.get("source_filter"),
                                     "line_distance": card.get("line_distance"),
                                     "dev_bucket": card.get("dev_bucket"),
+                                    "start_time": card.get("start_time")
+                                    or card.get("event_start_time")
+                                    or card.get("game_start_time"),
+                                    "standard_line": card.get("standard_line"),
                                 }
                             )
                         else:
@@ -4237,6 +4661,23 @@ def run_mix_grid_capture(
                             clear_slip(frame)
                             continue
                         rec["error"] = err
+                        break
+
+                    # Contaminated slips (uncleared prior legs) mis-attribute Flex/Power floors.
+                    n_slip = slip.get("n_selected")
+                    try:
+                        n_slip_i = int(n_slip) if n_slip is not None else int(clicked)
+                    except (TypeError, ValueError):
+                        n_slip_i = int(clicked)
+                    if n_slip_i != int(n_legs):
+                        err = f"slip_n_{n_slip_i}_expected_{n_legs}"
+                        print(f"  [WARN] attempt {attempt}/{max_attempts}: {err} (reject contaminated slip)")
+                        clear_slip(frame)
+                        frame.wait_for_timeout(900)
+                        if attempt < max_attempts:
+                            continue
+                        rec["error"] = err
+                        rec["legs"] = leg_meta
                         break
 
                     min_x = slip.get("min_guarantee_payout")
@@ -4415,6 +4856,15 @@ def main():
         help="With --tickets: slower pacing between slips (less DataDome pressure).",
     )
     ap.add_argument(
+        "--max-runtime-sec",
+        type=float,
+        default=0.0,
+        help=(
+            "With --tickets: wall-clock budget in seconds for the CDP scrape. "
+            "0 = no limit. Saves partial results when the budget is hit."
+        ),
+    )
+    ap.add_argument(
         "--force-lock",
         action="store_true",
         help="Clear a stuck payout_capture.lock before CDP scrape (direct Python runs only).",
@@ -4539,6 +4989,7 @@ def main():
                     strict_lines=not bool(getattr(args, "allow_line_fallback", False)),
                     only_missing_live=bool(getattr(args, "only_missing_live", False)),
                     gentle=bool(getattr(args, "gentle", False)),
+                    max_runtime_sec=float(getattr(args, "max_runtime_sec", 0) or 0),
                 )
             )
         finally:

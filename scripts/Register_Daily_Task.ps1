@@ -1,15 +1,13 @@
 # ============================================================
 #  Register_Daily_Task.ps1
 #  PropOracle automation scheduler:
-#   - 1:00 AM  overnight grader (yesterday; late results) — single overnight slot
+#   - 1:00 AM  overnight A1 historical + grader (yesterday)
 #   - 3:00 AM  light tennis fetch only (NO ticket/web publish — 5AM owns the board)
-#   - 5:00 AM  first full daily (grade yesterday + multi-sport fetch + web; NO live CDP)
-#   - 8:00 AM  line-move refresh
-#   - 9:00 AM  line-move refresh
-#   - 10:30 AM line-move refresh (PP often moves lines hard ~10:30–11)
-#   - 11:00 AM live PrizePicks CDP MAIN floors (after 10:30 board settles)
-#   - 1:00 PM  line-move refresh
-#   Each refresh also runs only-missing CDP for new/changed slips.
+#   - 5:00 AM  first full daily (pipeline + tickets publish; NO payout CDP)
+#   - 8 / 9 / 10:30 / 1  line-move refresh (= fetch) then Force CDP on rebuilt tickets
+#
+# CDP payout scrape runs ONLY after a fetch/rebuild that can change lines/tickets.
+# Standalone 11:00 / 15:00 Payout CDP tasks are retired (use refresh path or manual).
 #
 # Each task opens ONE visible PowerShell console (direct pwsh.exe action).
 # Do NOT wrap with cmd.exe "start /wait" — that leaves an empty cmd.exe window
@@ -40,10 +38,9 @@ $Script3 = Join-Path $PipelineRoot "scripts\run_tennis_early_3am.ps1"
 $Script5 = Join-Path $PipelineRoot "scripts\run_daily_5am.ps1"
 $ScriptEvening = Join-Path $PipelineRoot "scripts\run_grader_evening.ps1"
 $Script8 = Join-Path $PipelineRoot "scripts\run_daily_8am.ps1"
-$ScriptPayout = Join-Path $PipelineRoot "scripts\run_payout_cdp.ps1"
 $ScriptRefresh = Join-Path $PipelineRoot "scripts\run_refresh_with_log.ps1"
 
-foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script8, $ScriptPayout, $ScriptRefresh)) {
+foreach ($s in @($Script3, $Script5, $ScriptEvening, $Script8, $ScriptRefresh)) {
     if (-not (Test-Path $s)) {
         Write-Error "Required script missing: $s"
         exit 1
@@ -57,7 +54,10 @@ $LegacyTasksToRemove = @(
     "PropOracle - Grader 5AM",
     "PropOracle - Daily 7AM",
     "PropOracle - Refresh 11AM",
-    # Early / extra overnight graders removed — keep only 1AM (+ grade inside Daily 5AM)
+    # CDP only rides with fetch/refresh — no standalone payout timers
+    "PropOracle - Payout CDP",
+    "PropOracle - Payout CDP Update",
+    # Early / extra overnight graders removed — keep only 1AM
     "PropOracle - Grader 7PM",
     "PropOracle - Grader 8PM",
     "PropOracle - Grader 9PM",
@@ -162,31 +162,14 @@ Register-PropTask `
 
 Register-PropTask `
     -TaskName "PropOracle - Refresh 1030AM" `
-    -Description "Line-move refresh at PP morning move window (~10:30–11). Opens visible PowerShell." `
+    -Description "Line-move refresh at PP morning move window (~10:30–11) + Force CDP after fetch. Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "10:30" `
     -ExtraArgs "-RunLabel 1030AM"
 
 Register-PropTask `
-    -TaskName "PropOracle - Payout CDP" `
-    -Description "Catchup CDP MAIN/STRONG floors (primary scrapes ride with 8/9/10:30/1 refreshes). Opens visible PowerShell." `
-    -ScriptPath $ScriptPayout `
-    -At "11:00"
-
-$ScriptPayoutUpdate = Join-Path $PipelineRoot "scripts\run_payout_cdp_update.ps1"
-if (-not (Test-Path $ScriptPayoutUpdate)) {
-    Write-Error "Required script missing: $ScriptPayoutUpdate"
-    exit 1
-}
-Register-PropTask `
-    -TaskName "PropOracle - Payout CDP Update" `
-    -Description "Afternoon catchup FillMissing CDP if a refresh left pending_live. Opens visible PowerShell." `
-    -ScriptPath $ScriptPayoutUpdate `
-    -At "15:00"
-
-Register-PropTask `
     -TaskName "PropOracle - Refresh 1PM" `
-    -Description "Afternoon line-move refresh (8/9/10:30/1 cadence). Opens visible PowerShell." `
+    -Description "Afternoon line-move refresh + Force CDP after fetch. Opens visible PowerShell." `
     -ScriptPath $ScriptRefresh `
     -At "13:00" `
     -ExtraArgs "-RunLabel 1PM"
@@ -194,25 +177,23 @@ Register-PropTask `
 Write-Host ""
 Write-Host "Scheduler tasks registered (visible PowerShell windows)." -ForegroundColor Green
 Write-Host "  - PropOracle - Tennis Early 3AM (fetch only; no board publish)"
-Write-Host "  - PropOracle - Daily 5AM (initial full run; CDP floors deferred to 8AM+)"
+Write-Host "  - PropOracle - Daily 5AM (pipeline + publish; no payout CDP)"
 foreach ($eg in $EveningGraderTasks) {
     Write-Host "  - $($eg.Name)"
 }
-Write-Host "  - PropOracle - Daily 8AM (refresh + Force CDP)"
-Write-Host "  - PropOracle - Refresh 9AM (refresh + Force CDP)"
-Write-Host "  - PropOracle - Refresh 1030AM (refresh + Force CDP)"
-Write-Host "  - PropOracle - Payout CDP (11:00 catchup)"
-Write-Host "  - PropOracle - Payout CDP Update (15:00 catchup)"
-Write-Host "  - PropOracle - Refresh 1PM (refresh + Force CDP)"
+Write-Host "  - PropOracle - Daily 8AM (fetch/refresh + Force CDP)"
+Write-Host "  - PropOracle - Refresh 9AM (fetch/refresh + Force CDP)"
+Write-Host "  - PropOracle - Refresh 1030AM (fetch/refresh + Force CDP)"
+Write-Host "  - PropOracle - Refresh 1PM (fetch/refresh + Force CDP)"
 Write-Host ""
-Write-Host "Removed extra graders: 7PM–12AM (keep 1AM + Daily 5AM grade only)" -ForegroundColor Yellow
+Write-Host "CDP payout scrape: only after refresh fetch (no standalone 11AM/3PM tasks)." -ForegroundColor Yellow
+Write-Host "Removed: Payout CDP 11AM/3PM + extra graders 7PM–12AM" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Grader 1AM' | Select LastRunTime, LastTaskResult, NextRunTime"
-Write-Host "  Get-ScheduledTaskInfo -TaskName 'PropOracle - Payout CDP' | Select LastRunTime, LastTaskResult, NextRunTime"
 Write-Host ""
 Write-Host "Manual catchup (visible window):  pwsh -File scripts\Launch_Daily_5AM_Visible.ps1" -ForegroundColor Cyan
-Write-Host "Manual payout CDP:              pwsh -File scripts\run_payout_cdp.ps1" -ForegroundColor Cyan
-Write-Host "Manual payout update:           pwsh -File scripts\run_payout_cdp_update.ps1" -ForegroundColor Cyan
+Write-Host "Manual payout CDP (after a fetch): pwsh -File scripts\run_payout_cdp.ps1" -ForegroundColor Cyan
+Write-Host "Manual FillMissing only:          pwsh -File scripts\run_payout_cdp_update.ps1" -ForegroundColor Cyan

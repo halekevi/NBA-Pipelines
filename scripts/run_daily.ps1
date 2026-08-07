@@ -6,12 +6,14 @@
 .NOTES
   Order: (A1) Refresh historical game logs → (A) Grader for yesterday → (A1b) build_ticket_eval for yesterday → (A1b-sync) grade_history → templates → (A1c) optional CLV Excel columns → (A2) consistency
          → (B) Archive outputs\<yesterday>\ step8 copies → (C0) fetch game lines → (C0b) rolling NBA 1Q/2Q DB sync
-         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture) → (D-payout) live CDP FillMissing
-         → (E) git commit/push → (E1) optional payout hand CSV pull from Railway
+         → (C) run_pipeline for today → (D) combined_slate (-SkipLivePayoutCapture)
+         → (D-ME) matchup edge → (D-MOBILE) → (E) git commit/push → (E1) optional payout hand CSV
+         → (D-payout) live CDP FillMissing (AFTER publish so tickets go live first)
          → (F) optional night poll of historical actuals.
          Board floors require exact per-ticket live_cdp (peer SG-Δ rate cards off by default).
-         STEP D-payout: initial FillMissing after Combined; pass -SkipLivePayout to skip.
+         STEP D-payout: after STEP E; 5AM passes -SkipLivePayout (8/9/10:30/1 + 11AM own CDP).
          Mid-day 8/9/10:30/1 refreshes Force re-scrape CDP after prop/line updates.
+         A1 often runs at 1AM (run_grader_evening); 5AM passes -SkipHistoricalActuals when stamp present.
          11:00 / 15:00 Payout CDP tasks are catchup only.
          Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
@@ -52,10 +54,14 @@ param(
     [int]$TicketModelTopN = 10,
     # When set, run STEP D1 ticket-model dataset/train/eval (default off — use on retrain days).
     [switch]$RunTicketModels,
-    # Legacy alias: live CDP now runs by default after Combined (exact live_cdp required).
+    # Legacy alias: live CDP runs after STEP E publish when not skipped (exact live_cdp required).
     [switch]$RunLivePayout,
-    # Skip STEP D-payout live CDP scrape (board floors stay pending until Payout CDP task).
-    [switch]$SkipLivePayout
+    # Skip STEP D-payout live CDP scrape (board floors stay pending until mid-day / Payout CDP task).
+    [switch]$SkipLivePayout,
+    # Skip STEP A1 historical actuals (owned overnight by run_grader_evening.ps1 when stamp exists).
+    [switch]$SkipHistoricalActuals,
+    # Per-sport wall timeout for STEP D-ME (seconds). Soft-fail and continue so publish is not blocked.
+    [int]$MatchupEdgeTimeoutSec = 180
 )
 
 $ErrorActionPreference = "Continue"
@@ -414,7 +420,16 @@ if ($NoOverwrite) {
 # =============================================================================
 # STEP A1 — Refresh current season game logs (historical actuals)
 # =============================================================================
-if (-not $SkipFetch) {
+$a1StampPath = Join-Path $Root "data\cache\historical_actuals_ok_$Today.flag"
+$a1SkipOvernight = $SkipHistoricalActuals -or (Test-Path -LiteralPath $a1StampPath)
+if ($SkipFetch) {
+    Write-Log "STEP A1 - Historical actuals refresh: SKIPPED (-SkipFetch)"
+}
+elseif ($a1SkipOvernight) {
+    $why = if ($SkipHistoricalActuals) { "-SkipHistoricalActuals" } else { "overnight stamp $a1StampPath" }
+    Write-Log "STEP A1 - Historical actuals refresh: SKIPPED ($why)"
+}
+else {
     Write-Log "STEP A1 - Historical actuals refresh: START"
     $fetchScript = Join-Path $Root "scripts\fetch_historical_actuals.py"
     # NOTE: historical_actuals.db can be locked by OneDrive sync since this repo lives under OneDrive.
@@ -448,6 +463,14 @@ if (-not $SkipFetch) {
             }
             else {
                 Write-Log "STEP A1 - Historical actuals refresh: OK"
+                try {
+                    $stampDir = Split-Path $a1StampPath -Parent
+                    if (-not (Test-Path -LiteralPath $stampDir)) {
+                        New-Item -ItemType Directory -Path $stampDir -Force | Out-Null
+                    }
+                    Set-Content -LiteralPath $a1StampPath -Value ("ok {0:o}" -f (Get-Date)) -Encoding utf8
+                }
+                catch { }
             }
         }
     }
@@ -458,9 +481,6 @@ if (-not $SkipFetch) {
     finally {
         Pop-Location
     }
-}
-else {
-    Write-Log "STEP A1 - Historical actuals refresh: SKIPPED (-SkipFetch)"
 }
 
 # --- Odds API key: explicit param > env ---
@@ -572,40 +592,39 @@ else {
 }
 
 # =============================================================================
-# STEP A-track — Model performance + shadow comparison (after grader)
+# STEP A-track — Model performance + shadow comparison
+# Runs even when -SkipGrader (overnight 1AM already graded; tracking still useful at 5AM).
 # =============================================================================
-if (-not $SkipGrader) {
-    Write-Host "=== STEP: Model Performance Tracking ===" -ForegroundColor Cyan
-    Write-Log "STEP A-track - Model performance: START"
-    Push-Location $Root
-    try {
-        $trackAcc = Join-Path $Root "scripts\track_prediction_accuracy.py"
-        $trackPerf = Join-Path $Root "scripts\track_model_performance.py"
-        $compareShadow = Join-Path $Root "scripts\compare_shadow_vs_live.py"
-        if (Test-Path $trackAcc) {
-            & py -3.14 -X utf8 $trackAcc --days 30
-            if ($LASTEXITCODE -ne 0) { Write-Warning "track_prediction_accuracy.py exited $LASTEXITCODE" }
-        }
-        if (Test-Path $trackPerf) {
-            & py -3.14 -X utf8 $trackPerf
-            if ($LASTEXITCODE -ne 0) { Write-Warning "track_model_performance.py exited $LASTEXITCODE" }
-            Write-Host "  [A-track] NBA1H AUC monitor (post-tracker)" -ForegroundColor DarkGray
-            & py -3.14 -X utf8 $trackPerf --nba1h-monitor --date $Yesterday
-            if ($LASTEXITCODE -ne 0) { Write-Warning "NBA1H monitor exited $LASTEXITCODE" }
-        }
-        if (Test-Path $compareShadow) {
-            & py -3.14 -X utf8 $compareShadow --days 7
-            if ($LASTEXITCODE -ne 0) { Write-Warning "compare_shadow_vs_live.py exited $LASTEXITCODE" }
-        }
-        Write-Log "STEP A-track - Model performance: OK"
+Write-Host "=== STEP: Model Performance Tracking ===" -ForegroundColor Cyan
+Write-Log "STEP A-track - Model performance: START"
+Push-Location $Root
+try {
+    $trackAcc = Join-Path $Root "scripts\track_prediction_accuracy.py"
+    $trackPerf = Join-Path $Root "scripts\track_model_performance.py"
+    $compareShadow = Join-Path $Root "scripts\compare_shadow_vs_live.py"
+    if (Test-Path $trackAcc) {
+        & py -3.14 -X utf8 $trackAcc --days 30
+        if ($LASTEXITCODE -ne 0) { Write-Warning "track_prediction_accuracy.py exited $LASTEXITCODE" }
     }
-    catch {
-        Write-Warning "Model performance tracking failed: $($_.Exception.Message)"
-        Write-Log "STEP A-track - Model performance: WARN ($($_.Exception.Message))"
+    if (Test-Path $trackPerf) {
+        & py -3.14 -X utf8 $trackPerf
+        if ($LASTEXITCODE -ne 0) { Write-Warning "track_model_performance.py exited $LASTEXITCODE" }
+        Write-Host "  [A-track] NBA1H AUC monitor (post-tracker)" -ForegroundColor DarkGray
+        & py -3.14 -X utf8 $trackPerf --nba1h-monitor --date $Yesterday
+        if ($LASTEXITCODE -ne 0) { Write-Warning "NBA1H monitor exited $LASTEXITCODE" }
     }
-    finally {
-        Pop-Location
+    if (Test-Path $compareShadow) {
+        & py -3.14 -X utf8 $compareShadow --days 7
+        if ($LASTEXITCODE -ne 0) { Write-Warning "compare_shadow_vs_live.py exited $LASTEXITCODE" }
     }
+    Write-Log "STEP A-track - Model performance: OK"
+}
+catch {
+    Write-Warning "Model performance tracking failed: $($_.Exception.Message)"
+    Write-Log "STEP A-track - Model performance: WARN ($($_.Exception.Message))"
+}
+finally {
+    Pop-Location
 }
 
 # =============================================================================
@@ -1267,43 +1286,10 @@ if ($script:PipelineFailed) {
 }
 
 # =============================================================================
-# STEP D-payout — Live PrizePicks payout capture (REQUIRED for board floors)
-# Exact per-ticket live_cdp only — peer SG-Δ rate cards are not trusted.
-# Default: FillMissingTickets after Combined (initial board pricing).
-# Mid-day refreshes Force re-scrape after prop/line updates; 11:00/15:00 are catchup.
+# STEP D-payout — deferred until AFTER STEP E publish (tickets live first).
+# Mid-day refreshes / 11AM Payout CDP still own Force re-scrape; 5AM uses -SkipLivePayout.
 # =============================================================================
-if ($script:PipelineFailed) {
-    Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
-}
-elseif ($SkipLivePayout -and -not $RunLivePayout) {
-    Write-Host "  [SKIP] Live payout CDP (-SkipLivePayout)" -ForegroundColor DarkGray
-    Write-Log "STEP D-payout - Live payout capture: SKIPPED (-SkipLivePayout)"
-}
-else {
-    $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
-    $payoutTickets = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Today.json"
-    if (-not (Test-Path -LiteralPath $payoutTickets)) {
-        $payoutTicketsAlt = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.json"
-        if (Test-Path -LiteralPath $payoutTicketsAlt) {
-            $payoutTickets = $payoutTicketsAlt
-        }
-    }
-    if (-not (Test-Path -LiteralPath $livePayScript)) {
-        Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
-        Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
-    }
-    else {
-        Write-Log "STEP D-payout - Live payout capture + verify: START (exact live_cdp required)"
-        try {
-            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -UpdateOnly
-            Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
-        }
-        catch {
-            Write-Host "  [PAYOUT] WARN: payout capture error (non-blocking)" -ForegroundColor Yellow
-            Write-Log "STEP D-payout - Live payout capture: WARN ($($_.Exception.Message))"
-        }
-    }
-}
+Write-Log "STEP D-payout - deferred until after STEP E (publish-first)"
 
 # =============================================================================
 # STEP D1 — Ticket-level ML refresh + eval history + ultimate tickets
@@ -1785,22 +1771,31 @@ Write-Log "STEP D2b - Dated step8 snapshot backfill: OK"
 
 # =============================================================================
 # STEP D-ME – Rebuild matchup edge JSON for active summer sports
-# Combined (STEP D) already rebuilds matchup edge for sports it touches; this pass
-# refreshes live summer boards without re-walking off-season NBA/NHL/CBB/CFB.
+# Soft-timeout per sport so a hang cannot block STEP E publish.
 # =============================================================================
 $meScript = Join-Path $Root "scripts\build_matchup_edge_json.py"
 if (Test-Path $meScript) {
-    Write-Log "STEP D-ME - Matchup edge rebuild: START"
+    Write-Log "STEP D-ME - Matchup edge rebuild: START (timeout ${MatchupEdgeTimeoutSec}s/sport)"
     Push-Location $Root
     try {
         $meSports = @("mlb", "soccer", "tennis")
         if (-not (Test-WnbaAllStarPause -SlateDate $Today)) { $meSports = @("mlb", "wnba", "soccer", "tennis") }
         $meOk = $true
+        $meWaitMs = [Math]::Max(30, $MatchupEdgeTimeoutSec) * 1000
         foreach ($meSport in $meSports) {
-            & py -3.14 -X utf8 $meScript --sport $meSport
-            if ($LASTEXITCODE -ne 0) {
+            $meProc = Start-Process -FilePath "py" `
+                -ArgumentList @("-3.14", "-X", "utf8", $meScript, "--sport", $meSport) `
+                -NoNewWindow -PassThru -WorkingDirectory $Root
+            $meFinished = $meProc.WaitForExit($meWaitMs)
+            if (-not $meFinished) {
                 $meOk = $false
-                Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $LASTEXITCODE)"
+                Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (timeout ${MatchupEdgeTimeoutSec}s)"
+                try { Stop-Process -Id $meProc.Id -Force -ErrorAction SilentlyContinue } catch { }
+                continue
+            }
+            if ($meProc.ExitCode -ne 0) {
+                $meOk = $false
+                Write-Log "STEP D-ME - Matchup edge ($meSport): WARN (exit $($meProc.ExitCode))"
             }
             else {
                 Write-Log "STEP D-ME - Matchup edge ($meSport): OK"
@@ -1810,7 +1805,7 @@ if (Test-Path $meScript) {
             Write-Log "STEP D-ME - Matchup edge rebuild: OK"
         }
         else {
-            Write-Log "STEP D-ME - Matchup edge rebuild: WARN (one or more sports failed)"
+            Write-Log "STEP D-ME - Matchup edge rebuild: WARN (one or more sports failed/timed out; continuing to publish)"
         }
     }
     catch {
@@ -2180,6 +2175,45 @@ if ($payoutExportUrl -and $payoutExportUrl.Trim().Length -gt 0) {
 }
 else {
     Write-Log "STEP E1 - Payout hand log sync: SKIP (set env PROPORACLE_PAYOUT_EXPORT_URL to https://.../api/payout/export-log-hand)"
+}
+
+# =============================================================================
+# STEP D-payout — Live PrizePicks payout capture (AFTER publish)
+# Exact per-ticket live_cdp only — peer SG-Δ rate cards are not trusted.
+# Runs after STEP E so tickets/slate hit Railway even if CDP hangs.
+# Mid-day refreshes Force re-scrape; 11:00/15:00 are catchup; 5AM uses -SkipLivePayout.
+# =============================================================================
+if ($script:PipelineFailed) {
+    Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
+}
+elseif ($SkipLivePayout -and -not $RunLivePayout) {
+    Write-Host "  [SKIP] Live payout CDP (-SkipLivePayout)" -ForegroundColor DarkGray
+    Write-Log "STEP D-payout - Live payout capture: SKIPPED (-SkipLivePayout)"
+}
+else {
+    $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
+    $payoutTickets = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Today.json"
+    if (-not (Test-Path -LiteralPath $payoutTickets)) {
+        $payoutTicketsAlt = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.json"
+        if (Test-Path -LiteralPath $payoutTicketsAlt) {
+            $payoutTickets = $payoutTicketsAlt
+        }
+    }
+    if (-not (Test-Path -LiteralPath $livePayScript)) {
+        Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
+        Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
+    }
+    else {
+        Write-Log "STEP D-payout - Live payout capture + verify: START (exact live_cdp required; post-publish)"
+        try {
+            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -UpdateOnly
+            Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
+        }
+        catch {
+            Write-Host "  [PAYOUT] WARN: payout capture error (non-blocking)" -ForegroundColor Yellow
+            Write-Log "STEP D-payout - Live payout capture: WARN ($($_.Exception.Message))"
+        }
+    }
 }
 
 # =============================================================================

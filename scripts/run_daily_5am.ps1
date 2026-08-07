@@ -1,11 +1,13 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Scheduled 5:00 AM full daily: git pull main, run_daily.ps1 (grade yesterday + today's pipeline), prop snapshot.
+  Scheduled 5:00 AM full daily: git pull main, run_daily.ps1 (today's pipeline + publish), prop snapshot.
 
 .NOTES
   First big multi-sport run of the day. Publishes fresh slate_latest / tickets for the home page.
-  Live PrizePicks CDP payout is NOT in this job — see PropOracle - Payout CDP (run_payout_cdp.ps1 @ 11:00 after 10:30 refresh).
+  Overnight (1AM) owns: historical actuals (A1) + grader. This wrapper passes -SkipGrader /
+  -SkipHistoricalActuals when those outputs/stamps exist, and always -SkipLivePayout
+  (mid-day refresh + 11AM Payout CDP own live floors).
   Refresh cadence: 8 / 9 / 10:30 / 1 (PP line moves often hit ~10:30–11).
   3:00 AM remains light TennisOnly.
   Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 5AM".
@@ -98,8 +100,35 @@ if ($pullPrepExit -ne 0) {
     Write-Host "[5AM DAILY] Pull prep warned (exit $pullPrepExit); continuing with local tree." -ForegroundColor Yellow
 }
 
-Write-Host "[5AM DAILY] Running full run_daily.ps1 (includes grader)..." -ForegroundColor Cyan
-& pwsh -NoProfile -File $Daily
+# Overnight 1AM owns grader + A1. Fall back only if those outputs never landed.
+$Today = (Get-Date).ToString("yyyy-MM-dd")
+$Yesterday = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
+$gradedProbe = @(
+    (Join-Path $Root "outputs\$Yesterday\graded_mlb_$Yesterday.xlsx"),
+    (Join-Path $Root "outputs\$Yesterday\graded_soccer_$Yesterday.xlsx"),
+    (Join-Path $Root "outputs\$Yesterday\graded_wnba_$Yesterday.xlsx")
+)
+$missingOvernight = @($gradedProbe | Where-Object { -not (Test-Path -LiteralPath $_) })
+$a1Stamp = Join-Path $Root "data\cache\historical_actuals_ok_$Today.flag"
+$dailyArgs = @("-SkipLivePayout")
+if ($missingOvernight.Count -eq 0) {
+    $dailyArgs += "-SkipGrader"
+}
+else {
+    Write-Host "[5AM DAILY] Overnight grade incomplete — grader fallback ON" -ForegroundColor Yellow
+    foreach ($m in $missingOvernight) {
+        Write-Host "  missing -> $m" -ForegroundColor DarkYellow
+    }
+}
+if (Test-Path -LiteralPath $a1Stamp) {
+    $dailyArgs += "-SkipHistoricalActuals"
+    Write-Host "[5AM DAILY] A1 stamp present — SkipHistoricalActuals" -ForegroundColor DarkGray
+}
+else {
+    Write-Host "[5AM DAILY] No A1 stamp — historical actuals will run in daily" -ForegroundColor Yellow
+}
+Write-Host ("[5AM DAILY] Running run_daily.ps1 {0}" -f ($dailyArgs -join " ")) -ForegroundColor Cyan
+& pwsh -NoProfile -File $Daily @dailyArgs
 $dailyExit = $LASTEXITCODE
 
 Write-Host "[5AM DAILY] Logging fetched prop snapshot..." -ForegroundColor Cyan

@@ -24,24 +24,24 @@
     },
     {
       "sport": "WNBA",
-      "decided": 51059,
-      "paid": 23977,
-      "win_rate": 0.46959399909908145,
-      "net_dollars": -31050.0
+      "decided": 53013,
+      "paid": 25160,
+      "win_rate": 0.47460056967159,
+      "net_dollars": -26930.0
     },
     {
       "sport": "MLB",
-      "decided": 535344,
-      "paid": 156705,
-      "win_rate": 0.2927183269075585,
-      "net_dollars": -2219340.0
+      "decided": 547626,
+      "paid": 160091,
+      "win_rate": 0.2923363755555799,
+      "net_dollars": -2274440.0
     },
     {
       "sport": "SOCCER",
-      "decided": 103900,
-      "paid": 18175,
-      "win_rate": 0.17492781520692974,
-      "net_dollars": -675500.0
+      "decided": 108000,
+      "paid": 18813,
+      "win_rate": 0.17419444444444446,
+      "net_dollars": -703740.0
     },
     {
       "sport": "TENNIS",
@@ -133,10 +133,10 @@
     {
       "sport": "WNBA",
       "month": "2026-08",
-      "decided": 1340,
-      "paid": 756,
-      "win_rate": 0.564179104477612,
-      "net_dollars": 1720.0
+      "decided": 3294,
+      "paid": 1939,
+      "win_rate": 0.5886460230722526,
+      "net_dollars": 5840.0
     },
     {
       "sport": "WNBA",
@@ -165,10 +165,10 @@
     {
       "sport": "MLB",
       "month": "2026-08",
-      "decided": 22868,
-      "paid": 6060,
-      "win_rate": 0.2649991254154277,
-      "net_dollars": -107480.0
+      "decided": 35150,
+      "paid": 9446,
+      "win_rate": 0.2687339971550498,
+      "net_dollars": -162580.0
     },
     {
       "sport": "MLB",
@@ -213,10 +213,10 @@
     {
       "sport": "SOCCER",
       "month": "2026-08",
-      "decided": 4142,
-      "paid": 639,
-      "win_rate": 0.15427329792370836,
-      "net_dollars": -28640.0
+      "decided": 8242,
+      "paid": 1277,
+      "win_rate": 0.15493812181509342,
+      "net_dollars": -56880.0
     },
     {
       "sport": "SOCCER",
@@ -324,5 +324,5 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=160:mt=1785921473509214100"
+  "signature": "n=162:mt=1786094091683326200"
 }

@@ -580,32 +580,38 @@ function _consKey(sport, player, prop, pickClass) {
 }
 async function ensureConsistencyLeaders() {
   const store = window.__CONS_LEADERS;
-  if (store.ready || store.loading) return store.ready;
+  if (store.ready) return true;
+  if (store._loadingPromise) return store._loadingPromise;
   store.loading = true;
-  const urls = ["/api/consistency-leaders", "consistency_leaders_latest.json", "/data/consistency_leaders_latest.json"];
-  for (const url of urls) {
-    try {
-      const resp = await fetch(url, { cache: "no-store" });
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      const band = Number(data.line_band);
-      if (Number.isFinite(band)) store.band = band;
-      const rows = data.match_index || data.leaders || [];
-      for (const r of rows) {
-        if (!r || !r.player) continue;
-        const pc = r.pick_class || _consPickClass(r.pick_type, r.direction);
-        if (!pc) continue;
-        const k = _consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, pc);
-        const prev = store.byKey.get(k);
-        if (!prev || Number(r.score || 0) > Number(prev.score || 0)) store.byKey.set(k, r);
-      }
-      store.ready = true;
-      store.loading = false;
-      return true;
-    } catch (_) { /* try next */ }
-  }
-  store.loading = false;
-  return false;
+  store._loadingPromise = (async () => {
+    const urls = ["/api/consistency-leaders", "consistency_leaders_latest.json", "/data/consistency_leaders_latest.json"];
+    for (const url of urls) {
+      try {
+        const resp = await fetch(url, { cache: "no-store" });
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        const band = Number(data.line_band);
+        // Floor at 1.0 so ordinary line moves still badge season leaders.
+        store.band = Math.max(Number.isFinite(band) ? band : 0.5, 1.0);
+        const rows = data.match_index || data.leaders || [];
+        for (const r of rows) {
+          if (!r || !r.player) continue;
+          const pc = r.pick_class || _consPickClass(r.pick_type, r.direction);
+          if (!pc) continue;
+          const k = _consKey(r.sport, r.player_norm || r.player, r.prop_key || r.prop, pc);
+          const prev = store.byKey.get(k);
+          if (!prev || Number(r.score || 0) > Number(prev.score || 0)) store.byKey.set(k, r);
+        }
+        store.ready = true;
+        store.loading = false;
+        return true;
+      } catch (_) { /* try next */ }
+    }
+    store.loading = false;
+    store._loadingPromise = null;
+    return false;
+  })();
+  return store._loadingPromise;
 }
 function matchConsistencyLeader(p) {
   const store = window.__CONS_LEADERS;
@@ -644,13 +650,31 @@ ensureConsistencyLeaders().then((ok) => {
       Object.keys(window.SLATE_DATA || {}).forEach((sp) => scheduleRenderSlateTable(sp));
     }
   } catch (_) { /* ignore */ }
-  // Top Edges often paint before leaders finish loading — refresh badges.
+  // Top Edges / Best to Run often paint before leaders finish loading — refresh badges.
   try {
-    if (typeof renderEdges === "function" && typeof ALL_SLATE !== "undefined" && ALL_SLATE.length) {
-      renderEdges();
+    if (typeof ALL_SLATE !== "undefined" && ALL_SLATE.length) {
+      if (typeof renderEdges === "function") renderEdges();
+      if (typeof renderBestToRun === "function") renderBestToRun();
     }
   } catch (_) { /* ignore */ }
 });
+
+/** Prefer season consistency matches so GOB/STD/UND badges survive card limits. */
+function prioritizeConsLeaderRows(rows, keyFn) {
+  const keyOf = keyFn || ((p) => btrPropKey(p));
+  const pinned = [];
+  const rest = [];
+  const seen = new Set();
+  for (const p of rows || []) {
+    if (!p) continue;
+    const k = keyOf(p);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    if (typeof matchConsistencyLeader === "function" && matchConsistencyLeader(p)) pinned.push(p);
+    else rest.push(p);
+  }
+  return [...pinned, ...rest];
+}
 /** HOT/COLD L10 badge for edge cards and slate rows (NEUTRAL → nothing). */
 function l10StreakBadgeHtml(p) {
   const streak = String(p?.l10_streak || "").trim().toUpperCase();
@@ -1712,7 +1736,7 @@ function buildEdgeCard(p, idx) {
         </div>
       </div>
       <div class="edge-row edge-row-main">
-        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
+        <div class="edge-name-wrap"><div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}</div>${consLineBadgeHtml(p)}</div>
         <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
       </div>
       <div class="edge-row edge-row-tags">
@@ -1972,6 +1996,26 @@ function renderEdges() {
   };
   pinBtrIntoEdges(stdO, false);
   pinBtrIntoEdges(gobO, true);
+  // Pin season consistency leaders onto Top Edges even when their raw edge
+  // ranks below EDGE_CARD_LIMIT (otherwise GOB/STD badges never appear).
+  const pinConsIntoOverBucket = (bucket, gobOnly) => {
+    if (!window.__CONS_LEADERS?.ready) return;
+    const seen = new Set(bucket.map((p) => btrPropKey(p)));
+    for (const p of ALL_SLATE) {
+      if (!p || isFantasyScoreEdgePick(p) || isDemonPick(p)) continue;
+      if (String(p.dir || "").trim().toUpperCase() !== "OVER") continue;
+      const gob = isGoblinPick(p);
+      const std = isStandardPick(p);
+      if (gobOnly ? !gob : !std) continue;
+      if (!matchConsistencyLeader(p)) continue;
+      const k = btrPropKey(p);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      bucket.push(p);
+    }
+  };
+  pinConsIntoOverBucket(stdO, false);
+  pinConsIntoOverBucket(gobO, true);
 
   const underSourceRows = collectUnderEdgeRows();
   const underByKey = new Map();
@@ -2021,8 +2065,40 @@ function renderEdges() {
   }
   const EDGE_CARD_LIMIT = 10;
 
+  // Also pin consistency UNDER leaders that missed the high-abs-edge cut.
+  if (window.__CONS_LEADERS?.ready) {
+    const seenU = new Set(
+      underRows.map(({ disp }) =>
+        [
+          String(disp?.sport || "").trim().toUpperCase(),
+          String(disp?.player || "").trim().toLowerCase(),
+          String(disp?.prop || "").trim().toLowerCase(),
+          String(disp?.pick || "").trim().toLowerCase(),
+          String(disp?.dir || "").trim().toUpperCase(),
+        ].join("|")
+      )
+    );
+    for (let i = 0; i < ALL_SLATE.length; i++) {
+      const p = ALL_SLATE[i];
+      if (!p || isFantasyScoreEdgePick(p) || isDemonPick(p)) continue;
+      if (String(p.dir || "").trim().toUpperCase() !== "UNDER") continue;
+      if (!isStandardPick(p) && !isGoblinPick(p)) continue;
+      if (!matchConsistencyLeader(p)) continue;
+      const k = [
+        String(p.sport || "").trim().toUpperCase(),
+        String(p.player || "").trim().toLowerCase(),
+        String(p.prop || "").trim().toLowerCase(),
+        String(p.pick || "").trim().toLowerCase(),
+        String(p.dir || "").trim().toUpperCase(),
+      ].join("|");
+      if (seenU.has(k)) continue;
+      seenU.add(k);
+      underRows.push({ baseIdx: i, disp: p });
+    }
+  }
+
   const appendAll = (arr, el) => {
-    for (const p of arr.slice(0, EDGE_CARD_LIMIT)) {
+    for (const p of prioritizeConsLeaderRows(arr).slice(0, EDGE_CARD_LIMIT)) {
       const idx = Math.max(0, ALL_SLATE.indexOf(p));
       el.appendChild(buildEdgeCard(p, idx));
       queueMicrotask(() =>
@@ -2031,7 +2107,39 @@ function renderEdges() {
     }
   };
   const appendUnderRows = (rows, el) => {
-    for (const { baseIdx, disp } of rows.slice(0, EDGE_CARD_LIMIT)) {
+    const ranked = prioritizeConsLeaderRows(
+      rows.map((r) => r.disp),
+      (disp) =>
+        [
+          String(disp?.sport || "").trim().toUpperCase(),
+          String(disp?.player || "").trim().toLowerCase(),
+          String(disp?.prop || "").trim().toLowerCase(),
+          String(disp?.pick || "").trim().toLowerCase(),
+          String(disp?.dir || "").trim().toUpperCase(),
+        ].join("|")
+    );
+    const byDispKey = new Map(
+      rows.map((r) => [
+        [
+          String(r.disp?.sport || "").trim().toUpperCase(),
+          String(r.disp?.player || "").trim().toLowerCase(),
+          String(r.disp?.prop || "").trim().toLowerCase(),
+          String(r.disp?.pick || "").trim().toLowerCase(),
+          String(r.disp?.dir || "").trim().toUpperCase(),
+        ].join("|"),
+        r,
+      ])
+    );
+    for (const disp of ranked.slice(0, EDGE_CARD_LIMIT)) {
+      const k = [
+        String(disp?.sport || "").trim().toUpperCase(),
+        String(disp?.player || "").trim().toLowerCase(),
+        String(disp?.prop || "").trim().toLowerCase(),
+        String(disp?.pick || "").trim().toLowerCase(),
+        String(disp?.dir || "").trim().toUpperCase(),
+      ].join("|");
+      const row = byDispKey.get(k) || { baseIdx: Math.max(0, ALL_SLATE.indexOf(disp)), disp };
+      const { baseIdx } = row;
       if (disp !== ALL_SLATE[baseIdx]) EDGE_DISPLAY_PICK[baseIdx] = disp;
       el.appendChild(buildEdgeCard(disp, baseIdx));
       queueMicrotask(() =>
@@ -2207,7 +2315,7 @@ function renderBestToRun() {
       if (l10) return l10;
       return num(b.hit) - num(a.hit);
     });
-  eliteStd = pickPrimaryLineRows(eliteStd).slice(0, 6);
+  eliteStd = prioritizeConsLeaderRows(pickPrimaryLineRows(eliteStd)).slice(0, 6);
 
   const goblins = uniq
     .filter((p) => isGoblinPick(p))
@@ -2246,7 +2354,8 @@ function renderBestToRun() {
 
   let gobCount = 0;
   for (const sk of sportKeys) {
-    const rows = pickPrimaryLineRows(bySport.get(sk) || []).slice(0, 6);
+    // Keep GOB consistency matches visible even when lower-edge than the top 6.
+    const rows = prioritizeConsLeaderRows(pickPrimaryLineRows(bySport.get(sk) || [])).slice(0, 8);
     if (!rows.length) continue;
     gobCount += rows.length;
     const label = document.createElement("div");

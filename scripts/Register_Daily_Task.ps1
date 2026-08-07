@@ -131,18 +131,18 @@ Register-PropTask `
 
 Register-PropTask `
     -TaskName "PropOracle - Daily 5AM" `
-    -Description "First full daily: multi-sport fetch, combined slate/web publish (grader is 1AM; 5AM skips unless overnight outputs missing). Opens visible PowerShell." `
+    -Description "First full daily: multi-sport fetch, combined slate/web publish. Skips grader+A1 when overnight done; skips live CDP (mid-day/11AM). Opens visible PowerShell." `
     -ScriptPath $Script5 `
     -At "05:00"
 
-# Single overnight grader (yesterday slate; late results). Daily 5AM skips grader when these outputs exist.
+# Single overnight grader + A1 historical actuals. Daily 5AM skips those when outputs/stamp exist.
 $EveningGraderTasks = @(
     @{ Name = "PropOracle - Grader 1AM"; At = "01:00" }
 )
 foreach ($eg in $EveningGraderTasks) {
     Register-PropTask `
         -TaskName $eg.Name `
-        -Description "Overnight grader: pull latest, run grader for yesterday. Opens visible PowerShell." `
+        -Description "Overnight: historical actuals (A1) + grader for yesterday. Opens visible PowerShell." `
         -ScriptPath $ScriptEvening `
         -At $eg.At
 }

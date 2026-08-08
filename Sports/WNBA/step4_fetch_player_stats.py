@@ -71,10 +71,12 @@ ESPN_HEADERS = {
 
 SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates={yyyymmdd}"
 SUMMARY_URL    = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event={event_id}"
+_ESPN_API_FALLBACK_HOST = "https://site.web.api.espn.com"
 
 ALLSTAR_BREAKS: List[Tuple[str,str]] = [
-    # Add WNBA All-Star break dates each season here
-    # ("2026-07-18", "2026-07-20"),
+    # Game days only (not the full ticket pause). Used for fetch skip + L5/L10 purge.
+    ("2025-07-19", "2025-07-20"),
+    ("2026-07-25", "2026-07-25"),
 ]
 
 WNBA_TEAM_KEY_MAP = {
@@ -298,18 +300,34 @@ def _is_allstar(dt: datetime) -> bool:
 
 # ── ESPN API ──────────────────────────────────────────────────────────────────
 
+def _espn_fallback_url(url: str) -> str:
+    if "site.api.espn.com" in url:
+        return url.replace("https://site.api.espn.com", _ESPN_API_FALLBACK_HOST, 1).replace(
+            "http://site.api.espn.com", _ESPN_API_FALLBACK_HOST, 1
+        )
+    return url
+
+
 def espn_get(url: str, timeout: float, retries: int, sleep_s: float) -> dict:
+    last_err: Exception | None = None
+    urls = [url]
+    fb = _espn_fallback_url(url)
+    if fb != url:
+        urls.append(fb)
     for attempt in range(1, retries + 1):
-        try:
-            _sleep(sleep_s, 0.5)
-            r = requests.get(url, headers=ESPN_HEADERS, timeout=timeout)
-            r.raise_for_status()
-            return r.json()
-        except Exception as e:
-            backoff = min(30.0, (2 ** (attempt - 1)) * 2.0) + random.uniform(0.5, 2.0)
-            print(f"  [WARN] ESPN attempt {attempt}/{retries}: {type(e).__name__} — retry in {backoff:.1f}s")
-            time.sleep(backoff)
-    raise RuntimeError(f"ESPN GET failed: {url}")
+        for u in urls:
+            try:
+                _sleep(sleep_s, 0.5)
+                r = requests.get(u, headers=ESPN_HEADERS, timeout=timeout)
+                r.raise_for_status()
+                return r.json()
+            except Exception as e:
+                last_err = e
+                print(f"  [WARN] ESPN attempt {attempt}/{retries} ({u.split('/')[2]}): {type(e).__name__}")
+        backoff = min(30.0, (2 ** (attempt - 1)) * 2.0) + random.uniform(0.5, 2.0)
+        print(f"  [WARN] ESPN retry in {backoff:.1f}s")
+        time.sleep(backoff)
+    raise RuntimeError(f"ESPN GET failed: {url} ({last_err})")
 
 
 def fetch_event_ids(date_yyyymmdd: str, timeout: float, retries: int, sleep_s: float) -> List[str]:
@@ -907,6 +925,39 @@ def main():
         cache.to_csv(cache_path, index=False, encoding="utf-8-sig")
         print(f"Cache updated → {cache_path}  ({len(cache)} rows)")
 
+    # Hard guard: do not silently publish L5 from a multi-day-stale ESPN cache.
+    if not cache.empty and "game_date" in cache.columns:
+        cache_max = pd.to_datetime(cache["game_date"], errors="coerce").max()
+        if pd.notna(cache_max):
+            lag_days = (pd.Timestamp(stat_target).normalize() - pd.Timestamp(cache_max).normalize()).days
+            print(
+                f"→ ESPN cache max game_date={pd.Timestamp(cache_max).date()} "
+                f"(lag {lag_days}d vs slate {pd.Timestamp(stat_target).date()})"
+            )
+            if lag_days >= 3:
+                msg = (
+                    f"WNBA ESPN cache is {lag_days} day(s) behind slate date "
+                    f"(cache max {pd.Timestamp(cache_max).date()}, slate {pd.Timestamp(stat_target).date()}). "
+                    f"L5/L10 would be stale. Re-run with network access or "
+                    f"scripts/backfill_wnba_espn_range.py --from <gap> --to <yesterday> --season {args.season}."
+                )
+                print(f"⚠️  {msg}")
+                log_pipeline_health(
+                    "wnba.step4_fetch_player_stats",
+                    "stale_espn_cache",
+                    extra={
+                        "cache_max": str(pd.Timestamp(cache_max).date()),
+                        "slate_date": str(pd.Timestamp(stat_target).date()),
+                        "lag_days": lag_days,
+                        "events_fetched": events_fetched,
+                    },
+                    start=Path(__file__),
+                )
+                # Hard-fail only on severe drift with zero new fetches (avoids publishing
+                # multi-week-stale L5 like post-All-Star gaps). Mild lag still warns.
+                if events_fetched == 0 and lag_days >= 7:
+                    raise RuntimeError(msg)
+
     if cache.empty:
         print("⚠️ Cache empty — writing slate with no stats attached")
         slate.to_csv(args.out, index=False, encoding="utf-8-sig")
@@ -935,6 +986,17 @@ def main():
         & (cache_dates >= pd.Timestamp(cutoff_stat))
         & (cache_dates <= pd.Timestamp(stat_target))
     ].copy()
+    # Purge All-Star game days from rolling L5/L10 (fetch skip alone is not enough if
+    # ASG rows are already in wnba_espn_cache.csv).
+    if not cache_filt.empty and ALLSTAR_BREAKS:
+        gd = pd.to_datetime(cache_filt["game_date"], errors="coerce")
+        as_mask = pd.Series(False, index=cache_filt.index)
+        for start, end in ALLSTAR_BREAKS:
+            as_mask |= (gd >= pd.Timestamp(start)) & (gd <= pd.Timestamp(end))
+        n_as = int(as_mask.sum())
+        if n_as:
+            cache_filt = cache_filt.loc[~as_mask].copy()
+            print(f"→ Excluded {n_as} All-Star row(s) from rolling L5/L10 window")
     cache_filt = cache_filt.sort_values("game_date", ascending=False)
 
     # Build name→id map

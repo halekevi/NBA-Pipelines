@@ -57,6 +57,8 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_REQUIRE_LIVE_PAYOUT (default 1) — board floors must be exact live_cdp
 - PROPORACLE_ALLOW_SG_DELTA_PAYOUT (default 0) — opt-in peer SG-Δ stamps (untrusted)
 - PROPORACLE_MAIN_MAX_LEGS (default 3) / PROPORACLE_GOBLIN_MAX_LEGS (default 6)
+- PROPORACLE_MAIN_GOBLIN_MIN_L5_HITS (default 4) — MAIN Goblin directional L5 floor
+- PROPORACLE_MAIN_LONG_GOBLIN_MIN_L5_HITS (default 5) — 4+ leg Goblin L5 floor
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
 - PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
 
@@ -4570,8 +4572,21 @@ MAX_LEGS_TENNIS = 3
 TENNIS_LEG_MIN_HIT_RATE = {2: 0.68, 3: 0.72, 4: 0.75}
 TENNIS_HIT_RATE_PROXY_FLOOR = 0.62
 TENNIS_HIT_RATE_PROXY_CAP = 0.88
-TENNIS_GOBLIN_MIN_L5_HITS = 3
+# Aug-8 grades: Tennis Goblin L5>=4 ~69% (was min 3).
+TENNIS_GOBLIN_MIN_L5_HITS = 4
 TENNIS_STD_MIN_L5_HITS = 3
+# MAIN Goblin directional L5 floor (Aug-8: L5>=4 ~67% Goblin HR). Env overrideable.
+MAIN_GOBLIN_MIN_L5_HITS: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L5_HITS", "4"))
+MAIN_LONG_GOBLIN_MIN_L5_HITS: float = float(
+    os.getenv("PROPORACLE_MAIN_LONG_GOBLIN_MIN_L5_HITS", "5")
+)
+MAIN_GOBLIN_L5_SPORTS: frozenset[str] = frozenset(
+    s.strip().upper()
+    for s in os.getenv(
+        "PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"
+    ).split(",")
+    if s.strip()
+)
 TENNIS_ELIGIBLE_PROPS = frozenset({
     "total games won",
     "total games",
@@ -5358,14 +5373,25 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
     """
     Selection / est_win_prob leg probability.
     Prefer pipeline_read enrichment (hit_prob_actionable); else empirical/ML/rank/edge chain.
+    Tennis: skip enrichment HR proxies when calibrated ml_prob exists — actionable/selected
+    often mirror perfect L5 (0.95–1.0) and overstate ticket P(win).
     """
-    for key, src in (
-        ("hit_prob_actionable", "hit_prob_actionable"),
-        ("hit_prob_selected", "hit_prob_selected"),
-    ):
-        p = _to_prob_0_1(row.get(key))
-        if p is not None:
-            return _clip_prob(p, src), src
+    sport = str(row.get("sport", "") or "").strip().upper()
+    mlp_early = pd.to_numeric(row.get("ml_prob"), errors="coerce")
+    tennis_prefer_ml = (
+        sport == "TENNIS"
+        and pd.notna(mlp_early)
+        and 0.0 < float(mlp_early) < 1.0
+    )
+
+    if not tennis_prefer_ml:
+        for key, src in (
+            ("hit_prob_actionable", "hit_prob_actionable"),
+            ("hit_prob_selected", "hit_prob_selected"),
+        ):
+            p = _to_prob_0_1(row.get(key))
+            if p is not None:
+                return _clip_prob(p, src), src
 
     direction = str(
         row.get("bet_direction") or row.get("direction_used") or row.get("direction") or "OVER"
@@ -5412,7 +5438,6 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
     l5_hits, l5_gp = _resolve_l5_cols(row, direction)
     l5_n = l5_gp
     pick_type = str(row.get("pick_type", "") or "").strip().lower()
-    sport = str(row.get("sport", "") or "").strip().upper()
 
     if "demon" in pick_type and sport in ("NHL", "SOCCER", "SOC"):
         hr = _to_prob_0_1(hr_raw)
@@ -5428,7 +5453,16 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
         demon_prob = min(ml_prob, 0.72)
         return _clip_prob(demon_prob, "ml_prob_demon"), "ml_prob_demon"
 
-    if hr_raw is not None and str(hr_raw).strip() != "" and l5_n >= 3.0:
+    # L5 / directional HR is a strong short-sample signal for most sports, but Tennis
+    # line HRs (often 4–5/5 → 0.80–0.85 after cap) systematically overstate ticket
+    # P(win) vs calibrated ml_prob (calibration top-bin ~0.71 pred / ~0.44 actual).
+    # Prefer ml_prob for Tennis; fall through to L5 only when ml_prob is missing.
+    if (
+        sport != "TENNIS"
+        and hr_raw is not None
+        and str(hr_raw).strip() != ""
+        and l5_n >= 3.0
+    ):
         try:
             hit_prob = float(hr_raw)
             if hit_prob > 1.0:
@@ -5451,6 +5485,17 @@ def _resolve_leg_prob(row: pd.Series) -> tuple[float, str]:
             except Exception:
                 pass
         return _clip_prob(ml_val, "ml_prob"), "ml_prob"
+
+    # Tennis fallback: only now use L5/HR if ml_prob was unavailable.
+    if sport == "TENNIS" and hr_raw is not None and str(hr_raw).strip() != "" and l5_n >= 3.0:
+        try:
+            hit_prob = float(hr_raw)
+            if hit_prob > 1.0:
+                hit_prob = hit_prob / 100.0
+            hit_prob = max(0.50, min(_leg_l5_hit_prob_cap(row), hit_prob))
+            return hit_prob, f"{hr_source}_tennis_fallback"
+        except (TypeError, ValueError):
+            pass
 
     # Priority 2: rank_score sigmoid (composite signal).
     rs = pd.to_numeric(row.get("rank_score"), errors="coerce")
@@ -5654,6 +5699,28 @@ def _row_directional_l5_hits(row_d: dict) -> float | None:
         if 0.0 <= rate <= 1.0:
             return rate * 5.0
     return None
+
+
+def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> bool:
+    """
+    MAIN Goblin directional L5 floor (default ≥4) for MLB/WNBA/Tennis/Soccer.
+
+    Missing L5 fails closed for listed sports. Standards are not gated here.
+    Disable with PROPORACLE_MAIN_GOBLIN_MIN_L5_HITS=0.
+    """
+    pt = str(row_d.get("pick_type") or "").strip().lower()
+    if "goblin" not in pt:
+        return True
+    sport = str(row_d.get("sport") or "").strip().upper()
+    if sport not in MAIN_GOBLIN_L5_SPORTS:
+        return True
+    floor = float(MAIN_GOBLIN_MIN_L5_HITS if min_hits is None else min_hits)
+    if floor <= 0:
+        return True
+    hits = _row_directional_l5_hits(row_d)
+    if hits is None:
+        return False
+    return float(hits) + 1e-9 >= floor
 
 
 def _standard_prop_gate_l5_clears(row_d: dict) -> bool:
@@ -6211,6 +6278,8 @@ def _row_win_rate_eligible(
     tier = str(row_d.get("tier") or "").strip().upper()
     if not goblin_direction_ok(row_d):
         return False
+    if not _row_main_goblin_l5_ok(row_d):
+        return False
     if goblin_only and standard_only:
         return False
     if goblin_only:
@@ -6591,6 +6660,9 @@ def _row_main_four_leg_eligible(row: pd.Series | dict) -> bool:
     except (TypeError, ValueError):
         comp_f = 0.0
     if comp_f < float(MAIN_FOUR_LEG_MIN_COMPOSITE_HR):
+        return False
+    # Aug-8: L5=5/5 ~70% — require perfect directional L5 on Goblin 4+ legs.
+    if not _row_main_goblin_l5_ok(row_d, min_hits=float(MAIN_LONG_GOBLIN_MIN_L5_HITS)):
         return False
     return True
 
@@ -8094,6 +8166,8 @@ MAIN_FOUR_LEG_MIN_ML_PROB = 0.70
 MAIN_FOUR_LEG_MIN_LEG_PROB = 0.70
 MAIN_FOUR_LEG_MIN_COMPOSITE_HR = 0.68
 # MLB Goblin OVER dominates miss volume on long mixed boards — raise the bar.
+# Aug-8 grades: directional L5>=4 lifted decided HR ~25% → ~59% (Goblin ~67%).
+# Floors defined near TENNIS_GOBLIN_MIN_L5_HITS (PROPORACLE_MAIN_GOBLIN_MIN_L5_HITS).
 MAIN_MLB_GOBLIN_MIN_LEG_PROB: float = float(
     os.getenv("PROPORACLE_MAIN_MLB_GOBLIN_MIN_LEG_PROB", "0.68")
 )
@@ -14782,16 +14856,35 @@ def filter_eligible(
         sport_series = in_df.get("sport", pd.Series([""] * len(in_df), index=in_df.index)).astype(str).str.upper().str.strip()
         for sport, grp in in_df.groupby(sport_series):
             t = thresholds.get(str(sport).upper(), default)
-            # Tennis/WNBA/MLB/Soccer: sparse L5 windows or rank-score proxies — sort by rank, not L5 gate.
-            if str(sport).upper() in {"TENNIS", "WNBA", "MLB", "SOCCER", "SOC"}:
-                result.append(grp)
-                continue
             l5_over = pd.to_numeric(grp.get("l5_over"), errors="coerce").fillna(0)
             l5_under = pd.to_numeric(grp.get("l5_under"), errors="coerce").fillna(0)
             hit_rate = pd.to_numeric(grp.get("hit_rate"), errors="coerce")
             dir_s = grp.get("direction", pd.Series([""] * len(grp), index=grp.index)).astype(str).str.upper().str.strip()
             over_dir = dir_s.isin({"OVER", "HIGHER"})
             under_dir = dir_s.isin({"UNDER", "LOWER"})
+            pick_s = (
+                grp.get("pick_type", pd.Series([""] * len(grp), index=grp.index))
+                .astype(str)
+                .str.lower()
+                .str.strip()
+            )
+            is_goblin = pick_s.str.contains("goblin", na=False)
+
+            # Active sports: hard L5>=4 on Goblin only (Aug-8 lift). Standards keep
+            # edge/rank floors elsewhere — do not require L5 alone.
+            if str(sport).upper() in {"TENNIS", "WNBA", "MLB", "SOCCER", "SOC"}:
+                gob_floor = float(MAIN_GOBLIN_MIN_L5_HITS)
+                if gob_floor <= 0:
+                    result.append(grp)
+                    continue
+                gob_over = is_goblin & over_dir & (l5_over >= gob_floor)
+                gob_under = is_goblin & under_dir & (l5_under >= gob_floor)
+                non_gob = ~is_goblin
+                passed = grp[gob_over | gob_under | non_gob]
+                if len(passed) > 0:
+                    result.append(passed)
+                continue
+
             over_pass = over_dir & (l5_over >= 4) & (hit_rate >= float(t.get("over", default["over"])))
             under_pass = under_dir & (l5_under >= 4) & (hit_rate <= float(t.get("under", default["under"])))
             passed = grp[over_pass | under_pass]

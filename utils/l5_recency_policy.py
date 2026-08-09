@@ -1,8 +1,10 @@
 """
-Cross-sport L5 recency policy (Jul 10–19 2026 as-of rebuild + Aug 2026 soccer grades).
+Cross-sport L5 recency policy (Jul 10–19 2026 as-of rebuild + Aug 2026 soccer grades
++ Aug 8 2026 graded confirmation).
 
 Findings:
 - L5 >= 4 lifts Goblins / most Std OVER across sports (stable default bar).
+- Aug 8 graded: L5>=4 ~58.6% decided vs ~25% board; Goblin L5>=4 ~67%; L5=5/5 ~70%.
 - L5 == 5 adds more lift for WNBA / Tennis Goblin; hurts MLB Standard OVER.
 - Basketball-family Standard prop gates clear at L5 >= 4 (WNBA evidence).
 - Soccer Standard gates also clear at L5 >= 4 (graded ~99k props: +42pp overall;

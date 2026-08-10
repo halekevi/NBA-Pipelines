@@ -290,7 +290,7 @@ def test_goblin_only_rejects_standard():
 
 
 def test_main_goblin_requires_l5_ge4():
-    """MAIN Goblin legs on MLB/WNBA/Tennis/Soccer need directional L5 >= 4."""
+    """MAIN Goblin: directional L5>=4 and L10>=8 (sample>=8) on active sports."""
     from combined_slate_tickets import (
         TENNIS_GOBLIN_MIN_L5_HITS,
         _row_main_four_leg_eligible,
@@ -306,18 +306,25 @@ def test_main_goblin_requires_l5_ge4():
         cold, min_leg_prob=0.62, min_composite_hr=0.55, goblin_only=True
     )
 
-    warm = dict(cold, l5_over=4.0)
+    warm = dict(cold, l5_over=4.0, l10_over=8.0, l10_under=2.0)
     assert _row_main_goblin_l5_ok(warm)
     assert _row_win_rate_eligible(
         warm, min_leg_prob=0.62, min_composite_hr=0.55, goblin_only=True
     )
 
-    # Standards are not hard-gated by MAIN Goblin L5 floor.
+    # L5=4 but L10 cold fails the agreement gate.
+    lukewarm = dict(warm, l10_over=6.0, l10_under=4.0)
+    assert not _row_main_goblin_l5_ok(lukewarm)
+    assert not _row_win_rate_eligible(
+        lukewarm, min_leg_prob=0.62, min_composite_hr=0.55, goblin_only=True
+    )
+
+    # Standards are not hard-gated by MAIN Goblin L5/L10 floors.
     std = _base_leg(pick_type="Standard", direction="UNDER", sport="WNBA")
     std["l5_under"] = 2.0
     assert _row_main_goblin_l5_ok(std)
 
-    # 4+ leg Goblin requires perfect L5 by default.
+    # 4+ leg Goblin requires perfect L5 by default (still needs L10>=8).
     assert not _row_main_goblin_l5_ok(dict(warm, l5_over=4.0), min_hits=5.0)
     assert _row_main_goblin_l5_ok(dict(warm, l5_over=5.0), min_hits=5.0)
     long_cold = _base_leg(pick_type="Goblin", direction="OVER", sport="WNBA", leg_prob=0.75)

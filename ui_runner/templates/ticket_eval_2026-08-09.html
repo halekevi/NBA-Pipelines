@@ -313,7 +313,6 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="sum-row-label">Results</div>
 <div class="sum-item"><div class="sum-val">32.1%</div><div class="sum-lab">Hit rate</div></div>
 <div class="sum-item sum-item-sport"><div class="sum-val">34.6%</div><div class="sum-lab">MLB</div></div>
-<div class="sum-item sum-item-pending-sport" title="19 ticket slips still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">SOCCER<span class="sum-lab-badge">19 pending</span></div></div>
 <div class="sum-item sum-item-sport"><div class="sum-val">0.0%</div><div class="sum-lab">TENNIS</div></div>
 <div class="sum-item"><div class="sum-val green">36</div><div class="sum-lab">Paid</div></div>
 <div class="sum-item"><div class="sum-val red">76</div><div class="sum-lab">No payout</div></div>
@@ -323,16 +322,16 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </div>
 <div class="sum-row sum-row-legs">
 <div class="sum-row-label">Legs</div>
-<div class="sum-item"><div class="sum-val green">252</div><div class="sum-lab">Hits</div></div>
+<div class="sum-item"><div class="sum-val green">248</div><div class="sum-lab">Hits</div></div>
 <div class="sum-item"><div class="sum-val red">148</div><div class="sum-lab">Misses</div></div>
-<div class="sum-item"><div class="sum-val void">12</div><div class="sum-lab">Void / push</div></div>
-<div class="sum-item"><div class="sum-val pend">75</div><div class="sum-lab">Ungraded</div></div>
+<div class="sum-item"><div class="sum-val void">91</div><div class="sum-lab">Void / push</div></div>
+<div class="sum-item"><div class="sum-val pend">0</div><div class="sum-lab">Ungraded</div></div>
 <div class="sum-item"><div class="sum-val sum-val-sm">487</div><div class="sum-lab">Total legs</div></div>
 </div></div>
 <div class="wrap ticket-eval-main">
 <p class="slate-kicker">SLATE DATE · 2026-08-09</p>
 <details class="grade-eval-help"><summary>How these grades work</summary>
-<p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-08-09/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (75 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-08-09/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-08-09/</code> before rebuilding this page. </p></details>
+<p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-08-09/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss.</p></details>
 <div class="ticket-sections-wrap">
 <details class="ticket-bucket sb-mlb">
 <summary><span class="ticket-bucket-title">MLB</span><span class="ticket-bucket-meta">85 sections · 85 tickets</span></summary>
@@ -4888,40 +4887,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 3-Leg #1</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 3.27× · FLEX 1.63×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Antonio Rodríguez</div>
+<div class="pl-void">Antonio Rodríguez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">TIJUANA vs SAN DIEGO</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #2</h2>
@@ -4931,40 +4931,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 3-Leg #2</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 3.31× · FLEX 1.65×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #3</h2>
@@ -4972,42 +4973,43 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Goblin 3-Leg #3</span>
-<span class="tg">1✓ 0✗ / 3</span>
+<span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 2.95× · FLEX 1.47×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Viveros</div>
+<div class="pl-void">Kevin Viveros</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">ATHLETICO PR vs SANTOS</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-hit">
-<div class="badge hit">✓</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-hit">Ronaldo</div>
+<div class="pl-void">Ronaldo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">BAHIA vs VASCO</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-hit">3</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #4</h2>
@@ -5017,40 +5019,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 3-Leg #4</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 3.31× · FLEX 1.65×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Julián Carranza</div>
+<div class="pl-void">Julián Carranza</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">NECAXA vs PHILADELPHIA</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #5</h2>
@@ -5060,40 +5063,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 3-Leg #5</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 3.31× · FLEX 1.65×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Raúl Castillo</div>
+<div class="pl-void">Raúl Castillo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Ignacio Maestro Puch</div>
+<div class="pl-void">Ignacio Maestro Puch</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #6</h2>
@@ -5103,40 +5107,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 3-Leg #6</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 1.97× · FLEX 0.98×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Fernando Monárrez</div>
+<div class="pl-void">Fernando Monárrez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alejandro Organista</div>
+<div class="pl-void">Alejandro Organista</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #7</h2>
@@ -5146,40 +5151,41 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 3-Leg #7</span>
 <span class="tg">0✓ 0✗ / 3</span>
 <span class="payout">PWR 3.31× · FLEX 1.65×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alonso Ramírez</div>
+<div class="pl-void">Alonso Ramírez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Facundo Almada</div>
+<div class="pl-void">Facundo Almada</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 4-Leg #1</h2>
@@ -5189,50 +5195,51 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 4-Leg #1</span>
 <span class="tg">0✓ 0✗ / 4</span>
 <span class="payout">PWR 4.47× · FLEX 2.68×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Antonio Rodríguez</div>
+<div class="pl-void">Antonio Rodríguez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">TIJUANA vs SAN DIEGO</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 4-Leg #2</h2>
@@ -5242,50 +5249,51 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 4-Leg #2</span>
 <span class="tg">0✓ 0✗ / 4</span>
 <span class="payout">PWR 4.02× · FLEX 2.41×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Viveros</div>
+<div class="pl-void">Kevin Viveros</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">ATHLETICO PR vs SANTOS</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 4-Leg #3</h2>
@@ -5293,52 +5301,53 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Goblin 4-Leg #3</span>
-<span class="tg">1✓ 0✗ / 4</span>
+<span class="tg">0✓ 0✗ / 4</span>
 <span class="payout">PWR 4.52× · FLEX 2.71×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-hit">
-<div class="badge hit">✓</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-hit">Ronaldo</div>
+<div class="pl-void">Ronaldo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">BAHIA vs VASCO</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-hit">3</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Julián Carranza</div>
+<div class="pl-void">Julián Carranza</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">NECAXA vs PHILADELPHIA</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 4-Leg #4</h2>
@@ -5348,50 +5357,51 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 4-Leg #4</span>
 <span class="tg">0✓ 0✗ / 4</span>
 <span class="payout">PWR 4.52× · FLEX 2.71×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Raúl Castillo</div>
+<div class="pl-void">Raúl Castillo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Ignacio Maestro Puch</div>
+<div class="pl-void">Ignacio Maestro Puch</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 4-Leg #5</h2>
@@ -5401,50 +5411,51 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 4-Leg #5</span>
 <span class="tg">0✓ 0✗ / 4</span>
 <span class="payout">PWR 2.69× · FLEX 1.61×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Fernando Monárrez</div>
+<div class="pl-void">Fernando Monárrez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alejandro Organista</div>
+<div class="pl-void">Alejandro Organista</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alonso Ramírez</div>
+<div class="pl-void">Alonso Ramírez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 5-Leg #1</h2>
@@ -5454,60 +5465,61 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 5-Leg #1</span>
 <span class="tg">0✓ 0✗ / 5</span>
 <span class="payout">PWR 7.33× · FLEX 3.66×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Antonio Rodríguez</div>
+<div class="pl-void">Antonio Rodríguez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">TIJUANA vs SAN DIEGO</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 5-Leg #2</h2>
@@ -5515,62 +5527,63 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Goblin 5-Leg #2</span>
-<span class="tg">1✓ 0✗ / 5</span>
+<span class="tg">0✓ 0✗ / 5</span>
 <span class="payout">PWR 6.6× · FLEX 3.3×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Viveros</div>
+<div class="pl-void">Kevin Viveros</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">ATHLETICO PR vs SANTOS</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-hit">
-<div class="badge hit">✓</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-hit">Ronaldo</div>
+<div class="pl-void">Ronaldo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">BAHIA vs VASCO</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-hit">3</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Julián Carranza</div>
+<div class="pl-void">Julián Carranza</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">NECAXA vs PHILADELPHIA</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 5-Leg #3</h2>
@@ -5580,60 +5593,61 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 5-Leg #3</span>
 <span class="tg">0✓ 0✗ / 5</span>
 <span class="payout">PWR 7.41× · FLEX 3.71×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Raúl Castillo</div>
+<div class="pl-void">Raúl Castillo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Ignacio Maestro Puch</div>
+<div class="pl-void">Ignacio Maestro Puch</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 5-Leg #4</h2>
@@ -5643,60 +5657,61 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 5-Leg #4</span>
 <span class="tg">0✓ 0✗ / 5</span>
 <span class="payout">PWR 4.41× · FLEX 2.21×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Fernando Monárrez</div>
+<div class="pl-void">Fernando Monárrez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alejandro Organista</div>
+<div class="pl-void">Alejandro Organista</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alonso Ramírez</div>
+<div class="pl-void">Alonso Ramírez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 6-Leg #1</h2>
@@ -5706,70 +5721,71 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 6-Leg #1</span>
 <span class="tg">0✓ 0✗ / 6</span>
 <span class="payout">PWR 12.01× · FLEX 7.51×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Antonio Rodríguez</div>
+<div class="pl-void">Antonio Rodríguez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">TIJUANA vs SAN DIEGO</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Carlos Baltazar</div>
+<div class="pl-void">Carlos Baltazar</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 6 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 6-Leg #2</h2>
@@ -5777,72 +5793,73 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Goblin 6-Leg #2</span>
-<span class="tg">1✓ 0✗ / 6</span>
+<span class="tg">0✓ 0✗ / 6</span>
 <span class="payout">PWR 10.83× · FLEX 6.77×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Viveros</div>
+<div class="pl-void">Kevin Viveros</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">ATHLETICO PR vs SANTOS</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-hit">
-<div class="badge hit">✓</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-hit">Ronaldo</div>
+<div class="pl-void">Ronaldo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">BAHIA vs VASCO</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-hit">3</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Julián Carranza</div>
+<div class="pl-void">Julián Carranza</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots On Target</div><div class="meta-muted">NECAXA vs PHILADELPHIA</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Emiliano Gómez</div>
+<div class="pl-void">Emiliano Gómez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Raúl Castillo</div>
+<div class="pl-void">Raúl Castillo</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 6 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 6-Leg #3</h2>
@@ -5852,70 +5869,71 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <span class="tg">SOCCER Goblin 6-Leg #3</span>
 <span class="tg">0✓ 0✗ / 6</span>
 <span class="payout">PWR 7.23× · FLEX 4.52×</span>
-<span class="banner pend">UNGRADED</span>
+<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Omar Moreno</div>
+<div class="pl-void">Omar Moreno</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Ignacio Maestro Puch</div>
+<div class="pl-void">Ignacio Maestro Puch</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Eduardo Mustre</div>
+<div class="pl-void">Eduardo Mustre</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Kevin Velasco</div>
+<div class="pl-void">Kevin Velasco</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Fernando Monárrez</div>
+<div class="pl-void">Fernando Monárrez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="legrow leg-pend">
-<div class="badge pend">·</div>
+<div class="legrow leg-void">
+<div class="badge void">○</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-pend">Alejandro Organista</div>
+<div class="pl-void">Alejandro Organista</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Shots</div><div class="meta-muted">PUEBLA vs AUSTIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra pl-void">—</div>
 <div class="leg-extra">1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 6 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 </div></details>

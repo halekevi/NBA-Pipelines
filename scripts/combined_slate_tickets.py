@@ -61,6 +61,10 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_MAIN_LONG_GOBLIN_MIN_L5_HITS (default 5) — 4+ leg Goblin L5 floor
 - PROPORACLE_MAIN_GOBLIN_MIN_L10_HITS (default 8) — MAIN Goblin directional L10 hits
 - PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE (default 8) — min L10 games for that floor
+- PROPORACLE_MAIN_STANDARD_OVER_MIN_L10_HITS (default 8) — Standard OVER L10 floor
+- PROPORACLE_MAIN_STANDARD_UNDER_MIN_L10_HITS (default 8) — Standard UNDER L10 floor
+- PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS (default 3) — Standard OVER L5 agreement
+- PROPORACLE_MAIN_STANDARD_UNDER_MIN_L5_HITS (default 0) — Standard UNDER L5 (off; no lift)
 - PROPORACLE_MAIN_MAX_LEGS_PER_GAME (default 2) — hard same-game stack cap
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
 - PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
@@ -4588,10 +4592,35 @@ MAIN_GOBLIN_MIN_L10_HITS: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L1
 MAIN_GOBLIN_MIN_L10_SAMPLE: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE", "8"))
 # Hard same-game cap: reject tickets with >N legs from one matchup (correlation).
 MAIN_MAX_LEGS_PER_GAME: int = int(os.getenv("PROPORACLE_MAIN_MAX_LEGS_PER_GAME", "2"))
+# Aug8–9 pooled: Std OVER base ~39% → L10≥8 ~51%; +L5≥3 agreement ~60%.
+# Std UNDER base ~57% → L10≥8 ~66% (L5 alone does not lift UNDER).
+MAIN_STANDARD_OVER_MIN_L10_HITS: float = float(
+    os.getenv("PROPORACLE_MAIN_STANDARD_OVER_MIN_L10_HITS", "8")
+)
+MAIN_STANDARD_UNDER_MIN_L10_HITS: float = float(
+    os.getenv("PROPORACLE_MAIN_STANDARD_UNDER_MIN_L10_HITS", "8")
+)
+MAIN_STANDARD_OVER_MIN_L5_HITS: float = float(
+    os.getenv("PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS", "3")
+)
+MAIN_STANDARD_UNDER_MIN_L5_HITS: float = float(
+    os.getenv("PROPORACLE_MAIN_STANDARD_UNDER_MIN_L5_HITS", "0")
+)
+MAIN_STANDARD_MIN_L10_SAMPLE: float = float(
+    os.getenv("PROPORACLE_MAIN_STANDARD_MIN_L10_SAMPLE", "8")
+)
 MAIN_GOBLIN_L5_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
         "PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"
+    ).split(",")
+    if s.strip()
+)
+MAIN_STANDARD_L10_SPORTS: frozenset[str] = frozenset(
+    s.strip().upper()
+    for s in os.getenv(
+        "PROPORACLE_MAIN_STANDARD_L10_SPORTS",
+        os.getenv("PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"),
     ).split(",")
     if s.strip()
 )
@@ -5665,14 +5694,22 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
 # MLB never clears via L5; MLB Std OVER at L5=5 is additionally avoided.
 
 
+def _row_direction_u(row_d: dict) -> str:
+    return str(
+        row_d.get("direction")
+        or row_d.get("dir")
+        or row_d.get("over_under")
+        or row_d.get("bet_direction")
+        or ""
+    ).strip().upper()
+
+
 def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
     sport = str(row_d.get("sport") or "").strip().upper()
     pick = str(row_d.get("pick_type") or "").strip().lower()
     if "standard" not in pick or "goblin" in pick:
         return None
-    direction = str(
-        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
-    ).strip().upper()
+    direction = _row_direction_u(row_d)
     if direction not in ("OVER", "UNDER"):
         return None
     prop = _norm_main_prop_key(row_d.get("prop_type") or row_d.get("prop") or "")
@@ -5683,9 +5720,7 @@ def _standard_prop_gate_key(row_d: dict) -> tuple[str, str, str] | None:
 
 def _row_directional_l5_hits(row_d: dict) -> float | None:
     """Directional L5 hit count (0–5) for the leg's selected side, or None if missing."""
-    direction = str(
-        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
-    ).strip().upper()
+    direction = _row_direction_u(row_d)
     if direction == "UNDER":
         keys = ("l5_under", "last5_under", "L5 Under", "l5_side_hits")
     elif direction == "OVER":
@@ -5711,9 +5746,7 @@ def _row_directional_l5_hits(row_d: dict) -> float | None:
 
 def _row_directional_l10_hits(row_d: dict) -> tuple[float | None, float | None]:
     """Directional L10 (hits, games) for the selected side, or (None, None)."""
-    direction = str(
-        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
-    ).strip().upper()
+    direction = _row_direction_u(row_d)
     if direction == "UNDER":
         hit_keys = ("l10_under", "last10_under", "L10 Under")
         other_keys = ("l10_over", "last10_over", "L10 Over")
@@ -5786,17 +5819,64 @@ def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> boo
     return True
 
 
+def _row_main_standard_recency_ok(row_d: dict) -> bool:
+    """
+    MAIN Standard recency floors by direction (Aug8–9 pooled):
+      OVER:  L10 >= OVER_MIN_L10 (8) + optional L5 >= OVER_MIN_L5 (3)
+      UNDER: L10 >= UNDER_MIN_L10 (8); L5 optional (default off — no lift)
+
+    Goblins are not gated here. Disable a floor by setting it to 0.
+    """
+    pt = str(row_d.get("pick_type") or "").strip().lower()
+    if "standard" not in pt or "goblin" in pt or "demon" in pt:
+        return True
+    sport = str(row_d.get("sport") or "").strip().upper()
+    if sport not in MAIN_STANDARD_L10_SPORTS:
+        return True
+    direction = _row_direction_u(row_d)
+    if direction in ("UNDER", "LOWER"):
+        l10_floor = float(MAIN_STANDARD_UNDER_MIN_L10_HITS)
+        l5_floor = float(MAIN_STANDARD_UNDER_MIN_L5_HITS)
+    elif direction in ("OVER", "HIGHER"):
+        l10_floor = float(MAIN_STANDARD_OVER_MIN_L10_HITS)
+        l5_floor = float(MAIN_STANDARD_OVER_MIN_L5_HITS)
+    else:
+        return False
+    if l5_floor > 0:
+        hits = _row_directional_l5_hits(row_d)
+        if hits is None or float(hits) + 1e-9 < l5_floor:
+            return False
+    if l10_floor > 0:
+        h10, n10 = _row_directional_l10_hits(row_d)
+        if h10 is None or n10 is None:
+            return False
+        if float(n10) + 1e-9 < float(MAIN_STANDARD_MIN_L10_SAMPLE):
+            return False
+        if float(h10) + 1e-9 < l10_floor:
+            return False
+    return True
+
+
+def _row_main_pick_recency_ok(row_d: dict, *, goblin_min_l5: float | None = None) -> bool:
+    """Combined MAIN Goblin + Standard recency floors."""
+    return _row_main_goblin_l5_ok(row_d, min_hits=goblin_min_l5) and _row_main_standard_recency_ok(
+        row_d
+    )
+
+
 def _filter_df_main_goblin_recency(df: pd.DataFrame | None) -> pd.DataFrame | None:
-    """Drop Goblin rows that fail MAIN L5/L10 floors (soft-void / core pool safety net)."""
+    """Drop Goblin/Standard rows that fail MAIN recency floors (soft-void safety net)."""
     if df is None or len(df) == 0:
         return df
     if "pick_type" not in df.columns:
         return df
-    keep = df.apply(lambda r: _row_main_goblin_l5_ok(r.to_dict()), axis=1)
+    keep = df.apply(lambda r: _row_main_pick_recency_ok(r.to_dict()), axis=1)
     out = df.loc[keep].copy()
     dropped = int(len(df) - len(out))
     if dropped:
-        print(f"  [main-goblin-recency] dropped {dropped} Goblin leg(s) failing L5/L10 floors")
+        print(
+            f"  [main-recency] dropped {dropped} leg(s) failing Goblin/Standard L5/L10 floors"
+        )
     return out
 
 
@@ -6356,6 +6436,8 @@ def _row_win_rate_eligible(
     if not goblin_direction_ok(row_d):
         return False
     if not _row_main_goblin_l5_ok(row_d):
+        return False
+    if not _row_main_standard_recency_ok(row_d):
         return False
     if goblin_only and standard_only:
         return False
@@ -7029,12 +7111,22 @@ def build_win_rate_ticket_groups(
         n = len(rows)
         sport_label = str(t.get("_sport_label") or "Mixed")
         pts = {str(r.get("pick_type") or "").strip().lower() for r in rows}
+        dirs = {
+            str(r.get("direction") or r.get("over_under") or "").strip().upper()
+            for r in rows
+        }
+        dirs.discard("")
         if pts == {"goblin"}:
             pool_tag = "Goblin"
         elif pts == {"standard"}:
             pool_tag = "Standard"
         else:
             pool_tag = "Mixed"
+        # Separate OVER / UNDER boards when the slip is single-sided.
+        if pool_tag in ("Goblin", "Standard") and dirs == {"OVER"}:
+            pool_tag = f"{pool_tag} OVER"
+        elif pool_tag in ("Goblin", "Standard") and dirs == {"UNDER"}:
+            pool_tag = f"{pool_tag} UNDER"
         gn = f"{sport_label} {n}-Leg {pool_tag}"
         groups.append((gn, [t], None))
     return groups
@@ -14988,7 +15080,14 @@ def filter_eligible(
             l5_over = pd.to_numeric(grp.get("l5_over"), errors="coerce").fillna(0)
             l5_under = pd.to_numeric(grp.get("l5_under"), errors="coerce").fillna(0)
             hit_rate = pd.to_numeric(grp.get("hit_rate"), errors="coerce")
-            dir_s = grp.get("direction", pd.Series([""] * len(grp), index=grp.index)).astype(str).str.upper().str.strip()
+            dir_s = (
+                grp.get("direction", pd.Series([""] * len(grp), index=grp.index))
+                if "direction" in grp.columns
+                else pd.Series([""] * len(grp), index=grp.index)
+            ).astype(str).str.upper().str.strip()
+            if "dir" in grp.columns:
+                dir_alt = grp["dir"].astype(str).str.upper().str.strip()
+                dir_s = dir_s.where(dir_s.isin({"OVER", "UNDER", "HIGHER", "LOWER"}), dir_alt)
             over_dir = dir_s.isin({"OVER", "HIGHER"})
             under_dir = dir_s.isin({"UNDER", "LOWER"})
             pick_s = (
@@ -14999,30 +15098,52 @@ def filter_eligible(
             )
             is_goblin = pick_s.str.contains("goblin", na=False)
 
-            # Active sports: Goblin L5 + L10 floors (Aug-8 lift). Standards keep
-            # edge/rank floors elsewhere — do not require L5 alone.
+            # Active sports: Goblin L5+L10 and Standard L10 (direction-aware) floors.
             if str(sport).upper() in {"TENNIS", "WNBA", "MLB", "SOCCER", "SOC"}:
                 gob_floor = float(MAIN_GOBLIN_MIN_L5_HITS)
-                l10_floor = float(MAIN_GOBLIN_MIN_L10_HITS)
-                l10_sample = float(MAIN_GOBLIN_MIN_L10_SAMPLE)
-                if gob_floor <= 0 and l10_floor <= 0:
-                    result.append(grp)
-                    continue
+                gob_l10 = float(MAIN_GOBLIN_MIN_L10_HITS)
+                gob_l10_n = float(MAIN_GOBLIN_MIN_L10_SAMPLE)
+                std_over_l10 = float(MAIN_STANDARD_OVER_MIN_L10_HITS)
+                std_under_l10 = float(MAIN_STANDARD_UNDER_MIN_L10_HITS)
+                std_over_l5 = float(MAIN_STANDARD_OVER_MIN_L5_HITS)
+                std_under_l5 = float(MAIN_STANDARD_UNDER_MIN_L5_HITS)
+                std_l10_n = float(MAIN_STANDARD_MIN_L10_SAMPLE)
+                is_standard = pick_s.str.contains("standard", na=False) & ~is_goblin
                 l10_over = pd.to_numeric(grp.get("l10_over"), errors="coerce").fillna(0)
                 l10_under = pd.to_numeric(grp.get("l10_under"), errors="coerce").fillna(0)
                 l10_n = l10_over + l10_under
+
                 gob_l5_over = (l5_over >= gob_floor) if gob_floor > 0 else True
                 gob_l5_under = (l5_under >= gob_floor) if gob_floor > 0 else True
-                if l10_floor > 0:
-                    gob_l10_over = (l10_over >= l10_floor) & (l10_n >= l10_sample)
-                    gob_l10_under = (l10_under >= l10_floor) & (l10_n >= l10_sample)
+                if gob_l10 > 0:
+                    gob_l10_over = (l10_over >= gob_l10) & (l10_n >= gob_l10_n)
+                    gob_l10_under = (l10_under >= gob_l10) & (l10_n >= gob_l10_n)
                 else:
                     gob_l10_over = True
                     gob_l10_under = True
                 gob_over = is_goblin & over_dir & gob_l5_over & gob_l10_over
                 gob_under = is_goblin & under_dir & gob_l5_under & gob_l10_under
-                non_gob = ~is_goblin
-                passed = grp[gob_over | gob_under | non_gob]
+
+                if std_over_l5 > 0:
+                    std_l5_over = l5_over >= std_over_l5
+                else:
+                    std_l5_over = True
+                if std_under_l5 > 0:
+                    std_l5_under = l5_under >= std_under_l5
+                else:
+                    std_l5_under = True
+                if std_over_l10 > 0:
+                    std_l10_over_ok = (l10_over >= std_over_l10) & (l10_n >= std_l10_n)
+                else:
+                    std_l10_over_ok = True
+                if std_under_l10 > 0:
+                    std_l10_under_ok = (l10_under >= std_under_l10) & (l10_n >= std_l10_n)
+                else:
+                    std_l10_under_ok = True
+                std_over = is_standard & over_dir & std_l5_over & std_l10_over_ok
+                std_under = is_standard & under_dir & std_l5_under & std_l10_under_ok
+                other = ~is_goblin & ~is_standard
+                passed = grp[gob_over | gob_under | std_over | std_under | other]
                 if len(passed) > 0:
                     result.append(passed)
                 continue

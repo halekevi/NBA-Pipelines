@@ -61,6 +61,7 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_MAIN_LONG_GOBLIN_MIN_L5_HITS (default 5) — 4+ leg Goblin L5 floor
 - PROPORACLE_MAIN_GOBLIN_MIN_L10_HITS (default 8) — MAIN Goblin directional L10 hits
 - PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE (default 8) — min L10 games for that floor
+- PROPORACLE_MAIN_MAX_LEGS_PER_GAME (default 2) — hard same-game stack cap
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
 - PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
 
@@ -4585,6 +4586,8 @@ MAIN_LONG_GOBLIN_MIN_L5_HITS: float = float(
 # Aug-8: Goblin L5>=4 + L10>=8/10 → ~70.8% (+4.3 vs L5>=4 alone). Set 0 to disable.
 MAIN_GOBLIN_MIN_L10_HITS: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_HITS", "8"))
 MAIN_GOBLIN_MIN_L10_SAMPLE: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE", "8"))
+# Hard same-game cap: reject tickets with >N legs from one matchup (correlation).
+MAIN_MAX_LEGS_PER_GAME: int = int(os.getenv("PROPORACLE_MAIN_MAX_LEGS_PER_GAME", "2"))
 MAIN_GOBLIN_L5_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
@@ -6545,6 +6548,48 @@ def _normalize_main_pool_mode(pool_mode: str | None) -> str:
     return MAIN_POOL_MODE
 
 
+def _ticket_leg_as_dict(leg) -> dict:
+    """Normalize ticket leg rows (dict or pandas Series) for construction checks."""
+    if isinstance(leg, dict):
+        return leg
+    if isinstance(leg, pd.Series):
+        return leg.to_dict()
+    return {}
+
+
+def _ticket_game_key(leg) -> str | None:
+    """Canonical unordered matchup key for same-game stacking checks."""
+    leg = _ticket_leg_as_dict(leg)
+    team = str(leg.get("team") or "").strip().upper()
+    opp = str(leg.get("opp") or leg.get("opp_team") or "").strip().upper()
+    if team and opp:
+        return "|".join(sorted([team, opp]))
+    for k in ("game_id", "game_key", "game", "matchup"):
+        v = str(leg.get(k) or "").strip()
+        if v:
+            return v.upper()
+    return None
+
+
+def _ticket_same_game_overstack(
+    rows: list | None,
+    *,
+    max_per_game: int | None = None,
+) -> bool:
+    """True when any matchup contributes more than max_per_game legs."""
+    cap = int(MAIN_MAX_LEGS_PER_GAME if max_per_game is None else max_per_game)
+    if cap <= 0 or not rows:
+        return False
+    from collections import Counter
+
+    counts = Counter()
+    for leg in rows:
+        key = _ticket_game_key(leg)
+        if key:
+            counts[key] += 1
+    return any(n > cap for n in counts.values())
+
+
 def _winrate_ticket_same_game_bench_stack(ticket: dict) -> bool:
     """Two+ legs from the same game where every leg is deep-bench SUPPORT (high DNP risk)."""
     legs = [leg for leg in (ticket.get("legs") or []) if isinstance(leg, dict)]
@@ -6600,8 +6645,13 @@ def _winrate_ticket_mlb_same_game_hitter_stack(ticket: dict) -> bool:
 
 
 def _winrate_ticket_construction_reject(ticket: dict) -> bool:
-    """Hard construction rejects for MAIN/win-rate pick loop (bench correlation only)."""
-    return _winrate_ticket_same_game_bench_stack(ticket)
+    """Hard construction rejects for MAIN/win-rate pick loop (correlation stacks)."""
+    legs = list(ticket.get("legs") or ticket.get("rows") or [])
+    if _ticket_same_game_overstack(legs):
+        return True
+    # Bench-stack helper expects dict legs.
+    dict_legs = [_ticket_leg_as_dict(leg) for leg in legs if leg is not None]
+    return _winrate_ticket_same_game_bench_stack({"legs": dict_legs})
 
 
 def _winrate_ticket_win_prob(ticket: dict) -> float:
@@ -7497,6 +7547,9 @@ def _finalize_structure_ticket_dict(
     if len(rows_use) < int(n_legs):
         return None
     rows = rows_use
+    # Hard same-game cap (default ≤2) — soft correlation discount is not enough.
+    if _ticket_same_game_overstack(rows):
+        return None
 
     leg_probs = [_resolve_leg_prob(pd.Series(r)) for r in rows]
     cmult, caudit = _correlation_multiplier_and_audit(rows)
@@ -9917,6 +9970,8 @@ def filter_main_high_prob_payload(payload: dict) -> dict:
             if not all(("goblin" in p) or ("standard" in p) for p in picks):
                 continue
             if n >= 4 and not _ticket_passes_main_four_leg_gate(legs):
+                continue
+            if _ticket_same_game_overstack(legs):
                 continue
             kept.append(t)
         if not kept:
@@ -16855,6 +16910,8 @@ def build_strong_tickets(
                 continue
             if not _ticket_cap_can_add(rows, player_ticket_counts):
                 continue
+            if _ticket_same_game_overstack(rows):
+                continue
             if not _strong_player_prop_can_add(rows, prop_counts_n):
                 continue
             if not _strong_combo_players_ok(rows, rolling_hr):
@@ -17232,6 +17289,8 @@ def build_tickets(
 
         if _ticket_rows_mlb_construction_banned(rows):
             continue
+        if _ticket_same_game_overstack(rows):
+            continue
 
         key = frozenset(_leg_fp_tuple(r) for r in rows)
         if key in seen_ticket_keys:
@@ -17334,6 +17393,8 @@ def build_mixed_picktype_tickets(
             continue
 
         if _ticket_rows_mlb_construction_banned(rows):
+            continue
+        if _ticket_same_game_overstack(rows):
             continue
 
         key = frozenset(_leg_fp_tuple(r) for r in rows)

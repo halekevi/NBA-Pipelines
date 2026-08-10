@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-08-10T12:57:30.869190+00:00",
+  "source": "graded_props_2026-08-09 + combined_slate_tickets_2026-08-09",
+  "prop_rates": {
+    "board": {
+      "hr": 28.7,
+      "record": "2420/8425"
+    },
+    "goblin": {
+      "hr": 60.7,
+      "record": "1053/1734"
+    },
+    "goblin_l5_ge4": {
+      "hr": 64.4,
+      "record": "186/289"
+    },
+    "goblin_l5_ge4_l10_ge8": {
+      "hr": 69.4,
+      "record": "134/193"
+    }
+  },
+  "ticket_rates_aug9_published": {
+    "power_all_hit": {
+      "hr": 47.4,
+      "record": "18/38"
+    },
+    "flex_n_minus_1": {
+      "hr": 65.8,
+      "record": "25/38"
+    },
+    "leg_hr": {
+      "hr": 71.7,
+      "record": "66/92"
+    },
+    "note": "Aug9 tickets already mostly L5>=4; L10 gate was not fully enforced until Aug10"
+  },
+  "aug10_live_compliance": {
+    "l5_l10_fail": 0,
+    "same_game_gt2": 0
+  }
+}

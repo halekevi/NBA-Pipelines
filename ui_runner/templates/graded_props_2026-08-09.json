@@ -28144,8 +28144,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-10|MLB Core Power 2 #3|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""
@@ -31182,8 +31182,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-10|MLB Core Power 2 #1|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""
@@ -32732,8 +32732,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-10|MLB Core Power 2 #2|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""
@@ -36080,8 +36080,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-10|MLB Core Power 2 #3|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""

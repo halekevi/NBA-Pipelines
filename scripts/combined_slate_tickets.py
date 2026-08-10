@@ -59,6 +59,8 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_MAIN_MAX_LEGS (default 3) / PROPORACLE_GOBLIN_MAX_LEGS (default 6)
 - PROPORACLE_MAIN_GOBLIN_MIN_L5_HITS (default 4) — MAIN Goblin directional L5 floor
 - PROPORACLE_MAIN_LONG_GOBLIN_MIN_L5_HITS (default 5) — 4+ leg Goblin L5 floor
+- PROPORACLE_MAIN_GOBLIN_MIN_L10_HITS (default 8) — MAIN Goblin directional L10 hits
+- PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE (default 8) — min L10 games for that floor
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
 - PROPORACLE_LONG_PARLAY_MAX_SLIPS (default 6) / PROPORACLE_LONG_PARLAY_MIN_FLOOR_EV (default 0)
 
@@ -4580,6 +4582,9 @@ MAIN_GOBLIN_MIN_L5_HITS: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L5_
 MAIN_LONG_GOBLIN_MIN_L5_HITS: float = float(
     os.getenv("PROPORACLE_MAIN_LONG_GOBLIN_MIN_L5_HITS", "5")
 )
+# Aug-8: Goblin L5>=4 + L10>=8/10 → ~70.8% (+4.3 vs L5>=4 alone). Set 0 to disable.
+MAIN_GOBLIN_MIN_L10_HITS: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_HITS", "8"))
+MAIN_GOBLIN_MIN_L10_SAMPLE: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE", "8"))
 MAIN_GOBLIN_L5_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
@@ -5701,12 +5706,59 @@ def _row_directional_l5_hits(row_d: dict) -> float | None:
     return None
 
 
+def _row_directional_l10_hits(row_d: dict) -> tuple[float | None, float | None]:
+    """Directional L10 (hits, games) for the selected side, or (None, None)."""
+    direction = str(
+        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
+    ).strip().upper()
+    if direction == "UNDER":
+        hit_keys = ("l10_under", "last10_under", "L10 Under")
+        other_keys = ("l10_over", "last10_over", "L10 Over")
+    elif direction == "OVER":
+        hit_keys = ("l10_over", "last10_over", "L10 Over")
+        other_keys = ("l10_under", "last10_under", "L10 Under")
+    else:
+        return None, None
+    hits = None
+    for k in hit_keys:
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.notna(v):
+            hits = float(v)
+            break
+    if hits is None:
+        for k in ("l10_side_hit_rate", "hit_rate_l10", "last10_hit_rate"):
+            v = pd.to_numeric(row_d.get(k), errors="coerce")
+            if pd.isna(v):
+                continue
+            rate = float(v)
+            if rate > 1.0:
+                rate /= 100.0
+            if 0.0 <= rate <= 1.0:
+                return rate * 10.0, 10.0
+        return None, None
+    other = None
+    for k in other_keys:
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.notna(v):
+            other = float(v)
+            break
+    n = hits + (other if other is not None else 0.0)
+    # Prefer explicit games-played when present.
+    for k in ("l10_games_played", "l10_n", "last10_n"):
+        v = pd.to_numeric(row_d.get(k), errors="coerce")
+        if pd.notna(v) and float(v) > 0:
+            n = float(v)
+            break
+    return hits, n
+
+
 def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> bool:
     """
-    MAIN Goblin directional L5 floor (default ≥4) for MLB/WNBA/Tennis/Soccer.
+    MAIN Goblin recency floors for MLB/WNBA/Tennis/Soccer:
+      - directional L5 >= MAIN_GOBLIN_MIN_L5_HITS (default 4; long slips may pass 5)
+      - directional L10 >= MAIN_GOBLIN_MIN_L10_HITS with sample >= MIN_L10_SAMPLE (default 8/8)
 
-    Missing L5 fails closed for listed sports. Standards are not gated here.
-    Disable with PROPORACLE_MAIN_GOBLIN_MIN_L5_HITS=0.
+    Standards are not gated here. Disable L5 with MIN_L5=0; disable L10 with MIN_L10=0.
     """
     pt = str(row_d.get("pick_type") or "").strip().lower()
     if "goblin" not in pt:
@@ -5715,12 +5767,34 @@ def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> boo
     if sport not in MAIN_GOBLIN_L5_SPORTS:
         return True
     floor = float(MAIN_GOBLIN_MIN_L5_HITS if min_hits is None else min_hits)
-    if floor <= 0:
-        return True
-    hits = _row_directional_l5_hits(row_d)
-    if hits is None:
-        return False
-    return float(hits) + 1e-9 >= floor
+    if floor > 0:
+        hits = _row_directional_l5_hits(row_d)
+        if hits is None or float(hits) + 1e-9 < floor:
+            return False
+    l10_floor = float(MAIN_GOBLIN_MIN_L10_HITS)
+    if l10_floor > 0:
+        h10, n10 = _row_directional_l10_hits(row_d)
+        if h10 is None or n10 is None:
+            return False
+        if float(n10) + 1e-9 < float(MAIN_GOBLIN_MIN_L10_SAMPLE):
+            return False
+        if float(h10) + 1e-9 < l10_floor:
+            return False
+    return True
+
+
+def _filter_df_main_goblin_recency(df: pd.DataFrame | None) -> pd.DataFrame | None:
+    """Drop Goblin rows that fail MAIN L5/L10 floors (soft-void / core pool safety net)."""
+    if df is None or len(df) == 0:
+        return df
+    if "pick_type" not in df.columns:
+        return df
+    keep = df.apply(lambda r: _row_main_goblin_l5_ok(r.to_dict()), axis=1)
+    out = df.loc[keep].copy()
+    dropped = int(len(df) - len(out))
+    if dropped:
+        print(f"  [main-goblin-recency] dropped {dropped} Goblin leg(s) failing L5/L10 floors")
+    return out
 
 
 def _standard_prop_gate_l5_clears(row_d: dict) -> bool:
@@ -14870,15 +14944,28 @@ def filter_eligible(
             )
             is_goblin = pick_s.str.contains("goblin", na=False)
 
-            # Active sports: hard L5>=4 on Goblin only (Aug-8 lift). Standards keep
+            # Active sports: Goblin L5 + L10 floors (Aug-8 lift). Standards keep
             # edge/rank floors elsewhere — do not require L5 alone.
             if str(sport).upper() in {"TENNIS", "WNBA", "MLB", "SOCCER", "SOC"}:
                 gob_floor = float(MAIN_GOBLIN_MIN_L5_HITS)
-                if gob_floor <= 0:
+                l10_floor = float(MAIN_GOBLIN_MIN_L10_HITS)
+                l10_sample = float(MAIN_GOBLIN_MIN_L10_SAMPLE)
+                if gob_floor <= 0 and l10_floor <= 0:
                     result.append(grp)
                     continue
-                gob_over = is_goblin & over_dir & (l5_over >= gob_floor)
-                gob_under = is_goblin & under_dir & (l5_under >= gob_floor)
+                l10_over = pd.to_numeric(grp.get("l10_over"), errors="coerce").fillna(0)
+                l10_under = pd.to_numeric(grp.get("l10_under"), errors="coerce").fillna(0)
+                l10_n = l10_over + l10_under
+                gob_l5_over = (l5_over >= gob_floor) if gob_floor > 0 else True
+                gob_l5_under = (l5_under >= gob_floor) if gob_floor > 0 else True
+                if l10_floor > 0:
+                    gob_l10_over = (l10_over >= l10_floor) & (l10_n >= l10_sample)
+                    gob_l10_under = (l10_under >= l10_floor) & (l10_n >= l10_sample)
+                else:
+                    gob_l10_over = True
+                    gob_l10_under = True
+                gob_over = is_goblin & over_dir & gob_l5_over & gob_l10_over
+                gob_under = is_goblin & under_dir & gob_l5_under & gob_l10_under
                 non_gob = ~is_goblin
                 passed = grp[gob_over | gob_under | non_gob]
                 if len(passed) > 0:
@@ -15233,7 +15320,7 @@ def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.D
                 f"  [core] {sp}: prop focus kept {len(focused)}/{len(out)} "
                 f"(below {min_keep}) — using broader pool"
             )
-    return out.reset_index(drop=True)
+    return _filter_df_main_goblin_recency(out.reset_index(drop=True))
 
 
 def build_core_pipeline_ticket_groups(
@@ -20735,7 +20822,7 @@ def main():
                 print(
                     f"  [best-props] {sport}: using top {len(fb)} by rank_score (soft void)"
                 )
-                pooled = fb
+                pooled = _filter_df_main_goblin_recency(fb)
         if soccer_auc_deferred:
             final_n = 0 if pooled is None else len(pooled)
             if final_n >= _BEST_PROPS_POOL_MIN_LEGS:
@@ -20761,7 +20848,9 @@ def main():
             if before_stack != stack_n:
                 discard_tracker.log_count(str(sport), "stack_70_ineligible", before_stack - stack_n)
                 print(f"         stack-70: kept {stack_n}/{before_stack} legs (70% stack filter)")
-        discard_tracker.log_count(str(sport), "final_pool_kept", int(len(pooled)))
+        # Safety net: soft-void / other bypasses must still respect Goblin L5+L10 floors.
+        pooled = _filter_df_main_goblin_recency(pooled)
+        discard_tracker.log_count(str(sport), "final_pool_kept", int(len(pooled) if pooled is not None else 0))
         gob_n = std_n = dem_n = 0
         if pooled is not None and "pick_type" in pooled.columns:
             pt_u = pooled["pick_type"].astype(str).str.upper().str.strip()

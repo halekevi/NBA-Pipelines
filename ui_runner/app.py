@@ -75,6 +75,7 @@ from utils.proporacle_data_root import (
     load_best_grade_history_runs,
     persistent_data_dir,
 )
+from utils.pick_board_normalize import normalize_row_pick_type
 from utils.slate_ui_slim import (
     card_score as _slate_card_score,
     history_only as _slate_history_only,
@@ -1249,8 +1250,25 @@ def _filter_fantasy_slate_rows(rows: list[Any]) -> list[Any]:
     ]
 
 
+def _normalize_slate_explorer_pick_types(rows: list[Any]) -> list[Any]:
+    """Reclassify Goblin alts that are harder than Standard → Demon before demon filter."""
+    if not isinstance(rows, list):
+        return rows
+    out: list[Any] = []
+    for r in rows:
+        if isinstance(r, dict):
+            rr = dict(r)
+            normalize_row_pick_type(rr)
+            out.append(rr)
+        else:
+            out.append(r)
+    return out
+
+
 def _filter_slate_explorer_rows(rows: list[Any]) -> list[Any]:
-    return _filter_fantasy_slate_rows(_filter_invalid_demon_slate_rows(rows))
+    return _filter_fantasy_slate_rows(
+        _filter_invalid_demon_slate_rows(_normalize_slate_explorer_pick_types(rows))
+    )
 
 
 def _api_slate_pick_abs_edge(record: dict[str, Any]) -> float:

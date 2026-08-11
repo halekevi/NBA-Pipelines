@@ -164,7 +164,12 @@ def _slate_roster_maps(slate_path: Path) -> tuple[dict[str, str], dict[str, str]
         team_raw = str(row.get("team") or "").strip().upper()
         if not team_raw or team_raw in ("—", "-", "NAN"):
             continue
+        # Combo / stacked cells are not a single franchise roster key.
+        if "/" in team_raw or " VS " in team_raw:
+            continue
         team_slate = _slate_team(team_raw)
+        if not team_slate:
+            continue
         team_by_player[pnorm] = team_slate
         roster_by_team.setdefault(team_slate, set()).add(pnorm)
         pos_raw = row.get("pos") or row.get("Pos") or row.get("position")
@@ -182,7 +187,8 @@ def _assign_player_teams(
     """Current franchise: slate board first, else latest ESPN game in season."""
     df = df.copy()
     df["_pnorm"] = df["PLAYER_NORM"].astype(str).map(_norm_name)
-    df["_game_dt"] = pd.to_datetime(df.get("GAME_DATE"), errors="coerce")
+    date_col = "GAME_DATE" if "GAME_DATE" in df.columns else ("game_date" if "game_date" in df.columns else None)
+    df["_game_dt"] = pd.to_datetime(df[date_col], errors="coerce") if date_col else pd.NaT
     df["_team_def"] = df["TEAM"].astype(str).str.upper().map(defense_team_key)
     df["_team_slate"] = df["_team_def"].map(_slate_team)
 

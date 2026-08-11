@@ -60,8 +60,40 @@ function safeSportKey(p) {
 }
 
 /** Normalize /api/slate pick or slate-sport row into ALL_SLATE shape (moat + history fields). */
+function normalizeAltPickBoard(p) {
+  if (!p || typeof p !== "object") return p;
+  const raw = String(p.pick || p.pick_type || "Standard").trim();
+  let pick = raw;
+  const low = raw.toLowerCase();
+  if (low.includes("gob")) pick = "Goblin";
+  else if (low.includes("dem")) pick = "Demon";
+  else if (low.includes("stan") || !raw) pick = "Standard";
+  const line = Number(p.line);
+  const std = Number(p.standard_line);
+  const dir = String(p.dir || p.direction || "").trim().toUpperCase();
+  const eps = 0.25;
+  let reclassified = null;
+  if (
+    pick === "Goblin" &&
+    Number.isFinite(line) &&
+    Number.isFinite(std) &&
+    ((dir.startsWith("O") && line > std + eps) || (dir.startsWith("U") && line < std - eps))
+  ) {
+    reclassified = "goblin_harder_than_standard";
+    pick = "Demon";
+  }
+  p.pick = pick;
+  p.pick_type = pick;
+  if (reclassified) {
+    p.pick_type_raw = raw;
+    p.pick_reclassified = reclassified;
+  }
+  return p;
+}
+
 function mapApiPickToSlateRow(p) {
   if (!p || typeof p !== "object") return null;
+  normalizeAltPickBoard(p);
   const hitRaw = p.hit;
   let hitNum = hitRaw;
   if (hitRaw != null && typeof hitRaw === "number" && hitRaw <= 1) {
@@ -77,6 +109,9 @@ function mapApiPickToSlateRow(p) {
     prop: p.prop || p.prop_type || "",
     line: p.line,
     pick: p.pick || p.pick_type || "Standard",
+    pick_type: p.pick_type || p.pick || "Standard",
+    pick_reclassified: p.pick_reclassified || "",
+    pick_type_raw: p.pick_type_raw || "",
     pick_platform: p.pick_platform || "prizepicks",
     standard_line: p.standard_line,
     book_line: p.book_line != null ? p.book_line : p.prop_line,
@@ -92,6 +127,10 @@ function mapApiPickToSlateRow(p) {
     rank_tier: p.rank_tier ?? p.tier,
     ml_prob: p.ml_prob,
     def_tier: p.def_tier,
+    opponent_def_rank: p.opponent_def_rank,
+    stat_def_tier: p.stat_def_tier,
+    stat_def_rank: p.stat_def_rank,
+    stat_def_category: p.stat_def_category,
     game_time: p.game_time || "",
     l5_over: p.l5_over,
     l5_under: p.l5_under != null ? p.l5_under : resolvedUnderHits(p, 5),
@@ -116,7 +155,6 @@ function mapApiPickToSlateRow(p) {
       return hist;
     })(),
     standard_projection: p.standard_projection,
-    opponent_def_rank: p.opponent_def_rank,
     image_url: p.image_url,
     confidence_tier: p.confidence_tier,
     confidence_slice_hr: p.confidence_slice_hr,
@@ -2499,6 +2537,19 @@ function wireEdgeCardExpandHandlers() {
 
 function formatOppDef(p) {
   if (!p) return "—";
+  // Prefer prop-category defense when present (Matchup Edge / ticket overlay).
+  const statTier = p.stat_def_tier != null && String(p.stat_def_tier).trim() !== ""
+    ? String(p.stat_def_tier).trim()
+    : "";
+  const statRankRaw = p.stat_def_rank;
+  const statRankNum = statRankRaw != null && statRankRaw !== "" ? Number(statRankRaw) : NaN;
+  if (statTier || Number.isFinite(statRankNum)) {
+    const tier = formatStatDefTier(statTier);
+    const rank = Number.isFinite(statRankNum) ? `#${Math.round(statRankNum)}` : "";
+    if (tier && rank) return `${tier} · ${rank}`;
+    if (tier) return tier;
+    if (rank) return rank;
+  }
   const tier = p.def_tier != null && String(p.def_tier).trim() !== "" ? String(p.def_tier).trim() : "";
   const rankRaw = p.opponent_def_rank;
   const rankNum = rankRaw != null && rankRaw !== "" ? Number(rankRaw) : NaN;
@@ -2507,6 +2558,14 @@ function formatOppDef(p) {
   if (tier) return tier;
   if (rank) return rank;
   return "—";
+}
+
+function formatStatDefTier(tier) {
+  const t = String(tier || "").trim().toUpperCase().replace(/\s+/g, "_");
+  if (t === "HARD" || t === "HARD_MID") return t === "HARD" ? "Elite" : "Above Avg";
+  if (t === "EASY" || t === "EASY_MID") return t === "EASY" ? "Weak" : "Below Avg";
+  if (t === "MID") return "Avg";
+  return String(tier || "").trim();
 }
 
 function formatMatchupSignal(p) {
@@ -2555,7 +2614,9 @@ async function openPropDetailPanel(p) {
   const lineDisp = coercePropLine(p);
   const sportLabel = sportDisplayLabel(p.sport);
   if (sub) {
-    sub.textContent = `${sportLabel} · ${p.dir || ""} ${lineDisp != null ? lineDisp : p.line ?? "—"} · ${p.prop || ""} · ${p.pick || p.pick_type || "Standard"}`;
+    let board = p.pick || p.pick_type || "Standard";
+    if (p.pick_reclassified) board = `${board} (was ${p.pick_type_raw || "Goblin"})`;
+    sub.textContent = `${sportLabel} · ${p.dir || ""} ${lineDisp != null ? lineDisp : p.line ?? "—"} · ${p.prop || ""} · ${board}`;
   }
   // Paint shell immediately; hydrate series for chart when list payload omitted history.
   if (meta) {
@@ -2566,7 +2627,7 @@ async function openPropDetailPanel(p) {
       ["TEAM", pct(p.team)], ["OPP", pct(p.opp)], ["TIER", pct(p.tier)],
       ["RANK", pct(p.rank_score)], ["OPP DEF", formatOppDef(p)], ["MATCHUP", formatMatchupSignal(p)],
       ["ML PROB", mlStr], ["EDGE", edgeStr], ["BOOK LINE", pct(p.book_line ?? p.prop_line ?? p.line)],
-      ["SEASON AVG", pct(p.season_avg)], ["PROJECTION", pct(p.projection)],
+      ["STD LINE", pct(p.standard_line)], ["SEASON AVG", pct(p.season_avg)], ["PROJECTION", pct(p.projection)],
       ["GAME TIME", formatGameTimeDisplay(p.game_time)],
     ];
     meta.innerHTML = rows.map(([lbl, val]) =>
@@ -3129,7 +3190,17 @@ function _setSlateSportRows(sport, rows) {
       if (onDay.length) raw = onDay;
     }
   }
-  SLATE_DATA[sport] = raw.filter((r) => !_slateRowIsFantasyProp(r, sport));
+  SLATE_DATA[sport] = raw
+    .map((r) => (r && typeof r === "object" ? normalizeAltPickBoard({ ...r }) : r))
+    .filter((r) => !_slateRowIsFantasyProp(r, sport))
+    .filter((r) => {
+      // Mirror server: Demon must be OVER with positive edge (drops hard mislabeled Goblins).
+      const pt = String(r?.pick_type || r?.pick || "").trim().toLowerCase();
+      if (pt !== "demon") return true;
+      const dir = String(r?.dir || r?.direction || "").trim().toUpperCase();
+      const edge = Number(r?.edge);
+      return dir === "OVER" && Number.isFinite(edge) && edge > 0;
+    });
   SLATE_DATA[sport].sort((a,b) => Math.abs(b?.edge||0) - Math.abs(a?.edge||0));
 }
 

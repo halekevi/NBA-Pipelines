@@ -22,6 +22,7 @@ from utils.matchup_edge.slate_io import (
     tonight_matchups,
 )
 from utils.matchup_edge.sports_config import SPORT_CONFIGS, SportMatchupConfig
+from utils.matchup_edge.stat_defense import resolve_category_defense
 from utils.matchup_edge.team_aliases import cbb_defense_alias_keys, cbb_slate_to_defense_key, mlb_display_name
 from utils.matchup_edge.tennis_builder import build_tennis_matchup_payload
 
@@ -854,9 +855,18 @@ def build_matchup_payload(
         if teams_on_slate and team_slate not in teams_on_slate:
             continue
         mu = matchups_ui.get(team_slate, {})
-        opp_rank = mu.get("opponent_def_rank")
-        cat = next((c for c in cfg.categories if c["id"] == cid), {"threshold": 1.0})
+        cat = next((c for c in cfg.categories if c["id"] == cid), {"threshold": 1.0, "label": cid})
         threshold = float(cat.get("threshold", 1.0))
+        cat_def = resolve_category_defense(
+            sport=cfg.sport,
+            opponent=mu.get("opponent_slate") or mu.get("opponent_name") or "",
+            cat_id=cid,
+            cat_label=cat.get("label"),
+            overall_rank=mu.get("opponent_def_rank"),
+            overall_tier=mu.get("opponent_def_tier", ""),
+        )
+        opp_rank = cat_def.get("def_rank")
+        opp_tier = cat_def.get("def_tier") or ""
 
         enriched = []
         for i, p in enumerate(players, start=1):
@@ -912,7 +922,12 @@ def build_matchup_payload(
                 "slate_abbr": mu.get("opponent_slate", ""),
                 "name": mu.get("opponent_name", ""),
                 "def_rank": opp_rank,
-                "def_tier": mu.get("opponent_def_tier", ""),
+                "def_tier": opp_tier,
+                "overall_def_rank": cat_def.get("overall_def_rank"),
+                "overall_def_tier": cat_def.get("overall_def_tier") or "",
+                "stat_def_category": cat_def.get("stat_def_category") or "",
+                "stat_def_rank": cat_def.get("stat_def_rank"),
+                "stat_def_tier": cat_def.get("stat_def_tier") or "",
             },
             "players": enriched,
         }

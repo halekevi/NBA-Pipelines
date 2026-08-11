@@ -52,10 +52,32 @@
   }
 
   function tierClass(tier) {
-    const t = String(tier || "").toLowerCase();
-    if (t === "elite" || t === "above avg") return "tier-elite";
-    if (t === "weak" || t === "below avg") return "tier-weak";
+    const t = String(tier || "").toLowerCase().replace(/_/g, " ").trim();
+    if (
+      t === "elite" ||
+      t === "above avg" ||
+      t === "hard" ||
+      t === "hard mid"
+    )
+      return "tier-elite";
+    if (
+      t === "weak" ||
+      t === "below avg" ||
+      t === "easy" ||
+      t === "easy mid"
+    )
+      return "tier-weak";
     return "";
+  }
+
+  function oppDefRankLabel(data, catLabel) {
+    const base = String(data?.opp_metric_label || "Opp def").trim();
+    const cat = String(catLabel || "").trim();
+    if (!cat) return base || "Opp def rank";
+    // Prefer short category token: "Points" → "Opp points def"
+    const short = cat.split(/\s+/)[0].toLowerCase();
+    if (base.toLowerCase().includes("cat")) return "Opp " + short + " def";
+    return "Opp " + short + " def";
   }
 
   function edgeLabel(edge) {
@@ -621,7 +643,7 @@
     const oppRank = opp.def_rank != null ? opp.def_rank : mu.opponent_def_rank;
     const oppTier = opp.def_tier || mu.opponent_def_tier || "";
     const oppName = opp.name || oppMeta.oppName || mu.opponent_name || "—";
-    const rankLbl = data.opp_metric_label || "Opp def rank";
+    const rankLbl = oppDefRankLabel(data, catLabel);
     const view = leaderView(sport);
     const displayed = filteredPlayers(block.players || [], view);
     let top = 0,

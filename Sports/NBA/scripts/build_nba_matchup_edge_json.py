@@ -32,6 +32,7 @@ from utils.matchup_edge.slate_io import (  # noqa: E402
     lookup_pp_edge,
     tonight_matchups,
 )
+from utils.matchup_edge.stat_defense import resolve_category_defense  # noqa: E402
 
 ESPN_TO_DEF: dict[str, str] = {
     "GS": "GSW",
@@ -325,10 +326,18 @@ def build_payload(
             bottom = grp.nsmallest(BOTTOM_N, "season_avg")
             mu_ui = matchups_ui.get(team_slate, {})
             opp_slate = mu_ui.get("opponent_slate", "")
-            opp_rank = mu_ui.get("opponent_def_rank")
-            opp_tier = mu_ui.get("opponent_def_tier", "")
             opp_name = mu_ui.get("opponent_name", "")
             opp_ppg = mu_ui.get("opponent_opp_ppg")
+            cat_def = resolve_category_defense(
+                sport="nba",
+                opponent=opp_slate or opp_name,
+                cat_id=cid,
+                cat_label=cat.get("label"),
+                overall_rank=mu_ui.get("opponent_def_rank"),
+                overall_tier=mu_ui.get("opponent_def_tier", ""),
+            )
+            opp_rank = cat_def.get("def_rank")
+            opp_tier = cat_def.get("def_tier") or ""
 
             plist: list[dict] = []
             seen_norm: set[str] = set()
@@ -408,6 +417,11 @@ def build_payload(
                     "def_rank": opp_rank,
                     "def_tier": opp_tier,
                     "opp_ppg": opp_ppg,
+                    "overall_def_rank": cat_def.get("overall_def_rank"),
+                    "overall_def_tier": cat_def.get("overall_def_tier") or "",
+                    "stat_def_category": cat_def.get("stat_def_category") or "",
+                    "stat_def_rank": cat_def.get("stat_def_rank"),
+                    "stat_def_tier": cat_def.get("stat_def_tier") or "",
                 },
                 "players": plist,
             }
@@ -421,7 +435,7 @@ def build_payload(
         "n_teams": n_teams,
         "elite_rank_cut": ELITE_RANK_CUT,
         "weak_rank_cut": max(10, int(np.ceil(n_teams * 0.65))),
-        "opp_metric_label": "Opp def rank",
+        "opp_metric_label": "Opp cat def",
         "categories": CATEGORIES,
         "teams": teams_meta,
         "matchups": matchups_ui,

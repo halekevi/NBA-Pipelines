@@ -2191,7 +2191,7 @@ function renderEdges() {
       el.innerHTML = '<div class="hec-title">No Top Edges yet</div>' +
         (ALL_SLATE.length
           ? '<div>No legs cleared the L5 quality gate on this slate</div>'
-          : '<div>Waiting for pipeline props — open Slate Explorer or check back after the daily run</div>');
+          : '<div>Waiting for pipeline props — open Prop Explorer or check back after the daily run</div>');
     }
   } else if (emptyHost) {
     emptyHost.hidden = true;

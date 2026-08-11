@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from utils.pick_board_normalize import (
     normalize_row_pick_type,
+    normalize_rows_pick_types,
+    resolve_true_standard_line,
     should_reclassify_goblin_as_demon,
 )
 
@@ -47,3 +49,46 @@ def test_goblin_under_harder_reclassifies():
         line=2.5,
         standard_line=6.5,
     )
+
+
+def test_synthetic_std_offset_uses_true_standard_sibling():
+    rows = [
+        {"sport": "WNBA", "player": "Sabrina Ionescu", "prop": "Points", "pick_type": "Standard", "dir": "UNDER", "line": 18.5, "season_avg": 19.7, "projection": 17.85},
+        {"sport": "WNBA", "player": "Sabrina Ionescu", "prop": "Points", "pick_type": "Goblin", "dir": "OVER", "line": 11.5, "standard_line": 13.0, "season_avg": 19.7, "projection": 17.85, "edge": 6.0},
+        {"sport": "WNBA", "player": "Sabrina Ionescu", "prop": "Points", "pick_type": "Goblin", "dir": "OVER", "line": 34.5, "standard_line": 36.0, "season_avg": 19.7, "projection": 17.85, "edge": -16.0},
+    ]
+    assert resolve_true_standard_line(rows) == 18.5
+    out = normalize_rows_pick_types(rows)
+    by_line = {float(r["line"]): r for r in out}
+    assert by_line[11.5]["pick_type"] == "Goblin"
+    assert by_line[11.5]["standard_line"] == 18.5
+    assert by_line[34.5]["pick_type"] == "Demon"
+
+
+def test_absurd_goblin_without_standard_uses_baseline():
+    rows = [
+        {
+            "sport": "WNBA",
+            "player": "X",
+            "prop": "Points",
+            "pick_type": "Goblin",
+            "dir": "OVER",
+            "line": 34.5,
+            "standard_line": 36.0,
+            "season_avg": 19.7,
+            "projection": 17.85,
+        },
+        {
+            "sport": "WNBA",
+            "player": "X",
+            "prop": "Points",
+            "pick_type": "Goblin",
+            "dir": "OVER",
+            "line": 29.5,
+            "standard_line": 31.0,
+            "season_avg": 19.7,
+            "projection": 17.85,
+        },
+    ]
+    out = normalize_rows_pick_types(rows)
+    assert all(r["pick_type"] == "Demon" for r in out)

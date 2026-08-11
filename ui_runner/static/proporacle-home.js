@@ -59,8 +59,62 @@ function safeSportKey(p) {
   return s || "nba";
 }
 
-/** Normalize /api/slate pick or slate-sport row into ALL_SLATE shape (moat + history fields). */
-function normalizeAltPickBoard(p) {
+/** Normalize Goblin/Demon boards using true Standard sibling (not synthetic line+1.5). */
+function normalizeAltPickBoardRows(rows) {
+  if (!Array.isArray(rows)) return rows;
+  const groups = new Map();
+  const keyOf = (r) =>
+    [
+      String(r?.sport || "").trim().toUpperCase(),
+      String(r?.player || "").trim().toLowerCase(),
+      String(r?.prop || r?.prop_type || "").trim().toLowerCase(),
+    ].join("||");
+  for (const r of rows) {
+    if (!r || typeof r !== "object") continue;
+    const k = keyOf(r);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  }
+  const trueStd = new Map();
+  for (const [k, grp] of groups.entries()) {
+    const stdLines = grp
+      .filter((r) => String(r.pick_type || r.pick || "").toLowerCase().includes("stan"))
+      .map((r) => Number(r.line))
+      .filter((n) => Number.isFinite(n));
+    if (stdLines.length) {
+      stdLines.sort((a, b) => a - b);
+      trueStd.set(k, stdLines[Math.floor(stdLines.length / 2)]);
+      continue;
+    }
+    const gobs = grp.filter((r) => String(r.pick_type || r.pick || "").toLowerCase().includes("gob"));
+    const stdSet = new Set();
+    let synthetic = gobs.length >= 2;
+    for (const r of gobs) {
+      const line = Number(r.line);
+      const std = Number(r.standard_line);
+      if (!Number.isFinite(line) || !Number.isFinite(std)) {
+        synthetic = false;
+        break;
+      }
+      const off = Math.abs(std - line);
+      if (off < 0.4 || off > 2.6) synthetic = false;
+      stdSet.add(Math.round(std * 100) / 100);
+    }
+    if (synthetic && stdSet.size >= 2) {
+      trueStd.set(k, null);
+    } else if (stdSet.size === 1) {
+      trueStd.set(k, [...stdSet][0]);
+    } else {
+      trueStd.set(k, null);
+    }
+  }
+  return rows.map((r) => {
+    if (!r || typeof r !== "object") return r;
+    return normalizeAltPickBoard({ ...r }, trueStd.get(keyOf(r)));
+  });
+}
+
+function normalizeAltPickBoard(p, trueStandardLine) {
   if (!p || typeof p !== "object") return p;
   const raw = String(p.pick || p.pick_type || "Standard").trim();
   let pick = raw;
@@ -69,18 +123,35 @@ function normalizeAltPickBoard(p) {
   else if (low.includes("dem")) pick = "Demon";
   else if (low.includes("stan") || !raw) pick = "Standard";
   const line = Number(p.line);
-  const std = Number(p.standard_line);
+  let std = Number.isFinite(Number(trueStandardLine)) ? Number(trueStandardLine) : Number(p.standard_line);
   const dir = String(p.dir || p.direction || "").trim().toUpperCase();
   const eps = 0.25;
-  let reclassified = null;
+  // Ignore synthetic std that sits ~1–2 pts off this Goblin line.
   if (
     pick === "Goblin" &&
     Number.isFinite(line) &&
     Number.isFinite(std) &&
-    ((dir.startsWith("O") && line > std + eps) || (dir.startsWith("U") && line < std - eps))
+    !Number.isFinite(Number(trueStandardLine)) &&
+    Math.abs(std - line) <= 2.6
   ) {
-    reclassified = "goblin_harder_than_standard";
-    pick = "Demon";
+    std = NaN;
+  }
+  if (Number.isFinite(std)) p.standard_line = std;
+  const baseline = Math.max(
+    ...[Number(p.season_avg), Number(p.projection), Number(p.standard_projection)].filter((n) =>
+      Number.isFinite(n)
+    ),
+    0
+  );
+  let reclassified = null;
+  if (pick === "Goblin" && Number.isFinite(line)) {
+    if (Number.isFinite(std) && ((dir.startsWith("O") && line > std + eps) || (dir.startsWith("U") && line < std - eps))) {
+      reclassified = "goblin_harder_than_standard";
+      pick = "Demon";
+    } else if (dir.startsWith("O") && baseline > 0 && line > baseline + 8) {
+      reclassified = "goblin_harder_than_standard";
+      pick = "Demon";
+    }
   }
   p.pick = pick;
   p.pick_type = pick;
@@ -3190,8 +3261,7 @@ function _setSlateSportRows(sport, rows) {
       if (onDay.length) raw = onDay;
     }
   }
-  SLATE_DATA[sport] = raw
-    .map((r) => (r && typeof r === "object" ? normalizeAltPickBoard({ ...r }) : r))
+  SLATE_DATA[sport] = normalizeAltPickBoardRows(raw)
     .filter((r) => !_slateRowIsFantasyProp(r, sport))
     .filter((r) => {
       // Mirror server: Demon must be OVER with positive edge (drops hard mislabeled Goblins).

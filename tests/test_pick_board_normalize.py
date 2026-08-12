@@ -65,6 +65,38 @@ def test_synthetic_std_offset_uses_true_standard_sibling():
     assert by_line[34.5]["pick_type"] == "Demon"
 
 
+def test_tennis_hard_goblin_double_faults_not_treated_as_synthetic():
+    rows = [
+        {
+            "sport": "TENNIS",
+            "player": "Coco Gauff",
+            "prop": "Double Faults",
+            "pick_type": "Standard",
+            "dir": "OVER",
+            "line": 4.0,
+            "season_avg": 4.1,
+            "projection": 3.6,
+            "edge": 0.1,
+        },
+        {
+            "sport": "TENNIS",
+            "player": "Coco Gauff",
+            "prop": "Double Faults",
+            "pick_type": "Goblin",
+            "dir": "OVER",
+            "line": 6.5,
+            "standard_line": 4.0,
+            "season_avg": 4.1,
+            "projection": 3.6,
+            "edge": -2.9,
+        },
+    ]
+    out = normalize_rows_pick_types(rows)
+    gob = next(r for r in out if float(r["line"]) == 6.5)
+    assert gob["pick_type"] == "Demon"
+    assert gob["standard_line"] == 4.0
+
+
 def test_absurd_goblin_without_standard_uses_baseline():
     rows = [
         {

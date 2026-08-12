@@ -96,7 +96,8 @@ function normalizeAltPickBoardRows(rows) {
         synthetic = false;
         break;
       }
-      const off = Math.abs(std - line);
+      const dir = String(r.dir || r.direction || "").trim().toUpperCase();
+      const off = dir.startsWith("U") ? line - std : std - line;
       if (off < 0.4 || off > 2.6) synthetic = false;
       stdSet.add(Math.round(std * 100) / 100);
     }
@@ -126,15 +127,15 @@ function normalizeAltPickBoard(p, trueStandardLine) {
   let std = Number.isFinite(Number(trueStandardLine)) ? Number(trueStandardLine) : Number(p.standard_line);
   const dir = String(p.dir || p.direction || "").trim().toUpperCase();
   const eps = 0.25;
-  // Ignore synthetic std that sits ~1–2 pts off this Goblin line.
+  // Ignore synthetic std that makes Goblin look softer (OVER: std ≈ line+1.5).
   if (
     pick === "Goblin" &&
     Number.isFinite(line) &&
     Number.isFinite(std) &&
-    !Number.isFinite(Number(trueStandardLine)) &&
-    Math.abs(std - line) <= 2.6
+    !Number.isFinite(Number(trueStandardLine))
   ) {
-    std = NaN;
+    const fakeOff = dir.startsWith("U") ? line - std : std - line;
+    if (fakeOff >= 0.4 && fakeOff <= 2.6) std = NaN;
   }
   if (Number.isFinite(std)) p.standard_line = std;
   const baseline = Math.max(

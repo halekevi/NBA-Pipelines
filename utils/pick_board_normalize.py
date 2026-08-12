@@ -55,7 +55,11 @@ def _baseline(row: MappingLike) -> Optional[float]:
 
 
 def _looks_synthetic_std(goblin_rows: list[MappingLike]) -> bool:
-    """True when each Goblin's standard_line is just a small offset from its own line."""
+    """True when each Goblin OVER's standard_line is ~1–2 pts *above* its own line.
+
+    Fake enrichment: Goblin 34.5 → standard_line 36. Real hard Goblin: 6.5 vs std 4.0
+    (std below the Goblin OVER) must not be treated as synthetic.
+    """
     if len(goblin_rows) < 2:
         return False
     offsets: list[float] = []
@@ -63,9 +67,14 @@ def _looks_synthetic_std(goblin_rows: list[MappingLike]) -> bool:
     for r in goblin_rows:
         line = _f(r.get("line"))
         std = _f(r.get("standard_line"))
+        d = str(r.get("dir") or r.get("direction") or "").strip().upper()
         if line is None or std is None:
             return False
-        offsets.append(abs(std - line))
+        if d.startswith("U"):
+            # Fake UNDER goblin: standard_line slightly below the goblin line.
+            offsets.append(line - std)
+        else:
+            offsets.append(std - line)
         stds.add(round(std, 2))
     # Real Standard is shared; synthetic offsets vary with each Goblin line.
     if len(stds) < 2:
@@ -154,19 +163,23 @@ def normalize_row_pick_type(
     std_for_cmp = true_standard_line
     line_f = _f(row.get("line"))
     row_std = _f(row.get("standard_line"))
-    if std_for_cmp is None:
-        # Only trust row standard_line when it isn't a tiny offset from line.
-        if line_f is not None and row_std is not None and abs(row_std - line_f) > 2.6:
-            std_for_cmp = row_std
-        elif line_f is not None and row_std is not None and abs(row_std - line_f) <= 2.6:
-            std_for_cmp = None  # likely synthetic
+    direction = str(row.get("dir") or row.get("direction") or "").strip().upper()
+    if std_for_cmp is None and line_f is not None and row_std is not None:
+        # Synthetic fake makes Goblin look *softer* than Standard (OVER: std ≈ line+1.5).
+        if direction.startswith("U"):
+            fake_off = line_f - row_std
+        else:
+            fake_off = row_std - line_f
+        if 0.4 <= fake_off <= 2.6:
+            std_for_cmp = None
             base = _baseline(row)
             if base is not None:
-                # Nearest half-point for detail-card STD LINE display.
                 row["standard_line"] = round(base * 2) / 2.0
                 row["standard_line_source"] = "baseline_avg_proj"
         else:
             std_for_cmp = row_std
+    elif std_for_cmp is None:
+        std_for_cmp = row_std
 
     if std_for_cmp is not None:
         row["standard_line"] = std_for_cmp

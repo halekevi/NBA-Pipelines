@@ -27,16 +27,22 @@ if str(_REPO_ROOT) not in sys.path:
 from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.allstar_filter import drop_allstar_props
 from utils.wnba_team_keys import canonical_team_key
+from utils.pick_line_standard import (
+    attach_standard_line_and_deviation,
+    log_goblin_standard_line_fill,
+    reclassify_mislabeled_discount_standards,
+)
 
 
 # ── normalizers ──────────────────────────────────────────────────────────────
 
 def norm_pick_type(s: str) -> str:
     if s is None or str(s).strip() == "":
-        return "Standard"
+        return "Unknown"
     t = str(s).strip().lower()
     if "gob" in t: return "Goblin"
     if "dem" in t: return "Demon"
+    if t in {"unknown", "nan", "none", "null"}: return "Unknown"
     if t in {"standard", "classic", "normal"}: return "Standard"
     return str(s).strip().title()
 
@@ -199,23 +205,24 @@ def main():
 
     df["opp_team"] = build_opp_team(df)
 
-    df["line_num"]    = pd.to_numeric(df["line"], errors="coerce")
-    std_df            = df[(df["pick_type"] == "Standard") & df["line_num"].notna()]
-    std_lookup        = std_df.groupby(["player","prop_norm"])["line_num"].first().to_dict()
-    df["standard_line"] = df.apply(lambda r: std_lookup.get((r["player"], r["prop_norm"])), axis=1)
+    df, n_reclass = reclassify_mislabeled_discount_standards(df)
+    if n_reclass:
+        print(f"  Reclassified {n_reclass} mislabeled Standard discount line(s) → Goblin")
+    # Remaining Unknown → Standard only when they are the sole/highest sibling.
+    unk = df["pick_type"].astype(str).str.strip().eq("Unknown")
+    if unk.any():
+        df.loc[unk, "pick_type"] = "Standard"
+        df, n_reclass2 = reclassify_mislabeled_discount_standards(df)
+        if n_reclass2:
+            print(f"  Reclassified {n_reclass2} Unknown/discount line(s) → Goblin")
 
-    rank_lookup: dict = {}
-    for (player, prop_norm, pick_type), grp in df[df["pick_type"].isin(["Goblin","Demon"])].groupby(["player","prop_norm","pick_type"]):
-        lines = sorted(grp["line_num"].dropna().unique(), reverse=(pick_type == "Goblin"))
-        for rank, val in enumerate(lines, start=1):
-            rank_lookup[(player, prop_norm, pick_type, val)] = rank
-
-    df["deviation_level"] = df.apply(
-        lambda r: 0 if r["pick_type"] == "Standard" or pd.isna(r["line_num"])
-        else rank_lookup.get((r["player"], r["prop_norm"], r["pick_type"], r["line_num"]), 0),
-        axis=1
+    df = attach_standard_line_and_deviation(
+        df,
+        sport="wnba",
+        preserve_existing_standard_line=True,
+        normalize_pick_type=True,
     )
-    df.drop(columns=["line_num"], inplace=True)
+    log_goblin_standard_line_fill(df, tag="[WNBA-S2]")
 
     front  = ["wnba_player_id"]
     pp_blk = [c for c in ["projection_id","pp_projection_id","player_id","pp_game_id",

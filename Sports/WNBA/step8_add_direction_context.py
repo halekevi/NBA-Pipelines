@@ -238,12 +238,12 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         prev = df2.get("game_date", pd.Series([""] * len(df2))).astype(str).str.strip().str[:10]
         prev_ok = prev.str.match(r"^\d{4}-\d{2}-\d{2}$", na=False)
         df2["game_time"] = _format_et_clock(et)
-        # Prefer upstream game_date when it is a valid YYYY-MM-DD (step1 may anchor it to pipeline
-        # --date for full boards). Only fall back to start_time ET when game_date is missing/wrong.
+        # Prefer tip-day from start_time ET when available. Upstream game_date can be
+        # stale (e.g. leftover May dates) or pipeline-anchored and mislabel cards.
         df2["game_date"] = np.where(
-            prev_ok,
-            prev,
-            np.where(parsed_gd.str.len() > 0, parsed_gd, ""),
+            parsed_gd.str.len() > 0,
+            parsed_gd,
+            np.where(prev_ok, prev, ""),
         )
     else:
         if "game_date" not in df2.columns:
@@ -462,9 +462,8 @@ def main() -> None:
         from_start = et.dt.strftime("%Y-%m-%d").where(et.notna(), "").astype(str).str.strip()
     prev_gd = out.get("game_date", pd.Series([""] * len(out))).astype(str).str.strip().str[:10]
     prev_ok = prev_gd.str.match(r"^\d{4}-\d{2}-\d{2}$", na=False)
-    # Prefer valid upstream game_date (step1 may anchor full boards to --date). Do not let
-    # start_time ET overwrite it — that breaks combined_slate_tickets date filtering.
-    merged = prev_gd.where(prev_ok, from_start.where(from_start.str.len() > 0, ""))
+    # Prefer tip-day from start_time ET; only use upstream/slate_d when tip time is missing.
+    merged = from_start.where(from_start.str.len() > 0, prev_gd.where(prev_ok, ""))
     merged = merged.where(merged.str.len() > 0, slate_d)
     out["game_date"] = merged.fillna("")
 

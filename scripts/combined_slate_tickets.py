@@ -11240,13 +11240,17 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
     for sport_key, rows in sports_payload.items():
         safe_rows = rows if isinstance(rows, list) else []
         if sport_key == "tennis" and tennis_match_ymd:
+            # Fill blank game_date only — never overwrite tip-day with pipeline date
+            # (that made stale/yesterday props look like today's slate).
             stamped: list[dict] = []
             for r in safe_rows:
                 if not isinstance(r, dict):
                     stamped.append(r)
                     continue
                 rr = dict(r)
-                rr["game_date"] = tennis_match_ymd
+                gd = str(rr.get("game_date") or "").strip()[:10]
+                if not gd or gd.lower() in ("nan", "none", "null"):
+                    rr["game_date"] = tennis_match_ymd
                 stamped.append(rr)
             safe_rows = stamped
         if sport_key == "soccer" and soccer_match_ymd:

@@ -246,6 +246,37 @@ def _rotate_session_headers(session: Any) -> None:
 
 
 PICKTYPE_MAP = {"standard": "Standard", "goblin": "Goblin", "demon": "Demon"}
+
+
+def _pick_type_from_attrs(attrs: dict) -> tuple[str, object]:
+    """
+    Classify PrizePicks odds type. Prefer odds_type / description emoji;
+    do not silently default blank odds_type to Standard (that mislabels Goblins).
+    Returns (pick_type, standard_line_hint).
+    """
+    desc = str(attrs.get("description", "") or "")
+    odds_type = str(attrs.get("odds_type", "") or "").strip().lower()
+    raw_pick = str(attrs.get("pick_type", "") or "").strip().lower()
+    std_api = attrs.get("standard_line") or attrs.get("standard_score") or attrs.get("baseline")
+
+    if "🐱" in desc or "goblin" in desc.lower():
+        pick = "Goblin"
+    elif "😈" in desc or "demon" in desc.lower():
+        pick = "Demon"
+    elif odds_type in PICKTYPE_MAP:
+        pick = PICKTYPE_MAP[odds_type]
+    elif "gob" in raw_pick:
+        pick = "Goblin"
+    elif "dem" in raw_pick:
+        pick = "Demon"
+    elif raw_pick in {"standard", "classic", "normal"}:
+        pick = "Standard"
+    elif odds_type in ("", "nan", "none"):
+        # Blank odds_type is common on discount lines — leave Unknown for step2 sibling fix.
+        pick = "Unknown"
+    else:
+        pick = PICKTYPE_MAP.get(odds_type, "Unknown")
+    return pick, std_api
 WNBA_LEAGUE_ID_DEFAULT = "3"
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "outputs" / "step1_snapshots"
 SNAPSHOT_LATEST_NAME = "step1_wnba_props_latest.csv"
@@ -1009,8 +1040,7 @@ def main():
 
         line      = attrs.get("line_score", attrs.get("line"))
         prop_type = str(attrs.get("stat_type", attrs.get("projection_type", attrs.get("name", "")))).strip()
-        odds_type = str(attrs.get("odds_type", "")).strip().lower()
-        pick_type = PICKTYPE_MAP.get(odds_type, "Standard")
+        pick_type, std_hint = _pick_type_from_attrs(attrs)
 
         player_id   = _safe_get(rel, ["new_player", "data", "id"], "")
         player_type = _safe_get(rel, ["new_player", "data", "type"], "new_player")
@@ -1075,6 +1105,7 @@ def main():
             "prop_type":        prop_type,
             "line":             line,
             "pick_type":        pick_type,
+            "standard_line":    std_hint if std_hint is not None else "",
         })
 
     df = pd.DataFrame(rows).fillna("")

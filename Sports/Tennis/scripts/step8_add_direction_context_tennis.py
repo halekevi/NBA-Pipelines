@@ -432,6 +432,11 @@ def main() -> None:
     ap.add_argument("--output", default="outputs/step8_tennis_direction.csv")
     ap.add_argument("--xlsx",   default="outputs/step8_tennis_direction_clean.xlsx")
     ap.add_argument("--date",   default="", help="YYYY-MM-DD target date (default: today ET)")
+    ap.add_argument(
+        "--allow-date-fallback",
+        action="store_true",
+        help="If no rows match --date ET, use nearest past ET date (default: keep empty / fail soft)",
+    )
     args = ap.parse_args()
 
     print("[Tennis step8] Starting...")
@@ -477,19 +482,27 @@ def main() -> None:
         if not mask.any():
             valid = df["_et_date"].astype(str).str.match(r"^\d{4}-\d{2}-\d{2}$")
             avail = sorted(df.loc[valid, "_et_date"].unique().tolist())
-            # Fallback: nearest ET date <= target (folder date), not future
-            past_or_equal = [d for d in avail if d <= target_str]
-            if past_or_equal:
-                fallback_date = past_or_equal[-1]
-                print(f"[DateFilter] No exact ET match for {target_str} — falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                mask = df["_et_date"] == fallback_date
-            elif avail:
-                fallback_date = avail[0]
-                print(f"[DateFilter] No past ET match — using earliest available {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                mask = df["_et_date"] == fallback_date
+            if args.allow_date_fallback:
+                # Opt-in only: nearest ET date <= target (folder date), not future
+                past_or_equal = [d for d in avail if d <= target_str]
+                if past_or_equal:
+                    fallback_date = past_or_equal[-1]
+                    print(f"[DateFilter] No exact ET match for {target_str} — falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
+                    mask = df["_et_date"] == fallback_date
+                elif avail:
+                    fallback_date = avail[0]
+                    print(f"[DateFilter] No past ET match — using earliest available {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
+                    mask = df["_et_date"] == fallback_date
+                else:
+                    print(f"[DateFilter] No valid ET dates found — keeping 0 rows for {target_str}")
+                    mask = pd.Series(False, index=df.index)
             else:
-                print(f"[DateFilter] No valid ET dates found — keeping all {before_filter} rows")
-                mask = pd.Series(True, index=df.index)
+                print(
+                    f"[DateFilter] No exact ET match for {target_str} "
+                    f"(available={avail[:8]}{'...' if len(avail) > 8 else ''}) — "
+                    f"keeping 0 rows (pass --allow-date-fallback to use nearest past day)"
+                )
+                mask = pd.Series(False, index=df.index)
         df = df.loc[mask].drop(columns="_et_date")
         dropped = before_filter - len(df)
         print(f"[DateFilter] Kept {len(df)}/{before_filter} rows for {target_str} ET (dropped {dropped} rows)")

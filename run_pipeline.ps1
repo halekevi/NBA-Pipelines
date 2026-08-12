@@ -2105,7 +2105,7 @@ if ($TennisOnly) {
     $ok = $true
     if (-not $SkipFetch) {
         $tennisCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-        $tennisStep1Args = "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
+        $tennisStep1Args = "--league_id 5 --replace --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
         if (Test-MlbCdpReachable -CdpUrl $tennisCdpUrl) {
             Write-Host "  [Tennis] CDP reachable — fetching via Chrome" -ForegroundColor DarkGray
             $tennisStep1Args += " --cdp `"$tennisCdpUrl`""
@@ -3064,7 +3064,7 @@ $TennisJob = Start-Job -ScriptBlock {
     Write-Output "[TENNIS] Step8 filters to ET date $TennisDate; step1 loads full PrizePicks tennis board (may include several calendar days)"
     $ok = $true
     if (-not $SkipFetch) {
-        $tennisStep1Args = "--league_id 5 --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
+        $tennisStep1Args = "--league_id 5 --replace --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
         if ($CdpReachable -and $CdpUrl) {
             Write-Output "[TENNIS] CDP reachable — fetching via Chrome"
             $tennisStep1Args += " --cdp `"$CdpUrl`""

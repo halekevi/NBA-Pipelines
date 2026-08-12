@@ -429,6 +429,7 @@
         const o = blocks[k]?.opponent || {};
         if (nonEmptyAbbr(o.slate_abbr) || nonEmptyAbbr(o.name)) return true;
       }
+      // Live board may have tonight's opp even when matchup JSON is blank.
       const fromSlate = opponentFromSlate(sport, ab, data);
       return Boolean(fromSlate.opp);
     };
@@ -438,8 +439,11 @@
       .filter((t) => {
         const ab = normAbbr(t?.slate_abbr || t?.def_key);
         if (!ab) return false;
+        // Prefer clubs that actually have leader blocks (tonight's slate).
         if (teamsWithBlocks.size && !teamsWithBlocks.has(ab)) return false;
         const hasOpp = teamHasOpp(ab);
+        // Orphan / stale board props (empty opp) sort to the top on PP edge and hide
+        // real matchups — drop them whenever any other club has an opponent tonight.
         if (anyMatchupOpp) return hasOpp;
         if (Object.keys(data.matchups || {}).length) return hasOpp;
         return true;
@@ -454,6 +458,7 @@
         if (scoreB.maxPp !== scoreA.maxPp) return scoreB.maxPp - scoreA.maxPp;
         return String(a.name).localeCompare(String(b.name));
       });
+    // If filter wiped everyone, fall back to blocks then matchups-with-opp.
     if (!teams.length && teamsWithBlocks.size) {
       teams = (data.teams || []).filter((t) => teamsWithBlocks.has(normAbbr(t?.slate_abbr || t?.def_key)));
     }
@@ -812,17 +817,25 @@
       .map(
         (p) => {
           const rankBadge = playerRankBadge(p);
-          const share =
+          const shareVal =
             p.share_pct != null && p.share_pct !== ""
               ? esc(p.share_pct) + "%"
-              : "—";
-          const teamAvg = p.team_avg != null && p.team_avg !== "" ? esc(p.team_avg) : "—";
-          let vsLine = "—";
+              : "";
+          const teamAvgVal =
+            p.team_avg != null && p.team_avg !== "" ? esc(p.team_avg) : "";
+          let vsLineVal = "";
           if (p.avg_vs_line != null && p.avg_vs_line !== "") {
             const lean = p.share_lean ? " " + esc(p.share_lean) : "";
             const sign = Number(p.avg_vs_line) > 0 ? "+" : "";
-            vsLine = sign + esc(p.avg_vs_line) + lean;
+            vsLineVal = sign + esc(p.avg_vs_line) + lean;
+          } else if (p.pp_edge != null && p.pp_edge !== "") {
+            const sign = Number(p.pp_edge) > 0 ? "+" : "";
+            vsLineVal = sign + esc(p.pp_edge) + " PP";
           }
+          const gsVal =
+            p.game_score != null && p.game_score !== "" ? esc(p.game_score) : "";
+          const noteText = p.notes ? esc(p.notes) : "—";
+          const emptyCls = (v) => (v ? "" : " me-empty-cell");
           return (
           "<tr><td><strong>" +
           esc(p.player) +
@@ -832,20 +845,28 @@
           esc(p.pos || "—") +
           "</td><td>" +
           esc(p.season_avg) +
-          "</td><td>" +
-          share +
-          "</td><td>" +
-          teamAvg +
-          "</td><td>" +
-          vsLine +
-          "</td><td>" +
-          esc(p.game_score) +
+          '</td><td class="' +
+          emptyCls(shareVal) +
+          '">' +
+          (shareVal || "—") +
+          '</td><td class="' +
+          emptyCls(teamAvgVal) +
+          '">' +
+          (teamAvgVal || "—") +
+          '</td><td class="' +
+          emptyCls(vsLineVal) +
+          '">' +
+          (vsLineVal || "—") +
+          '</td><td class="' +
+          emptyCls(gsVal) +
+          '">' +
+          (gsVal || "—") +
           '</td><td><span class="me-edge ' +
           esc(p.edge) +
           '">' +
           edgeLabel(p.edge) +
           "</span></td><td>" +
-          esc(p.notes) +
+          noteText +
           "</td></tr>"
           );
         }

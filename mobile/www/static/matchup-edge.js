@@ -817,17 +817,25 @@
       .map(
         (p) => {
           const rankBadge = playerRankBadge(p);
-          const share =
+          const shareVal =
             p.share_pct != null && p.share_pct !== ""
               ? esc(p.share_pct) + "%"
-              : "—";
-          const teamAvg = p.team_avg != null && p.team_avg !== "" ? esc(p.team_avg) : "—";
-          let vsLine = "—";
+              : "";
+          const teamAvgVal =
+            p.team_avg != null && p.team_avg !== "" ? esc(p.team_avg) : "";
+          let vsLineVal = "";
           if (p.avg_vs_line != null && p.avg_vs_line !== "") {
             const lean = p.share_lean ? " " + esc(p.share_lean) : "";
             const sign = Number(p.avg_vs_line) > 0 ? "+" : "";
-            vsLine = sign + esc(p.avg_vs_line) + lean;
+            vsLineVal = sign + esc(p.avg_vs_line) + lean;
+          } else if (p.pp_edge != null && p.pp_edge !== "") {
+            const sign = Number(p.pp_edge) > 0 ? "+" : "";
+            vsLineVal = sign + esc(p.pp_edge) + " PP";
           }
+          const gsVal =
+            p.game_score != null && p.game_score !== "" ? esc(p.game_score) : "";
+          const noteText = p.notes ? esc(p.notes) : "—";
+          const emptyCls = (v) => (v ? "" : " me-empty-cell");
           return (
           "<tr><td><strong>" +
           esc(p.player) +
@@ -837,20 +845,28 @@
           esc(p.pos || "—") +
           "</td><td>" +
           esc(p.season_avg) +
-          "</td><td>" +
-          share +
-          "</td><td>" +
-          teamAvg +
-          "</td><td>" +
-          vsLine +
-          "</td><td>" +
-          esc(p.game_score) +
+          '</td><td class="' +
+          emptyCls(shareVal) +
+          '">' +
+          (shareVal || "—") +
+          '</td><td class="' +
+          emptyCls(teamAvgVal) +
+          '">' +
+          (teamAvgVal || "—") +
+          '</td><td class="' +
+          emptyCls(vsLineVal) +
+          '">' +
+          (vsLineVal || "—") +
+          '</td><td class="' +
+          emptyCls(gsVal) +
+          '">' +
+          (gsVal || "—") +
           '</td><td><span class="me-edge ' +
           esc(p.edge) +
           '">' +
           edgeLabel(p.edge) +
           "</span></td><td>" +
-          esc(p.notes) +
+          noteText +
           "</td></tr>"
           );
         }

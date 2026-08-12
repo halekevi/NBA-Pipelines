@@ -2604,7 +2604,7 @@ body > nav.snav.glass-card {
 </div>
 
 <script src="static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="static/matchup-edge.js?v=20260730share1" defer></script>
+<script src="static/matchup-edge.js?v=20260812opp2" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -5186,6 +5186,9 @@ function _setSlateSportRows(sport, rows) {
   }
   SLATE_DATA[sport] = raw.filter((r) => !_slateRowIsFantasyProp(r, sport));
   SLATE_DATA[sport].sort((a,b) => Math.abs(b?.edge||0) - Math.abs(a?.edge||0));
+  if (typeof MatchupEdge !== 'undefined' && MatchupEdge.sports?.includes(sport)) {
+    MatchupEdge.refreshFromSlate?.(sport);
+  }
 }
 
 function _v(row, keys) {

@@ -419,16 +419,32 @@
       });
       return { rank: best, maxPp: maxPp === -Infinity ? -999 : maxPp };
     };
-    const teams = (data.teams || [])
+    const teamHasOpp = (ab) => {
+      const want = normAbbr(ab);
+      const mu = lookupMatchup(data, ab);
+      if (nonEmptyAbbr(mu.opponent_slate) || nonEmptyAbbr(mu.opponent_name)) return true;
+      const blocks = data.players_by_team_cat || {};
+      for (const k of Object.keys(blocks)) {
+        if (normAbbr(String(k.split("|")[0] || "")) !== want) continue;
+        const o = blocks[k]?.opponent || {};
+        if (nonEmptyAbbr(o.slate_abbr) || nonEmptyAbbr(o.name)) return true;
+      }
+      // Live board may have tonight's opp even when matchup JSON is blank.
+      const fromSlate = opponentFromSlate(sport, ab, data);
+      return Boolean(fromSlate.opp);
+    };
+    const anyMatchupOpp = Object.keys(data.matchups || {}).some((ab) => teamHasOpp(ab));
+
+    let teams = (data.teams || [])
       .filter((t) => {
         const ab = normAbbr(t?.slate_abbr || t?.def_key);
         if (!ab) return false;
         // Prefer clubs that actually have leader blocks (tonight's slate).
         if (teamsWithBlocks.size && !teamsWithBlocks.has(ab)) return false;
-        // Drop idle clubs with no opponent when matchup map is present.
-        const mu = lookupMatchup(data, ab);
-        const hasOpp = Boolean(nonEmptyAbbr(mu.opponent_slate) || nonEmptyAbbr(mu.opponent_name));
-        if (teamsWithBlocks.size) return true;
+        const hasOpp = teamHasOpp(ab);
+        // Orphan / stale board props (empty opp) sort to the top on PP edge and hide
+        // real matchups — drop them whenever any other club has an opponent tonight.
+        if (anyMatchupOpp) return hasOpp;
         if (Object.keys(data.matchups || {}).length) return hasOpp;
         return true;
       })
@@ -442,6 +458,10 @@
         if (scoreB.maxPp !== scoreA.maxPp) return scoreB.maxPp - scoreA.maxPp;
         return String(a.name).localeCompare(String(b.name));
       });
+    // If filter wiped everyone, fall back to blocks then matchups-with-opp.
+    if (!teams.length && teamsWithBlocks.size) {
+      teams = (data.teams || []).filter((t) => teamsWithBlocks.has(normAbbr(t?.slate_abbr || t?.def_key)));
+    }
     if (!teams.length && data.matchups) {
       Object.keys(data.matchups).forEach((k) => {
         const mu = data.matchups[k] || {};
@@ -567,21 +587,51 @@
     return raw.toUpperCase();
   }
 
-  /** Resolve tonight's opponent from loaded Full Slate rows when matchup JSON lacks opp. */
-  function opponentFromSlate(sport, team, data) {
-    const rows = global.ALL_SLATE;
-    if (!Array.isArray(rows) || !rows.length) return { opp: "", oppName: "" };
-    const aliases = teamAliasSet(data, team);
+  /** Per-sport slate rows (lazy panel load) with ALL_SLATE fallback. */
+  function slateRowsForOpponent(sport) {
+    const sportRows = global.SLATE_DATA?.[sport];
+    if (Array.isArray(sportRows) && sportRows.length) return sportRows;
+    const all = global.ALL_SLATE;
+    if (!Array.isArray(all) || !all.length) return [];
     const sportKey = String(sport || "").toLowerCase();
+    return all.filter((r) => {
+      if (!r) return false;
+      const rs = String(r.sport || "").trim().toLowerCase();
+      if (!rs) return true;
+      if (rs === sportKey) return true;
+      if (sportKey === "wnba" && (rs === "wnba1h" || rs === "wnba1q")) return true;
+      if (sportKey === "nba" && (rs === "nba1h" || rs === "nba1q")) return true;
+      return false;
+    });
+  }
+
+  function teamDefMeta(data, abbr) {
+    const want = teamAliasSet(data, abbr);
+    for (const t of data?.teams || []) {
+      const sa = String(t?.slate_abbr || "").trim().toUpperCase();
+      const dk = String(t?.def_key || "").trim().toUpperCase();
+      if (want.has(sa) || want.has(dk)) {
+        return {
+          def_rank: t.def_rank != null ? t.def_rank : null,
+          def_tier: String(t.def_tier || ""),
+          name: t.name || sa || dk,
+        };
+      }
+    }
+    return null;
+  }
+
+  /** Resolve tonight's opponent from slate rows when matchup JSON lacks opp. */
+  function opponentFromSlate(sport, team, data) {
+    const rows = slateRowsForOpponent(sport);
+    if (!rows.length) return { opp: "", oppName: "", def_rank: null, def_tier: "" };
+    const aliases = teamAliasSet(data, team);
     let oppRaw = "";
+    let defRank = null;
+    let defTier = "";
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i];
       if (!r) continue;
-      const rs = String(r.sport || "").trim().toLowerCase();
-      // Accept blank sport (combined slate) or exact sport match.
-      if (rs && rs !== sportKey && !(sportKey === "wnba" && (rs === "wnba1h" || rs === "wnba1q"))) {
-        continue;
-      }
       const t = String(r.team || "").trim().toUpperCase();
       const o = nonEmptyAbbr(r.opp || r.opp_team || r.opponent).toUpperCase();
       if (!t || !o || t.includes("/") || o.includes("/")) continue;
@@ -591,24 +641,36 @@
       const oppHit = [...aliases].some((a) => oAliases.has(a) || a === o);
       if (teamHit) {
         oppRaw = o;
+        defRank = r.opponent_def_rank != null ? r.opponent_def_rank : null;
+        defTier = String(r.def_tier || r.DEF_TIER || "");
         break;
       }
       if (oppHit) {
         oppRaw = t;
+        defRank = r.opponent_def_rank != null ? r.opponent_def_rank : null;
+        defTier = String(r.def_tier || r.DEF_TIER || "");
         break;
       }
     }
-    if (!oppRaw) return { opp: "", oppName: "" };
+    if (!oppRaw) return { opp: "", oppName: "", def_rank: null, def_tier: "" };
     const opp = canonicalizeTeamAbbr(data, oppRaw);
-    return { opp, oppName: teamDisplayName(data, opp) || opp };
+    const meta = teamDefMeta(data, opp);
+    return {
+      opp,
+      oppName: teamDisplayName(data, opp) || opp,
+      def_rank: defRank != null ? defRank : meta?.def_rank ?? null,
+      def_tier: defTier || meta?.def_tier || "",
+    };
   }
 
   function opponentForTeam(sport, team) {
     const data = state[sport]?.data;
-    if (!data || !team) return { opp: "", oppName: "" };
+    if (!data || !team) return { opp: "", oppName: "", opponent_def_rank: null, opponent_def_tier: "" };
     const mu = lookupMatchup(data, team);
     let opp = nonEmptyAbbr(mu.opponent_slate);
     let oppName = nonEmptyAbbr(mu.opponent_name) || opp;
+    let defRank = mu.opponent_def_rank != null ? mu.opponent_def_rank : null;
+    let defTier = String(mu.opponent_def_tier || "");
     if (!opp) {
       const aliases = teamAliasSet(data, team);
       const entry = Object.entries(data.players_by_team_cat || {}).find(([k]) => {
@@ -618,17 +680,27 @@
       const blockOpp = entry ? entry[1].opponent || {} : {};
       opp = nonEmptyAbbr(blockOpp.slate_abbr);
       oppName = nonEmptyAbbr(blockOpp.name) || opp;
+      if (blockOpp.def_rank != null) defRank = blockOpp.def_rank;
+      if (blockOpp.def_tier) defTier = String(blockOpp.def_tier);
     }
-    if (!opp) {
-      const fromSlate = opponentFromSlate(sport, team, data);
+    const fromSlate = opponentFromSlate(sport, team, data);
+    if (!opp && fromSlate.opp) {
       opp = fromSlate.opp;
       oppName = fromSlate.oppName || opp;
+      if (fromSlate.def_rank != null) defRank = fromSlate.def_rank;
+      if (fromSlate.def_tier) defTier = fromSlate.def_tier;
+    } else if (fromSlate.opp && defRank == null) {
+      if (fromSlate.def_rank != null) defRank = fromSlate.def_rank;
+      if (fromSlate.def_tier && !defTier) defTier = fromSlate.def_tier;
     }
     if (opp) {
       opp = canonicalizeTeamAbbr(data, opp);
-      if (!oppName || oppName === opp) oppName = teamDisplayName(data, opp) || opp;
+      const meta = teamDefMeta(data, opp);
+      if (!oppName || oppName === opp) oppName = meta?.name || teamDisplayName(data, opp) || opp;
+      if (defRank == null && meta?.def_rank != null) defRank = meta.def_rank;
+      if (!defTier && meta?.def_tier) defTier = meta.def_tier;
     }
-    return { opp, oppName, mu };
+    return { opp, oppName, mu, opponent_def_rank: defRank, opponent_def_tier: defTier };
   }
 
   function onTeamChange(sport) {
@@ -683,8 +755,13 @@
     const oppMeta = opponentForTeam(sport, team);
     const mu = oppMeta.mu || {};
     const opp = block.opponent || {};
-    const oppRank = opp.def_rank != null ? opp.def_rank : mu.opponent_def_rank;
-    const oppTier = opp.def_tier || mu.opponent_def_tier || "";
+    const oppRank =
+      opp.def_rank != null
+        ? opp.def_rank
+        : oppMeta.opponent_def_rank != null
+          ? oppMeta.opponent_def_rank
+          : mu.opponent_def_rank;
+    const oppTier = opp.def_tier || oppMeta.opponent_def_tier || mu.opponent_def_tier || "";
     const oppName = opp.name || oppMeta.oppName || mu.opponent_name || "—";
     const rankLbl = data.opp_metric_label || "Opp def rank";
     const view = leaderView(sport);
@@ -935,14 +1012,17 @@
 
   function scheduleSlateOppRefresh(sport) {
     state[sport] = state[sport] || {};
-    if (state[sport].slateOppTimer) return;
+    if (state[sport].slateOppTimer) {
+      clearInterval(state[sport].slateOppTimer);
+      state[sport].slateOppTimer = null;
+    }
     let tries = 0;
     state[sport].slateOppTimer = setInterval(() => {
       tries += 1;
       const team = document.getElementById(pid(sport, "team"))?.value;
       const oppSel = document.getElementById(pid(sport, "opp"));
       if (!team || !oppSel) {
-        if (tries >= 40) {
+        if (tries >= 80) {
           clearInterval(state[sport].slateOppTimer);
           state[sport].slateOppTimer = null;
         }
@@ -950,12 +1030,18 @@
       }
       const { opp } = opponentForTeam(sport, team);
       const cur = nonEmptyAbbr(oppSel.value);
-      if (opp && opp !== cur) onTeamChange(sport);
-      if ((opp && oppSel.value === opp) || tries >= 40) {
+      if (opp && (opp !== cur || !nonEmptyAbbr(oppSel.options[0]?.textContent))) onTeamChange(sport);
+      if ((opp && oppSel.value === opp) || tries >= 80) {
         clearInterval(state[sport].slateOppTimer);
         state[sport].slateOppTimer = null;
       }
     }, 250);
+  }
+
+  function refreshFromSlate(sport) {
+    if (SKIP.has(sport) || !state[sport]?.data) return;
+    scheduleSlateOppRefresh(sport);
+    onTeamChange(sport);
   }
 
   function onPanelOpen(sport) {
@@ -1012,5 +1098,5 @@
     boot();
   }
 
-  global.MatchupEdge = { init: init, render: render, sports: ME_SPORTS };
+  global.MatchupEdge = { init: init, render: render, refreshFromSlate: refreshFromSlate, sports: ME_SPORTS };
 })(typeof window !== "undefined" ? window : globalThis);

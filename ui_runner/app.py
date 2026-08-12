@@ -5806,25 +5806,16 @@ def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> d
 
     Production rebuilds sometimes emit matchup JSON with leaders but blank opponents
     when the builder could not resolve slate opp cells — the live slate still has them.
+    Also drops orphan teams that only appear via stale props with no opp when other
+    clubs have real matchups (so Matchup Edge does not default to empty Opp cards).
     """
     if not isinstance(payload, dict) or payload.get("error"):
         return payload
     mus = payload.get("matchups")
     if not isinstance(mus, dict) or not mus:
         return payload
-    missing = [
-        k
-        for k, v in mus.items()
-        if not str((v or {}).get("opponent_slate") or "").strip()
-        and not str((v or {}).get("opponent_name") or "").strip()
-    ]
-    if not missing:
-        return payload
 
     rows = _load_matchup_edge_slate_rows(sport_key)
-    if not rows:
-        return payload
-
     aliases = _matchup_edge_team_alias_map(payload, sport_key)
     name_by_abbr = {
         str(t.get("slate_abbr") or "").strip().upper(): str(t.get("name") or "").strip()
@@ -5854,52 +5845,87 @@ def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> d
         pair.setdefault(team, opp)
         pair.setdefault(opp, team)
 
-    if not pair:
-        return payload
-
     filled = 0
-    for ab, mu in mus.items():
-        if not isinstance(mu, dict):
-            continue
-        if str(mu.get("opponent_slate") or "").strip() or str(mu.get("opponent_name") or "").strip():
-            continue
-        opp = pair.get(str(ab).strip().upper(), "")
-        if not opp:
-            continue
-        opp_meta = meta_by_abbr.get(opp) or {}
-        mu["opponent_slate"] = opp
-        mu["opponent_name"] = name_by_abbr.get(opp) or str(opp_meta.get("name") or opp)
-        if mu.get("opponent_def_rank") is None and opp_meta.get("def_rank") is not None:
-            mu["opponent_def_rank"] = opp_meta.get("def_rank")
-        if not str(mu.get("opponent_def_tier") or "").strip() and opp_meta.get("def_tier"):
-            mu["opponent_def_tier"] = opp_meta.get("def_tier")
-        filled += 1
+    if pair:
+        for ab, mu in mus.items():
+            if not isinstance(mu, dict):
+                continue
+            if str(mu.get("opponent_slate") or "").strip() or str(mu.get("opponent_name") or "").strip():
+                continue
+            opp = pair.get(str(ab).strip().upper(), "")
+            if not opp:
+                continue
+            opp_meta = meta_by_abbr.get(opp) or {}
+            mu["opponent_slate"] = opp
+            mu["opponent_name"] = name_by_abbr.get(opp) or str(opp_meta.get("name") or opp)
+            if mu.get("opponent_def_rank") is None and opp_meta.get("def_rank") is not None:
+                mu["opponent_def_rank"] = opp_meta.get("def_rank")
+            if not str(mu.get("opponent_def_tier") or "").strip() and opp_meta.get("def_tier"):
+                mu["opponent_def_tier"] = opp_meta.get("def_tier")
+            filled += 1
 
-    if filled:
-        pbtc = payload.get("players_by_team_cat")
-        if isinstance(pbtc, dict):
-            for key, block in pbtc.items():
-                if not isinstance(block, dict):
-                    continue
-                team_ab = str(key).split("|", 1)[0].strip().upper()
-                opp_obj = block.get("opponent")
-                if not isinstance(opp_obj, dict):
-                    opp_obj = {}
-                    block["opponent"] = opp_obj
-                if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
-                    continue
-                mu = mus.get(team_ab) or {}
-                opp = str(mu.get("opponent_slate") or "").strip().upper()
-                if not opp:
-                    continue
-                opp_meta = meta_by_abbr.get(opp) or {}
-                opp_obj["slate_abbr"] = opp
-                opp_obj["name"] = mu.get("opponent_name") or name_by_abbr.get(opp) or opp
-                if opp_obj.get("def_rank") is None:
-                    opp_obj["def_rank"] = mu.get("opponent_def_rank") or opp_meta.get("def_rank")
-                if not str(opp_obj.get("def_tier") or "").strip():
-                    opp_obj["def_tier"] = mu.get("opponent_def_tier") or opp_meta.get("def_tier") or ""
+    # Always sync block.opponent from matchups (even when matchups were already filled).
+    pbtc = payload.get("players_by_team_cat")
+    blocks_filled = 0
+    if isinstance(pbtc, dict):
+        for key, block in pbtc.items():
+            if not isinstance(block, dict):
+                continue
+            team_ab = str(key).split("|", 1)[0].strip().upper()
+            opp_obj = block.get("opponent")
+            if not isinstance(opp_obj, dict):
+                opp_obj = {}
+                block["opponent"] = opp_obj
+            if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
+                continue
+            mu = mus.get(team_ab) or {}
+            opp = str(mu.get("opponent_slate") or "").strip().upper() or pair.get(team_ab, "")
+            if not opp:
+                continue
+            opp_meta = meta_by_abbr.get(opp) or {}
+            opp_obj["slate_abbr"] = opp
+            opp_obj["name"] = (
+                mu.get("opponent_name")
+                or name_by_abbr.get(opp)
+                or str(opp_meta.get("name") or opp)
+            )
+            if opp_obj.get("def_rank") is None:
+                opp_obj["def_rank"] = mu.get("opponent_def_rank") or opp_meta.get("def_rank")
+            if not str(opp_obj.get("def_tier") or "").strip():
+                opp_obj["def_tier"] = mu.get("opponent_def_tier") or opp_meta.get("def_tier") or ""
+            blocks_filled += 1
+
+    # Mark / prune orphan teams (e.g. LAS stale May props with opp=null) so the UI
+    # does not default to a club with empty Opp def cards.
+    teams_with_opp = {
+        str(ab).strip().upper()
+        for ab, mu in mus.items()
+        if isinstance(mu, dict)
+        and (
+            str(mu.get("opponent_slate") or "").strip()
+            or str(mu.get("opponent_name") or "").strip()
+        )
+    }
+    if teams_with_opp and isinstance(pbtc, dict):
+        orphan_keys = []
+        for key, block in list(pbtc.items()):
+            if not isinstance(block, dict):
+                continue
+            team_ab = str(key).split("|", 1)[0].strip().upper()
+            if team_ab in teams_with_opp:
+                continue
+            opp_obj = block.get("opponent") if isinstance(block.get("opponent"), dict) else {}
+            if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
+                continue
+            orphan_keys.append(key)
+        if orphan_keys and len(orphan_keys) < len(pbtc):
+            for key in orphan_keys:
+                pbtc.pop(key, None)
+            payload["_orphan_blocks_dropped"] = len(orphan_keys)
+
+    if filled or blocks_filled:
         payload["_opponents_enriched_from_slate"] = filled
+        payload["_opponent_blocks_synced"] = blocks_filled
     return payload
 
 
@@ -5994,7 +6020,7 @@ def api_matchup_edge(sport: str):
 
     try:
         return _gz_json_response(
-            f"matchup-edge-v3:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
+            f"matchup-edge-v4:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
             _build,
             ttl=120.0,
         )

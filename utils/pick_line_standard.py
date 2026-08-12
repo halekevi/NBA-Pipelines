@@ -191,10 +191,17 @@ def reclassify_mislabeled_discount_standards(
         idxs = list(idx)
         if len(idxs) < 2:
             continue
-        lines = line_num.loc[idxs].dropna()
-        if lines.empty:
+        # Baseline = max on the discount ladder only (Standard/Goblin).
+        # Including Demon max (above Standard) wrongly flips true Standards → Goblin.
+        ladder_idxs = [
+            i
+            for i in idxs
+            if str(out.at[i, pick_type_col]) in ("Standard", "Goblin")
+            and pd.notna(line_num.at[i])
+        ]
+        if len(ladder_idxs) < 2:
             continue
-        max_line = float(lines.max())
+        max_line = float(line_num.loc[ladder_idxs].max())
         prop_l = str(prop or "").strip().lower()
         gap_need = scoring_gap if prop_l in _DISCOUNT_PROP_NORMS or "point" in prop_l else min_gap
         for i in idxs:

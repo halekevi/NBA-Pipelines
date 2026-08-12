@@ -71,6 +71,8 @@ def norm_prop(s: str) -> str:
         "twopointersmade":"fg2m","twopointersattempted":"fg2a",
         "ftm":"ftm","ftmade":"ftm","fta":"fta","ftattempted":"fta",
         "freethrowsmade":"ftm","freethrowsattempted":"fta",
+        "defensiverebounds":"dreb","defensiverebound":"dreb","dreb":"dreb",
+        "offensiverebounds":"oreb","offensiverebound":"oreb","oreb":"oreb",
     }
     return exact_map.get(clean, clean)
 

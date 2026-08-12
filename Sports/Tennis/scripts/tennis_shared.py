@@ -528,6 +528,10 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
         w_side = parsed["winner"] if parsed else {}
         l_side = parsed["loser"] if parsed else {}
         try:
+            best_of = int(float(rd.get("best_of")))
+        except (TypeError, ValueError):
+            best_of = None
+        try:
             w_ace = float(rd.get("w_ace"))
         except (TypeError, ValueError):
             w_ace = float("nan")
@@ -548,6 +552,7 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
             norm_key(w_name),
             {
                 "date": date,
+                "best_of": best_of,
                 "aces": w_ace,
                 "double_faults": w_df,
                 "games_won": w_side.get("games_won"),
@@ -559,6 +564,7 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
             norm_key(l_name),
             {
                 "date": date,
+                "best_of": best_of,
                 "aces": l_ace,
                 "double_faults": l_df,
                 "games_won": l_side.get("games_won"),
@@ -572,6 +578,10 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
     return index
 
 
+_FORMAT_SENSITIVE_PROPS = frozenset({"match_total_games", "games_won", "sets_won"})
+_SERVE_PROPS = frozenset({"aces", "double_faults"})
+
+
 def build_sackmann_player_log(
     matches: pd.DataFrame,
     player_norm: str,
@@ -579,9 +589,15 @@ def build_sackmann_player_log(
     last_n: int = 20,
     *,
     player_index: dict[str, list[dict[str, Any]]] | None = None,
+    preferred_best_of: int | None = 3,
 ) -> list[float]:
     """
     Return up to last_n float values for prop_norm from Sackmann matches, newest first.
+
+    - Format-sensitive props (total games / games won / sets): prefer preferred_best_of
+      (default BO3) so Slam BO5 matches do not inflate BO3-priced PrizePicks lines.
+    - Serve props (aces / double faults): only take values from the newest `last_n`
+      calendar matches. Never skip NaN windows into ancient high-DF outliers.
     """
     if prop_norm not in _SACKMANN_PROP_MAP:
         return []
@@ -591,16 +607,101 @@ def build_sackmann_player_log(
     if player_index is None:
         player_index = build_sackmann_player_index(matches)
     rows = player_index.get(pk) or []
+    if not rows:
+        return []
+
+    n = max(1, int(last_n))
     vals: list[float] = []
-    for rec in rows[: max(1, int(last_n))]:
-        raw = rec.get(prop_norm)
+
+    def _finite(raw: object) -> float | None:
         if raw is None:
-            continue
+            return None
         try:
             fv = float(raw)
         except (TypeError, ValueError):
-            continue
+            return None
         if fv != fv:  # NaN
+            return None
+        return fv
+
+    # Serve stats: only the newest N calendar matches (do not skip NaN into older outliers).
+    if prop_norm in _SERVE_PROPS:
+        # Tight window — sparse recent DF/aces beats inflated ancient fills.
+        window = rows[: min(n, 8)]
+        # Drop matches that are far older than the newest row (NaN-streak skip artifact).
+        newest = str(window[0].get("date") or "") if window else ""
+        if newest.isdigit() and len(newest) == 8:
+            try:
+                y, m, d = int(newest[0:4]), int(newest[4:6]), int(newest[6:8])
+                from datetime import date, timedelta
+
+                newest_dt = date(y, m, d)
+                cutoff = newest_dt - timedelta(days=45)
+                filtered = []
+                for rec in window:
+                    ds = str(rec.get("date") or "")
+                    if ds.isdigit() and len(ds) == 8:
+                        try:
+                            rd = date(int(ds[0:4]), int(ds[4:6]), int(ds[6:8]))
+                            if rd < cutoff:
+                                continue
+                        except ValueError:
+                            pass
+                    filtered.append(rec)
+                window = filtered
+            except ValueError:
+                pass
+        for rec in window:
+            fv = _finite(rec.get(prop_norm))
+            if fv is not None:
+                vals.append(fv)
+        # If most of the recent window lacks serve stats, return empty → ESPN/other fallback.
+        if len(vals) < 3 and len(window) >= 3:
+            # Prefer sparse over a single ancient outlier in-window.
+            recent_finite = 0
+            for rec in window[:3]:
+                if _finite(rec.get(prop_norm)) is not None:
+                    recent_finite += 1
+            if recent_finite == 0:
+                return []
+        return vals
+
+    # Format-sensitive: prefer BO3 (or preferred_best_of). Never mix Slam BO5
+    # into a BO3-priced log once any preferred match exists (sparse > inflated).
+    if prop_norm in _FORMAT_SENSITIVE_PROPS and preferred_best_of is not None:
+        preferred: list[float] = []
+        for rec in rows:
+            bo = rec.get("best_of")
+            if bo not in (None, preferred_best_of):
+                continue
+            fv = _finite(rec.get(prop_norm))
+            if fv is None:
+                continue
+            # Safety: BO3-priced Total Games should not include 40+ game Slam totals
+            # even when best_of is missing/mislabeled.
+            if (
+                preferred_best_of == 3
+                and prop_norm == "match_total_games"
+                and fv >= 40.0
+            ):
+                continue
+            preferred.append(fv)
+            if len(preferred) >= n:
+                break
+        if preferred:
+            return preferred
+
+    for rec in rows:
+        fv = _finite(rec.get(prop_norm))
+        if fv is None:
+            continue
+        if (
+            preferred_best_of == 3
+            and prop_norm == "match_total_games"
+            and fv >= 40.0
+        ):
             continue
         vals.append(fv)
+        if len(vals) >= n:
+            break
     return vals

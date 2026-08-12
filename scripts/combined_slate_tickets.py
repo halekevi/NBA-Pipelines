@@ -13458,7 +13458,6 @@ def _load_step8_board_like(
         )
 
     # Backfill sparse board stats so slate columns are populated.
-    hr_for_counts = pd.to_numeric(df.get("hit_rate", np.nan), errors="coerce").clip(lower=0.0, upper=1.0)
     if "l5_over" not in df.columns:
         df["l5_over"] = np.nan
     if "l5_under" not in df.columns:
@@ -13473,29 +13472,22 @@ def _load_step8_board_like(
         df["season_avg"] = np.nan
 
     df = _ensure_stat_g_columns(df)
-    df = _apply_l5_truth_from_stat_games(df, sport, min_stat_games=5)
+    df = _apply_l5_truth_from_stat_games(df, sport, min_stat_games=3)
     df = _apply_l10_truth_from_stat_games(df, sport, min_stat_games=6)
     df = _fill_projection_from_avgs(df)
 
-    # IMPORTANT:
-    # For these boards, upstream "Hit Rate (5g)/(10g)" is direction-aware in many cases
-    # (e.g. when stat_g* are missing, step7 fills line_hit_rate into the over_* columns).
-    # If hit_rate represents the chosen bet side, we must derive L5/L10 counts
-    # directionally so UNDER rows don't get reversed.
-    dirv = df.get("direction", pd.Series(["OVER"] * len(df), index=df.index)).astype(str).str.upper().fillna("OVER")
-
-    l5_hit_as_over = (hr_for_counts * 5.0).round()
-    l5_over_fill = l5_hit_as_over.where(dirv.ne("UNDER"), 5.0 - l5_hit_as_over)
-    l5_under_fill = 5.0 - l5_over_fill
-
-    l10_hit_as_over = (hr_for_counts * 10.0).round()
-    l10_over_fill = l10_hit_as_over.where(dirv.ne("UNDER"), 10.0 - l10_hit_as_over)
-    l10_under_fill = 10.0 - l10_over_fill
-
-    df["l5_over"] = pd.to_numeric(df["l5_over"], errors="coerce").combine_first(l5_over_fill)
-    df["l5_under"] = pd.to_numeric(df["l5_under"], errors="coerce").combine_first(l5_under_fill)
-    df["l10_over"] = pd.to_numeric(df["l10_over"], errors="coerce").combine_first(l10_over_fill)
-    df["l10_under"] = pd.to_numeric(df["l10_under"], errors="coerce").combine_first(l10_under_fill)
+    # Never invent L5 from hit_rate (hit_rate*5). That produced fake tennis/golf 5/5s.
+    # Also clear residual L5 on no-log rows for sports that previously filled from hit_rate.
+    stat_cols = [c for c in [f"stat_g{i}" for i in range(1, 6)] if c in df.columns]
+    row_series_n = (
+        df[stat_cols].apply(pd.to_numeric, errors="coerce").notna().sum(axis=1)
+        if stat_cols
+        else pd.Series(0, index=df.index)
+    )
+    no_log = row_series_n.lt(1)
+    if bool(no_log.any()) and str(sport).strip().upper() in {"TENNIS", "GOLF", "SOCCER", "SOC"}:
+        df.loc[no_log, "l5_over"] = np.nan
+        df.loc[no_log, "l5_under"] = np.nan
 
     proj = pd.to_numeric(df.get("projection", np.nan), errors="coerce")
     if not isinstance(proj, pd.Series):
@@ -13503,8 +13495,56 @@ def _load_step8_board_like(
     else:
         proj = proj.reindex(df.index).astype("float64", copy=False)
 
-    df["l5_avg"] = pd.to_numeric(df["l5_avg"], errors="coerce").combine_first(proj)
-    df["season_avg"] = pd.to_numeric(df["season_avg"], errors="coerce").combine_first(df["l5_avg"]).combine_first(proj)
+    df["l5_avg"] = pd.to_numeric(df["l5_avg"], errors="coerce")
+    if stat_cols:
+        gmean = df[stat_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
+        df["l5_avg"] = df["l5_avg"].combine_first(gmean)
+    # Never backfill avgs from a literal 0.0 projection (unsupported / missing-stat props).
+    proj_for_avg = proj.where(proj.abs() >= 0.05, np.nan)
+    df["l5_avg"] = df["l5_avg"].combine_first(proj_for_avg)
+    sea = pd.to_numeric(df["season_avg"], errors="coerce")
+    df["season_avg"] = sea.combine_first(df["l5_avg"]).combine_first(proj_for_avg)
+
+    # Drop / null-out fake proj≈0 rows that produce edge≈-line with no history.
+    fake_zero_proj = (
+        proj.notna()
+        & (proj.abs() < 0.05)
+        & sea.isna()
+        & row_series_n.lt(1)
+    )
+    if bool(fake_zero_proj.any()):
+        df.loc[fake_zero_proj, "projection"] = np.nan
+        proj = pd.to_numeric(df.get("projection", np.nan), errors="coerce")
+        if not isinstance(proj, pd.Series):
+            proj = pd.Series(np.nan, index=df.index, dtype="float64")
+        print(
+            f"  [{log_prefix}] cleared {int(fake_zero_proj.sum())} fake zero-projection row(s) "
+            "(no season/L5 history)"
+        )
+
+    # Drop unsupported props and rows with no usable projection (prevents A-tier UNDER @ edge=-line).
+    unsupported = pd.Series(False, index=df.index)
+    if "unsupported_prop" in df.columns:
+        unsupported = pd.to_numeric(df["unsupported_prop"], errors="coerce").fillna(0).ne(0)
+    if "unsupported_reason" in df.columns:
+        unsupported = unsupported | df["unsupported_reason"].astype(str).str.contains(
+            "UNSUPPORTED", case=False, na=False
+        )
+    drop_dead = unsupported | (
+        pd.to_numeric(df.get("projection", np.nan), errors="coerce").isna()
+        & sea.isna()
+        & row_series_n.lt(1)
+        & pd.to_numeric(df.get("line", np.nan), errors="coerce").ge(2.5)
+    )
+    if bool(drop_dead.any()):
+        n_drop = int(drop_dead.sum())
+        df = df.loc[~drop_dead].copy()
+        print(f"  [{log_prefix}] dropped {n_drop} unsupported/no-stat prop row(s)")
+        proj = pd.to_numeric(df.get("projection", np.nan), errors="coerce")
+        if not isinstance(proj, pd.Series):
+            proj = pd.Series(np.nan, index=df.index, dtype="float64")
+        else:
+            proj = proj.reindex(df.index).astype("float64", copy=False)
 
     # Edge is only meaningful when projection exists (e.g. WNBA step8 often omits it; sheet edge
     # can be 0 - line = -line with abs_edge = line, tripping distance/Demon heuristics). When

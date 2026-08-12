@@ -8,7 +8,7 @@ Utilities under `utils/*_prop_defense.py` attach `stat_def_category`, `stat_def_
 | NFL/CFB | `utils/football_prop_defense.py` | unit ranking CSVs | `pass_rank`, `rush_rank`, … |
 | MLB | `utils/mlb_prop_defense.py` | `mlb_defense_summary.csv` | `era_rank`, `whip_rank`, `obp_rank` |
 | NHL | `utils/nhl_prop_defense.py` | `step3_nhl_with_defense.csv` | `gaa_rank`, `saa_rank` |
-| Soccer | `utils/soccer_prop_defense.py` | defense summary / step3 / step8 Def Rank | `overall_rank`, `shots_rank`, `saves_rank` |
+| Soccer | `utils/soccer_prop_defense.py` | defense summary / step3 / step8 | `overall_rank`, `shots_rank`, `saves_rank` |
 | NBA | `utils/nba_prop_defense.py` | `nba_opp_defense_by_position.json` | `pts_rank`, `reb_rank`, `ast_rank`, … |
 
 ## Player category ranks (Matchup Edge)
@@ -26,6 +26,24 @@ Shared helpers: `utils/matchup_edge/player_ranks.py`. Rebuild with:
 
 ```bash
 py -3 scripts/build_matchup_edge_json.py --sport all
+```
+
+## Slate L5 / game-log integrity (process fixes)
+
+Bugs that bit Tennis/WNBA boards (fake L5 5/5, missing season avg):
+
+| Issue | Fix |
+|-------|-----|
+| Tennis Total Games mixed **BO5 Slam** logs into BO3-priced lines | `build_sackmann_player_log` prefers `best_of=3` |
+| Tennis DF/aces skipped NaN into ancient outliers | Serve props use a recent date window; sparse → empty (ESPN fallback) |
+| Tennis/Golf invented L5 from `hit_rate * 5` | step8 recomputes L5 from `stat_g*`; no hit_rate invent |
+| Combined loader same invent | Removed; clears no-log L5 for TENNIS/GOLF/SOCCER |
+| WNBA accent names (`Azurá`→`azur`) missed ESPN | `_norm_name` uses NFKD / `normalize_player_name` |
+
+Publish gate:
+
+```bash
+py -3 scripts/validate_slate_history_gate.py
 ```
 
 ## Soccer notes

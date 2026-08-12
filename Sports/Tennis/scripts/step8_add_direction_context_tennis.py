@@ -243,28 +243,54 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     # Fill presentation-facing columns with safe fallbacks so the clean workbook
     # is populated even when historical stat cache coverage is sparse.
     hr5 = pd.to_numeric(df2.get("line_hit_rate_over_ou_5", np.nan), errors="coerce")
-    hr10 = pd.to_numeric(df2.get("line_hit_rate_over_ou_10", np.nan), errors="coerce").fillna(hr5).fillna(0.50)
+    hr10 = pd.to_numeric(df2.get("line_hit_rate_over_ou_10", np.nan), errors="coerce").fillna(hr5)
     df2["line_hit_rate_over_ou_10"] = hr10
 
     proj = pd.to_numeric(df2.get("projection", np.nan), errors="coerce")
-    df2["stat_last5_avg"] = pd.to_numeric(df2.get("stat_last5_avg", np.nan), errors="coerce").fillna(proj)
-    df2["stat_season_avg"] = pd.to_numeric(df2.get("stat_season_avg", np.nan), errors="coerce").fillna(df2["stat_last5_avg"])
-    df2["stat_last10_avg"] = pd.to_numeric(df2.get("stat_last10_avg", np.nan), errors="coerce").fillna(df2["stat_last5_avg"])
+    df2["stat_last5_avg"] = pd.to_numeric(df2.get("stat_last5_avg", np.nan), errors="coerce")
+    df2["stat_season_avg"] = pd.to_numeric(df2.get("stat_season_avg", np.nan), errors="coerce")
+    df2["stat_last10_avg"] = pd.to_numeric(df2.get("stat_last10_avg", np.nan), errors="coerce")
+    # Only fill avgs from projection when we have real history — never invent L5 from hit_rate.
+    g5_cols = [c for c in ("stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5") if c in df2.columns]
+    if g5_cols and "line" in df2.columns:
+        g5 = df2[g5_cols].apply(pd.to_numeric, errors="coerce")
+        line = pd.to_numeric(df2["line"], errors="coerce")
+        valid_n = g5.notna().sum(axis=1)
+        over_n = g5.gt(line, axis=0).sum(axis=1)
+        under_n = g5.lt(line, axis=0).sum(axis=1)
+        has_hist = valid_n > 0
+        if "last5_over" not in df2.columns:
+            df2["last5_over"] = np.nan
+        if "last5_under" not in df2.columns:
+            df2["last5_under"] = np.nan
+        df2["last5_over"] = pd.to_numeric(df2["last5_over"], errors="coerce")
+        df2["last5_under"] = pd.to_numeric(df2["last5_under"], errors="coerce")
+        df2.loc[has_hist, "last5_over"] = over_n[has_hist]
+        df2.loc[has_hist, "last5_under"] = under_n[has_hist]
+        df2.loc[has_hist, "stat_last5_avg"] = g5.mean(axis=1)[has_hist]
+        if "line_hit_rate_over_ou_5" in df2.columns:
+            df2["line_hit_rate_over_ou_5"] = pd.to_numeric(df2["line_hit_rate_over_ou_5"], errors="coerce")
+            df2.loc[has_hist & valid_n.gt(0), "line_hit_rate_over_ou_5"] = (
+                over_n[has_hist] / valid_n[has_hist]
+            ).round(4)
+        # Avg fallbacks only when history exists
+        df2.loc[has_hist, "stat_season_avg"] = df2.loc[has_hist, "stat_season_avg"].fillna(
+            df2.loc[has_hist, "stat_last5_avg"]
+        )
+        df2.loc[has_hist, "stat_last10_avg"] = df2.loc[has_hist, "stat_last10_avg"].fillna(
+            df2.loc[has_hist, "stat_last5_avg"]
+        )
+    else:
+        if "last5_over" not in df2.columns:
+            df2["last5_over"] = np.nan
+        if "last5_under" not in df2.columns:
+            df2["last5_under"] = np.nan
 
-    l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
-    l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
-    # Prefer explicit hit counts from step5/6 before approximating from hit-rate.
-    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
-    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("line_hits_under_5", np.nan), errors="coerce"))
-    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
-    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
-    # Approximate L5 split from hr5 when explicit counts are absent.
-    l5_over_fallback = (hr5.fillna(0.5) * 5.0).round().clip(0, 5)
-    l5_under_fallback = (5 - l5_over_fallback).clip(0, 5)
-    df2["last5_over"] = l5_over.fillna(l5_over_fallback)
-    df2["last5_under"] = l5_under.fillna(l5_under_fallback)
-    df2["l5_over"] = df2["last5_over"]
-    df2["l5_under"] = df2["last5_under"]
+    # Do NOT invent L5 from hit_rate (0.5*5=2.5 fake hits). Leave null when no game log.
+    df2["l5_over"] = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
+    df2["l5_under"] = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
+    df2["last5_over"] = df2["l5_over"]
+    df2["last5_under"] = df2["l5_under"]
 
     if "line" in df2.columns:
         df2 = finalize_l10_ui_columns(df2, line_col="line")
@@ -667,7 +693,7 @@ def main() -> None:
         except Exception as e2:
             print(f"ERROR Fallback xlsx also failed: {e2}")
 
-    # Dated copy: <repo>/outputs/{date}/step8_tennis_direction_clean_{date}.xlsx
+    # Dated copies for combined_slate path resolution (prefer tennis/ then date root).
     try:
         eastern = zoneinfo.ZoneInfo("America/New_York")
         slate_date = (
@@ -678,14 +704,25 @@ def main() -> None:
         # Sports/Tennis/scripts -> monorepo root (see tennis_grader.py).
         repo_root = Path(__file__).resolve().parents[3]
         dated_dir = repo_root / "outputs" / slate_date
+        tennis_dir = dated_dir / "tennis"
         dated_dir.mkdir(parents=True, exist_ok=True)
-        dated_xlsx = dated_dir / f"step8_tennis_direction_clean_{slate_date}.xlsx"
+        tennis_dir.mkdir(parents=True, exist_ok=True)
         xp = Path(xlsx_path)
         if not xp.is_file():
             xp = repo_root / "Sports" / "Tennis" / str(xlsx_path).replace("\\", "/").lstrip("./")
         if xp.is_file():
-            shutil.copy2(xp, dated_xlsx)
-            print(f"[Tennis step8] Dated clean workbook -> {dated_xlsx}")
+            targets = [
+                dated_dir / f"step8_tennis_direction_clean_{slate_date}.xlsx",
+                tennis_dir / f"step8_tennis_direction_clean_{slate_date}.xlsx",
+                tennis_dir / "step8_tennis_direction_clean.xlsx",
+                repo_root / "Sports" / "Tennis" / "outputs" / "step8_tennis_direction_clean.xlsx",
+                repo_root / "Sports" / "Tennis" / "step8_tennis_direction_clean.xlsx",
+            ]
+            for dest in targets:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(xp, dest)
+            print(f"[Tennis step8] Dated clean workbook -> {targets[0]}")
+            print(f"[Tennis step8] Also mirrored to tennis/ + Sports/Tennis defaults")
     except Exception as e:
         print(f"[Tennis step8] WARN dated copy skipped: {e}")
 

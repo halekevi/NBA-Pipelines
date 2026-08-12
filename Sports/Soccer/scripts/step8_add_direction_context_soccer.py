@@ -208,6 +208,26 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         df2 = finalize_l10_ui_columns(df2, line_col="line")
     df2 = attach_hit_tracking_columns(df2, "SOCCER")
 
+    # Align L5 with stat_g1..5 vs line (same guardrail as WNBA/NBA/Tennis).
+    g5_cols = [c for c in ("stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5") if c in df2.columns]
+    if g5_cols and "line" in df2.columns:
+        g5 = df2[g5_cols].apply(pd.to_numeric, errors="coerce")
+        line = pd.to_numeric(df2["line"], errors="coerce")
+        valid_n = g5.notna().sum(axis=1)
+        over_n = g5.gt(line, axis=0).sum(axis=1)
+        under_n = g5.lt(line, axis=0).sum(axis=1)
+        has_hist = valid_n > 0
+        if "last5_over" not in df2.columns:
+            df2["last5_over"] = np.nan
+        if "last5_under" not in df2.columns:
+            df2["last5_under"] = np.nan
+        df2["last5_over"] = pd.to_numeric(df2["last5_over"], errors="coerce")
+        df2["last5_under"] = pd.to_numeric(df2["last5_under"], errors="coerce")
+        df2.loc[has_hist, "last5_over"] = over_n[has_hist]
+        df2.loc[has_hist, "last5_under"] = under_n[has_hist]
+        if "stat_last5_avg" in df2.columns:
+            df2.loc[has_hist, "stat_last5_avg"] = g5.mean(axis=1)[has_hist]
+
     keep = [
         "tier", "rank_score",
         "player", "pos", "position_group", "team", "opp_team", "days_rest", "is_back_to_back", "opp_days_rest", "opp_b2b",

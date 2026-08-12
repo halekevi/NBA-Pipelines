@@ -218,10 +218,19 @@ def _sleep(base: float, jitter: float = 0.8) -> None:
 
 
 def _norm_name(name: str) -> str:
-    s = (name or "").lower().strip()
-    s = re.sub(r"[^a-z0-9\s]", " ", s)
+    """Accent-safe name key so Azurá→azura, Salaün→salaun matches ESPN cache."""
+    try:
+        from utils.player_name_utils import normalize_player_name
+
+        base = normalize_player_name(name).lower()
+    except Exception:
+        import unicodedata
+
+        base = unicodedata.normalize("NFKD", str(name or ""))
+        base = "".join(c for c in base if not unicodedata.combining(c)).lower()
+    s = re.sub(r"[^a-z0-9\s]", " ", base)
     s = re.sub(r"\s+", " ", s).strip()
-    return " ".join(p for p in s.split() if p not in {"jr","sr","ii","iii","iv","v"})
+    return " ".join(p for p in s.split() if p not in {"jr", "sr", "ii", "iii", "iv", "v"})
 
 
 def _to_float(s) -> pd.Series:
@@ -409,7 +418,15 @@ def parse_boxscore(summary: dict, scoreboard_date: str = "") -> pd.DataFrame:
                 "TEAM":             team_abbr,
                 "MIN":              _parse_minutes(_first_stat(stat_map, ["MIN", "minutes"])),
                 "PTS":              pd.to_numeric(_first_stat(stat_map, ["PTS", "points"]), errors="coerce"),
-                "REB":              pd.to_numeric(_first_stat(stat_map, ["REB", "rebounds", "DREB", "defensiveRebounds"]), errors="coerce"),
+                "REB":              pd.to_numeric(_first_stat(stat_map, ["REB", "rebounds"]), errors="coerce"),
+                "OREB":             pd.to_numeric(
+                    _first_stat(stat_map, ["OREB", "offensiveRebounds", "offensiverebounds"]),
+                    errors="coerce",
+                ),
+                "DREB":             pd.to_numeric(
+                    _first_stat(stat_map, ["DREB", "defensiveRebounds", "defensiverebounds"]),
+                    errors="coerce",
+                ),
                 "AST":              pd.to_numeric(_first_stat(stat_map, ["AST", "assists"]), errors="coerce"),
                 "STL":              pd.to_numeric(_first_stat(stat_map, ["STL", "steals"]), errors="coerce"),
                 "BLK":              pd.to_numeric(_first_stat(stat_map, ["BLK", "blocks"]), errors="coerce"),
@@ -493,8 +510,14 @@ def resolve_prop_slug(row: pd.Series) -> str:
         "3pointersattempted": "fg3a", "2ptfgmade": "fg2m", "2ptfgattempted": "fg2a",
         "2ptmade": "fg2m", "2ptattempted": "fg2a", "twopointersmade": "fg2m",
         "twopointersattempted": "fg2a", "ftm": "ftm", "ftmade": "ftm",
-        "fta": "fta", "ftattempted": "fta", "freethrowsmade": "ftm",
+        "fta": "fta", "ftattempted": "fta",         "freethrowsmade": "ftm",
         "freethrowsattempted": "fta",
+        "defensiverebounds": "dreb",
+        "defensiverebound": "dreb",
+        "dreb": "dreb",
+        "offensiverebounds": "oreb",
+        "offensiverebound": "oreb",
+        "oreb": "oreb",
     }
     return alias.get(clean, clean)
 
@@ -504,6 +527,8 @@ def derive_stat(df: pd.DataFrame, prop_norm: str) -> pd.Series:
 
     pts  = _to_float(df.get("PTS",  pd.Series([np.nan]*len(df), index=df.index)))
     reb  = _to_float(df.get("REB",  pd.Series([np.nan]*len(df), index=df.index)))
+    dreb = _to_float(df.get("DREB", pd.Series([np.nan]*len(df), index=df.index)))
+    oreb = _to_float(df.get("OREB", pd.Series([np.nan]*len(df), index=df.index)))
     ast  = _to_float(df.get("AST",  pd.Series([np.nan]*len(df), index=df.index)))
     stl  = _to_float(df.get("STL",  pd.Series([np.nan]*len(df), index=df.index)))
     blk  = _to_float(df.get("BLK",  pd.Series([np.nan]*len(df), index=df.index)))
@@ -519,6 +544,10 @@ def derive_stat(df: pd.DataFrame, prop_norm: str) -> pd.Series:
 
     if p in ("pts","points"):           return pts
     if p in ("reb","rebounds"):         return reb
+    if p in ("dreb", "defensiverebounds", "defensiverebound"):
+        return dreb
+    if p in ("oreb", "offensiverebounds", "offensiverebound"):
+        return oreb
     if p in ("ast","assists"):          return ast
     if p == "pra":                      return pts + reb + ast
     if p == "pr":                       return pts + reb
@@ -891,8 +920,8 @@ def main():
                         "fg2a": float(r["FG2A"]) if r.get("FG2A") not in (None, "") and not (isinstance(r.get("FG2A"), float) and np.isnan(r.get("FG2A"))) else None,
                         "ftm": float(r["FTM"]) if r.get("FTM") not in (None, "") and not (isinstance(r.get("FTM"), float) and np.isnan(r.get("FTM"))) else None,
                         "fta": float(r["FTA"]) if r.get("FTA") not in (None, "") and not (isinstance(r.get("FTA"), float) and np.isnan(r.get("FTA"))) else None,
-                        "oreb": None,
-                        "dreb": None,
+                        "oreb": float(r["OREB"]) if r.get("OREB") not in (None, "") and not (isinstance(r.get("OREB"), float) and np.isnan(r.get("OREB"))) else None,
+                        "dreb": float(r["DREB"]) if r.get("DREB") not in (None, "") and not (isinstance(r.get("DREB"), float) and np.isnan(r.get("DREB"))) else None,
                         "pf": None,
                         "pra": None,
                         "pr": None,
@@ -1068,17 +1097,34 @@ def main():
             _append_empty_stat_row(new_cols)
             continue
 
+        # Known split-reb props need OREB/DREB columns; older caches only have REB.
+        if prop_n in {"dreb", "oreb"} and prop_n.upper() not in cache_filt.columns:
+            misses.append({"player": player, "reason": f"UNSUPPORTED_PROP:{prop_n}"})
+            for k in new_cols:
+                new_cols[k].append(np.nan)
+            new_cols["unsupported_prop"][-1] = 1
+            new_cols["unsupported_reason"][-1] = f"UNSUPPORTED_PROP:{prop_n}"
+            new_cols["espn_athlete_id"][-1] = ath_id
+            continue
+
         vals_mr, player_games = _stat_values_for_athlete(
             cache_filt, ath_id, prop_n, N, float(args.min_minutes_rolling)
         )
 
         if not vals_mr:
-            misses.append({"player": player, "reason": "NO_CACHE_GAMES"})
+            # Empty after athlete match: either no games, or mapped prop with all-NaN
+            # (e.g. DREB column present but blank). Treat unmapped / all-NaN as unsupported.
+            reason = (
+                f"UNSUPPORTED_PROP:{prop_n}"
+                if prop_n in {"dreb", "oreb"} or not player_games.empty
+                else "NO_CACHE_GAMES"
+            )
+            misses.append({"player": player, "reason": reason})
             for k in new_cols:
                 new_cols[k].append(np.nan)
-            new_cols["unsupported_prop"][-1]   = 0
-            new_cols["unsupported_reason"][-1] = ""
-            new_cols["espn_athlete_id"][-1]    = ath_id
+            new_cols["unsupported_prop"][-1] = 1 if reason.startswith("UNSUPPORTED") else 0
+            new_cols["unsupported_reason"][-1] = reason if reason.startswith("UNSUPPORTED") else ""
+            new_cols["espn_athlete_id"][-1] = ath_id
             continue
 
         if all(isinstance(v, float) and np.isnan(v) for v in vals_mr):

@@ -75,12 +75,6 @@ from utils.proporacle_data_root import (
     load_best_grade_history_runs,
     persistent_data_dir,
 )
-from utils.pick_board_normalize import normalize_rows_pick_types
-from utils.slate_ui_slim import (
-    card_score as _slate_card_score,
-    history_only as _slate_history_only,
-    slim_row as _slate_ui_slim_row,
-)
 from scripts.payout_leg_resolver import PayoutLegResolver
 
 UI_DIR        = Path(__file__).resolve().parent         # all UI assets live here (ui_runner/)
@@ -308,14 +302,11 @@ def post_process_response(response):
         response.headers.setdefault("Access-Control-Allow-Origin", "*")
         response.headers.setdefault("Access-Control-Allow-Methods", "GET, OPTIONS")
         response.headers.setdefault("Access-Control-Allow-Headers", "*")
-    # Versioned static CSS/JS (?v=) can be cached long; unversioned stay short-lived.
+    # Cache static CSS/JS for 1 hour (images/fonts keep same policy)
     if request.path.startswith("/static/") and any(request.path.endswith(e) for e in _STATIC_EXTS):
         if "Cache-Control" not in response.headers:
-            has_v = bool(request.args.get("v"))
-            if request.path.endswith((".css", ".js")) and has_v:
-                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-            elif request.path.endswith((".css", ".js")):
-                response.headers["Cache-Control"] = "public, max-age=86400"
+            if request.path.endswith((".css", ".js")):
+                response.headers["Cache-Control"] = "public, max-age=3600"
             else:
                 response.headers["Cache-Control"] = "public, max-age=86400"
 
@@ -725,19 +716,20 @@ def _gz_json_response(key: str, build_fn, ttl: float = 300.0):
             gz_bytes = buf.getvalue()
             _gz_cache[key] = (gz_bytes, time.time())
 
-    # Short browser cache; in-memory gzip cache + mtime bust keys keep freshness.
-    _JSON_CC = "public, max-age=60, must-revalidate"
+    _JSON_CC = "no-cache, must-revalidate, max-age=0"
     if "gzip" in request.headers.get("Accept-Encoding", ""):
         resp = app.response_class(gz_bytes, status=200, mimetype="application/json")
         resp.headers["Content-Encoding"] = "gzip"
         resp.headers["Content-Length"]   = len(gz_bytes)
         resp.headers["Vary"]             = "Accept-Encoding"
         resp.headers["Cache-Control"]    = _JSON_CC
+        resp.headers["Pragma"]           = "no-cache"
         return resp
     # Non-gzip client: decompress inline (rare — all modern browsers support gzip)
     with gzip.GzipFile(fileobj=io.BytesIO(gz_bytes)) as f:
         resp = app.response_class(f.read(), status=200, mimetype="application/json")
         resp.headers["Cache-Control"] = _JSON_CC
+        resp.headers["Pragma"]        = "no-cache"
         return resp
 
 
@@ -1099,13 +1091,60 @@ def _selected_slate_sport_payload() -> dict:
 
 
 # Home slate explorer table + detail modal charts (see templates/index.html).
-# List payloads omit history series; detail/cards opt back in via include_history.
-_SLATE_SPORT_UI_KEYS = frozenset()  # legacy name kept for imports; prefer utils.slate_ui_slim
+_SLATE_SPORT_UI_KEYS = frozenset(
+    {
+        "tier",
+        "rank_score",
+        "player",
+        "team",
+        "opp",
+        "prop",
+        "pick_type",
+        "line",
+        "dir",
+        "edge",
+        "abs_edge",
+        "projection",
+        "hit_rate",
+        "l5_avg",
+        "l5_over",
+        "l5_under",
+        "l5_games_played",
+        "l10_over",
+        "l10_under",
+        "l10_games_played",
+        "season_avg",
+        "ml_prob",
+        "def_tier",
+        "standard_line",
+        "standard_projection",
+        "opponent_def_rank",
+        "image_url",
+        "game_date",
+        "game_time",
+        "sport",
+        "pick_platform",
+        "line_underdog",
+        "line_draftkings",
+        "cross_edge_vs_pp",
+        "best_cross_book",
+        "actual_series",
+        "line_series",
+        "team_avg",
+        "share_pct",
+        "share_player_avg",
+        "share_vs_line",
+        "avg_vs_line",
+        "share_lean",
+        "line_as_pct_of_team",
+        *(f"g{i}" for i in range(1, 11)),
+        *(f"stat_g{i}" for i in range(1, 11)),
+        *(f"line_g{i}" for i in range(1, 11)),
+    }
+)
 
 
-def _merged_combined_slim_rows(
-    payload: dict, *, include_history: bool = False
-) -> list[dict[str, Any]]:
+def _merged_combined_slim_rows(payload: dict) -> list[dict[str, Any]]:
     """All sports from slate_latest (or ticket_eval when selected), Full Slate–style merge for COMBINED."""
     sports = (payload or {}).get("sports") or {}
     out: list[dict[str, Any]] = []
@@ -1118,7 +1157,7 @@ def _merged_combined_slim_rows(
         for r in v:
             if not isinstance(r, dict):
                 continue
-            slim = _slim_slate_sport_row(r, include_history=include_history)
+            slim = _slim_slate_sport_row(r)
             if "sport" not in slim:
                 lab = str(r.get("sport") or "").strip().upper()
                 slim["sport"] = lab or sk.upper()
@@ -1138,9 +1177,7 @@ def _merged_combined_slim_rows(
     return _filter_slate_explorer_rows(out)
 
 
-def _wnba_slate_rows_from_step8_fallback(
-    *, include_history: bool = False
-) -> list[dict[str, Any]]:
+def _wnba_slate_rows_from_step8_fallback() -> list[dict[str, Any]]:
     """
     slate_latest.json often omits WNBA after a standalone run (combined --write-web not re-run).
     If step8 exists on disk, build the same row shape the explorer expects.
@@ -1195,16 +1232,65 @@ def _wnba_slate_rows_from_step8_fallback(
                 continue
             rr = dict(r)
             rr["sport"] = "WNBA"
-            out_fb.append(_slim_slate_sport_row(rr, include_history=include_history))
+            out_fb.append(_slim_slate_sport_row(rr))
         return out_fb
     finally:
         if path_inserted and sys.path and sys.path[0] == scripts_dir:
             sys.path.pop(0)
 
 
-def _slim_slate_sport_row(r: dict, *, include_history: bool = False) -> dict:
-    """One slate row: UI keys only; history series omitted unless requested."""
-    return _slate_ui_slim_row(r, include_history=include_history)
+def _slim_slate_sport_cell(key: str, v: Any) -> Any:
+    """Normalize values for smaller JSON and stable sorting in the client."""
+    if v is None:
+        return None
+    if isinstance(v, str):
+        s = v.strip()
+        if key == "pick_platform":
+            return s.lower().replace(" ", "") if s else None
+        return s if s else None
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+            return None
+        if key in ("edge", "rank_score", "abs_edge", "ml_prob"):
+            return round(float(v), 4)
+        if key == "hit_rate":
+            return round(float(v), 6)
+        if key == "opponent_def_rank":
+            fv = float(v)
+            if fv.is_integer():
+                return int(fv)
+            return round(fv, 4)
+        if key in (
+            "line",
+            "l5_over",
+            "l5_under",
+            "l10_over",
+            "l10_under",
+            "projection",
+            "standard_line",
+            "season_avg",
+        ):
+            fv = float(v)
+            if fv.is_integer():
+                return int(fv)
+            return round(fv, 3)
+        return v
+    return v
+
+
+def _slim_slate_sport_row(r: dict) -> dict:
+    """One slate row: only UI keys, omit nulls / blanks after coercion."""
+    slim: dict[str, Any] = {}
+    for kk in _SLATE_SPORT_UI_KEYS:
+        if kk not in r:
+            continue
+        cv = _slim_slate_sport_cell(kk, r[kk])
+        if cv is None:
+            continue
+        slim[kk] = cv
+    return slim
 
 
 def _filter_invalid_demon_slate_rows(rows: list[Any]) -> list[Any]:
@@ -1250,15 +1336,8 @@ def _filter_fantasy_slate_rows(rows: list[Any]) -> list[Any]:
     ]
 
 
-def _normalize_slate_explorer_pick_types(rows: list[Any]) -> list[Any]:
-    """Reclassify Goblin alts that are harder than true Standard → Demon before demon filter."""
-    return normalize_rows_pick_types(rows)
-
-
 def _filter_slate_explorer_rows(rows: list[Any]) -> list[Any]:
-    return _filter_fantasy_slate_rows(
-        _filter_invalid_demon_slate_rows(_normalize_slate_explorer_pick_types(rows))
-    )
+    return _filter_fantasy_slate_rows(_filter_invalid_demon_slate_rows(rows))
 
 
 def _api_slate_pick_abs_edge(record: dict[str, Any]) -> float:
@@ -1278,7 +1357,7 @@ def _api_slate_pick_abs_edge(record: dict[str, Any]) -> float:
     return round(abs(ef), 4)
 
 
-def _slim_slate_sport_payload(payload: dict, *, include_history: bool = False) -> dict:
+def _slim_slate_sport_payload(payload: dict) -> dict:
     """Drop unused columns from /api/slate-sport to shrink the gzipped JSON payload."""
     if not isinstance(payload, dict):
         return payload
@@ -1294,10 +1373,18 @@ def _slim_slate_sport_payload(payload: dict, *, include_history: bool = False) -
         if not isinstance(rows, list):
             slim_sports[k] = rows
             continue
+        try:
+            from utils.team_share import enrich_slate_rows
+
+            rows = enrich_slate_rows([r for r in rows if isinstance(r, dict)], str(k), repo=BASE_DIR) + [
+                r for r in rows if not isinstance(r, dict)
+            ]
+        except Exception:
+            pass
         slim_rows: list[Any] = []
         for r in rows:
             if isinstance(r, dict):
-                slim_rows.append(_slim_slate_sport_row(r, include_history=include_history))
+                slim_rows.append(_slim_slate_sport_row(r))
             else:
                 slim_rows.append(r)
         slim_sports[k] = _filter_slate_explorer_rows(slim_rows)
@@ -1306,61 +1393,6 @@ def _slim_slate_sport_payload(payload: dict, *, include_history: bool = False) -
         "generated_at": payload.get("generated_at"),
         "sports": slim_sports,
     }
-
-
-def _build_slate_cards_payload(payload: dict, *, max_rows: int = 400) -> dict:
-    """Compact combined rows (with history) for Best-to-Run / Edges / L5 home cards."""
-    rows = _merged_combined_slim_rows(payload, include_history=True)
-    rows = sorted(rows, key=_slate_card_score, reverse=True)
-    if max_rows > 0 and len(rows) > max_rows:
-        rows = rows[:max_rows]
-    return {
-        "ok": True,
-        "date": payload.get("date"),
-        "generated_at": payload.get("generated_at"),
-        "rows": rows,
-        "truncated": len(rows),
-    }
-
-
-def _find_raw_slate_row(
-    payload: dict, *, sport: str, player: str, prop: str, line: str
-) -> dict | None:
-    sports = (payload or {}).get("sports") or {}
-    sk = str(sport or "").strip().lower()
-    candidates: list[dict] = []
-    if sk == "combined" or not sk:
-        for k, v in sports.items():
-            if str(k).lower() == "combined" or not isinstance(v, list):
-                continue
-            for r in v:
-                if isinstance(r, dict):
-                    candidates.append(r)
-    else:
-        rows = sports.get(sk) or []
-        if sk == "cbb":
-            rows = list(rows) + list(sports.get("wcbb") or [])
-        if isinstance(rows, list):
-            candidates = [r for r in rows if isinstance(r, dict)]
-    player_l = str(player or "").strip().lower()
-    prop_l = str(prop or "").strip().lower()
-    try:
-        line_f = float(line) if line not in (None, "") else None
-    except (TypeError, ValueError):
-        line_f = None
-    for r in candidates:
-        if str(r.get("player") or "").strip().lower() != player_l:
-            continue
-        if str(r.get("prop") or "").strip().lower() != prop_l:
-            continue
-        if line_f is not None:
-            try:
-                if abs(float(r.get("line")) - line_f) > 1e-6:
-                    continue
-            except (TypeError, ValueError):
-                continue
-        return r
-    return None
 
 
 def _slate_counts() -> tuple[dict[str, int], dict]:
@@ -5586,8 +5618,8 @@ def api_slate_sport():
         return jsonify({"error": str(e), "sports": {}}), 404
     try:
         return _gz_json_response(
-            f"slate-sport-slim-v3-list:{_explorer_json_gz_bust_token()}",
-            lambda: _slim_slate_sport_payload(_selected_slate_sport_payload(), include_history=False),
+            f"slate-sport-slim-v2:{_explorer_json_gz_bust_token()}",
+            lambda: _slim_slate_sport_payload(_selected_slate_sport_payload()),
             ttl=_PIPELINE_JSON_TTL,
         )
     except Exception as e:
@@ -5600,7 +5632,6 @@ def api_slate_sport_single(sport: str):
     Per-sport lazy slate endpoint for the home explorer.
     Uses the same source as /api/slate-sport (slate_latest.json or ticket_eval per SLATE_SPORT_SOURCE).
     sport=combined returns the merged Full Slate (all sports).
-    Pass include_history=1 to include actual_series / g1..g10 (detail charts).
     """
     if not (
         _template_json_available("slate_latest.json")
@@ -5618,13 +5649,6 @@ def api_slate_sport_single(sport: str):
     if not sport_key:
         return jsonify({"error": "missing sport key", "sport": sport_key, "rows": []}), 400
 
-    include_history = str(request.args.get("include_history") or "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    )
-
     try:
         _selected_slate_sport_payload()
     except ValueError as e:
@@ -5634,12 +5658,11 @@ def api_slate_sport_single(sport: str):
         payload = _selected_slate_sport_payload()
         sports = (payload or {}).get("sports") or {}
         if sport_key == "combined":
-            slim_rows = _merged_combined_slim_rows(payload, include_history=include_history)
+            slim_rows = _merged_combined_slim_rows(payload)
             return {
                 "date": payload.get("date"),
                 "generated_at": payload.get("generated_at"),
                 "sport": sport_key,
-                "include_history": include_history,
                 "rows": slim_rows,
             }
         rows = sports.get(sport_key) or []
@@ -5648,117 +5671,39 @@ def api_slate_sport_single(sport: str):
             rows = list(rows) + list(sports.get("wcbb") or [])
         if not isinstance(rows, list):
             rows = []
-        slim_rows = [
-            _slim_slate_sport_row(r, include_history=include_history)
-            if isinstance(r, dict)
-            else r
-            for r in rows
-        ]
+        try:
+            from utils.team_share import enrich_slate_rows
+
+            dict_rows = [r for r in rows if isinstance(r, dict)]
+            other = [r for r in rows if not isinstance(r, dict)]
+            # For combined cbb+wcbb, enrich each row by its own sport field when present
+            enriched: list[Any] = []
+            for r in dict_rows:
+                sk = str(r.get("sport") or sport_key).strip().lower() or sport_key
+                enrich_slate_rows([r], sk, repo=BASE_DIR)
+                enriched.append(r)
+            rows = enriched + other
+        except Exception:
+            pass
+        slim_rows = [_slim_slate_sport_row(r) if isinstance(r, dict) else r for r in rows]
         if not slim_rows and sport_key == "wnba":
-            slim_rows = _wnba_slate_rows_from_step8_fallback(include_history=include_history)
+            slim_rows = _wnba_slate_rows_from_step8_fallback()
         slim_rows = _filter_slate_explorer_rows(slim_rows)
         return {
             "date": payload.get("date"),
             "generated_at": payload.get("generated_at"),
             "sport": sport_key,
-            "include_history": include_history,
             "rows": slim_rows,
         }
 
     try:
-        hist_tag = "hist" if include_history else "list"
         return _gz_json_response(
-            f"slate-sport-single-v2:{sport_key}:{hist_tag}:{_explorer_json_gz_bust_token()}",
+            f"slate-sport-single-v1:{sport_key}:{_explorer_json_gz_bust_token()}",
             _build,
             ttl=60.0,
         )
     except Exception as e:
         return jsonify({"error": str(e), "sport": sport_key, "rows": []}), 500
-
-
-@app.get("/api/slate-cards")
-def api_slate_cards():
-    """Small combined payload for home Best-to-Run / Top Edges / streak cards."""
-    if not (
-        _template_json_available("slate_latest.json")
-        or _template_json_available("ticket_eval_slate_latest.json")
-    ):
-        return jsonify({"ok": False, "error": "No slate JSON", "rows": []}), 404
-    try:
-        _selected_slate_sport_payload()
-    except ValueError as e:
-        return jsonify({"ok": False, "error": str(e), "rows": []}), 404
-
-    try:
-        max_rows = int(request.args.get("max") or 400)
-    except (TypeError, ValueError):
-        max_rows = 400
-    max_rows = max(50, min(max_rows, 1200))
-
-    try:
-        return _gz_json_response(
-            f"slate-cards-v1:{max_rows}:{_explorer_json_gz_bust_token()}",
-            lambda: _build_slate_cards_payload(
-                _selected_slate_sport_payload(), max_rows=max_rows
-            ),
-            ttl=60.0,
-        )
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e), "rows": []}), 500
-
-
-@app.get("/api/line-move-timing")
-def api_line_move_timing():
-    """Historical Standard line-move timing insight (first fetch → refreshes)."""
-    path = TEMPLATES_DIR / "line_move_timing.json"
-    if not path.is_file():
-        return jsonify(
-            {
-                "ok": False,
-                "headline": "Line-move timing still collecting.",
-                "tips": ["Keep 5AM + midday refreshes on to build history."],
-                "windows": [],
-            }
-        )
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(payload, dict):
-            payload["ok"] = True
-            return jsonify(payload)
-    except (OSError, json.JSONDecodeError) as e:
-        return jsonify({"ok": False, "error": str(e), "windows": [], "tips": []}), 500
-    return jsonify({"ok": False, "error": "invalid payload", "windows": [], "tips": []}), 500
-
-
-@app.get("/api/slate-history")
-def api_slate_history():
-    """Fetch game-log series for one prop (detail modal) without reloading the sport table."""
-    if not (
-        _template_json_available("slate_latest.json")
-        or _template_json_available("ticket_eval_slate_latest.json")
-    ):
-        return jsonify({"ok": False, "error": "No slate JSON"}), 404
-    sport = str(request.args.get("sport") or "").strip()
-    player = str(request.args.get("player") or "").strip()
-    prop = str(request.args.get("prop") or "").strip()
-    line = str(request.args.get("line") or "").strip()
-    if not (player and prop):
-        return jsonify({"ok": False, "error": "player and prop required"}), 400
-    try:
-        payload = _selected_slate_sport_payload()
-    except ValueError as e:
-        return jsonify({"ok": False, "error": str(e)}), 404
-    raw = _find_raw_slate_row(payload, sport=sport, player=player, prop=prop, line=line)
-    if raw is None and str(sport or "").strip().lower() == "wnba":
-        for r in _wnba_slate_rows_from_step8_fallback(include_history=True):
-            if str(r.get("player") or "").strip().lower() != player.lower():
-                continue
-            if str(r.get("prop") or "").strip().lower() != prop.lower():
-                continue
-            return jsonify({"ok": True, "history": r})
-    if raw is None:
-        return jsonify({"ok": False, "error": "row not found"}), 404
-    return jsonify({"ok": True, "history": _slate_history_only(raw)})
 
 
 def _matchup_edge_slate_paths(sport_key: str) -> list[Path]:
@@ -5861,25 +5806,16 @@ def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> d
 
     Production rebuilds sometimes emit matchup JSON with leaders but blank opponents
     when the builder could not resolve slate opp cells — the live slate still has them.
+    Also drops orphan teams that only appear via stale props with no opp when other
+    clubs have real matchups (so Matchup Edge does not default to empty Opp cards).
     """
     if not isinstance(payload, dict) or payload.get("error"):
         return payload
     mus = payload.get("matchups")
     if not isinstance(mus, dict) or not mus:
         return payload
-    missing = [
-        k
-        for k, v in mus.items()
-        if not str((v or {}).get("opponent_slate") or "").strip()
-        and not str((v or {}).get("opponent_name") or "").strip()
-    ]
-    if not missing:
-        return payload
 
     rows = _load_matchup_edge_slate_rows(sport_key)
-    if not rows:
-        return payload
-
     aliases = _matchup_edge_team_alias_map(payload, sport_key)
     name_by_abbr = {
         str(t.get("slate_abbr") or "").strip().upper(): str(t.get("name") or "").strip()
@@ -5909,53 +5845,100 @@ def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> d
         pair.setdefault(team, opp)
         pair.setdefault(opp, team)
 
-    if not pair:
-        return payload
-
     filled = 0
-    for ab, mu in mus.items():
-        if not isinstance(mu, dict):
-            continue
-        if str(mu.get("opponent_slate") or "").strip() or str(mu.get("opponent_name") or "").strip():
-            continue
-        opp = pair.get(str(ab).strip().upper(), "")
-        if not opp:
-            continue
-        opp_meta = meta_by_abbr.get(opp) or {}
-        mu["opponent_slate"] = opp
-        mu["opponent_name"] = name_by_abbr.get(opp) or str(opp_meta.get("name") or opp)
-        if mu.get("opponent_def_rank") is None and opp_meta.get("def_rank") is not None:
-            mu["opponent_def_rank"] = opp_meta.get("def_rank")
-        if not str(mu.get("opponent_def_tier") or "").strip() and opp_meta.get("def_tier"):
-            mu["opponent_def_tier"] = opp_meta.get("def_tier")
-        filled += 1
+    if pair:
+        for ab, mu in mus.items():
+            if not isinstance(mu, dict):
+                continue
+            if str(mu.get("opponent_slate") or "").strip() or str(mu.get("opponent_name") or "").strip():
+                continue
+            opp = pair.get(str(ab).strip().upper(), "")
+            if not opp:
+                continue
+            opp_meta = meta_by_abbr.get(opp) or {}
+            mu["opponent_slate"] = opp
+            mu["opponent_name"] = name_by_abbr.get(opp) or str(opp_meta.get("name") or opp)
+            if mu.get("opponent_def_rank") is None and opp_meta.get("def_rank") is not None:
+                mu["opponent_def_rank"] = opp_meta.get("def_rank")
+            if not str(mu.get("opponent_def_tier") or "").strip() and opp_meta.get("def_tier"):
+                mu["opponent_def_tier"] = opp_meta.get("def_tier")
+            filled += 1
 
-    if filled:
-        pbtc = payload.get("players_by_team_cat")
-        if isinstance(pbtc, dict):
-            for key, block in pbtc.items():
-                if not isinstance(block, dict):
-                    continue
-                team_ab = str(key).split("|", 1)[0].strip().upper()
-                opp_obj = block.get("opponent")
-                if not isinstance(opp_obj, dict):
-                    opp_obj = {}
-                    block["opponent"] = opp_obj
-                if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
-                    continue
-                mu = mus.get(team_ab) or {}
-                opp = str(mu.get("opponent_slate") or "").strip().upper()
-                if not opp:
-                    continue
-                opp_meta = meta_by_abbr.get(opp) or {}
-                opp_obj["slate_abbr"] = opp
-                opp_obj["name"] = mu.get("opponent_name") or name_by_abbr.get(opp) or opp
-                if opp_obj.get("def_rank") is None:
-                    opp_obj["def_rank"] = mu.get("opponent_def_rank") or opp_meta.get("def_rank")
-                if not str(opp_obj.get("def_tier") or "").strip():
-                    opp_obj["def_tier"] = mu.get("opponent_def_tier") or opp_meta.get("def_tier") or ""
+    # Always sync block.opponent from matchups (even when matchups were already filled).
+    pbtc = payload.get("players_by_team_cat")
+    blocks_filled = 0
+    if isinstance(pbtc, dict):
+        for key, block in pbtc.items():
+            if not isinstance(block, dict):
+                continue
+            team_ab = str(key).split("|", 1)[0].strip().upper()
+            opp_obj = block.get("opponent")
+            if not isinstance(opp_obj, dict):
+                opp_obj = {}
+                block["opponent"] = opp_obj
+            if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
+                continue
+            mu = mus.get(team_ab) or {}
+            opp = str(mu.get("opponent_slate") or "").strip().upper() or pair.get(team_ab, "")
+            if not opp:
+                continue
+            opp_meta = meta_by_abbr.get(opp) or {}
+            opp_obj["slate_abbr"] = opp
+            opp_obj["name"] = (
+                mu.get("opponent_name")
+                or name_by_abbr.get(opp)
+                or str(opp_meta.get("name") or opp)
+            )
+            if opp_obj.get("def_rank") is None:
+                opp_obj["def_rank"] = mu.get("opponent_def_rank") or opp_meta.get("def_rank")
+            if not str(opp_obj.get("def_tier") or "").strip():
+                opp_obj["def_tier"] = mu.get("opponent_def_tier") or opp_meta.get("def_tier") or ""
+            blocks_filled += 1
+
+    # Mark / prune orphan teams (e.g. LAS stale May props with opp=null) so the UI
+    # does not default to a club with empty Opp def cards.
+    teams_with_opp = {
+        str(ab).strip().upper()
+        for ab, mu in mus.items()
+        if isinstance(mu, dict)
+        and (
+            str(mu.get("opponent_slate") or "").strip()
+            or str(mu.get("opponent_name") or "").strip()
+        )
+    }
+    if teams_with_opp and isinstance(pbtc, dict):
+        orphan_keys = []
+        for key, block in list(pbtc.items()):
+            if not isinstance(block, dict):
+                continue
+            team_ab = str(key).split("|", 1)[0].strip().upper()
+            if team_ab in teams_with_opp:
+                continue
+            opp_obj = block.get("opponent") if isinstance(block.get("opponent"), dict) else {}
+            if str(opp_obj.get("slate_abbr") or "").strip() or str(opp_obj.get("name") or "").strip():
+                continue
+            orphan_keys.append(key)
+        if orphan_keys and len(orphan_keys) < len(pbtc):
+            for key in orphan_keys:
+                pbtc.pop(key, None)
+            payload["_orphan_blocks_dropped"] = len(orphan_keys)
+
+    if filled or blocks_filled:
         payload["_opponents_enriched_from_slate"] = filled
+        payload["_opponent_blocks_synced"] = blocks_filled
     return payload
+
+
+def _enrich_matchup_edge_team_share(payload: dict[str, Any], sport_key: str) -> dict[str, Any]:
+    """Attach team_avg / share_pct / avg_vs_line onto Matchup Edge player rows."""
+    try:
+        from utils.team_share import enrich_matchup_edge_payload
+
+        return enrich_matchup_edge_payload(payload, sport_key, repo=BASE_DIR)
+    except Exception as exc:
+        if isinstance(payload, dict):
+            payload["team_share"] = {"applicable": False, "reason": f"enrich failed: {exc}"}
+        return payload
 
 
 def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
@@ -5969,7 +5952,8 @@ def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
         path = alt if alt.is_file() else path
     if path.is_file():
         payload = json.loads(path.read_text(encoding="utf-8"))
-        return _enrich_matchup_edge_opponents(payload, sport_key)
+        payload = _enrich_matchup_edge_opponents(payload, sport_key)
+        return _enrich_matchup_edge_team_share(payload, sport_key)
     build_script = BASE_DIR / "scripts" / "build_matchup_edge_json.py"
     if build_script.is_file():
         subprocess.run(
@@ -5981,7 +5965,8 @@ def _matchup_edge_payload(sport_key: str) -> dict[str, Any]:
         )
         if path.is_file():
             payload = json.loads(path.read_text(encoding="utf-8"))
-            return _enrich_matchup_edge_opponents(payload, sport_key)
+            payload = _enrich_matchup_edge_opponents(payload, sport_key)
+            return _enrich_matchup_edge_team_share(payload, sport_key)
     return {
         "sport": sport_key,
         "error": f"{json_name} not found — run scripts/build_matchup_edge_json.py --sport {sport_key}",
@@ -6035,7 +6020,7 @@ def api_matchup_edge(sport: str):
 
     try:
         return _gz_json_response(
-            f"matchup-edge-v3:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
+            f"matchup-edge-v4:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
             _build,
             ttl=120.0,
         )
@@ -6378,7 +6363,7 @@ def _load_grade_history_rows() -> list[dict[str, Any]]:
                 "tickets": n_tickets,
                 "wins": wins,
                 "losses": losses,
-                "void_loss_ct": min(void_loss_ct, losses),
+                "void_loss_ct": void_loss_ct,
                 "guarantees": guarantees,
                 "decided": decided,
                 "paid": paid,

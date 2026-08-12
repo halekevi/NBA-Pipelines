@@ -1,0 +1,1123 @@
+{
+  "date": "2026-08-08",
+  "generated_at": "2026-08-08T19:51:21.840236Z",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\ui_runner\\data\\combined_slate_tickets_2026-08-08.json",
+  "by_ticket_id": {
+    "2026-08-08|STRONG 2-Leg|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|STRONG 2-Leg|10": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|11": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|12": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|13": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|2": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|STRONG 2-Leg|3": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|STRONG 2-Leg|4": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|STRONG 2-Leg|5": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|STRONG 2-Leg|6": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|8": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|9": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 3-Leg|1": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-08|STRONG 3-Leg|2": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-08|STRONG 3-Leg|3": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 3-Leg|5": {
+      "power_min_x": 2.0,
+      "power_first_x": 6.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|5",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 3-Leg|6": {
+      "power_min_x": 2.0,
+      "power_first_x": 6.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|6",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-08-08|MLB 3-Leg Goblin|1": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "2026-08-08|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|MLB Core Power 2 #2|1": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "2026-08-08|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-08|TENNIS 3-Leg Goblin|1": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-08|MLB Goblin 3-Leg #1|1": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-08|STRONG 3-Leg|4": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-08-08|MLB 2-Leg Goblin|1": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 2-Leg Goblin|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "2026-08-08|STRONG 2-Leg|7": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|SOCCER 3-Leg Goblin|1": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-08|MLB Goblin 3-Leg #9|1": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Goblin 3-Leg #9|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-08|STRONG 2-Leg|14": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|14",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|15": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|15",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-08|STRONG 2-Leg|16": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|16",
+      "n_legs": 2,
+      "slip_type": "strong"
+    }
+  },
+  "by_leg_sig": {
+    "jacob degrom|earned runs allowed|over|1.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "aaron nola|walks allowed|over|0.500||gage jump|hits allowed|over|3.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "anthony kay|earned runs allowed|over|0.500||peter lambert|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "bubba chandler|hits allowed|over|3.500||gage jump|walks allowed|over|1.500": {
+      "power_min_x": 2.0,
+      "power_first_x": 3.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "gerrit cole|walks allowed|over|0.500||seth lugo|walks allowed|over|1.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jacob degrom|hits allowed|over|3.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jake bennett|hits allowed|over|3.500||michael king|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "andrew alvarez|earned runs allowed|over|0.500||bubba chandler|earned runs allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "anthony kay|walks allowed|over|0.500||robert gasser|earned runs allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "chase burns|walks allowed|over|1.500||clay holmes|walks allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 3.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "kyle bradish|earned runs allowed|over|0.500||michael king|hits allowed|over|3.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "clay holmes|earned runs allowed|over|0.500||matthew liberatore|walks allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jacob degrom|hits allowed|over|3.500||landen roupp|earned runs allowed|over|0.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "andrew alvarez|earned runs allowed|over|0.500||anthony kay|walks allowed|over|0.500||robert gasser|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "clay holmes|earned runs allowed|over|0.500||jake bennett|hits allowed|over|3.500||michael king|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Goblin 3-Leg #9|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "chase burns|walks allowed|over|1.500||gage jump|hits allowed|over|3.500||peter lambert|earned runs allowed|over|0.500": {
+      "power_min_x": 2.0,
+      "power_first_x": 6.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|5",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "gerrit cole|walks allowed|over|0.500||kyle bradish|earned runs allowed|over|0.500||seth lugo|walks allowed|over|1.500": {
+      "power_min_x": 2.0,
+      "power_first_x": 6.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|6",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "bubba chandler|walks allowed|over|0.500||jacob degrom|hits allowed|over|3.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||jacob degrom|hits allowed|over|3.500||michael king|earned runs allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||jacob degrom|earned runs allowed|over|0.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||jacob degrom|earned runs allowed|over|0.500||michael king|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||jacob degrom|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 2-Leg Goblin|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jacob degrom|earned runs allowed|over|0.500||robert gasser|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "gage jump|walks allowed|over|1.500||jacob degrom|earned runs allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 3.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "elina svitolina|total games won|over|10.500||marta kostyuk|total games won|over|9.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.6,
+      "power_first_x": 6.0,
+      "display_min_x": 2.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "diana shnaider|total games won|over|8.500||elina svitolina|total games won|over|10.500||marta kostyuk|total games won|over|9.500": {
+      "power_min_x": 2.7,
+      "power_first_x": 6.0,
+      "display_min_x": 2.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "elina svitolina|total games won|over|10.500||iga swiatek|total games won|over|11.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.3,
+      "power_first_x": 6.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||jacob degrom|hits allowed|over|3.500||robert gasser|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3
+    },
+    "elina svitolina|total games won|over|10.500||iga swiatek|total games won|over|11.500||marta kostyuk|total games won|over|9.500": {
+      "power_min_x": 2.3,
+      "power_first_x": 6.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3
+    },
+    "clay holmes|pitching outs|over|11.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "clay holmes|pitching outs|over|11.500||jake bennett|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "clay holmes|pitching outs|over|11.500||jacob degrom|hits allowed|over|2.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jacob degrom|hits allowed|over|2.500||michael king|hits allowed|over|2.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "gavin williams|pitching outs|over|14.500||jake bennett|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "andrew alvarez|pitching outs|over|11.500||clay holmes|pitching outs|over|11.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "kyle freeland|earned runs allowed|over|1.500||taj bradley|pitching outs|over|14.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "george kirby|hits allowed|over|3.500||michael king|pitching outs|over|14.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "bubba chandler|earned runs allowed|over|0.500||robert gasser|hits allowed|over|2.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "aaron nola|earned runs allowed|over|0.500||bubba chandler|hits allowed|over|2.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "landen roupp|earned runs allowed|over|0.500||robert gasser|pitching outs|over|14.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "aaron nola|hits allowed|over|3.500||matthew liberatore|hits allowed|over|3.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "chase burns|hits allowed|over|2.500||jake bennett|hits allowed|over|3.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|14",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "andrew alvarez|pitching outs|over|11.500||clay holmes|pitching outs|over|11.500||jake bennett|pitching outs|over|14.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "gavin williams|pitching outs|over|14.500||michael king|hits allowed|over|2.500||taj bradley|pitching outs|over|14.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "bubba chandler|earned runs allowed|over|0.500||kyle freeland|earned runs allowed|over|1.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jacob degrom|hits allowed|over|2.500||jake bennett|pitching outs|over|14.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clay holmes|pitching outs|over|11.500||jacob degrom|hits allowed|over|2.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jacob degrom|hits allowed|over|2.500||max scherzer|walks allowed|over|0.500||michael king|pitching outs|over|14.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jacob degrom|hits allowed|over|2.500||max scherzer|walks allowed|over|0.500||michael king|hits allowed|over|2.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jacob degrom|hits allowed|over|3.500||jake bennett|pitching outs|over|14.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "elina svitolina|total games won|over|9.500||marta kostyuk|total games won|over|8.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "diana shnaider|total games won|over|8.500||elina svitolina|total games won|over|9.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "diana shnaider|total games won|over|8.500||elina svitolina|total games won|over|9.500||marta kostyuk|total games won|over|8.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "elina svitolina|total games won|over|9.500||iga swiatek|total games won|over|10.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clay holmes|pitching outs|over|11.500||jacob degrom|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "michael king|pitching outs|over|14.500||robert gasser|hits allowed|over|2.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "aaron nola|hits allowed|over|3.500||gage jump|walks allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "bubba chandler|earned runs allowed|over|0.500||matthew liberatore|hits allowed|over|3.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jake bennett|hits allowed|over|3.500||kyle freeland|hits allowed|over|4.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "george kirby|hits allowed|over|3.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "robert gasser|pitching outs|over|14.500||taj bradley|hits allowed|over|2.500": {
+      "power_min_x": 2.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "aaron nola|hits allowed|over|3.500||gage jump|walks allowed|over|0.500||jacob degrom|hits allowed|over|2.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "jacob degrom|earned runs allowed|over|0.500||jake bennett|pitching outs|over|14.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clay holmes|pitching outs|over|11.500||jacob degrom|earned runs allowed|over|0.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jacob degrom|earned runs allowed|over|0.500||max scherzer|walks allowed|over|0.500||michael king|pitching outs|over|14.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jacob degrom|earned runs allowed|over|0.500||max scherzer|walks allowed|over|0.500||michael king|hits allowed|over|2.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "andrew alvarez|earned runs allowed|over|0.500||anthony kay|walks allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "luis cárdenas|goalie saves|over|2.500||matt turner|goalie saves|over|2.500||michael collodi|goalie saves|over|2.500": {
+      "power_min_x": 2.1,
+      "power_first_x": 6.0,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "luis cárdenas|goalie saves|over|2.500||michael collodi|goalie saves|over|2.500||óscar whalley|goalie saves|over|1.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "clay holmes|pitching outs|over|11.500||michael king|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jacob degrom|earned runs allowed|over|0.500||michael king|pitches thrown|over|91.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "clay holmes|pitching outs|over|11.500||michael king|pitches thrown|over|91.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "michael king|hits allowed|over|2.500||robert gasser|pitching outs|over|14.500||taj bradley|pitching outs|over|14.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jake bennett|pitching outs|over|14.500||michael king|pitches thrown|over|91.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jacob degrom|hits allowed|over|2.500||taj bradley|pitching outs|over|14.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "gage jump|walks allowed|over|0.500||robert gasser|hits allowed|over|2.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "michael king|hits allowed|over|2.500||robert gasser|pitching outs|over|14.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "aaron nola|earned runs allowed|over|0.500||chase burns|walks allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "gage jump|pitches thrown|over|83.500||kyle freeland|earned runs allowed|over|1.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "jacob degrom|pitches thrown|over|85.500||landen roupp|pitches thrown|over|86.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "gavin williams|pitching outs|over|14.500||taj bradley|pitches thrown|over|91.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "aaron nola|hits allowed|over|3.500||bubba chandler|hits allowed|over|2.500": {
+      "power_min_x": 1.2,
+      "power_first_x": 3.0,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "andrew alvarez|pitching outs|over|11.500||jake bennett|pitching outs|over|14.500||michael king|pitches thrown|over|91.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clay holmes|pitching outs|over|11.500||jacob degrom|pitches thrown|over|85.500||landen roupp|pitches thrown|over|86.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "gage jump|pitches thrown|over|83.500||gavin williams|pitching outs|over|14.500||taj bradley|pitches thrown|over|91.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "aaron nola|hits allowed|over|3.500||bubba chandler|earned runs allowed|over|0.500||kyle freeland|earned runs allowed|over|1.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "jacob degrom|earned runs allowed|over|0.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 2-Leg Goblin|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "luis cárdenas|goalie saves|over|2.500||michael collodi|goalie saves|over|2.500||raúl rangel|goalie saves|over|1.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "esteban andrada|goalie saves|over|2.500||michael collodi|goalie saves|over|2.500||raúl rangel|goalie saves|over|1.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "matt turner|goalie saves|over|2.500||michael collodi|goalie saves|over|2.500||raúl rangel|goalie saves|over|1.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "michael collodi|goalie saves|over|2.500||raúl rangel|goalie saves|over|1.500||uros djurdjevic|shots on target|over|0.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "diego rossi|shots on target|over|0.500||michael collodi|goalie saves|over|2.500||raúl rangel|goalie saves|over|1.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|SOCCER 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "brandon nakashima|total games won|over|11.500||elina svitolina|total games won|over|9.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "elina svitolina|total games won|over|9.500||jessica pegula|total games won|over|10.500||rafael jodar|total games|over|20.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "brandon nakashima|total games won|over|11.500||diana shnaider|total games won|over|8.500||elina svitolina|total games won|over|9.500": {
+      "power_min_x": 2.3,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "bubba chandler|walks allowed|over|0.500||max scherzer|walks allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 2-Leg Goblin|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "aaron nola|earned runs allowed|over|1.500||jacob degrom|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 2-Leg Goblin|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jacob degrom|earned runs allowed|over|0.500||robert gasser|hits allowed|over|3.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|MLB 2-Leg Goblin|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "matthew liberatore|walks allowed|over|0.500||peter lambert|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|15",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "kyle freeland|hits allowed|over|4.500||peter lambert|hits allowed|over|2.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-08|STRONG 2-Leg|16",
+      "n_legs": 2,
+      "slip_type": "strong"
+    }
+  }
+}

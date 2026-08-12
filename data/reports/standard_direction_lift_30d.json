@@ -1,0 +1,1090 @@
+{
+  "generated_at": "2026-08-10T15:32:32.842753+00:00",
+  "window": {
+    "start": "2026-07-11",
+    "end": "2026-08-09"
+  },
+  "files_used": [
+    "2026-07-11",
+    "2026-07-12",
+    "2026-07-13",
+    "2026-07-14",
+    "2026-07-15",
+    "2026-07-16",
+    "2026-07-17",
+    "2026-07-18",
+    "2026-07-19",
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-24",
+    "2026-07-25",
+    "2026-07-26",
+    "2026-07-27",
+    "2026-07-28",
+    "2026-07-29",
+    "2026-07-30",
+    "2026-07-31",
+    "2026-08-01",
+    "2026-08-02",
+    "2026-08-04",
+    "2026-08-05",
+    "2026-08-06",
+    "2026-08-07",
+    "2026-08-08",
+    "2026-08-09"
+  ],
+  "files_missing": [
+    "2026-07-22",
+    "2026-07-23",
+    "2026-08-03"
+  ],
+  "n_days": 27,
+  "summary": [
+    {
+      "key": "GOBLIN|OVER",
+      "hr": 60.6,
+      "hits": 22249,
+      "n": 36687
+    },
+    {
+      "key": "GOBLIN|OVER|L5<4",
+      "hr": 64.3,
+      "hits": 1651,
+      "n": 2567
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=4",
+      "hr": 71.1,
+      "hits": 2384,
+      "n": 3351
+    },
+    {
+      "key": "GOBLIN|OVER|L5=5",
+      "hr": 77.1,
+      "hits": 935,
+      "n": 1212
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=7",
+      "hr": 68.0,
+      "hits": 9929,
+      "n": 14612
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=8",
+      "hr": 70.7,
+      "hits": 5865,
+      "n": 8293
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=3+L10>=8",
+      "hr": 75.4,
+      "hits": 1690,
+      "n": 2242
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=4+L10>=8",
+      "hr": 76.3,
+      "hits": 1496,
+      "n": 1961
+    },
+    {
+      "key": "GOBLIN|OVER|LIVE_GOBLIN",
+      "hr": 76.3,
+      "hits": 1496,
+      "n": 1961
+    },
+    {
+      "key": "GOBLIN|UNDER",
+      "hr": 81.0,
+      "hits": 17,
+      "n": 21
+    },
+    {
+      "key": "STANDARD|OVER",
+      "hr": 47.8,
+      "hits": 3412,
+      "n": 7135
+    },
+    {
+      "key": "STANDARD|OVER|L5<4",
+      "hr": 49.1,
+      "hits": 1024,
+      "n": 2086
+    },
+    {
+      "key": "STANDARD|OVER|L5>=4",
+      "hr": 53.3,
+      "hits": 415,
+      "n": 778
+    },
+    {
+      "key": "STANDARD|OVER|L5=5",
+      "hr": 65.6,
+      "hits": 82,
+      "n": 125
+    },
+    {
+      "key": "STANDARD|OVER|L10>=7",
+      "hr": 49.8,
+      "hits": 666,
+      "n": 1337
+    },
+    {
+      "key": "STANDARD|OVER|L10>=8",
+      "hr": 48.7,
+      "hits": 225,
+      "n": 462
+    },
+    {
+      "key": "STANDARD|OVER|L5>=3+L10>=8",
+      "hr": 55.9,
+      "hits": 105,
+      "n": 188
+    },
+    {
+      "key": "STANDARD|OVER|L5>=4+L10>=8",
+      "hr": 57.0,
+      "hits": 86,
+      "n": 151
+    },
+    {
+      "key": "STANDARD|OVER|LIVE_STD_OVER",
+      "hr": 55.9,
+      "hits": 105,
+      "n": 188
+    },
+    {
+      "key": "STANDARD|UNDER",
+      "hr": 53.1,
+      "hits": 2883,
+      "n": 5432
+    },
+    {
+      "key": "STANDARD|UNDER|L5<4",
+      "hr": 51.9,
+      "hits": 515,
+      "n": 993
+    },
+    {
+      "key": "STANDARD|UNDER|L5>=4",
+      "hr": 50.6,
+      "hits": 244,
+      "n": 482
+    },
+    {
+      "key": "STANDARD|UNDER|L5=5",
+      "hr": 69.9,
+      "hits": 51,
+      "n": 73
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=7",
+      "hr": 54.6,
+      "hits": 1025,
+      "n": 1878
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=8",
+      "hr": 56.3,
+      "hits": 456,
+      "n": 810
+    },
+    {
+      "key": "STANDARD|UNDER|L5>=3+L10>=8",
+      "hr": 53.3,
+      "hits": 73,
+      "n": 137
+    },
+    {
+      "key": "STANDARD|UNDER|L5>=4+L10>=8",
+      "hr": 54.5,
+      "hits": 54,
+      "n": 99
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE_STD_UNDER",
+      "hr": 56.3,
+      "hits": 456,
+      "n": 810
+    }
+  ],
+  "lifts_vs_base": [
+    {
+      "gate": "STANDARD|OVER|L10>=8",
+      "gate_hr": 48.7,
+      "gate_n": 462,
+      "base_hr": 47.8,
+      "base_n": 7135,
+      "lift_pts": 0.9
+    },
+    {
+      "gate": "STANDARD|OVER|L5>=3+L10>=8",
+      "gate_hr": 55.9,
+      "gate_n": 188,
+      "base_hr": 47.8,
+      "base_n": 7135,
+      "lift_pts": 8.1
+    },
+    {
+      "gate": "STANDARD|OVER|L5>=4",
+      "gate_hr": 53.3,
+      "gate_n": 778,
+      "base_hr": 47.8,
+      "base_n": 7135,
+      "lift_pts": 5.5
+    },
+    {
+      "gate": "STANDARD|UNDER|L10>=8",
+      "gate_hr": 56.3,
+      "gate_n": 810,
+      "base_hr": 53.1,
+      "base_n": 5432,
+      "lift_pts": 3.2
+    },
+    {
+      "gate": "STANDARD|UNDER|L5>=4",
+      "gate_hr": 50.6,
+      "gate_n": 482,
+      "base_hr": 53.1,
+      "base_n": 5432,
+      "lift_pts": -2.5
+    },
+    {
+      "gate": "STANDARD|UNDER|L5>=4+L10>=8",
+      "gate_hr": 54.5,
+      "gate_n": 99,
+      "base_hr": 53.1,
+      "base_n": 5432,
+      "lift_pts": 1.4
+    },
+    {
+      "gate": "GOBLIN|OVER|L5>=4",
+      "gate_hr": 71.1,
+      "gate_n": 3351,
+      "base_hr": 60.6,
+      "base_n": 36687,
+      "lift_pts": 10.5
+    },
+    {
+      "gate": "GOBLIN|OVER|L5>=4+L10>=8",
+      "gate_hr": 76.3,
+      "gate_n": 1961,
+      "base_hr": 60.6,
+      "base_n": 36687,
+      "lift_pts": 15.7
+    },
+    {
+      "gate": "GOBLIN|OVER|L10>=8",
+      "gate_hr": 70.7,
+      "gate_n": 8293,
+      "base_hr": 60.6,
+      "base_n": 36687,
+      "lift_pts": 10.1
+    }
+  ],
+  "sport_breakdown_min20": [
+    {
+      "key": "GOBLIN|OVER|LIVE_GOBLIN|WNBA",
+      "hr": 76.3,
+      "hits": 1496,
+      "n": 1961
+    },
+    {
+      "key": "STANDARD|OVER|LIVE_STD_OVER|WNBA",
+      "hr": 55.9,
+      "hits": 105,
+      "n": 188
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE_STD_UNDER|MLB",
+      "hr": 56.0,
+      "hits": 362,
+      "n": 646
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE_STD_UNDER|TENNIS",
+      "hr": 77.8,
+      "hits": 21,
+      "n": 27
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE_STD_UNDER|WNBA",
+      "hr": 53.3,
+      "hits": 73,
+      "n": 137
+    }
+  ],
+  "daily": [
+    {
+      "date": "2026-07-11",
+      "STANDARD|OVER": {
+        "hr": 47.1,
+        "n": 70
+      },
+      "STANDARD|UNDER": {
+        "hr": 63.0,
+        "n": 54
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 30.0,
+        "n": 10
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 70.0,
+        "n": 10
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 50.0,
+        "n": 2
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 50.0,
+        "n": 2
+      },
+      "GOBLIN|OVER": {
+        "hr": 57.0,
+        "n": 314
+      }
+    },
+    {
+      "date": "2026-07-12",
+      "STANDARD|OVER": {
+        "hr": 49.8,
+        "n": 446
+      },
+      "STANDARD|UNDER": {
+        "hr": 49.6,
+        "n": 266
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 61.8,
+        "n": 34
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 45.5,
+        "n": 33
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 72.7,
+        "n": 22
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 85.4,
+        "n": 151
+      },
+      "GOBLIN|OVER": {
+        "hr": 62.9,
+        "n": 1734
+      }
+    },
+    {
+      "date": "2026-07-13",
+      "STANDARD|OVER": {
+        "hr": 54.5,
+        "n": 121
+      },
+      "STANDARD|UNDER": {
+        "hr": 61.5,
+        "n": 78
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 75.0,
+        "n": 8
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 88.9,
+        "n": 9
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 100.0,
+        "n": 3
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 71.9,
+        "n": 57
+      },
+      "GOBLIN|OVER": {
+        "hr": 41.6,
+        "n": 683
+      }
+    },
+    {
+      "date": "2026-07-14",
+      "STANDARD|OVER": {
+        "hr": 49.3,
+        "n": 148
+      },
+      "STANDARD|UNDER": {
+        "hr": 57.8,
+        "n": 45
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 60.0,
+        "n": 5
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 50.0,
+        "n": 4
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 72.5,
+        "n": 69
+      },
+      "GOBLIN|OVER": {
+        "hr": 42.1,
+        "n": 758
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "STANDARD|OVER": {
+        "hr": 51.9,
+        "n": 106
+      },
+      "STANDARD|UNDER": {
+        "hr": 43.2,
+        "n": 81
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 20.0,
+        "n": 10
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 60.0,
+        "n": 5
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 20.0,
+        "n": 10
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 80.5,
+        "n": 82
+      },
+      "GOBLIN|OVER": {
+        "hr": 76.6,
+        "n": 256
+      }
+    },
+    {
+      "date": "2026-07-16",
+      "STANDARD|OVER": {
+        "hr": 31.7,
+        "n": 82
+      },
+      "STANDARD|UNDER": {
+        "hr": 70.3,
+        "n": 37
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 50.0,
+        "n": 2
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 77.8,
+        "n": 9
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 70.3,
+        "n": 37
+      },
+      "GOBLIN|OVER": {
+        "hr": 56.0,
+        "n": 309
+      }
+    },
+    {
+      "date": "2026-07-17",
+      "STANDARD|OVER": {
+        "hr": 54.6,
+        "n": 304
+      },
+      "STANDARD|UNDER": {
+        "hr": 49.3,
+        "n": 284
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 54.5,
+        "n": 11
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 42.9,
+        "n": 35
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 50.0,
+        "n": 2
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 80.0,
+        "n": 125
+      },
+      "GOBLIN|OVER": {
+        "hr": 66.3,
+        "n": 1766
+      }
+    },
+    {
+      "date": "2026-07-18",
+      "STANDARD|OVER": {
+        "hr": 48.9,
+        "n": 366
+      },
+      "STANDARD|UNDER": {
+        "hr": 57.8,
+        "n": 249
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 56.2,
+        "n": 16
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 47.2,
+        "n": 36
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 80.0,
+        "n": 5
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 80.2,
+        "n": 106
+      },
+      "GOBLIN|OVER": {
+        "hr": 63.5,
+        "n": 1598
+      }
+    },
+    {
+      "date": "2026-07-19",
+      "STANDARD|OVER": {
+        "hr": 44.6,
+        "n": 316
+      },
+      "STANDARD|UNDER": {
+        "hr": 50.7,
+        "n": 294
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 50.0,
+        "n": 12
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 48.8,
+        "n": 43
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 55.6,
+        "n": 9
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 69.6,
+        "n": 79
+      },
+      "GOBLIN|OVER": {
+        "hr": 63.8,
+        "n": 1569
+      }
+    },
+    {
+      "date": "2026-07-20",
+      "STANDARD|OVER": {
+        "hr": 58.4,
+        "n": 454
+      },
+      "STANDARD|UNDER": {
+        "hr": 48.6,
+        "n": 294
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 64.0,
+        "n": 25
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 41.9,
+        "n": 31
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 66.7,
+        "n": 9
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 82.8,
+        "n": 128
+      },
+      "GOBLIN|OVER": {
+        "hr": 65.7,
+        "n": 1828
+      }
+    },
+    {
+      "date": "2026-07-21",
+      "STANDARD|OVER": {
+        "hr": 40.7,
+        "n": 194
+      },
+      "STANDARD|UNDER": {
+        "hr": 48.9,
+        "n": 135
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 62.5,
+        "n": 8
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 39.3,
+        "n": 28
+      },
+      "GOBLIN|OVER": {
+        "hr": 60.0,
+        "n": 1369
+      }
+    },
+    {
+      "date": "2026-07-24",
+      "STANDARD|OVER": {
+        "hr": 48.5,
+        "n": 206
+      },
+      "STANDARD|UNDER": {
+        "hr": 59.8,
+        "n": 184
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 36.4,
+        "n": 11
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 77.8,
+        "n": 27
+      },
+      "GOBLIN|OVER": {
+        "hr": 59.3,
+        "n": 1424
+      }
+    },
+    {
+      "date": "2026-07-25",
+      "STANDARD|OVER": {
+        "hr": 49.4,
+        "n": 156
+      },
+      "STANDARD|UNDER": {
+        "hr": 54.4,
+        "n": 103
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 33.3,
+        "n": 9
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 50.0,
+        "n": 18
+      },
+      "GOBLIN|OVER": {
+        "hr": 56.3,
+        "n": 975
+      }
+    },
+    {
+      "date": "2026-07-26",
+      "STANDARD|OVER": {
+        "hr": 49.8,
+        "n": 243
+      },
+      "STANDARD|UNDER": {
+        "hr": 45.6,
+        "n": 215
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 60.0,
+        "n": 15
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 41.2,
+        "n": 34
+      },
+      "GOBLIN|OVER": {
+        "hr": 60.1,
+        "n": 1579
+      }
+    },
+    {
+      "date": "2026-07-27",
+      "STANDARD|OVER": {
+        "hr": 40.7,
+        "n": 81
+      },
+      "STANDARD|UNDER": {
+        "hr": 72.7,
+        "n": 55
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 75.0,
+        "n": 4
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 55.6,
+        "n": 9
+      },
+      "GOBLIN|OVER": {
+        "hr": 51.7,
+        "n": 487
+      }
+    },
+    {
+      "date": "2026-07-28",
+      "STANDARD|OVER": {
+        "hr": 59.0,
+        "n": 122
+      },
+      "STANDARD|UNDER": {
+        "hr": 61.6,
+        "n": 86
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 44.4,
+        "n": 9
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 63.6,
+        "n": 22
+      },
+      "GOBLIN|OVER": {
+        "hr": 63.2,
+        "n": 931
+      }
+    },
+    {
+      "date": "2026-07-29",
+      "STANDARD|OVER": {
+        "hr": 56.1,
+        "n": 223
+      },
+      "STANDARD|UNDER": {
+        "hr": 50.5,
+        "n": 186
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 52.6,
+        "n": 19
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 51.5,
+        "n": 33
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 75.0,
+        "n": 8
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 83.8,
+        "n": 68
+      },
+      "GOBLIN|OVER": {
+        "hr": 63.3,
+        "n": 1425
+      }
+    },
+    {
+      "date": "2026-07-30",
+      "STANDARD|OVER": {
+        "hr": 41.3,
+        "n": 305
+      },
+      "STANDARD|UNDER": {
+        "hr": 55.5,
+        "n": 236
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 28.6,
+        "n": 21
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 64.1,
+        "n": 39
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 27.3,
+        "n": 11
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 73.0,
+        "n": 122
+      },
+      "GOBLIN|OVER": {
+        "hr": 61.3,
+        "n": 1310
+      }
+    },
+    {
+      "date": "2026-07-31",
+      "STANDARD|OVER": {
+        "hr": 52.0,
+        "n": 396
+      },
+      "STANDARD|UNDER": {
+        "hr": 55.9,
+        "n": 286
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 65.2,
+        "n": 23
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 64.2,
+        "n": 53
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 88.9,
+        "n": 9
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 79.5,
+        "n": 127
+      },
+      "GOBLIN|OVER": {
+        "hr": 58.9,
+        "n": 1832
+      }
+    },
+    {
+      "date": "2026-08-01",
+      "STANDARD|OVER": {
+        "hr": 43.6,
+        "n": 296
+      },
+      "STANDARD|UNDER": {
+        "hr": 41.5,
+        "n": 342
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 40.0,
+        "n": 20
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 38.1,
+        "n": 63
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 66.7,
+        "n": 3
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 71.7,
+        "n": 60
+      },
+      "GOBLIN|OVER": {
+        "hr": 60.7,
+        "n": 2167
+      }
+    },
+    {
+      "date": "2026-08-02",
+      "STANDARD|OVER": {
+        "hr": 45.1,
+        "n": 388
+      },
+      "STANDARD|UNDER": {
+        "hr": 49.8,
+        "n": 293
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 35.3,
+        "n": 34
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 60.4,
+        "n": 48
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 40.0,
+        "n": 20
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 70.7,
+        "n": 133
+      },
+      "GOBLIN|OVER": {
+        "hr": 63.4,
+        "n": 1671
+      }
+    },
+    {
+      "date": "2026-08-04",
+      "STANDARD|OVER": {
+        "hr": 50.2,
+        "n": 203
+      },
+      "STANDARD|UNDER": {
+        "hr": 54.4,
+        "n": 180
+      },
+      "GOBLIN|OVER": {
+        "hr": 60.3,
+        "n": 1608
+      }
+    },
+    {
+      "date": "2026-08-05",
+      "STANDARD|OVER": {
+        "hr": 46.6,
+        "n": 496
+      },
+      "STANDARD|UNDER": {
+        "hr": 56.5,
+        "n": 391
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 42.9,
+        "n": 35
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 70.7,
+        "n": 58
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 61.1,
+        "n": 18
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 81.4,
+        "n": 172
+      },
+      "GOBLIN|OVER": {
+        "hr": 59.6,
+        "n": 2158
+      }
+    },
+    {
+      "date": "2026-08-06",
+      "STANDARD|OVER": {
+        "hr": 55.9,
+        "n": 272
+      },
+      "STANDARD|UNDER": {
+        "hr": 51.4,
+        "n": 220
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 51.4,
+        "n": 35
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 52.9,
+        "n": 17
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 52.6,
+        "n": 19
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 77.5,
+        "n": 142
+      },
+      "GOBLIN|OVER": {
+        "hr": 66.3,
+        "n": 1433
+      }
+    },
+    {
+      "date": "2026-08-07",
+      "STANDARD|OVER": {
+        "hr": 42.4,
+        "n": 335
+      },
+      "STANDARD|UNDER": {
+        "hr": 58.0,
+        "n": 286
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 34.8,
+        "n": 23
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 62.2,
+        "n": 45
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 12.5,
+        "n": 8
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 60.7,
+        "n": 89
+      },
+      "GOBLIN|OVER": {
+        "hr": 58.4,
+        "n": 1819
+      }
+    },
+    {
+      "date": "2026-08-08",
+      "STANDARD|OVER": {
+        "hr": 42.5,
+        "n": 353
+      },
+      "STANDARD|UNDER": {
+        "hr": 56.5,
+        "n": 301
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 50.0,
+        "n": 22
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 76.5,
+        "n": 51
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 75.0,
+        "n": 4
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 78.2,
+        "n": 55
+      },
+      "GOBLIN|OVER": {
+        "hr": 58.3,
+        "n": 1950
+      }
+    },
+    {
+      "date": "2026-08-09",
+      "STANDARD|OVER": {
+        "hr": 36.6,
+        "n": 453
+      },
+      "STANDARD|UNDER": {
+        "hr": 56.6,
+        "n": 251
+      },
+      "STANDARD|OVER|L10>=8": {
+        "hr": 51.2,
+        "n": 41
+      },
+      "STANDARD|UNDER|L10>=8": {
+        "hr": 56.0,
+        "n": 50
+      },
+      "STANDARD|OVER|L5>=3+L10>=8": {
+        "hr": 57.7,
+        "n": 26
+      },
+      "GOBLIN|OVER|L5>=4+L10>=8": {
+        "hr": 67.5,
+        "n": 157
+      },
+      "GOBLIN|OVER": {
+        "hr": 60.7,
+        "n": 1734
+      }
+    }
+  ],
+  "verdict": {
+    "standard_over": "L5 alone weak; L10>=8 lifts; L5>=3+L10>=8 stronger when sample allows",
+    "standard_under": "Base already stronger than OVER; L10>=8 adds more lift; L5 alone flat/negative",
+    "goblin_over": "L5>=4 and L5>=4+L10>=8 both lift vs Goblin base"
+  }
+}

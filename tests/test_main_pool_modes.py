@@ -319,7 +319,7 @@ def test_main_goblin_requires_l5_ge4():
         lukewarm, min_leg_prob=0.62, min_composite_hr=0.55, goblin_only=True
     )
 
-    # Standards are not hard-gated by MAIN Goblin L5/L10 floors.
+    # Standards skip Goblin L5/L10 helper, but have their own L10 floors.
     std = _base_leg(pick_type="Standard", direction="UNDER", sport="WNBA")
     std["l5_under"] = 2.0
     assert _row_main_goblin_l5_ok(std)
@@ -343,6 +343,44 @@ def test_main_goblin_requires_l5_ge4():
     assert not _row_main_four_leg_eligible(long_cold)
     long_hot = dict(long_cold, l5_over=5.0)
     assert _row_main_four_leg_eligible(long_hot)
+
+
+def test_main_standard_requires_l10_by_direction():
+    """MAIN Standard: UNDER L10>=8; OVER L10>=8 + L5>=3 agreement."""
+    from combined_slate_tickets import (
+        _row_main_standard_recency_ok,
+        _row_win_rate_eligible,
+    )
+
+    under_cold = _base_leg(pick_type="Standard", direction="UNDER", sport="WNBA")
+    under_cold.update({"l5_under": 2.0, "l10_under": 6.0, "l10_over": 4.0, "leg_prob": 0.70, "hit_rate": 0.70, "ml_prob": 0.70})
+    assert not _row_main_standard_recency_ok(under_cold)
+    assert not _row_win_rate_eligible(
+        under_cold, min_leg_prob=0.60, min_composite_hr=0.55, standard_only=True, qualify_standard=True
+    )
+
+    under_warm = dict(under_cold, l10_under=8.0, l10_over=2.0)
+    assert _row_main_standard_recency_ok(under_warm)
+
+    over_l10_only = _base_leg(pick_type="Standard", direction="OVER", sport="WNBA", leg_prob=0.72)
+    over_l10_only.update(
+        {
+            "l5_over": 2.0,
+            "l10_over": 8.0,
+            "l10_under": 2.0,
+            "hit_rate": 0.72,
+            "ml_prob": 0.72,
+            "def_tier": "WEAK",
+            "team_top3_rank": 1,
+            "top3_weak_overperformer": 1,
+            "strat_hit_rate": 0.75,
+            "strat_n": 40,
+        }
+    )
+    # OVER needs L5>=3 agreement by default.
+    assert not _row_main_standard_recency_ok(over_l10_only)
+    over_warm = dict(over_l10_only, l5_over=3.0)
+    assert _row_main_standard_recency_ok(over_warm)
 
 
 def test_standard_only_rejects_goblin():

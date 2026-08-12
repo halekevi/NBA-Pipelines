@@ -1,0 +1,5315 @@
+{
+  "generated_at": "2026-08-10T21:32:00.957116+00:00",
+  "window": {
+    "start": "2026-07-11",
+    "end": "2026-08-09"
+  },
+  "coverage": {
+    "days_used": [
+      "2026-07-11",
+      "2026-07-12",
+      "2026-07-13",
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-18",
+      "2026-07-19",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-24",
+      "2026-07-25",
+      "2026-07-26",
+      "2026-07-27",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-01",
+      "2026-08-02",
+      "2026-08-04",
+      "2026-08-05",
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-08",
+      "2026-08-09"
+    ],
+    "n_days": 27,
+    "days_missing": [
+      "2026-07-22",
+      "2026-07-23",
+      "2026-08-03"
+    ],
+    "days_with_slate": [
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-18",
+      "2026-07-19",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-01",
+      "2026-08-02",
+      "2026-08-05",
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-08",
+      "2026-08-09"
+    ],
+    "n_days_with_slate": 19,
+    "min_n_prop_cell": 30
+  },
+  "method": {
+    "live_gates": {
+      "GOBLIN_OVER": "L5>=4 + L10>=8 (sample>=8)",
+      "STANDARD_OVER": "L5>=3 + L10>=8",
+      "STANDARD_UNDER": "L10>=8"
+    },
+    "opp": "HARD=Elite/AboveAvg or rank1-10; EASY=BelowAvg/Weak or rank21+; OVER \u0394=EASY-HARD; UNDER \u0394=HARD-EASY"
+  },
+  "prop_rows": [
+    {
+      "sport": "MLB",
+      "prop": "Earned Runs Allowed",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 70.7,
+        "hits": 698,
+        "n": 987
+      },
+      "live": {
+        "hr": 78.2,
+        "hits": 133,
+        "n": 170
+      },
+      "live_lift_pts": 7.5,
+      "hard": {
+        "hr": 69.0,
+        "hits": 191,
+        "n": 277
+      },
+      "easy": {
+        "hr": 68.5,
+        "hits": 187,
+        "n": 273
+      },
+      "opp_aligned_delta_pts": -0.5,
+      "live_hard": {
+        "hr": 75.0,
+        "hits": 51,
+        "n": 68
+      },
+      "live_easy": {
+        "hr": 79.7,
+        "hits": 59,
+        "n": 74
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Earned Runs Allowed",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 47.1,
+        "hits": 48,
+        "n": 102
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 52.2,
+        "hits": 12,
+        "n": 23
+      },
+      "easy": {
+        "hr": 44.4,
+        "hits": 12,
+        "n": 27
+      },
+      "opp_aligned_delta_pts": -7.8,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Earned Runs Allowed",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 60.0,
+        "hits": 60,
+        "n": 100
+      },
+      "live": {
+        "hr": 65.0,
+        "hits": 13,
+        "n": 20
+      },
+      "live_lift_pts": 5.0,
+      "hard": {
+        "hr": 56.8,
+        "hits": 21,
+        "n": 37
+      },
+      "easy": {
+        "hr": 75.0,
+        "hits": 12,
+        "n": 16
+      },
+      "opp_aligned_delta_pts": -18.2,
+      "live_hard": {
+        "hr": 60.0,
+        "hits": 6,
+        "n": 10
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits Allowed",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 69.0,
+        "hits": 829,
+        "n": 1202
+      },
+      "live": {
+        "hr": 73.3,
+        "hits": 165,
+        "n": 225
+      },
+      "live_lift_pts": 4.3,
+      "hard": {
+        "hr": 64.3,
+        "hits": 214,
+        "n": 333
+      },
+      "easy": {
+        "hr": 68.1,
+        "hits": 220,
+        "n": 323
+      },
+      "opp_aligned_delta_pts": 3.8,
+      "live_hard": {
+        "hr": 69.2,
+        "hits": 54,
+        "n": 78
+      },
+      "live_easy": {
+        "hr": 74.5,
+        "hits": 82,
+        "n": 110
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits Allowed",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 40.8,
+        "hits": 40,
+        "n": 98
+      },
+      "live": {
+        "hr": 25.0,
+        "hits": 1,
+        "n": 4
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 28.6,
+        "hits": 8,
+        "n": 28
+      },
+      "easy": {
+        "hr": 42.4,
+        "hits": 14,
+        "n": 33
+      },
+      "opp_aligned_delta_pts": 13.8,
+      "live_hard": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits Allowed",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 54.5,
+        "hits": 67,
+        "n": 123
+      },
+      "live": {
+        "hr": 43.8,
+        "hits": 7,
+        "n": 16
+      },
+      "live_lift_pts": -10.7,
+      "hard": {
+        "hr": 52.8,
+        "hits": 19,
+        "n": 36
+      },
+      "easy": {
+        "hr": 65.7,
+        "hits": 23,
+        "n": 35
+      },
+      "opp_aligned_delta_pts": -12.9,
+      "live_hard": {
+        "hr": 40.0,
+        "hits": 2,
+        "n": 5
+      },
+      "live_easy": {
+        "hr": 60.0,
+        "hits": 3,
+        "n": 5
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits+Runs+RBIs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 62.8,
+        "hits": 4095,
+        "n": 6516
+      },
+      "live": {
+        "hr": 68.7,
+        "hits": 526,
+        "n": 766
+      },
+      "live_lift_pts": 5.9,
+      "hard": {
+        "hr": 61.2,
+        "hits": 956,
+        "n": 1561
+      },
+      "easy": {
+        "hr": 64.8,
+        "hits": 1136,
+        "n": 1754
+      },
+      "opp_aligned_delta_pts": 3.6,
+      "live_hard": {
+        "hr": 63.7,
+        "hits": 172,
+        "n": 270
+      },
+      "live_easy": {
+        "hr": 72.0,
+        "hits": 239,
+        "n": 332
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits+Runs+RBIs",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 46.0,
+        "hits": 521,
+        "n": 1132
+      },
+      "live": {
+        "hr": 44.4,
+        "hits": 20,
+        "n": 45
+      },
+      "live_lift_pts": -1.6,
+      "hard": {
+        "hr": 40.1,
+        "hits": 110,
+        "n": 274
+      },
+      "easy": {
+        "hr": 51.1,
+        "hits": 141,
+        "n": 276
+      },
+      "opp_aligned_delta_pts": 11.0,
+      "live_hard": {
+        "hr": 38.5,
+        "hits": 5,
+        "n": 13
+      },
+      "live_easy": {
+        "hr": 52.4,
+        "hits": 11,
+        "n": 21
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits+Runs+RBIs",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 54.3,
+        "hits": 431,
+        "n": 794
+      },
+      "live": {
+        "hr": 58.4,
+        "hits": 87,
+        "n": 149
+      },
+      "live_lift_pts": 4.1,
+      "hard": {
+        "hr": 53.0,
+        "hits": 98,
+        "n": 185
+      },
+      "easy": {
+        "hr": 56.9,
+        "hits": 120,
+        "n": 211
+      },
+      "opp_aligned_delta_pts": -3.9,
+      "live_hard": {
+        "hr": 65.2,
+        "hits": 30,
+        "n": 46
+      },
+      "live_easy": {
+        "hr": 57.1,
+        "hits": 28,
+        "n": 49
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 59.0,
+        "hits": 2919,
+        "n": 4947
+      },
+      "live": {
+        "hr": 63.1,
+        "hits": 277,
+        "n": 439
+      },
+      "live_lift_pts": 4.1,
+      "hard": {
+        "hr": 58.6,
+        "hits": 721,
+        "n": 1230
+      },
+      "easy": {
+        "hr": 60.3,
+        "hits": 763,
+        "n": 1266
+      },
+      "opp_aligned_delta_pts": 1.7,
+      "live_hard": {
+        "hr": 64.1,
+        "hits": 98,
+        "n": 153
+      },
+      "live_easy": {
+        "hr": 66.8,
+        "hits": 131,
+        "n": 196
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 45.1,
+        "hits": 121,
+        "n": 268
+      },
+      "live": {
+        "hr": 45.5,
+        "hits": 5,
+        "n": 11
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 43.2,
+        "hits": 32,
+        "n": 74
+      },
+      "easy": {
+        "hr": 37.5,
+        "hits": 21,
+        "n": 56
+      },
+      "opp_aligned_delta_pts": -5.7,
+      "live_hard": {
+        "hr": 16.7,
+        "hits": 1,
+        "n": 6
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 56.9,
+        "hits": 189,
+        "n": 332
+      },
+      "live": {
+        "hr": 58.8,
+        "hits": 40,
+        "n": 68
+      },
+      "live_lift_pts": 1.9,
+      "hard": {
+        "hr": 58.6,
+        "hits": 68,
+        "n": 116
+      },
+      "easy": {
+        "hr": 52.1,
+        "hits": 25,
+        "n": 48
+      },
+      "opp_aligned_delta_pts": 6.5,
+      "live_hard": {
+        "hr": 59.1,
+        "hits": 13,
+        "n": 22
+      },
+      "live_easy": {
+        "hr": 61.5,
+        "hits": 8,
+        "n": 13
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hitter Strikeouts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 61.7,
+        "hits": 2682,
+        "n": 4348
+      },
+      "live": {
+        "hr": 65.6,
+        "hits": 279,
+        "n": 425
+      },
+      "live_lift_pts": 3.9,
+      "hard": {
+        "hr": 64.9,
+        "hits": 759,
+        "n": 1170
+      },
+      "easy": {
+        "hr": 61.0,
+        "hits": 634,
+        "n": 1039
+      },
+      "opp_aligned_delta_pts": -3.9,
+      "live_hard": {
+        "hr": 68.3,
+        "hits": 110,
+        "n": 161
+      },
+      "live_easy": {
+        "hr": 66.5,
+        "hits": 121,
+        "n": 182
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitcher Strikeouts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 70.6,
+        "hits": 822,
+        "n": 1165
+      },
+      "live": {
+        "hr": 73.9,
+        "hits": 178,
+        "n": 241
+      },
+      "live_lift_pts": 3.3,
+      "hard": {
+        "hr": 71.8,
+        "hits": 247,
+        "n": 344
+      },
+      "easy": {
+        "hr": 72.6,
+        "hits": 239,
+        "n": 329
+      },
+      "opp_aligned_delta_pts": 0.8,
+      "live_hard": {
+        "hr": 75.5,
+        "hits": 74,
+        "n": 98
+      },
+      "live_easy": {
+        "hr": 72.9,
+        "hits": 62,
+        "n": 85
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitcher Strikeouts",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 41.9,
+        "hits": 95,
+        "n": 227
+      },
+      "live": {
+        "hr": 20.0,
+        "hits": 1,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 45.7,
+        "hits": 21,
+        "n": 46
+      },
+      "easy": {
+        "hr": 33.3,
+        "hits": 15,
+        "n": 45
+      },
+      "opp_aligned_delta_pts": -12.4,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 3
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitcher Strikeouts",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 48.8,
+        "hits": 99,
+        "n": 203
+      },
+      "live": {
+        "hr": 52.4,
+        "hits": 11,
+        "n": 21
+      },
+      "live_lift_pts": 3.6,
+      "hard": {
+        "hr": 58.7,
+        "hits": 27,
+        "n": 46
+      },
+      "easy": {
+        "hr": 46.8,
+        "hits": 22,
+        "n": 47
+      },
+      "opp_aligned_delta_pts": 11.9,
+      "live_hard": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitches Thrown",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 72.0,
+        "hits": 170,
+        "n": 236
+      },
+      "live": {
+        "hr": 83.9,
+        "hits": 26,
+        "n": 31
+      },
+      "live_lift_pts": 11.9,
+      "hard": {
+        "hr": 75.7,
+        "hits": 28,
+        "n": 37
+      },
+      "easy": {
+        "hr": 69.0,
+        "hits": 20,
+        "n": 29
+      },
+      "opp_aligned_delta_pts": -6.7,
+      "live_hard": {
+        "hr": 78.6,
+        "hits": 11,
+        "n": 14
+      },
+      "live_easy": {
+        "hr": 90.9,
+        "hits": 10,
+        "n": 11
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitches Thrown",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 55.6,
+        "hits": 45,
+        "n": 81
+      },
+      "live": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 45.5,
+        "hits": 5,
+        "n": 11
+      },
+      "easy": {
+        "hr": 66.7,
+        "hits": 4,
+        "n": 6
+      },
+      "opp_aligned_delta_pts": 21.2,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitches Thrown",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 55.5,
+        "hits": 86,
+        "n": 155
+      },
+      "live": {
+        "hr": 65.5,
+        "hits": 19,
+        "n": 29
+      },
+      "live_lift_pts": 10.0,
+      "hard": {
+        "hr": 61.5,
+        "hits": 16,
+        "n": 26
+      },
+      "easy": {
+        "hr": 52.2,
+        "hits": 12,
+        "n": 23
+      },
+      "opp_aligned_delta_pts": 9.3,
+      "live_hard": {
+        "hr": 71.4,
+        "hits": 5,
+        "n": 7
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitching Outs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 72.1,
+        "hits": 369,
+        "n": 512
+      },
+      "live": {
+        "hr": 78.1,
+        "hits": 57,
+        "n": 73
+      },
+      "live_lift_pts": 6.0,
+      "hard": {
+        "hr": 77.5,
+        "hits": 62,
+        "n": 80
+      },
+      "easy": {
+        "hr": 66.3,
+        "hits": 55,
+        "n": 83
+      },
+      "opp_aligned_delta_pts": -11.2,
+      "live_hard": {
+        "hr": 81.5,
+        "hits": 22,
+        "n": 27
+      },
+      "live_easy": {
+        "hr": 80.6,
+        "hits": 29,
+        "n": 36
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitching Outs",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 46.0,
+        "hits": 29,
+        "n": 63
+      },
+      "live": {
+        "hr": 33.3,
+        "hits": 1,
+        "n": 3
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 25.0,
+        "hits": 3,
+        "n": 12
+      },
+      "easy": {
+        "hr": 50.0,
+        "hits": 3,
+        "n": 6
+      },
+      "opp_aligned_delta_pts": 25.0,
+      "live_hard": {
+        "hr": 33.3,
+        "hits": 1,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitching Outs",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 45.8,
+        "hits": 49,
+        "n": 107
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 47.4,
+        "hits": 9,
+        "n": 19
+      },
+      "easy": {
+        "hr": 38.1,
+        "hits": 8,
+        "n": 21
+      },
+      "opp_aligned_delta_pts": 9.3,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Plate Appearances",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 50.8,
+        "hits": 159,
+        "n": 313
+      },
+      "live": {
+        "hr": 42.9,
+        "hits": 3,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 46.4,
+        "hits": 13,
+        "n": 28
+      },
+      "easy": {
+        "hr": 46.3,
+        "hits": 19,
+        "n": 41
+      },
+      "opp_aligned_delta_pts": -0.1,
+      "live_hard": {
+        "hr": 33.3,
+        "hits": 1,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Plate Appearances",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 50.8,
+        "hits": 62,
+        "n": 122
+      },
+      "live": {
+        "hr": 60.7,
+        "hits": 17,
+        "n": 28
+      },
+      "live_lift_pts": 9.9,
+      "hard": {
+        "hr": 42.9,
+        "hits": 6,
+        "n": 14
+      },
+      "easy": {
+        "hr": 69.2,
+        "hits": 9,
+        "n": 13
+      },
+      "opp_aligned_delta_pts": -26.3,
+      "live_hard": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      },
+      "live_easy": {
+        "hr": 75.0,
+        "hits": 3,
+        "n": 4
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Runs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 50.8,
+        "hits": 97,
+        "n": 191
+      },
+      "live": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 66.7,
+        "hits": 12,
+        "n": 18
+      },
+      "easy": {
+        "hr": 48.2,
+        "hits": 40,
+        "n": 83
+      },
+      "opp_aligned_delta_pts": -18.5,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Runs",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 46.0,
+        "hits": 179,
+        "n": 389
+      },
+      "live": {
+        "hr": 33.3,
+        "hits": 2,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 49.2,
+        "hits": 30,
+        "n": 61
+      },
+      "easy": {
+        "hr": 44.4,
+        "hits": 55,
+        "n": 124
+      },
+      "opp_aligned_delta_pts": -4.8,
+      "live_hard": {
+        "hr": 25.0,
+        "hits": 1,
+        "n": 4
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Runs",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 54.0,
+        "hits": 183,
+        "n": 339
+      },
+      "live": {
+        "hr": 54.7,
+        "hits": 41,
+        "n": 75
+      },
+      "live_lift_pts": 0.7,
+      "hard": {
+        "hr": 60.0,
+        "hits": 27,
+        "n": 45
+      },
+      "easy": {
+        "hr": 47.8,
+        "hits": 54,
+        "n": 113
+      },
+      "opp_aligned_delta_pts": 12.2,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 8,
+        "n": 12
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 13,
+        "n": 26
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Singles",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 52.6,
+        "hits": 377,
+        "n": 717
+      },
+      "live": {
+        "hr": 53.6,
+        "hits": 15,
+        "n": 28
+      },
+      "live_lift_pts": 1.0,
+      "hard": {
+        "hr": 57.4,
+        "hits": 66,
+        "n": 115
+      },
+      "easy": {
+        "hr": 54.1,
+        "hits": 126,
+        "n": 233
+      },
+      "opp_aligned_delta_pts": -3.3,
+      "live_hard": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      },
+      "live_easy": {
+        "hr": 57.1,
+        "hits": 8,
+        "n": 14
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Singles",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 47.3,
+        "hits": 425,
+        "n": 899
+      },
+      "live": {
+        "hr": 48.6,
+        "hits": 17,
+        "n": 35
+      },
+      "live_lift_pts": 1.3,
+      "hard": {
+        "hr": 52.0,
+        "hits": 91,
+        "n": 175
+      },
+      "easy": {
+        "hr": 45.3,
+        "hits": 106,
+        "n": 234
+      },
+      "opp_aligned_delta_pts": -6.7,
+      "live_hard": {
+        "hr": 56.2,
+        "hits": 9,
+        "n": 16
+      },
+      "live_easy": {
+        "hr": 46.7,
+        "hits": 7,
+        "n": 15
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Singles",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 54.0,
+        "hits": 325,
+        "n": 602
+      },
+      "live": {
+        "hr": 50.4,
+        "hits": 64,
+        "n": 127
+      },
+      "live_lift_pts": -3.6,
+      "hard": {
+        "hr": 55.2,
+        "hits": 79,
+        "n": 143
+      },
+      "easy": {
+        "hr": 50.0,
+        "hits": 84,
+        "n": 168
+      },
+      "opp_aligned_delta_pts": 5.2,
+      "live_hard": {
+        "hr": 58.1,
+        "hits": 18,
+        "n": 31
+      },
+      "live_easy": {
+        "hr": 40.0,
+        "hits": 14,
+        "n": 35
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Total Bases",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 58.6,
+        "hits": 2912,
+        "n": 4967
+      },
+      "live": {
+        "hr": 62.6,
+        "hits": 275,
+        "n": 439
+      },
+      "live_lift_pts": 4.0,
+      "hard": {
+        "hr": 57.9,
+        "hits": 701,
+        "n": 1211
+      },
+      "easy": {
+        "hr": 60.3,
+        "hits": 777,
+        "n": 1289
+      },
+      "opp_aligned_delta_pts": 2.4,
+      "live_hard": {
+        "hr": 62.5,
+        "hits": 95,
+        "n": 152
+      },
+      "live_easy": {
+        "hr": 67.0,
+        "hits": 132,
+        "n": 197
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Total Bases",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 44.1,
+        "hits": 210,
+        "n": 476
+      },
+      "live": {
+        "hr": 38.9,
+        "hits": 7,
+        "n": 18
+      },
+      "live_lift_pts": -5.2,
+      "hard": {
+        "hr": 46.5,
+        "hits": 46,
+        "n": 99
+      },
+      "easy": {
+        "hr": 37.3,
+        "hits": 50,
+        "n": 134
+      },
+      "opp_aligned_delta_pts": -9.2,
+      "live_hard": {
+        "hr": 25.0,
+        "hits": 2,
+        "n": 8
+      },
+      "live_easy": {
+        "hr": 37.5,
+        "hits": 3,
+        "n": 8
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Total Bases",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 51.6,
+        "hits": 207,
+        "n": 401
+      },
+      "live": {
+        "hr": 56.4,
+        "hits": 53,
+        "n": 94
+      },
+      "live_lift_pts": 4.8,
+      "hard": {
+        "hr": 52.2,
+        "hits": 60,
+        "n": 115
+      },
+      "easy": {
+        "hr": 48.5,
+        "hits": 47,
+        "n": 97
+      },
+      "opp_aligned_delta_pts": 3.7,
+      "live_hard": {
+        "hr": 51.9,
+        "hits": 14,
+        "n": 27
+      },
+      "live_easy": {
+        "hr": 60.0,
+        "hits": 21,
+        "n": 35
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Walks Allowed",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 77.3,
+        "hits": 474,
+        "n": 613
+      },
+      "live": {
+        "hr": 80.3,
+        "hits": 114,
+        "n": 142
+      },
+      "live_lift_pts": 3.0,
+      "hard": {
+        "hr": 77.5,
+        "hits": 131,
+        "n": 169
+      },
+      "easy": {
+        "hr": 74.3,
+        "hits": 124,
+        "n": 167
+      },
+      "opp_aligned_delta_pts": -3.2,
+      "live_hard": {
+        "hr": 75.8,
+        "hits": 47,
+        "n": 62
+      },
+      "live_easy": {
+        "hr": 80.0,
+        "hits": 40,
+        "n": 50
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Walks Allowed",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 42.2,
+        "hits": 38,
+        "n": 90
+      },
+      "live": {
+        "hr": 33.3,
+        "hits": 2,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 36.0,
+        "hits": 9,
+        "n": 25
+      },
+      "easy": {
+        "hr": 47.4,
+        "hits": 9,
+        "n": 19
+      },
+      "opp_aligned_delta_pts": 11.4,
+      "live_hard": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 2
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Walks Allowed",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 40.7,
+        "hits": 24,
+        "n": 59
+      },
+      "live": {
+        "hr": 25.0,
+        "hits": 1,
+        "n": 4
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 37.5,
+        "hits": 6,
+        "n": 16
+      },
+      "easy": {
+        "hr": 44.4,
+        "hits": 8,
+        "n": 18
+      },
+      "opp_aligned_delta_pts": -6.9,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Walks",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 50.8,
+        "hits": 31,
+        "n": 61
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 50.0,
+        "hits": 3,
+        "n": 6
+      },
+      "easy": {
+        "hr": 54.5,
+        "hits": 12,
+        "n": 22
+      },
+      "opp_aligned_delta_pts": 4.5,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      }
+    },
+    {
+      "sport": "MLB",
+      "prop": "Walks",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 59.6,
+        "hits": 28,
+        "n": 47
+      },
+      "live": {
+        "hr": 66.7,
+        "hits": 4,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      },
+      "easy": {
+        "hr": 46.2,
+        "hits": 6,
+        "n": 13
+      },
+      "opp_aligned_delta_pts": 16.3,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    },
+    {
+      "sport": "SOCCER",
+      "prop": "Fouls",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 34.1,
+        "hits": 15,
+        "n": 44
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 35.3,
+        "hits": 6,
+        "n": 17
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "SOCCER",
+      "prop": "Goal + Assist",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 36.7,
+        "hits": 11,
+        "n": 30
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      },
+      "easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "opp_aligned_delta_pts": -50.0,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "SOCCER",
+      "prop": "Goalie Saves",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 42.5,
+        "hits": 62,
+        "n": 146
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 51.7,
+        "hits": 15,
+        "n": 29
+      },
+      "easy": {
+        "hr": 45.5,
+        "hits": 10,
+        "n": 22
+      },
+      "opp_aligned_delta_pts": -6.2,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "SOCCER",
+      "prop": "Shots On Target",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 38.4,
+        "hits": 176,
+        "n": 458
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 40.9,
+        "hits": 38,
+        "n": 93
+      },
+      "easy": {
+        "hr": 37.0,
+        "hits": 34,
+        "n": 92
+      },
+      "opp_aligned_delta_pts": -3.9,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "SOCCER",
+      "prop": "Shots",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 37.9,
+        "hits": 471,
+        "n": 1242
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 39.7,
+        "hits": 94,
+        "n": 237
+      },
+      "easy": {
+        "hr": 45.7,
+        "hits": 100,
+        "n": 219
+      },
+      "opp_aligned_delta_pts": 6.0,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Aces",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 414
+      },
+      "live": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 3
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Double Faults",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 441
+      },
+      "live": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games Won",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 71.9,
+        "hits": 485,
+        "n": 675
+      },
+      "live": {
+        "hr": 81.8,
+        "hits": 72,
+        "n": 88
+      },
+      "live_lift_pts": 9.9,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games Won",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 45.5,
+        "hits": 55,
+        "n": 121
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 3,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games Won",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 48.5,
+        "hits": 33,
+        "n": 68
+      },
+      "live": {
+        "hr": 44.4,
+        "hits": 4,
+        "n": 9
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 64.8,
+        "hits": 291,
+        "n": 449
+      },
+      "live": {
+        "hr": 75.6,
+        "hits": 31,
+        "n": 41
+      },
+      "live_lift_pts": 10.8,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 52.3,
+        "hits": 81,
+        "n": 155
+      },
+      "live": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 65.5,
+        "hits": 38,
+        "n": 58
+      },
+      "live": {
+        "hr": 83.3,
+        "hits": 5,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Attempted",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 67.3,
+        "hits": 70,
+        "n": 104
+      },
+      "live": {
+        "hr": 74.2,
+        "hits": 23,
+        "n": 31
+      },
+      "live_lift_pts": 6.9,
+      "hard": {
+        "hr": 63.9,
+        "hits": 23,
+        "n": 36
+      },
+      "easy": {
+        "hr": 63.6,
+        "hits": 28,
+        "n": 44
+      },
+      "opp_aligned_delta_pts": -0.3,
+      "live_hard": {
+        "hr": 76.9,
+        "hits": 10,
+        "n": 13
+      },
+      "live_easy": {
+        "hr": 71.4,
+        "hits": 10,
+        "n": 14
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Attempted",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 54.2,
+        "hits": 45,
+        "n": 83
+      },
+      "live": {
+        "hr": 77.8,
+        "hits": 7,
+        "n": 9
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 53.3,
+        "hits": 16,
+        "n": 30
+      },
+      "easy": {
+        "hr": 56.4,
+        "hits": 22,
+        "n": 39
+      },
+      "opp_aligned_delta_pts": 3.1,
+      "live_hard": {
+        "hr": 80.0,
+        "hits": 4,
+        "n": 5
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 3,
+        "n": 3
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Attempted",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 51.9,
+        "hits": 28,
+        "n": 54
+      },
+      "live": {
+        "hr": 80.0,
+        "hits": 4,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 40.0,
+        "hits": 10,
+        "n": 25
+      },
+      "easy": {
+        "hr": 56.2,
+        "hits": 9,
+        "n": 16
+      },
+      "opp_aligned_delta_pts": -16.2,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Made (Combo)",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 36.4,
+        "hits": 12,
+        "n": 33
+      },
+      "live": {
+        "hr": 33.3,
+        "hits": 1,
+        "n": 3
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Made",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 68.4,
+        "hits": 266,
+        "n": 389
+      },
+      "live": {
+        "hr": 76.2,
+        "hits": 96,
+        "n": 126
+      },
+      "live_lift_pts": 7.8,
+      "hard": {
+        "hr": 68.1,
+        "hits": 109,
+        "n": 160
+      },
+      "easy": {
+        "hr": 66.7,
+        "hits": 100,
+        "n": 150
+      },
+      "opp_aligned_delta_pts": -1.4,
+      "live_hard": {
+        "hr": 80.8,
+        "hits": 42,
+        "n": 52
+      },
+      "live_easy": {
+        "hr": 74.0,
+        "hits": 37,
+        "n": 50
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Made",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 47.4,
+        "hits": 18,
+        "n": 38
+      },
+      "live": {
+        "hr": 80.0,
+        "hits": 4,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 33.3,
+        "hits": 4,
+        "n": 12
+      },
+      "easy": {
+        "hr": 44.4,
+        "hits": 8,
+        "n": 18
+      },
+      "opp_aligned_delta_pts": 11.1,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Assists (Combo)",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 51.1,
+        "hits": 23,
+        "n": 45
+      },
+      "live": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Assists (Combo)",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 38.1,
+        "hits": 16,
+        "n": 42
+      },
+      "live": {
+        "hr": 16.7,
+        "hits": 1,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Assists",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 71.4,
+        "hits": 414,
+        "n": 580
+      },
+      "live": {
+        "hr": 77.7,
+        "hits": 160,
+        "n": 206
+      },
+      "live_lift_pts": 6.3,
+      "hard": {
+        "hr": 73.5,
+        "hits": 180,
+        "n": 245
+      },
+      "easy": {
+        "hr": 66.4,
+        "hits": 144,
+        "n": 217
+      },
+      "opp_aligned_delta_pts": -7.1,
+      "live_hard": {
+        "hr": 80.4,
+        "hits": 74,
+        "n": 92
+      },
+      "live_easy": {
+        "hr": 72.4,
+        "hits": 55,
+        "n": 76
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Assists",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 50.0,
+        "hits": 51,
+        "n": 102
+      },
+      "live": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 48.9,
+        "hits": 23,
+        "n": 47
+      },
+      "easy": {
+        "hr": 46.7,
+        "hits": 14,
+        "n": 30
+      },
+      "opp_aligned_delta_pts": -2.2,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Assists",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 56.5,
+        "hits": 48,
+        "n": 85
+      },
+      "live": {
+        "hr": 40.0,
+        "hits": 2,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 54.1,
+        "hits": 20,
+        "n": 37
+      },
+      "easy": {
+        "hr": 58.8,
+        "hits": 20,
+        "n": 34
+      },
+      "opp_aligned_delta_pts": -4.7,
+      "live_hard": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Blks+Stls",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 57.6,
+        "hits": 38,
+        "n": 66
+      },
+      "live": {
+        "hr": 85.7,
+        "hits": 6,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 46.9,
+        "hits": 15,
+        "n": 32
+      },
+      "easy": {
+        "hr": 73.7,
+        "hits": 14,
+        "n": 19
+      },
+      "opp_aligned_delta_pts": 26.8,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 3,
+        "n": 3
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Blks+Stls",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 45.0,
+        "hits": 18,
+        "n": 40
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 50.0,
+        "hits": 10,
+        "n": 20
+      },
+      "easy": {
+        "hr": 42.9,
+        "hits": 3,
+        "n": 7
+      },
+      "opp_aligned_delta_pts": -7.1,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Blocked Shots",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 66.7,
+        "hits": 20,
+        "n": 30
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 58.3,
+        "hits": 7,
+        "n": 12
+      },
+      "easy": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      },
+      "opp_aligned_delta_pts": 4.2,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Defensive Rebounds",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 46.2,
+        "hits": 48,
+        "n": 104
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 52.1,
+        "hits": 25,
+        "n": 48
+      },
+      "easy": {
+        "hr": 41.2,
+        "hits": 14,
+        "n": 34
+      },
+      "opp_aligned_delta_pts": 10.9,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "FG Attempted",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 71.0,
+        "hits": 88,
+        "n": 124
+      },
+      "live": {
+        "hr": 78.9,
+        "hits": 45,
+        "n": 57
+      },
+      "live_lift_pts": 7.9,
+      "hard": {
+        "hr": 61.7,
+        "hits": 29,
+        "n": 47
+      },
+      "easy": {
+        "hr": 69.2,
+        "hits": 36,
+        "n": 52
+      },
+      "opp_aligned_delta_pts": 7.5,
+      "live_hard": {
+        "hr": 72.7,
+        "hits": 16,
+        "n": 22
+      },
+      "live_easy": {
+        "hr": 81.0,
+        "hits": 17,
+        "n": 21
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "FG Attempted",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 57.5,
+        "hits": 69,
+        "n": 120
+      },
+      "live": {
+        "hr": 90.0,
+        "hits": 9,
+        "n": 10
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 60.4,
+        "hits": 29,
+        "n": 48
+      },
+      "easy": {
+        "hr": 56.8,
+        "hits": 25,
+        "n": 44
+      },
+      "opp_aligned_delta_pts": -3.6,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 6,
+        "n": 6
+      },
+      "live_easy": {
+        "hr": 75.0,
+        "hits": 3,
+        "n": 4
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "FG Attempted",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 56.7,
+        "hits": 55,
+        "n": 97
+      },
+      "live": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 60.0,
+        "hits": 24,
+        "n": 40
+      },
+      "easy": {
+        "hr": 56.4,
+        "hits": 22,
+        "n": 39
+      },
+      "opp_aligned_delta_pts": 3.6,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "FG Made",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 53.8,
+        "hits": 71,
+        "n": 132
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 6,
+        "n": 12
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 57.7,
+        "hits": 30,
+        "n": 52
+      },
+      "easy": {
+        "hr": 48.1,
+        "hits": 25,
+        "n": 52
+      },
+      "opp_aligned_delta_pts": -9.6,
+      "live_hard": {
+        "hr": 71.4,
+        "hits": 5,
+        "n": 7
+      },
+      "live_easy": {
+        "hr": 25.0,
+        "hits": 1,
+        "n": 4
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "FG Made",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 50.7,
+        "hits": 36,
+        "n": 71
+      },
+      "live": {
+        "hr": 75.0,
+        "hits": 3,
+        "n": 4
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 57.6,
+        "hits": 19,
+        "n": 33
+      },
+      "easy": {
+        "hr": 53.8,
+        "hits": 14,
+        "n": 26
+      },
+      "opp_aligned_delta_pts": 3.8,
+      "live_hard": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Free Throws Attempted",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 40.0,
+        "hits": 22,
+        "n": 55
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 46.2,
+        "hits": 12,
+        "n": 26
+      },
+      "easy": {
+        "hr": 20.0,
+        "hits": 3,
+        "n": 15
+      },
+      "opp_aligned_delta_pts": -26.2,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Free Throws Attempted",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 62.7,
+        "hits": 37,
+        "n": 59
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 65.6,
+        "hits": 21,
+        "n": 32
+      },
+      "easy": {
+        "hr": 64.7,
+        "hits": 11,
+        "n": 17
+      },
+      "opp_aligned_delta_pts": 0.9,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Free Throws Made",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 45.2,
+        "hits": 14,
+        "n": 31
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 42.9,
+        "hits": 6,
+        "n": 14
+      },
+      "easy": {
+        "hr": 16.7,
+        "hits": 1,
+        "n": 6
+      },
+      "opp_aligned_delta_pts": -26.2,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Free Throws Made",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 39.3,
+        "hits": 24,
+        "n": 61
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 48.1,
+        "hits": 13,
+        "n": 27
+      },
+      "easy": {
+        "hr": 31.6,
+        "hits": 6,
+        "n": 19
+      },
+      "opp_aligned_delta_pts": -16.5,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Free Throws Made",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 55.7,
+        "hits": 34,
+        "n": 61
+      },
+      "live": {
+        "hr": 71.4,
+        "hits": 5,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 64.3,
+        "hits": 18,
+        "n": 28
+      },
+      "easy": {
+        "hr": 52.2,
+        "hits": 12,
+        "n": 23
+      },
+      "opp_aligned_delta_pts": 12.1,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 3,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Offensive Rebounds",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 53.1,
+        "hits": 51,
+        "n": 96
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 50.0,
+        "hits": 23,
+        "n": 46
+      },
+      "easy": {
+        "hr": 60.6,
+        "hits": 20,
+        "n": 33
+      },
+      "opp_aligned_delta_pts": -10.6,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Points",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 68.8,
+        "hits": 944,
+        "n": 1372
+      },
+      "live": {
+        "hr": 79.0,
+        "hits": 362,
+        "n": 458
+      },
+      "live_lift_pts": 10.2,
+      "hard": {
+        "hr": 69.3,
+        "hits": 391,
+        "n": 564
+      },
+      "easy": {
+        "hr": 67.1,
+        "hits": 342,
+        "n": 510
+      },
+      "opp_aligned_delta_pts": -2.2,
+      "live_hard": {
+        "hr": 79.3,
+        "hits": 157,
+        "n": 198
+      },
+      "live_easy": {
+        "hr": 78.2,
+        "hits": 136,
+        "n": 174
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Points",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 52.6,
+        "hits": 286,
+        "n": 544
+      },
+      "live": {
+        "hr": 54.3,
+        "hits": 25,
+        "n": 46
+      },
+      "live_lift_pts": 1.7,
+      "hard": {
+        "hr": 53.4,
+        "hits": 70,
+        "n": 131
+      },
+      "easy": {
+        "hr": 48.0,
+        "hits": 59,
+        "n": 123
+      },
+      "opp_aligned_delta_pts": -5.4,
+      "live_hard": {
+        "hr": 53.8,
+        "hits": 7,
+        "n": 13
+      },
+      "live_easy": {
+        "hr": 44.4,
+        "hits": 4,
+        "n": 9
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Points",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 48.1,
+        "hits": 169,
+        "n": 351
+      },
+      "live": {
+        "hr": 48.1,
+        "hits": 13,
+        "n": 27
+      },
+      "live_lift_pts": 0.0,
+      "hard": {
+        "hr": 45.7,
+        "hits": 42,
+        "n": 92
+      },
+      "easy": {
+        "hr": 47.5,
+        "hits": 38,
+        "n": 80
+      },
+      "opp_aligned_delta_pts": -1.8,
+      "live_hard": {
+        "hr": 33.3,
+        "hits": 2,
+        "n": 6
+      },
+      "live_easy": {
+        "hr": 33.3,
+        "hits": 2,
+        "n": 6
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Asts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 69.6,
+        "hits": 309,
+        "n": 444
+      },
+      "live": {
+        "hr": 75.8,
+        "hits": 119,
+        "n": 157
+      },
+      "live_lift_pts": 6.2,
+      "hard": {
+        "hr": 74.2,
+        "hits": 138,
+        "n": 186
+      },
+      "easy": {
+        "hr": 64.3,
+        "hits": 110,
+        "n": 171
+      },
+      "opp_aligned_delta_pts": -9.9,
+      "live_hard": {
+        "hr": 70.6,
+        "hits": 48,
+        "n": 68
+      },
+      "live_easy": {
+        "hr": 78.3,
+        "hits": 47,
+        "n": 60
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Asts",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 51.0,
+        "hits": 149,
+        "n": 292
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 12,
+        "n": 24
+      },
+      "live_lift_pts": -1.0,
+      "hard": {
+        "hr": 55.6,
+        "hits": 69,
+        "n": 124
+      },
+      "easy": {
+        "hr": 44.5,
+        "hits": 49,
+        "n": 110
+      },
+      "opp_aligned_delta_pts": -11.1,
+      "live_hard": {
+        "hr": 58.3,
+        "hits": 7,
+        "n": 12
+      },
+      "live_easy": {
+        "hr": 33.3,
+        "hits": 3,
+        "n": 9
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Asts",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 45.9,
+        "hits": 45,
+        "n": 98
+      },
+      "live": {
+        "hr": 57.1,
+        "hits": 8,
+        "n": 14
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 35.0,
+        "hits": 14,
+        "n": 40
+      },
+      "easy": {
+        "hr": 56.4,
+        "hits": 22,
+        "n": 39
+      },
+      "opp_aligned_delta_pts": -21.4,
+      "live_hard": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": 42.9,
+        "hits": 3,
+        "n": 7
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs+Asts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 66.7,
+        "hits": 490,
+        "n": 735
+      },
+      "live": {
+        "hr": 70.5,
+        "hits": 158,
+        "n": 224
+      },
+      "live_lift_pts": 3.8,
+      "hard": {
+        "hr": 70.3,
+        "hits": 206,
+        "n": 293
+      },
+      "easy": {
+        "hr": 62.0,
+        "hits": 173,
+        "n": 279
+      },
+      "opp_aligned_delta_pts": -8.3,
+      "live_hard": {
+        "hr": 71.6,
+        "hits": 68,
+        "n": 95
+      },
+      "live_easy": {
+        "hr": 68.2,
+        "hits": 60,
+        "n": 88
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs+Asts",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 52.4,
+        "hits": 186,
+        "n": 355
+      },
+      "live": {
+        "hr": 54.2,
+        "hits": 13,
+        "n": 24
+      },
+      "live_lift_pts": 1.8,
+      "hard": {
+        "hr": 54.4,
+        "hits": 80,
+        "n": 147
+      },
+      "easy": {
+        "hr": 48.1,
+        "hits": 62,
+        "n": 129
+      },
+      "opp_aligned_delta_pts": -6.3,
+      "live_hard": {
+        "hr": 58.3,
+        "hits": 7,
+        "n": 12
+      },
+      "live_easy": {
+        "hr": 44.4,
+        "hits": 4,
+        "n": 9
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs+Asts",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 47.9,
+        "hits": 57,
+        "n": 119
+      },
+      "live": {
+        "hr": 66.7,
+        "hits": 10,
+        "n": 15
+      },
+      "live_lift_pts": 18.8,
+      "hard": {
+        "hr": 37.0,
+        "hits": 17,
+        "n": 46
+      },
+      "easy": {
+        "hr": 58.8,
+        "hits": 30,
+        "n": 51
+      },
+      "opp_aligned_delta_pts": -21.8,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 68.0,
+        "hits": 368,
+        "n": 541
+      },
+      "live": {
+        "hr": 72.7,
+        "hits": 136,
+        "n": 187
+      },
+      "live_lift_pts": 4.7,
+      "hard": {
+        "hr": 67.9,
+        "hits": 142,
+        "n": 209
+      },
+      "easy": {
+        "hr": 67.2,
+        "hits": 137,
+        "n": 204
+      },
+      "opp_aligned_delta_pts": -0.7,
+      "live_hard": {
+        "hr": 69.2,
+        "hits": 54,
+        "n": 78
+      },
+      "live_easy": {
+        "hr": 73.2,
+        "hits": 52,
+        "n": 71
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 52.1,
+        "hits": 174,
+        "n": 334
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 10,
+        "n": 20
+      },
+      "live_lift_pts": -2.1,
+      "hard": {
+        "hr": 55.5,
+        "hits": 76,
+        "n": 137
+      },
+      "easy": {
+        "hr": 49.2,
+        "hits": 60,
+        "n": 122
+      },
+      "opp_aligned_delta_pts": -6.3,
+      "live_hard": {
+        "hr": 58.3,
+        "hits": 7,
+        "n": 12
+      },
+      "live_easy": {
+        "hr": 42.9,
+        "hits": 3,
+        "n": 7
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 52.4,
+        "hits": 76,
+        "n": 145
+      },
+      "live": {
+        "hr": 63.6,
+        "hits": 7,
+        "n": 11
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 49.2,
+        "hits": 29,
+        "n": 59
+      },
+      "easy": {
+        "hr": 59.3,
+        "hits": 32,
+        "n": 54
+      },
+      "opp_aligned_delta_pts": -10.1,
+      "live_hard": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 2,
+        "n": 4
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebounds (Combo)",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 58.0,
+        "hits": 47,
+        "n": 81
+      },
+      "live": {
+        "hr": 50.0,
+        "hits": 3,
+        "n": 6
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebounds (Combo)",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 42.0,
+        "hits": 21,
+        "n": 50
+      },
+      "live": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 3
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "opp_aligned_delta_pts": null,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebounds",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 70.7,
+        "hits": 638,
+        "n": 902
+      },
+      "live": {
+        "hr": 78.1,
+        "hits": 275,
+        "n": 352
+      },
+      "live_lift_pts": 7.4,
+      "hard": {
+        "hr": 67.4,
+        "hits": 250,
+        "n": 371
+      },
+      "easy": {
+        "hr": 72.9,
+        "hits": 239,
+        "n": 328
+      },
+      "opp_aligned_delta_pts": 5.5,
+      "live_hard": {
+        "hr": 71.8,
+        "hits": 112,
+        "n": 156
+      },
+      "live_easy": {
+        "hr": 82.3,
+        "hits": 107,
+        "n": 130
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebounds",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 50.0,
+        "hits": 82,
+        "n": 164
+      },
+      "live": {
+        "hr": 71.4,
+        "hits": 5,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 51.6,
+        "hits": 33,
+        "n": 64
+      },
+      "easy": {
+        "hr": 45.3,
+        "hits": 29,
+        "n": 64
+      },
+      "opp_aligned_delta_pts": -6.3,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebounds",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 58.3,
+        "hits": 70,
+        "n": 120
+      },
+      "live": {
+        "hr": 60.0,
+        "hits": 3,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 54.3,
+        "hits": 25,
+        "n": 46
+      },
+      "easy": {
+        "hr": 57.4,
+        "hits": 27,
+        "n": 47
+      },
+      "opp_aligned_delta_pts": -3.1,
+      "live_hard": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebs+Asts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 68.6,
+        "hits": 350,
+        "n": 510
+      },
+      "live": {
+        "hr": 76.3,
+        "hits": 106,
+        "n": 139
+      },
+      "live_lift_pts": 7.7,
+      "hard": {
+        "hr": 67.8,
+        "hits": 141,
+        "n": 208
+      },
+      "easy": {
+        "hr": 65.1,
+        "hits": 121,
+        "n": 186
+      },
+      "opp_aligned_delta_pts": -2.7,
+      "live_hard": {
+        "hr": 71.4,
+        "hits": 45,
+        "n": 63
+      },
+      "live_easy": {
+        "hr": 85.7,
+        "hits": 42,
+        "n": 49
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebs+Asts",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 48.7,
+        "hits": 96,
+        "n": 197
+      },
+      "live": {
+        "hr": 40.0,
+        "hits": 2,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 54.2,
+        "hits": 45,
+        "n": 83
+      },
+      "easy": {
+        "hr": 35.8,
+        "hits": 24,
+        "n": 67
+      },
+      "opp_aligned_delta_pts": -18.4,
+      "live_hard": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebs+Asts",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 43.5,
+        "hits": 30,
+        "n": 69
+      },
+      "live": {
+        "hr": 25.0,
+        "hits": 2,
+        "n": 8
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 23.1,
+        "hits": 6,
+        "n": 26
+      },
+      "easy": {
+        "hr": 61.8,
+        "hits": 21,
+        "n": 34
+      },
+      "opp_aligned_delta_pts": -38.7,
+      "live_hard": {
+        "hr": 0.0,
+        "hits": 0,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 33.3,
+        "hits": 2,
+        "n": 6
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Steals",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 57.6,
+        "hits": 38,
+        "n": 66
+      },
+      "live": {
+        "hr": 42.9,
+        "hits": 3,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 55.2,
+        "hits": 16,
+        "n": 29
+      },
+      "easy": {
+        "hr": 52.4,
+        "hits": 11,
+        "n": 21
+      },
+      "opp_aligned_delta_pts": -2.8,
+      "live_hard": {
+        "hr": 33.3,
+        "hits": 1,
+        "n": 3
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Turnovers",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base": {
+        "hr": 48.5,
+        "hits": 47,
+        "n": 97
+      },
+      "live": {
+        "hr": 60.0,
+        "hits": 3,
+        "n": 5
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 51.2,
+        "hits": 22,
+        "n": 43
+      },
+      "easy": {
+        "hr": 43.2,
+        "hits": 16,
+        "n": 37
+      },
+      "opp_aligned_delta_pts": -8.0,
+      "live_hard": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Turnovers",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 27.9,
+        "hits": 12,
+        "n": 43
+      },
+      "live": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 33.3,
+        "hits": 7,
+        "n": 21
+      },
+      "easy": {
+        "hr": 20.0,
+        "hits": 2,
+        "n": 10
+      },
+      "opp_aligned_delta_pts": -13.3,
+      "live_hard": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Two Pointers Attempted",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 42.9,
+        "hits": 33,
+        "n": 77
+      },
+      "live": {
+        "hr": 62.5,
+        "hits": 5,
+        "n": 8
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 53.1,
+        "hits": 17,
+        "n": 32
+      },
+      "easy": {
+        "hr": 38.7,
+        "hits": 12,
+        "n": 31
+      },
+      "opp_aligned_delta_pts": -14.4,
+      "live_hard": {
+        "hr": 75.0,
+        "hits": 3,
+        "n": 4
+      },
+      "live_easy": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Two Pointers Attempted",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 53.3,
+        "hits": 32,
+        "n": 60
+      },
+      "live": {
+        "hr": 57.1,
+        "hits": 4,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 57.9,
+        "hits": 11,
+        "n": 19
+      },
+      "easy": {
+        "hr": 57.1,
+        "hits": 16,
+        "n": 28
+      },
+      "opp_aligned_delta_pts": 0.8,
+      "live_hard": {
+        "hr": 50.0,
+        "hits": 1,
+        "n": 2
+      },
+      "live_easy": {
+        "hr": 66.7,
+        "hits": 2,
+        "n": 3
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Two Pointers Made",
+      "pick": "STANDARD",
+      "direction": "OVER",
+      "base": {
+        "hr": 36.9,
+        "hits": 24,
+        "n": 65
+      },
+      "live": {
+        "hr": 28.6,
+        "hits": 2,
+        "n": 7
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 29.6,
+        "hits": 8,
+        "n": 27
+      },
+      "easy": {
+        "hr": 46.2,
+        "hits": 12,
+        "n": 26
+      },
+      "opp_aligned_delta_pts": 16.6,
+      "live_hard": {
+        "hr": 16.7,
+        "hits": 1,
+        "n": 6
+      },
+      "live_easy": {
+        "hr": null,
+        "hits": 0,
+        "n": 0
+      }
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Two Pointers Made",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base": {
+        "hr": 55.8,
+        "hits": 24,
+        "n": 43
+      },
+      "live": {
+        "hr": 100.0,
+        "hits": 3,
+        "n": 3
+      },
+      "live_lift_pts": null,
+      "hard": {
+        "hr": 56.2,
+        "hits": 9,
+        "n": 16
+      },
+      "easy": {
+        "hr": 70.0,
+        "hits": 14,
+        "n": 20
+      },
+      "opp_aligned_delta_pts": -13.8,
+      "live_hard": {
+        "hr": 100.0,
+        "hits": 1,
+        "n": 1
+      },
+      "live_easy": {
+        "hr": 100.0,
+        "hits": 2,
+        "n": 2
+      }
+    }
+  ],
+  "highlights_by_sport": {
+    "MLB": {
+      "n_prop_cells": 38,
+      "best_live_lift": [
+        {
+          "prop": "Pitches Thrown",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 72.0,
+            "hits": 170,
+            "n": 236
+          },
+          "live": {
+            "hr": 83.9,
+            "hits": 26,
+            "n": 31
+          },
+          "lift": 11.9,
+          "opp_delta": -6.7
+        },
+        {
+          "prop": "Pitches Thrown",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 55.5,
+            "hits": 86,
+            "n": 155
+          },
+          "live": {
+            "hr": 65.5,
+            "hits": 19,
+            "n": 29
+          },
+          "lift": 10.0,
+          "opp_delta": 9.3
+        },
+        {
+          "prop": "Plate Appearances",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 50.8,
+            "hits": 62,
+            "n": 122
+          },
+          "live": {
+            "hr": 60.7,
+            "hits": 17,
+            "n": 28
+          },
+          "lift": 9.9,
+          "opp_delta": -26.3
+        },
+        {
+          "prop": "Earned Runs Allowed",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 70.7,
+            "hits": 698,
+            "n": 987
+          },
+          "live": {
+            "hr": 78.2,
+            "hits": 133,
+            "n": 170
+          },
+          "lift": 7.5,
+          "opp_delta": -0.5
+        },
+        {
+          "prop": "Pitching Outs",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 72.1,
+            "hits": 369,
+            "n": 512
+          },
+          "live": {
+            "hr": 78.1,
+            "hits": 57,
+            "n": 73
+          },
+          "lift": 6.0,
+          "opp_delta": -11.2
+        },
+        {
+          "prop": "Hits+Runs+RBIs",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 62.8,
+            "hits": 4095,
+            "n": 6516
+          },
+          "live": {
+            "hr": 68.7,
+            "hits": 526,
+            "n": 766
+          },
+          "lift": 5.9,
+          "opp_delta": 3.6
+        },
+        {
+          "prop": "Earned Runs Allowed",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 60.0,
+            "hits": 60,
+            "n": 100
+          },
+          "live": {
+            "hr": 65.0,
+            "hits": 13,
+            "n": 20
+          },
+          "lift": 5.0,
+          "opp_delta": -18.2
+        },
+        {
+          "prop": "Total Bases",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 51.6,
+            "hits": 207,
+            "n": 401
+          },
+          "live": {
+            "hr": 56.4,
+            "hits": 53,
+            "n": 94
+          },
+          "lift": 4.8,
+          "opp_delta": 3.7
+        }
+      ],
+      "worst_live_lift": [
+        {
+          "prop": "Singles",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 54.0,
+            "hits": 325,
+            "n": 602
+          },
+          "live": {
+            "hr": 50.4,
+            "hits": 64,
+            "n": 127
+          },
+          "lift": -3.6
+        },
+        {
+          "prop": "Hits+Runs+RBIs",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "base": {
+            "hr": 46.0,
+            "hits": 521,
+            "n": 1132
+          },
+          "live": {
+            "hr": 44.4,
+            "hits": 20,
+            "n": 45
+          },
+          "lift": -1.6
+        },
+        {
+          "prop": "Runs",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 54.0,
+            "hits": 183,
+            "n": 339
+          },
+          "live": {
+            "hr": 54.7,
+            "hits": 41,
+            "n": 75
+          },
+          "lift": 0.7
+        },
+        {
+          "prop": "Singles",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 52.6,
+            "hits": 377,
+            "n": 717
+          },
+          "live": {
+            "hr": 53.6,
+            "hits": 15,
+            "n": 28
+          },
+          "lift": 1.0
+        },
+        {
+          "prop": "Singles",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "base": {
+            "hr": 47.3,
+            "hits": 425,
+            "n": 899
+          },
+          "live": {
+            "hr": 48.6,
+            "hits": 17,
+            "n": 35
+          },
+          "lift": 1.3
+        }
+      ],
+      "best_opp_aligned": [
+        {
+          "prop": "Hits Allowed",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 28.6,
+            "hits": 8,
+            "n": 28
+          },
+          "easy": {
+            "hr": 42.4,
+            "hits": 14,
+            "n": 33
+          },
+          "opp_delta": 13.8,
+          "base": {
+            "hr": 40.8,
+            "hits": 40,
+            "n": 98
+          }
+        },
+        {
+          "prop": "Runs",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 60.0,
+            "hits": 27,
+            "n": 45
+          },
+          "easy": {
+            "hr": 47.8,
+            "hits": 54,
+            "n": 113
+          },
+          "opp_delta": 12.2,
+          "base": {
+            "hr": 54.0,
+            "hits": 183,
+            "n": 339
+          }
+        },
+        {
+          "prop": "Pitcher Strikeouts",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 58.7,
+            "hits": 27,
+            "n": 46
+          },
+          "easy": {
+            "hr": 46.8,
+            "hits": 22,
+            "n": 47
+          },
+          "opp_delta": 11.9,
+          "base": {
+            "hr": 48.8,
+            "hits": 99,
+            "n": 203
+          }
+        },
+        {
+          "prop": "Hits+Runs+RBIs",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 40.1,
+            "hits": 110,
+            "n": 274
+          },
+          "easy": {
+            "hr": 51.1,
+            "hits": 141,
+            "n": 276
+          },
+          "opp_delta": 11.0,
+          "base": {
+            "hr": 46.0,
+            "hits": 521,
+            "n": 1132
+          }
+        },
+        {
+          "prop": "Hits",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 58.6,
+            "hits": 68,
+            "n": 116
+          },
+          "easy": {
+            "hr": 52.1,
+            "hits": 25,
+            "n": 48
+          },
+          "opp_delta": 6.5,
+          "base": {
+            "hr": 56.9,
+            "hits": 189,
+            "n": 332
+          }
+        }
+      ],
+      "worst_opp_aligned": [
+        {
+          "prop": "Hits Allowed",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 52.8,
+            "hits": 19,
+            "n": 36
+          },
+          "easy": {
+            "hr": 65.7,
+            "hits": 23,
+            "n": 35
+          },
+          "opp_delta": -12.9
+        },
+        {
+          "prop": "Pitcher Strikeouts",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 45.7,
+            "hits": 21,
+            "n": 46
+          },
+          "easy": {
+            "hr": 33.3,
+            "hits": 15,
+            "n": 45
+          },
+          "opp_delta": -12.4
+        },
+        {
+          "prop": "Pitching Outs",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 77.5,
+            "hits": 62,
+            "n": 80
+          },
+          "easy": {
+            "hr": 66.3,
+            "hits": 55,
+            "n": 83
+          },
+          "opp_delta": -11.2
+        },
+        {
+          "prop": "Total Bases",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 46.5,
+            "hits": 46,
+            "n": 99
+          },
+          "easy": {
+            "hr": 37.3,
+            "hits": 50,
+            "n": 134
+          },
+          "opp_delta": -9.2
+        },
+        {
+          "prop": "Pitches Thrown",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 75.7,
+            "hits": 28,
+            "n": 37
+          },
+          "easy": {
+            "hr": 69.0,
+            "hits": 20,
+            "n": 29
+          },
+          "opp_delta": -6.7
+        }
+      ]
+    },
+    "SOCCER": {
+      "n_prop_cells": 5,
+      "best_live_lift": [],
+      "worst_live_lift": [],
+      "best_opp_aligned": [
+        {
+          "prop": "Shots",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 39.7,
+            "hits": 94,
+            "n": 237
+          },
+          "easy": {
+            "hr": 45.7,
+            "hits": 100,
+            "n": 219
+          },
+          "opp_delta": 6.0,
+          "base": {
+            "hr": 37.9,
+            "hits": 471,
+            "n": 1242
+          }
+        },
+        {
+          "prop": "Shots On Target",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 40.9,
+            "hits": 38,
+            "n": 93
+          },
+          "easy": {
+            "hr": 37.0,
+            "hits": 34,
+            "n": 92
+          },
+          "opp_delta": -3.9,
+          "base": {
+            "hr": 38.4,
+            "hits": 176,
+            "n": 458
+          }
+        }
+      ],
+      "worst_opp_aligned": [
+        {
+          "prop": "Shots On Target",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 40.9,
+            "hits": 38,
+            "n": 93
+          },
+          "easy": {
+            "hr": 37.0,
+            "hits": 34,
+            "n": 92
+          },
+          "opp_delta": -3.9
+        },
+        {
+          "prop": "Shots",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 39.7,
+            "hits": 94,
+            "n": 237
+          },
+          "easy": {
+            "hr": 45.7,
+            "hits": 100,
+            "n": 219
+          },
+          "opp_delta": 6.0
+        }
+      ]
+    },
+    "TENNIS": {
+      "n_prop_cells": 8,
+      "best_live_lift": [
+        {
+          "prop": "Total Games",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 64.8,
+            "hits": 291,
+            "n": 449
+          },
+          "live": {
+            "hr": 75.6,
+            "hits": 31,
+            "n": 41
+          },
+          "lift": 10.8,
+          "opp_delta": null
+        },
+        {
+          "prop": "Total Games Won",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 71.9,
+            "hits": 485,
+            "n": 675
+          },
+          "live": {
+            "hr": 81.8,
+            "hits": 72,
+            "n": 88
+          },
+          "lift": 9.9,
+          "opp_delta": null
+        }
+      ],
+      "worst_live_lift": [
+        {
+          "prop": "Total Games Won",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 71.9,
+            "hits": 485,
+            "n": 675
+          },
+          "live": {
+            "hr": 81.8,
+            "hits": 72,
+            "n": 88
+          },
+          "lift": 9.9
+        },
+        {
+          "prop": "Total Games",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 64.8,
+            "hits": 291,
+            "n": 449
+          },
+          "live": {
+            "hr": 75.6,
+            "hits": 31,
+            "n": 41
+          },
+          "lift": 10.8
+        }
+      ],
+      "best_opp_aligned": [],
+      "worst_opp_aligned": []
+    },
+    "WNBA": {
+      "n_prop_cells": 53,
+      "best_live_lift": [
+        {
+          "prop": "Points",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 68.8,
+            "hits": 944,
+            "n": 1372
+          },
+          "live": {
+            "hr": 79.0,
+            "hits": 362,
+            "n": 458
+          },
+          "lift": 10.2,
+          "opp_delta": -2.2
+        },
+        {
+          "prop": "FG Attempted",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 71.0,
+            "hits": 88,
+            "n": 124
+          },
+          "live": {
+            "hr": 78.9,
+            "hits": 45,
+            "n": 57
+          },
+          "lift": 7.9,
+          "opp_delta": 7.5
+        },
+        {
+          "prop": "3-PT Made",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 68.4,
+            "hits": 266,
+            "n": 389
+          },
+          "live": {
+            "hr": 76.2,
+            "hits": 96,
+            "n": 126
+          },
+          "lift": 7.8,
+          "opp_delta": -1.4
+        },
+        {
+          "prop": "Rebs+Asts",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 68.6,
+            "hits": 350,
+            "n": 510
+          },
+          "live": {
+            "hr": 76.3,
+            "hits": 106,
+            "n": 139
+          },
+          "lift": 7.7,
+          "opp_delta": -2.7
+        },
+        {
+          "prop": "Rebounds",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 70.7,
+            "hits": 638,
+            "n": 902
+          },
+          "live": {
+            "hr": 78.1,
+            "hits": 275,
+            "n": 352
+          },
+          "lift": 7.4,
+          "opp_delta": 5.5
+        },
+        {
+          "prop": "3-PT Attempted",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 67.3,
+            "hits": 70,
+            "n": 104
+          },
+          "live": {
+            "hr": 74.2,
+            "hits": 23,
+            "n": 31
+          },
+          "lift": 6.9,
+          "opp_delta": -0.3
+        },
+        {
+          "prop": "Assists",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 71.4,
+            "hits": 414,
+            "n": 580
+          },
+          "live": {
+            "hr": 77.7,
+            "hits": 160,
+            "n": 206
+          },
+          "lift": 6.3,
+          "opp_delta": -7.1
+        },
+        {
+          "prop": "Pts+Asts",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "base": {
+            "hr": 69.6,
+            "hits": 309,
+            "n": 444
+          },
+          "live": {
+            "hr": 75.8,
+            "hits": 119,
+            "n": 157
+          },
+          "lift": 6.2,
+          "opp_delta": -9.9
+        }
+      ],
+      "worst_live_lift": [
+        {
+          "prop": "Pts+Rebs",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "base": {
+            "hr": 52.1,
+            "hits": 174,
+            "n": 334
+          },
+          "live": {
+            "hr": 50.0,
+            "hits": 10,
+            "n": 20
+          },
+          "lift": -2.1
+        },
+        {
+          "prop": "Pts+Asts",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "base": {
+            "hr": 51.0,
+            "hits": 149,
+            "n": 292
+          },
+          "live": {
+            "hr": 50.0,
+            "hits": 12,
+            "n": 24
+          },
+          "lift": -1.0
+        },
+        {
+          "prop": "Points",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "base": {
+            "hr": 48.1,
+            "hits": 169,
+            "n": 351
+          },
+          "live": {
+            "hr": 48.1,
+            "hits": 13,
+            "n": 27
+          },
+          "lift": 0.0
+        },
+        {
+          "prop": "Points",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "base": {
+            "hr": 52.6,
+            "hits": 286,
+            "n": 544
+          },
+          "live": {
+            "hr": 54.3,
+            "hits": 25,
+            "n": 46
+          },
+          "lift": 1.7
+        },
+        {
+          "prop": "Pts+Rebs+Asts",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "base": {
+            "hr": 52.4,
+            "hits": 186,
+            "n": 355
+          },
+          "live": {
+            "hr": 54.2,
+            "hits": 13,
+            "n": 24
+          },
+          "lift": 1.8
+        }
+      ],
+      "best_opp_aligned": [
+        {
+          "prop": "Two Pointers Made",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 29.6,
+            "hits": 8,
+            "n": 27
+          },
+          "easy": {
+            "hr": 46.2,
+            "hits": 12,
+            "n": 26
+          },
+          "opp_delta": 16.6,
+          "base": {
+            "hr": 36.9,
+            "hits": 24,
+            "n": 65
+          }
+        },
+        {
+          "prop": "Defensive Rebounds",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 52.1,
+            "hits": 25,
+            "n": 48
+          },
+          "easy": {
+            "hr": 41.2,
+            "hits": 14,
+            "n": 34
+          },
+          "opp_delta": 10.9,
+          "base": {
+            "hr": 46.2,
+            "hits": 48,
+            "n": 104
+          }
+        },
+        {
+          "prop": "FG Attempted",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 61.7,
+            "hits": 29,
+            "n": 47
+          },
+          "easy": {
+            "hr": 69.2,
+            "hits": 36,
+            "n": 52
+          },
+          "opp_delta": 7.5,
+          "base": {
+            "hr": 71.0,
+            "hits": 88,
+            "n": 124
+          }
+        },
+        {
+          "prop": "Rebounds",
+          "pick": "GOBLIN",
+          "direction": "OVER",
+          "hard": {
+            "hr": 67.4,
+            "hits": 250,
+            "n": 371
+          },
+          "easy": {
+            "hr": 72.9,
+            "hits": 239,
+            "n": 328
+          },
+          "opp_delta": 5.5,
+          "base": {
+            "hr": 70.7,
+            "hits": 638,
+            "n": 902
+          }
+        },
+        {
+          "prop": "FG Made",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 57.6,
+            "hits": 19,
+            "n": 33
+          },
+          "easy": {
+            "hr": 53.8,
+            "hits": 14,
+            "n": 26
+          },
+          "opp_delta": 3.8,
+          "base": {
+            "hr": 50.7,
+            "hits": 36,
+            "n": 71
+          }
+        }
+      ],
+      "worst_opp_aligned": [
+        {
+          "prop": "Rebs+Asts",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 23.1,
+            "hits": 6,
+            "n": 26
+          },
+          "easy": {
+            "hr": 61.8,
+            "hits": 21,
+            "n": 34
+          },
+          "opp_delta": -38.7
+        },
+        {
+          "prop": "Pts+Rebs+Asts",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 37.0,
+            "hits": 17,
+            "n": 46
+          },
+          "easy": {
+            "hr": 58.8,
+            "hits": 30,
+            "n": 51
+          },
+          "opp_delta": -21.8
+        },
+        {
+          "prop": "Pts+Asts",
+          "pick": "STANDARD",
+          "direction": "UNDER",
+          "hard": {
+            "hr": 35.0,
+            "hits": 14,
+            "n": 40
+          },
+          "easy": {
+            "hr": 56.4,
+            "hits": 22,
+            "n": 39
+          },
+          "opp_delta": -21.4
+        },
+        {
+          "prop": "Rebs+Asts",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 54.2,
+            "hits": 45,
+            "n": 83
+          },
+          "easy": {
+            "hr": 35.8,
+            "hits": 24,
+            "n": 67
+          },
+          "opp_delta": -18.4
+        },
+        {
+          "prop": "Two Pointers Attempted",
+          "pick": "STANDARD",
+          "direction": "OVER",
+          "hard": {
+            "hr": 53.1,
+            "hits": 17,
+            "n": 32
+          },
+          "easy": {
+            "hr": 38.7,
+            "hits": 12,
+            "n": 31
+          },
+          "opp_delta": -14.4
+        }
+      ]
+    }
+  },
+  "top_live_lifts_overall": [
+    {
+      "sport": "MLB",
+      "prop": "Pitches Thrown",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 72.0,
+      "live_hr": 83.9,
+      "lift": 11.9,
+      "live_n": 31,
+      "base_n": 236,
+      "opp_delta": -6.7
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 64.8,
+      "live_hr": 75.6,
+      "lift": 10.8,
+      "live_n": 41,
+      "base_n": 449,
+      "opp_delta": null
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Points",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 68.8,
+      "live_hr": 79.0,
+      "lift": 10.2,
+      "live_n": 458,
+      "base_n": 1372,
+      "opp_delta": -2.2
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitches Thrown",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base_hr": 55.5,
+      "live_hr": 65.5,
+      "lift": 10.0,
+      "live_n": 29,
+      "base_n": 155,
+      "opp_delta": 9.3
+    },
+    {
+      "sport": "TENNIS",
+      "prop": "Total Games Won",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 71.9,
+      "live_hr": 81.8,
+      "lift": 9.9,
+      "live_n": 88,
+      "base_n": 675,
+      "opp_delta": null
+    },
+    {
+      "sport": "MLB",
+      "prop": "Plate Appearances",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base_hr": 50.8,
+      "live_hr": 60.7,
+      "lift": 9.9,
+      "live_n": 28,
+      "base_n": 122,
+      "opp_delta": -26.3
+    },
+    {
+      "sport": "WNBA",
+      "prop": "FG Attempted",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 71.0,
+      "live_hr": 78.9,
+      "lift": 7.9,
+      "live_n": 57,
+      "base_n": 124,
+      "opp_delta": 7.5
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Made",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 68.4,
+      "live_hr": 76.2,
+      "lift": 7.8,
+      "live_n": 126,
+      "base_n": 389,
+      "opp_delta": -1.4
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebs+Asts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 68.6,
+      "live_hr": 76.3,
+      "lift": 7.7,
+      "live_n": 139,
+      "base_n": 510,
+      "opp_delta": -2.7
+    },
+    {
+      "sport": "MLB",
+      "prop": "Earned Runs Allowed",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 70.7,
+      "live_hr": 78.2,
+      "lift": 7.5,
+      "live_n": 170,
+      "base_n": 987,
+      "opp_delta": -0.5
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Rebounds",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 70.7,
+      "live_hr": 78.1,
+      "lift": 7.4,
+      "live_n": 352,
+      "base_n": 902,
+      "opp_delta": 5.5
+    },
+    {
+      "sport": "WNBA",
+      "prop": "3-PT Attempted",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 67.3,
+      "live_hr": 74.2,
+      "lift": 6.9,
+      "live_n": 31,
+      "base_n": 104,
+      "opp_delta": -0.3
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Assists",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 71.4,
+      "live_hr": 77.7,
+      "lift": 6.3,
+      "live_n": 206,
+      "base_n": 580,
+      "opp_delta": -7.1
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Asts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 69.6,
+      "live_hr": 75.8,
+      "lift": 6.2,
+      "live_n": 157,
+      "base_n": 444,
+      "opp_delta": -9.9
+    },
+    {
+      "sport": "MLB",
+      "prop": "Pitching Outs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 72.1,
+      "live_hr": 78.1,
+      "lift": 6.0,
+      "live_n": 73,
+      "base_n": 512,
+      "opp_delta": -11.2
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits+Runs+RBIs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 62.8,
+      "live_hr": 68.7,
+      "lift": 5.9,
+      "live_n": 766,
+      "base_n": 6516,
+      "opp_delta": 3.6
+    },
+    {
+      "sport": "MLB",
+      "prop": "Earned Runs Allowed",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base_hr": 60.0,
+      "live_hr": 65.0,
+      "lift": 5.0,
+      "live_n": 20,
+      "base_n": 100,
+      "opp_delta": -18.2
+    },
+    {
+      "sport": "MLB",
+      "prop": "Total Bases",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base_hr": 51.6,
+      "live_hr": 56.4,
+      "lift": 4.8,
+      "live_n": 94,
+      "base_n": 401,
+      "opp_delta": 3.7
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 68.0,
+      "live_hr": 72.7,
+      "lift": 4.7,
+      "live_n": 187,
+      "base_n": 541,
+      "opp_delta": -0.7
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits Allowed",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 69.0,
+      "live_hr": 73.3,
+      "lift": 4.3,
+      "live_n": 225,
+      "base_n": 1202,
+      "opp_delta": 3.8
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 59.0,
+      "live_hr": 63.1,
+      "lift": 4.1,
+      "live_n": 439,
+      "base_n": 4947,
+      "opp_delta": 1.7
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hits+Runs+RBIs",
+      "pick": "STANDARD",
+      "direction": "UNDER",
+      "base_hr": 54.3,
+      "live_hr": 58.4,
+      "lift": 4.1,
+      "live_n": 149,
+      "base_n": 794,
+      "opp_delta": -3.9
+    },
+    {
+      "sport": "MLB",
+      "prop": "Total Bases",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 58.6,
+      "live_hr": 62.6,
+      "lift": 4.0,
+      "live_n": 439,
+      "base_n": 4967,
+      "opp_delta": 2.4
+    },
+    {
+      "sport": "MLB",
+      "prop": "Hitter Strikeouts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 61.7,
+      "live_hr": 65.6,
+      "lift": 3.9,
+      "live_n": 425,
+      "base_n": 4348,
+      "opp_delta": -3.9
+    },
+    {
+      "sport": "WNBA",
+      "prop": "Pts+Rebs+Asts",
+      "pick": "GOBLIN",
+      "direction": "OVER",
+      "base_hr": 66.7,
+      "live_hr": 70.5,
+      "lift": 3.8,
+      "live_n": 224,
+      "base_n": 735,
+      "opp_delta": -8.3
+    }
+  ]
+}

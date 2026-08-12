@@ -1,0 +1,1303 @@
+{
+  "generated_at": "2026-08-10T16:04:34.335785+00:00",
+  "window": {
+    "start": "2026-07-11",
+    "end": "2026-08-09"
+  },
+  "method": {
+    "opp_buckets": {
+      "HARD": "Elite + Above Avg (or def_rank 1-10) \u2014 stingy D",
+      "MID": "Avg (or def_rank 11-20)",
+      "EASY": "Below Avg + Weak (or def_rank 21+) \u2014 soft D"
+    },
+    "aligned_delta": {
+      "OVER": "EASY HR \u2212 HARD HR (soft D should help overs)",
+      "UNDER": "HARD HR \u2212 EASY HR (stingy D should help unders)"
+    },
+    "join": "Same-day slate def_tier/opponent_def_rank keyed by sport|player|prop|line|direction; graded def_tier used when present",
+    "sports": [
+      "MLB",
+      "WNBA",
+      "SOCCER",
+      "TENNIS"
+    ],
+    "pick_types": [
+      "GOBLIN",
+      "STANDARD"
+    ]
+  },
+  "coverage": {
+    "days_with_slate_join": [
+      "2026-07-14",
+      "2026-07-15",
+      "2026-07-16",
+      "2026-07-17",
+      "2026-07-18",
+      "2026-07-19",
+      "2026-07-20",
+      "2026-07-21",
+      "2026-07-28",
+      "2026-07-29",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-01",
+      "2026-08-02",
+      "2026-08-05",
+      "2026-08-06",
+      "2026-08-07",
+      "2026-08-08",
+      "2026-08-09"
+    ],
+    "n_days_with_slate": 19,
+    "graded_missing": [
+      "2026-07-22",
+      "2026-07-23",
+      "2026-08-03"
+    ],
+    "slate_missing_but_graded": [
+      "2026-07-11",
+      "2026-07-12",
+      "2026-07-13",
+      "2026-07-24",
+      "2026-07-25",
+      "2026-07-26",
+      "2026-07-27",
+      "2026-08-04"
+    ],
+    "slate_row_join_rate": {
+      "hr": 82.8,
+      "hits": 31312,
+      "n": 37810
+    },
+    "rows_with_opp_tier_or_rank_bucket": {
+      "hr": 66.4,
+      "hits": 32742,
+      "n": 49275
+    }
+  },
+  "contrasts": [
+    {
+      "pool": "GOBLIN OVER ALL",
+      "any": {
+        "hr": 60.6,
+        "hits": 22249,
+        "n": 36687
+      },
+      "hard": {
+        "hr": 63.1,
+        "hits": 5943,
+        "n": 9421
+      },
+      "mid": {
+        "hr": 60.8,
+        "hits": 3328,
+        "n": 5470
+      },
+      "easy": {
+        "hr": 62.9,
+        "hits": 5969,
+        "n": 9494
+      },
+      "aligned_delta_pts": -0.2,
+      "aligned_delta_meaning": "EASY\u2212HARD (want +)"
+    },
+    {
+      "pool": "GOBLIN OVER LIVE",
+      "any": {
+        "hr": 76.3,
+        "hits": 1496,
+        "n": 1961
+      },
+      "hard": {
+        "hr": 74.6,
+        "hits": 631,
+        "n": 846
+      },
+      "mid": {
+        "hr": 79.1,
+        "hits": 296,
+        "n": 374
+      },
+      "easy": {
+        "hr": 76.8,
+        "hits": 569,
+        "n": 741
+      },
+      "aligned_delta_pts": 2.2,
+      "aligned_delta_meaning": "EASY\u2212HARD (want +)"
+    },
+    {
+      "pool": "GOBLIN OVER L5>=4",
+      "any": {
+        "hr": 71.1,
+        "hits": 2384,
+        "n": 3351
+      },
+      "hard": {
+        "hr": 69.1,
+        "hits": 975,
+        "n": 1411
+      },
+      "mid": {
+        "hr": 76.0,
+        "hits": 508,
+        "n": 668
+      },
+      "easy": {
+        "hr": 70.8,
+        "hits": 901,
+        "n": 1272
+      },
+      "aligned_delta_pts": 1.7,
+      "aligned_delta_meaning": "EASY\u2212HARD (want +)"
+    },
+    {
+      "pool": "STANDARD OVER ALL",
+      "any": {
+        "hr": 47.8,
+        "hits": 3412,
+        "n": 7135
+      },
+      "hard": {
+        "hr": 48.9,
+        "hits": 922,
+        "n": 1885
+      },
+      "mid": {
+        "hr": 47.9,
+        "hits": 479,
+        "n": 1001
+      },
+      "easy": {
+        "hr": 45.4,
+        "hits": 869,
+        "n": 1913
+      },
+      "aligned_delta_pts": -3.5,
+      "aligned_delta_meaning": "EASY\u2212HARD (want +)"
+    },
+    {
+      "pool": "STANDARD OVER LIVE",
+      "any": {
+        "hr": 55.9,
+        "hits": 105,
+        "n": 188
+      },
+      "hard": {
+        "hr": 61.2,
+        "hits": 52,
+        "n": 85
+      },
+      "mid": {
+        "hr": 52.9,
+        "hits": 9,
+        "n": 17
+      },
+      "easy": {
+        "hr": 50.0,
+        "hits": 27,
+        "n": 54
+      },
+      "aligned_delta_pts": -11.2,
+      "aligned_delta_meaning": "EASY\u2212HARD (want +)"
+    },
+    {
+      "pool": "STANDARD UNDER ALL",
+      "any": {
+        "hr": 53.1,
+        "hits": 2883,
+        "n": 5432
+      },
+      "hard": {
+        "hr": 52.2,
+        "hits": 772,
+        "n": 1478
+      },
+      "mid": {
+        "hr": 52.2,
+        "hits": 329,
+        "n": 630
+      },
+      "easy": {
+        "hr": 53.9,
+        "hits": 775,
+        "n": 1439
+      },
+      "aligned_delta_pts": -1.7,
+      "aligned_delta_meaning": "HARD\u2212EASY (want +; HARD=stingy D favors UNDER)"
+    },
+    {
+      "pool": "STANDARD UNDER LIVE",
+      "any": {
+        "hr": 56.3,
+        "hits": 456,
+        "n": 810
+      },
+      "hard": {
+        "hr": 58.0,
+        "hits": 119,
+        "n": 205
+      },
+      "mid": {
+        "hr": 63.1,
+        "hits": 65,
+        "n": 103
+      },
+      "easy": {
+        "hr": 56.2,
+        "hits": 131,
+        "n": 233
+      },
+      "aligned_delta_pts": 1.8,
+      "aligned_delta_meaning": "HARD\u2212EASY (want +; HARD=stingy D favors UNDER)"
+    }
+  ],
+  "sport_contrasts": [
+    {
+      "sport": "MLB",
+      "pool": "GOBLIN OVER ALL",
+      "hard": {
+        "hr": 62.4,
+        "hits": 4104,
+        "n": 6579
+      },
+      "easy": {
+        "hr": 62.8,
+        "hits": 4343,
+        "n": 6916
+      },
+      "aligned_delta_pts": 0.4
+    },
+    {
+      "sport": "MLB",
+      "pool": "STANDARD OVER ALL",
+      "hard": {
+        "hr": 44.4,
+        "hits": 372,
+        "n": 838
+      },
+      "easy": {
+        "hr": 45.1,
+        "hits": 446,
+        "n": 988
+      },
+      "aligned_delta_pts": 0.7
+    },
+    {
+      "sport": "MLB",
+      "pool": "STANDARD UNDER ALL",
+      "hard": {
+        "hr": 54.7,
+        "hits": 441,
+        "n": 806
+      },
+      "easy": {
+        "hr": 52.3,
+        "hits": 432,
+        "n": 826
+      },
+      "aligned_delta_pts": 2.4
+    },
+    {
+      "sport": "MLB",
+      "pool": "STANDARD UNDER LIVE",
+      "hard": {
+        "hr": 60.0,
+        "hits": 102,
+        "n": 170
+      },
+      "easy": {
+        "hr": 55.9,
+        "hits": 99,
+        "n": 177
+      },
+      "aligned_delta_pts": 4.1
+    },
+    {
+      "sport": "WNBA",
+      "pool": "GOBLIN OVER ALL",
+      "hard": {
+        "hr": 68.4,
+        "hits": 1677,
+        "n": 2452
+      },
+      "easy": {
+        "hr": 66.0,
+        "hits": 1481,
+        "n": 2243
+      },
+      "aligned_delta_pts": -2.4
+    },
+    {
+      "sport": "WNBA",
+      "pool": "GOBLIN OVER LIVE",
+      "hard": {
+        "hr": 74.6,
+        "hits": 631,
+        "n": 846
+      },
+      "easy": {
+        "hr": 76.8,
+        "hits": 569,
+        "n": 741
+      },
+      "aligned_delta_pts": 2.2
+    },
+    {
+      "sport": "WNBA",
+      "pool": "STANDARD OVER ALL",
+      "hard": {
+        "hr": 52.5,
+        "hits": 550,
+        "n": 1047
+      },
+      "easy": {
+        "hr": 45.7,
+        "hits": 423,
+        "n": 925
+      },
+      "aligned_delta_pts": -6.8
+    },
+    {
+      "sport": "WNBA",
+      "pool": "STANDARD UNDER ALL",
+      "hard": {
+        "hr": 49.5,
+        "hits": 328,
+        "n": 662
+      },
+      "easy": {
+        "hr": 56.2,
+        "hits": 342,
+        "n": 608
+      },
+      "aligned_delta_pts": -6.7
+    },
+    {
+      "sport": "WNBA",
+      "pool": "STANDARD UNDER LIVE",
+      "hard": {
+        "hr": 48.6,
+        "hits": 17,
+        "n": 35
+      },
+      "easy": {
+        "hr": 57.1,
+        "hits": 32,
+        "n": 56
+      },
+      "aligned_delta_pts": -8.5
+    },
+    {
+      "sport": "SOCCER",
+      "pool": "GOBLIN OVER ALL",
+      "hard": {
+        "hr": 41.5,
+        "hits": 162,
+        "n": 390
+      },
+      "easy": {
+        "hr": 43.3,
+        "hits": 145,
+        "n": 335
+      },
+      "aligned_delta_pts": 1.8
+    }
+  ],
+  "summary_min20": [
+    {
+      "key": "GOBLIN|OVER|ALL|ANY",
+      "hr": 60.6,
+      "hits": 22249,
+      "n": 36687
+    },
+    {
+      "key": "DIR|OVER|ALL|UNK",
+      "hr": 55.7,
+      "hits": 8151,
+      "n": 14638
+    },
+    {
+      "key": "GOBLIN|OVER|ALL|UNK",
+      "hr": 57.0,
+      "hits": 7009,
+      "n": 12302
+    },
+    {
+      "key": "DIR|OVER|ALL|EASY",
+      "hr": 59.9,
+      "hits": 6838,
+      "n": 11407
+    },
+    {
+      "key": "DIR|OVER|ALL|HARD",
+      "hr": 60.7,
+      "hits": 6865,
+      "n": 11306
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|ALL|UNK",
+      "hr": 61.6,
+      "hits": 5983,
+      "n": 9708
+    },
+    {
+      "key": "GOBLIN|OVER|ALL|EASY",
+      "hr": 62.9,
+      "hits": 5969,
+      "n": 9494
+    },
+    {
+      "key": "GOBLIN|OVER|ALL|HARD",
+      "hr": 63.1,
+      "hits": 5943,
+      "n": 9421
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=8|ANY",
+      "hr": 70.7,
+      "hits": 5865,
+      "n": 8293
+    },
+    {
+      "key": "STANDARD|OVER|ALL|ANY",
+      "hr": 47.8,
+      "hits": 3412,
+      "n": 7135
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|ALL|EASY",
+      "hr": 62.8,
+      "hits": 4343,
+      "n": 6916
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|ALL|HARD",
+      "hr": 62.4,
+      "hits": 4104,
+      "n": 6579
+    },
+    {
+      "key": "DIR|OVER|ALL|MID",
+      "hr": 58.8,
+      "hits": 3807,
+      "n": 6471
+    },
+    {
+      "key": "GOBLIN|OVER|ALL|MID",
+      "hr": 60.8,
+      "hits": 3328,
+      "n": 5470
+    },
+    {
+      "key": "STANDARD|UNDER|ALL|ANY",
+      "hr": 53.1,
+      "hits": 2883,
+      "n": 5432
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|ALL|MID",
+      "hr": 61.9,
+      "hits": 2188,
+      "n": 3537
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=4|ANY",
+      "hr": 71.1,
+      "hits": 2384,
+      "n": 3351
+    },
+    {
+      "key": "DIR|OVER|L10>=8|EASY",
+      "hr": 70.5,
+      "hits": 1835,
+      "n": 2601
+    },
+    {
+      "key": "DIR|OVER|L10>=8|HARD",
+      "hr": 68.6,
+      "hits": 1753,
+      "n": 2554
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=8|EASY",
+      "hr": 71.6,
+      "hits": 1781,
+      "n": 2486
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|ALL|HARD",
+      "hr": 68.4,
+      "hits": 1677,
+      "n": 2452
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=8|HARD",
+      "hr": 69.7,
+      "hits": 1680,
+      "n": 2410
+    },
+    {
+      "key": "DIR|OVER|L10>=8|UNK",
+      "hr": 69.6,
+      "hits": 1668,
+      "n": 2395
+    },
+    {
+      "key": "STANDARD|OVER|ALL|UNK",
+      "hr": 48.9,
+      "hits": 1142,
+      "n": 2336
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|ALL|EASY",
+      "hr": 66.0,
+      "hits": 1481,
+      "n": 2243
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=8|UNK",
+      "hr": 71.1,
+      "hits": 1593,
+      "n": 2240
+    },
+    {
+      "key": "TENNIS|GOBLIN|OVER|ALL|UNK",
+      "hr": 39.2,
+      "hits": 776,
+      "n": 1979
+    },
+    {
+      "key": "GOBLIN|OVER|LIVE|ANY",
+      "hr": 76.3,
+      "hits": 1496,
+      "n": 1961
+    },
+    {
+      "key": "STANDARD|OVER|ALL|EASY",
+      "hr": 45.4,
+      "hits": 869,
+      "n": 1913
+    },
+    {
+      "key": "DIR|UNDER|ALL|UNK",
+      "hr": 53.7,
+      "hits": 1017,
+      "n": 1895
+    },
+    {
+      "key": "STANDARD|OVER|ALL|HARD",
+      "hr": 48.9,
+      "hits": 922,
+      "n": 1885
+    },
+    {
+      "key": "STANDARD|UNDER|ALL|UNK",
+      "hr": 53.4,
+      "hits": 1007,
+      "n": 1885
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|L10>=8|UNK",
+      "hr": 70.6,
+      "hits": 1270,
+      "n": 1798
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|L10>=8|EASY",
+      "hr": 69.7,
+      "hits": 1142,
+      "n": 1638
+    },
+    {
+      "key": "MLB|STANDARD|OVER|ALL|UNK",
+      "hr": 47.7,
+      "hits": 775,
+      "n": 1626
+    },
+    {
+      "key": "DIR|UNDER|ALL|HARD",
+      "hr": 52.3,
+      "hits": 776,
+      "n": 1483
+    },
+    {
+      "key": "STANDARD|UNDER|ALL|HARD",
+      "hr": 52.2,
+      "hits": 772,
+      "n": 1478
+    },
+    {
+      "key": "DIR|UNDER|ALL|EASY",
+      "hr": 53.8,
+      "hits": 775,
+      "n": 1441
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|ALL|UNK",
+      "hr": 53.0,
+      "hits": 763,
+      "n": 1440
+    },
+    {
+      "key": "STANDARD|UNDER|ALL|EASY",
+      "hr": 53.9,
+      "hits": 775,
+      "n": 1439
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|L10>=8|HARD",
+      "hr": 66.4,
+      "hits": 954,
+      "n": 1437
+    },
+    {
+      "key": "DIR|OVER|L5>=4|HARD",
+      "hr": 69.1,
+      "hits": 975,
+      "n": 1411
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=4|HARD",
+      "hr": 69.1,
+      "hits": 975,
+      "n": 1411
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|L5>=4|HARD",
+      "hr": 69.1,
+      "hits": 975,
+      "n": 1411
+    },
+    {
+      "key": "DIR|OVER|L5>=4|EASY",
+      "hr": 70.8,
+      "hits": 901,
+      "n": 1272
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=4|EASY",
+      "hr": 70.8,
+      "hits": 901,
+      "n": 1272
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|L5>=4|EASY",
+      "hr": 70.8,
+      "hits": 901,
+      "n": 1272
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|ALL|MID",
+      "hr": 71.7,
+      "hits": 877,
+      "n": 1223
+    },
+    {
+      "key": "DIR|OVER|L10>=8|MID",
+      "hr": 69.2,
+      "hits": 834,
+      "n": 1205
+    },
+    {
+      "key": "GOBLIN|OVER|L10>=8|MID",
+      "hr": 70.1,
+      "hits": 811,
+      "n": 1157
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|ALL|HARD",
+      "hr": 52.5,
+      "hits": 550,
+      "n": 1047
+    },
+    {
+      "key": "STANDARD|OVER|ALL|MID",
+      "hr": 47.9,
+      "hits": 479,
+      "n": 1001
+    },
+    {
+      "key": "MLB|STANDARD|OVER|ALL|EASY",
+      "hr": 45.1,
+      "hits": 446,
+      "n": 988
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|L10>=8|HARD",
+      "hr": 74.6,
+      "hits": 726,
+      "n": 973
+    },
+    {
+      "key": "DIR|OVER|LIVE|HARD",
+      "hr": 73.4,
+      "hits": 683,
+      "n": 931
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|ALL|EASY",
+      "hr": 45.7,
+      "hits": 423,
+      "n": 925
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|L10>=8|EASY",
+      "hr": 75.4,
+      "hits": 639,
+      "n": 848
+    },
+    {
+      "key": "GOBLIN|OVER|LIVE|HARD",
+      "hr": 74.6,
+      "hits": 631,
+      "n": 846
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|LIVE|HARD",
+      "hr": 74.6,
+      "hits": 631,
+      "n": 846
+    },
+    {
+      "key": "MLB|STANDARD|OVER|ALL|HARD",
+      "hr": 44.4,
+      "hits": 372,
+      "n": 838
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|ALL|EASY",
+      "hr": 52.3,
+      "hits": 432,
+      "n": 826
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=8|ANY",
+      "hr": 56.3,
+      "hits": 456,
+      "n": 810
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE|ANY",
+      "hr": 56.3,
+      "hits": 456,
+      "n": 810
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|ALL|HARD",
+      "hr": 54.7,
+      "hits": 441,
+      "n": 806
+    },
+    {
+      "key": "DIR|OVER|LIVE|EASY",
+      "hr": 75.0,
+      "hits": 596,
+      "n": 795
+    },
+    {
+      "key": "GOBLIN|OVER|LIVE|EASY",
+      "hr": 76.8,
+      "hits": 569,
+      "n": 741
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|LIVE|EASY",
+      "hr": 76.8,
+      "hits": 569,
+      "n": 741
+    },
+    {
+      "key": "MLB|GOBLIN|OVER|L10>=8|MID",
+      "hr": 66.0,
+      "hits": 486,
+      "n": 736
+    },
+    {
+      "key": "SOCCER|GOBLIN|OVER|ALL|MID",
+      "hr": 37.0,
+      "hits": 263,
+      "n": 710
+    },
+    {
+      "key": "DIR|OVER|L5>=4|MID",
+      "hr": 76.0,
+      "hits": 508,
+      "n": 668
+    },
+    {
+      "key": "GOBLIN|OVER|L5>=4|MID",
+      "hr": 76.0,
+      "hits": 508,
+      "n": 668
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|L5>=4|MID",
+      "hr": 76.0,
+      "hits": 508,
+      "n": 668
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|ALL|HARD",
+      "hr": 49.5,
+      "hits": 328,
+      "n": 662
+    },
+    {
+      "key": "DIR|UNDER|ALL|MID",
+      "hr": 52.4,
+      "hits": 332,
+      "n": 634
+    },
+    {
+      "key": "STANDARD|UNDER|ALL|MID",
+      "hr": 52.2,
+      "hits": 329,
+      "n": 630
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|ALL|EASY",
+      "hr": 56.2,
+      "hits": 342,
+      "n": 608
+    },
+    {
+      "key": "SOCCER|GOBLIN|OVER|ALL|UNK",
+      "hr": 34.5,
+      "hits": 178,
+      "n": 516
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|ALL|MID",
+      "hr": 51.0,
+      "hits": 262,
+      "n": 514
+    },
+    {
+      "key": "MLB|STANDARD|OVER|ALL|MID",
+      "hr": 44.6,
+      "hits": 217,
+      "n": 487
+    },
+    {
+      "key": "STANDARD|OVER|L10>=8|ANY",
+      "hr": 48.7,
+      "hits": 225,
+      "n": 462
+    },
+    {
+      "key": "TENNIS|GOBLIN|OVER|L10>=8|UNK",
+      "hr": 73.1,
+      "hits": 323,
+      "n": 442
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|ALL|UNK",
+      "hr": 54.2,
+      "hits": 231,
+      "n": 426
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|L10>=8|MID",
+      "hr": 77.2,
+      "hits": 325,
+      "n": 421
+    },
+    {
+      "key": "DIR|OVER|LIVE|MID",
+      "hr": 78.0,
+      "hits": 305,
+      "n": 391
+    },
+    {
+      "key": "SOCCER|GOBLIN|OVER|ALL|HARD",
+      "hr": 41.5,
+      "hits": 162,
+      "n": 390
+    },
+    {
+      "key": "GOBLIN|OVER|LIVE|MID",
+      "hr": 79.1,
+      "hits": 296,
+      "n": 374
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|LIVE|MID",
+      "hr": 79.1,
+      "hits": 296,
+      "n": 374
+    },
+    {
+      "key": "SOCCER|GOBLIN|OVER|ALL|EASY",
+      "hr": 43.3,
+      "hits": 145,
+      "n": 335
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|ALL|MID",
+      "hr": 55.1,
+      "hits": 184,
+      "n": 334
+    },
+    {
+      "key": "TENNIS|STANDARD|OVER|ALL|UNK",
+      "hr": 47.9,
+      "hits": 136,
+      "n": 284
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|ALL|MID",
+      "hr": 48.9,
+      "hits": 139,
+      "n": 284
+    },
+    {
+      "key": "DIR|UNDER|L10>=8|UNK",
+      "hr": 52.4,
+      "hits": 141,
+      "n": 269
+    },
+    {
+      "key": "DIR|UNDER|LIVE|UNK",
+      "hr": 52.4,
+      "hits": 141,
+      "n": 269
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=8|UNK",
+      "hr": 52.4,
+      "hits": 141,
+      "n": 269
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE|UNK",
+      "hr": 52.4,
+      "hits": 141,
+      "n": 269
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|ALL|UNK",
+      "hr": 46.4,
+      "hits": 122,
+      "n": 263
+    },
+    {
+      "key": "DIR|UNDER|L10>=8|EASY",
+      "hr": 56.2,
+      "hits": 131,
+      "n": 233
+    },
+    {
+      "key": "DIR|UNDER|LIVE|EASY",
+      "hr": 56.2,
+      "hits": 131,
+      "n": 233
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=8|EASY",
+      "hr": 56.2,
+      "hits": 131,
+      "n": 233
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE|EASY",
+      "hr": 56.2,
+      "hits": 131,
+      "n": 233
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|L10>=8|UNK",
+      "hr": 51.8,
+      "hits": 115,
+      "n": 222
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|LIVE|UNK",
+      "hr": 51.8,
+      "hits": 115,
+      "n": 222
+    },
+    {
+      "key": "DIR|UNDER|L10>=8|HARD",
+      "hr": 58.0,
+      "hits": 119,
+      "n": 205
+    },
+    {
+      "key": "DIR|UNDER|LIVE|HARD",
+      "hr": 58.0,
+      "hits": 119,
+      "n": 205
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=8|HARD",
+      "hr": 58.0,
+      "hits": 119,
+      "n": 205
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE|HARD",
+      "hr": 58.0,
+      "hits": 119,
+      "n": 205
+    },
+    {
+      "key": "STANDARD|OVER|LIVE|ANY",
+      "hr": 55.9,
+      "hits": 105,
+      "n": 188
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|L10>=8|EASY",
+      "hr": 55.9,
+      "hits": 99,
+      "n": 177
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|LIVE|EASY",
+      "hr": 55.9,
+      "hits": 99,
+      "n": 177
+    },
+    {
+      "key": "TENNIS|STANDARD|UNDER|ALL|UNK",
+      "hr": 67.8,
+      "hits": 116,
+      "n": 171
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|L10>=8|HARD",
+      "hr": 60.0,
+      "hits": 102,
+      "n": 170
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|LIVE|HARD",
+      "hr": 60.0,
+      "hits": 102,
+      "n": 170
+    },
+    {
+      "key": "STANDARD|OVER|L10>=8|UNK",
+      "hr": 48.4,
+      "hits": 75,
+      "n": 155
+    },
+    {
+      "key": "STANDARD|OVER|L10>=8|HARD",
+      "hr": 50.7,
+      "hits": 73,
+      "n": 144
+    },
+    {
+      "key": "STANDARD|OVER|L10>=8|EASY",
+      "hr": 47.0,
+      "hits": 54,
+      "n": 115
+    },
+    {
+      "key": "DIR|UNDER|L10>=8|MID",
+      "hr": 63.1,
+      "hits": 65,
+      "n": 103
+    },
+    {
+      "key": "DIR|UNDER|LIVE|MID",
+      "hr": 63.1,
+      "hits": 65,
+      "n": 103
+    },
+    {
+      "key": "STANDARD|UNDER|L10>=8|MID",
+      "hr": 63.1,
+      "hits": 65,
+      "n": 103
+    },
+    {
+      "key": "STANDARD|UNDER|LIVE|MID",
+      "hr": 63.1,
+      "hits": 65,
+      "n": 103
+    },
+    {
+      "key": "WNBA|GOBLIN|OVER|ALL|UNK",
+      "hr": 72.7,
+      "hits": 72,
+      "n": 99
+    },
+    {
+      "key": "MLB|STANDARD|OVER|L10>=8|UNK",
+      "hr": 45.7,
+      "hits": 42,
+      "n": 92
+    },
+    {
+      "key": "STANDARD|OVER|LIVE|HARD",
+      "hr": 61.2,
+      "hits": 52,
+      "n": 85
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|L10>=8|HARD",
+      "hr": 61.2,
+      "hits": 52,
+      "n": 85
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|LIVE|HARD",
+      "hr": 61.2,
+      "hits": 52,
+      "n": 85
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|L10>=8|MID",
+      "hr": 59.7,
+      "hits": 46,
+      "n": 77
+    },
+    {
+      "key": "MLB|STANDARD|UNDER|LIVE|MID",
+      "hr": 59.7,
+      "hits": 46,
+      "n": 77
+    },
+    {
+      "key": "MLB|STANDARD|OVER|L10>=8|EASY",
+      "hr": 44.3,
+      "hits": 27,
+      "n": 61
+    },
+    {
+      "key": "MLB|STANDARD|OVER|L10>=8|HARD",
+      "hr": 35.6,
+      "hits": 21,
+      "n": 59
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|L10>=8|EASY",
+      "hr": 57.1,
+      "hits": 32,
+      "n": 56
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|LIVE|EASY",
+      "hr": 57.1,
+      "hits": 32,
+      "n": 56
+    },
+    {
+      "key": "STANDARD|OVER|LIVE|EASY",
+      "hr": 50.0,
+      "hits": 27,
+      "n": 54
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|L10>=8|EASY",
+      "hr": 50.0,
+      "hits": 27,
+      "n": 54
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|LIVE|EASY",
+      "hr": 50.0,
+      "hits": 27,
+      "n": 54
+    },
+    {
+      "key": "STANDARD|OVER|L10>=8|MID",
+      "hr": 47.9,
+      "hits": 23,
+      "n": 48
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|L10>=8|HARD",
+      "hr": 48.6,
+      "hits": 17,
+      "n": 35
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|LIVE|HARD",
+      "hr": 48.6,
+      "hits": 17,
+      "n": 35
+    },
+    {
+      "key": "DIR|OVER|LIVE|UNK",
+      "hr": 53.1,
+      "hits": 17,
+      "n": 32
+    },
+    {
+      "key": "STANDARD|OVER|LIVE|UNK",
+      "hr": 53.1,
+      "hits": 17,
+      "n": 32
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|L10>=8|UNK",
+      "hr": 53.1,
+      "hits": 17,
+      "n": 32
+    },
+    {
+      "key": "WNBA|STANDARD|OVER|LIVE|UNK",
+      "hr": 53.1,
+      "hits": 17,
+      "n": 32
+    },
+    {
+      "key": "MLB|STANDARD|OVER|L10>=8|MID",
+      "hr": 45.2,
+      "hits": 14,
+      "n": 31
+    },
+    {
+      "key": "TENNIS|STANDARD|OVER|L10>=8|UNK",
+      "hr": 51.6,
+      "hits": 16,
+      "n": 31
+    },
+    {
+      "key": "TENNIS|STANDARD|UNDER|L10>=8|UNK",
+      "hr": 77.8,
+      "hits": 21,
+      "n": 27
+    },
+    {
+      "key": "TENNIS|STANDARD|UNDER|LIVE|UNK",
+      "hr": 77.8,
+      "hits": 21,
+      "n": 27
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|L10>=8|MID",
+      "hr": 73.1,
+      "hits": 19,
+      "n": 26
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|LIVE|MID",
+      "hr": 73.1,
+      "hits": 19,
+      "n": 26
+    },
+    {
+      "key": "GOBLIN|UNDER|ALL|ANY",
+      "hr": 81.0,
+      "hits": 17,
+      "n": 21
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|L10>=8|UNK",
+      "hr": 25.0,
+      "hits": 5,
+      "n": 20
+    },
+    {
+      "key": "WNBA|STANDARD|UNDER|LIVE|UNK",
+      "hr": 25.0,
+      "hits": 5,
+      "n": 20
+    }
+  ]
+}

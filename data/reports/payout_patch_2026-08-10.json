@@ -1,0 +1,636 @@
+{
+  "date": "2026-08-10",
+  "generated_at": "2026-08-11T02:52:25Z",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\ui_runner\\data\\combined_slate_tickets_2026-08-10.json",
+  "by_ticket_id": {
+    "2026-08-10|STRONG 2-Leg|1": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|10": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|11": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|12": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|13": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|2": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|4": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|5": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|6": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|7": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|8": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 2-Leg|9": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|STRONG 3-Leg|1": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|STRONG 3-Leg|2": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|STRONG 3-Leg|3": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|STRONG 3-Leg|4": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|MLB Core Power 2 #2|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-10|TENNIS 3-Leg Goblin|1": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "2026-08-10|WNBA Core Flex 3 #1|1": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|WNBA Core Flex 3 #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|Probability Ladder · MLB · Stack70|1": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|Probability Ladder · MLB · Stack70|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|MLB Goblin 3-Leg #1|1": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|MLB 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|WNBA Core Flex 3 #2|1": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|WNBA Core Flex 3 #2|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-10|Probability Ladder · MLB · Stack70|5": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|Probability Ladder · MLB · Stack70|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    }
+  },
+  "by_leg_sig": {
+    "andrew painter|earned runs allowed|over|0.500||freddy peralta|earned runs allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "casey mize|earned runs allowed|over|0.500||reid detmers|hits allowed|over|2.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "christian scott|hits allowed|over|2.500||noah cameron|walks allowed|over|1.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jameson taillon|hits allowed|over|3.500||sonny gray|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|12",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "bryce elder|earned runs allowed|over|0.500||christian scott|walks allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "freddy peralta|hits allowed|over|3.500||mackenzie gore|hits allowed|over|2.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "dean kremer|earned runs allowed|over|0.500||mackenzie gore|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jameson taillon|earned runs allowed|over|0.500||tarik skubal|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "casey mize|hits allowed|over|2.500||tarik skubal|hits allowed|over|2.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "bryce elder|walks allowed|over|0.500||michael soroka|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "logan henderson|hits allowed|over|2.500||trevor rogers|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "logan henderson|earned runs allowed|over|0.500||reid detmers|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "dean kremer|earned runs allowed|over|0.500||freddy peralta|hits allowed|over|3.500||mackenzie gore|hits allowed|over|2.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "bryce elder|walks allowed|over|0.500||casey mize|hits allowed|over|2.500||reid detmers|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "logan henderson|earned runs allowed|over|0.500||michael soroka|earned runs allowed|over|0.500||tarik skubal|earned runs allowed|over|0.500": {
+      "power_min_x": 2.0,
+      "display_min_x": 2.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "christian scott|walks allowed|over|0.500||noah cameron|walks allowed|over|1.500||trevor rogers|earned runs allowed|over|0.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|earned runs allowed|over|1.500||dean kremer|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "andrew painter|walks allowed|over|0.500||dean kremer|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "dean kremer|earned runs allowed|over|0.500||freddy peralta|hits allowed|over|3.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "elina svitolina|total games won|over|11.500||iga swiatek|total games won|over|11.500||rafael jodar|total games won|over|11.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "elina svitolina|total games won|over|10.500||iga swiatek|total games won|over|11.500||rafael jodar|total games won|over|11.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "diana shnaider|total games won|over|7.500||elina svitolina|total games won|over|11.500||rafael jodar|total games won|over|11.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "brandon nakashima|total games won|over|11.500||elina svitolina|total games won|over|11.500||rafael jodar|total games won|over|11.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "brionna jones|rebounds|over|3.500||jade melbourne|assists|over|2.500||maria conde|rebounds|over|2.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|WNBA Core Flex 3 #1|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "angel reese|rebounds|over|10.500||jade melbourne|assists|over|2.500||maria conde|rebounds|over|2.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|WNBA Core Flex 3 #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "brandon nakashima|total games won|over|11.500||iga swiatek|total games won|over|11.500||rafael jodar|total games won|over|11.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|earned runs allowed|over|1.500||freddy peralta|pitches thrown|over|85.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "freddy peralta|pitches thrown|over|85.500||michael soroka|pitching outs|over|11.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "freddy peralta|pitches thrown|over|85.500||trevor rogers|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "freddy peralta|pitches thrown|over|85.500||michael soroka|pitching outs|over|11.500||trevor rogers|pitching outs|over|14.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "christian scott|pitching outs|over|11.500||freddy peralta|hits allowed|over|3.500||mackenzie gore|pitching outs|over|14.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "freddy peralta|hits allowed|over|3.500||trevor rogers|pitching outs|over|14.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "andrew painter|hits allowed|over|2.500||dean kremer|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "andrew painter|earned runs allowed|over|0.500||trevor rogers|pitches thrown|over|87.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "christian scott|pitching outs|over|11.500||mackenzie gore|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "logan henderson|pitching outs|over|14.500||tarik skubal|hits allowed|over|2.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|7",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "bryce elder|earned runs allowed|over|0.500||casey mize|hits allowed|over|2.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|8",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "noah cameron|pitching outs|over|14.500||sonny gray|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|9",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jameson taillon|hits allowed|over|3.500||tarik skubal|earned runs allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jameson taillon|earned runs allowed|over|0.500||sonny gray|hits allowed|over|3.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 2-Leg|13",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "christian scott|pitching outs|over|11.500||dean kremer|pitching outs|over|11.500||mackenzie gore|pitching outs|over|14.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "logan henderson|earned runs allowed|over|0.500||reid detmers|earned runs allowed|over|0.500||tarik skubal|earned runs allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "andrew painter|hits allowed|over|2.500||jameson taillon|earned runs allowed|over|0.500||sonny gray|hits allowed|over|3.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|walks allowed|over|0.500||bryce elder|walks allowed|over|0.500||mackenzie gore|earned runs allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "brionna jones|rebounds|over|4.500||jade melbourne|assists|over|2.500||maria conde|rebounds|over|2.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|WNBA Core Flex 3 #2|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|hits allowed|over|2.500||sonny gray|hits allowed|over|3.500||tarik skubal|earned runs allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "jameson taillon|earned runs allowed|over|0.500||logan henderson|earned runs allowed|over|0.500||noah cameron|pitching outs|over|14.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|walks allowed|over|0.500||bryce elder|walks allowed|over|0.500||dean kremer|pitching outs|over|11.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|walks allowed|over|0.500||bryce elder|walks allowed|over|0.500||trevor rogers|pitching outs|over|14.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|walks allowed|over|0.500||bryce elder|walks allowed|over|0.500||freddy peralta|walks allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "andrew painter|walks allowed|over|0.500||bryce elder|walks allowed|over|0.500||trevor rogers|pitching outs|over|17.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-10|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    }
+  }
+}

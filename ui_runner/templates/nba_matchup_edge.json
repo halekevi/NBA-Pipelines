@@ -2,12 +2,12 @@
   "sport": "nba",
   "display_name": "NBA",
   "matchup_mode": "team",
-  "generated_at": "2026-08-03T10:16:45.122235+00:00",
+  "generated_at": "2026-08-12T13:15:53.130006+00:00",
   "season": 2026,
   "n_teams": 30,
   "elite_rank_cut": 4,
   "weak_rank_cut": 20,
-  "opp_metric_label": "Opp def rank",
+  "opp_metric_label": "Opp cat def",
   "categories": [
     {
       "id": "pts",
@@ -575,7 +575,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -790,7 +795,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -1005,7 +1015,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -1220,7 +1235,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -1435,7 +1455,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -1650,7 +1675,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -1865,7 +1895,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -2080,7 +2115,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -2295,7 +2335,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -2510,7 +2555,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -2725,7 +2775,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -2940,7 +2995,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -3155,7 +3215,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -3370,7 +3435,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -3585,7 +3655,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -3800,7 +3875,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -4015,7 +4095,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -4230,7 +4315,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -4445,7 +4535,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -4660,7 +4755,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -4875,7 +4975,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -5090,7 +5195,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -5305,7 +5415,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -5520,7 +5635,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -5735,7 +5855,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -5950,7 +6075,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -6165,7 +6295,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -6380,7 +6515,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -6595,7 +6735,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -6810,7 +6955,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -7025,7 +7175,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -7240,7 +7395,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -7455,7 +7615,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -7670,7 +7835,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -7885,7 +8055,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -8100,7 +8275,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -8315,7 +8495,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -8530,7 +8715,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -8745,7 +8935,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -8960,7 +9155,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -9175,7 +9375,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -9390,7 +9595,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -9605,7 +9815,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -9820,7 +10035,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -10035,7 +10255,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -10250,7 +10475,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -10465,7 +10695,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -10680,7 +10915,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -10895,7 +11135,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -11110,7 +11355,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -11325,7 +11575,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -11540,7 +11795,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -11755,7 +12015,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -11970,7 +12235,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -12185,7 +12455,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -12400,7 +12675,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -12615,7 +12895,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -12830,7 +13115,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -13045,7 +13335,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -13260,7 +13555,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -13475,7 +13775,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -13690,7 +13995,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -13905,7 +14215,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -14120,7 +14435,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -14335,7 +14655,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -14550,7 +14875,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -14765,7 +15095,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -14980,7 +15315,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -15195,7 +15535,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -15410,7 +15755,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -15625,7 +15975,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -15840,7 +16195,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -16055,7 +16415,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -16270,7 +16635,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -16485,7 +16855,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -16700,7 +17075,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -16915,7 +17295,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -17130,7 +17515,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -17345,7 +17735,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -17560,7 +17955,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -17775,7 +18175,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -17990,7 +18395,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -18205,7 +18615,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -18420,7 +18835,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -18635,7 +19055,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -18850,7 +19275,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -19065,7 +19495,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -19280,7 +19715,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -19495,7 +19935,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -19710,7 +20155,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -19925,7 +20375,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -20140,7 +20595,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -20355,7 +20815,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -20570,7 +21035,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -20785,7 +21255,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -21000,7 +21475,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -21215,7 +21695,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -21430,7 +21915,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -21645,7 +22135,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -21860,7 +22355,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -22075,7 +22575,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -22290,7 +22795,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -22505,7 +23015,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -22720,7 +23235,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -22935,7 +23455,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -23150,7 +23675,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -23365,7 +23895,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -23580,7 +24115,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -23795,7 +24335,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -24010,7 +24555,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -24225,7 +24775,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -24440,7 +24995,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -24655,7 +25215,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -24870,7 +25435,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -25085,7 +25655,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -25300,7 +25875,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -25515,7 +26095,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -25730,7 +26315,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -25945,7 +26535,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -26160,7 +26755,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -26375,7 +26975,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -26590,7 +27195,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -26805,7 +27415,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -27020,7 +27635,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -27235,7 +27855,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -27450,7 +28075,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -27665,7 +28295,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -27880,7 +28515,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -28095,7 +28735,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -28310,7 +28955,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -28525,7 +29175,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -28740,7 +29395,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -28955,7 +29615,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -29170,7 +29835,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -29385,7 +30055,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -29600,7 +30275,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -29815,7 +30495,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -30030,7 +30715,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -30245,7 +30935,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -30460,7 +31155,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -30675,7 +31375,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -30890,7 +31595,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -31105,7 +31815,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -31320,7 +32035,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -31535,7 +32255,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -31750,7 +32475,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -31965,7 +32695,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -32180,7 +32915,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -32395,7 +33135,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -32610,7 +33355,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -32825,7 +33575,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -33040,7 +33795,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -33255,7 +34015,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -33470,7 +34235,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -33685,7 +34455,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -33900,7 +34675,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -34115,7 +34895,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -34330,7 +35115,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -34545,7 +35335,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -34760,7 +35555,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -34975,7 +35775,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -35190,7 +35995,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -35405,7 +36215,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -35620,7 +36435,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -35835,7 +36655,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -36050,7 +36875,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -36265,7 +37095,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -36480,7 +37315,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -36695,7 +37535,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -36910,7 +37755,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -37125,7 +37975,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -37340,7 +38195,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -37555,7 +38415,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -37770,7 +38635,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -37985,7 +38855,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -38200,7 +39075,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -38415,7 +39295,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -38630,7 +39515,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -38845,7 +39735,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -39060,7 +39955,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -39275,7 +40175,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -39490,7 +40395,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -39705,7 +40615,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -39920,7 +40835,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -40135,7 +41055,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -40350,7 +41275,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -40565,7 +41495,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -40780,7 +41715,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -40995,7 +41935,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -41210,7 +42155,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -41425,7 +42375,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -41640,7 +42595,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -41855,7 +42815,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -42070,7 +43035,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -42285,7 +43255,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -42500,7 +43475,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -42715,7 +43695,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -42930,7 +43915,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -43145,7 +44135,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -43360,7 +44355,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -43575,7 +44575,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -43790,7 +44795,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -44005,7 +45015,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -44220,7 +45235,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -44435,7 +45455,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -44650,7 +45675,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -44865,7 +45895,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -45080,7 +46115,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -45295,7 +46335,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -45510,7 +46555,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -45725,7 +46775,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -45940,7 +46995,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -46155,7 +47215,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -46370,7 +47435,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -46585,7 +47655,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -46800,7 +47875,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -47015,7 +48095,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -47230,7 +48315,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -47445,7 +48535,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -47660,7 +48755,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -47875,7 +48975,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -48090,7 +49195,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -48305,7 +49415,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -48520,7 +49635,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -48735,7 +49855,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -48950,7 +50075,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -49165,7 +50295,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -49380,7 +50515,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -49595,7 +50735,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -49810,7 +50955,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -50025,7 +51175,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -50240,7 +51395,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -50455,7 +51615,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -50670,7 +51835,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -50885,7 +52055,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -51100,7 +52275,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -51315,7 +52495,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -51530,7 +52715,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -51745,7 +52935,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {
@@ -51960,7 +53155,12 @@
         "name": "",
         "def_rank": null,
         "def_tier": "",
-        "opp_ppg": null
+        "opp_ppg": null,
+        "overall_def_rank": null,
+        "overall_def_tier": "",
+        "stat_def_category": "",
+        "stat_def_rank": null,
+        "stat_def_tier": ""
       },
       "players": [
         {

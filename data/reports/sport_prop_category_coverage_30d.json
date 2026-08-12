@@ -1,0 +1,5972 @@
+{
+  "generated_at": "2026-08-11T00:32:09.420672+00:00",
+  "window": {
+    "start": "2026-07-11",
+    "end": "2026-08-09"
+  },
+  "exclusions": [
+    "Fantasy*",
+    "1st Inning*"
+  ],
+  "excluded_note": "Fantasy Score / Hitter-Pitcher-Outfield Fantasy / 1st Inning Runs|Walks Allowed omitted per request",
+  "pp_catalog_source": "user PrizePicks screenshots 2026-08-10",
+  "days_used": [
+    "2026-07-11",
+    "2026-07-12",
+    "2026-07-13",
+    "2026-07-14",
+    "2026-07-15",
+    "2026-07-16",
+    "2026-07-17",
+    "2026-07-18",
+    "2026-07-19",
+    "2026-07-20",
+    "2026-07-21",
+    "2026-07-24",
+    "2026-07-25",
+    "2026-07-26",
+    "2026-07-27",
+    "2026-07-28",
+    "2026-07-29",
+    "2026-07-30",
+    "2026-07-31",
+    "2026-08-01",
+    "2026-08-02",
+    "2026-08-04",
+    "2026-08-05",
+    "2026-08-06",
+    "2026-08-07",
+    "2026-08-08",
+    "2026-08-09"
+  ],
+  "n_days": 27,
+  "by_sport": {
+    "WNBA": {
+      "catalog_n": 24,
+      "status_counts": {
+        "TICKET_READY": 24
+      },
+      "rows": [
+        {
+          "prop": "Pts+Rebs+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1541,
+          "decided": 1474,
+          "pending_void": 67,
+          "by_pick": {
+            "GOBLIN": 766,
+            "STANDARD": 497,
+            "DEMON": 278
+          },
+          "goblin_over": {
+            "hr": 66.7,
+            "hits": 490,
+            "n": 735
+          },
+          "goblin_over_live": {
+            "hr": 70.5,
+            "hits": 158,
+            "n": 224
+          },
+          "goblin_live_lift": 3.8,
+          "standard_under": {
+            "hr": 47.9,
+            "hits": 57,
+            "n": 119
+          },
+          "standard_under_live": {
+            "hr": 66.7,
+            "hits": 10,
+            "n": 15
+          },
+          "standard_over": {
+            "hr": 52.4,
+            "hits": 186,
+            "n": 355
+          },
+          "demon_over": {
+            "hr": 40.8,
+            "hits": 108,
+            "n": 265
+          }
+        },
+        {
+          "prop": "Points",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 2209,
+          "decided": 2132,
+          "pending_void": 77,
+          "by_pick": {
+            "GOBLIN": 1422,
+            "DEMON": 227,
+            "STANDARD": 560
+          },
+          "goblin_over": {
+            "hr": 68.8,
+            "hits": 944,
+            "n": 1372
+          },
+          "goblin_over_live": {
+            "hr": 79.0,
+            "hits": 362,
+            "n": 458
+          },
+          "goblin_live_lift": 10.2,
+          "standard_under": {
+            "hr": 47.2,
+            "hits": 103,
+            "n": 218
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 9,
+            "n": 18
+          },
+          "standard_over": {
+            "hr": 50.8,
+            "hits": 163,
+            "n": 321
+          },
+          "demon_over": {
+            "hr": 43.9,
+            "hits": 97,
+            "n": 221
+          }
+        },
+        {
+          "prop": "Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1411,
+          "decided": 1334,
+          "pending_void": 77,
+          "by_pick": {
+            "STANDARD": 323,
+            "GOBLIN": 933,
+            "DEMON": 155
+          },
+          "goblin_over": {
+            "hr": 70.7,
+            "hits": 638,
+            "n": 902
+          },
+          "goblin_over_live": {
+            "hr": 78.1,
+            "hits": 275,
+            "n": 352
+          },
+          "goblin_live_lift": 7.4,
+          "standard_under": {
+            "hr": 58.3,
+            "hits": 70,
+            "n": 120
+          },
+          "standard_under_live": {
+            "hr": 60.0,
+            "hits": 3,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 82,
+            "n": 164
+          },
+          "demon_over": {
+            "hr": 39.2,
+            "hits": 58,
+            "n": 148
+          }
+        },
+        {
+          "prop": "Assists",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 912,
+          "decided": 868,
+          "pending_void": 44,
+          "by_pick": {
+            "DEMON": 105,
+            "STANDARD": 206,
+            "GOBLIN": 601
+          },
+          "goblin_over": {
+            "hr": 71.4,
+            "hits": 414,
+            "n": 580
+          },
+          "goblin_over_live": {
+            "hr": 77.7,
+            "hits": 160,
+            "n": 206
+          },
+          "goblin_live_lift": 6.3,
+          "standard_under": {
+            "hr": 56.5,
+            "hits": 48,
+            "n": 85
+          },
+          "standard_under_live": {
+            "hr": 40.0,
+            "hits": 2,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 51,
+            "n": 102
+          },
+          "demon_over": {
+            "hr": 36.6,
+            "hits": 37,
+            "n": 101
+          }
+        },
+        {
+          "prop": "3-PT Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 553,
+          "decided": 533,
+          "pending_void": 20,
+          "by_pick": {
+            "DEMON": 97,
+            "STANDARD": 53,
+            "GOBLIN": 403
+          },
+          "goblin_over": {
+            "hr": 68.4,
+            "hits": 266,
+            "n": 389
+          },
+          "goblin_over_live": {
+            "hr": 76.2,
+            "hits": 96,
+            "n": 126
+          },
+          "goblin_live_lift": 7.8,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 47.4,
+            "hits": 18,
+            "n": 38
+          },
+          "demon_over": {
+            "hr": 45.3,
+            "hits": 43,
+            "n": 95
+          }
+        },
+        {
+          "prop": "3-PT Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 269,
+          "decided": 260,
+          "pending_void": 9,
+          "by_pick": {
+            "STANDARD": 144,
+            "GOBLIN": 106,
+            "DEMON": 19
+          },
+          "goblin_over": {
+            "hr": 67.3,
+            "hits": 70,
+            "n": 104
+          },
+          "goblin_over_live": {
+            "hr": 74.2,
+            "hits": 23,
+            "n": 31
+          },
+          "goblin_live_lift": 6.9,
+          "standard_under": {
+            "hr": 51.9,
+            "hits": 28,
+            "n": 54
+          },
+          "standard_under_live": {
+            "hr": 80.0,
+            "hits": 4,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 54.2,
+            "hits": 45,
+            "n": 83
+          },
+          "demon_over": {
+            "hr": 31.6,
+            "hits": 6,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Rebs+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1026,
+          "decided": 974,
+          "pending_void": 52,
+          "by_pick": {
+            "GOBLIN": 533,
+            "STANDARD": 286,
+            "DEMON": 207
+          },
+          "goblin_over": {
+            "hr": 68.6,
+            "hits": 350,
+            "n": 510
+          },
+          "goblin_over_live": {
+            "hr": 76.3,
+            "hits": 106,
+            "n": 139
+          },
+          "goblin_live_lift": 7.7,
+          "standard_under": {
+            "hr": 43.5,
+            "hits": 30,
+            "n": 69
+          },
+          "standard_under_live": {
+            "hr": 25.0,
+            "hits": 2,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 48.7,
+            "hits": 96,
+            "n": 197
+          },
+          "demon_over": {
+            "hr": 34.8,
+            "hits": 69,
+            "n": 198
+          }
+        },
+        {
+          "prop": "FG Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 228,
+          "decided": 205,
+          "pending_void": 23,
+          "by_pick": {
+            "STANDARD": 226,
+            "GOBLIN": 2
+          },
+          "goblin_over": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "goblin_over_live": {
+            "hr": 100.0,
+            "hits": 1,
+            "n": 1
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.7,
+            "hits": 36,
+            "n": 71
+          },
+          "standard_under_live": {
+            "hr": 75.0,
+            "hits": 3,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 53.8,
+            "hits": 71,
+            "n": 132
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "FG Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 362,
+          "decided": 348,
+          "pending_void": 14,
+          "by_pick": {
+            "STANDARD": 228,
+            "GOBLIN": 127,
+            "DEMON": 7
+          },
+          "goblin_over": {
+            "hr": 71.0,
+            "hits": 88,
+            "n": 124
+          },
+          "goblin_over_live": {
+            "hr": 78.9,
+            "hits": 45,
+            "n": 57
+          },
+          "goblin_live_lift": 7.9,
+          "standard_under": {
+            "hr": 56.7,
+            "hits": 55,
+            "n": 97
+          },
+          "standard_under_live": {
+            "hr": 62.5,
+            "hits": 5,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 57.5,
+            "hits": 69,
+            "n": 120
+          },
+          "demon_over": {
+            "hr": 14.3,
+            "hits": 1,
+            "n": 7
+          }
+        },
+        {
+          "prop": "Pts+Rebs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1212,
+          "decided": 1167,
+          "pending_void": 45,
+          "by_pick": {
+            "DEMON": 154,
+            "GOBLIN": 561,
+            "STANDARD": 497
+          },
+          "goblin_over": {
+            "hr": 68.0,
+            "hits": 368,
+            "n": 541
+          },
+          "goblin_over_live": {
+            "hr": 72.7,
+            "hits": 136,
+            "n": 187
+          },
+          "goblin_live_lift": 4.7,
+          "standard_under": {
+            "hr": 52.4,
+            "hits": 76,
+            "n": 145
+          },
+          "standard_under_live": {
+            "hr": 63.6,
+            "hits": 7,
+            "n": 11
+          },
+          "standard_over": {
+            "hr": 52.1,
+            "hits": 174,
+            "n": 334
+          },
+          "demon_over": {
+            "hr": 43.5,
+            "hits": 64,
+            "n": 147
+          }
+        },
+        {
+          "prop": "Two Pointers Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 133,
+          "decided": 123,
+          "pending_void": 10,
+          "by_pick": {
+            "GOBLIN": 11,
+            "STANDARD": 118,
+            "DEMON": 4
+          },
+          "goblin_over": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "goblin_over_live": {
+            "hr": 100.0,
+            "hits": 2,
+            "n": 2
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 55.8,
+            "hits": 24,
+            "n": 43
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 3,
+            "n": 3
+          },
+          "standard_over": {
+            "hr": 36.9,
+            "hits": 24,
+            "n": 65
+          },
+          "demon_over": {
+            "hr": 25.0,
+            "hits": 1,
+            "n": 4
+          }
+        },
+        {
+          "prop": "Pts+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 999,
+          "decided": 960,
+          "pending_void": 39,
+          "by_pick": {
+            "DEMON": 131,
+            "GOBLIN": 461,
+            "STANDARD": 407
+          },
+          "goblin_over": {
+            "hr": 69.6,
+            "hits": 309,
+            "n": 444
+          },
+          "goblin_over_live": {
+            "hr": 75.8,
+            "hits": 119,
+            "n": 157
+          },
+          "goblin_live_lift": 6.2,
+          "standard_under": {
+            "hr": 45.9,
+            "hits": 45,
+            "n": 98
+          },
+          "standard_under_live": {
+            "hr": 57.1,
+            "hits": 8,
+            "n": 14
+          },
+          "standard_over": {
+            "hr": 51.0,
+            "hits": 149,
+            "n": 292
+          },
+          "demon_over": {
+            "hr": 29.4,
+            "hits": 37,
+            "n": 126
+          }
+        },
+        {
+          "prop": "Two Pointers Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 148,
+          "decided": 137,
+          "pending_void": 11,
+          "by_pick": {
+            "STANDARD": 148
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 53.3,
+            "hits": 32,
+            "n": 60
+          },
+          "standard_under_live": {
+            "hr": 57.1,
+            "hits": 4,
+            "n": 7
+          },
+          "standard_over": {
+            "hr": 42.9,
+            "hits": 33,
+            "n": 77
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Free Throws Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 184,
+          "decided": 172,
+          "pending_void": 12,
+          "by_pick": {
+            "STANDARD": 133,
+            "GOBLIN": 31,
+            "DEMON": 20
+          },
+          "goblin_over": {
+            "hr": 45.2,
+            "hits": 14,
+            "n": 31
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 55.7,
+            "hits": 34,
+            "n": 61
+          },
+          "standard_under_live": {
+            "hr": 71.4,
+            "hits": 5,
+            "n": 7
+          },
+          "standard_over": {
+            "hr": 39.3,
+            "hits": 24,
+            "n": 61
+          },
+          "demon_over": {
+            "hr": 31.6,
+            "hits": 6,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Free Throws Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 151,
+          "decided": 142,
+          "pending_void": 9,
+          "by_pick": {
+            "STANDARD": 123,
+            "DEMON": 15,
+            "GOBLIN": 13
+          },
+          "goblin_over": {
+            "hr": 46.2,
+            "hits": 6,
+            "n": 13
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 62.7,
+            "hits": 37,
+            "n": 59
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 40.0,
+            "hits": 22,
+            "n": 55
+          },
+          "demon_over": {
+            "hr": 40.0,
+            "hits": 6,
+            "n": 15
+          }
+        },
+        {
+          "prop": "Defensive Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 117,
+          "decided": 104,
+          "pending_void": 13,
+          "by_pick": {
+            "STANDARD": 117
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 46.2,
+            "hits": 48,
+            "n": 104
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Turnovers",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 198,
+          "decided": 196,
+          "pending_void": 2,
+          "by_pick": {
+            "GOBLIN": 99,
+            "DEMON": 31,
+            "STANDARD": 68
+          },
+          "goblin_over": {
+            "hr": 48.5,
+            "hits": 47,
+            "n": 97
+          },
+          "goblin_over_live": {
+            "hr": 60.0,
+            "hits": 3,
+            "n": 5
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 56.0,
+            "hits": 14,
+            "n": 25
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 27.9,
+            "hits": 12,
+            "n": 43
+          },
+          "demon_over": {
+            "hr": 45.2,
+            "hits": 14,
+            "n": 31
+          }
+        },
+        {
+          "prop": "Offensive Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 98,
+          "decided": 96,
+          "pending_void": 2,
+          "by_pick": {
+            "STANDARD": 98
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 53.1,
+            "hits": 51,
+            "n": 96
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Blks+Stls",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 142,
+          "decided": 141,
+          "pending_void": 1,
+          "by_pick": {
+            "GOBLIN": 66,
+            "DEMON": 20,
+            "STANDARD": 56
+          },
+          "goblin_over": {
+            "hr": 57.6,
+            "hits": 38,
+            "n": 66
+          },
+          "goblin_over_live": {
+            "hr": 85.7,
+            "hits": 6,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 56.2,
+            "hits": 9,
+            "n": 16
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": 45.0,
+            "hits": 18,
+            "n": 40
+          },
+          "demon_over": {
+            "hr": 36.8,
+            "hits": 7,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Blocked Shots",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 87,
+          "decided": 86,
+          "pending_void": 1,
+          "by_pick": {
+            "GOBLIN": 30,
+            "DEMON": 23,
+            "STANDARD": 34
+          },
+          "goblin_over": {
+            "hr": 66.7,
+            "hits": 20,
+            "n": 30
+          },
+          "goblin_over_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 60.0,
+            "hits": 6,
+            "n": 10
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 54.2,
+            "hits": 13,
+            "n": 24
+          },
+          "demon_over": {
+            "hr": 22.7,
+            "hits": 5,
+            "n": 22
+          }
+        },
+        {
+          "prop": "Steals",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 131,
+          "decided": 128,
+          "pending_void": 3,
+          "by_pick": {
+            "GOBLIN": 67,
+            "DEMON": 24,
+            "STANDARD": 40
+          },
+          "goblin_over": {
+            "hr": 57.6,
+            "hits": 38,
+            "n": 66
+          },
+          "goblin_over_live": {
+            "hr": 42.9,
+            "hits": 3,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 75.0,
+            "hits": 9,
+            "n": 12
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 1,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 40.7,
+            "hits": 11,
+            "n": 27
+          },
+          "demon_over": {
+            "hr": 34.8,
+            "hits": 8,
+            "n": 23
+          }
+        },
+        {
+          "prop": "Points (Combo)",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 385,
+          "decided": 356,
+          "pending_void": 29,
+          "by_pick": {
+            "STANDARD": 385
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 49.6,
+            "hits": 66,
+            "n": 133
+          },
+          "standard_under_live": {
+            "hr": 44.4,
+            "hits": 4,
+            "n": 9
+          },
+          "standard_over": {
+            "hr": 55.2,
+            "hits": 123,
+            "n": 223
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Rebounds (Combo)",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 141,
+          "decided": 131,
+          "pending_void": 10,
+          "by_pick": {
+            "STANDARD": 141
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 42.0,
+            "hits": 21,
+            "n": 50
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 3
+          },
+          "standard_over": {
+            "hr": 58.0,
+            "hits": 47,
+            "n": 81
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Assists (Combo)",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 98,
+          "decided": 87,
+          "pending_void": 11,
+          "by_pick": {
+            "STANDARD": 98
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 38.1,
+            "hits": 16,
+            "n": 42
+          },
+          "standard_under_live": {
+            "hr": 16.7,
+            "hits": 1,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 51.1,
+            "hits": 23,
+            "n": 45
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        }
+      ],
+      "ticket_ready": [
+        {
+          "prop": "Pts+Rebs+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1541,
+          "decided": 1474,
+          "pending_void": 67,
+          "by_pick": {
+            "GOBLIN": 766,
+            "STANDARD": 497,
+            "DEMON": 278
+          },
+          "goblin_over": {
+            "hr": 66.7,
+            "hits": 490,
+            "n": 735
+          },
+          "goblin_over_live": {
+            "hr": 70.5,
+            "hits": 158,
+            "n": 224
+          },
+          "goblin_live_lift": 3.8,
+          "standard_under": {
+            "hr": 47.9,
+            "hits": 57,
+            "n": 119
+          },
+          "standard_under_live": {
+            "hr": 66.7,
+            "hits": 10,
+            "n": 15
+          },
+          "standard_over": {
+            "hr": 52.4,
+            "hits": 186,
+            "n": 355
+          },
+          "demon_over": {
+            "hr": 40.8,
+            "hits": 108,
+            "n": 265
+          }
+        },
+        {
+          "prop": "Points",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 2209,
+          "decided": 2132,
+          "pending_void": 77,
+          "by_pick": {
+            "GOBLIN": 1422,
+            "DEMON": 227,
+            "STANDARD": 560
+          },
+          "goblin_over": {
+            "hr": 68.8,
+            "hits": 944,
+            "n": 1372
+          },
+          "goblin_over_live": {
+            "hr": 79.0,
+            "hits": 362,
+            "n": 458
+          },
+          "goblin_live_lift": 10.2,
+          "standard_under": {
+            "hr": 47.2,
+            "hits": 103,
+            "n": 218
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 9,
+            "n": 18
+          },
+          "standard_over": {
+            "hr": 50.8,
+            "hits": 163,
+            "n": 321
+          },
+          "demon_over": {
+            "hr": 43.9,
+            "hits": 97,
+            "n": 221
+          }
+        },
+        {
+          "prop": "Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1411,
+          "decided": 1334,
+          "pending_void": 77,
+          "by_pick": {
+            "STANDARD": 323,
+            "GOBLIN": 933,
+            "DEMON": 155
+          },
+          "goblin_over": {
+            "hr": 70.7,
+            "hits": 638,
+            "n": 902
+          },
+          "goblin_over_live": {
+            "hr": 78.1,
+            "hits": 275,
+            "n": 352
+          },
+          "goblin_live_lift": 7.4,
+          "standard_under": {
+            "hr": 58.3,
+            "hits": 70,
+            "n": 120
+          },
+          "standard_under_live": {
+            "hr": 60.0,
+            "hits": 3,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 82,
+            "n": 164
+          },
+          "demon_over": {
+            "hr": 39.2,
+            "hits": 58,
+            "n": 148
+          }
+        },
+        {
+          "prop": "Assists",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 912,
+          "decided": 868,
+          "pending_void": 44,
+          "by_pick": {
+            "DEMON": 105,
+            "STANDARD": 206,
+            "GOBLIN": 601
+          },
+          "goblin_over": {
+            "hr": 71.4,
+            "hits": 414,
+            "n": 580
+          },
+          "goblin_over_live": {
+            "hr": 77.7,
+            "hits": 160,
+            "n": 206
+          },
+          "goblin_live_lift": 6.3,
+          "standard_under": {
+            "hr": 56.5,
+            "hits": 48,
+            "n": 85
+          },
+          "standard_under_live": {
+            "hr": 40.0,
+            "hits": 2,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 51,
+            "n": 102
+          },
+          "demon_over": {
+            "hr": 36.6,
+            "hits": 37,
+            "n": 101
+          }
+        },
+        {
+          "prop": "3-PT Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 553,
+          "decided": 533,
+          "pending_void": 20,
+          "by_pick": {
+            "DEMON": 97,
+            "STANDARD": 53,
+            "GOBLIN": 403
+          },
+          "goblin_over": {
+            "hr": 68.4,
+            "hits": 266,
+            "n": 389
+          },
+          "goblin_over_live": {
+            "hr": 76.2,
+            "hits": 96,
+            "n": 126
+          },
+          "goblin_live_lift": 7.8,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 47.4,
+            "hits": 18,
+            "n": 38
+          },
+          "demon_over": {
+            "hr": 45.3,
+            "hits": 43,
+            "n": 95
+          }
+        },
+        {
+          "prop": "3-PT Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 269,
+          "decided": 260,
+          "pending_void": 9,
+          "by_pick": {
+            "STANDARD": 144,
+            "GOBLIN": 106,
+            "DEMON": 19
+          },
+          "goblin_over": {
+            "hr": 67.3,
+            "hits": 70,
+            "n": 104
+          },
+          "goblin_over_live": {
+            "hr": 74.2,
+            "hits": 23,
+            "n": 31
+          },
+          "goblin_live_lift": 6.9,
+          "standard_under": {
+            "hr": 51.9,
+            "hits": 28,
+            "n": 54
+          },
+          "standard_under_live": {
+            "hr": 80.0,
+            "hits": 4,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 54.2,
+            "hits": 45,
+            "n": 83
+          },
+          "demon_over": {
+            "hr": 31.6,
+            "hits": 6,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Rebs+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1026,
+          "decided": 974,
+          "pending_void": 52,
+          "by_pick": {
+            "GOBLIN": 533,
+            "STANDARD": 286,
+            "DEMON": 207
+          },
+          "goblin_over": {
+            "hr": 68.6,
+            "hits": 350,
+            "n": 510
+          },
+          "goblin_over_live": {
+            "hr": 76.3,
+            "hits": 106,
+            "n": 139
+          },
+          "goblin_live_lift": 7.7,
+          "standard_under": {
+            "hr": 43.5,
+            "hits": 30,
+            "n": 69
+          },
+          "standard_under_live": {
+            "hr": 25.0,
+            "hits": 2,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 48.7,
+            "hits": 96,
+            "n": 197
+          },
+          "demon_over": {
+            "hr": 34.8,
+            "hits": 69,
+            "n": 198
+          }
+        },
+        {
+          "prop": "FG Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 228,
+          "decided": 205,
+          "pending_void": 23,
+          "by_pick": {
+            "STANDARD": 226,
+            "GOBLIN": 2
+          },
+          "goblin_over": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "goblin_over_live": {
+            "hr": 100.0,
+            "hits": 1,
+            "n": 1
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.7,
+            "hits": 36,
+            "n": 71
+          },
+          "standard_under_live": {
+            "hr": 75.0,
+            "hits": 3,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 53.8,
+            "hits": 71,
+            "n": 132
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "FG Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 362,
+          "decided": 348,
+          "pending_void": 14,
+          "by_pick": {
+            "STANDARD": 228,
+            "GOBLIN": 127,
+            "DEMON": 7
+          },
+          "goblin_over": {
+            "hr": 71.0,
+            "hits": 88,
+            "n": 124
+          },
+          "goblin_over_live": {
+            "hr": 78.9,
+            "hits": 45,
+            "n": 57
+          },
+          "goblin_live_lift": 7.9,
+          "standard_under": {
+            "hr": 56.7,
+            "hits": 55,
+            "n": 97
+          },
+          "standard_under_live": {
+            "hr": 62.5,
+            "hits": 5,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 57.5,
+            "hits": 69,
+            "n": 120
+          },
+          "demon_over": {
+            "hr": 14.3,
+            "hits": 1,
+            "n": 7
+          }
+        },
+        {
+          "prop": "Pts+Rebs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1212,
+          "decided": 1167,
+          "pending_void": 45,
+          "by_pick": {
+            "DEMON": 154,
+            "GOBLIN": 561,
+            "STANDARD": 497
+          },
+          "goblin_over": {
+            "hr": 68.0,
+            "hits": 368,
+            "n": 541
+          },
+          "goblin_over_live": {
+            "hr": 72.7,
+            "hits": 136,
+            "n": 187
+          },
+          "goblin_live_lift": 4.7,
+          "standard_under": {
+            "hr": 52.4,
+            "hits": 76,
+            "n": 145
+          },
+          "standard_under_live": {
+            "hr": 63.6,
+            "hits": 7,
+            "n": 11
+          },
+          "standard_over": {
+            "hr": 52.1,
+            "hits": 174,
+            "n": 334
+          },
+          "demon_over": {
+            "hr": 43.5,
+            "hits": 64,
+            "n": 147
+          }
+        },
+        {
+          "prop": "Two Pointers Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 133,
+          "decided": 123,
+          "pending_void": 10,
+          "by_pick": {
+            "GOBLIN": 11,
+            "STANDARD": 118,
+            "DEMON": 4
+          },
+          "goblin_over": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "goblin_over_live": {
+            "hr": 100.0,
+            "hits": 2,
+            "n": 2
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 55.8,
+            "hits": 24,
+            "n": 43
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 3,
+            "n": 3
+          },
+          "standard_over": {
+            "hr": 36.9,
+            "hits": 24,
+            "n": 65
+          },
+          "demon_over": {
+            "hr": 25.0,
+            "hits": 1,
+            "n": 4
+          }
+        },
+        {
+          "prop": "Pts+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 999,
+          "decided": 960,
+          "pending_void": 39,
+          "by_pick": {
+            "DEMON": 131,
+            "GOBLIN": 461,
+            "STANDARD": 407
+          },
+          "goblin_over": {
+            "hr": 69.6,
+            "hits": 309,
+            "n": 444
+          },
+          "goblin_over_live": {
+            "hr": 75.8,
+            "hits": 119,
+            "n": 157
+          },
+          "goblin_live_lift": 6.2,
+          "standard_under": {
+            "hr": 45.9,
+            "hits": 45,
+            "n": 98
+          },
+          "standard_under_live": {
+            "hr": 57.1,
+            "hits": 8,
+            "n": 14
+          },
+          "standard_over": {
+            "hr": 51.0,
+            "hits": 149,
+            "n": 292
+          },
+          "demon_over": {
+            "hr": 29.4,
+            "hits": 37,
+            "n": 126
+          }
+        },
+        {
+          "prop": "Two Pointers Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 148,
+          "decided": 137,
+          "pending_void": 11,
+          "by_pick": {
+            "STANDARD": 148
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 53.3,
+            "hits": 32,
+            "n": 60
+          },
+          "standard_under_live": {
+            "hr": 57.1,
+            "hits": 4,
+            "n": 7
+          },
+          "standard_over": {
+            "hr": 42.9,
+            "hits": 33,
+            "n": 77
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Free Throws Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 184,
+          "decided": 172,
+          "pending_void": 12,
+          "by_pick": {
+            "STANDARD": 133,
+            "GOBLIN": 31,
+            "DEMON": 20
+          },
+          "goblin_over": {
+            "hr": 45.2,
+            "hits": 14,
+            "n": 31
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 55.7,
+            "hits": 34,
+            "n": 61
+          },
+          "standard_under_live": {
+            "hr": 71.4,
+            "hits": 5,
+            "n": 7
+          },
+          "standard_over": {
+            "hr": 39.3,
+            "hits": 24,
+            "n": 61
+          },
+          "demon_over": {
+            "hr": 31.6,
+            "hits": 6,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Free Throws Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 151,
+          "decided": 142,
+          "pending_void": 9,
+          "by_pick": {
+            "STANDARD": 123,
+            "DEMON": 15,
+            "GOBLIN": 13
+          },
+          "goblin_over": {
+            "hr": 46.2,
+            "hits": 6,
+            "n": 13
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 62.7,
+            "hits": 37,
+            "n": 59
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 40.0,
+            "hits": 22,
+            "n": 55
+          },
+          "demon_over": {
+            "hr": 40.0,
+            "hits": 6,
+            "n": 15
+          }
+        },
+        {
+          "prop": "Defensive Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 117,
+          "decided": 104,
+          "pending_void": 13,
+          "by_pick": {
+            "STANDARD": 117
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 46.2,
+            "hits": 48,
+            "n": 104
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Turnovers",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 198,
+          "decided": 196,
+          "pending_void": 2,
+          "by_pick": {
+            "GOBLIN": 99,
+            "DEMON": 31,
+            "STANDARD": 68
+          },
+          "goblin_over": {
+            "hr": 48.5,
+            "hits": 47,
+            "n": 97
+          },
+          "goblin_over_live": {
+            "hr": 60.0,
+            "hits": 3,
+            "n": 5
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 56.0,
+            "hits": 14,
+            "n": 25
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 27.9,
+            "hits": 12,
+            "n": 43
+          },
+          "demon_over": {
+            "hr": 45.2,
+            "hits": 14,
+            "n": 31
+          }
+        },
+        {
+          "prop": "Offensive Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 98,
+          "decided": 96,
+          "pending_void": 2,
+          "by_pick": {
+            "STANDARD": 98
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 53.1,
+            "hits": 51,
+            "n": 96
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Blks+Stls",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 142,
+          "decided": 141,
+          "pending_void": 1,
+          "by_pick": {
+            "GOBLIN": 66,
+            "DEMON": 20,
+            "STANDARD": 56
+          },
+          "goblin_over": {
+            "hr": 57.6,
+            "hits": 38,
+            "n": 66
+          },
+          "goblin_over_live": {
+            "hr": 85.7,
+            "hits": 6,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 56.2,
+            "hits": 9,
+            "n": 16
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": 45.0,
+            "hits": 18,
+            "n": 40
+          },
+          "demon_over": {
+            "hr": 36.8,
+            "hits": 7,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Blocked Shots",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 87,
+          "decided": 86,
+          "pending_void": 1,
+          "by_pick": {
+            "GOBLIN": 30,
+            "DEMON": 23,
+            "STANDARD": 34
+          },
+          "goblin_over": {
+            "hr": 66.7,
+            "hits": 20,
+            "n": 30
+          },
+          "goblin_over_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 60.0,
+            "hits": 6,
+            "n": 10
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 54.2,
+            "hits": 13,
+            "n": 24
+          },
+          "demon_over": {
+            "hr": 22.7,
+            "hits": 5,
+            "n": 22
+          }
+        },
+        {
+          "prop": "Steals",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 131,
+          "decided": 128,
+          "pending_void": 3,
+          "by_pick": {
+            "GOBLIN": 67,
+            "DEMON": 24,
+            "STANDARD": 40
+          },
+          "goblin_over": {
+            "hr": 57.6,
+            "hits": 38,
+            "n": 66
+          },
+          "goblin_over_live": {
+            "hr": 42.9,
+            "hits": 3,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 75.0,
+            "hits": 9,
+            "n": 12
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 1,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 40.7,
+            "hits": 11,
+            "n": 27
+          },
+          "demon_over": {
+            "hr": 34.8,
+            "hits": 8,
+            "n": 23
+          }
+        },
+        {
+          "prop": "Points (Combo)",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 385,
+          "decided": 356,
+          "pending_void": 29,
+          "by_pick": {
+            "STANDARD": 385
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 49.6,
+            "hits": 66,
+            "n": 133
+          },
+          "standard_under_live": {
+            "hr": 44.4,
+            "hits": 4,
+            "n": 9
+          },
+          "standard_over": {
+            "hr": 55.2,
+            "hits": 123,
+            "n": 223
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Rebounds (Combo)",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 141,
+          "decided": 131,
+          "pending_void": 10,
+          "by_pick": {
+            "STANDARD": 141
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 42.0,
+            "hits": 21,
+            "n": 50
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 3
+          },
+          "standard_over": {
+            "hr": 58.0,
+            "hits": 47,
+            "n": 81
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Assists (Combo)",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 98,
+          "decided": 87,
+          "pending_void": 11,
+          "by_pick": {
+            "STANDARD": 98
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 38.1,
+            "hits": 16,
+            "n": 42
+          },
+          "standard_under_live": {
+            "hr": 16.7,
+            "hits": 1,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 51.1,
+            "hits": 23,
+            "n": 45
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        }
+      ],
+      "demon_only": [],
+      "missing": [],
+      "undecided": [],
+      "thin": [],
+      "top_goblin_live": [
+        {
+          "prop": "Points",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 2209,
+          "decided": 2132,
+          "pending_void": 77,
+          "by_pick": {
+            "GOBLIN": 1422,
+            "DEMON": 227,
+            "STANDARD": 560
+          },
+          "goblin_over": {
+            "hr": 68.8,
+            "hits": 944,
+            "n": 1372
+          },
+          "goblin_over_live": {
+            "hr": 79.0,
+            "hits": 362,
+            "n": 458
+          },
+          "goblin_live_lift": 10.2,
+          "standard_under": {
+            "hr": 47.2,
+            "hits": 103,
+            "n": 218
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 9,
+            "n": 18
+          },
+          "standard_over": {
+            "hr": 50.8,
+            "hits": 163,
+            "n": 321
+          },
+          "demon_over": {
+            "hr": 43.9,
+            "hits": 97,
+            "n": 221
+          }
+        },
+        {
+          "prop": "FG Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 362,
+          "decided": 348,
+          "pending_void": 14,
+          "by_pick": {
+            "STANDARD": 228,
+            "GOBLIN": 127,
+            "DEMON": 7
+          },
+          "goblin_over": {
+            "hr": 71.0,
+            "hits": 88,
+            "n": 124
+          },
+          "goblin_over_live": {
+            "hr": 78.9,
+            "hits": 45,
+            "n": 57
+          },
+          "goblin_live_lift": 7.9,
+          "standard_under": {
+            "hr": 56.7,
+            "hits": 55,
+            "n": 97
+          },
+          "standard_under_live": {
+            "hr": 62.5,
+            "hits": 5,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 57.5,
+            "hits": 69,
+            "n": 120
+          },
+          "demon_over": {
+            "hr": 14.3,
+            "hits": 1,
+            "n": 7
+          }
+        },
+        {
+          "prop": "3-PT Made",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 553,
+          "decided": 533,
+          "pending_void": 20,
+          "by_pick": {
+            "DEMON": 97,
+            "STANDARD": 53,
+            "GOBLIN": 403
+          },
+          "goblin_over": {
+            "hr": 68.4,
+            "hits": 266,
+            "n": 389
+          },
+          "goblin_over_live": {
+            "hr": 76.2,
+            "hits": 96,
+            "n": 126
+          },
+          "goblin_live_lift": 7.8,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "standard_under_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 1
+          },
+          "standard_over": {
+            "hr": 47.4,
+            "hits": 18,
+            "n": 38
+          },
+          "demon_over": {
+            "hr": 45.3,
+            "hits": 43,
+            "n": 95
+          }
+        },
+        {
+          "prop": "Rebs+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1026,
+          "decided": 974,
+          "pending_void": 52,
+          "by_pick": {
+            "GOBLIN": 533,
+            "STANDARD": 286,
+            "DEMON": 207
+          },
+          "goblin_over": {
+            "hr": 68.6,
+            "hits": 350,
+            "n": 510
+          },
+          "goblin_over_live": {
+            "hr": 76.3,
+            "hits": 106,
+            "n": 139
+          },
+          "goblin_live_lift": 7.7,
+          "standard_under": {
+            "hr": 43.5,
+            "hits": 30,
+            "n": 69
+          },
+          "standard_under_live": {
+            "hr": 25.0,
+            "hits": 2,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 48.7,
+            "hits": 96,
+            "n": 197
+          },
+          "demon_over": {
+            "hr": 34.8,
+            "hits": 69,
+            "n": 198
+          }
+        },
+        {
+          "prop": "Rebounds",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1411,
+          "decided": 1334,
+          "pending_void": 77,
+          "by_pick": {
+            "STANDARD": 323,
+            "GOBLIN": 933,
+            "DEMON": 155
+          },
+          "goblin_over": {
+            "hr": 70.7,
+            "hits": 638,
+            "n": 902
+          },
+          "goblin_over_live": {
+            "hr": 78.1,
+            "hits": 275,
+            "n": 352
+          },
+          "goblin_live_lift": 7.4,
+          "standard_under": {
+            "hr": 58.3,
+            "hits": 70,
+            "n": 120
+          },
+          "standard_under_live": {
+            "hr": 60.0,
+            "hits": 3,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 82,
+            "n": 164
+          },
+          "demon_over": {
+            "hr": 39.2,
+            "hits": 58,
+            "n": 148
+          }
+        },
+        {
+          "prop": "3-PT Attempted",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 269,
+          "decided": 260,
+          "pending_void": 9,
+          "by_pick": {
+            "STANDARD": 144,
+            "GOBLIN": 106,
+            "DEMON": 19
+          },
+          "goblin_over": {
+            "hr": 67.3,
+            "hits": 70,
+            "n": 104
+          },
+          "goblin_over_live": {
+            "hr": 74.2,
+            "hits": 23,
+            "n": 31
+          },
+          "goblin_live_lift": 6.9,
+          "standard_under": {
+            "hr": 51.9,
+            "hits": 28,
+            "n": 54
+          },
+          "standard_under_live": {
+            "hr": 80.0,
+            "hits": 4,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 54.2,
+            "hits": 45,
+            "n": 83
+          },
+          "demon_over": {
+            "hr": 31.6,
+            "hits": 6,
+            "n": 19
+          }
+        },
+        {
+          "prop": "Assists",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 912,
+          "decided": 868,
+          "pending_void": 44,
+          "by_pick": {
+            "DEMON": 105,
+            "STANDARD": 206,
+            "GOBLIN": 601
+          },
+          "goblin_over": {
+            "hr": 71.4,
+            "hits": 414,
+            "n": 580
+          },
+          "goblin_over_live": {
+            "hr": 77.7,
+            "hits": 160,
+            "n": 206
+          },
+          "goblin_live_lift": 6.3,
+          "standard_under": {
+            "hr": 56.5,
+            "hits": 48,
+            "n": 85
+          },
+          "standard_under_live": {
+            "hr": 40.0,
+            "hits": 2,
+            "n": 5
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 51,
+            "n": 102
+          },
+          "demon_over": {
+            "hr": 36.6,
+            "hits": 37,
+            "n": 101
+          }
+        },
+        {
+          "prop": "Pts+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 999,
+          "decided": 960,
+          "pending_void": 39,
+          "by_pick": {
+            "DEMON": 131,
+            "GOBLIN": 461,
+            "STANDARD": 407
+          },
+          "goblin_over": {
+            "hr": 69.6,
+            "hits": 309,
+            "n": 444
+          },
+          "goblin_over_live": {
+            "hr": 75.8,
+            "hits": 119,
+            "n": 157
+          },
+          "goblin_live_lift": 6.2,
+          "standard_under": {
+            "hr": 45.9,
+            "hits": 45,
+            "n": 98
+          },
+          "standard_under_live": {
+            "hr": 57.1,
+            "hits": 8,
+            "n": 14
+          },
+          "standard_over": {
+            "hr": 51.0,
+            "hits": 149,
+            "n": 292
+          },
+          "demon_over": {
+            "hr": 29.4,
+            "hits": 37,
+            "n": 126
+          }
+        },
+        {
+          "prop": "Pts+Rebs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1212,
+          "decided": 1167,
+          "pending_void": 45,
+          "by_pick": {
+            "DEMON": 154,
+            "GOBLIN": 561,
+            "STANDARD": 497
+          },
+          "goblin_over": {
+            "hr": 68.0,
+            "hits": 368,
+            "n": 541
+          },
+          "goblin_over_live": {
+            "hr": 72.7,
+            "hits": 136,
+            "n": 187
+          },
+          "goblin_live_lift": 4.7,
+          "standard_under": {
+            "hr": 52.4,
+            "hits": 76,
+            "n": 145
+          },
+          "standard_under_live": {
+            "hr": 63.6,
+            "hits": 7,
+            "n": 11
+          },
+          "standard_over": {
+            "hr": 52.1,
+            "hits": 174,
+            "n": 334
+          },
+          "demon_over": {
+            "hr": 43.5,
+            "hits": 64,
+            "n": 147
+          }
+        },
+        {
+          "prop": "Pts+Rebs+Asts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1541,
+          "decided": 1474,
+          "pending_void": 67,
+          "by_pick": {
+            "GOBLIN": 766,
+            "STANDARD": 497,
+            "DEMON": 278
+          },
+          "goblin_over": {
+            "hr": 66.7,
+            "hits": 490,
+            "n": 735
+          },
+          "goblin_over_live": {
+            "hr": 70.5,
+            "hits": 158,
+            "n": 224
+          },
+          "goblin_live_lift": 3.8,
+          "standard_under": {
+            "hr": 47.9,
+            "hits": 57,
+            "n": 119
+          },
+          "standard_under_live": {
+            "hr": 66.7,
+            "hits": 10,
+            "n": 15
+          },
+          "standard_over": {
+            "hr": 52.4,
+            "hits": 186,
+            "n": 355
+          },
+          "demon_over": {
+            "hr": 40.8,
+            "hits": 108,
+            "n": 265
+          }
+        }
+      ]
+    },
+    "MLB": {
+      "catalog_n": 22,
+      "status_counts": {
+        "TICKET_READY": 14,
+        "THIN_TICKET": 1,
+        "DEMON_ONLY": 4,
+        "UNDECIDED_ONLY": 1,
+        "MISSING_FROM_GRADED": 2
+      },
+      "rows": [
+        {
+          "prop": "Pitcher Strikeouts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 4212,
+          "decided": 3639,
+          "pending_void": 573,
+          "by_pick": {
+            "STANDARD": 516,
+            "GOBLIN": 1347,
+            "DEMON": 2349
+          },
+          "goblin_over": {
+            "hr": 70.6,
+            "hits": 822,
+            "n": 1165
+          },
+          "goblin_over_live": {
+            "hr": 73.9,
+            "hits": 178,
+            "n": 241
+          },
+          "goblin_live_lift": 3.3,
+          "standard_under": {
+            "hr": 48.8,
+            "hits": 99,
+            "n": 203
+          },
+          "standard_under_live": {
+            "hr": 52.4,
+            "hits": 11,
+            "n": 21
+          },
+          "standard_over": {
+            "hr": 41.9,
+            "hits": 95,
+            "n": 227
+          },
+          "demon_over": {
+            "hr": 19.6,
+            "hits": 401,
+            "n": 2044
+          }
+        },
+        {
+          "prop": "Total Bases",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 30213,
+          "decided": 27633,
+          "pending_void": 2580,
+          "by_pick": {
+            "STANDARD": 996,
+            "DEMON": 23833,
+            "GOBLIN": 5384
+          },
+          "goblin_over": {
+            "hr": 58.6,
+            "hits": 2912,
+            "n": 4967
+          },
+          "goblin_over_live": {
+            "hr": 62.6,
+            "hits": 275,
+            "n": 439
+          },
+          "goblin_live_lift": 4.0,
+          "standard_under": {
+            "hr": 51.6,
+            "hits": 207,
+            "n": 401
+          },
+          "standard_under_live": {
+            "hr": 56.4,
+            "hits": 53,
+            "n": 94
+          },
+          "standard_over": {
+            "hr": 44.1,
+            "hits": 210,
+            "n": 476
+          },
+          "demon_over": {
+            "hr": 16.8,
+            "hits": 3671,
+            "n": 21789
+          }
+        },
+        {
+          "prop": "Hits+Runs+RBIs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 32754,
+          "decided": 30051,
+          "pending_void": 2703,
+          "by_pick": {
+            "DEMON": 23614,
+            "STANDARD": 2063,
+            "GOBLIN": 7077
+          },
+          "goblin_over": {
+            "hr": 62.8,
+            "hits": 4095,
+            "n": 6516
+          },
+          "goblin_over_live": {
+            "hr": 68.7,
+            "hits": 526,
+            "n": 766
+          },
+          "goblin_live_lift": 5.9,
+          "standard_under": {
+            "hr": 54.3,
+            "hits": 431,
+            "n": 794
+          },
+          "standard_under_live": {
+            "hr": 58.4,
+            "hits": 87,
+            "n": 149
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 521,
+            "n": 1132
+          },
+          "demon_over": {
+            "hr": 17.4,
+            "hits": 3770,
+            "n": 21609
+          }
+        },
+        {
+          "prop": "Pitching Outs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1281,
+          "decided": 1256,
+          "pending_void": 25,
+          "by_pick": {
+            "STANDARD": 173,
+            "GOBLIN": 520,
+            "DEMON": 588
+          },
+          "goblin_over": {
+            "hr": 72.1,
+            "hits": 369,
+            "n": 512
+          },
+          "goblin_over_live": {
+            "hr": 78.1,
+            "hits": 57,
+            "n": 73
+          },
+          "goblin_live_lift": 6.0,
+          "standard_under": {
+            "hr": 45.8,
+            "hits": 49,
+            "n": 107
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 2,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 29,
+            "n": 63
+          },
+          "demon_over": {
+            "hr": 19.0,
+            "hits": 109,
+            "n": 574
+          }
+        },
+        {
+          "prop": "Hits Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 3456,
+          "decided": 3027,
+          "pending_void": 429,
+          "by_pick": {
+            "STANDARD": 246,
+            "GOBLIN": 1375,
+            "DEMON": 1835
+          },
+          "goblin_over": {
+            "hr": 69.0,
+            "hits": 829,
+            "n": 1202
+          },
+          "goblin_over_live": {
+            "hr": 73.3,
+            "hits": 165,
+            "n": 225
+          },
+          "goblin_live_lift": 4.3,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 67,
+            "n": 123
+          },
+          "standard_under_live": {
+            "hr": 43.8,
+            "hits": 7,
+            "n": 16
+          },
+          "standard_over": {
+            "hr": 40.8,
+            "hits": 40,
+            "n": 98
+          },
+          "demon_over": {
+            "hr": 18.6,
+            "hits": 298,
+            "n": 1604
+          }
+        },
+        {
+          "prop": "Hits",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 16676,
+          "decided": 15281,
+          "pending_void": 1395,
+          "by_pick": {
+            "STANDARD": 714,
+            "DEMON": 10599,
+            "GOBLIN": 5363
+          },
+          "goblin_over": {
+            "hr": 59.0,
+            "hits": 2919,
+            "n": 4947
+          },
+          "goblin_over_live": {
+            "hr": 63.1,
+            "hits": 277,
+            "n": 439
+          },
+          "goblin_live_lift": 4.1,
+          "standard_under": {
+            "hr": 56.9,
+            "hits": 189,
+            "n": 332
+          },
+          "standard_under_live": {
+            "hr": 58.8,
+            "hits": 40,
+            "n": 68
+          },
+          "standard_over": {
+            "hr": 45.1,
+            "hits": 121,
+            "n": 268
+          },
+          "demon_over": {
+            "hr": 13.8,
+            "hits": 1341,
+            "n": 9734
+          }
+        },
+        {
+          "prop": "Runs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 12155,
+          "decided": 11099,
+          "pending_void": 1056,
+          "by_pick": {
+            "DEMON": 11191,
+            "STANDARD": 759,
+            "GOBLIN": 205
+          },
+          "goblin_over": {
+            "hr": 50.8,
+            "hits": 97,
+            "n": 191
+          },
+          "goblin_over_live": {
+            "hr": 62.5,
+            "hits": 5,
+            "n": 8
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 54.0,
+            "hits": 183,
+            "n": 339
+          },
+          "standard_under_live": {
+            "hr": 54.7,
+            "hits": 41,
+            "n": 75
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 179,
+            "n": 389
+          },
+          "demon_over": {
+            "hr": 19.0,
+            "hits": 1936,
+            "n": 10180
+          }
+        },
+        {
+          "prop": "RBIs",
+          "status": "THIN_TICKET",
+          "note": "Few Goblin/Standard decided grades",
+          "rows": 12408,
+          "decided": 11310,
+          "pending_void": 1098,
+          "by_pick": {
+            "DEMON": 12398,
+            "STANDARD": 10
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.0,
+            "hits": 2,
+            "n": 4
+          },
+          "standard_under_live": {
+            "hr": 33.3,
+            "hits": 1,
+            "n": 3
+          },
+          "standard_over": {
+            "hr": 100.0,
+            "hits": 4,
+            "n": 4
+          },
+          "demon_over": {
+            "hr": 16.4,
+            "hits": 1856,
+            "n": 11302
+          }
+        },
+        {
+          "prop": "Home Runs",
+          "status": "DEMON_ONLY",
+          "note": "On board as Demon; not in Goblin/Standard ticket pool",
+          "rows": 6208,
+          "decided": 5650,
+          "pending_void": 558,
+          "by_pick": {
+            "DEMON": 6208
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 10.3,
+            "hits": 582,
+            "n": 5650
+          }
+        },
+        {
+          "prop": "Plate Appearances",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1462,
+          "decided": 1426,
+          "pending_void": 36,
+          "by_pick": {
+            "GOBLIN": 318,
+            "STANDARD": 152,
+            "DEMON": 992
+          },
+          "goblin_over": {
+            "hr": 50.8,
+            "hits": 159,
+            "n": 313
+          },
+          "goblin_over_live": {
+            "hr": 42.9,
+            "hits": 3,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.8,
+            "hits": 62,
+            "n": 122
+          },
+          "standard_under_live": {
+            "hr": 60.7,
+            "hits": 17,
+            "n": 28
+          },
+          "standard_over": {
+            "hr": 53.8,
+            "hits": 14,
+            "n": 26
+          },
+          "demon_over": {
+            "hr": 33.9,
+            "hits": 327,
+            "n": 965
+          }
+        },
+        {
+          "prop": "Walks",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 5657,
+          "decided": 5243,
+          "pending_void": 414,
+          "by_pick": {
+            "DEMON": 5517,
+            "STANDARD": 113,
+            "GOBLIN": 27
+          },
+          "goblin_over": {
+            "hr": 57.7,
+            "hits": 15,
+            "n": 26
+          },
+          "goblin_over_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 59.6,
+            "hits": 28,
+            "n": 47
+          },
+          "standard_under_live": {
+            "hr": 66.7,
+            "hits": 4,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 50.8,
+            "hits": 31,
+            "n": 61
+          },
+          "demon_over": {
+            "hr": 27.7,
+            "hits": 1417,
+            "n": 5109
+          }
+        },
+        {
+          "prop": "Stolen Bases",
+          "status": "DEMON_ONLY",
+          "note": "On board as Demon; not in Goblin/Standard ticket pool",
+          "rows": 5393,
+          "decided": 4990,
+          "pending_void": 403,
+          "by_pick": {
+            "DEMON": 5393
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 6.8,
+            "hits": 339,
+            "n": 4990
+          }
+        },
+        {
+          "prop": "Pitches Thrown",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 723,
+          "decided": 708,
+          "pending_void": 15,
+          "by_pick": {
+            "STANDARD": 241,
+            "GOBLIN": 241,
+            "DEMON": 241
+          },
+          "goblin_over": {
+            "hr": 72.0,
+            "hits": 170,
+            "n": 236
+          },
+          "goblin_over_live": {
+            "hr": 83.9,
+            "hits": 26,
+            "n": 31
+          },
+          "goblin_live_lift": 11.9,
+          "standard_under": {
+            "hr": 55.5,
+            "hits": 86,
+            "n": 155
+          },
+          "standard_under_live": {
+            "hr": 65.5,
+            "hits": 19,
+            "n": 29
+          },
+          "standard_over": {
+            "hr": 55.6,
+            "hits": 45,
+            "n": 81
+          },
+          "demon_over": {
+            "hr": 16.1,
+            "hits": 38,
+            "n": 236
+          }
+        },
+        {
+          "prop": "Earned Runs Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 3185,
+          "decided": 2769,
+          "pending_void": 416,
+          "by_pick": {
+            "GOBLIN": 1135,
+            "DEMON": 1819,
+            "STANDARD": 231
+          },
+          "goblin_over": {
+            "hr": 70.7,
+            "hits": 698,
+            "n": 987
+          },
+          "goblin_over_live": {
+            "hr": 78.2,
+            "hits": 133,
+            "n": 170
+          },
+          "goblin_live_lift": 7.5,
+          "standard_under": {
+            "hr": 60.0,
+            "hits": 60,
+            "n": 100
+          },
+          "standard_under_live": {
+            "hr": 65.0,
+            "hits": 13,
+            "n": 20
+          },
+          "standard_over": {
+            "hr": 47.1,
+            "hits": 48,
+            "n": 102
+          },
+          "demon_over": {
+            "hr": 18.2,
+            "hits": 287,
+            "n": 1580
+          }
+        },
+        {
+          "prop": "Walks Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1955,
+          "decided": 1721,
+          "pending_void": 234,
+          "by_pick": {
+            "GOBLIN": 703,
+            "DEMON": 1080,
+            "STANDARD": 172
+          },
+          "goblin_over": {
+            "hr": 77.3,
+            "hits": 474,
+            "n": 613
+          },
+          "goblin_over_live": {
+            "hr": 80.3,
+            "hits": 114,
+            "n": 142
+          },
+          "goblin_live_lift": 3.0,
+          "standard_under": {
+            "hr": 40.7,
+            "hits": 24,
+            "n": 59
+          },
+          "standard_under_live": {
+            "hr": 25.0,
+            "hits": 1,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 42.2,
+            "hits": 38,
+            "n": 90
+          },
+          "demon_over": {
+            "hr": 21.1,
+            "hits": 202,
+            "n": 959
+          }
+        },
+        {
+          "prop": "Hitter Strikeouts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 13601,
+          "decided": 12579,
+          "pending_void": 1022,
+          "by_pick": {
+            "GOBLIN": 4696,
+            "STANDARD": 23,
+            "DEMON": 8882
+          },
+          "goblin_over": {
+            "hr": 61.7,
+            "hits": 2682,
+            "n": 4348
+          },
+          "goblin_over_live": {
+            "hr": 65.6,
+            "hits": 279,
+            "n": 425
+          },
+          "goblin_live_lift": 3.9,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 2,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 6,
+            "n": 12
+          },
+          "demon_over": {
+            "hr": 17.2,
+            "hits": 1412,
+            "n": 8208
+          }
+        },
+        {
+          "prop": "Singles",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 8489,
+          "decided": 7804,
+          "pending_void": 685,
+          "by_pick": {
+            "STANDARD": 1608,
+            "DEMON": 6125,
+            "GOBLIN": 756
+          },
+          "goblin_over": {
+            "hr": 52.6,
+            "hits": 377,
+            "n": 717
+          },
+          "goblin_over_live": {
+            "hr": 53.6,
+            "hits": 15,
+            "n": 28
+          },
+          "goblin_live_lift": 1.0,
+          "standard_under": {
+            "hr": 54.0,
+            "hits": 325,
+            "n": 602
+          },
+          "standard_under_live": {
+            "hr": 50.4,
+            "hits": 64,
+            "n": 127
+          },
+          "standard_over": {
+            "hr": 47.3,
+            "hits": 425,
+            "n": 899
+          },
+          "demon_over": {
+            "hr": 27.9,
+            "hits": 1558,
+            "n": 5586
+          }
+        },
+        {
+          "prop": "Doubles",
+          "status": "DEMON_ONLY",
+          "note": "On board as Demon; not in Goblin/Standard ticket pool",
+          "rows": 6067,
+          "decided": 5525,
+          "pending_void": 542,
+          "by_pick": {
+            "DEMON": 6067
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 14.4,
+            "hits": 794,
+            "n": 5525
+          }
+        },
+        {
+          "prop": "Pitcher Strikeouts (Combo)",
+          "status": "UNDECIDED_ONLY",
+          "note": "Only PENDING/VOID \u2014 no HIT/MISS yet",
+          "rows": 167,
+          "decided": 0,
+          "pending_void": 167,
+          "by_pick": {
+            "DEMON": 157,
+            "GOBLIN": 10
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Batters Faced",
+          "status": "MISSING_FROM_GRADED",
+          "note": "Not in graded archive this window",
+          "rows": 0,
+          "decided": 0,
+          "pending_void": 0,
+          "by_pick": {},
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Pitches Seen",
+          "status": "MISSING_FROM_GRADED",
+          "note": "Not in graded archive this window",
+          "rows": 0,
+          "decided": 0,
+          "pending_void": 0,
+          "by_pick": {},
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Triples",
+          "status": "DEMON_ONLY",
+          "note": "On board as Demon; not in Goblin/Standard ticket pool",
+          "rows": 864,
+          "decided": 759,
+          "pending_void": 105,
+          "by_pick": {
+            "DEMON": 864
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 3.4,
+            "hits": 26,
+            "n": 759
+          }
+        }
+      ],
+      "ticket_ready": [
+        {
+          "prop": "Pitcher Strikeouts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 4212,
+          "decided": 3639,
+          "pending_void": 573,
+          "by_pick": {
+            "STANDARD": 516,
+            "GOBLIN": 1347,
+            "DEMON": 2349
+          },
+          "goblin_over": {
+            "hr": 70.6,
+            "hits": 822,
+            "n": 1165
+          },
+          "goblin_over_live": {
+            "hr": 73.9,
+            "hits": 178,
+            "n": 241
+          },
+          "goblin_live_lift": 3.3,
+          "standard_under": {
+            "hr": 48.8,
+            "hits": 99,
+            "n": 203
+          },
+          "standard_under_live": {
+            "hr": 52.4,
+            "hits": 11,
+            "n": 21
+          },
+          "standard_over": {
+            "hr": 41.9,
+            "hits": 95,
+            "n": 227
+          },
+          "demon_over": {
+            "hr": 19.6,
+            "hits": 401,
+            "n": 2044
+          }
+        },
+        {
+          "prop": "Total Bases",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 30213,
+          "decided": 27633,
+          "pending_void": 2580,
+          "by_pick": {
+            "STANDARD": 996,
+            "DEMON": 23833,
+            "GOBLIN": 5384
+          },
+          "goblin_over": {
+            "hr": 58.6,
+            "hits": 2912,
+            "n": 4967
+          },
+          "goblin_over_live": {
+            "hr": 62.6,
+            "hits": 275,
+            "n": 439
+          },
+          "goblin_live_lift": 4.0,
+          "standard_under": {
+            "hr": 51.6,
+            "hits": 207,
+            "n": 401
+          },
+          "standard_under_live": {
+            "hr": 56.4,
+            "hits": 53,
+            "n": 94
+          },
+          "standard_over": {
+            "hr": 44.1,
+            "hits": 210,
+            "n": 476
+          },
+          "demon_over": {
+            "hr": 16.8,
+            "hits": 3671,
+            "n": 21789
+          }
+        },
+        {
+          "prop": "Hits+Runs+RBIs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 32754,
+          "decided": 30051,
+          "pending_void": 2703,
+          "by_pick": {
+            "DEMON": 23614,
+            "STANDARD": 2063,
+            "GOBLIN": 7077
+          },
+          "goblin_over": {
+            "hr": 62.8,
+            "hits": 4095,
+            "n": 6516
+          },
+          "goblin_over_live": {
+            "hr": 68.7,
+            "hits": 526,
+            "n": 766
+          },
+          "goblin_live_lift": 5.9,
+          "standard_under": {
+            "hr": 54.3,
+            "hits": 431,
+            "n": 794
+          },
+          "standard_under_live": {
+            "hr": 58.4,
+            "hits": 87,
+            "n": 149
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 521,
+            "n": 1132
+          },
+          "demon_over": {
+            "hr": 17.4,
+            "hits": 3770,
+            "n": 21609
+          }
+        },
+        {
+          "prop": "Pitching Outs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1281,
+          "decided": 1256,
+          "pending_void": 25,
+          "by_pick": {
+            "STANDARD": 173,
+            "GOBLIN": 520,
+            "DEMON": 588
+          },
+          "goblin_over": {
+            "hr": 72.1,
+            "hits": 369,
+            "n": 512
+          },
+          "goblin_over_live": {
+            "hr": 78.1,
+            "hits": 57,
+            "n": 73
+          },
+          "goblin_live_lift": 6.0,
+          "standard_under": {
+            "hr": 45.8,
+            "hits": 49,
+            "n": 107
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 2,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 29,
+            "n": 63
+          },
+          "demon_over": {
+            "hr": 19.0,
+            "hits": 109,
+            "n": 574
+          }
+        },
+        {
+          "prop": "Hits Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 3456,
+          "decided": 3027,
+          "pending_void": 429,
+          "by_pick": {
+            "STANDARD": 246,
+            "GOBLIN": 1375,
+            "DEMON": 1835
+          },
+          "goblin_over": {
+            "hr": 69.0,
+            "hits": 829,
+            "n": 1202
+          },
+          "goblin_over_live": {
+            "hr": 73.3,
+            "hits": 165,
+            "n": 225
+          },
+          "goblin_live_lift": 4.3,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 67,
+            "n": 123
+          },
+          "standard_under_live": {
+            "hr": 43.8,
+            "hits": 7,
+            "n": 16
+          },
+          "standard_over": {
+            "hr": 40.8,
+            "hits": 40,
+            "n": 98
+          },
+          "demon_over": {
+            "hr": 18.6,
+            "hits": 298,
+            "n": 1604
+          }
+        },
+        {
+          "prop": "Hits",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 16676,
+          "decided": 15281,
+          "pending_void": 1395,
+          "by_pick": {
+            "STANDARD": 714,
+            "DEMON": 10599,
+            "GOBLIN": 5363
+          },
+          "goblin_over": {
+            "hr": 59.0,
+            "hits": 2919,
+            "n": 4947
+          },
+          "goblin_over_live": {
+            "hr": 63.1,
+            "hits": 277,
+            "n": 439
+          },
+          "goblin_live_lift": 4.1,
+          "standard_under": {
+            "hr": 56.9,
+            "hits": 189,
+            "n": 332
+          },
+          "standard_under_live": {
+            "hr": 58.8,
+            "hits": 40,
+            "n": 68
+          },
+          "standard_over": {
+            "hr": 45.1,
+            "hits": 121,
+            "n": 268
+          },
+          "demon_over": {
+            "hr": 13.8,
+            "hits": 1341,
+            "n": 9734
+          }
+        },
+        {
+          "prop": "Runs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 12155,
+          "decided": 11099,
+          "pending_void": 1056,
+          "by_pick": {
+            "DEMON": 11191,
+            "STANDARD": 759,
+            "GOBLIN": 205
+          },
+          "goblin_over": {
+            "hr": 50.8,
+            "hits": 97,
+            "n": 191
+          },
+          "goblin_over_live": {
+            "hr": 62.5,
+            "hits": 5,
+            "n": 8
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 54.0,
+            "hits": 183,
+            "n": 339
+          },
+          "standard_under_live": {
+            "hr": 54.7,
+            "hits": 41,
+            "n": 75
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 179,
+            "n": 389
+          },
+          "demon_over": {
+            "hr": 19.0,
+            "hits": 1936,
+            "n": 10180
+          }
+        },
+        {
+          "prop": "Plate Appearances",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1462,
+          "decided": 1426,
+          "pending_void": 36,
+          "by_pick": {
+            "GOBLIN": 318,
+            "STANDARD": 152,
+            "DEMON": 992
+          },
+          "goblin_over": {
+            "hr": 50.8,
+            "hits": 159,
+            "n": 313
+          },
+          "goblin_over_live": {
+            "hr": 42.9,
+            "hits": 3,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.8,
+            "hits": 62,
+            "n": 122
+          },
+          "standard_under_live": {
+            "hr": 60.7,
+            "hits": 17,
+            "n": 28
+          },
+          "standard_over": {
+            "hr": 53.8,
+            "hits": 14,
+            "n": 26
+          },
+          "demon_over": {
+            "hr": 33.9,
+            "hits": 327,
+            "n": 965
+          }
+        },
+        {
+          "prop": "Walks",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 5657,
+          "decided": 5243,
+          "pending_void": 414,
+          "by_pick": {
+            "DEMON": 5517,
+            "STANDARD": 113,
+            "GOBLIN": 27
+          },
+          "goblin_over": {
+            "hr": 57.7,
+            "hits": 15,
+            "n": 26
+          },
+          "goblin_over_live": {
+            "hr": 50.0,
+            "hits": 1,
+            "n": 2
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 59.6,
+            "hits": 28,
+            "n": 47
+          },
+          "standard_under_live": {
+            "hr": 66.7,
+            "hits": 4,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 50.8,
+            "hits": 31,
+            "n": 61
+          },
+          "demon_over": {
+            "hr": 27.7,
+            "hits": 1417,
+            "n": 5109
+          }
+        },
+        {
+          "prop": "Pitches Thrown",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 723,
+          "decided": 708,
+          "pending_void": 15,
+          "by_pick": {
+            "STANDARD": 241,
+            "GOBLIN": 241,
+            "DEMON": 241
+          },
+          "goblin_over": {
+            "hr": 72.0,
+            "hits": 170,
+            "n": 236
+          },
+          "goblin_over_live": {
+            "hr": 83.9,
+            "hits": 26,
+            "n": 31
+          },
+          "goblin_live_lift": 11.9,
+          "standard_under": {
+            "hr": 55.5,
+            "hits": 86,
+            "n": 155
+          },
+          "standard_under_live": {
+            "hr": 65.5,
+            "hits": 19,
+            "n": 29
+          },
+          "standard_over": {
+            "hr": 55.6,
+            "hits": 45,
+            "n": 81
+          },
+          "demon_over": {
+            "hr": 16.1,
+            "hits": 38,
+            "n": 236
+          }
+        },
+        {
+          "prop": "Earned Runs Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 3185,
+          "decided": 2769,
+          "pending_void": 416,
+          "by_pick": {
+            "GOBLIN": 1135,
+            "DEMON": 1819,
+            "STANDARD": 231
+          },
+          "goblin_over": {
+            "hr": 70.7,
+            "hits": 698,
+            "n": 987
+          },
+          "goblin_over_live": {
+            "hr": 78.2,
+            "hits": 133,
+            "n": 170
+          },
+          "goblin_live_lift": 7.5,
+          "standard_under": {
+            "hr": 60.0,
+            "hits": 60,
+            "n": 100
+          },
+          "standard_under_live": {
+            "hr": 65.0,
+            "hits": 13,
+            "n": 20
+          },
+          "standard_over": {
+            "hr": 47.1,
+            "hits": 48,
+            "n": 102
+          },
+          "demon_over": {
+            "hr": 18.2,
+            "hits": 287,
+            "n": 1580
+          }
+        },
+        {
+          "prop": "Walks Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1955,
+          "decided": 1721,
+          "pending_void": 234,
+          "by_pick": {
+            "GOBLIN": 703,
+            "DEMON": 1080,
+            "STANDARD": 172
+          },
+          "goblin_over": {
+            "hr": 77.3,
+            "hits": 474,
+            "n": 613
+          },
+          "goblin_over_live": {
+            "hr": 80.3,
+            "hits": 114,
+            "n": 142
+          },
+          "goblin_live_lift": 3.0,
+          "standard_under": {
+            "hr": 40.7,
+            "hits": 24,
+            "n": 59
+          },
+          "standard_under_live": {
+            "hr": 25.0,
+            "hits": 1,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 42.2,
+            "hits": 38,
+            "n": 90
+          },
+          "demon_over": {
+            "hr": 21.1,
+            "hits": 202,
+            "n": 959
+          }
+        },
+        {
+          "prop": "Hitter Strikeouts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 13601,
+          "decided": 12579,
+          "pending_void": 1022,
+          "by_pick": {
+            "GOBLIN": 4696,
+            "STANDARD": 23,
+            "DEMON": 8882
+          },
+          "goblin_over": {
+            "hr": 61.7,
+            "hits": 2682,
+            "n": 4348
+          },
+          "goblin_over_live": {
+            "hr": 65.6,
+            "hits": 279,
+            "n": 425
+          },
+          "goblin_live_lift": 3.9,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 2,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 6,
+            "n": 12
+          },
+          "demon_over": {
+            "hr": 17.2,
+            "hits": 1412,
+            "n": 8208
+          }
+        },
+        {
+          "prop": "Singles",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 8489,
+          "decided": 7804,
+          "pending_void": 685,
+          "by_pick": {
+            "STANDARD": 1608,
+            "DEMON": 6125,
+            "GOBLIN": 756
+          },
+          "goblin_over": {
+            "hr": 52.6,
+            "hits": 377,
+            "n": 717
+          },
+          "goblin_over_live": {
+            "hr": 53.6,
+            "hits": 15,
+            "n": 28
+          },
+          "goblin_live_lift": 1.0,
+          "standard_under": {
+            "hr": 54.0,
+            "hits": 325,
+            "n": 602
+          },
+          "standard_under_live": {
+            "hr": 50.4,
+            "hits": 64,
+            "n": 127
+          },
+          "standard_over": {
+            "hr": 47.3,
+            "hits": 425,
+            "n": 899
+          },
+          "demon_over": {
+            "hr": 27.9,
+            "hits": 1558,
+            "n": 5586
+          }
+        }
+      ],
+      "demon_only": [
+        "Home Runs",
+        "Stolen Bases",
+        "Doubles",
+        "Triples"
+      ],
+      "missing": [
+        "Batters Faced",
+        "Pitches Seen"
+      ],
+      "undecided": [
+        "Pitcher Strikeouts (Combo)"
+      ],
+      "thin": [
+        "RBIs"
+      ],
+      "top_goblin_live": [
+        {
+          "prop": "Pitches Thrown",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 723,
+          "decided": 708,
+          "pending_void": 15,
+          "by_pick": {
+            "STANDARD": 241,
+            "GOBLIN": 241,
+            "DEMON": 241
+          },
+          "goblin_over": {
+            "hr": 72.0,
+            "hits": 170,
+            "n": 236
+          },
+          "goblin_over_live": {
+            "hr": 83.9,
+            "hits": 26,
+            "n": 31
+          },
+          "goblin_live_lift": 11.9,
+          "standard_under": {
+            "hr": 55.5,
+            "hits": 86,
+            "n": 155
+          },
+          "standard_under_live": {
+            "hr": 65.5,
+            "hits": 19,
+            "n": 29
+          },
+          "standard_over": {
+            "hr": 55.6,
+            "hits": 45,
+            "n": 81
+          },
+          "demon_over": {
+            "hr": 16.1,
+            "hits": 38,
+            "n": 236
+          }
+        },
+        {
+          "prop": "Earned Runs Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 3185,
+          "decided": 2769,
+          "pending_void": 416,
+          "by_pick": {
+            "GOBLIN": 1135,
+            "DEMON": 1819,
+            "STANDARD": 231
+          },
+          "goblin_over": {
+            "hr": 70.7,
+            "hits": 698,
+            "n": 987
+          },
+          "goblin_over_live": {
+            "hr": 78.2,
+            "hits": 133,
+            "n": 170
+          },
+          "goblin_live_lift": 7.5,
+          "standard_under": {
+            "hr": 60.0,
+            "hits": 60,
+            "n": 100
+          },
+          "standard_under_live": {
+            "hr": 65.0,
+            "hits": 13,
+            "n": 20
+          },
+          "standard_over": {
+            "hr": 47.1,
+            "hits": 48,
+            "n": 102
+          },
+          "demon_over": {
+            "hr": 18.2,
+            "hits": 287,
+            "n": 1580
+          }
+        },
+        {
+          "prop": "Pitching Outs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1281,
+          "decided": 1256,
+          "pending_void": 25,
+          "by_pick": {
+            "STANDARD": 173,
+            "GOBLIN": 520,
+            "DEMON": 588
+          },
+          "goblin_over": {
+            "hr": 72.1,
+            "hits": 369,
+            "n": 512
+          },
+          "goblin_over_live": {
+            "hr": 78.1,
+            "hits": 57,
+            "n": 73
+          },
+          "goblin_live_lift": 6.0,
+          "standard_under": {
+            "hr": 45.8,
+            "hits": 49,
+            "n": 107
+          },
+          "standard_under_live": {
+            "hr": 50.0,
+            "hits": 2,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 29,
+            "n": 63
+          },
+          "demon_over": {
+            "hr": 19.0,
+            "hits": 109,
+            "n": 574
+          }
+        },
+        {
+          "prop": "Hits+Runs+RBIs",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 32754,
+          "decided": 30051,
+          "pending_void": 2703,
+          "by_pick": {
+            "DEMON": 23614,
+            "STANDARD": 2063,
+            "GOBLIN": 7077
+          },
+          "goblin_over": {
+            "hr": 62.8,
+            "hits": 4095,
+            "n": 6516
+          },
+          "goblin_over_live": {
+            "hr": 68.7,
+            "hits": 526,
+            "n": 766
+          },
+          "goblin_live_lift": 5.9,
+          "standard_under": {
+            "hr": 54.3,
+            "hits": 431,
+            "n": 794
+          },
+          "standard_under_live": {
+            "hr": 58.4,
+            "hits": 87,
+            "n": 149
+          },
+          "standard_over": {
+            "hr": 46.0,
+            "hits": 521,
+            "n": 1132
+          },
+          "demon_over": {
+            "hr": 17.4,
+            "hits": 3770,
+            "n": 21609
+          }
+        },
+        {
+          "prop": "Hits Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 3456,
+          "decided": 3027,
+          "pending_void": 429,
+          "by_pick": {
+            "STANDARD": 246,
+            "GOBLIN": 1375,
+            "DEMON": 1835
+          },
+          "goblin_over": {
+            "hr": 69.0,
+            "hits": 829,
+            "n": 1202
+          },
+          "goblin_over_live": {
+            "hr": 73.3,
+            "hits": 165,
+            "n": 225
+          },
+          "goblin_live_lift": 4.3,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 67,
+            "n": 123
+          },
+          "standard_under_live": {
+            "hr": 43.8,
+            "hits": 7,
+            "n": 16
+          },
+          "standard_over": {
+            "hr": 40.8,
+            "hits": 40,
+            "n": 98
+          },
+          "demon_over": {
+            "hr": 18.6,
+            "hits": 298,
+            "n": 1604
+          }
+        },
+        {
+          "prop": "Hits",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 16676,
+          "decided": 15281,
+          "pending_void": 1395,
+          "by_pick": {
+            "STANDARD": 714,
+            "DEMON": 10599,
+            "GOBLIN": 5363
+          },
+          "goblin_over": {
+            "hr": 59.0,
+            "hits": 2919,
+            "n": 4947
+          },
+          "goblin_over_live": {
+            "hr": 63.1,
+            "hits": 277,
+            "n": 439
+          },
+          "goblin_live_lift": 4.1,
+          "standard_under": {
+            "hr": 56.9,
+            "hits": 189,
+            "n": 332
+          },
+          "standard_under_live": {
+            "hr": 58.8,
+            "hits": 40,
+            "n": 68
+          },
+          "standard_over": {
+            "hr": 45.1,
+            "hits": 121,
+            "n": 268
+          },
+          "demon_over": {
+            "hr": 13.8,
+            "hits": 1341,
+            "n": 9734
+          }
+        },
+        {
+          "prop": "Total Bases",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 30213,
+          "decided": 27633,
+          "pending_void": 2580,
+          "by_pick": {
+            "STANDARD": 996,
+            "DEMON": 23833,
+            "GOBLIN": 5384
+          },
+          "goblin_over": {
+            "hr": 58.6,
+            "hits": 2912,
+            "n": 4967
+          },
+          "goblin_over_live": {
+            "hr": 62.6,
+            "hits": 275,
+            "n": 439
+          },
+          "goblin_live_lift": 4.0,
+          "standard_under": {
+            "hr": 51.6,
+            "hits": 207,
+            "n": 401
+          },
+          "standard_under_live": {
+            "hr": 56.4,
+            "hits": 53,
+            "n": 94
+          },
+          "standard_over": {
+            "hr": 44.1,
+            "hits": 210,
+            "n": 476
+          },
+          "demon_over": {
+            "hr": 16.8,
+            "hits": 3671,
+            "n": 21789
+          }
+        },
+        {
+          "prop": "Hitter Strikeouts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 13601,
+          "decided": 12579,
+          "pending_void": 1022,
+          "by_pick": {
+            "GOBLIN": 4696,
+            "STANDARD": 23,
+            "DEMON": 8882
+          },
+          "goblin_over": {
+            "hr": 61.7,
+            "hits": 2682,
+            "n": 4348
+          },
+          "goblin_over_live": {
+            "hr": 65.6,
+            "hits": 279,
+            "n": 425
+          },
+          "goblin_live_lift": 3.9,
+          "standard_under": {
+            "hr": 54.5,
+            "hits": 6,
+            "n": 11
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 2,
+            "n": 2
+          },
+          "standard_over": {
+            "hr": 50.0,
+            "hits": 6,
+            "n": 12
+          },
+          "demon_over": {
+            "hr": 17.2,
+            "hits": 1412,
+            "n": 8208
+          }
+        },
+        {
+          "prop": "Pitcher Strikeouts",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 4212,
+          "decided": 3639,
+          "pending_void": 573,
+          "by_pick": {
+            "STANDARD": 516,
+            "GOBLIN": 1347,
+            "DEMON": 2349
+          },
+          "goblin_over": {
+            "hr": 70.6,
+            "hits": 822,
+            "n": 1165
+          },
+          "goblin_over_live": {
+            "hr": 73.9,
+            "hits": 178,
+            "n": 241
+          },
+          "goblin_live_lift": 3.3,
+          "standard_under": {
+            "hr": 48.8,
+            "hits": 99,
+            "n": 203
+          },
+          "standard_under_live": {
+            "hr": 52.4,
+            "hits": 11,
+            "n": 21
+          },
+          "standard_over": {
+            "hr": 41.9,
+            "hits": 95,
+            "n": 227
+          },
+          "demon_over": {
+            "hr": 19.6,
+            "hits": 401,
+            "n": 2044
+          }
+        },
+        {
+          "prop": "Walks Allowed",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1955,
+          "decided": 1721,
+          "pending_void": 234,
+          "by_pick": {
+            "GOBLIN": 703,
+            "DEMON": 1080,
+            "STANDARD": 172
+          },
+          "goblin_over": {
+            "hr": 77.3,
+            "hits": 474,
+            "n": 613
+          },
+          "goblin_over_live": {
+            "hr": 80.3,
+            "hits": 114,
+            "n": 142
+          },
+          "goblin_live_lift": 3.0,
+          "standard_under": {
+            "hr": 40.7,
+            "hits": 24,
+            "n": 59
+          },
+          "standard_under_live": {
+            "hr": 25.0,
+            "hits": 1,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 42.2,
+            "hits": 38,
+            "n": 90
+          },
+          "demon_over": {
+            "hr": 21.1,
+            "hits": 202,
+            "n": 959
+          }
+        }
+      ]
+    },
+    "TENNIS": {
+      "catalog_n": 7,
+      "status_counts": {
+        "TICKET_READY": 4,
+        "MISSING_FROM_GRADED": 3
+      },
+      "rows": [
+        {
+          "prop": "Total Games",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1362,
+          "decided": 1126,
+          "pending_void": 236,
+          "by_pick": {
+            "GOBLIN": 537,
+            "DEMON": 558,
+            "STANDARD": 267
+          },
+          "goblin_over": {
+            "hr": 64.8,
+            "hits": 291,
+            "n": 449
+          },
+          "goblin_over_live": {
+            "hr": 75.6,
+            "hits": 31,
+            "n": 41
+          },
+          "goblin_live_lift": 10.8,
+          "standard_under": {
+            "hr": 65.5,
+            "hits": 38,
+            "n": 58
+          },
+          "standard_under_live": {
+            "hr": 83.3,
+            "hits": 5,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 52.3,
+            "hits": 81,
+            "n": 155
+          },
+          "demon_over": {
+            "hr": 33.6,
+            "hits": 156,
+            "n": 464
+          }
+        },
+        {
+          "prop": "Total Games Won",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1978,
+          "decided": 1677,
+          "pending_void": 301,
+          "by_pick": {
+            "GOBLIN": 786,
+            "DEMON": 962,
+            "STANDARD": 230
+          },
+          "goblin_over": {
+            "hr": 71.9,
+            "hits": 485,
+            "n": 675
+          },
+          "goblin_over_live": {
+            "hr": 81.8,
+            "hits": 72,
+            "n": 88
+          },
+          "goblin_live_lift": 9.9,
+          "standard_under": {
+            "hr": 48.5,
+            "hits": 33,
+            "n": 68
+          },
+          "standard_under_live": {
+            "hr": 44.4,
+            "hits": 4,
+            "n": 9
+          },
+          "standard_over": {
+            "hr": 45.5,
+            "hits": 55,
+            "n": 121
+          },
+          "demon_over": {
+            "hr": 28.0,
+            "hits": 228,
+            "n": 813
+          }
+        },
+        {
+          "prop": "Total Sets",
+          "status": "MISSING_FROM_GRADED",
+          "note": "Not in graded archive this window",
+          "rows": 0,
+          "decided": 0,
+          "pending_void": 0,
+          "by_pick": {},
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Aces",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1473,
+          "decided": 1176,
+          "pending_void": 297,
+          "by_pick": {
+            "GOBLIN": 522,
+            "DEMON": 907,
+            "STANDARD": 44
+          },
+          "goblin_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 414
+          },
+          "goblin_over_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 3
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 100.0,
+            "hits": 25,
+            "n": 25
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 4,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 5
+          },
+          "demon_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 732
+          }
+        },
+        {
+          "prop": "Break Points Won",
+          "status": "MISSING_FROM_GRADED",
+          "note": "Not in graded archive this window",
+          "rows": 0,
+          "decided": 0,
+          "pending_void": 0,
+          "by_pick": {},
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Total Tie Breaks",
+          "status": "MISSING_FROM_GRADED",
+          "note": "Not in graded archive this window",
+          "rows": 0,
+          "decided": 0,
+          "pending_void": 0,
+          "by_pick": {},
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Double Faults",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1829,
+          "decided": 1459,
+          "pending_void": 370,
+          "by_pick": {
+            "GOBLIN": 551,
+            "DEMON": 1235,
+            "STANDARD": 43
+          },
+          "goblin_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 441
+          },
+          "goblin_over_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 100.0,
+            "hits": 20,
+            "n": 20
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 8,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 3
+          },
+          "demon_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 995
+          }
+        }
+      ],
+      "ticket_ready": [
+        {
+          "prop": "Total Games",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1362,
+          "decided": 1126,
+          "pending_void": 236,
+          "by_pick": {
+            "GOBLIN": 537,
+            "DEMON": 558,
+            "STANDARD": 267
+          },
+          "goblin_over": {
+            "hr": 64.8,
+            "hits": 291,
+            "n": 449
+          },
+          "goblin_over_live": {
+            "hr": 75.6,
+            "hits": 31,
+            "n": 41
+          },
+          "goblin_live_lift": 10.8,
+          "standard_under": {
+            "hr": 65.5,
+            "hits": 38,
+            "n": 58
+          },
+          "standard_under_live": {
+            "hr": 83.3,
+            "hits": 5,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 52.3,
+            "hits": 81,
+            "n": 155
+          },
+          "demon_over": {
+            "hr": 33.6,
+            "hits": 156,
+            "n": 464
+          }
+        },
+        {
+          "prop": "Total Games Won",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1978,
+          "decided": 1677,
+          "pending_void": 301,
+          "by_pick": {
+            "GOBLIN": 786,
+            "DEMON": 962,
+            "STANDARD": 230
+          },
+          "goblin_over": {
+            "hr": 71.9,
+            "hits": 485,
+            "n": 675
+          },
+          "goblin_over_live": {
+            "hr": 81.8,
+            "hits": 72,
+            "n": 88
+          },
+          "goblin_live_lift": 9.9,
+          "standard_under": {
+            "hr": 48.5,
+            "hits": 33,
+            "n": 68
+          },
+          "standard_under_live": {
+            "hr": 44.4,
+            "hits": 4,
+            "n": 9
+          },
+          "standard_over": {
+            "hr": 45.5,
+            "hits": 55,
+            "n": 121
+          },
+          "demon_over": {
+            "hr": 28.0,
+            "hits": 228,
+            "n": 813
+          }
+        },
+        {
+          "prop": "Aces",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1473,
+          "decided": 1176,
+          "pending_void": 297,
+          "by_pick": {
+            "GOBLIN": 522,
+            "DEMON": 907,
+            "STANDARD": 44
+          },
+          "goblin_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 414
+          },
+          "goblin_over_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 3
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 100.0,
+            "hits": 25,
+            "n": 25
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 4,
+            "n": 4
+          },
+          "standard_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 5
+          },
+          "demon_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 732
+          }
+        },
+        {
+          "prop": "Double Faults",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1829,
+          "decided": 1459,
+          "pending_void": 370,
+          "by_pick": {
+            "GOBLIN": 551,
+            "DEMON": 1235,
+            "STANDARD": 43
+          },
+          "goblin_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 441
+          },
+          "goblin_over_live": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 7
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 100.0,
+            "hits": 20,
+            "n": 20
+          },
+          "standard_under_live": {
+            "hr": 100.0,
+            "hits": 8,
+            "n": 8
+          },
+          "standard_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 3
+          },
+          "demon_over": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 995
+          }
+        }
+      ],
+      "demon_only": [],
+      "missing": [
+        "Total Sets",
+        "Break Points Won",
+        "Total Tie Breaks"
+      ],
+      "undecided": [],
+      "thin": [],
+      "top_goblin_live": [
+        {
+          "prop": "Total Games",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1362,
+          "decided": 1126,
+          "pending_void": 236,
+          "by_pick": {
+            "GOBLIN": 537,
+            "DEMON": 558,
+            "STANDARD": 267
+          },
+          "goblin_over": {
+            "hr": 64.8,
+            "hits": 291,
+            "n": 449
+          },
+          "goblin_over_live": {
+            "hr": 75.6,
+            "hits": 31,
+            "n": 41
+          },
+          "goblin_live_lift": 10.8,
+          "standard_under": {
+            "hr": 65.5,
+            "hits": 38,
+            "n": 58
+          },
+          "standard_under_live": {
+            "hr": 83.3,
+            "hits": 5,
+            "n": 6
+          },
+          "standard_over": {
+            "hr": 52.3,
+            "hits": 81,
+            "n": 155
+          },
+          "demon_over": {
+            "hr": 33.6,
+            "hits": 156,
+            "n": 464
+          }
+        },
+        {
+          "prop": "Total Games Won",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1978,
+          "decided": 1677,
+          "pending_void": 301,
+          "by_pick": {
+            "GOBLIN": 786,
+            "DEMON": 962,
+            "STANDARD": 230
+          },
+          "goblin_over": {
+            "hr": 71.9,
+            "hits": 485,
+            "n": 675
+          },
+          "goblin_over_live": {
+            "hr": 81.8,
+            "hits": 72,
+            "n": 88
+          },
+          "goblin_live_lift": 9.9,
+          "standard_under": {
+            "hr": 48.5,
+            "hits": 33,
+            "n": 68
+          },
+          "standard_under_live": {
+            "hr": 44.4,
+            "hits": 4,
+            "n": 9
+          },
+          "standard_over": {
+            "hr": 45.5,
+            "hits": 55,
+            "n": 121
+          },
+          "demon_over": {
+            "hr": 28.0,
+            "hits": 228,
+            "n": 813
+          }
+        }
+      ]
+    },
+    "SOCCER": {
+      "catalog_n": 12,
+      "status_counts": {
+        "UNDECIDED_ONLY": 5,
+        "TICKET_READY": 5,
+        "THIN_TICKET": 1,
+        "DEMON_ONLY": 1
+      },
+      "rows": [
+        {
+          "prop": "Passes Attempted",
+          "status": "UNDECIDED_ONLY",
+          "note": "Only PENDING/VOID \u2014 no HIT/MISS yet",
+          "rows": 728,
+          "decided": 0,
+          "pending_void": 728,
+          "by_pick": {
+            "DEMON": 704,
+            "GOBLIN": 24
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Shots",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 6234,
+          "decided": 4640,
+          "pending_void": 1594,
+          "by_pick": {
+            "DEMON": 4524,
+            "GOBLIN": 1687,
+            "STANDARD": 23
+          },
+          "goblin_over": {
+            "hr": 37.9,
+            "hits": 471,
+            "n": 1242
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 41.2,
+            "hits": 7,
+            "n": 17
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 12.4,
+            "hits": 416,
+            "n": 3367
+          }
+        },
+        {
+          "prop": "Shots On Target",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 4381,
+          "decided": 3141,
+          "pending_void": 1240,
+          "by_pick": {
+            "GOBLIN": 637,
+            "DEMON": 3739,
+            "STANDARD": 5
+          },
+          "goblin_over": {
+            "hr": 38.4,
+            "hits": 176,
+            "n": 458
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 4
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 11.1,
+            "hits": 296,
+            "n": 2677
+          }
+        },
+        {
+          "prop": "Goalie Saves",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 641,
+          "decided": 515,
+          "pending_void": 126,
+          "by_pick": {
+            "STANDARD": 20,
+            "DEMON": 443,
+            "GOBLIN": 178
+          },
+          "goblin_over": {
+            "hr": 42.5,
+            "hits": 62,
+            "n": 146
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.0,
+            "hits": 8,
+            "n": 16
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 33.1,
+            "hits": 115,
+            "n": 347
+          }
+        },
+        {
+          "prop": "Clearances",
+          "status": "UNDECIDED_ONLY",
+          "note": "Only PENDING/VOID \u2014 no HIT/MISS yet",
+          "rows": 150,
+          "decided": 0,
+          "pending_void": 150,
+          "by_pick": {
+            "DEMON": 143,
+            "GOBLIN": 5,
+            "STANDARD": 2
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Goals",
+          "status": "THIN_TICKET",
+          "note": "Few Goblin/Standard decided grades",
+          "rows": 3445,
+          "decided": 2002,
+          "pending_void": 1443,
+          "by_pick": {
+            "GOBLIN": 4,
+            "DEMON": 3441
+          },
+          "goblin_over": {
+            "hr": 33.3,
+            "hits": 1,
+            "n": 3
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 7.9,
+            "hits": 157,
+            "n": 1999
+          }
+        },
+        {
+          "prop": "Assists",
+          "status": "DEMON_ONLY",
+          "note": "On board as Demon; not in Goblin/Standard ticket pool",
+          "rows": 1988,
+          "decided": 1416,
+          "pending_void": 572,
+          "by_pick": {
+            "DEMON": 1988
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 6.4,
+            "hits": 91,
+            "n": 1416
+          }
+        },
+        {
+          "prop": "Attempted Dribbles",
+          "status": "UNDECIDED_ONLY",
+          "note": "Only PENDING/VOID \u2014 no HIT/MISS yet",
+          "rows": 193,
+          "decided": 0,
+          "pending_void": 193,
+          "by_pick": {
+            "DEMON": 190,
+            "GOBLIN": 3
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Goal + Assist",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 2611,
+          "decided": 1897,
+          "pending_void": 714,
+          "by_pick": {
+            "GOBLIN": 39,
+            "DEMON": 2572
+          },
+          "goblin_over": {
+            "hr": 36.7,
+            "hits": 11,
+            "n": 30
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 10.1,
+            "hits": 189,
+            "n": 1867
+          }
+        },
+        {
+          "prop": "Shots Assisted",
+          "status": "UNDECIDED_ONLY",
+          "note": "Only PENDING/VOID \u2014 no HIT/MISS yet",
+          "rows": 177,
+          "decided": 0,
+          "pending_void": 177,
+          "by_pick": {
+            "DEMON": 164,
+            "GOBLIN": 12,
+            "STANDARD": 1
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Tackles",
+          "status": "UNDECIDED_ONLY",
+          "note": "Only PENDING/VOID \u2014 no HIT/MISS yet",
+          "rows": 1636,
+          "decided": 0,
+          "pending_void": 1636,
+          "by_pick": {
+            "DEMON": 1634,
+            "GOBLIN": 2
+          },
+          "goblin_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          }
+        },
+        {
+          "prop": "Fouls",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1603,
+          "decided": 1215,
+          "pending_void": 388,
+          "by_pick": {
+            "DEMON": 1525,
+            "GOBLIN": 78
+          },
+          "goblin_over": {
+            "hr": 34.1,
+            "hits": 15,
+            "n": 44
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 13.2,
+            "hits": 154,
+            "n": 1171
+          }
+        }
+      ],
+      "ticket_ready": [
+        {
+          "prop": "Shots",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 6234,
+          "decided": 4640,
+          "pending_void": 1594,
+          "by_pick": {
+            "DEMON": 4524,
+            "GOBLIN": 1687,
+            "STANDARD": 23
+          },
+          "goblin_over": {
+            "hr": 37.9,
+            "hits": 471,
+            "n": 1242
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 41.2,
+            "hits": 7,
+            "n": 17
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 12.4,
+            "hits": 416,
+            "n": 3367
+          }
+        },
+        {
+          "prop": "Shots On Target",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 4381,
+          "decided": 3141,
+          "pending_void": 1240,
+          "by_pick": {
+            "GOBLIN": 637,
+            "DEMON": 3739,
+            "STANDARD": 5
+          },
+          "goblin_over": {
+            "hr": 38.4,
+            "hits": 176,
+            "n": 458
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 0.0,
+            "hits": 0,
+            "n": 4
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 11.1,
+            "hits": 296,
+            "n": 2677
+          }
+        },
+        {
+          "prop": "Goalie Saves",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 641,
+          "decided": 515,
+          "pending_void": 126,
+          "by_pick": {
+            "STANDARD": 20,
+            "DEMON": 443,
+            "GOBLIN": 178
+          },
+          "goblin_over": {
+            "hr": 42.5,
+            "hits": 62,
+            "n": 146
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": 50.0,
+            "hits": 8,
+            "n": 16
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 33.1,
+            "hits": 115,
+            "n": 347
+          }
+        },
+        {
+          "prop": "Goal + Assist",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 2611,
+          "decided": 1897,
+          "pending_void": 714,
+          "by_pick": {
+            "GOBLIN": 39,
+            "DEMON": 2572
+          },
+          "goblin_over": {
+            "hr": 36.7,
+            "hits": 11,
+            "n": 30
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 10.1,
+            "hits": 189,
+            "n": 1867
+          }
+        },
+        {
+          "prop": "Fouls",
+          "status": "TICKET_READY",
+          "note": "Has Goblin/Standard decided grades",
+          "rows": 1603,
+          "decided": 1215,
+          "pending_void": 388,
+          "by_pick": {
+            "DEMON": 1525,
+            "GOBLIN": 78
+          },
+          "goblin_over": {
+            "hr": 34.1,
+            "hits": 15,
+            "n": 44
+          },
+          "goblin_over_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "goblin_live_lift": null,
+          "standard_under": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_under_live": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "standard_over": {
+            "hr": null,
+            "hits": 0,
+            "n": 0
+          },
+          "demon_over": {
+            "hr": 13.2,
+            "hits": 154,
+            "n": 1171
+          }
+        }
+      ],
+      "demon_only": [
+        "Assists"
+      ],
+      "missing": [],
+      "undecided": [
+        "Passes Attempted",
+        "Clearances",
+        "Attempted Dribbles",
+        "Shots Assisted",
+        "Tackles"
+      ],
+      "thin": [
+        "Goals"
+      ],
+      "top_goblin_live": []
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-08-10T15:18:11.662337+00:00",
+  "source": "graded_props_2026-08-08 + 2026-08-09 pooled",
+  "categories": {
+    "goblin_over": {
+      "gate": "L5>=4 + L10>=8",
+      "aug8_hr": 70.8,
+      "note": "already live"
+    },
+    "goblin_under": {
+      "gate": "n/a (product OVER-only)",
+      "note": "almost never present"
+    },
+    "standard_over": {
+      "gate": "L5>=3 + L10>=8",
+      "base_hr": 39.2,
+      "l10_ge8_hr": 50.8,
+      "l5ge3_l10ge8_hr": 60.0,
+      "n_l10": 63,
+      "n_agree": 30
+    },
+    "standard_under": {
+      "gate": "L10>=8",
+      "base_hr": 56.5,
+      "l10_ge8_hr": 66.3,
+      "l5_ge4_hr": 55.8,
+      "n_l10": 101
+    }
+  },
+  "finding": "Standard L5 alone does not lift; directional L10>=8 does. Prefer Standard UNDER."
+}

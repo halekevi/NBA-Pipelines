@@ -643,7 +643,7 @@
     const oppRank = opp.def_rank != null ? opp.def_rank : mu.opponent_def_rank;
     const oppTier = opp.def_tier || mu.opponent_def_tier || "";
     const oppName = opp.name || oppMeta.oppName || mu.opponent_name || "—";
-    const rankLbl = data.opp_metric_label || "Opp def rank";
+    const rankLbl = oppDefRankLabel(data, catLabel);
     const view = leaderView(sport);
     const displayed = filteredPlayers(block.players || [], view);
     let top = 0,

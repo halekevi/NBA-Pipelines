@@ -1,22 +1,22 @@
 {
   "MLB": {
     "gate": false,
-    "auc": 0.5449814340961917,
+    "auc": 0.6652927698728883,
     "reason": "OK (ALWAYS_ALLOW_SPORTS)"
   },
   "SOCCER": {
     "gate": false,
-    "auc": null,
-    "reason": "insufficient data"
+    "auc": 0.6357131499443474,
+    "reason": "OK"
   },
   "TENNIS": {
     "gate": false,
-    "auc": 0.7669185450819671,
+    "auc": 0.6589233038348083,
     "reason": "OK"
   },
   "WNBA": {
     "gate": false,
-    "auc": 0.5949921746409839,
+    "auc": 0.5381454310369058,
     "reason": "OK"
   }
 }

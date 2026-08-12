@@ -1119,6 +1119,12 @@ _SLATE_SPORT_UI_KEYS = frozenset(
         "standard_line",
         "standard_projection",
         "opponent_def_rank",
+        "stat_def_rank",
+        "stat_def_tier",
+        "stat_def_category",
+        "league_rank",
+        "rank_on_team",
+        "category_rank_label",
         "image_url",
         "game_date",
         "game_time",
@@ -1379,6 +1385,14 @@ def _slim_slate_sport_payload(payload: dict) -> dict:
             rows = enrich_slate_rows([r for r in rows if isinstance(r, dict)], str(k), repo=BASE_DIR) + [
                 r for r in rows if not isinstance(r, dict)
             ]
+        except Exception:
+            pass
+        try:
+            from utils.matchup_edge.slate_rank_overlay import enrich_slate_rows_with_category_ranks
+
+            dict_rows = [r for r in rows if isinstance(r, dict)]
+            other = [r for r in rows if not isinstance(r, dict)]
+            rows = enrich_slate_rows_with_category_ranks(dict_rows, str(k), repo=BASE_DIR) + other
         except Exception:
             pass
         slim_rows: list[Any] = []
@@ -5894,6 +5908,51 @@ def _enrich_matchup_edge_opponents(payload: dict[str, Any], sport_key: str) -> d
             if not str(opp_obj.get("def_tier") or "").strip():
                 opp_obj["def_tier"] = mu.get("opponent_def_tier") or opp_meta.get("def_tier") or ""
             blocks_filled += 1
+
+    # Refresh category rank badges once opponents / category D are known.
+    if isinstance(pbtc, dict):
+        try:
+            from utils.matchup_edge.player_ranks import stamp_player_ranks
+            from utils.matchup_edge.stat_defense import resolve_category_defense
+
+            for key, block in pbtc.items():
+                if not isinstance(block, dict):
+                    continue
+                cid = str(block.get("category") or (str(key).split("|")[-1] if "|" in str(key) else "")).lower()
+                opp_obj = block.get("opponent") if isinstance(block.get("opponent"), dict) else {}
+                team_ab = str(key).split("|", 1)[0].strip().upper()
+                mu = mus.get(team_ab) or {}
+                if not str(opp_obj.get("stat_def_rank") or "").strip() and (
+                    opp_obj.get("slate_abbr") or mu.get("opponent_slate")
+                ):
+                    cat_def = resolve_category_defense(
+                        sport=sport_key,
+                        opponent=opp_obj.get("slate_abbr") or mu.get("opponent_slate") or opp_obj.get("name") or "",
+                        cat_id=cid,
+                        cat_label=block.get("category_label"),
+                        overall_rank=opp_obj.get("def_rank") or mu.get("opponent_def_rank"),
+                        overall_tier=opp_obj.get("def_tier") or mu.get("opponent_def_tier") or "",
+                    )
+                    for fld in (
+                        "def_rank",
+                        "def_tier",
+                        "overall_def_rank",
+                        "overall_def_tier",
+                        "stat_def_category",
+                        "stat_def_rank",
+                        "stat_def_tier",
+                    ):
+                        if cat_def.get(fld) is not None and cat_def.get(fld) != "":
+                            opp_obj[fld] = cat_def.get(fld)
+                opp_rank = opp_obj.get("stat_def_rank")
+                if opp_rank is None:
+                    opp_rank = opp_obj.get("def_rank")
+                for pl in block.get("players") or []:
+                    if not isinstance(pl, dict):
+                        continue
+                    stamp_player_ranks(pl, opp_def_rank=opp_rank, cat_short=cid[:4] if cid else "")
+        except Exception:
+            pass
 
     # Mark / prune orphan teams (e.g. LAS stale May props with opp=null) so the UI
     # does not default to a club with empty Opp def cards.

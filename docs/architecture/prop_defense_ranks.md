@@ -11,6 +11,23 @@ Utilities under `utils/*_prop_defense.py` attach `stat_def_category`, `stat_def_
 | Soccer | `utils/soccer_prop_defense.py` | defense summary / step3 / step8 Def Rank | `overall_rank`, `shots_rank`, `saves_rank` |
 | NBA | `utils/nba_prop_defense.py` | `nba_opp_defense_by_position.json` | `pts_rank`, `reb_rank`, `ast_rank`, … |
 
+## Player category ranks (Matchup Edge)
+
+Every Matchup Edge player row (all sports with box/rate stats) now includes:
+
+| Field | Meaning |
+|-------|---------|
+| `league_rank` / `league_n` | Season-avg rank among **all qualifying players in the league** for that prop category (1 = highest) |
+| `rank_on_team` | Season-avg rank **on that player's team** for the category |
+| `category_rank_label` | Compact UI string, e.g. `L#3 · T1 · vs #5 reb D` |
+| block `opponent.stat_def_rank` | Opponent **category** defense rank (1 = stingiest = HARD for OVER) |
+
+Shared helpers: `utils/matchup_edge/player_ranks.py`. Rebuild with:
+
+```bash
+py -3 scripts/build_matchup_edge_json.py --sport all
+```
+
 ## Soccer notes
 
 - Goals map to category `overall`; lookup uses `f"{cat}_rank"` → **`overall_rank`** (not a bare `overall` column).

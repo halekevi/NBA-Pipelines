@@ -2632,6 +2632,15 @@ function formatOppDef(p) {
   return "—";
 }
 
+function formatCategoryRank(p) {
+  if (!p) return "—";
+  if (p.category_rank_label) return String(p.category_rank_label);
+  const parts = [];
+  if (p.league_rank != null && p.league_rank !== "") parts.push(`L#${p.league_rank}`);
+  if (p.rank_on_team != null && p.rank_on_team !== "") parts.push(`T${p.rank_on_team}`);
+  return parts.length ? parts.join(" · ") : "—";
+}
+
 function formatStatDefTier(tier) {
   const t = String(tier || "").trim().toUpperCase().replace(/\s+/g, "_");
   if (t === "HARD" || t === "HARD_MID") return t === "HARD" ? "Elite" : "Above Avg";
@@ -2697,7 +2706,7 @@ async function openPropDetailPanel(p) {
     const mlStr = p.ml_prob != null ? (Number(p.ml_prob) * 100).toFixed(1) + "%" : "—";
     const rows = [
       ["TEAM", pct(p.team)], ["OPP", pct(p.opp)], ["TIER", pct(p.tier)],
-      ["RANK", pct(p.rank_score)], ["OPP DEF", formatOppDef(p)], ["MATCHUP", formatMatchupSignal(p)],
+      ["RANK", pct(p.rank_score)], ["CAT RANK", formatCategoryRank(p)], ["OPP DEF", formatOppDef(p)], ["MATCHUP", formatMatchupSignal(p)],
       ["ML PROB", mlStr], ["EDGE", edgeStr], ["BOOK LINE", pct(p.book_line ?? p.prop_line ?? p.line)],
       ["STD LINE", pct(p.standard_line)], ["SEASON AVG", pct(p.season_avg)], ["PROJECTION", pct(p.projection)],
       ["GAME TIME", formatGameTimeDisplay(p.game_time)],

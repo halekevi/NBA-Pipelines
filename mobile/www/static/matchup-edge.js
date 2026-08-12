@@ -163,12 +163,12 @@
 
   function leaderSlice(p) {
     const ls = String(p.leader_slice || "").toLowerCase();
-    if (ls === "top" || ls === "bottom") return ls;
+    if (ls === "top" || ls === "bottom" || ls === "mid") return ls;
     const br = p.bottom_rank_on_team;
     const tr = p.rank_on_team;
     if (br != null && br <= LEADER_N && (tr == null || tr > LEADER_N)) return "bottom";
     if (tr != null && tr <= LEADER_N) return "top";
-    return "top";
+    return "mid";
   }
 
   function leaderView(sport) {
@@ -195,7 +195,9 @@
 
   function filteredPlayers(players, view) {
     const list = players || [];
-    if (view === "all") return list;
+    if (view === "all") {
+      return list.slice().sort((a, b) => (a.rank_on_team || 999) - (b.rank_on_team || 999));
+    }
     if (view === "bottom") {
       return list
         .filter((p) => leaderSlice(p) === "bottom")
@@ -209,6 +211,11 @@
   }
 
   function playerRankBadge(p) {
+    const catLbl = p.category_rank_label
+      ? ' <span class="me-rank-badge me-rank-cat" title="League · team · opp category defense">' +
+        esc(p.category_rank_label) +
+        "</span>"
+      : "";
     const slice = leaderSlice(p);
     if (slice === "bottom") {
       const n = p.bottom_rank_on_team;
@@ -219,9 +226,11 @@
         esc(fade) +
         " #" +
         esc(n != null ? n : "?") +
-        "</span>"
+        "</span>" +
+        catLbl
       );
     }
+    if (catLbl) return catLbl;
     if (p.team_rank_label) {
       return ' <span class="me-rank-badge">' + esc(p.team_rank_label) + "</span>";
     }
@@ -230,6 +239,9 @@
     }
     if (p.rank_on_team != null && p.rank_on_team <= LEADER_N) {
       return ' <span class="me-rank-badge me-rank-top">T' + esc(p.rank_on_team) + "</span>";
+    }
+    if (p.league_rank != null) {
+      return ' <span class="me-rank-badge me-rank-league">L#' + esc(p.league_rank) + "</span>";
     }
     return "";
   }

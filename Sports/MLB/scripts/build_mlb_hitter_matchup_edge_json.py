@@ -33,12 +33,14 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 from utils.matchup_edge.classify import classify_edge  # noqa: E402
+from utils.matchup_edge.player_ranks import assign_league_ranks, assign_team_ranks, stamp_player_ranks  # noqa: E402
 from utils.matchup_edge.slate_io import (  # noqa: E402
     build_slate_pp_lookup,
     load_slate_rows,
     lookup_pp_edge,
     tonight_matchups,
 )
+from utils.matchup_edge.stat_defense import resolve_category_defense  # noqa: E402
 
 _ANALYZE_PATH = Path(__file__).resolve().parent / "analyze_top_hitters_vs_defense.py"
 _spec = importlib.util.spec_from_file_location("analyze_top_hitters_vs_defense", _ANALYZE_PATH)
@@ -331,6 +333,8 @@ def build_payload(
             )
         )
         agg = agg[agg["games"] >= MIN_GAMES]
+        league_ranks = assign_league_ranks(agg, player_norm_col="PLAYER_NORM", stat_col="season_avg")
+        cat_short = str(cid)[:4]
 
         for team_slate, grp in agg.groupby("team_slate", sort=False):
             # Tonight's slate only — never emit idle clubs (empty OPP / all NEUTRAL).
@@ -345,22 +349,38 @@ def build_payload(
             mu_ui = matchups_ui.get(team_slate, {})
             if matchups_raw and not str(mu_ui.get("opponent_slate") or "").strip():
                 continue
-            top = grp.nlargest(TOP_N, "season_avg")
-            bottom = grp.nsmallest(BOTTOM_N, "season_avg")
+            team_ranks = assign_team_ranks(
+                grp,
+                player_norm_col="PLAYER_NORM",
+                stat_col="season_avg",
+                top_n=TOP_N,
+                bottom_n=BOTTOM_N,
+            )
             opp_slate = mu_ui.get("opponent_slate", "")
-            opp_rank = mu_ui.get("opponent_def_rank")
-            opp_tier = mu_ui.get("opponent_def_tier", "")
             opp_name = mu_ui.get("opponent_name", "")
             opp_era = mu_ui.get("opponent_sp_era")
+            cat_def = resolve_category_defense(
+                sport="mlb",
+                opponent=opp_slate or opp_name,
+                cat_id=cid,
+                cat_label=cat.get("label"),
+                overall_rank=mu_ui.get("opponent_def_rank"),
+                overall_tier=mu_ui.get("opponent_def_tier", ""),
+            )
+            opp_rank = cat_def.get("def_rank")
+            opp_tier = cat_def.get("def_tier") or ""
 
             plist: list[dict] = []
             seen_norm: set[str] = set()
 
-            def _append_player(r, *, top_rank: int | None, bottom_rank: int | None) -> None:
+            def _append_player(r) -> None:
                 pnorm = _norm_name(r.PLAYER_NORM)
                 if pnorm in seen_norm:
                     return
                 seen_norm.add(pnorm)
+                tr = team_ranks.get(pnorm, {})
+                top_rank = tr.get("rank_on_team")
+                bottom_rank = tr.get("bottom_rank_on_team")
                 key = (pnorm, str(team_slate).upper(), cid)
                 hist_top = top3_lookup.get(key, {})
                 hist_bot = bottom3_lookup.get(key, {})
@@ -383,42 +403,40 @@ def build_payload(
                     cat_id=cid,
                     pp_line=pp.get("pp_line"),
                     pp_edge=pp.get("pp_edge"),
-                    rank_on_team=top_rank,
+                    rank_on_team=top_rank if top_rank is not None and top_rank <= TOP_N else None,
                     bottom_rank_on_team=bottom_rank,
                 )
-                plist.append(
-                    {
-                        "player": r.PLAYER_NAME,
-                        "player_norm": pnorm,
-                        "pos": pos_by_player.get(pnorm, ""),
-                        "rank_on_team": top_rank,
-                        "bottom_rank_on_team": bottom_rank,
-                        "leader_slice": "bottom"
-                        if bottom_rank is not None and top_rank is None
-                        else "top",
-                        "team_rank_label": _team_rank_label(top_rank, bottom_rank),
-                        "bottom3_on_team": bottom_rank is not None and bottom_rank <= 3,
-                        "season_avg": round(avg, 2),
-                        "game_score": round(float(r.game_score), 2) if pd.notna(r.game_score) else round(avg, 2),
-                        "pp_line": pp.get("pp_line"),
-                        "pp_edge": round(float(pp["pp_edge"]), 2) if pp.get("pp_edge") is not None else None,
-                        "edge": edge,
-                        "notes": note or _player_notes(r.PLAYER_NAME, cid, top_rank, hist),
-                        "overperform_vs_weak": hist.get("overperform_vs_weak", False),
-                        "fades_vs_elite": hist.get("fades_vs_elite", False),
-                        "def_boost": hist.get("def_boost"),
-                        "avg_delta_vs_elite": hist.get("avg_delta_vs_elite"),
-                    }
+                rec = {
+                    "player": r.PLAYER_NAME,
+                    "player_norm": pnorm,
+                    "pos": pos_by_player.get(pnorm, ""),
+                    "rank_on_team": top_rank,
+                    "bottom_rank_on_team": bottom_rank,
+                    "leader_slice": tr.get("leader_slice") or "top",
+                    "team_rank_label": tr.get("team_rank_label") or _team_rank_label(top_rank, bottom_rank),
+                    "bottom3_on_team": bool(tr.get("bottom3_on_team")),
+                    "season_avg": round(avg, 2),
+                    "game_score": round(float(r.game_score), 2) if pd.notna(r.game_score) else round(avg, 2),
+                    "pp_line": pp.get("pp_line"),
+                    "pp_edge": round(float(pp["pp_edge"]), 2) if pp.get("pp_edge") is not None else None,
+                    "edge": edge,
+                    "notes": note or _player_notes(r.PLAYER_NAME, cid, top_rank, hist),
+                    "overperform_vs_weak": hist.get("overperform_vs_weak", False),
+                    "fades_vs_elite": hist.get("fades_vs_elite", False),
+                    "def_boost": hist.get("def_boost"),
+                    "avg_delta_vs_elite": hist.get("avg_delta_vs_elite"),
+                }
+                stamp_player_ranks(
+                    rec,
+                    league=league_ranks.get(pnorm),
+                    team=tr,
+                    opp_def_rank=cat_def.get("stat_def_rank") or opp_rank,
+                    cat_short=cat_short,
                 )
+                plist.append(rec)
 
-            for i, r in enumerate(top.itertuples(index=False), start=1):
-                bot_hist = bottom3_lookup.get((_norm_name(r.PLAYER_NORM), str(team_slate).upper(), cid), {})
-                _append_player(r, top_rank=i, bottom_rank=bot_hist.get("rank_on_team"))
-
-            for i, r in enumerate(bottom.itertuples(index=False), start=1):
-                if _norm_name(r.PLAYER_NORM) in seen_norm:
-                    continue
-                _append_player(r, top_rank=None, bottom_rank=i)
+            for r in grp.sort_values("season_avg", ascending=False).itertuples(index=False):
+                _append_player(r)
 
             players_by_key[f"{team_slate}|{cid}"] = {
                 "team_slate": team_slate,
@@ -431,6 +449,11 @@ def build_payload(
                     "def_rank": opp_rank,
                     "def_tier": opp_tier,
                     "sp_era": opp_era,
+                    "overall_def_rank": cat_def.get("overall_def_rank"),
+                    "overall_def_tier": cat_def.get("overall_def_tier") or "",
+                    "stat_def_category": cat_def.get("stat_def_category") or "",
+                    "stat_def_rank": cat_def.get("stat_def_rank"),
+                    "stat_def_tier": cat_def.get("stat_def_tier") or "",
                 },
                 "players": plist,
             }

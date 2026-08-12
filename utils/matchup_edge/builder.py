@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from utils.matchup_edge.classify import classify_edge
+from utils.matchup_edge.player_ranks import assign_league_ranks, assign_team_ranks, stamp_player_ranks
 from utils.matchup_edge.slate_io import (
     build_slate_pp_lookup,
     leaders_from_slate,
@@ -171,42 +172,51 @@ def _load_cache_leaders(cfg: SportMatchupConfig) -> dict[str, list[dict]] | None
             sub = df.copy()
             sub["_stat"] = derive_nhl(sub, cid)
             sub = sub[sub["_stat"].notna()]
+            sub = sub.assign(season_avg=sub["_stat"], PLAYER_NORM=sub["Player"].map(_norm_name))
+            league_ranks = assign_league_ranks(sub, player_norm_col="PLAYER_NORM", stat_col="season_avg")
+            cat_short = str(cid)[:4]
             for team, grp in sub.groupby("TEAM", sort=False):
-                top = grp.nlargest(cfg.top_n, "_stat")
-                bottom = grp.nsmallest(cfg.bottom_n, "_stat")
+                team_slate = _team_norm(cfg, team)
+                team_ranks = assign_team_ranks(
+                    grp,
+                    player_norm_col="PLAYER_NORM",
+                    stat_col="season_avg",
+                    top_n=cfg.top_n,
+                    bottom_n=cfg.bottom_n,
+                )
                 plist = []
                 seen: set[str] = set()
 
-                def _nhl_row(r, *, top_rank: int | None, bottom_rank: int | None, leader_slice: str) -> None:
+                def _nhl_row(r) -> None:
                     pn = _norm_name(r["Player"])
                     if pn in seen:
                         return
                     seen.add(pn)
+                    tr = team_ranks.get(pn, {})
                     stat_v = float(r["_stat"])
-                    plist.append(
-                        {
-                            "player": r["Player"],
-                            "player_norm": pn,
-                            "pos": str(r.get("Position", "") or ""),
-                            "rank_on_team": top_rank,
-                            "bottom_rank_on_team": bottom_rank,
-                            "leader_slice": leader_slice,
-                            "bottom3_on_team": bottom_rank is not None and bottom_rank <= 3,
-                            "season_avg": round(stat_v, 2),
-                            "game_score": round(stat_v * 3, 1),
-                            "edge": "NEUTRAL",
-                            "notes": "NST season rate per game",
-                            "overperform_vs_weak": False,
-                            "def_boost": None,
-                        }
-                    )
+                    rec = {
+                        "player": r["Player"],
+                        "player_norm": pn,
+                        "pos": str(r.get("Position", "") or ""),
+                        "rank_on_team": tr.get("rank_on_team"),
+                        "bottom_rank_on_team": tr.get("bottom_rank_on_team"),
+                        "leader_slice": tr.get("leader_slice") or "top",
+                        "team_rank_label": tr.get("team_rank_label") or "",
+                        "bottom3_on_team": bool(tr.get("bottom3_on_team")),
+                        "season_avg": round(stat_v, 2),
+                        "game_score": round(stat_v * 3, 1),
+                        "edge": "NEUTRAL",
+                        "notes": "NST season rate per game",
+                        "overperform_vs_weak": False,
+                        "def_boost": None,
+                    }
+                    stamp_player_ranks(rec, league=league_ranks.get(pn), team=tr, cat_short=cat_short)
+                    plist.append(rec)
 
-                for i, (_, r) in enumerate(top.iterrows(), start=1):
-                    _nhl_row(r, top_rank=i, bottom_rank=None, leader_slice="top")
-                for i, (_, r) in enumerate(bottom.iterrows(), start=1):
-                    _nhl_row(r, top_rank=None, bottom_rank=i, leader_slice="bottom")
+                for _, r in grp.sort_values("season_avg", ascending=False).iterrows():
+                    _nhl_row(r)
                 if plist:
-                    out[f"{_team_norm(cfg, team)}|{cid}"] = plist
+                    out[f"{team_slate}|{cid}"] = plist
         return out
 
     if sport == "cbb":
@@ -299,42 +309,51 @@ def _build_from_game_logs(
             agg = agg.merge(mins, on=[pnorm, team_col], how="left")
             agg = agg[pd.to_numeric(agg.get("MIN"), errors="coerce").fillna(0) >= cfg.min_mpg]
         agg["team_slate"] = agg[team_col].map(lambda t: _team_norm(cfg, t))
+        league_ranks = assign_league_ranks(agg, player_norm_col=pnorm, stat_col="season_avg")
+        cat_short = str(cid)[:4]
 
         for team_slate, grp in agg.groupby("team_slate", sort=False):
-            top = grp.nlargest(cfg.top_n, "season_avg")
-            bottom = grp.nsmallest(cfg.bottom_n, "season_avg")
+            team_ranks = assign_team_ranks(
+                grp,
+                player_norm_col=pnorm,
+                stat_col="season_avg",
+                top_n=cfg.top_n,
+                bottom_n=cfg.bottom_n,
+            )
             plist: list[dict] = []
             seen_norm: set[str] = set()
 
-            def _append_row(r, *, top_rank: int | None, bottom_rank: int | None, leader_slice: str) -> None:
+            def _append_row(r) -> None:
                 pnorm_val = _norm_name(getattr(r, pnorm, ""))
                 if pnorm_val in seen_norm:
                     return
                 seen_norm.add(pnorm_val)
+                tr = team_ranks.get(pnorm_val, {})
+                top_rank = tr.get("rank_on_team")
+                bottom_rank = tr.get("bottom_rank_on_team")
                 hist = top3.get((pnorm_val, str(team_slate).upper(), cid), {})
                 avg = float(r.season_avg)
-                plist.append(
-                    {
-                        "player": getattr(r, player_col),
-                        "player_norm": pnorm_val,
-                        "pos": "",
-                        "rank_on_team": top_rank,
-                        "bottom_rank_on_team": bottom_rank,
-                        "leader_slice": leader_slice,
-                        "bottom3_on_team": bottom_rank is not None and bottom_rank <= 3,
-                        "season_avg": round(avg, 2),
-                        "game_score": round(avg * 1.2, 1),
-                        "edge": "NEUTRAL",
-                        "notes": "",
-                        "overperform_vs_weak": hist.get("overperform_vs_weak", False),
-                        "def_boost": hist.get("def_boost"),
-                    }
-                )
+                rec = {
+                    "player": getattr(r, player_col),
+                    "player_norm": pnorm_val,
+                    "pos": "",
+                    "rank_on_team": top_rank,
+                    "bottom_rank_on_team": bottom_rank,
+                    "leader_slice": tr.get("leader_slice") or "top",
+                    "team_rank_label": tr.get("team_rank_label") or "",
+                    "bottom3_on_team": bool(tr.get("bottom3_on_team")),
+                    "season_avg": round(avg, 2),
+                    "game_score": round(avg * 1.2, 1),
+                    "edge": "NEUTRAL",
+                    "notes": "",
+                    "overperform_vs_weak": hist.get("overperform_vs_weak", False),
+                    "def_boost": hist.get("def_boost"),
+                }
+                stamp_player_ranks(rec, league=league_ranks.get(pnorm_val), team=tr, cat_short=cat_short)
+                plist.append(rec)
 
-            for i, r in enumerate(top.itertuples(index=False), start=1):
-                _append_row(r, top_rank=i, bottom_rank=None, leader_slice="top")
-            for i, r in enumerate(bottom.itertuples(index=False), start=1):
-                _append_row(r, top_rank=None, bottom_rank=i, leader_slice="bottom")
+            for r in grp.sort_values("season_avg", ascending=False).itertuples(index=False):
+                _append_row(r)
             if plist:
                 out_blocks[f"{team_slate}|{cid}"] = plist
     return out_blocks
@@ -535,40 +554,29 @@ def _merge_player_blocks(
     top_n: int,
     bottom_n: int,
 ) -> dict[str, list[dict]]:
+    del top_n, bottom_n  # retained for call-site compatibility; all players are merged
     out: dict[str, list[dict]] = {}
     keys = set(cache_blocks) | set(slate_blocks)
     for key in keys:
-        tops: list[dict] = []
-        bots: list[dict] = []
-        seen_top: set[str] = set()
-        seen_bot: set[str] = set()
+        by_norm: dict[str, dict] = {}
         for src in (cache_blocks.get(key, []), slate_blocks.get(key, [])):
             for p in src:
                 pn = str(p.get("player_norm") or _norm_name(p.get("player", ""))).lower()
                 if not pn:
                     continue
                 rec = dict(p)
-                if _infer_leader_slice(rec) == "bottom":
-                    if pn in seen_bot or len(bots) >= bottom_n:
-                        continue
-                    seen_bot.add(pn)
-                    bots.append(rec)
-                else:
-                    if pn in seen_top or len(tops) >= top_n:
-                        continue
-                    seen_top.add(pn)
-                    tops.append(rec)
-        merged = tops + bots
-        for i, p in enumerate(tops, start=1):
-            p.setdefault("leader_slice", "top")
-            if p.get("rank_on_team") is None:
-                p["rank_on_team"] = i
-        for i, p in enumerate(bots, start=1):
-            p.setdefault("leader_slice", "bottom")
-            if p.get("bottom_rank_on_team") is None:
-                p["bottom_rank_on_team"] = i
-        if merged:
-            out[key] = merged
+                prev = by_norm.get(pn)
+                if prev is None:
+                    by_norm[pn] = rec
+                    continue
+                prev_lr = prev.get("league_rank")
+                rec_lr = rec.get("league_rank")
+                if rec_lr is not None and prev_lr is None:
+                    by_norm[pn] = rec
+                elif float(rec.get("season_avg") or 0) > float(prev.get("season_avg") or 0):
+                    by_norm[pn] = rec
+        if by_norm:
+            out[key] = list(by_norm.values())
     return out
 
 
@@ -903,15 +911,20 @@ def build_matchup_payload(
                 else None,
             )
             pp_edge_val = pp.get("pp_edge")
-            enriched.append(
-                {
-                    **p,
-                    "edge": edge,
-                    "notes": note,
-                    "pp_line": pp.get("pp_line"),
-                    "pp_edge": round(float(pp_edge_val), 2) if pp_edge_val is not None else None,
-                }
-            )
+            row = {
+                **p,
+                "edge": edge,
+                "notes": note,
+                "pp_line": pp.get("pp_line"),
+                "pp_edge": round(float(pp_edge_val), 2) if pp_edge_val is not None else None,
+            }
+            if not row.get("category_rank_label"):
+                stamp_player_ranks(
+                    row,
+                    opp_def_rank=cat_def.get("stat_def_rank") or opp_rank,
+                    cat_short=str(cid)[:4],
+                )
+            enriched.append(row)
 
         players_by_key[key] = {
             "team_slate": team_slate,
@@ -931,6 +944,8 @@ def build_matchup_payload(
             },
             "players": enriched,
         }
+
+    _backfill_league_ranks(players_by_key)
 
     slate_note = ""
     if not slate_rows and not players_by_key:
@@ -959,6 +974,55 @@ def build_matchup_payload(
             "AVOID": "Negative PP edge without elite matchup — skip OVER.",
         },
     }
+
+
+def _backfill_league_ranks(players_by_key: dict[str, Any]) -> None:
+    """Fill league_rank from all players present in the payload for each category."""
+    by_cat: dict[str, list[tuple[str, float, dict]]] = {}
+    for key, block in players_by_key.items():
+        if not isinstance(block, dict):
+            continue
+        cid = str(block.get("category") or (str(key).split("|")[-1] if "|" in str(key) else "")).lower()
+        opp = block.get("opponent") if isinstance(block.get("opponent"), dict) else {}
+        opp_rank = opp.get("stat_def_rank")
+        if opp_rank is None:
+            opp_rank = opp.get("def_rank")
+        for p in block.get("players") or []:
+            if not isinstance(p, dict):
+                continue
+            pn = str(p.get("player_norm") or _norm_name(p.get("player"))).lower()
+            if not pn:
+                continue
+            try:
+                avg = float(p.get("season_avg"))
+            except (TypeError, ValueError):
+                continue
+            by_cat.setdefault(cid, []).append((pn, avg, p))
+            # Keep opp on player for label refresh.
+            if opp_rank is not None:
+                p["opp_def_rank"] = opp_rank
+
+    for cid, rows in by_cat.items():
+        # Best avg per player (dedupe multi-team noise).
+        best: dict[str, float] = {}
+        for pn, avg, _ in rows:
+            if pn not in best or avg > best[pn]:
+                best[pn] = avg
+        ranked = sorted(best.items(), key=lambda x: x[1], reverse=True)
+        n = len(ranked)
+        league_map = {pn: i for i, (pn, _) in enumerate(ranked, start=1)}
+        for pn, _avg, p in rows:
+            lr = league_map.get(pn)
+            if lr is None:
+                continue
+            p["league_rank"] = lr
+            p["league_n"] = n
+            p["league_rank_label"] = f"L#{lr}"
+            stamp_player_ranks(
+                p,
+                opp_def_rank=p.get("opp_def_rank"),
+                cat_short=cid[:4] if cid else "",
+            )
 
 
 def write_payload(payload: dict[str, Any], sport: str, out_dir: Path) -> Path:

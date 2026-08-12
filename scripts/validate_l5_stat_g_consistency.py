@@ -113,6 +113,38 @@ def _period_hit_rate_style(sport: str) -> bool:
     return sport.upper() in ("NBA1Q", "NBA1H")
 
 
+def _sport_in_season(sport: str, date: str) -> bool:
+    """Calendar gate so off-season missing boards are SKIP, not FAIL."""
+    try:
+        _y, m, _d = [int(x) for x in str(date).strip()[:10].split("-")]
+    except Exception:
+        return True
+    su = sport.upper()
+    if su in ("NBA", "NBA1Q", "NBA1H"):
+        return m >= 10 or m <= 6
+    if su == "NHL":
+        return m >= 9 or m <= 6
+    if su in ("CBB", "WCBB"):
+        return m >= 11 or m <= 4
+    if su == "NFL":
+        return m >= 8 or m <= 2
+    if su == "CFB":
+        return (m >= 8 and m <= 12) or m == 1
+    if su == "MLB":
+        return 3 <= m <= 10
+    if su == "WNBA":
+        return 5 <= m <= 10
+    return True
+
+
+def _blended_hit_rate_mask(df: pd.DataFrame) -> pd.Series:
+    """MLB (and others) intentionally shrink thin-sample Hit Rate (5g); skip rate compare."""
+    col = _first_col(df, ("hit_rate_status", "Hit Rate Status"))
+    if not col:
+        return pd.Series(False, index=df.index)
+    s = df[col].astype(str).str.strip().str.upper()
+    return s.str.startswith("BLENDED")
+
 @dataclass
 class SourceDef:
     sport: str
@@ -210,6 +242,7 @@ def evaluate_file(
     l5_avg = sub5.mean(axis=1)
 
     unsup = _unsupported_mask(df)
+    blended = _blended_hit_rate_mask(df)
     direction = _direction_series(df)
     total_ou = over + under
     hit_over_ou = over / total_ou.where(total_ou > 0)
@@ -228,6 +261,7 @@ def evaluate_file(
         & (played >= min_games)
     )
     out["skipped_unsupported"] = int(unsup.sum())
+    out["skipped_blended_hit_rate"] = int((ok & blended).sum())
     out["skipped_no_line"] = int((~unsup & line_num.isna()).sum())
     out["skipped_insufficient_games"] = int(
         (~unsup & line_num.notna() & (n_stats > 0) & (played < min_games)).sum()
@@ -263,6 +297,12 @@ def evaluate_file(
 
     mismatch_mask = pd.Series(False, index=df.index)
     mismatch_fields: Dict[str, int] = {}
+    rate_logical = {
+        "line_hit_rate_over_ou_5",
+        "line_hit_rate_under_ou_5",
+        "line_hit_rate_over_5",
+        "line_hit_rate_under_5",
+    }
 
     for logical_name, computed, aliases, use_atol in checks:
         stored_col = _first_col(df, aliases)
@@ -270,13 +310,17 @@ def evaluate_file(
             continue
         stored = _numeric_series(df, stored_col)
         cmp_ok = _close(computed, stored, rtol=rtol, atol=use_atol)
-        bad = ok & ~cmp_ok
+        # Blended thin-sample rates are intentional; still enforce L5 over/under counts.
+        row_ok = ok & (~blended) if logical_name in rate_logical else ok
+        bad = row_ok & ~cmp_ok
         n_bad = int(bad.sum())
         if n_bad:
             mismatch_fields[f"{logical_name}!={stored_col}"] = n_bad
         mismatch_mask |= bad
 
     out["mismatch_count"] = int(mismatch_mask.sum())
+    # rows_checked for rate fields effectively excludes blended; keep total ok count above.
+    out["rows_checked_rates"] = int((ok & ~blended).sum())
     out["mismatch_by_field"] = mismatch_fields
 
     if mismatch_mask.any():
@@ -359,6 +403,19 @@ def main() -> int:
     all_mismatch_rows: List[dict] = []
 
     for s in sources:
+        if not _sport_in_season(s.sport, d) and not os.path.exists(s.path):
+            r = {
+                "sport": s.sport,
+                "path": s.path,
+                "exists": False,
+                "rows": 0,
+                "rows_checked": 0,
+                "mismatch_count": 0,
+                "note": "off_season_skip",
+            }
+            results.append(r)
+            print(f"[L5-G] {s.sport} SKIP rows=0 checked=0 mismatches=0 path={s.path} (off-season)")
+            continue
         r = evaluate_file(
             s,
             rtol=args.rtol,

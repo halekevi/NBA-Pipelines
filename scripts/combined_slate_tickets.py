@@ -12310,6 +12310,21 @@ def generate_payout_ladder_examples(payload: dict, out_path: str) -> None:
     print(f"[OK] Payout ladder examples -> {out_path}")
 
 
+def _l5_over_under_series(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    """Safe L5 over/under Series (never scalar) so .add() cannot crash when cols missing."""
+    over = (
+        pd.to_numeric(df["l5_over"], errors="coerce")
+        if "l5_over" in df.columns
+        else pd.Series(np.nan, index=df.index, dtype="float64")
+    )
+    under = (
+        pd.to_numeric(df["l5_under"], errors="coerce")
+        if "l5_under" in df.columns
+        else pd.Series(np.nan, index=df.index, dtype="float64")
+    )
+    return over, under
+
+
 def _apply_l5_truth_from_stat_games(
     df: pd.DataFrame, sport_label: str, *, min_stat_games: int = 3
 ) -> pd.DataFrame:
@@ -13910,9 +13925,8 @@ def load_wcbb(path: str) -> pd.DataFrame:
             hr = hr / 100.0
         df["hit_rate"] = hr
 
-    # NBA1H can overstate hit_rate on tiny windows (e.g., 5/5 => 100%).
-    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+    # Tiny-window shrink (same idea as NBA1H); safe when L5 cols are absent.
+    l5o, l5u = _l5_over_under_series(df)
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -13926,10 +13940,8 @@ def load_wcbb(path: str) -> pd.DataFrame:
     df.loc[use_shrink, "hit_rate"] = shrunk[use_shrink.to_numpy()]
     df["hit_rate"] = pd.to_numeric(df["hit_rate"], errors="coerce").clip(lower=0.35, upper=0.92)
 
-    # NBA split boards can show extreme 5/5 streaks; shrink tiny-window rates so UI/tickets
-    # do not overstate confidence (e.g., 100% from only 5 samples).
-    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+    # Second shrink pass kept for parity with other loaders (idempotent on already-shrunk rates).
+    l5o, l5u = _l5_over_under_series(df)
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14208,8 +14220,7 @@ def load_mlb(path: str) -> pd.DataFrame:
 
     # NBA split boards can show extreme 5/5 streaks; shrink tiny-window rates so UI/tickets
     # do not overstate confidence (e.g., 100% from only 5 samples).
-    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+    l5o, l5u = _l5_over_under_series(df)
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14240,8 +14251,7 @@ def load_mlb(path: str) -> pd.DataFrame:
         )
 
     # Sample size for L5 (after stat_g reconciliation and shrink).
-    l5o_g = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-    l5u_g = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+    l5o_g, l5u_g = _l5_over_under_series(df)
     _l5sum = l5o_g.add(l5u_g, fill_value=0)
     df["l5_games"] = _l5sum.where(_l5sum > 0, np.nan)
 
@@ -14343,8 +14353,7 @@ def load_nba1q(path: str) -> pd.DataFrame:
 
     # Derive L5 game sample size from over+under counts when available.
     if "l5_games" not in df.columns:
-        l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-        l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+        l5o, l5u = _l5_over_under_series(df)
         derived = l5o.add(l5u, fill_value=0)
         df["l5_games"] = derived.where(derived > 0, np.nan)
 
@@ -14393,8 +14402,7 @@ def load_nba1q(path: str) -> pd.DataFrame:
         df["hit_rate"] = hr
 
     # NBA1Q: shrink tiny-window streak rates (e.g., 5/5) toward a prior.
-    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+    l5o, l5u = _l5_over_under_series(df)
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14518,8 +14526,7 @@ def load_nba1h(path: str) -> pd.DataFrame:
 
     # Derive L5 game sample size from over+under counts when available.
     if "l5_games" not in df.columns:
-        l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-        l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+        l5o, l5u = _l5_over_under_series(df)
         derived = l5o.add(l5u, fill_value=0)
         df["l5_games"] = derived.where(derived > 0, np.nan)
 
@@ -14568,8 +14575,7 @@ def load_nba1h(path: str) -> pd.DataFrame:
         df["hit_rate"] = hr
 
     # NBA1H: shrink tiny-window streak rates (e.g., 5/5) toward a prior.
-    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
-    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
+    l5o, l5u = _l5_over_under_series(df)
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -20482,6 +20488,16 @@ def main():
             soccer_date=getattr(args, "soccer_date", None),
         )
         print("[OK] Slate web JSON only (skipped workbook + tickets).")
+        try:
+            import subprocess
+
+            subprocess.run(
+                [sys.executable, str(Path(REPO_ROOT) / "scripts" / "refresh_pipeline_status.py"), "--date", str(args.date)],
+                cwd=str(REPO_ROOT),
+                check=False,
+            )
+        except Exception as _ps_exc:
+            print(f"  [pipeline_status] refresh skipped: {_ps_exc}")
         return
 
     print("Building combined slate...")

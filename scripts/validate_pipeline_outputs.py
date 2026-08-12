@@ -92,14 +92,56 @@ def _normalize(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def evaluate_source(src: SourceDef, max_blank: float, min_hr_cov: float) -> dict:
+def _sport_in_season(sport: str, date: str) -> bool:
+    try:
+        _y, m, _d = [int(x) for x in str(date).strip()[:10].split("-")]
+    except Exception:
+        return True
+    su = sport.upper()
+    if su in ("NBA", "NBA1Q", "NBA1H"):
+        return m >= 10 or m <= 6
+    if su == "NHL":
+        return m >= 9 or m <= 6
+    if su in ("CBB", "WCBB"):
+        return m >= 11 or m <= 4
+    if su == "NFL":
+        return m >= 8 or m <= 2
+    if su == "CFB":
+        return (m >= 8 and m <= 12) or m == 1
+    if su == "MLB":
+        return 3 <= m <= 10
+    if su == "WNBA":
+        return 5 <= m <= 10
+    return True
+
+
+def evaluate_source(src: SourceDef, max_blank: float, min_hr_cov: float, *, date: str = "") -> dict:
     if not os.path.exists(src.path):
+        if src.required and date and not _sport_in_season(src.sport, date):
+            return {
+                "sport": src.sport,
+                "path": src.path,
+                "exists": False,
+                "passed": True,
+                "warnings": ["off_season_missing_file"],
+                "failures": [],
+            }
         if src.required:
             return {"sport": src.sport, "path": src.path, "exists": False, "passed": False, "failures": ["missing_file"]}
         return {"sport": src.sport, "path": src.path, "exists": False, "passed": True, "warnings": ["optional_missing_file"], "failures": []}
 
     df = _normalize(_read_any(src.path, src.sheet))
     if df.empty:
+        if src.required and date and not _sport_in_season(src.sport, date):
+            return {
+                "sport": src.sport,
+                "path": src.path,
+                "exists": True,
+                "rows": 0,
+                "passed": True,
+                "warnings": ["off_season_empty_dataframe"],
+                "failures": [],
+            }
         if src.required:
             return {"sport": src.sport, "path": src.path, "exists": True, "rows": 0, "passed": False, "failures": ["empty_dataframe"]}
         return {"sport": src.sport, "path": src.path, "exists": True, "rows": 0, "passed": True, "warnings": ["optional_empty_dataframe"], "failures": []}
@@ -188,7 +230,10 @@ def main() -> int:
 
     results = []
     for s in sources:
-        r = evaluate_source(s, args.max_blank_rate, args.min_hit_rate_coverage)
+        # Off-season required sports (NBA/CBB) should not fail the gate.
+        if s.required and not _sport_in_season(s.sport, d):
+            s = SourceDef(s.sport, s.path, s.sheet, False)
+        r = evaluate_source(s, args.max_blank_rate, args.min_hit_rate_coverage, date=d)
         results.append(r)
         status = "PASS" if r.get("passed") else "FAIL"
         print(f"[DQ {s.sport}] {status} rows={r.get('rows', 0)} path={s.path}")

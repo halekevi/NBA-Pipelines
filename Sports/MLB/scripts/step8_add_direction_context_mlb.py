@@ -252,17 +252,18 @@ def _attach_distribution_std(df: pd.DataFrame, *, g_prefix: str = "stat_g") -> p
     return out
 
 
-def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
+def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
     df2 = df.copy()
     df2 = df2.where(pd.notna(df2), None)
-    # Convert numeric minutes_tier (0-3) back to human labels
     if "minutes_tier" in df2.columns:
         _mt_num = pd.to_numeric(df2["minutes_tier"], errors="coerce")
         _mt_valid = _mt_num.notna()
         if _mt_valid.any():
-            df2.loc[_mt_valid, "minutes_tier"] = _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP).fillna(df2.loc[_mt_valid, "minutes_tier"])
+            df2["minutes_tier"] = df2["minutes_tier"].astype(object)
+            df2.loc[_mt_valid, "minutes_tier"] = (
+                _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP)
+            )
     df2["game_time"] = pd.to_datetime(df2.get("start_time", ""), errors="coerce").dt.strftime("%-I:%M %p")
-    # Calendar date for same-day MLB grading (avoids grading full multi-day slate vs one day's games).
     _gd = _row_game_datetimes(df2)
     df2["slate_game_date"] = _gd.dt.strftime("%Y-%m-%d").where(_gd.notna(), "").fillna("")
 
@@ -323,7 +324,6 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "top3_elite_fader",
     ]
     keep = [c for c in keep if c in df2.columns]
-    # Rolling game values (step4): required so combined slate / UI L5 Over|Under match game logs.
     stat_g_cols = sorted(
         (c for c in df2.columns if c.startswith("stat_g") and c[6:].isdigit()),
         key=lambda c: int(c[6:]),
@@ -337,20 +337,9 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     clean = df2[keep].copy()
 
     for col in [
-        "rank_score",
-        "edge",
-        "abs_edge",
-        "projection",
-        "ml_prob",
-        "edge_score",
-        "blended_score",
-        "line_hit_rate_over_ou_5",
-        "same_series_hit_rate",
-        "open_line",
-        "line_movement",
-        "implied_prob",
-        "implied_prob_over",
-        "implied_prob_under",
+        "rank_score", "edge", "abs_edge", "projection", "ml_prob", "edge_score", "blended_score",
+        "line_hit_rate_over_ou_5", "same_series_hit_rate", "open_line", "line_movement",
+        "implied_prob", "implied_prob_over", "implied_prob_under",
     ]:
         if col in clean.columns:
             if col in ("implied_prob", "implied_prob_over", "implied_prob_under"):
@@ -453,41 +442,46 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "void_reason": "Void Reason",
         **HIT_TRACKING_RENAME,
     }
-    # Keep snake_case line-movement cols (NHL step8 / combined audit contract).
     _lm_cols = (
-        "open_line",
-        "line_movement",
-        "line_direction_shift",
-        "implied_prob",
-        "implied_prob_over",
-        "implied_prob_under",
+        "open_line", "line_movement", "line_direction_shift",
+        "implied_prob", "implied_prob_over", "implied_prob_under",
     )
     rename = {k: v for k, v in rename.items() if k not in _lm_cols}
     clean = clean.rename(columns=rename)
-    clean = clean.where(pd.notna(clean), None)
+    return clean.where(pd.notna(clean), None)
+
+
+def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str, *, styled: bool = False) -> None:
+    """Write MLB clean workbook. Fast path = single ALL sheet (seconds vs minutes)."""
+    clean = _prepare_clean_frame(df)
+    tmp_path = str(Path(xlsx_path).with_suffix(".tmp.xlsx"))
+    Path(xlsx_path).parent.mkdir(parents=True, exist_ok=True)
+
+    if (not styled) or len(clean) >= 1500:
+        with pd.ExcelWriter(tmp_path, engine="openpyxl") as writer:
+            clean.to_excel(writer, sheet_name="ALL", index=False)
+        os.replace(tmp_path, xlsx_path)
+        print(f"Clean XLSX saved (fast) -> {xlsx_path}  rows={len(clean)}")
+        return
 
     wb = Workbook()
     wb.remove(wb.active)
     write_sheet(wb, "ALL", clean, HEADER_COLOR)
-
     for tier in ["A", "B", "C", "D"]:
         subset = clean[clean["Tier"] == tier].copy()
         if len(subset):
             tier_bg = TIER_COLORS.get(tier, ("333333",))[0]
             write_sheet(wb, f"Tier {tier}", subset, tier_bg)
-
-    # Pitcher / Hitter split tabs
     if "Player Type" in clean.columns:
         pitchers = clean[clean["Player Type"].astype(str).str.lower() == "pitcher"].copy()
-        hitters  = clean[clean["Player Type"].astype(str).str.lower() == "hitter"].copy()
-        if len(pitchers): write_sheet(wb, "Pitchers", pitchers, PITCHER_TAB_COLOR)
-        if len(hitters):  write_sheet(wb, "Hitters",  hitters,  HITTER_TAB_COLOR)
-
-    tmp_path = str(Path(xlsx_path).with_suffix(".tmp.xlsx"))
+        hitters = clean[clean["Player Type"].astype(str).str.lower() == "hitter"].copy()
+        if len(pitchers):
+            write_sheet(wb, "Pitchers", pitchers, PITCHER_TAB_COLOR)
+        if len(hitters):
+            write_sheet(wb, "Hitters", hitters, HITTER_TAB_COLOR)
     wb.save(tmp_path)
     os.replace(tmp_path, xlsx_path)
     print(f"Clean XLSX saved -> {xlsx_path}")
-
 
 def main() -> None:
     ap = argparse.ArgumentParser()

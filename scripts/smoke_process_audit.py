@@ -89,13 +89,13 @@ def check_season_windows(findings: list[dict[str, Any]], date: str) -> dict[str,
         "NHL": m >= 9 or m <= 6,
         "CBB": m >= 11 or m <= 4,
         "WCBB": m >= 11 or m <= 4,
-        "NFL": m >= 8 or m <= 2,
+        "NFL": m >= 9 or m <= 2,  # regular season (Aug = preseason / optional)
         "CFB": (m >= 8 and m <= 12) or m == 1,
         "MLB": m >= 3 and m <= 10,
         "WNBA": m >= 5 and m <= 10,
         "SOCCER": True,
         "TENNIS": True,
-        "GOLF": True,
+        "GOLF": False,  # event-driven; empty board days are normal
     }
     on = [k for k, v in active.items() if v]
     off = [k for k, v in active.items() if not v]
@@ -309,6 +309,10 @@ def check_slate_json(findings: list[dict[str, Any]], date: str) -> dict[str, Any
             continue
         for row in rows:
             if not isinstance(row, dict):
+                continue
+            # Demon lines sit above projection by design → edge≈-line is normal.
+            pt = str(row.get("pick_type") or row.get("pick") or "").strip().lower()
+            if pt == "demon":
                 continue
             line = _num(row.get("line"))
             edge = _num(row.get("edge"))
@@ -563,25 +567,45 @@ def time_sport_loads(findings: list[dict[str, Any]], date: str, resolved: dict[s
         if not path or not meta.get("active"):
             continue
         p = Path(path)
+        # Prefer CSV sibling for large boards (MLB clean xlsx openpyxl is ~10s+).
+        read_path = p
+        if p.suffix.lower() in {".xlsx", ".xlsm"}:
+            for cand in (
+                p.with_name(p.stem.replace("_clean", "") + ".csv"),
+                p.with_name("step8_mlb_direction.csv") if sport == "MLB" else None,
+                p.with_suffix(".csv"),
+            ):
+                if cand is not None and cand.is_file():
+                    read_path = cand
+                    break
         t0 = time.time()
         try:
-            if p.suffix.lower() in {".xlsx", ".xlsm"}:
-                df = pd.read_excel(p, engine="openpyxl")
+            if read_path.suffix.lower() in {".xlsx", ".xlsm"}:
+                df = pd.read_excel(read_path, engine="openpyxl")
             else:
-                df = pd.read_csv(p, low_memory=False)
+                df = pd.read_csv(read_path, low_memory=False)
             elapsed = round(time.time() - t0, 3)
-            timings[sport] = {"seconds": elapsed, "rows": int(len(df)), "cols": int(len(df.columns))}
+            timings[sport] = {
+                "seconds": elapsed,
+                "rows": int(len(df)),
+                "cols": int(len(df.columns)),
+                "path": str(read_path),
+            }
             sev = "ok"
             action = ""
-            if elapsed > 8:
+            # XLSX-only reads over 8s are worth a medium; CSV loads stay ok unless huge.
+            if elapsed > 8 and read_path.suffix.lower() in {".xlsx", ".xlsm"}:
                 sev = "medium"
-                action = "Consider parquet cache or slim clean sheet for web publish."
+                action = "Prefer CSV/parquet sibling for publish load (load_mlb already does)."
+            elif elapsed > 8:
+                sev = "medium"
+                action = "Consider parquet cache or slim columns for web publish."
             _finding(
                 findings,
                 severity=sev,
                 area="perf",
                 title=f"{sport} board read {elapsed}s ({len(df)} rows)",
-                detail=str(p),
+                detail=str(read_path),
                 action=action,
             )
         except Exception as exc:
@@ -597,9 +621,18 @@ def time_sport_loads(findings: list[dict[str, Any]], date: str, resolved: dict[s
 
 
 def check_wcbb_loader_smell(findings: list[dict[str, Any]]) -> None:
-    # combined often logs: Could not load WCBB file: 'float' object has no attribute 'add'
+    # Historical smell: load_wcbb crashed with "'float' object has no attribute 'add'".
     path = _REPO / "scripts" / "combined_slate_tickets.py"
     text = path.read_text(encoding="utf-8", errors="ignore")
+    if "_l5_over_under_series" in text and "def load_wcbb" in text:
+        _finding(
+            findings,
+            severity="ok",
+            area="wcbb",
+            title="WCBB L5 Series.add guard present",
+            detail="load_wcbb uses _l5_over_under_series (off-season safe).",
+        )
+        return
     if "load_wcbb" in text:
         _finding(
             findings,

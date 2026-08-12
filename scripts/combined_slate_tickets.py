@@ -14026,13 +14026,55 @@ def _resolve_readable_mlb_step8(path: str) -> str:
 
 
 def load_mlb(path: str) -> pd.DataFrame:
-    path = _resolve_readable_mlb_step8(path)
+    """Load MLB step8 clean board; prefer dated CSV sibling (xlsx openpyxl is slow)."""
+    path = str(path or "").strip()
+    csv_candidates: list[str] = []
+    if path.lower().endswith((".xlsx", ".xlsm", ".xls")):
+        sibling = os.path.splitext(path)[0] + ".csv"
+        # Prefer direction CSV next to clean xlsx (same folder).
+        csv_candidates.extend(
+            [
+                sibling.replace("_clean", ""),
+                os.path.join(os.path.dirname(path), "step8_mlb_direction.csv"),
+            ]
+        )
+    # When caller points at Sports/MLB default, also probe today's dated CSV.
+    try:
+        from datetime import date as _date
 
+        _today = _date.today().isoformat()
+        csv_candidates.append(
+            os.path.join(REPO_ROOT, "outputs", _today, "mlb", "step8_mlb_direction.csv")
+        )
+    except Exception:
+        pass
+    seen_csv: set[str] = set()
+    for c in csv_candidates:
+        c = os.path.abspath(c)
+        if c in seen_csv or not os.path.isfile(c):
+            continue
+        seen_csv.add(c)
+        xlsx_m = os.path.getmtime(path) if path and os.path.isfile(path) else 0
+        csv_m = os.path.getmtime(c)
+        # Skip only if CSV is clearly stale vs a newer clean xlsx (rebuild without CSV).
+        if xlsx_m and csv_m < (xlsx_m - 7200):
+            continue
+        try:
+            df = pd.read_csv(c, low_memory=False, encoding="utf-8-sig")
+            print(f"  [load_mlb] fast CSV load ({len(df)} rows) <- {c}")
+            return _normalize_mlb_board(df)
+        except Exception as exc:
+            print(f"  [load_mlb] CSV load failed ({exc}); trying next/xlsx")
+
+    path = _resolve_readable_mlb_step8(path)
     xl = pd.ExcelFile(path, engine="openpyxl")
     sheet = "MLB" if "MLB" in xl.sheet_names else (
         "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
     df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    return _normalize_mlb_board(df)
 
+
+def _normalize_mlb_board(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
         "Player":           "player",

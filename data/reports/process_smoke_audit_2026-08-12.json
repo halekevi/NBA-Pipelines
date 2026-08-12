@@ -1,0 +1,270 @@
+{
+  "generated_at": "2026-08-12T19:44:29.377972-04:00",
+  "date": "2026-08-12",
+  "repo": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp",
+  "boards": {
+    "WNBA": {
+      "active": true,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\wnba\\step8_wnba_direction_clean.xlsx",
+      "age_hours": 2.62,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\wnba\\step8_wnba_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_wnba_direction_clean_2026-08-12.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\WNBA\\step8_wnba_direction_clean.xlsx"
+      ]
+    },
+    "TENNIS": {
+      "active": true,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\tennis\\step8_tennis_direction_clean_2026-08-12.xlsx",
+      "age_hours": 2.48,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\tennis\\step8_tennis_direction_clean_2026-08-12.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\tennis\\step8_tennis_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_tennis_direction_clean_2026-08-12.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Tennis\\outputs\\step8_tennis_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Tennis\\step8_tennis_direction_clean.xlsx"
+      ]
+    },
+    "SOCCER": {
+      "active": true,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\soccer\\step8_soccer_direction_clean.xlsx",
+      "age_hours": 9.03,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\soccer\\step8_soccer_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_soccer_direction_clean_2026-08-12.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Soccer\\outputs\\step8_soccer_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Soccer\\step8_soccer_direction_clean.xlsx"
+      ]
+    },
+    "MLB": {
+      "active": true,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\mlb\\step8_mlb_direction_clean.xlsx",
+      "age_hours": 0.12,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\mlb\\step8_mlb_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_mlb_direction_clean_2026-08-12.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\MLB\\outputs\\step8_mlb_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\MLB\\step8_mlb_direction_clean.xlsx"
+      ]
+    },
+    "GOLF": {
+      "active": false,
+      "path": null,
+      "age_hours": null,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\golf\\step8_golf_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Golf\\outputs\\step8_golf_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\Golf\\step8_golf_direction_clean.xlsx"
+      ]
+    },
+    "NFL": {
+      "active": false,
+      "path": null,
+      "age_hours": null,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\nfl\\step8_nfl_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\Sports\\NFL\\outputs\\step8_nfl_direction_clean.xlsx"
+      ]
+    },
+    "NBA": {
+      "active": false,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_nba_direction_clean_2026-08-12.xlsx",
+      "age_hours": 1848.72,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\nba\\step8_nba_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_nba_direction_clean_2026-08-12.xlsx"
+      ]
+    },
+    "NHL": {
+      "active": false,
+      "path": null,
+      "age_hours": null,
+      "candidates": [
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\nhl\\step8_nhl_direction_clean.xlsx",
+        "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\step8_nhl_direction_clean_2026-08-12.xlsx"
+      ]
+    }
+  },
+  "slate": {
+    "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\ui_runner\\templates\\slate_latest.json",
+    "exists": true,
+    "date": "2026-08-12",
+    "counts": {
+      "nba": 0,
+      "cbb": 0,
+      "cfb": 0,
+      "nhl": 0,
+      "soccer": 1286,
+      "tennis": 395,
+      "golf": 0,
+      "wcbb": 0,
+      "mlb": 7958,
+      "nba1q": 0,
+      "nba1h": 0,
+      "nfl": 0,
+      "wnba": 1522
+    },
+    "age_hours": 0.06235043479336633
+  },
+  "timings": {
+    "WNBA": {
+      "seconds": 0.042,
+      "rows": 1579,
+      "cols": 200,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\wnba\\step8_wnba_direction.csv"
+    },
+    "TENNIS": {
+      "seconds": 0.275,
+      "rows": 395,
+      "cols": 67,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\tennis\\step8_tennis_direction_clean_2026-08-12.xlsx"
+    },
+    "SOCCER": {
+      "seconds": 0.05,
+      "rows": 1286,
+      "cols": 258,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\soccer\\step8_soccer_direction.csv"
+    },
+    "MLB": {
+      "seconds": 0.28,
+      "rows": 7958,
+      "cols": 327,
+      "path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\mlb\\step8_mlb_direction.csv"
+    }
+  },
+  "validators": {
+    "skipped": true
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "area": "calendar",
+      "title": "Season windows for smoke date",
+      "detail": "active=CFB,MLB,WNBA,SOCCER,TENNIS | off=NBA,NBA1Q,NBA1H,NHL,CBB,WCBB,NFL,GOLF",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "wnba",
+      "title": "WNBA: board resolved",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\wnba\\step8_wnba_direction_clean.xlsx (2.6h old)",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "tennis",
+      "title": "TENNIS: board resolved",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\tennis\\step8_tennis_direction_clean_2026-08-12.xlsx (2.5h old)",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "soccer",
+      "title": "SOCCER: board resolved",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\soccer\\step8_soccer_direction_clean.xlsx (9.0h old)",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "mlb",
+      "title": "MLB: board resolved",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\mlb\\step8_mlb_direction_clean.xlsx (0.1h old)",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "publish",
+      "title": "slate_latest present",
+      "detail": "date=2026-08-12 props=11161 sports={'nba': 0, 'cbb': 0, 'cfb': 0, 'nhl': 0, 'soccer': 1286, 'tennis': 395, 'golf': 0, 'wcbb': 0, 'mlb': 7958, 'nba1q': 0, 'nba1h': 0, 'nfl': 0, 'wnba': 1522}",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "orchestration",
+      "title": "run_pipeline.ps1 exists at repo root (fast rebuild OK)",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\run_pipeline.ps1",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "imports",
+      "title": "Syntax OK: Sports/Tennis/scripts/tennis_shared.py",
+      "detail": "",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "imports",
+      "title": "Syntax OK: Sports/WNBA/step4_fetch_player_stats.py",
+      "detail": "",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "imports",
+      "title": "Syntax OK: Sports/Golf/scripts/step8_add_direction_context_golf.py",
+      "detail": "",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "imports",
+      "title": "Syntax OK: Sports/Soccer/scripts/step8_add_direction_context_soccer.py",
+      "detail": "",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "imports",
+      "title": "Syntax OK: scripts/validate_slate_history_gate.py",
+      "detail": "",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "integrity",
+      "title": "No active hit_rate*5 L5 invent found",
+      "detail": "",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "wcbb",
+      "title": "WCBB L5 Series.add guard present",
+      "detail": "load_wcbb uses _l5_over_under_series (off-season safe).",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "perf",
+      "title": "WNBA board read 0.042s (1579 rows)",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\wnba\\step8_wnba_direction.csv",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "perf",
+      "title": "TENNIS board read 0.275s (395 rows)",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\tennis\\step8_tennis_direction_clean_2026-08-12.xlsx",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "perf",
+      "title": "SOCCER board read 0.05s (1286 rows)",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\soccer\\step8_soccer_direction.csv",
+      "action": ""
+    },
+    {
+      "severity": "ok",
+      "area": "perf",
+      "title": "MLB board read 0.28s (7958 rows)",
+      "detail": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\outputs\\2026-08-12\\mlb\\step8_mlb_direction.csv",
+      "action": ""
+    }
+  ],
+  "summary": {
+    "info": 1,
+    "ok": 17
+  }
+}

@@ -238,12 +238,12 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         prev = df2.get("game_date", pd.Series([""] * len(df2))).astype(str).str.strip().str[:10]
         prev_ok = prev.str.match(r"^\d{4}-\d{2}-\d{2}$", na=False)
         df2["game_time"] = _format_et_clock(et)
-        # Prefer upstream game_date when it is a valid YYYY-MM-DD (step1 may anchor it to pipeline
-        # --date for full boards). Only fall back to start_time ET when game_date is missing/wrong.
+        # Prefer tip-day from start_time ET when available. Upstream game_date can be
+        # stale (e.g. leftover May dates) or pipeline-anchored and mislabel cards.
         df2["game_date"] = np.where(
-            prev_ok,
-            prev,
-            np.where(parsed_gd.str.len() > 0, parsed_gd, ""),
+            parsed_gd.str.len() > 0,
+            parsed_gd,
+            np.where(prev_ok, prev, ""),
         )
     else:
         if "game_date" not in df2.columns:
@@ -253,7 +253,21 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
 
     if "line" in df2.columns:
         df2 = finalize_l10_ui_columns(df2, line_col="line")
-    df2 = attach_hit_tracking_columns(df2, "WNBA")
+    hint = " ".join(
+        str(x or "").lower()
+        for x in (
+            getattr(build_clean_xlsx, "_path_hint", ""),
+            str(getattr(df2, "attrs", {}).get("path_hint", "")),
+        )
+    )
+    is_period_slate = ("wnba1q" in hint) or ("wnba1h" in hint)
+    _sport_ht = (
+        "WNBA1Q" if is_period_slate and "wnba1q" in hint else
+        "WNBA1H" if is_period_slate and "wnba1h" in hint else
+        "WNBA"
+    )
+    df2 = attach_hit_tracking_columns(df2, _sport_ht)
+    df2["sport"] = _sport_ht
 
     keep = [
         'tier', 'rank_score', 'rank_score_penalized',
@@ -292,6 +306,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         'team_top3_rank', 'team_bottom3_rank', 'def_boost_hist',
         'top3_weak_overperformer', 'top3_elite_fader',
         'top3_def_context', 'top3_under_context',
+        'sport',
     ]
     # only keep cols that exist
     keep = [c for c in keep if c in df2.columns]
@@ -414,6 +429,8 @@ def main() -> None:
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
 
     print(f"→ Loading: {args.input} (sheet={args.sheet})")
+    # Path hint drives WNBA1H/WNBA1Q sport tagging (mirrors NBA period step8).
+    build_clean_xlsx._path_hint = f"{args.input} {args.output} {args.xlsx}"
     df = pd.read_excel(args.input, sheet_name=args.sheet, dtype=str).fillna("")
 
     out = df.copy()
@@ -445,9 +462,8 @@ def main() -> None:
         from_start = et.dt.strftime("%Y-%m-%d").where(et.notna(), "").astype(str).str.strip()
     prev_gd = out.get("game_date", pd.Series([""] * len(out))).astype(str).str.strip().str[:10]
     prev_ok = prev_gd.str.match(r"^\d{4}-\d{2}-\d{2}$", na=False)
-    # Prefer valid upstream game_date (step1 may anchor full boards to --date). Do not let
-    # start_time ET overwrite it — that breaks combined_slate_tickets date filtering.
-    merged = prev_gd.where(prev_ok, from_start.where(from_start.str.len() > 0, ""))
+    # Prefer tip-day from start_time ET; only use upstream/slate_d when tip time is missing.
+    merged = from_start.where(from_start.str.len() > 0, prev_gd.where(prev_ok, ""))
     merged = merged.where(merged.str.len() > 0, slate_d)
     out["game_date"] = merged.fillna("")
 

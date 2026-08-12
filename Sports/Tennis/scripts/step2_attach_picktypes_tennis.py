@@ -23,7 +23,11 @@ if str(_SCRIPT_DIR) not in sys.path:
 
 from tennis_shared import load_or_refresh_rankings, norm_tennis_prop, resolve_athlete_id
 from utils.fantasy_prop_filter import drop_fantasy_props
-from utils.pick_line_standard import attach_standard_line_and_deviation, log_goblin_standard_line_fill
+from utils.pick_line_standard import (
+    attach_standard_line_and_deviation,
+    log_goblin_standard_line_fill,
+    reclassify_mislabeled_discount_standards,
+)
 
 
 def norm_pick(s: str) -> str:
@@ -32,7 +36,11 @@ def norm_pick(s: str) -> str:
         return "Goblin"
     if "dem" in t:
         return "Demon"
-    return "Standard"
+    if t in {"", "nan", "none", "null", "unknown"}:
+        return "Unknown"
+    if t in {"standard", "classic", "normal"}:
+        return "Standard"
+    return "Unknown"
 
 
 def main() -> None:
@@ -61,11 +69,21 @@ def main() -> None:
     if "line" not in df.columns and "line_score" in df.columns:
         df["line"] = df["line_score"]
 
-    df["pick_type"] = df.get("pick_type", "Standard").map(norm_pick)
+    df["pick_type"] = df.get("pick_type", "Unknown").map(norm_pick)
     df["prop_norm"] = df["prop_type"].map(norm_tennis_prop)
     df, n_fantasy = drop_fantasy_props(df)
     if n_fantasy:
         print(f"  Dropped {n_fantasy} fantasy prop row(s)")
+
+    df, n_reclass = reclassify_mislabeled_discount_standards(df)
+    if n_reclass:
+        print(f"  Reclassified {n_reclass} mislabeled Standard discount line(s) → Goblin")
+    unk = df["pick_type"].astype(str).str.strip().eq("Unknown")
+    if unk.any():
+        df.loc[unk, "pick_type"] = "Standard"
+        df, n_reclass2 = reclassify_mislabeled_discount_standards(df)
+        if n_reclass2:
+            print(f"  Reclassified {n_reclass2} Unknown/discount line(s) → Goblin")
 
     supported = {
         "aces",
@@ -74,6 +92,8 @@ def main() -> None:
         "sets_won",
         "match_total_games",
         "break_points_won",
+        "total_sets",
+        "total_tie_breaks",
     }
     df["unsupported_prop"] = (~df["prop_norm"].isin(supported)).astype(int)
 

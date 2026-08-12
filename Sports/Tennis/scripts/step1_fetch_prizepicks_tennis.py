@@ -138,8 +138,13 @@ def _pick_type_from_attrs(attrs: dict[str, Any]) -> tuple[str, str, str, str]:
         pick = "Goblin"
     elif odds_type == "demon":
         pick = "Demon"
+    elif odds_type in ("", "nan", "none"):
+        # Blank odds_type is common on discount lines — leave Unknown for step2 sibling fix.
+        pick = "Unknown"
     else:
-        pick = {"standard": "Standard", "goblin": "Goblin", "demon": "Demon"}.get(odds_type, "Standard")
+        pick = {"standard": "Standard", "goblin": "Goblin", "demon": "Demon"}.get(
+            odds_type, "Unknown"
+        )
 
     line = attrs.get("line_score", attrs.get("line"))
     if pick == "Standard":

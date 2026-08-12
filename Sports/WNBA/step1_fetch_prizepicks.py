@@ -3,7 +3,8 @@
 step1_fetch_prizepicks.py  (WNBA Pipeline)
 
 Fetches WNBA PrizePicks projections from the public API.
-League ID: 3 (WNBA)
+Default league ID: 3 (WNBA full game). Period boards use separate IDs
+(see Sports/WNBA/prizepicks_league_ids.py: WNBA1H=193, WNBA1Q=308).
 
 Identical logic to NbaPropPipelineA/step1_fetch_prizepicks_api.py —
 only the default league_id differs.
@@ -11,9 +12,11 @@ only the default league_id differs.
 Run:
   py -3.14 step1_fetch_prizepicks.py
   py -3.14 step1_fetch_prizepicks.py --output step1_wnba_props.csv
+  py -3.14 step1_fetch_prizepicks.py --league_id 193 --sport-tag WNBA1H ...
 
-scripts/run_wnba_pipeline.ps1 defaults to Sports/NBA/scripts/step1_fetch_prizepicks_api.py
-with --league_id 3 (same as NBA fetch); outputs stay under outputs/<date>/wnba/.
+scripts/run_wnba_pipeline.ps1 defaults to this script (HTTP) with league_id 3;
+outputs stay under outputs/<date>/wnba/. Period refresh:
+  scripts/_run_wnba_period_refresh.ps1
 This script is used for --playwright / --cdp when PrizePicks blocks direct API.
 """
 
@@ -40,6 +43,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
+from utils.allstar_filter import drop_allstar_props
 
 API_URL   = "https://api.prizepicks.com/projections"
 WARMUP_URL = "https://api.prizepicks.com/leagues"
@@ -242,6 +246,37 @@ def _rotate_session_headers(session: Any) -> None:
 
 
 PICKTYPE_MAP = {"standard": "Standard", "goblin": "Goblin", "demon": "Demon"}
+
+
+def _pick_type_from_attrs(attrs: dict) -> tuple[str, object]:
+    """
+    Classify PrizePicks odds type. Prefer odds_type / description emoji;
+    do not silently default blank odds_type to Standard (that mislabels Goblins).
+    Returns (pick_type, standard_line_hint).
+    """
+    desc = str(attrs.get("description", "") or "")
+    odds_type = str(attrs.get("odds_type", "") or "").strip().lower()
+    raw_pick = str(attrs.get("pick_type", "") or "").strip().lower()
+    std_api = attrs.get("standard_line") or attrs.get("standard_score") or attrs.get("baseline")
+
+    if "🐱" in desc or "goblin" in desc.lower():
+        pick = "Goblin"
+    elif "😈" in desc or "demon" in desc.lower():
+        pick = "Demon"
+    elif odds_type in PICKTYPE_MAP:
+        pick = PICKTYPE_MAP[odds_type]
+    elif "gob" in raw_pick:
+        pick = "Goblin"
+    elif "dem" in raw_pick:
+        pick = "Demon"
+    elif raw_pick in {"standard", "classic", "normal"}:
+        pick = "Standard"
+    elif odds_type in ("", "nan", "none"):
+        # Blank odds_type is common on discount lines — leave Unknown for step2 sibling fix.
+        pick = "Unknown"
+    else:
+        pick = PICKTYPE_MAP.get(odds_type, "Unknown")
+    return pick, std_api
 WNBA_LEAGUE_ID_DEFAULT = "3"
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "outputs" / "step1_snapshots"
 SNAPSHOT_LATEST_NAME = "step1_wnba_props_latest.csv"
@@ -393,6 +428,7 @@ def _fetch_one_page(
     forbidden_backoff_base: float,
     cooldowns_used: int,
     forbidden_retries: int,
+    fail_fast_403: bool = False,
 ) -> Tuple[bool, bool, int, int, List[dict], List[dict]]:
     """
     Returns (page_ok, stop_paging, cooldowns_used, forbidden_retries, new_data, new_included).
@@ -428,6 +464,10 @@ def _fetch_one_page(
                 session.cookies.clear()
             except Exception:
                 pass
+            # Cap exponential sleep so CDP failover is not delayed 5–15+ minutes.
+            backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
+            if fail_fast_403:
+                backoff = min(backoff, 12.0)
             if not _QUIET_403:
                 if forbidden_retries >= 2:
                     print(
@@ -440,12 +480,10 @@ def _fetch_one_page(
                         f"⏸️ 403 retry {forbidden_retries}/{max_403_retries} (page {page}): "
                         "same client fingerprint; cookies cleared only"
                     )
-                backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
                 print(f"⏸️ sleeping {backoff:.1f}s...")
             else:
                 if forbidden_retries >= 2:
                     _rotate_session_headers(session)
-                backoff = forbidden_backoff_base * (2 ** (forbidden_retries - 1)) + random.uniform(2, 8)
             time.sleep(backoff)
             _warm_session(session)
             continue
@@ -482,6 +520,7 @@ def fetch_pages(
     max_403_retries: int = 5,
     forbidden_backoff_base: float = 15.0,
     first_page_waves: int = 3,
+    fail_fast_403: bool = False,
 ) -> Tuple[List[dict], List[dict]]:
     all_data: List[dict] = []
     all_included: List[dict] = []
@@ -493,6 +532,9 @@ def fetch_pages(
     _log_http_backend_once()
     session: Any | None = None
     waves = max(1, int(first_page_waves))
+    if fail_fast_403:
+        waves = min(waves, 1)
+        forbidden_backoff_base = min(float(forbidden_backoff_base), 6.0)
     page1_ok = False
 
     for wave in range(waves):
@@ -504,9 +546,9 @@ def fetch_pages(
         session = _new_http_session()
         _rotate_session_headers(session)
         if wave == 0:
-            time.sleep(random.uniform(3.0, 8.0))
+            time.sleep(random.uniform(1.0, 3.0) if fail_fast_403 else random.uniform(3.0, 8.0))
         else:
-            gap = random.uniform(12.0, 28.0)
+            gap = random.uniform(4.0, 8.0) if fail_fast_403 else random.uniform(12.0, 28.0)
             print(f"  [session-wave {wave + 1}/{waves}] New session after page-1 failure; pausing {gap:.0f}s…")
             time.sleep(gap)
         _warm_session(session)
@@ -526,6 +568,7 @@ def fetch_pages(
             forbidden_backoff_base=forbidden_backoff_base,
             cooldowns_used=cooldowns_used,
             forbidden_retries=forbidden_retries,
+            fail_fast_403=fail_fast_403,
         )
         if stop:
             stop_paging = True
@@ -563,6 +606,7 @@ def fetch_pages(
             forbidden_backoff_base=forbidden_backoff_base,
             cooldowns_used=cooldowns_used,
             forbidden_retries=forbidden_retries,
+            fail_fast_403=fail_fast_403,
         )
         if stop:
             stop_paging = True
@@ -633,7 +677,14 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
         cdp = (cdp_url or "").strip()
         if cdp:
             print(f"🌐 Connecting to existing Chrome via CDP: {cdp}")
-            browser = p.chromium.connect_over_cdp(cdp)
+            # Explicit timeout — Playwright default is 180s and can hang the whole refresh.
+            attach_ms = max(10_000, min(60_000, int(timeout_s) * 1000 if timeout_s and timeout_s < 60 else 30_000))
+            try:
+                from utils.prizepicks_cdp import connect_over_cdp as _connect_cdp
+
+                browser = _connect_cdp(p, cdp, timeout_ms=attach_ms)
+            except Exception:
+                browser = p.chromium.connect_over_cdp(cdp, timeout=attach_ms)
             if not browser.contexts:
                 raise RuntimeError("CDP browser has no contexts; start Chrome with --remote-debugging-port.")
             context = browser.contexts[0]
@@ -702,9 +753,23 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
             }"""
         )
 
-        # Live boards often only populate with in_game=true (pregame query returns 0).
-        payload = page.evaluate(
-            """async ({ leagueId }) => {
+        # Prefer AbortController-backed shared helper when available.
+        try:
+            from utils.prizepicks_cdp import fetch_projections_inpage as _fetch_inpage
+
+            data, included, status, url = _fetch_inpage(
+                page,
+                str(league_id),
+                per_page=250,
+                request_timeout_ms=max(
+                    15_000,
+                    min(45_000, int(timeout_s) * 1000 if timeout_s else 25_000),
+                ),
+            )
+            payload = {"data": data, "included": included, "status": status, "url": url}
+        except Exception:
+            payload = page.evaluate(
+                """async ({ leagueId }) => {
                 const hdrs = () => ({
                     "accept": "application/json, text/plain, */*",
                     "accept-language": (navigator.languages && navigator.languages.length)
@@ -719,8 +784,11 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                 ];
                 let best = { data: [], included: [], status: 0, url: '' };
                 for (const url of urls) {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 25000);
                     try {
-                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
+                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal });
+                        clearTimeout(timer);
                         if (!r.ok) {
                             if (!best.status) best = { data: [], included: [], status: r.status, url };
                             continue;
@@ -732,13 +800,14 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                         if (data.length > (best.data || []).length) best = cand;
                         if (data.length > 0) return cand;
                     } catch (e) {
+                        clearTimeout(timer);
                         if (!best.status) best = { data: [], included: [], status: 0, url, error: String(e) };
                     }
                 }
                 return best;
             }""",
-            {"leagueId": str(league_id)},
-        )
+                {"leagueId": str(league_id)},
+            )
         if cdp:
             if cdp_opened_new_page:
                 page.close()
@@ -820,6 +889,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--output",           default="step1_wnba_props.csv")
     ap.add_argument("--league_id",        default=WNBA_LEAGUE_ID_DEFAULT)   # WNBA = 3 (legacy)
+    ap.add_argument(
+        "--sport-tag",
+        default="",
+        help="Sport label for archive/sport column (WNBA, WNBA1H, WNBA1Q). "
+             "Default: map from league_id via prizepicks_league_ids, else WNBA.",
+    )
     ap.add_argument("--game_mode",        default="pickem")
     ap.add_argument("--per_page",         type=int,   default=250)
     ap.add_argument("--max_pages",        type=int,   default=20)
@@ -838,6 +913,11 @@ def main():
         type=int,
         default=3,
         help="On repeated page-1 403/empty failure, discard session and retry with fresh TLS (NBA-style).",
+    )
+    ap.add_argument(
+        "--fail-fast-403",
+        action="store_true",
+        help="Cap 403 backoff and session waves so callers can fail over to CDP quickly.",
     )
     ap.add_argument("--min_rows",         type=int,   default=30)
     ap.add_argument("--min_teams",        type=int,   default=2)
@@ -864,7 +944,19 @@ def main():
         out_path = Path(__file__).resolve().parent / out_path
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"📡 Fetching PrizePicks WNBA | league_id={args.league_id}")
+    lid_s = str(args.league_id).strip()
+    sport_tag = str(args.sport_tag or "").strip().upper()
+    if not sport_tag:
+        try:
+            wnba_dir = Path(__file__).resolve().parent
+            if str(wnba_dir) not in sys.path:
+                sys.path.insert(0, str(wnba_dir))
+            from prizepicks_league_ids import SPORT_TAG_BY_LEAGUE_ID
+
+            sport_tag = SPORT_TAG_BY_LEAGUE_ID.get(lid_s, "WNBA")
+        except Exception:
+            sport_tag = "WNBA"
+    print(f"📡 Fetching PrizePicks {sport_tag} | league_id={lid_s}")
 
     data: List[dict] = []
     included: List[dict] = []
@@ -872,7 +964,7 @@ def main():
     if use_playwright:
         try:
             data, included, leagues = fetch_via_playwright_session(
-                league_id=str(args.league_id).strip(),
+                league_id=lid_s,
                 timeout_s=int(args.timeout),
                 cdp_url=str(args.cdp).strip(),
             )
@@ -892,6 +984,11 @@ def main():
                     print(f"  - {lid}: {name}")
                 if not any("wnba" in n.lower() for _, n in items):
                     print("⚠️ WNBA not present in active leagues payload.")
+                # Highlight period boards used by _run_wnba_period_refresh.ps1
+                for want in ("WNBA1H", "WNBA1Q", "WNBA4Q", "WNBA2H"):
+                    hits = [(i, n) for i, n in items if n.upper() == want]
+                    if hits:
+                        print(f"  [period] {want} -> league_id={hits[0][0]}")
         except Exception as e:
             print(f"❌ FETCH_FAILED: Playwright fetch failed: {e}")
             print(
@@ -903,7 +1000,7 @@ def main():
     else:
         try:
             data, included = fetch_pages(
-                league_id=args.league_id,
+                league_id=lid_s,
                 game_mode=args.game_mode,
                 per_page=args.per_page,
                 max_pages=args.max_pages,
@@ -913,6 +1010,7 @@ def main():
                 jitter_seconds=args.jitter_seconds,
                 max_403_retries=args.max_403_retries,
                 first_page_waves=args.first_page_waves,
+                fail_fast_403=bool(args.fail_fast_403),
             )
         except Exception as e:
             print(f"❌ FETCH_FAILED: HTTP fetch failed: {e}")
@@ -942,8 +1040,7 @@ def main():
 
         line      = attrs.get("line_score", attrs.get("line"))
         prop_type = str(attrs.get("stat_type", attrs.get("projection_type", attrs.get("name", "")))).strip()
-        odds_type = str(attrs.get("odds_type", "")).strip().lower()
-        pick_type = PICKTYPE_MAP.get(odds_type, "Standard")
+        pick_type, std_hint = _pick_type_from_attrs(attrs)
 
         player_id   = _safe_get(rel, ["new_player", "data", "id"], "")
         player_type = _safe_get(rel, ["new_player", "data", "type"], "new_player")
@@ -1008,6 +1105,7 @@ def main():
             "prop_type":        prop_type,
             "line":             line,
             "pick_type":        pick_type,
+            "standard_line":    std_hint if std_hint is not None else "",
         })
 
     df = pd.DataFrame(rows).fillna("")
@@ -1021,13 +1119,17 @@ def main():
 
     df = _apply_wnba_slate_date(df, args)
 
+    df, n_allstar = drop_allstar_props(df, sport=sport_tag)
+    if n_allstar:
+        print(f"  Dropped {n_allstar} All-Star prop row(s)")
+
     rows_n = len(df)
     if rows_n == 0:
-        print(no_props_log_line("WNBA", str(args.date).strip()[:10]))
+        print(no_props_log_line(sport_tag, str(args.date).strip()[:10]))
         empty_cols = [
             "projection_id", "pp_projection_id", "player_id", "pp_game_id", "start_time",
             "player", "pos", "team", "opp_team", "prop_type", "line", "pick_type", "game_date",
-            "fetched_at",
+            "fetched_at", "sport",
         ]
         pd.DataFrame(columns=empty_cols).to_csv(out_path, index=False, encoding="utf-8-sig")
         sys.exit(0)
@@ -1043,17 +1145,20 @@ def main():
         sys.exit(1)
 
     df = _stamp_fetched_at(df)
+    df["sport"] = sport_tag
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
     try:
         _root = Path(__file__).resolve().parents[2]
         if str(_root) not in sys.path:
             sys.path.insert(0, str(_root))
         from scripts.line_history_archive import archive_lines
-        archive_lines(df, sport="WNBA")
+        archive_lines(df, sport=sport_tag)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
-    _write_snapshots(df, str(args.date).strip())
-    print(f"✅ Saved → {out_path}  rows={rows_n}  teams={teams_n}")
+    # Snapshots are full-game WNBA only (period boards skip dated snapshot clutter).
+    if sport_tag == "WNBA":
+        _write_snapshots(df, str(args.date).strip())
+    print(f"✅ Saved → {out_path}  rows={rows_n}  teams={teams_n}  sport={sport_tag}")
 
     if rows_n < args.min_rows or teams_n < args.min_teams:
         print(f"⛔ BOARD_TOO_SMALL (need min_rows={args.min_rows}, min_teams={args.min_teams})")

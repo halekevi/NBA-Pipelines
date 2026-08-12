@@ -119,7 +119,94 @@ def _norm_pick_type_value(s: object) -> str:
         return "Goblin"
     if "dem" in t:
         return "Demon"
+    if t in ("", "nan", "none", "null", "unknown"):
+        return "Unknown"
+    if t in {"standard", "classic", "normal"}:
+        return "Standard"
     return "Standard"
+
+
+# Props where Goblin/Demon are typically *lower* (discount) than Standard.
+_DISCOUNT_PROP_NORMS = frozenset(
+    {
+        "pts",
+        "points",
+        "reb",
+        "rebounds",
+        "ast",
+        "assists",
+        "pra",
+        "pr",
+        "pa",
+        "ra",
+        "stocks",
+        "fg3m",
+        "stl",
+        "blk",
+        "tov",
+        "match_total_games",
+        "total games",
+        "totalgames",
+        "games_won",
+        "games won",
+        "aces",
+        "double_faults",
+        "break_points_won",
+    }
+)
+
+
+def reclassify_mislabeled_discount_standards(
+    df: pd.DataFrame,
+    *,
+    player_col: str = "player",
+    prop_norm_col: str = "prop_norm",
+    line_col: str = "line",
+    pick_type_col: str = "pick_type",
+    min_gap: float = 2.0,
+    scoring_gap: float = 4.0,
+) -> tuple[pd.DataFrame, int]:
+    """
+    Fix PrizePicks rows where a Goblin discount line was tagged Standard.
+
+    When the same player+prop has multiple lines, a Standard whose line sits
+    clearly below the sibling max is reclassified to Goblin (common when
+    ``odds_type`` is blank and step1 defaults to Standard).
+    """
+    out = df.copy()
+    if pick_type_col not in out.columns or line_col not in out.columns:
+        return out, 0
+    if player_col not in out.columns or prop_norm_col not in out.columns:
+        return out, 0
+
+    out[pick_type_col] = out[pick_type_col].map(_norm_pick_type_value)
+    # Unknown → treat as Standard for sibling math, then reclassify discounts.
+    unknown_mask = out[pick_type_col].eq("Unknown")
+    if unknown_mask.any():
+        out.loc[unknown_mask, pick_type_col] = "Standard"
+
+    line_num = pd.to_numeric(out[line_col], errors="coerce")
+    changed = 0
+    for (_player, prop), idx in out.groupby([player_col, prop_norm_col], dropna=False).groups.items():
+        idxs = list(idx)
+        if len(idxs) < 2:
+            continue
+        lines = line_num.loc[idxs].dropna()
+        if lines.empty:
+            continue
+        max_line = float(lines.max())
+        prop_l = str(prop or "").strip().lower()
+        gap_need = scoring_gap if prop_l in _DISCOUNT_PROP_NORMS or "point" in prop_l else min_gap
+        for i in idxs:
+            if str(out.at[i, pick_type_col]) != "Standard":
+                continue
+            lv = line_num.at[i]
+            if pd.isna(lv):
+                continue
+            if max_line - float(lv) >= gap_need:
+                out.at[i, pick_type_col] = "Goblin"
+                changed += 1
+    return out, changed
 
 
 def _assign_deviation_level(
@@ -192,8 +279,22 @@ def attach_standard_line_and_deviation(
     line_num.name = "_line_num"
     out["_line_num"] = line_num
 
+    # Reclassify discount Standards before sibling max lookup.
+    out, n_fix = reclassify_mislabeled_discount_standards(
+        out,
+        player_col=player_col,
+        prop_norm_col=prop_norm_col,
+        line_col=line_col,
+        pick_type_col=pick_type_col,
+    )
+    if n_fix:
+        print(f"  Reclassified {n_fix} mislabeled Standard discount line(s) → Goblin")
+    line_num = pd.to_numeric(out[line_col], errors="coerce")
+    out["_line_num"] = line_num
+
     std_df = out[(out[pick_type_col] == "Standard") & line_num.notna()]
-    std_lookup = std_df.groupby([player_col, prop_norm_col], dropna=False)["_line_num"].first().to_dict()
+    # Max Standard sibling = true PP baseline (not arbitrary .first()).
+    std_lookup = std_df.groupby([player_col, prop_norm_col], dropna=False)["_line_num"].max().to_dict()
 
     sibling_std = out.apply(
         lambda r: std_lookup.get((r[player_col], r[prop_norm_col])), axis=1

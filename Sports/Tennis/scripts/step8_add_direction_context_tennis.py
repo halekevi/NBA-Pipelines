@@ -57,6 +57,21 @@ def _norm_pick_type(x: str) -> str:
 
 def _attach_unified_ml_prob(out: pd.DataFrame, repo_root: Path) -> pd.DataFrame:
     """Apply unified edge model ml_prob (non-fatal; keeps heuristic ml_prob on failure)."""
+    # step7b already wrote unified scores — only re-apply tennis caps.
+    if "prob_source" in out.columns and "ml_prob" in out.columns:
+        src = out["prob_source"].astype(str).str.strip().str.lower()
+        if bool((src == "ml_prob_unified").fillna(False).any()) and pd.to_numeric(
+            out["ml_prob"], errors="coerce"
+        ).notna().mean() > 0.5:
+            print("[Tennis step8] unified ml_prob already present (step7b) — skip re-score")
+            try:
+                from utils.tennis_ml_prob_caps import apply_tennis_ml_prob_caps  # noqa: WPS433
+
+                out = apply_tennis_ml_prob_caps(out, in_place=True)
+            except Exception:
+                pass
+            return out
+
     scripts_dir = repo_root / "scripts"
     if str(scripts_dir) not in sys.path:
         sys.path.insert(0, str(scripts_dir))
@@ -75,8 +90,9 @@ def _attach_unified_ml_prob(out: pd.DataFrame, repo_root: Path) -> pd.DataFrame:
         out["ml_prob"] = pd.to_numeric(ml_p, errors="coerce").round(4)
         out["edge_score"] = pd.to_numeric(edge_sc, errors="coerce").round(4)
         out["blended_score"] = pd.to_numeric(blended, errors="coerce").round(4)
-        if "prob_source" in out.columns:
-            out.loc[ml_p.notna(), "prob_source"] = "ml_prob_unified"
+        if "prob_source" not in out.columns:
+            out["prob_source"] = ""
+        out.loc[ml_p.notna(), "prob_source"] = "ml_prob_unified"
         print(f"[Tennis step8] unified ml_prob filled {filled}/{len(out)} rows")
     except Exception as exc:
         print(f"[Tennis step8] WARN unified ml_prob failed: {exc}")
@@ -124,18 +140,21 @@ def _attach_distribution_std(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or len(df) == 0:
         return df
     out = df.copy()
-    dist_n: list[int | None] = []
-    dist_std: list[float | None] = []
-    for _, row in out.iterrows():
-        g_vals = _parse_g_vals(row, prefix="stat_g")
-        n = len(g_vals)
-        dist_n.append(n)
-        if n >= 2:
-            dist_std.append(round(float(pd.Series(g_vals).std(ddof=1)), 4))
-        else:
-            dist_std.append(None)
-    out["distribution_n"] = dist_n
-    out["distribution_std"] = dist_std
+    g_cols = [f"stat_g{i}" for i in range(1, 11) if f"stat_g{i}" in out.columns]
+    if not g_cols:
+        out["distribution_n"] = 0
+        out["distribution_std"] = None
+        return out
+    mat = out[g_cols].apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
+    # Treat missing sentinels already coerced to NaN via to_numeric.
+    counts = np.isfinite(mat).sum(axis=1)
+    with np.errstate(all="ignore"):
+        # Sample std with ddof=1; when n<2 → NaN (nanstd returns NaN for n=0/1 with ddof=1)
+        std = np.nanstd(mat, axis=1, ddof=1)
+    out["distribution_n"] = counts.astype(int)
+    out["distribution_std"] = [
+        round(float(v), 4) if n >= 2 and np.isfinite(v) else None for n, v in zip(counts, std)
+    ]
     return out
 
 
@@ -234,11 +253,18 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
 
     l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
     l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
+    # Prefer explicit hit counts from step5/6 before approximating from hit-rate.
+    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
+    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("line_hits_under_5", np.nan), errors="coerce"))
+    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
+    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
     # Approximate L5 split from hr5 when explicit counts are absent.
     l5_over_fallback = (hr5.fillna(0.5) * 5.0).round().clip(0, 5)
     l5_under_fallback = (5 - l5_over_fallback).clip(0, 5)
     df2["last5_over"] = l5_over.fillna(l5_over_fallback)
     df2["last5_under"] = l5_under.fillna(l5_under_fallback)
+    df2["l5_over"] = df2["last5_over"]
+    df2["l5_under"] = df2["last5_under"]
 
     if "line" in df2.columns:
         df2 = finalize_l10_ui_columns(df2, line_col="line")
@@ -406,6 +432,11 @@ def main() -> None:
     ap.add_argument("--output", default="outputs/step8_tennis_direction.csv")
     ap.add_argument("--xlsx",   default="outputs/step8_tennis_direction_clean.xlsx")
     ap.add_argument("--date",   default="", help="YYYY-MM-DD target date (default: today ET)")
+    ap.add_argument(
+        "--allow-date-fallback",
+        action="store_true",
+        help="If no rows match --date ET, use nearest past ET date (default: keep empty / fail soft)",
+    )
     args = ap.parse_args()
 
     print("[Tennis step8] Starting...")
@@ -451,19 +482,27 @@ def main() -> None:
         if not mask.any():
             valid = df["_et_date"].astype(str).str.match(r"^\d{4}-\d{2}-\d{2}$")
             avail = sorted(df.loc[valid, "_et_date"].unique().tolist())
-            # Fallback: nearest ET date <= target (folder date), not future
-            past_or_equal = [d for d in avail if d <= target_str]
-            if past_or_equal:
-                fallback_date = past_or_equal[-1]
-                print(f"[DateFilter] No exact ET match for {target_str} — falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                mask = df["_et_date"] == fallback_date
-            elif avail:
-                fallback_date = avail[0]
-                print(f"[DateFilter] No past ET match — using earliest available {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                mask = df["_et_date"] == fallback_date
+            if args.allow_date_fallback:
+                # Opt-in only: nearest ET date <= target (folder date), not future
+                past_or_equal = [d for d in avail if d <= target_str]
+                if past_or_equal:
+                    fallback_date = past_or_equal[-1]
+                    print(f"[DateFilter] No exact ET match for {target_str} — falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
+                    mask = df["_et_date"] == fallback_date
+                elif avail:
+                    fallback_date = avail[0]
+                    print(f"[DateFilter] No past ET match — using earliest available {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
+                    mask = df["_et_date"] == fallback_date
+                else:
+                    print(f"[DateFilter] No valid ET dates found — keeping 0 rows for {target_str}")
+                    mask = pd.Series(False, index=df.index)
             else:
-                print(f"[DateFilter] No valid ET dates found — keeping all {before_filter} rows")
-                mask = pd.Series(True, index=df.index)
+                print(
+                    f"[DateFilter] No exact ET match for {target_str} "
+                    f"(available={avail[:8]}{'...' if len(avail) > 8 else ''}) — "
+                    f"keeping 0 rows (pass --allow-date-fallback to use nearest past day)"
+                )
+                mask = pd.Series(False, index=df.index)
         df = df.loc[mask].drop(columns="_et_date")
         dropped = before_filter - len(df)
         print(f"[DateFilter] Kept {len(df)}/{before_filter} rows for {target_str} ET (dropped {dropped} rows)")

@@ -142,28 +142,6 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file_
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
-from utils.wnba_prop_defense import (
-    attach_stat_defense_columns as _attach_wnba_stat_defense_columns,
-    soft_priority_delta as _wnba_stat_def_soft_delta,
-)
-from utils.football_prop_defense import (
-    attach_stat_defense_columns as _attach_football_stat_defense_columns,
-)
-from utils.mlb_prop_defense import (
-    attach_stat_defense_columns as _attach_mlb_stat_defense_columns,
-)
-from utils.nhl_prop_defense import (
-    attach_stat_defense_columns as _attach_nhl_stat_defense_columns,
-)
-from utils.soccer_prop_defense import (
-    attach_stat_defense_columns as _attach_soccer_stat_defense_columns,
-)
-from utils.nba_prop_defense import (
-    attach_stat_defense_columns as _attach_nba_stat_defense_columns,
-)
-from utils.cbb_prop_defense import (
-    attach_stat_defense_columns as _attach_cbb_stat_defense_columns,
-)
 from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
 from utils.fantasy_prop_filter import is_fantasy_prop_label as _is_fantasy_prop_label
 from utils.category_hit_rate import (
@@ -5205,32 +5183,11 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         over_mask = direction.eq("OVER")
         under_mask = direction.eq("UNDER")
 
-        # Defense directional preference (overall def_tier).
-        # When WNBA prop-specific stat_def_tier is present, halve overall nudge
-        # so the whitelist soft signal dominates without double-counting.
-        sport_u = out.get("sport", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
-        stat_def_tier = (
-            out.get("stat_def_tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
-        )
-        has_stat_def = sport_u.eq("WNBA") & stat_def_tier.isin(["HARD", "EASY", "MID"])
-        def_scale = np.where(has_stat_def, 0.5, 1.0)
-        pri = pri + def_scale * np.where(over_mask & def_tier.eq("WEAK"), 0.05, 0.0)
-        pri = pri + def_scale * np.where(over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]), -0.03, 0.0)
-        pri = pri + def_scale * np.where(under_mask & def_tier.isin(["ELITE", "ABOVE AVG"]), 0.04, 0.0)
-        pri = pri + def_scale * np.where(under_mask & def_tier.eq("WEAK"), -0.04, 0.0)
-
-        # WNBA prop-specific allowed-stat soft priority (whitelist; kill-switch env).
-        prop_col = out.get("prop_type", out.get("prop", pd.Series("", index=out.index)))
-        stat_deltas = [
-            _wnba_stat_def_soft_delta(
-                sport=sport_u.loc[i],
-                prop=prop_col.loc[i],
-                direction=direction.loc[i],
-                stat_def_tier=stat_def_tier.loc[i],
-            )
-            for i in out.index
-        ]
-        pri = pri + np.asarray(stat_deltas, dtype=float)
+        # Defense directional preference
+        pri = pri + np.where(over_mask & def_tier.eq("WEAK"), 0.05, 0.0)
+        pri = pri + np.where(over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]), -0.03, 0.0)
+        pri = pri + np.where(under_mask & def_tier.isin(["ELITE", "ABOVE AVG"]), 0.04, 0.0)
+        pri = pri + np.where(under_mask & def_tier.eq("WEAK"), -0.04, 0.0)
 
         # Minutes directional preference
         pri = pri + np.where(over_mask & min_tier.isin(["HIGH"]), 0.04, 0.0)
@@ -7757,20 +7714,10 @@ def _finalize_structure_ticket_dict(
 
 def _same_game_density_multiplier(ticket_rows: list) -> float:
     """
-    Same-game correlation discount.
-    Any game with 2+ legs gets multiplied by base ** (n_same_game_legs - 1).
-    Default base 0.90 (stronger MaxSG=1 preference vs legacy 0.94).
-    Override: PROPORACLE_SAME_GAME_DENSITY_BASE.
-    Hard reject for MaxSG>=3 remains MAIN_MAX_LEGS_PER_GAME elsewhere.
+    Same-game correlation discount (legacy).
+    Any game with 2+ legs gets multiplied by 0.94 ** (n_same_game_legs - 1).
     """
     from collections import Counter
-
-    try:
-        base = float(os.getenv("PROPORACLE_SAME_GAME_DENSITY_BASE", "0.90"))
-    except (TypeError, ValueError):
-        base = 0.90
-    if not (0.0 < base <= 1.0):
-        base = 0.90
 
     keys = []
     for r in ticket_rows:
@@ -7784,14 +7731,14 @@ def _same_game_density_multiplier(ticket_rows: list) -> float:
     mult = 1.0
     for _, n in counts.items():
         if n >= 2:
-            mult *= base ** (n - 1)
+            mult *= 0.94 ** (n - 1)
     return float(mult)
 
 
 def _correlation_multiplier_and_audit(ticket_rows: list) -> tuple[float, list[str]]:
     """
     Ticket score multiplier + human-readable audit trail.
-    - Same-game density (base^(n-1) per congested game; default base 0.90), logged as same_game_density.
+    - Same-game density (0.94^(n-1) per congested game), logged as same_game_density.
     - Same team, same game (2+ legs on one side): ×0.85 (−15%).
     - Same player correlated stack (e.g. PTS+AST or combo props): ×1.05 (+5%), at most once per ticket.
     """
@@ -10842,9 +10789,6 @@ def ticket_groups_to_payload(
                         gv("l10_under") or gv("L10 Under") or gv("line_hits_under_10") or gv("under_L10")
                     ),
                     "def_tier": str(gv("def_tier") or gv("Def Tier") or ""),
-                    "stat_def_category": str(gv("stat_def_category") or ""),
-                    "stat_def_rank": _safe_float(gv("stat_def_rank")),
-                    "stat_def_tier": str(gv("stat_def_tier") or ""),
                     "pace_tier": str(gv("pace_tier") or gv("Pace Tier") or ""),
                     "context_score": _safe_float(gv("context_score")),
                     "usage_boost": _safe_float(gv("usage_boost")),
@@ -10975,9 +10919,6 @@ def dataframe_to_slate_sport_rows(df: Optional[pd.DataFrame]) -> List[dict]:
             or g("opp_def_rank")
             or g("OVERALL_DEF_RANK")
             or g("def_rank"),
-            "stat_def_category": g("stat_def_category"),
-            "stat_def_rank": g("stat_def_rank"),
-            "stat_def_tier": g("stat_def_tier"),
             "standard_line": g("standard_line"),
             "standard_projection": g("standard_projection"),
             "projection": g("projection") or g("intel_projection"),
@@ -11118,79 +11059,48 @@ def resolve_default_wnba_step8_path(date_str: str) -> str:
 
 
 def _overlay_wnba_defense_ranks(df: pd.DataFrame) -> pd.DataFrame:
-    """Refresh opp def rank/tier from wnba_defense_summary.csv (slate + matchup panel parity).
-
-    Always attempts prop-specific allowed-stat attach (stat_def_*), even when the
-    overall defense summary file is missing.
-    """
+    """Refresh opp def rank/tier from wnba_defense_summary.csv (slate + matchup panel parity)."""
     if df is None or len(df) == 0:
+        return df
+    def_path = os.path.join(REPO_ROOT, "Sports", "WNBA", "wnba_defense_summary.csv")
+    if not os.path.isfile(def_path):
+        return df
+    try:
+        from utils.wnba_team_keys import defense_team_key
+    except ImportError:
+        return df
+    try:
+        ddef = pd.read_csv(def_path, encoding="utf-8-sig")
+    except Exception:
+        return df
+    if "TEAM_ABBREVIATION" not in ddef.columns:
+        return df
+    rank_by_key: dict[str, float] = {}
+    tier_by_key: dict[str, str] = {}
+    for r in ddef.itertuples(index=False):
+        key = defense_team_key(getattr(r, "TEAM_ABBREVIATION", ""))
+        if not key:
+            continue
+        rk = pd.to_numeric(getattr(r, "OVERALL_DEF_RANK", np.nan), errors="coerce")
+        if pd.notna(rk):
+            rank_by_key[key] = float(rk)
+        tier = str(getattr(r, "DEF_TIER", "") or "").strip()
+        if tier:
+            tier_by_key[key] = tier
+    if not rank_by_key:
         return df
     out = df.copy()
-    def_path = os.path.join(REPO_ROOT, "Sports", "WNBA", "wnba_defense_summary.csv")
-    if os.path.isfile(def_path):
-        try:
-            from utils.wnba_team_keys import defense_team_key
-        except ImportError:
-            defense_team_key = None  # type: ignore
-        ddef = None
-        if defense_team_key is not None:
-            try:
-                ddef = pd.read_csv(def_path, encoding="utf-8-sig")
-            except Exception:
-                ddef = None
-        if ddef is not None and "TEAM_ABBREVIATION" in ddef.columns:
-            rank_by_key: dict[str, float] = {}
-            tier_by_key: dict[str, str] = {}
-            for r in ddef.itertuples(index=False):
-                key = defense_team_key(getattr(r, "TEAM_ABBREVIATION", ""))
-                if not key:
-                    continue
-                rk = pd.to_numeric(getattr(r, "OVERALL_DEF_RANK", np.nan), errors="coerce")
-                if pd.notna(rk):
-                    rank_by_key[key] = float(rk)
-                tier = str(getattr(r, "DEF_TIER", "") or "").strip()
-                if tier:
-                    tier_by_key[key] = tier
-            if rank_by_key:
-                opp_col = "opp" if "opp" in out.columns else ("opp_team" if "opp_team" in out.columns else None)
-                if opp_col:
-                    opp_keys = out[opp_col].astype(str).str.strip().str.upper().map(defense_team_key)
-                    out["opponent_def_rank"] = opp_keys.map(rank_by_key)
-                    out["OVERALL_DEF_RANK"] = out["opponent_def_rank"]
-                    out["def_rank"] = out["opponent_def_rank"]
-                    if tier_by_key:
-                        out["def_tier"] = opp_keys.map(tier_by_key)
-                        out["DEF_TIER"] = out["def_tier"]
-
-    # Prop-specific allowed-stat defense (soft ranking signal; L5/L10 remain hard gates).
-    try:
-        out = _attach_wnba_stat_defense_columns(out)
-    except Exception as exc:
-        print(f"[wnba_stat_def] attach skipped: {exc}")
+    opp_col = "opp" if "opp" in out.columns else ("opp_team" if "opp_team" in out.columns else None)
+    if not opp_col:
+        return out
+    opp_keys = out[opp_col].astype(str).str.strip().str.upper().map(defense_team_key)
+    out["opponent_def_rank"] = opp_keys.map(rank_by_key)
+    out["OVERALL_DEF_RANK"] = out["opponent_def_rank"]
+    out["def_rank"] = out["opponent_def_rank"]
+    if tier_by_key:
+        out["def_tier"] = opp_keys.map(tier_by_key)
+        out["DEF_TIER"] = out["def_tier"]
     return out
-
-
-def _overlay_sport_stat_defense(df: pd.DataFrame, sport: str) -> pd.DataFrame:
-    """Attach prop-specific stat_def_* for non-WNBA sports (fail soft)."""
-    if df is None or len(df) == 0:
-        return df
-    sport_u = str(sport or "").strip().upper()
-    try:
-        if sport_u in ("NFL", "CFB"):
-            return _attach_football_stat_defense_columns(df, sport=sport_u)
-        if sport_u == "MLB":
-            return _attach_mlb_stat_defense_columns(df)
-        if sport_u == "NHL":
-            return _attach_nhl_stat_defense_columns(df)
-        if sport_u in ("SOCCER", "SOC"):
-            return _attach_soccer_stat_defense_columns(df)
-        if sport_u == "NBA":
-            return _attach_nba_stat_defense_columns(df)
-        if sport_u in ("CBB", "WCBB"):
-            return _attach_cbb_stat_defense_columns(df, sport=sport_u)
-    except Exception as exc:
-        print(f"[{sport_u.lower()}_stat_def] attach skipped: {exc}")
-    return df
 
 
 def publish_wnba_slate_merge_into_web(
@@ -11330,13 +11240,17 @@ def write_slate_json(nba, cbb, nhl, soccer, date_str, outdir,
     for sport_key, rows in sports_payload.items():
         safe_rows = rows if isinstance(rows, list) else []
         if sport_key == "tennis" and tennis_match_ymd:
+            # Fill blank game_date only — never overwrite tip-day with pipeline date
+            # (that made stale/yesterday props look like today's slate).
             stamped: list[dict] = []
             for r in safe_rows:
                 if not isinstance(r, dict):
                     stamped.append(r)
                     continue
                 rr = dict(r)
-                rr["game_date"] = tennis_match_ymd
+                gd = str(rr.get("game_date") or "").strip()[:10]
+                if not gd or gd.lower() in ("nan", "none", "null"):
+                    rr["game_date"] = tennis_match_ymd
                 stamped.append(rr)
             safe_rows = stamped
         if sport_key == "soccer" and soccer_match_ymd:
@@ -12777,7 +12691,7 @@ def load_nba(path: str) -> pd.DataFrame:
         df["abs_edge"] = pd.to_numeric(df["edge"], errors="coerce").abs()
     elif "abs_edge" in df.columns:
         df["abs_edge"] = pd.to_numeric(df["abs_edge"], errors="coerce")
-    return _overlay_sport_stat_defense(df, "NBA")
+    return df
 
 
 # ── Load & normalize CBB ───────────────────────────────────────────────────────
@@ -12883,7 +12797,7 @@ def load_cbb(path: str) -> pd.DataFrame:
     else:
         df["is_tournament_game"] = False
 
-    return _overlay_sport_stat_defense(df, "CBB")
+    return df
 
 
 def load_cfb(path: str) -> pd.DataFrame:
@@ -12930,7 +12844,7 @@ def load_cfb(path: str) -> pd.DataFrame:
     if "team_playoff_seed" in df.columns and "team_seed" in df.columns and df["team_seed"].isna().all():
         df["team_seed"] = df["team_playoff_seed"]
 
-    return _overlay_sport_stat_defense(df, "CFB")
+    return df
 
 
 def _fill_nhl_l5_season_avgs(df: pd.DataFrame) -> pd.DataFrame:
@@ -13175,7 +13089,7 @@ def load_nhl(path: str) -> pd.DataFrame:
     df = df[df["line"].notna() & (df["line"] > 0)]
     # Convert all pandas NA/NaT to None so openpyxl can handle them
     df = df.astype(object).where(df.notna(), other=None)
-    return _overlay_sport_stat_defense(df, "NHL")
+    return df
 
 
 
@@ -13749,7 +13663,7 @@ def load_soccer(path: str) -> pd.DataFrame:
                 f"  [load_soccer] kept {int(bad_opp.sum())} rows with unknown opponent metadata "
                 f"(opp_known=False; opponent-dependent fields nulled)"
             )
-    return _overlay_sport_stat_defense(df, "SOCCER")
+    return df
 
 
 def _tennis_board_hit_rate_proxy(df: pd.DataFrame) -> pd.DataFrame:
@@ -13824,27 +13738,24 @@ def load_golf(path: str) -> pd.DataFrame:
 
 def load_wnba(path: str) -> pd.DataFrame:
     """WNBA step8 direction workbook (same column contract as other step8 boards)."""
-    df = _load_step8_board_like(
+    return _load_step8_board_like(
         path,
         fallback_filename="step8_wnba_direction.xlsx",
         sheet_order=("WNBA", "ALL"),
         sport="WNBA",
         log_prefix="load_wnba",
     )
-    # Overall defense ranks + prop-specific allowed-stat defense soft fields.
-    return _overlay_wnba_defense_ranks(df)
 
 
 def load_nfl(path: str) -> pd.DataFrame:
     """NFL step8 direction clean workbook."""
-    df = _load_step8_board_like(
+    return _load_step8_board_like(
         path,
         fallback_filename="step8_nfl_direction_clean.xlsx",
         sheet_order=("NFL", "ALL"),
         sport="NFL",
         log_prefix="load_nfl",
     )
-    return _overlay_sport_stat_defense(df, "NFL")
 
 
 def load_wcbb(path: str) -> pd.DataFrame:
@@ -14027,9 +13938,9 @@ def load_wcbb(path: str) -> pd.DataFrame:
         df["espn_player_id"] = df["espn_player_id"].apply(_clean_id)
 
     df = df[df["line"].notna() & (df["line"] >= 0)]
-    df = _apply_l5_truth_from_stat_games(df, "WCBB")
+    df = _apply_l5_truth_from_stat_games(df, "NBA1H")
     df = df.astype(object).where(df.notna(), other=None)
-    return _overlay_sport_stat_defense(df, "WCBB")
+    return df
 
 
 def _is_valid_xlsx(path: str) -> bool:
@@ -14314,7 +14225,7 @@ def load_mlb(path: str) -> pd.DataFrame:
 
     df = df[df["line"].notna() & (df["line"] >= 0)]
     df = df.astype(object).where(df.notna(), other=None)
-    return _overlay_sport_stat_defense(df, "MLB")
+    return df
 
 
 def load_nba1q(path: str) -> pd.DataFrame:

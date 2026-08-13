@@ -230,14 +230,14 @@ def attach_mlb_b2b_columns(df: pd.DataFrame, season: int, sport_label: str = "ML
     return out
 
 
-def _sleep(base: float = 0.4) -> None:
-    time.sleep(max(0.0, base + random.uniform(0, 0.3)))
+def _sleep(base: float = 0.2) -> None:
+    time.sleep(max(0.0, base + random.uniform(0, 0.15)))
 
 
 def _get(url: str, retries: int = 3) -> Optional[dict]:
     for attempt in range(1, retries + 1):
         try:
-            _sleep(0.4)
+            _sleep()
             r = requests.get(url, headers=MLB_HEADERS, timeout=20)
             if r.status_code == 404:
                 return None
@@ -517,6 +517,104 @@ def save_cache(cache: pd.DataFrame, path: Path) -> None:
     tmp.replace(path)
 
 
+SAVE_CACHE_EVERY = 25
+_CACHE_SAVE_PENDING = 0
+_CACHE_INDEX: Optional["_MlbCacheIndex"] = None
+
+
+class _MlbCacheIndex:
+    """O(1) lookups over mlb_stats_cache.csv (464k+ rows). Rebuilt per player after a live refresh."""
+
+    __slots__ = ("vals", "opp_vals", "max_date")
+
+    def __init__(self, cache: pd.DataFrame):
+        self.vals: Dict[Tuple[str, str, str], List[float]] = {}
+        self.opp_vals: Dict[Tuple[str, str, str, str], List[float]] = {}
+        self.max_date: Dict[Tuple[str, str], pd.Timestamp] = {}
+        self.rebuild(cache)
+
+    def rebuild(self, cache: pd.DataFrame) -> None:
+        self.vals.clear()
+        self.opp_vals.clear()
+        self.max_date.clear()
+        if cache is None or cache.empty:
+            return
+        work = pd.DataFrame(
+            {
+                "pid": cache["MLB_PLAYER_ID"].astype(str),
+                "season": cache["SEASON"].astype(str),
+                "prop": cache["PROP_NORM"].astype(str),
+                "opp": cache["OPP_TEAM_ID"].astype(str) if "OPP_TEAM_ID" in cache.columns else "",
+                "gdate": pd.to_datetime(cache["GAME_DATE"], errors="coerce"),
+                "stat": pd.to_numeric(cache["STAT_VALUE"], errors="coerce"),
+            }
+        )
+        work = work[work["stat"].notna()]
+        if work.empty:
+            return
+        work = work.sort_values("gdate", ascending=False)
+        for (p, s, pr), grp in work.groupby(["pid", "season", "prop"], sort=False):
+            self.vals[(str(p), str(s), str(pr))] = [float(v) for v in grp["stat"].tolist()]
+        if "OPP_TEAM_ID" in cache.columns:
+            for (p, s, pr, o), grp in work.groupby(["pid", "season", "prop", "opp"], sort=False):
+                oid = str(o).strip()
+                if oid and oid.lower() != "nan":
+                    self.opp_vals[(str(p), str(s), str(pr), oid)] = [
+                        float(v) for v in grp["stat"].tolist()
+                    ]
+        mx = work.groupby(["pid", "season"], sort=False)["gdate"].max()
+        for (p, s), ts in mx.items():
+            if pd.notna(ts):
+                self.max_date[(str(p), str(s))] = pd.Timestamp(ts)
+
+    def refresh_player(self, cache: pd.DataFrame, player_id: str, season: str) -> None:
+        pid = str(player_id)
+        seas = str(season)
+        drop_keys = [k for k in self.vals if k[0] == pid and k[1] == seas]
+        for k in drop_keys:
+            del self.vals[k]
+        drop_opp = [k for k in self.opp_vals if k[0] == pid and k[1] == seas]
+        for k in drop_opp:
+            del self.opp_vals[k]
+        self.max_date.pop((pid, seas), None)
+        if cache is None or cache.empty:
+            return
+        mask = (cache["MLB_PLAYER_ID"].astype(str) == pid) & (cache["SEASON"].astype(str) == seas)
+        sub = cache.loc[mask]
+        if sub.empty:
+            return
+        gdate = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
+        stat = pd.to_numeric(sub["STAT_VALUE"], errors="coerce")
+        prop = sub["PROP_NORM"].astype(str)
+        opp = sub["OPP_TEAM_ID"].astype(str) if "OPP_TEAM_ID" in sub.columns else pd.Series("", index=sub.index)
+        work = pd.DataFrame({"prop": prop, "opp": opp, "gdate": gdate, "stat": stat})
+        work = work[work["stat"].notna()].sort_values("gdate", ascending=False)
+        if work.empty:
+            return
+        for pr, grp in work.groupby("prop", sort=False):
+            self.vals[(pid, seas, str(pr))] = [float(v) for v in grp["stat"].tolist()]
+        for (pr, o), grp in work.groupby(["prop", "opp"], sort=False):
+            oid = str(o).strip()
+            if oid and oid.lower() != "nan":
+                self.opp_vals[(pid, seas, str(pr), oid)] = [float(v) for v in grp["stat"].tolist()]
+        mx = work["gdate"].max()
+        if pd.notna(mx):
+            self.max_date[(pid, seas)] = pd.Timestamp(mx)
+
+
+def _maybe_save_cache(cache: pd.DataFrame, path: Path, *, force: bool = False) -> None:
+    global _CACHE_SAVE_PENDING
+    if force:
+        if _CACHE_SAVE_PENDING > 0:
+            save_cache(cache, path)
+            _CACHE_SAVE_PENDING = 0
+        return
+    _CACHE_SAVE_PENDING += 1
+    if _CACHE_SAVE_PENDING >= SAVE_CACHE_EVERY:
+        save_cache(cache, path)
+        _CACHE_SAVE_PENDING = 0
+
+
 def fetch_game_log(player_id: str, group: str, season: str) -> List[dict]:
     """Fetch raw game log entries from MLB Stats API."""
     url  = GAMELOG_URL.format(player_id=player_id, group=group, season=season)
@@ -701,6 +799,8 @@ def update_cache(
 
     if new_rows:
         cache = pd.concat([cache, pd.DataFrame(new_rows)], ignore_index=True)
+        if _CACHE_INDEX is not None:
+            _CACHE_INDEX.refresh_player(cache, player_id, season)
 
     return cache, added
 
@@ -711,6 +811,8 @@ def player_cache_max_date(
     season: str,
 ) -> Optional[pd.Timestamp]:
     """Newest GAME_DATE in cache for this player+season (or None)."""
+    if _CACHE_INDEX is not None:
+        return _CACHE_INDEX.max_date.get((str(player_id), str(season)))
     if cache is None or cache.empty:
         return None
     mask = (
@@ -754,6 +856,9 @@ def get_vals_from_cache(
     n: int = 10,
 ) -> List[float]:
     """Return most-recent N stat values from cache for player+prop+season."""
+    if _CACHE_INDEX is not None:
+        vals = _CACHE_INDEX.vals.get((str(player_id), str(season), str(prop_norm)), [])
+        return vals[:n]
     mask = (
         (cache["MLB_PLAYER_ID"].astype(str) == str(player_id)) &
         (cache["SEASON"].astype(str)         == str(season))    &
@@ -780,6 +885,11 @@ def get_vals_vs_opp_from_cache(
 ) -> List[float]:
     if not opp_team_id:
         return []
+    if _CACHE_INDEX is not None:
+        vals = _CACHE_INDEX.opp_vals.get(
+            (str(player_id), str(season), str(prop_norm), str(opp_team_id)), []
+        )
+        return vals[:n]
     mask = (
         (cache["MLB_PLAYER_ID"].astype(str) == str(player_id)) &
         (cache["SEASON"].astype(str) == str(season)) &
@@ -958,7 +1068,7 @@ def _process_slate_row_for_stats(
                 cache, added = update_cache(cache, pid, ptype, season, n_games=n_games)
                 if added > 0:
                     cache_updates += added
-                    save_cache(cache, cache_path)
+                    _maybe_save_cache(cache, cache_path)
                     _db_mirror_player_cache_rows(cache, con, pid, season)
                 cached_vals = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
         else:
@@ -991,7 +1101,7 @@ def _process_slate_row_for_stats(
                     cache, added = update_cache(cache, pid, sub_ptype, season, n_games=n_games)
                     if added > 0:
                         cache_updates += added
-                        save_cache(cache, cache_path)
+                        _maybe_save_cache(cache, cache_path)
                     cv = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
             else:
                 cv = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
@@ -1067,8 +1177,16 @@ def main() -> None:
     con = open_db(db_path)
     ensure_mlb_schema(con)
 
+    global _CACHE_INDEX
     cache_path = Path(args.cache)
     cache      = load_cache(cache_path)
+    t_idx = time.perf_counter()
+    _CACHE_INDEX = _MlbCacheIndex(cache)
+    print(
+        f"  Cache index: {len(_CACHE_INDEX.vals)} prop-keys, "
+        f"{len(_CACHE_INDEX.max_date)} player-seasons "
+        f"({time.perf_counter() - t_idx:.1f}s)"
+    )
 
     N         = int(args.n)
     stat_cols = [f"stat_g{i}" for i in range(1, N + 1)]
@@ -1135,7 +1253,7 @@ def main() -> None:
         cache, added = update_cache(cache, pid, ptype, args.season, n_games=N)
         if added > 0:
             cache_updates += added
-            save_cache(cache, cache_path)
+            _maybe_save_cache(cache, cache_path)
             _db_mirror_player_cache_rows(cache, con, pid, args.season)
 
     for idx in no_cache_idx:
@@ -1172,6 +1290,7 @@ def main() -> None:
         print(f"Wrote misses → {args.debug_misses}")
 
     slate.drop(columns=["_line_num"], errors="ignore", inplace=True)
+    _maybe_save_cache(cache, cache_path, force=True)
 
     from role_stability import role_stability
 

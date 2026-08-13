@@ -42,7 +42,6 @@ PITCHER_PROPS = {
     "hits_allowed", "earned_runs", "walks_allowed", "batters_faced",
     "pitches_thrown",
 }
-GAME_FEED_URL = "https://statsapi.mlb.com/api/v1.1/game/{game_id}/feed/live"
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 MLB_SPORT_KEY = "baseball_mlb"
 ODDS_CACHE_SLUG = "mlb"
@@ -83,6 +82,40 @@ MLB_TEAM_NAME_MAP = {
     "TEX": "Texas Rangers",
     "TOR": "Toronto Blue Jays",
     "WSH": "Washington Nationals",
+}
+
+# Stats-API team IDs (same as step4 cache TEAM_ID / OPP_TEAM_ID).
+MLB_TEAM_ID_MAP = {
+    "ARI": "109", "AZ": "109",
+    "ATL": "144",
+    "BAL": "110",
+    "BOS": "111",
+    "CHC": "112",
+    "CIN": "113",
+    "CLE": "114",
+    "COL": "115",
+    "CWS": "145", "CHW": "145",
+    "DET": "116",
+    "HOU": "117",
+    "KC": "118", "KCR": "118",
+    "LAA": "108",
+    "LAD": "119",
+    "MIA": "146",
+    "MIL": "158",
+    "MIN": "142",
+    "NYM": "121",
+    "NYY": "147",
+    "ATH": "133", "OAK": "133",
+    "PHI": "143",
+    "PIT": "134",
+    "SD": "135", "SDP": "135",
+    "SF": "137", "SFG": "137",
+    "SEA": "136",
+    "STL": "138",
+    "TB": "139", "TBR": "139",
+    "TEX": "140",
+    "TOR": "141",
+    "WSH": "120", "WSN": "120", "WAS": "120",
 }
 
 # ── Position normalizer ───────────────────────────────────────────────────────
@@ -339,106 +372,91 @@ def _load_stats_cache(path: str) -> pd.DataFrame:
     return cache
 
 
-def _fetch_game_teams(game_id: str, team_cache: dict[str, tuple[str, str] | None]) -> tuple[str, str] | None:
-    gid = str(game_id or "").strip()
-    if not gid:
-        return None
-    if gid in team_cache:
-        return team_cache[gid]
-    try:
-        r = requests.get(GAME_FEED_URL.format(game_id=gid), timeout=12)
-        r.raise_for_status()
-        j = r.json() or {}
-        t = (j.get("gameData", {}) or {}).get("teams", {}) or {}
-        home = _norm_team((t.get("home", {}) or {}).get("abbreviation", ""))
-        away = _norm_team((t.get("away", {}) or {}).get("abbreviation", ""))
-        val = (home, away) if home and away else None
-    except Exception:
-        val = None
-    team_cache[gid] = val
-    return val
-
-
-def _derive_cache_opp_team(
-    rec: dict,
-    player_team: str,
-    team_cache: dict[str, tuple[str, str] | None],
-) -> str:
-    for col in ("OPP_TEAM", "opp_team", "OPPONENT", "opponent", "OPP"):
-        if col in rec and str(rec.get(col, "")).strip():
-            return _norm_team(rec.get(col, ""))
-
-    game_id = str(rec.get("GAME_ID", "")).strip()
-    game_teams = _fetch_game_teams(game_id, team_cache)
-    if not game_teams:
+def _team_id(v: str) -> str:
+    raw = _norm_team(v)
+    if not raw or raw in {"NAN", "NONE", "NULL"}:
         return ""
-    home, away = game_teams
-
-    rec_team = ""
-    for col in ("TEAM", "team"):
-        if col in rec and str(rec.get(col, "")).strip():
-            rec_team = _norm_team(rec.get(col, ""))
-            break
-    team = rec_team or _norm_team(player_team)
-    if not team:
-        return ""
-    if team == home:
-        return away
-    if team == away:
-        return home
+    mapped = MLB_TEAM_ID_MAP.get(raw)
+    if mapped:
+        return str(mapped)
+    if raw.isdigit():
+        return raw
     return ""
 
 
-def _compute_same_series_hit_rate(
-    row: pd.Series,
-    cache: pd.DataFrame,
-    team_cache: dict[str, tuple[str, str] | None],
-) -> float:
-    pid = _parse_player_id(row.get("mlb_player_id", ""))
-    prop = str(row.get("prop_norm", "")).strip().lower()
-    opp_team = _norm_team(row.get("opp_team", ""))
-    player_team = _norm_team(row.get("team", ""))
-    line = _to_float(row.get("line", np.nan))
-    if (not pid) or (not prop) or (not opp_team) or np.isnan(line):
-        return np.nan
-
+def _row_season(row: pd.Series) -> str:
     season = str(row.get("season", "")).strip()
-    if not season:
-        st = pd.to_datetime(pd.Series([row.get("start_time", "")]), errors="coerce").iloc[0]
-        gd = pd.to_datetime(pd.Series([row.get("game_date", "")]), errors="coerce").iloc[0]
-        dt = gd if pd.notna(gd) else st
-        if pd.notna(dt):
-            season = str(dt.year)
-
-    player_cache = cache.loc[
-        (cache.get("MLB_PLAYER_ID", pd.Series("", index=cache.index)).astype(str) == pid)
-        & (cache.get("PROP_NORM", pd.Series("", index=cache.index)).astype(str).str.lower().str.strip() == prop)
-        & (cache.get("STAT_VALUE", pd.Series("", index=cache.index)).astype(str).str.strip() != "")
-    ].copy()
     if season:
-        player_cache = player_cache.loc[
-            player_cache.get("SEASON", pd.Series("", index=player_cache.index)).astype(str).str.strip() == season
-        ]
-    if player_cache.empty:
-        return np.nan
+        return season
+    gd = pd.to_datetime(pd.Series([row.get("game_date", "")]), errors="coerce").iloc[0]
+    st = pd.to_datetime(pd.Series([row.get("start_time", "")]), errors="coerce").iloc[0]
+    dt = gd if pd.notna(gd) else st
+    return str(int(dt.year)) if pd.notna(dt) else ""
 
-    player_cache["GAME_DATE_TS"] = pd.to_datetime(player_cache.get("GAME_DATE", ""), errors="coerce")
-    player_cache = player_cache.sort_values("GAME_DATE_TS", ascending=False).head(5)
-    if player_cache.empty:
-        return np.nan
 
-    stat_vals: list[float] = []
-    for rec in player_cache.to_dict("records"):
-        rec_opp = _derive_cache_opp_team(rec, player_team, team_cache)
-        if rec_opp != opp_team:
+def _build_same_series_lookup(
+    cache: pd.DataFrame,
+) -> dict[tuple[str, str, str, str], list[float]]:
+    """(player_id, prop, season, opp_team_id) -> last-5 stats, newest first.
+
+    Uses OPP_TEAM_ID already stored in mlb_stats_cache.csv. Does not call the
+    MLB live feed (the old per-row path was the step6 multi-minute hang).
+    """
+    if cache is None or cache.empty:
+        return {}
+    pid = cache.get("MLB_PLAYER_ID", pd.Series("", index=cache.index)).map(_parse_player_id)
+    prop = cache.get("PROP_NORM", pd.Series("", index=cache.index)).astype(str).str.lower().str.strip()
+    season = cache.get("SEASON", pd.Series("", index=cache.index)).astype(str).str.strip()
+    opp = cache.get("OPP_TEAM_ID", pd.Series("", index=cache.index)).astype(str).str.strip()
+    if (opp == "").all() and "OPP_TEAM" in cache.columns:
+        opp = cache["OPP_TEAM"].map(_team_id)
+    stat = pd.to_numeric(cache.get("STAT_VALUE", ""), errors="coerce")
+    gdate = pd.to_datetime(cache.get("GAME_DATE", ""), errors="coerce")
+    work = pd.DataFrame(
+        {"pid": pid, "prop": prop, "season": season, "opp": opp, "stat": stat, "gdate": gdate}
+    )
+    work = work[
+        work["stat"].notna()
+        & (work["pid"] != "")
+        & (work["prop"] != "")
+        & (work["opp"] != "")
+        & (work["opp"].str.lower() != "nan")
+    ]
+    if work.empty:
+        return {}
+    work = work.sort_values("gdate", ascending=False)
+    out: dict[tuple[str, str, str, str], list[float]] = {}
+    for (p, pr, s, o), grp in work.groupby(["pid", "prop", "season", "opp"], sort=False):
+        out[(str(p), str(pr), str(s), str(o))] = [float(v) for v in grp["stat"].head(5).tolist()]
+    return out
+
+
+def _same_series_rates_for_slate(df: pd.DataFrame, cache: pd.DataFrame) -> pd.Series:
+    lookup = _build_same_series_lookup(cache)
+    memo: dict[tuple[str, str, str, str, float], float] = {}
+    rates: list[float] = []
+    for i in range(len(df)):
+        row = df.iloc[i]
+        pid = _parse_player_id(row.get("mlb_player_id", ""))
+        prop = str(row.get("prop_norm", "")).strip().lower()
+        opp_id = _team_id(str(row.get("opp_team", "")))
+        line = _to_float(row.get("line", np.nan))
+        season = _row_season(row)
+        if (not pid) or (not prop) or (not opp_id) or np.isnan(line):
+            rates.append(np.nan)
             continue
-        stat = _to_float(rec.get("STAT_VALUE", np.nan))
-        if not np.isnan(stat):
-            stat_vals.append(stat)
-
-    if len(stat_vals) < 2:
-        return np.nan
-    return float(sum(1 for v in stat_vals if v > line) / len(stat_vals))
+        key = (pid, prop, season, opp_id, float(line))
+        if key in memo:
+            rates.append(memo[key])
+            continue
+        vals = lookup.get((pid, prop, season, opp_id), [])
+        if len(vals) < 2:
+            val = np.nan
+        else:
+            val = float(sum(1 for v in vals if v > line) / len(vals))
+        memo[key] = val
+        rates.append(val)
+    return pd.Series(rates, index=df.index)
 
 
 def main() -> None:
@@ -506,12 +524,13 @@ def main() -> None:
 
     df["pitcher_role"] = pd.Series([_pr(i) for i in range(len(df))], index=df.index)
 
-    # --- same_series_hit_rate ---
+    # --- same_series_hit_rate (indexed cache; no live MLB feed) ---
+    t0 = datetime.utcnow()
     stats_cache = _load_stats_cache(args.stats_cache)
-    team_lookup_cache: dict[str, tuple[str, str] | None] = {}
-    df["same_series_hit_rate"] = pd.Series(
-        [_compute_same_series_hit_rate(df.iloc[i], stats_cache, team_lookup_cache) for i in range(len(df))],
-        index=df.index,
+    df["same_series_hit_rate"] = _same_series_rates_for_slate(df, stats_cache)
+    print(
+        f"[same_series] rows={len(df)} cache_rows={len(stats_cache)} "
+        f"elapsed={ (datetime.utcnow() - t0).total_seconds():.1f}s"
     )
 
     # --- game_total + spread from Odds API ---

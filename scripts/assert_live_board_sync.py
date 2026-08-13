@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -51,7 +52,7 @@ def _group_sports(payload: dict[str, Any]) -> list[str]:
             sports.add(raw)
         name = str(group.get("group_name") or group.get("name") or "").upper()
         for token in known:
-            if token in name:
+            if re.search(rf"\b{re.escape(token)}\b", name):
                 sports.add(token)
         tickets = group.get("tickets") if isinstance(group.get("tickets"), list) else []
         legs = list(group.get("legs") or group.get("picks") or [])

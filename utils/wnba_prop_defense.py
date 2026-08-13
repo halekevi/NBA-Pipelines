@@ -50,10 +50,12 @@ SOFT_PRIORITY_PROPS: frozenset[str] = frozenset(
         "Pts+Asts",
         "Pts+Rebs+Asts",
         "3-PT Made",
+        "FG Made",
         "FG Attempted",
         "Free Throws Made",
         "Free Throws Attempted",
         "Two Pointers Made",
+        "Two Pointers Attempted",
     }
 )
 

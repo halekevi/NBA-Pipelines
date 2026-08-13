@@ -29,7 +29,11 @@ def test_prop_category_mapping():
     assert prop_category("Pts+Rebs+Asts") == "pra"
     assert prop_category("3-PT Made") == "fg3m"
     assert prop_category("Free Throws Attempted") == "fta"
+    assert prop_category("Free Throws Made") == "ftm"
+    assert prop_category("FG Made") == "fgm"
+    assert prop_category("FG Attempted") == "fga"
     assert prop_category("Two Pointers Made") == "fg2m"
+    assert prop_category("Two Pointers Attempted") == "fg2a"
     assert prop_category("Steals") == "stl"
     assert prop_category("Unknown Prop XYZ") == ""
 

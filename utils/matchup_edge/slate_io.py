@@ -20,6 +20,19 @@ PROP_NORM_ALIASES: dict[str, str] = {
     "3pt made": "fg3m",
     "3-pointers": "fg3m",
     "three pointers made": "fg3m",
+    "3-pt attempted": "fg3a",
+    "3pt attempted": "fg3a",
+    "three pointers attempted": "fg3a",
+    "fg made": "fgm",
+    "field goals made": "fgm",
+    "fg attempted": "fga",
+    "field goals attempted": "fga",
+    "two pointers made": "fg2m",
+    "2pt made": "fg2m",
+    "two pointers attempted": "fg2a",
+    "2pt attempted": "fg2a",
+    "free throws made": "ftm",
+    "free throws attempted": "fta",
     "pts+rebs+asts": "pra",
     "pts+reb+ast": "pra",
     "points (combo)": "pts",
@@ -111,8 +124,22 @@ def norm_prop(raw: object, *, cat_ids: set[str] | None = None) -> str:
     s = re.sub(r"\s+", " ", s)
     if s in PROP_NORM_ALIASES:
         return _align_prop_category(PROP_NORM_ALIASES[s], cat_ids)
-    if "3-pt" in s or "3pt" in s:
+    if "3-pt" in s or "3pt" in s or "3-pointer" in s:
+        if "attempt" in s:
+            return _align_prop_category("fg3a", cat_ids)
         return _align_prop_category("fg3m", cat_ids)
+    if "two pointer" in s or "2pt" in s or "2-pt" in s:
+        if "attempt" in s:
+            return _align_prop_category("fg2a", cat_ids)
+        return _align_prop_category("fg2m", cat_ids)
+    if "free throw" in s:
+        if "attempt" in s:
+            return _align_prop_category("fta", cat_ids)
+        return _align_prop_category("ftm", cat_ids)
+    if "field goal" in s or s.startswith("fg ") or s in ("fg", "fgm", "fga"):
+        if "attempt" in s or s == "fga":
+            return _align_prop_category("fga", cat_ids)
+        return _align_prop_category("fgm", cat_ids)
     if "point" in s and "+" in s:
         return _align_prop_category("pra", cat_ids)
     if "point" in s:

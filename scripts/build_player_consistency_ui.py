@@ -74,6 +74,8 @@ VOLUME_PROPS: frozenset[str] = frozenset(
         "3 pt attempted",
         "fga",
         "fg attempted",
+        "fg2a",
+        "two pointers attempted",
         "fta",
         "free throws attempted",
         "shots attempted",

@@ -3034,7 +3034,6 @@ def _apply_diversity_filter_to_ticket_groups(
 # Fantasy Score props are excluded from the full pipeline (step1/step2 + tickets + grading).
 TICKET_EXCLUDED_PROPS = {
     "fantasy score", "fantasy_score", "fantasy",
-    "fg made",
     "personal fouls",
     "blks+stls",
 }
@@ -3058,7 +3057,6 @@ UNDER_ALLOWED_PROPS = {"free throws attempted", "turnovers"}
 
 NBA_EXCLUDED_PROPS = {
     "blocked shots",
-    "free throws attempted",
     "defensive rebounds", "offensive rebounds",
     "dunks", "quarters with 5+ points", "quarters with 3+ points",
     "points - 1st 3 minutes", "assists - 1st 3 minutes", "rebounds - 1st 3 minutes",

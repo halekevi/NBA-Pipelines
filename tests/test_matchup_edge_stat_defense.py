@@ -11,6 +11,12 @@ from utils.matchup_edge.stat_defense import (
 def test_prop_label_for_cat_stocks_and_threes():
     assert prop_label_for_cat("stocks") == "Blks+Stls"
     assert prop_label_for_cat("fg3m") == "3-PT Made"
+    assert prop_label_for_cat("fgm") == "FG Made"
+    assert prop_label_for_cat("fga") == "FG Attempted"
+    assert prop_label_for_cat("fg2m") == "Two Pointers Made"
+    assert prop_label_for_cat("fg2a") == "Two Pointers Attempted"
+    assert prop_label_for_cat("ftm") == "Free Throws Made"
+    assert prop_label_for_cat("fta") == "Free Throws Attempted"
     assert prop_label_for_cat("pra", "Pts+Reb+Ast") == "Pts+Rebs+Asts"
 
 

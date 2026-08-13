@@ -30,12 +30,34 @@ class SportMatchupConfig:
     team_normalize: Callable[[str], str] | None = None
 
 
+def _basketball_shooting_categories(*, nba: bool) -> tuple[dict, ...]:
+    """PrizePicks FG/FT/2PT markets — tracked historically; keep on Matchup Edge."""
+    if nba:
+        return (
+            {"id": "fgm", "label": "FG made", "threshold": 7.0},
+            {"id": "fga", "label": "FG attempted", "threshold": 14.0},
+            {"id": "fg2m", "label": "Two pointers made", "threshold": 5.0},
+            {"id": "fg2a", "label": "Two pointers attempted", "threshold": 10.0},
+            {"id": "ftm", "label": "Free throws made", "threshold": 4.0},
+            {"id": "fta", "label": "Free throws attempted", "threshold": 5.0},
+        )
+    return (
+        {"id": "fgm", "label": "FG made", "threshold": 5.5},
+        {"id": "fga", "label": "FG attempted", "threshold": 12.0},
+        {"id": "fg2m", "label": "Two pointers made", "threshold": 4.0},
+        {"id": "fg2a", "label": "Two pointers attempted", "threshold": 8.0},
+        {"id": "ftm", "label": "Free throws made", "threshold": 3.0},
+        {"id": "fta", "label": "Free throws attempted", "threshold": 4.0},
+    )
+
+
 def _basketball_categories() -> tuple[dict, ...]:
     return (
         {"id": "pts", "label": "Points", "threshold": 18.0},
         {"id": "reb", "label": "Rebounds", "threshold": 6.0},
         {"id": "ast", "label": "Assists", "threshold": 4.0},
         {"id": "fg3m", "label": "3-Pointers made", "threshold": 1.5},
+        *_basketball_shooting_categories(nba=True),
         {"id": "stl", "label": "Steals", "threshold": 1.0},
         {"id": "blk", "label": "Blocks", "threshold": 1.0},
         {"id": "pra", "label": "Pts+Reb+Ast", "threshold": 28.0},
@@ -142,12 +164,40 @@ SPORT_CONFIGS: dict[str, SportMatchupConfig] = {
             {"id": "reb", "label": "Rebounds", "threshold": 6.0},
             {"id": "ast", "label": "Assists", "threshold": 4.0},
             {"id": "fg3m", "label": "3-Pointers made", "threshold": 1.5},
+            *_basketball_shooting_categories(nba=False),
             {"id": "stl", "label": "Steals", "threshold": 1.0},
             {"id": "blk", "label": "Blocks", "threshold": 1.0},
             {"id": "pra", "label": "Pts+Reb+Ast", "threshold": 25.0},
         ),
         cache_path=_REPO / "Sports/WNBA/wnba_espn_cache.csv",
         top3_path=_REPO / "Sports/WNBA/data/wnba_top3_vs_defense.csv",
+        min_mpg=14.0,
+        team_normalize=_wnba_team_norm,
+    ),
+    # Period boards: start with NBA1H/1Q category subsets until board pills are audited.
+    "wnba1h": SportMatchupConfig(
+        sport="wnba1h",
+        display_name="WNBA 1H",
+        defense_path=_REPO / "Sports/WNBA/wnba_defense_summary.csv",
+        defense_team_col="TEAM_ABBREVIATION",
+        defense_rank_col="OVERALL_DEF_RANK",
+        defense_tier_col="DEF_TIER",
+        defense_name_col="TEAM_NAME",
+        categories=_nba1h_categories(),
+        cache_path=_REPO / "Sports/WNBA/wnba_espn_cache.csv",
+        min_mpg=14.0,
+        team_normalize=_wnba_team_norm,
+    ),
+    "wnba1q": SportMatchupConfig(
+        sport="wnba1q",
+        display_name="WNBA 1Q",
+        defense_path=_REPO / "Sports/WNBA/wnba_defense_summary.csv",
+        defense_team_col="TEAM_ABBREVIATION",
+        defense_rank_col="OVERALL_DEF_RANK",
+        defense_tier_col="DEF_TIER",
+        defense_name_col="TEAM_NAME",
+        categories=_nba1q_categories(),
+        cache_path=_REPO / "Sports/WNBA/wnba_espn_cache.csv",
         min_mpg=14.0,
         team_normalize=_wnba_team_norm,
     ),

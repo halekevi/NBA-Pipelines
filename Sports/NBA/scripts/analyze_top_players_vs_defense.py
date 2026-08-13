@@ -45,6 +45,12 @@ CATEGORIES: tuple[str, ...] = (
     "blk",
     "stocks",
     "fg3m",
+    "fgm",
+    "fga",
+    "fg2m",
+    "fg2a",
+    "ftm",
+    "fta",
     "pra",
 )
 

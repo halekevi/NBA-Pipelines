@@ -33,8 +33,16 @@ import pandas as pd
 import requests
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_SCRIPTS_ROOT = _REPO_ROOT / "scripts"
+for _p in (_REPO_ROOT, _SCRIPTS_ROOT):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+from scripts.db_utils import (
+    ensure_mlb_schema,
+    fetch_mlb_gamelog_for_players,
+    mlb_gamelog_counts,
+    open_db,
+)
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
 PITCHER_PROPS = {
@@ -394,14 +402,20 @@ def _row_season(row: pd.Series) -> str:
     return str(int(dt.year)) if pd.notna(dt) else ""
 
 
+def _lookup_from_work(work: pd.DataFrame) -> dict[tuple[str, str, str, str], list[float]]:
+    if work is None or work.empty:
+        return {}
+    work = work.sort_values("gdate", ascending=False)
+    out: dict[tuple[str, str, str, str], list[float]] = {}
+    for (p, pr, s, o), grp in work.groupby(["pid", "prop", "season", "opp"], sort=False):
+        out[(str(p), str(pr), str(s), str(o))] = [float(v) for v in grp["stat"].head(5).tolist()]
+    return out
+
+
 def _build_same_series_lookup(
     cache: pd.DataFrame,
 ) -> dict[tuple[str, str, str, str], list[float]]:
-    """(player_id, prop, season, opp_team_id) -> last-5 stats, newest first.
-
-    Uses OPP_TEAM_ID already stored in mlb_stats_cache.csv. Does not call the
-    MLB live feed (the old per-row path was the step6 multi-minute hang).
-    """
+    """(player_id, prop, season, opp_team_id) -> last-5 stats, newest first."""
     if cache is None or cache.empty:
         return {}
     pid = cache.get("MLB_PLAYER_ID", pd.Series("", index=cache.index)).map(_parse_player_id)
@@ -422,17 +436,46 @@ def _build_same_series_lookup(
         & (work["opp"] != "")
         & (work["opp"].str.lower() != "nan")
     ]
-    if work.empty:
+    return _lookup_from_work(work)
+
+
+def _build_same_series_lookup_from_db(
+    con,
+    df: pd.DataFrame,
+) -> dict[tuple[str, str, str, str], list[float]]:
+    pids = sorted(
+        {
+            _parse_player_id(v)
+            for v in df.get("mlb_player_id", pd.Series(dtype=str)).tolist()
+            if _parse_player_id(v)
+        }
+    )
+    if not pids:
         return {}
-    work = work.sort_values("gdate", ascending=False)
-    out: dict[tuple[str, str, str, str], list[float]] = {}
-    for (p, pr, s, o), grp in work.groupby(["pid", "prop", "season", "opp"], sort=False):
-        out[(str(p), str(pr), str(s), str(o))] = [float(v) for v in grp["stat"].head(5).tolist()]
-    return out
+    raw = fetch_mlb_gamelog_for_players(con, pids, require_opp=True)
+    if not raw:
+        return {}
+    work = pd.DataFrame(raw, columns=["pid", "prop", "season", "opp", "gdate", "stat"])
+    work["pid"] = work["pid"].map(_parse_player_id)
+    work["prop"] = work["prop"].astype(str).str.lower().str.strip()
+    work["season"] = work["season"].astype(str).str.strip()
+    work["opp"] = work["opp"].astype(str).str.strip()
+    work["stat"] = pd.to_numeric(work["stat"], errors="coerce")
+    work["gdate"] = pd.to_datetime(work["gdate"], errors="coerce")
+    work = work[
+        work["stat"].notna()
+        & (work["pid"] != "")
+        & (work["prop"] != "")
+        & (work["opp"] != "")
+        & (work["opp"].str.lower() != "nan")
+    ]
+    return _lookup_from_work(work)
 
 
-def _same_series_rates_for_slate(df: pd.DataFrame, cache: pd.DataFrame) -> pd.Series:
-    lookup = _build_same_series_lookup(cache)
+def _same_series_rates_for_slate(
+    df: pd.DataFrame,
+    lookup: dict[tuple[str, str, str, str], list[float]],
+) -> pd.Series:
     memo: dict[tuple[str, str, str, str, float], float] = {}
     rates: list[float] = []
     for i in range(len(df)):
@@ -524,12 +567,32 @@ def main() -> None:
 
     df["pitcher_role"] = pd.Series([_pr(i) for i in range(len(df))], index=df.index)
 
-    # --- same_series_hit_rate (indexed cache; no live MLB feed) ---
+    # --- same_series_hit_rate (SQLite first; CSV fallback; no live MLB feed) ---
     t0 = datetime.utcnow()
-    stats_cache = _load_stats_cache(args.stats_cache)
-    df["same_series_hit_rate"] = _same_series_rates_for_slate(df, stats_cache)
+    lookup: dict[tuple[str, str, str, str], list[float]] = {}
+    source = "none"
+    cache_rows = 0
+    try:
+        con = open_db()
+        ensure_mlb_schema(con)
+        total, with_opp = mlb_gamelog_counts(con)
+        if with_opp > 0:
+            lookup = _build_same_series_lookup_from_db(con, df)
+            if lookup:
+                source = "sqlite"
+                cache_rows = with_opp
+        con.close()
+    except Exception as exc:
+        print(f"[same_series] sqlite unavailable ({exc}); falling back to CSV")
+    if not lookup:
+        stats_cache = _load_stats_cache(args.stats_cache)
+        cache_rows = len(stats_cache)
+        lookup = _build_same_series_lookup(stats_cache)
+        if lookup:
+            source = "csv"
+    df["same_series_hit_rate"] = _same_series_rates_for_slate(df, lookup)
     print(
-        f"[same_series] rows={len(df)} cache_rows={len(stats_cache)} "
+        f"[same_series] source={source} rows={len(df)} cache_rows={cache_rows} "
         f"elapsed={ (datetime.utcnow() - t0).total_seconds():.1f}s"
     )
 

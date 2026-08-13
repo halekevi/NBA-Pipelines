@@ -31,7 +31,7 @@ import argparse
 import random
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from functools import lru_cache
@@ -47,7 +47,13 @@ for _p in (_PROPORACLE_ROOT, _SCRIPTS_ROOT):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from scripts.db_utils import ensure_mlb_schema, log_pipeline_health, open_db, upsert_rows
+from scripts.db_utils import (
+    ensure_mlb_schema,
+    log_pipeline_health,
+    mlb_gamelog_counts,
+    open_db,
+    upsert_rows,
+)
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
 COMBO_SEP = "|"
@@ -494,18 +500,104 @@ CACHE_COLS = [
     "TEAM_ID", "OPP_TEAM_ID",
 ]
 
-def load_cache(path: Path) -> pd.DataFrame:
-    if path.exists():
-        try:
-            df = pd.read_csv(path, dtype=str, low_memory=False).fillna("")
-            # Backward-compatible cache schema upgrades.
-            for c in CACHE_COLS:
-                if c not in df.columns:
-                    df[c] = ""
-            print(f"  Loaded cache: {len(df)} rows from {path.name}")
-            return df
-        except Exception as e:
-            print(f"  ⚠️ Could not load cache: {e}")
+def _load_cache_csv(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame(columns=CACHE_COLS)
+    try:
+        df = pd.read_csv(path, dtype=str, low_memory=False).fillna("")
+        for c in CACHE_COLS:
+            if c not in df.columns:
+                df[c] = ""
+        print(f"  Loaded cache: {len(df)} rows from {path.name}")
+        return df
+    except Exception as e:
+        print(f"  ⚠️ Could not load cache: {e}")
+        return pd.DataFrame(columns=CACHE_COLS)
+
+
+def _load_cache_db(con) -> pd.DataFrame:
+    q = """
+    SELECT mlb_player_id AS MLB_PLAYER_ID,
+           season AS SEASON,
+           game_date AS GAME_DATE,
+           game_id AS GAME_ID,
+           COALESCE(player_type,'') AS PLAYER_TYPE,
+           prop_norm AS PROP_NORM,
+           COALESCE(CAST(stat_value AS TEXT),'') AS STAT_VALUE,
+           COALESCE(team_id,'') AS TEAM_ID,
+           COALESCE(opp_team_id,'') AS OPP_TEAM_ID
+    FROM mlb_gamelog
+    """
+    df = pd.read_sql_query(q, con, dtype=str).fillna("")
+    print(f"  Loaded cache: {len(df)} rows from proporacle_ref.db mlb_gamelog")
+    return df
+
+
+def upsert_cache_to_db(con, cache: pd.DataFrame) -> int:
+    if con is None or cache is None or cache.empty:
+        return 0
+    ts = datetime.now(timezone.utc).isoformat()
+    rows: list[dict] = []
+    for rec in cache.fillna("").to_dict("records"):
+        pid = str(rec.get("MLB_PLAYER_ID", "")).strip()
+        prop = str(rec.get("PROP_NORM", "")).strip()
+        gid = str(rec.get("GAME_ID", "")).strip()
+        if not pid or not prop or not gid:
+            continue
+        stat = pd.to_numeric(rec.get("STAT_VALUE", ""), errors="coerce")
+        rows.append(
+            {
+                "mlb_player_id": pid,
+                "season": str(rec.get("SEASON", "")).strip(),
+                "game_date": str(rec.get("GAME_DATE", "")).strip()[:10],
+                "game_id": gid,
+                "player_type": str(rec.get("PLAYER_TYPE", "")).strip() or None,
+                "prop_norm": prop,
+                "stat_value": None if pd.isna(stat) else float(stat),
+                "team_id": str(rec.get("TEAM_ID", "")).strip() or None,
+                "opp_team_id": str(rec.get("OPP_TEAM_ID", "")).strip() or None,
+                "updated_at": ts,
+            }
+        )
+    n = 0
+    chunk = 5000
+    for i in range(0, len(rows), chunk):
+        n += upsert_rows(con, "mlb_gamelog", rows[i : i + chunk])
+    return n
+
+
+def load_cache(path: Path, con=None) -> pd.DataFrame:
+    """Prefer SQLite mlb_gamelog; fall back to CSV and backfill the DB."""
+    csv_df = _load_cache_csv(path)
+    if con is None:
+        return csv_df if not csv_df.empty else pd.DataFrame(columns=CACHE_COLS)
+
+    ensure_mlb_schema(con)
+    total, with_opp = mlb_gamelog_counts(con)
+    csv_has_opp = (
+        (not csv_df.empty)
+        and "OPP_TEAM_ID" in csv_df.columns
+        and (csv_df["OPP_TEAM_ID"].astype(str).str.strip() != "").any()
+    )
+    if csv_has_opp and (total == 0 or with_opp < max(int(total * 0.5), 1)):
+        print(
+            f"  Backfilling mlb_gamelog team/opp ids from CSV "
+            f"(db_rows={total} with_opp={with_opp})..."
+        )
+        n = upsert_cache_to_db(con, csv_df)
+        print(f"  Upserted {n} CSV rows → mlb_gamelog")
+        total, with_opp = mlb_gamelog_counts(con)
+
+    if total >= 1000 and (csv_df.empty or total >= int(len(csv_df) * 0.8)):
+        db_df = _load_cache_db(con)
+        if not db_df.empty:
+            return db_df
+    if not csv_df.empty:
+        if total == 0:
+            upsert_cache_to_db(con, csv_df)
+        return csv_df
+    if total > 0:
+        return _load_cache_db(con)
     return pd.DataFrame(columns=CACHE_COLS)
 
 
@@ -517,7 +609,6 @@ def save_cache(cache: pd.DataFrame, path: Path) -> None:
     tmp.replace(path)
 
 
-SAVE_CACHE_EVERY = 25
 _CACHE_SAVE_PENDING = 0
 _CACHE_INDEX: Optional["_MlbCacheIndex"] = None
 
@@ -603,16 +694,13 @@ class _MlbCacheIndex:
 
 
 def _maybe_save_cache(cache: pd.DataFrame, path: Path, *, force: bool = False) -> None:
+    """CSV is a backup dump. Durable writes go to SQLite; only flush CSV at end."""
     global _CACHE_SAVE_PENDING
-    if force:
-        if _CACHE_SAVE_PENDING > 0:
-            save_cache(cache, path)
-            _CACHE_SAVE_PENDING = 0
+    if not force:
+        _CACHE_SAVE_PENDING += 1
         return
-    _CACHE_SAVE_PENDING += 1
-    if _CACHE_SAVE_PENDING >= SAVE_CACHE_EVERY:
-        save_cache(cache, path)
-        _CACHE_SAVE_PENDING = 0
+    save_cache(cache, path)
+    _CACHE_SAVE_PENDING = 0
 
 
 def fetch_game_log(player_id: str, group: str, season: str) -> List[dict]:
@@ -975,6 +1063,8 @@ def _db_mirror_player_cache_rows(
                     "stat_value": float(r["STAT_VALUE_NUM"])
                     if not pd.isna(r.get("STAT_VALUE_NUM"))
                     else None,
+                    "team_id": str(r.get("TEAM_ID", "")).strip() or None,
+                    "opp_team_id": str(r.get("OPP_TEAM_ID", "")).strip() or None,
                     "updated_at": ts,
                 }
             )
@@ -1179,7 +1269,7 @@ def main() -> None:
 
     global _CACHE_INDEX
     cache_path = Path(args.cache)
-    cache      = load_cache(cache_path)
+    cache      = load_cache(cache_path, con)
     t_idx = time.perf_counter()
     _CACHE_INDEX = _MlbCacheIndex(cache)
     print(

@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS wnba (
     pra              REAL, pr    REAL,
     pa               REAL, ra    REAL,
     bs               REAL, fantasy_score REAL,
+    season           TEXT,
     PRIMARY KEY (event_id, player, team)
 );
 """
@@ -145,10 +146,20 @@ def fetch_mlb_gamelog_for_players(
 
 def ensure_wnba_schema(con: sqlite3.Connection) -> None:
     con.execute(CREATE_WNBA)
+    cols = {str(r[1]) for r in con.execute("PRAGMA table_info(wnba)").fetchall()}
+    if "season" not in cols:
+        con.execute("ALTER TABLE wnba ADD COLUMN season TEXT")
     con.execute("CREATE INDEX IF NOT EXISTS idx_wnba_player ON wnba (player, game_date);")
     con.execute("CREATE INDEX IF NOT EXISTS idx_wnba_date   ON wnba (game_date);")
     con.execute("CREATE INDEX IF NOT EXISTS idx_wnba_espnid ON wnba (espn_athlete_id, game_date);")
     con.commit()
+
+
+def wnba_rowcount(con: sqlite3.Connection) -> int:
+    try:
+        return int(con.execute("SELECT COUNT(*) FROM wnba").fetchone()[0])
+    except sqlite3.Error:
+        return 0
 
 
 def upsert_rows(con: sqlite3.Connection, table: str, rows: list[dict[str, Any]]) -> int:

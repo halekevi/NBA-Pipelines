@@ -56,7 +56,13 @@ _PROPORACLE_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
-from scripts.db_utils import ensure_wnba_schema, log_pipeline_health, open_db, upsert_rows
+from scripts.db_utils import (
+    ensure_wnba_schema,
+    log_pipeline_health,
+    open_db,
+    upsert_rows,
+    wnba_rowcount,
+)
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
 ESPN_HEADERS = {
@@ -721,6 +727,112 @@ def split_combo_name(player: str) -> Tuple[str, str]:
     return (parts[0], parts[1]) if len(parts) >= 2 else (str(player).strip(), "")
 
 
+_CSV_STAT_TO_DB = {
+    "MIN": "minutes",
+    "PTS": "pts",
+    "REB": "reb",
+    "AST": "ast",
+    "STL": "stl",
+    "BLK": "blk",
+    "TO": "tov",
+    "FGM": "fgm",
+    "FGA": "fga",
+    "FG3M": "fg3m",
+    "FG3A": "fg3a",
+    "FG2M": "fg2m",
+    "FG2A": "fg2a",
+    "FTM": "ftm",
+    "FTA": "fta",
+    "OREB": "oreb",
+    "DREB": "dreb",
+}
+
+
+def _num_or_none(v):
+    x = pd.to_numeric(v, errors="coerce")
+    if pd.isna(x):
+        return None
+    return float(x)
+
+
+def upsert_wnba_cache_to_db(con, cache: pd.DataFrame) -> int:
+    if con is None or cache is None or cache.empty:
+        return 0
+    rows: list[dict] = []
+    for rec in cache.fillna("").to_dict("records"):
+        player = str(rec.get("PLAYER_NAME", "")).strip()
+        eid = str(rec.get("event_id", "")).strip()
+        if not player or not eid:
+            continue
+        row = {
+            "game_date": str(rec.get("game_date", "")).strip()[:10],
+            "event_id": eid,
+            "league": "WNBA",
+            "home_team": None,
+            "away_team": None,
+            "player": player,
+            "team": str(rec.get("TEAM", "")).strip().upper() or None,
+            "position": None,
+            "espn_athlete_id": str(rec.get("ESPN_ATHLETE_ID", "")).strip() or None,
+            "season": str(rec.get("SEASON", "")).strip() or None,
+        }
+        for csv_col, db_col in _CSV_STAT_TO_DB.items():
+            row[db_col] = _num_or_none(rec.get(csv_col, ""))
+        rows.append(row)
+    n = 0
+    chunk = 2000
+    for i in range(0, len(rows), chunk):
+        n += upsert_rows(con, "wnba", rows[i : i + chunk])
+    return n
+
+
+def _cache_from_wnba_db(con) -> pd.DataFrame:
+    q = """
+    SELECT game_date, event_id,
+           COALESCE(espn_athlete_id,'') AS ESPN_ATHLETE_ID,
+           player AS PLAYER_NAME,
+           COALESCE(team,'') AS TEAM,
+           minutes AS MIN, pts AS PTS, reb AS REB, ast AS AST,
+           stl AS STL, blk AS BLK, tov AS "TO",
+           fgm AS FGM, fga AS FGA, fg3m AS FG3M, fg3a AS FG3A,
+           fg2m AS FG2M, fg2a AS FG2A, ftm AS FTM, fta AS FTA,
+           oreb AS OREB, dreb AS DREB,
+           COALESCE(season,'') AS SEASON
+    FROM wnba
+    """
+    df = pd.read_sql_query(q, con)
+    if df.empty:
+        return df
+    df["PLAYER_NORM"] = df["PLAYER_NAME"].map(_norm_name)
+    print(f"  Loaded cache: {len(df)} rows from proporacle_ref.db wnba")
+    return df.fillna("")
+
+
+def load_wnba_cache(path: Path, con=None) -> pd.DataFrame:
+    """Prefer SQLite wnba table; fall back to CSV and backfill the DB."""
+    csv_df = pd.DataFrame()
+    if path.exists():
+        print(f"→ Loading cache: {path}")
+        csv_df = pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
+        print(f"  CSV rows={len(csv_df)}")
+    if con is None:
+        return csv_df
+
+    ensure_wnba_schema(con)
+    db_n = wnba_rowcount(con)
+    if not csv_df.empty and db_n < max(int(len(csv_df) * 0.8), 1):
+        print(f"  Backfilling wnba table from CSV (db_rows={db_n}, csv_rows={len(csv_df)})...")
+        n = upsert_wnba_cache_to_db(con, csv_df)
+        print(f"  Upserted {n} CSV rows → wnba")
+        db_n = wnba_rowcount(con)
+
+    if db_n >= 500 and (csv_df.empty or db_n >= int(len(csv_df) * 0.8)):
+        db_df = _cache_from_wnba_db(con)
+        if not db_df.empty:
+            return db_df
+    return csv_df
+
+
 def find_incomplete_wnba_events(cache: pd.DataFrame, *, min_team_minutes_sum: float = 300.0) -> set[str]:
     """
     Events to re-fetch: missing PTS or clearly partial boxscores (in-game snapshot cached early).
@@ -838,13 +950,9 @@ def main():
     con = open_db(db_path)
     ensure_wnba_schema(con)
 
-    # ── Load / update ESPN cache ──────────────────────────────────────────────
+    # ── Load / update ESPN cache (SQLite first, CSV dump) ─────────────────────
     cache_path = Path(args.cache)
-    if cache_path.exists():
-        print(f"→ Loading cache: {cache_path}")
-        cache = pd.read_csv(cache_path, dtype=str, encoding="utf-8-sig").fillna("")
-    else:
-        cache = pd.DataFrame()
+    cache = load_wnba_cache(cache_path, con)
 
     # Determine date range to fetch
     fetch_dates: List[datetime] = []
@@ -905,6 +1013,7 @@ def main():
                         "team": str(r.get("TEAM", "")).strip().upper() or None,
                         "position": None,
                         "espn_athlete_id": str(r.get("ESPN_ATHLETE_ID", "")).strip() or None,
+                        "season": str(r.get("SEASON", "") or args.season).strip() or None,
                         "minutes": _parse_minutes(r.get("MIN")) if isinstance(r.get("MIN"), str) else (r.get("MIN") if r.get("MIN") is not None else None),
                         "pts": float(r["PTS"]) if r.get("PTS") not in (None, "") and not (isinstance(r.get("PTS"), float) and np.isnan(r.get("PTS"))) else None,
                         "reb": float(r["REB"]) if r.get("REB") not in (None, "") and not (isinstance(r.get("REB"), float) and np.isnan(r.get("REB"))) else None,

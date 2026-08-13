@@ -142,6 +142,11 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file_
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
+from utils.stat_def_slate import (
+    attach_and_apply_category_defense,
+    category_def_align_mask,
+    directional_l5_hits_series,
+)
 from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
 from utils.fantasy_prop_filter import is_fantasy_prop_label as _is_fantasy_prop_label
 from utils.category_hit_rate import (
@@ -4610,7 +4615,8 @@ MAIN_STANDARD_MIN_L10_SAMPLE: float = float(
 MAIN_GOBLIN_L5_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
-        "PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"
+        "PROPORACLE_MAIN_GOBLIN_L5_SPORTS",
+        "MLB,WNBA,TENNIS,SOCCER,SOC,NBA,NBA1H,NBA1Q,NHL,CBB,WCBB,NFL,CFB",
     ).split(",")
     if s.strip()
 )
@@ -4618,7 +4624,10 @@ MAIN_STANDARD_L10_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
         "PROPORACLE_MAIN_STANDARD_L10_SPORTS",
-        os.getenv("PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"),
+        os.getenv(
+            "PROPORACLE_MAIN_GOBLIN_L5_SPORTS",
+            "MLB,WNBA,TENNIS,SOCCER,SOC,NBA,NBA1H,NBA1Q,NHL,CBB,WCBB,NFL,CFB",
+        ),
     ).split(",")
     if s.strip()
 )
@@ -5145,6 +5154,10 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         pick_type = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.upper().str.strip()
         def_tier_raw = out.get("def_tier", pd.Series("", index=out.index))
         def_tier = def_tier_raw.map(_norm_def_tier_cell_upper)
+        if "stat_def_tier" in out.columns:
+            st = out["stat_def_tier"].map(_norm_def_tier_cell_upper)
+            use_st = st.astype(str).str.strip().ne("") & ~st.isin(["N/A", "UNK"])
+            def_tier = st.where(use_st, def_tier)
         min_tier = out.get("min_tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
         role = (
             out.get("usage_role", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
@@ -5181,11 +5194,16 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         over_mask = direction.eq("OVER")
         under_mask = direction.eq("UNDER")
 
-        # Defense directional preference
+        # Defense directional preference (category-specific def_tier after slate attach)
         pri = pri + np.where(over_mask & def_tier.eq("WEAK"), 0.05, 0.0)
+        pri = pri + np.where(over_mask & def_tier.eq("BELOW AVG"), 0.04, 0.0)
         pri = pri + np.where(over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]), -0.03, 0.0)
         pri = pri + np.where(under_mask & def_tier.isin(["ELITE", "ABOVE AVG"]), 0.04, 0.0)
-        pri = pri + np.where(under_mask & def_tier.eq("WEAK"), -0.04, 0.0)
+        pri = pri + np.where(under_mask & def_tier.isin(["WEAK", "BELOW AVG"]), -0.04, 0.0)
+        # L5>=4 stacked with category ALIGN
+        l5_ok = pd.Series(side_l5, index=out.index).ge(4)
+        align = category_def_align_mask(out, def_tier=def_tier)
+        pri = pri + np.where(l5_ok & align, 0.06, 0.0)
 
         # Minutes directional preference
         pri = pri + np.where(over_mask & min_tier.isin(["HIGH"]), 0.04, 0.0)
@@ -10823,6 +10841,10 @@ def ticket_groups_to_payload(
                         gv("l10_under") or gv("L10 Under") or gv("line_hits_under_10") or gv("under_L10")
                     ),
                     "def_tier": str(gv("def_tier") or gv("Def Tier") or ""),
+                    "overall_def_tier": str(gv("overall_def_tier") or ""),
+                    "stat_def_category": str(gv("stat_def_category") or ""),
+                    "stat_def_rank": _safe_float(gv("stat_def_rank")),
+                    "stat_def_tier": str(gv("stat_def_tier") or ""),
                     "pace_tier": str(gv("pace_tier") or gv("Pace Tier") or ""),
                     "context_score": _safe_float(gv("context_score")),
                     "usage_boost": _safe_float(gv("usage_boost")),
@@ -10949,6 +10971,10 @@ def dataframe_to_slate_sport_rows(df: Optional[pd.DataFrame]) -> List[dict]:
             "season_avg": g("season_avg") or g("szn_avg"),
             "ml_prob":    g("ml_prob"),
             "def_tier":   g("def_tier") if g("def_tier") else g("Def Tier"),
+            "overall_def_tier": g("overall_def_tier"),
+            "stat_def_category": g("stat_def_category"),
+            "stat_def_rank": g("stat_def_rank"),
+            "stat_def_tier": g("stat_def_tier"),
             "opponent_def_rank": g("opponent_def_rank")
             or g("opp_def_rank")
             or g("OVERALL_DEF_RANK")
@@ -11166,6 +11192,7 @@ def publish_wnba_slate_merge_into_web(
         return False
 
     wnba_df = _overlay_wnba_defense_ranks(wnba_df)
+    wnba_df = attach_and_apply_category_defense(wnba_df)
     rows = dataframe_to_slate_sport_rows(wnba_df)
     if web_outdirs is None:
         web_outdirs = [os.path.join(REPO_ROOT, "ui_runner", "templates")]
@@ -14814,6 +14841,10 @@ def build_combined_slate(
         "hit_rate_status",
         "reliability_note",
         "def_tier",
+        "overall_def_tier",
+        "stat_def_category",
+        "stat_def_rank",
+        "stat_def_tier",
         "opponent_def_rank",
         "def_rank",
         "pace_tier",
@@ -16125,12 +16156,14 @@ def apply_nba_context_confidence_filter(
     l5_under = pd.to_numeric(out.get("l5_under", 0), errors="coerce").fillna(0)
     l5_sample = l5_over + l5_under
 
-    def_over_good = def_tier.isin(["WEAK", "AVG", "ABOVE AVG", "AVERAGE", "BELOW AVG"])
+    def_over_good = def_tier.isin(["WEAK", "BELOW AVG"])
     def_under_good = def_tier.isin(["ELITE", "ABOVE AVG"])
     pace_over_good = pace_tier.eq("FAST")
     pace_under_good = pace_tier.isin(["NORMAL", "SLOW"])
 
     score = pd.Series(0, index=out.index, dtype="int64")
+    l5_side = l5_under.where(direction.eq("UNDER"), l5_over)
+    score += (l5_side >= 4).astype(int)
     score += (l5_sample >= min_l5_sample).astype(int)
     score += (((direction == "OVER") & def_over_good) | ((direction == "UNDER") & def_under_good)).astype(int)
     score += (((direction == "OVER") & pace_over_good) | ((direction == "UNDER") & pace_under_good)).astype(int)
@@ -16154,10 +16187,13 @@ def compute_bet_signal_core(leg: dict) -> tuple[int, list[str]]:
     """
     sport = str(leg.get("sport", "") or "").upper()
     direction = str(leg.get("direction", "") or "").upper()
-    def_tier = _norm_def_tier_cell_upper(leg.get("def_tier", ""))
+    def_tier = _norm_def_tier_cell_upper(
+        leg.get("def_tier") or leg.get("stat_def_tier") or ""
+    )
     pace_tier = str(leg.get("pace_tier", "") or "").upper().strip()
     l5o = _signal_float(leg.get("l5_over"))
     l5u = _signal_float(leg.get("l5_under"))
+    l5_side = l5u if direction == "UNDER" else l5o
     l5_sample = int(round((l5o or 0) + (l5u or 0)))
 
     explicit_score = _signal_float(leg.get("context_score"))
@@ -16165,11 +16201,14 @@ def compute_bet_signal_core(leg: dict) -> tuple[int, list[str]]:
     reasons: list[str] = []
 
     if explicit_score is None:
-        if l5_sample >= 5:
+        if l5_side is not None and l5_side >= 4:
+            score += 1
+            reasons.append("L5>=4 in pick direction")
+        elif l5_sample >= 5:
             score += 1
             reasons.append("enough recent sample")
 
-        over_def_good = def_tier in {"WEAK", "AVG", "ABOVE AVG", "AVERAGE", "BELOW AVG"}
+        over_def_good = def_tier in {"WEAK", "BELOW AVG"}
         under_def_good = def_tier in {"ELITE", "ABOVE AVG"}
         if (direction == "OVER" and over_def_good) or (direction == "UNDER" and under_def_good):
             score += 1
@@ -20600,6 +20639,7 @@ def main():
                                     wnba=wnba,
                                     wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h,
                                     nfl=nfl, cfb=cfb)
+    combined = attach_and_apply_category_defense(combined)
     reliability_index = _load_prop_reliability_index()
     if reliability_index:
         print(f"  [reliability] loaded {len(reliability_index)} prop-direction buckets from {PROP_RELIABILITY_LATEST_PATH}")
@@ -20893,9 +20933,12 @@ def main():
             ddir = filtered_df["direction"].astype(str).str.upper().str.strip()
             dtier = filtered_df["def_tier"].map(_norm_def_tier_cell_upper)
             def_bonus = pd.Series(0.0, index=filtered_df.index)
-            def_bonus = def_bonus + (((ddir == "OVER") & dtier.eq("ABOVE AVG")).astype(float) * 0.05)
-            def_bonus = def_bonus + (((ddir == "UNDER") & dtier.eq("ELITE")).astype(float) * 0.05)
+            def_bonus = def_bonus + (((ddir == "OVER") & dtier.isin(["WEAK", "BELOW AVG"])).astype(float) * 0.05)
+            def_bonus = def_bonus + (((ddir == "UNDER") & dtier.isin(["ELITE", "ABOVE AVG"])).astype(float) * 0.05)
             def_bonus = def_bonus - (((ddir == "OVER") & dtier.eq("ELITE")).astype(float) * 0.03)
+            l5_side = directional_l5_hits_series(filtered_df)
+            align = category_def_align_mask(filtered_df, def_tier=dtier)
+            def_bonus = def_bonus + (((l5_side >= 4) & align).astype(float) * 0.06)
             filtered_df["_def_tier_bonus"] = def_bonus
 
             if "blended_score" in filtered_df.columns:

@@ -70,6 +70,13 @@ def normalize_def_tier_label(raw: object) -> str:
         "below average": "Below Avg",
         "weak": "Weak",
         "very weak": "Weak",
+        "hard": "Elite",
+        "hard_mid": "Above Avg",
+        "hard-mid": "Above Avg",
+        "mid": "Avg",
+        "easy_mid": "Below Avg",
+        "easy-mid": "Below Avg",
+        "easy": "Weak",
         "n/a": "N/A",
         "na": "N/A",
     }

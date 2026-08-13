@@ -1742,10 +1742,20 @@ def page_tickets():
                 _non_ev_slips_removed=0,
                 winrate_payload=winrate_payload,
             )
+            board_meta = _home_board_display_meta(payload, None)
+            stale_banner = ""
+            td = str(board_meta.get("tickets_date") or "").strip()
+            sd = str(board_meta.get("slate_date") or "").strip()
+            if td and sd and td < sd:
+                stale_banner = (
+                    f"These slips are from {td}. Prop Explorer is already on {sd}. "
+                    "A combined ticket rebuild is required before /tickets can show today's board."
+                )
             return render_template(
                 "tickets_built.html",
                 tickets_body=Markup(body),
                 page_title=page_title,
+                tickets_stale_banner=stale_banner,
                 ui_build_id=_UI_BUILD_ID,
                 deploy_git_sha=(
                     os.environ.get("RAILWAY_GIT_COMMIT_SHA") or os.environ.get("GIT_COMMIT") or ""

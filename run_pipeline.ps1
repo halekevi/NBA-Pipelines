@@ -362,6 +362,7 @@ function Run-Step {
         # Child Python inherits these; avoids UnicodeEncodeError on emoji logs (e.g. MLB step1) if the shell was cold-started without UTF-8.
         $env:PYTHONUTF8       = "1"
         $env:PYTHONIOENCODING = "utf-8"
+        $env:PYTHONUNBUFFERED = "1"
         $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
         Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
         if ($TimeoutSeconds -gt 0) {
@@ -402,6 +403,10 @@ function Run-Step {
                 $wcbbOptionalLoadWarn = $joined -match "Could not load WCBB file"
                 $wroteWorkbook = $joined -match "\[OK\]\s+Saved ->"
                 $wroteWebJson = $joined -match "\[OK\]\s+Web JSON\s+->"
+                if ($wroteWorkbook -and $wroteWebJson) {
+                    Write-Host "      WARN (exit $exit): treating as success (workbook + tickets_latest written)" -ForegroundColor Yellow
+                    return $true
+                }
                 if ($wcbbOptionalLoadWarn -and $wroteWorkbook -and $wroteWebJson) {
                     Write-Host "      WARN (exit $exit): treating as success (optional WCBB load failed, artifacts written)" -ForegroundColor Yellow
                     return $true
@@ -1541,6 +1546,13 @@ function Run-Combined {
         $bundleOk = Invoke-PropOracleMobileBundle
         if (-not $bundleOk) {
             Write-Host "  [mobile] WARN: generate_mobile_bundle.py failed — mobile/www may be stale." -ForegroundColor Yellow
+        }
+        $assertLive = Join-Path $Root "scripts\assert_live_board_sync.py"
+        if (Test-Path -LiteralPath $assertLive) {
+            & py -3.14 -X utf8 $assertLive --today $Date --templates-dir (Join-Path $Root "ui_runner\templates")
+            if ($LASTEXITCODE -eq 2) {
+                Write-Host "  [combined] WARN: tickets_latest lags slate_latest — do not push live JSON until --write-web lands." -ForegroundColor Yellow
+            }
         }
         # Canonical mobile app snapshots (bundled mobile/www artifacts).
         foreach ($mobileName in @(

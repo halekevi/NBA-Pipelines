@@ -1237,13 +1237,31 @@ else {
 # =============================================================================
 # STEP D — Combined slate for today (explicit; ensures outputs + web)
 # =============================================================================
+function Get-LiveBoardSyncExit {
+    param([string]$RepoRoot = $Root, [string]$Day = $Today)
+    $scriptPath = Join-Path $RepoRoot "scripts\assert_live_board_sync.py"
+    $templatesDir = Join-Path $RepoRoot "ui_runner\templates"
+    if (-not (Test-Path -LiteralPath $scriptPath)) { return 0 }
+    & py -3.14 -X utf8 $scriptPath --today $Day --templates-dir $templatesDir
+    return $LASTEXITCODE
+}
+
+$ticketsLagSlate = $false
+try {
+    $preSync = Get-LiveBoardSyncExit -RepoRoot $Root -Day $Today
+    if ($preSync -eq 2) { $ticketsLagSlate = $true }
+} catch { }
+
 if ($script:PipelineFailed) {
     Write-Log "STEP D - Combined slate: SKIPPED (pipeline failed)"
     Write-Host "Skipping combined slate — fix pipeline first." -ForegroundColor Yellow
-} elseif ($SkipPipeline -and -not (Test-Path (Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.xlsx"))) {
+} elseif ($SkipPipeline -and -not (Test-Path (Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.xlsx")) -and -not $ticketsLagSlate) {
     Write-Log "STEP D - Combined slate: SKIPPED (-SkipPipeline and no existing combined output)"
     Write-Host "Skipping combined slate — pipeline was skipped and no existing output found." -ForegroundColor Yellow
 } else {
+    if ($ticketsLagSlate -and $SkipPipeline) {
+        Write-Log "STEP D - Combined slate: tickets lag slate — running CombinedOnly despite -SkipPipeline"
+    }
     Write-Log "STEP D - Combined slate: START"
     $todayOutDir = Join-Path $Root "outputs\$Today"
     if (-not (Test-Path $todayOutDir)) {
@@ -1918,8 +1936,23 @@ else {
             }
             git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log "STEP E - pull: $_" }
 
+            $liveBoardBlocked = $false
+            try {
+                $stepESync = Get-LiveBoardSyncExit -RepoRoot $Root -Day $Today
+                if ($stepESync -eq 2) {
+                    $liveBoardBlocked = $true
+                    Write-Log "STEP E - live tickets/slate NOT published (dates out of sync). Run CombinedOnly --write-web."
+                    Write-Warning "STEP E skipped tickets_latest/slate_latest — publishing them would leave /tickets on yesterday."
+                }
+            } catch {
+                Write-Log "STEP E - board sync check failed: $($_.Exception.Message)"
+            }
+
             # Restore snapshotted live tickets onto main worktree
             foreach ($rel in $stepELiveRels) {
+                if ($liveBoardBlocked -and ($rel -match 'tickets_latest|slate_latest')) {
+                    continue
+                }
                 $src = Join-Path $stepELiveSnap ($rel -replace "/", "\")
                 if (Test-Path -LiteralPath $src) {
                     $dst = Join-Path $MainRoot ($rel -replace "/", "\")
@@ -1939,6 +1972,19 @@ else {
                         }
                         Copy-Item -Path (Join-Path $srcDir "*") -Destination $dstDir -Recurse -Force -ErrorAction SilentlyContinue
                     }
+                }
+            }
+
+            if ($liveBoardBlocked) {
+                $protectRels = @(
+                    "ui_runner/templates/tickets_latest.json",
+                    "ui_runner/docs/tickets_latest.json",
+                    "mobile/www/tickets_latest.json",
+                    "ui_runner/templates/slate_latest.json",
+                    "mobile/www/slate_latest.json"
+                )
+                foreach ($rel in $protectRels) {
+                    git checkout -- $rel 2>$null
                 }
             }
 

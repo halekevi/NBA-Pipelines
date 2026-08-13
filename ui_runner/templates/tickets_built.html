@@ -195,6 +195,11 @@
 {% set nav_active = 'tickets' %}
 {% include '_site_nav.html' %}
 <div id="app" class="page-tickets">
+{% if tickets_stale_banner %}
+<div class="tickets-stale-banner" style="margin:12px 16px 0;padding:12px 16px;border:1px solid rgba(255,196,0,.45);border-radius:10px;background:rgba(255,196,0,.12);color:#f5e6a8;font-size:14px;line-height:1.45;">
+  {{ tickets_stale_banner }}
+</div>
+{% endif %}
 {# Slips, empirical payout panel (sweep multiplier), and filter pills including TOP PAYOUT are rendered by scripts/combined_slate_tickets.render_tickets_body_html #}
 {{ tickets_body|safe }}
 </div>

@@ -20531,6 +20531,23 @@ def main():
         )
         print("[OK] Slate web JSON only (skipped workbook + tickets).")
         try:
+            tickets_path = Path(args.web_outdir) / "tickets_latest.json"
+            tickets_date = ""
+            if tickets_path.is_file():
+                try:
+                    _tp = json.loads(tickets_path.read_text(encoding="utf-8"))
+                    tickets_date = str((_tp or {}).get("date") or "").strip()[:10]
+                except Exception:
+                    tickets_date = ""
+            slate_date = str(args.date or "").strip()[:10]
+            if tickets_date and slate_date and tickets_date < slate_date:
+                print(
+                    f"[WARN] tickets_latest.json is still {tickets_date} while slate is {slate_date}. "
+                    "Do not git-push live JSON until CombinedOnly --write-web finishes."
+                )
+        except Exception:
+            pass
+        try:
             import subprocess
 
             subprocess.run(
@@ -22358,51 +22375,69 @@ def main():
     print(f"   Sheets ({len(wb.sheetnames)}): {wb.sheetnames}")
 
     if args.write_web:
-        print("\nWriting web outputs...")
+        print("\nWriting web outputs...", flush=True)
         if all_ticket_groups:
-            full_payload = ticket_groups_to_payload(
-                all_ticket_groups,
-                args.date,
-                thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-                ticket_track="graded_main",
-                payload_mode="main",
-            )
-            payload, long_payload = resolve_graded_main_and_long_payloads(
-                full_payload,
-                nba1q=nba1q,
-                nba=nba,
-                nba1h=nba1h,
-                wnba=wnba,
-                mlb=mlb,
-                soccer=soccer,
-                tennis=tennis,
-                nhl=nhl,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-                pool_fn=lambda f: pool(f, for_win_rate=True),
-                graded_analysis=_load_graded_analysis(),
-            )
-            payload = inject_strong_builder_tickets(full_payload, payload)
-            payload = inject_core_build_tickets(full_payload, payload)
-            if payload.get("pool_mode") != MAIN_POOL_MODE:
-                payload = inject_probability_ladder_groups(
-                    full_payload,
-                    payload,
-                    cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
+            try:
+                full_payload = ticket_groups_to_payload(
+                    all_ticket_groups,
+                    args.date,
+                    thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                    ticket_track="graded_main",
+                    payload_mode="main",
                 )
-            else:
-                print(f"  [main-track] skipping probability ladder groups ({MAIN_POOL_MODE})")
-            # Always surface thin in-season quality boards (Soccer UNDER / MLB / Tennis)
-            # even when MAIN is win-rate Goblin — otherwise World Cup never appears on /tickets.
-            payload = append_in_season_web_supplement_groups(
-                payload, full_payload, str(args.date)
-            )
-            payload = filter_main_high_prob_payload(payload)
-            write_full_ticket_export_snapshot(payload, str(args.date))
+                payload, long_payload = resolve_graded_main_and_long_payloads(
+                    full_payload,
+                    nba1q=nba1q,
+                    nba=nba,
+                    nba1h=nba1h,
+                    wnba=wnba,
+                    mlb=mlb,
+                    soccer=soccer,
+                    tennis=tennis,
+                    nhl=nhl,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                    pool_fn=lambda f: pool(f, for_win_rate=True),
+                    graded_analysis=_load_graded_analysis(),
+                )
+                payload = inject_strong_builder_tickets(full_payload, payload)
+                payload = inject_core_build_tickets(full_payload, payload)
+                if payload.get("pool_mode") != MAIN_POOL_MODE:
+                    payload = inject_probability_ladder_groups(
+                        full_payload,
+                        payload,
+                        cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
+                    )
+                else:
+                    print(f"  [main-track] skipping probability ladder groups ({MAIN_POOL_MODE})")
+                # Always surface thin in-season quality boards (Soccer UNDER / MLB / Tennis)
+                # even when MAIN is win-rate Goblin — otherwise World Cup never appears on /tickets.
+                payload = append_in_season_web_supplement_groups(
+                    payload, full_payload, str(args.date)
+                )
+                payload = filter_main_high_prob_payload(payload)
+                write_full_ticket_export_snapshot(payload, str(args.date))
+            except Exception as web_exc:
+                import traceback as _web_tb
+
+                _web_tb.print_exc()
+                print(f"[ERROR] write-web payload build failed: {web_exc}", flush=True)
+                full_payload = ticket_groups_to_payload(
+                    all_ticket_groups,
+                    args.date,
+                    thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                    ticket_track="graded_main",
+                    payload_mode="main",
+                )
+                payload = dict(full_payload)
+                long_payload = {"groups": []}
+                print("  [web-fallback] using workbook groups as tickets payload", flush=True)
             n_groups = len(payload["groups"])
             n_slips = sum(len(g["tickets"]) for g in payload["groups"])
             n_long = sum(len(g.get("tickets") or []) for g in long_payload.get("groups") or [])
@@ -22412,88 +22447,126 @@ def main():
                 f"{n_long} long-parlay slips "
                 f"({'enabled' if LONG_PARLAY_ENABLED else 'disabled'} 5-6 track)."
             )
-            gated_preview = filter_positive_ev_tickets_payload(
+            # Write tickets_latest BEFORE shadow/sidecar emits. Those rebuilds have
+            # historically crashed after the workbook was saved and left /tickets on yesterday.
+            _web_ev_early = not bool(args.no_web_ev_gate)
+            write_web_outputs(
                 payload,
+                args.web_outdir,
+                require_positive_ev=_web_ev_early,
+                merge_existing_for_date=bool(args.merge_web_latest),
                 apply_template_cap=bool(args.web_template_cap),
+                discard_tracker=discard_tracker,
             )
-            print_positive_ev_gate_report(gated_preview)
-            _write_long_parlay_ticket_snapshot(long_payload, str(args.date))
-            _emit_winrate_goblin_opt3_shadow_payload(
-                nba1q=nba1q,
-                nba=nba,
-                nba1h=nba1h,
-                wnba=wnba,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-                pool_fn=lambda f: pool(f, for_win_rate=True),
-                graded_analysis=_load_graded_analysis(),
-            )
-            _emit_main_pool_mode_sidecars(
-                nba1q=nba1q,
-                nba=nba,
-                nba1h=nba1h,
-                wnba=wnba,
-                mlb=mlb,
-                soccer=soccer,
-                tennis=tennis,
-                nhl=nhl,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-                pool_fn=lambda f: pool(f, for_win_rate=True),
-                graded_analysis=_load_graded_analysis(),
-            )
-            _emit_winrate_mlb_goblin_shadow_payload(
-                mlb=mlb,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-                pool_fn=lambda f: pool(f, for_win_rate=True),
-                graded_analysis=_load_graded_analysis(),
-            )
-            _std_shadow_frames = [
-                nba1q,
+            write_slate_json(
                 nba,
-                nba1h,
-                wnba,
-                mlb,
-                soccer,
-                tennis,
+                cbb,
                 nhl,
-            ]
-            _emit_strong_standard_shadow_payload(
-                frames=_std_shadow_frames,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
+                soccer,
+                args.date,
+                args.web_outdir,
+                wcbb=wcbb,
+                mlb=mlb,
+                nba1q=nba1q,
+                nba1h=nba1h,
+                tennis=tennis,
+                golf=golf,
+                nfl=nfl,
+                wnba=wnba,
+                cfb=cfb,
+                tennis_date=getattr(args, "tennis_date", None),
+                soccer_date=getattr(args, "soccer_date", None),
             )
-            _emit_strong_mix_shadow_payload(
-                frames=_std_shadow_frames,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-            )
-            _emit_strong_standard_prob_shadow_payload(
-                frames=_std_shadow_frames,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-            )
-            _emit_strong_recombo_shadow_payload(
-                strong_tickets=_extract_strong_builder_slips(full_payload),
-                frames=_std_shadow_frames,
-                date_str=str(args.date),
-                thresholds=thresholds,
-                bankroll=max(0.0, float(args.bankroll)),
-                curve_stake_usd=float(args.curve_stake_usd),
-            )
+            print("[OK] Web outputs complete.", flush=True)
+            args._web_json_written = True
+            try:
+                gated_preview = filter_positive_ev_tickets_payload(
+                    payload,
+                    apply_template_cap=bool(args.web_template_cap),
+                )
+                print_positive_ev_gate_report(gated_preview)
+                _write_long_parlay_ticket_snapshot(long_payload, str(args.date))
+            except Exception as _post_web_exc:
+                print(f"  [web] WARN: post-write gate/snapshot failed ({_post_web_exc})", flush=True)
+            try:
+                _emit_winrate_goblin_opt3_shadow_payload(
+                    nba1q=nba1q,
+                    nba=nba,
+                    nba1h=nba1h,
+                    wnba=wnba,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                    pool_fn=lambda f: pool(f, for_win_rate=True),
+                    graded_analysis=_load_graded_analysis(),
+                )
+                _emit_main_pool_mode_sidecars(
+                    nba1q=nba1q,
+                    nba=nba,
+                    nba1h=nba1h,
+                    wnba=wnba,
+                    mlb=mlb,
+                    soccer=soccer,
+                    tennis=tennis,
+                    nhl=nhl,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                    pool_fn=lambda f: pool(f, for_win_rate=True),
+                    graded_analysis=_load_graded_analysis(),
+                )
+                _emit_winrate_mlb_goblin_shadow_payload(
+                    mlb=mlb,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                    pool_fn=lambda f: pool(f, for_win_rate=True),
+                    graded_analysis=_load_graded_analysis(),
+                )
+                _std_shadow_frames = [
+                    nba1q,
+                    nba,
+                    nba1h,
+                    wnba,
+                    mlb,
+                    soccer,
+                    tennis,
+                    nhl,
+                ]
+                _emit_strong_standard_shadow_payload(
+                    frames=_std_shadow_frames,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                )
+                _emit_strong_mix_shadow_payload(
+                    frames=_std_shadow_frames,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                )
+                _emit_strong_standard_prob_shadow_payload(
+                    frames=_std_shadow_frames,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                )
+                _emit_strong_recombo_shadow_payload(
+                    strong_tickets=_extract_strong_builder_slips(full_payload),
+                    frames=_std_shadow_frames,
+                    date_str=str(args.date),
+                    thresholds=thresholds,
+                    bankroll=max(0.0, float(args.bankroll)),
+                    curve_stake_usd=float(args.curve_stake_usd),
+                )
+            except Exception as _shadow_exc:
+                print(f"  [web] WARN: shadow/sidecar emit failed ({_shadow_exc}); tickets_latest already written", flush=True)
         else:
             print("  WARNING: workbook produced 0 groups — falling back to FINAL builder.")
             nhl_pool_web = pool(nhl) if nhl is not None and len(nhl) > 0 else None
@@ -22669,19 +22742,21 @@ def main():
                 curve_stake_usd=float(args.curve_stake_usd),
             )
         _web_ev = not bool(args.no_web_ev_gate)
-        write_web_outputs(
-            payload,
-            args.web_outdir,
-            require_positive_ev=_web_ev,
-            merge_existing_for_date=bool(args.merge_web_latest),
-            apply_template_cap=bool(args.web_template_cap),
-            discard_tracker=discard_tracker,
-        )
-        write_slate_json(nba, cbb, nhl, soccer, args.date, args.web_outdir,
-                         wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h, tennis=tennis, golf=golf,
-                         nfl=nfl, wnba=wnba, cfb=cfb,
-                         tennis_date=getattr(args, "tennis_date", None),
-                         soccer_date=getattr(args, "soccer_date", None))
+        if not bool(getattr(args, "_web_json_written", False)):
+            write_web_outputs(
+                payload,
+                args.web_outdir,
+                require_positive_ev=_web_ev,
+                merge_existing_for_date=bool(args.merge_web_latest),
+                apply_template_cap=bool(args.web_template_cap),
+                discard_tracker=discard_tracker,
+            )
+            write_slate_json(nba, cbb, nhl, soccer, args.date, args.web_outdir,
+                             wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h, tennis=tennis, golf=golf,
+                             nfl=nfl, wnba=wnba, cfb=cfb,
+                             tennis_date=getattr(args, "tennis_date", None),
+                             soccer_date=getattr(args, "soccer_date", None))
+            print("[OK] Web outputs complete.", flush=True)
         try:
             ex_out = os.path.join(REPO_ROOT, "ui_runner", "data", "payout_ladder_examples.json")
             generate_payout_ladder_examples(payload, ex_out)
@@ -22696,8 +22771,6 @@ def main():
                 apply_template_cap=bool(args.web_template_cap),
                 discard_tracker=discard_tracker,
             )
-        # Avoid Windows console codepage issues with unicode checkmarks.
-        print("[OK] Web outputs complete.")
 
     if getattr(args, "also_win_rate", False) and not getattr(args, "win_rate_mode", False):
         wr_path = str(getattr(args, "win_rate_output", "") or "").strip()

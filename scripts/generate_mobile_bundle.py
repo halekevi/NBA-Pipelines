@@ -294,7 +294,23 @@ def _ensure_fresh_slate_templates(root_dir: Path, templates_dir: Path) -> None:
         print(f"  [slate-refresh] skip ({reason}); no outputs/{today_et} step8 boards yet")
         return
     print(f"  [slate-refresh] {reason}")
-    _refresh_slate_web_templates(root_dir, templates_dir, today_et)
+    if not _refresh_slate_web_templates(root_dir, templates_dir, today_et):
+        return
+    try:
+        scripts_dir = Path(__file__).resolve().parent
+        if str(scripts_dir) not in sys.path:
+            sys.path.insert(0, str(scripts_dir))
+        from assert_live_board_sync import inspect_live_board
+
+        info = inspect_live_board(templates_dir, today=today_et)
+        if not info.get("ok"):
+            print(
+                f"  [slate-refresh] WARN: {info.get('reason') or 'tickets lag slate'}. "
+                "Slate-only refresh does not update /tickets — run CombinedOnly --write-web "
+                "before push_live_to_main."
+            )
+    except Exception as exc:
+        print(f"  [slate-refresh] tickets/slate sync check skipped: {exc}")
 
 
 def _read_template_json_date(templates_dir: Path) -> str:

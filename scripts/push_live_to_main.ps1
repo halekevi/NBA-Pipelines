@@ -66,6 +66,9 @@ if ($IncludePublishHelpers) {
         "scripts/Ensure-CleanPull.ps1",
         "scripts/push_live_to_main.ps1",
         "scripts/combined_slate_tickets.py",
+        "scripts/assert_live_board_sync.py",
+        "scripts/generate_mobile_bundle.py",
+        "scripts/run_refresh_with_log.ps1",
         "utils/ticket_ev_tiers.py"
     )
 }
@@ -79,6 +82,22 @@ foreach ($rel in (@($liveRel) + $AlsoPaths)) {
 if (-not $toPublish.Count) {
     Write-Host "Nothing to publish." -ForegroundColor Yellow
     exit 0
+}
+
+$assertScript = Join-Path $Root "scripts\assert_live_board_sync.py"
+if (Test-Path -LiteralPath $assertScript) {
+    $todayEt = (Get-Date).ToString("yyyy-MM-dd")
+    try {
+        $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+        $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+    } catch { }
+    Write-Host "Checking tickets_latest vs slate_latest ($todayEt)..." -ForegroundColor DarkGray
+    & py -3.14 -X utf8 $assertScript --today $todayEt --templates-dir (Join-Path $Root "ui_runner\templates")
+    if ($LASTEXITCODE -eq 2) {
+        Write-Host "REFUSING to publish: tickets_latest lags slate_latest." -ForegroundColor Red
+        Write-Host "Run CombinedOnly --write-web, then retry. Slate-only publish is what left /tickets on yesterday." -ForegroundColor Yellow
+        exit 2
+    }
 }
 
 $MainRoot = Get-MainWorktreeRoot -RepoRoot $Root

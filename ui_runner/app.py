@@ -5125,7 +5125,12 @@ def api_slate_display_date():
         pass
 
     et_today = _eastern_today_ymd()
-    if tickets_date:
+    # Prefer the newest board that is not in the future. Tickets can lag the
+    # explorer (9AM slate landed while tickets_latest stayed on yesterday).
+    board_dates = [d for d in (tickets_date, slate_date) if d and d <= et_today]
+    if board_dates:
+        best = max(board_dates)
+    elif tickets_date:
         best = tickets_date
     else:
         not_future = [c for c in candidates if c <= et_today]

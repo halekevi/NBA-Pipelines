@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from datetime import date, datetime, timedelta, timezone
@@ -62,8 +63,9 @@ _DYNAMIC_SPORTS = frozenset({"NBA1H"})
 # In-season / shallow pools: never let top_n drop today's slate (WNBA was rank 51+).
 _SPORT_INCLUDE_ALL = frozenset({"WNBA", "NBA1H", "NBA1Q", "MLB", "SOCCER", "TENNIS"})
 TOP_BEST_PROPS = 3
-# Hot-player cards: show a prop title even when no slice meets sport min_n (e.g. 20).
-MIN_DISPLAY_PROPS = 3
+# Floor for a featured (prop, direction) slice. 3 let 3/3 at 100% flood the board.
+MIN_DISPLAY_PROPS = 5
+_WILSON_Z = 1.64  # ~95% one-sided lower bound; shrinks tiny 100% samples.
 
 # Volume/process props: deprioritized when ranking (weight 0.75 vs 1.0 for outcome props).
 VOLUME_PROPS: frozenset[str] = frozenset(
@@ -224,7 +226,7 @@ def _prop_slices_from_agg(
                 "hits": hits,
                 "total": n,
                 "hit_rate": hit_rate,
-                "_sort_score": hit_rate * weight,
+                "_sort_score": _slice_sort_score(hits, n, weight),
             }
         )
     slices.sort(
@@ -237,14 +239,32 @@ def _compute_best_props_from_agg(
     slice_rows: list[dict],
     sport: str,
     player_total: int,
+    *,
+    over_hits: int = 0,
+    over_total: int = 0,
+    over_rate: float | None = None,
+    under_hits: int = 0,
+    under_total: int = 0,
+    under_rate: float | None = None,
+    direction: str = "BOTH",
 ) -> tuple[dict | None, list[dict]]:
     min_n = _min_for_sport(sport, player_total)
     strict = _prop_slices_from_agg(slice_rows, sport, min_n)
-    display_min = min(min_n, max(MIN_DISPLAY_PROPS, 3))
+    display_min = _display_min_for(sport, player_total)
     relaxed = _prop_slices_from_agg(slice_rows, sport, display_min) if display_min < min_n else strict
     best_props = [_strip_slice(s) for s in strict[:TOP_BEST_PROPS]]
     pick = strict[0] if strict else (relaxed[0] if relaxed else None)
     best_prop = _strip_slice(pick) if pick else None
+    pooled = _pooled_direction_slice(
+        over_hits=over_hits,
+        over_total=over_total,
+        over_rate=over_rate,
+        under_hits=under_hits,
+        under_total=under_total,
+        under_rate=under_rate,
+        direction=direction,
+    )
+    best_prop = _finalize_display_prop(best_prop, pooled)
     return best_prop, best_props
 
 
@@ -306,7 +326,18 @@ def compute_consistency_from_db(db_path: Path, min_props: int = 10) -> list[dict
             over_rate, over_total, under_rate, under_total
         )
         tier = _tier_for_total(total)
-        best_prop, best_props = _compute_best_props_from_agg(slice_rows, sport, total)
+        best_prop, best_props = _compute_best_props_from_agg(
+            slice_rows,
+            sport,
+            total,
+            over_hits=over_hits,
+            over_total=over_total,
+            over_rate=over_rate,
+            under_hits=under_hits,
+            under_total=under_total,
+            under_rate=under_rate,
+            direction=direction,
+        )
         card_direction = (
             str(best_prop["direction"])
             if best_prop and best_prop.get("direction")
@@ -411,6 +442,82 @@ def _min_for_sport(sport: str, total: int) -> int:
     return min_val if min_val is not None else 20
 
 
+def _display_min_for(sport: str, player_total: int) -> int:
+    """Relaxed slice floor for the card title — never as low as 3/3."""
+    sport_min = _min_for_sport(sport, player_total)
+    floor = MIN_DISPLAY_PROPS
+    if player_total < 16:
+        floor = max(4, min(MIN_DISPLAY_PROPS, max(4, player_total // 2)))
+    return min(sport_min, floor)
+
+
+def _wilson_lower(hits: int, n: int, z: float = _WILSON_Z) -> float:
+    """Lower confidence bound so 3/3 at 100% does not outrank a real sample."""
+    if n <= 0:
+        return 0.0
+    phat = hits / n
+    z2 = z * z
+    denom = 1.0 + z2 / n
+    centre = phat + z2 / (2.0 * n)
+    margin = z * math.sqrt((phat * (1.0 - phat) + z2 / (4.0 * n)) / n)
+    return max(0.0, (centre - margin) / denom)
+
+
+def _slice_sort_score(hits: int, n: int, weight: float) -> float:
+    # log(n) prefers 12/18 over 3/3 at 100%; Wilson already shrinks the rate.
+    return _wilson_lower(hits, n) * weight * math.log(n + 1.0)
+
+
+def _pooled_direction_slice(
+    *,
+    over_hits: int,
+    over_total: int,
+    over_rate: float | None,
+    under_hits: int,
+    under_total: int,
+    under_rate: float | None,
+    direction: str,
+) -> dict | None:
+    """Fallback card market: all overs or all unders, not a 5/5 micro-slice."""
+    d = str(direction or "").upper()
+    if d == "UNDER" and under_total >= MIN_DISPLAY_PROPS and under_rate is not None:
+        return {
+            "prop_type": "All Unders",
+            "direction": "UNDER",
+            "hits": int(under_hits),
+            "total": int(under_total),
+            "hit_rate": float(under_rate),
+        }
+    if over_total >= MIN_DISPLAY_PROPS and over_rate is not None:
+        return {
+            "prop_type": "All Overs",
+            "direction": "OVER",
+            "hits": int(over_hits),
+            "total": int(over_total),
+            "hit_rate": float(over_rate),
+        }
+    if under_total >= MIN_DISPLAY_PROPS and under_rate is not None:
+        return {
+            "prop_type": "All Unders",
+            "direction": "UNDER",
+            "hits": int(under_hits),
+            "total": int(under_total),
+            "hit_rate": float(under_rate),
+        }
+    return None
+
+
+def _finalize_display_prop(pick: dict | None, pooled: dict | None) -> dict | None:
+    """Do not advertise 100% on n<8 (5/5, 6/6) when a real pooled sample exists."""
+    if pick is None:
+        return pooled
+    n = int(pick.get("total") or 0)
+    hr = float(pick.get("hit_rate") or 0)
+    if hr >= 0.999 and n < 8 and pooled and int(pooled.get("total") or 0) > n:
+        return pooled
+    return pick
+
+
 def _prop_slices_for_group(
     grp: pd.DataFrame,
     sport: str,
@@ -437,7 +544,7 @@ def _prop_slices_for_group(
                 "hits": hits,
                 "total": int(n),
                 "hit_rate": hit_rate,
-                "_sort_score": hit_rate * weight,
+                "_sort_score": _slice_sort_score(hits, n, weight),
             }
         )
     slices.sort(
@@ -454,12 +561,31 @@ def _compute_best_props(grp: pd.DataFrame, sport: str) -> tuple[dict | None, lis
     player_total = len(grp)
     min_n = _min_for_sport(sport, player_total)
     strict = _prop_slices_for_group(grp, sport, min_n)
-    display_min = min(min_n, max(MIN_DISPLAY_PROPS, 3))
+    display_min = _display_min_for(sport, player_total)
     relaxed = _prop_slices_for_group(grp, sport, display_min) if display_min < min_n else strict
 
     best_props = [_strip_slice(s) for s in strict[:TOP_BEST_PROPS]]
     pick = strict[0] if strict else (relaxed[0] if relaxed else None)
     best_prop = _strip_slice(pick) if pick else None
+    over_grp = grp[grp["direction"] == "OVER"]
+    under_grp = grp[grp["direction"] == "UNDER"]
+    over_total = len(over_grp)
+    over_hits = int((over_grp["outcome"] == "HIT").sum()) if over_total else 0
+    under_total = len(under_grp)
+    under_hits = int((under_grp["outcome"] == "HIT").sum()) if under_total else 0
+    over_rate = round(over_hits / over_total, 4) if over_total else None
+    under_rate = round(under_hits / under_total, 4) if under_total else None
+    direction, _balance = _direction_and_balance(over_rate, over_total, under_rate, under_total)
+    pooled = _pooled_direction_slice(
+        over_hits=over_hits,
+        over_total=over_total,
+        over_rate=over_rate,
+        under_hits=under_hits,
+        under_total=under_total,
+        under_rate=under_rate,
+        direction=direction,
+    )
+    best_prop = _finalize_display_prop(best_prop, pooled)
     return best_prop, best_props
 
 

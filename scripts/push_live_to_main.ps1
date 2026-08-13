@@ -118,8 +118,12 @@ try {
     foreach ($rel in $toPublish) {
         $src = Join-Path $Root ($rel -replace "/", "\")
         $dst = Join-Path $MainRoot ($rel -replace "/", "\")
-        New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
-        Copy-Item -LiteralPath $src -Destination $dst -Force
+        $srcFull = [System.IO.Path]::GetFullPath($src)
+        $dstFull = [System.IO.Path]::GetFullPath($dst)
+        if ($srcFull -ne $dstFull) {
+            New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $src -Destination $dst -Force
+        }
         git add -f -- $rel
     }
 

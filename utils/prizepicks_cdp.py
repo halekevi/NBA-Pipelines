@@ -76,10 +76,16 @@ def fetch_projections_inpage(
     *,
     per_page: int = 250,
     request_timeout_ms: int = 25_000,
+    max_pages: int = 20,
 ) -> tuple[list[dict], list[dict], int, str]:
-    """In-page fetch for one league_id. Returns (data, included, status, url)."""
+    """In-page fetch for one league_id. Returns (data, included, status, url).
+
+    Merges pregame (in_game=false) and live (in_game=true) boards and paginates
+    each. Returning the first non-empty URL used to drop FG/FT/2PT markets that
+    only exist on the pregame board after Popular/core stats.
+    """
     payload = page.evaluate(
-        """async ({ leagueId, perPage, timeoutMs }) => {
+        """async ({ leagueId, perPage, timeoutMs, maxPages }) => {
             const hdrs = () => ({
                 "accept": "application/json, text/plain, */*",
                 "accept-language": (navigator.languages && navigator.languages.length)
@@ -87,13 +93,8 @@ def fetch_projections_inpage(
                 "referer": window.location.href,
                 "x-requested-with": "XMLHttpRequest",
             });
-            const urls = [
-                `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=${perPage}&single_stat=true&in_game=true&game_mode=pickem`,
-                `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=${perPage}&single_stat=true&in_game=false&game_mode=pickem`,
-                `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=${perPage}&single_stat=true&game_mode=pickem`,
-            ];
-            let best = { data: [], included: [], status: 0, url: '' };
-            for (const url of urls) {
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+            const fetchJson = async (url) => {
                 const ctrl = new AbortController();
                 const timer = setTimeout(() => ctrl.abort(), timeoutMs);
                 try {
@@ -104,27 +105,64 @@ def fetch_projections_inpage(
                         signal: ctrl.signal,
                     });
                     clearTimeout(timer);
-                    if (!r.ok) {
-                        if (!best.status) best = { data: [], included: [], status: r.status, url };
-                        continue;
-                    }
+                    if (!r.ok) return { ok: false, status: r.status, data: [], included: [], url };
                     const j = await r.json();
-                    const data = Array.isArray(j?.data) ? j.data : [];
-                    const included = Array.isArray(j?.included) ? j.included : [];
-                    const cand = { data, included, status: r.status, url };
-                    if (data.length > (best.data || []).length) best = cand;
-                    if (data.length > 0) return cand;
+                    return {
+                        ok: true,
+                        status: r.status,
+                        data: Array.isArray(j?.data) ? j.data : [],
+                        included: Array.isArray(j?.included) ? j.included : [],
+                        url,
+                    };
                 } catch (e) {
                     clearTimeout(timer);
-                    if (!best.status) best = { data: [], included: [], status: 0, url, error: String(e) };
+                    return { ok: false, status: 0, data: [], included: [], url, error: String(e) };
+                }
+            };
+
+            const seen = new Set();
+            const allData = [];
+            const allIncluded = [];
+            let lastStatus = 0;
+            let lastUrl = '';
+            // Pregame first: FG Made/Attempted, FT, 2PT live on in_game=false.
+            const flags = ["false", "true"];
+            for (const inGame of flags) {
+                for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+                    const url = `https://api.prizepicks.com/projections?league_id=${leagueId}`
+                        + `&per_page=${perPage}&single_stat=true&in_game=${inGame}`
+                        + `&game_mode=pickem&page=${pageNum}&page[number]=${pageNum}`
+                        + `&page[size]=${perPage}`;
+                    const res = await fetchJson(url);
+                    lastStatus = res.status || lastStatus;
+                    lastUrl = res.url || lastUrl;
+                    if (!res.ok) {
+                        if (pageNum === 1) break;
+                        break;
+                    }
+                    const data = res.data || [];
+                    const included = res.included || [];
+                    let added = 0;
+                    for (const row of data) {
+                        const id = row && row.id != null ? String(row.id) : '';
+                        if (!id || seen.has(id)) continue;
+                        seen.add(id);
+                        allData.push(row);
+                        added += 1;
+                    }
+                    for (const obj of included) allIncluded.push(obj);
+                    if (data.length === 0 || added === 0) break;
+                    if (data.length < perPage) break;
+                    await sleep(350);
                 }
             }
-            return best;
+            return { data: allData, included: allIncluded, status: lastStatus || (allData.length ? 200 : 0), url: lastUrl };
         }""",
         {
             "leagueId": str(league_id),
             "perPage": int(per_page),
             "timeoutMs": int(request_timeout_ms),
+            "maxPages": int(max_pages),
         },
     )
     data = list((payload or {}).get("data") or [])

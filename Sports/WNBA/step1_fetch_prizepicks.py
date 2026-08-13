@@ -389,26 +389,38 @@ def _included_index(included: List[dict]) -> Dict[Tuple[str, str], dict]:
     return idx
 
 
+def _in_game_flags() -> List[str]:
+    """Which PrizePicks in_game boards to fetch.
+
+    FG Made/Attempted, Two Pointers, and Free Throws live on the pregame
+    board (in_game=false). Evening live props need in_game=true. Default is
+    both, merged by projection id. Override with PROPORACLE_WNBA_IN_GAME=
+    true|false|both.
+    """
+    raw = os.environ.get("PROPORACLE_WNBA_IN_GAME", "both").strip().lower()
+    if raw in ("0", "false"):
+        return ["false"]
+    if raw in ("1", "true"):
+        return ["true"]
+    return ["false", "true"]
+
+
 def _page_params(
     league_id: str,
     game_mode: str,
     per_page: int,
     page: int,
+    in_game: str = "false",
 ) -> Dict[str, Any]:
-    # Prefer in_game=true first — evening boards often have live-only projections.
-    in_game = os.environ.get("PROPORACLE_WNBA_IN_GAME", "true").strip().lower()
-    if in_game not in ("true", "false", "0", "1"):
-        in_game = "true"
-    if in_game in ("0", "false"):
-        in_game = "false"
-    else:
-        in_game = "true"
+    flag = str(in_game).strip().lower()
+    if flag not in ("true", "false"):
+        flag = "false"
     return {
         "league_id": str(league_id),
         "game_mode": str(game_mode),
         "per_page": int(per_page),
         "single_stat": "true",
-        "in_game": in_game,
+        "in_game": flag,
         "page": int(page),
         "page[number]": int(page),
         "page[size]": int(per_page),
@@ -508,7 +520,7 @@ def _fetch_one_page(
     return False, False, cooldowns_used, forbidden_retries, [], []
 
 
-def fetch_pages(
+def _fetch_pages_for_in_game(
     league_id: str,
     game_mode: str,
     per_page: int,
@@ -517,6 +529,8 @@ def fetch_pages(
     cooldown_seconds: float,
     max_cooldowns: int,
     jitter_seconds: float,
+    in_game: str,
+    seen_ids: Set[str],
     max_403_retries: int = 5,
     forbidden_backoff_base: float = 15.0,
     first_page_waves: int = 3,
@@ -527,9 +541,7 @@ def fetch_pages(
     cooldowns_used = 0
     forbidden_retries = 0
     stop_paging = False
-    seen_ids: Set[str] = set()
 
-    _log_http_backend_once()
     session: Any | None = None
     waves = max(1, int(first_page_waves))
     if fail_fast_403:
@@ -555,7 +567,7 @@ def fetch_pages(
         cooldowns_used = 0
         forbidden_retries = 0
 
-        params = _page_params(league_id, game_mode, per_page, 1)
+        params = _page_params(league_id, game_mode, per_page, 1, in_game=in_game)
         ok, stop, cooldowns_used, forbidden_retries, page_new, inc = _fetch_one_page(
             session,
             page=1,
@@ -577,7 +589,7 @@ def fetch_pages(
             all_data.extend(page_new)
             all_included.extend(inc)
             page1_ok = True
-            print(f"  Page 1: total={len(all_data)}")
+            print(f"  [in_game={in_game}] Page 1: total={len(all_data)}")
             time.sleep(sleep + random.uniform(0, 0.5))
             break
         if ok and not page_new:
@@ -593,7 +605,7 @@ def fetch_pages(
     for page in range(2, max_pages + 1):
         if stop_paging:
             break
-        params = _page_params(league_id, game_mode, per_page, page)
+        params = _page_params(league_id, game_mode, per_page, page, in_game=in_game)
         ok, stop, cooldowns_used, forbidden_retries, page_new, inc = _fetch_one_page(
             session,
             page=page,
@@ -615,17 +627,61 @@ def fetch_pages(
                 all_included.extend(inc)
             break
         if not ok:
-            print(f"  Page {page}: failed after retries — stopping pagination")
+            print(f"  [in_game={in_game}] Page {page}: failed after retries — stopping pagination")
             break
         if not page_new:
             stop_paging = True
             break
         all_data.extend(page_new)
         all_included.extend(inc)
-        print(f"  Page {page}: total={len(all_data)}")
+        print(f"  [in_game={in_game}] Page {page}: total={len(all_data)}")
         time.sleep(sleep + random.uniform(0, 0.5))
 
     session.close()
+    return all_data, all_included
+
+
+def fetch_pages(
+    league_id: str,
+    game_mode: str,
+    per_page: int,
+    max_pages: int,
+    sleep: float,
+    cooldown_seconds: float,
+    max_cooldowns: int,
+    jitter_seconds: float,
+    max_403_retries: int = 5,
+    forbidden_backoff_base: float = 15.0,
+    first_page_waves: int = 3,
+    fail_fast_403: bool = False,
+) -> Tuple[List[dict], List[dict]]:
+    all_data: List[dict] = []
+    all_included: List[dict] = []
+    seen_ids: Set[str] = set()
+    flags = _in_game_flags()
+    _log_http_backend_once()
+    print(f"  [in_game] fetching flags={flags}")
+    for i, flag in enumerate(flags):
+        before = len(all_data)
+        data, inc = _fetch_pages_for_in_game(
+            league_id,
+            game_mode,
+            per_page,
+            max_pages,
+            sleep,
+            cooldown_seconds,
+            max_cooldowns,
+            jitter_seconds,
+            in_game=flag,
+            seen_ids=seen_ids,
+            max_403_retries=max_403_retries,
+            forbidden_backoff_base=forbidden_backoff_base,
+            first_page_waves=first_page_waves if i == 0 else 1,
+            fail_fast_403=bool(fail_fast_403) or i > 0,
+        )
+        all_data.extend(data)
+        all_included.extend(inc)
+        print(f"  [in_game={flag}] +{len(all_data) - before} new  merged_total={len(all_data)}")
     return all_data, all_included
 
 
@@ -777,34 +833,46 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                     "referer": window.location.href,
                     "x-requested-with": "XMLHttpRequest",
                 });
-                const urls = [
-                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true&in_game=true`,
-                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true&in_game=false`,
-                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true`,
-                ];
-                let best = { data: [], included: [], status: 0, url: '' };
-                for (const url of urls) {
-                    const ctrl = new AbortController();
-                    const timer = setTimeout(() => ctrl.abort(), 25000);
-                    try {
-                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal });
-                        clearTimeout(timer);
-                        if (!r.ok) {
-                            if (!best.status) best = { data: [], included: [], status: r.status, url };
-                            continue;
+                const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                const seen = new Set();
+                const allData = [];
+                const allIncluded = [];
+                let lastStatus = 0;
+                let lastUrl = '';
+                for (const inGame of ["false", "true"]) {
+                    for (let pageNum = 1; pageNum <= 20; pageNum++) {
+                        const url = `https://api.prizepicks.com/projections?league_id=${leagueId}`
+                            + `&per_page=250&single_stat=true&in_game=${inGame}`
+                            + `&game_mode=pickem&page=${pageNum}&page[number]=${pageNum}&page[size]=250`;
+                        const ctrl = new AbortController();
+                        const timer = setTimeout(() => ctrl.abort(), 25000);
+                        try {
+                            const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal });
+                            clearTimeout(timer);
+                            lastStatus = r.status || lastStatus;
+                            lastUrl = url;
+                            if (!r.ok) break;
+                            const j = await r.json();
+                            const data = Array.isArray(j?.data) ? j.data : [];
+                            const included = Array.isArray(j?.included) ? j.included : [];
+                            let added = 0;
+                            for (const row of data) {
+                                const id = row && row.id != null ? String(row.id) : '';
+                                if (!id || seen.has(id)) continue;
+                                seen.add(id);
+                                allData.push(row);
+                                added += 1;
+                            }
+                            for (const obj of included) allIncluded.push(obj);
+                            if (data.length === 0 || added === 0 || data.length < 250) break;
+                            await sleep(350);
+                        } catch (e) {
+                            clearTimeout(timer);
+                            break;
                         }
-                        const j = await r.json();
-                        const data = Array.isArray(j?.data) ? j.data : [];
-                        const included = Array.isArray(j?.included) ? j.included : [];
-                        const cand = { data, included, status: r.status, url };
-                        if (data.length > (best.data || []).length) best = cand;
-                        if (data.length > 0) return cand;
-                    } catch (e) {
-                        clearTimeout(timer);
-                        if (!best.status) best = { data: [], included: [], status: 0, url, error: String(e) };
                     }
                 }
-                return best;
+                return { data: allData, included: allIncluded, status: lastStatus || (allData.length ? 200 : 0), url: lastUrl };
             }""",
                 {"leagueId": str(league_id)},
             )

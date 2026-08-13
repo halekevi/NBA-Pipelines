@@ -53,6 +53,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from utils.fantasy_prop_filter import drop_fantasy_props
+from utils.allstar_filter import drop_allstar_props
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
 
 # PrizePicks sits behind Cloudflare; stdlib TLS (requests) is often JA3-flagged.
@@ -637,6 +638,66 @@ def fetch_projections(
             break
         page += 1
 
+    # Pregame (in_game=false) holds FG/FT/2PT. Supplement live markets if any.
+    if str(params.get("in_game", "false")).lower() != "true":
+        print("  Supplementing in_game=true (live markets)...")
+        try:
+            live_params = dict(params)
+            live_params["in_game"] = "true"
+            live_payload = _api_get(
+                session,
+                BASE_URL,
+                live_params,
+                retries=max(2, retries - 1),
+                forbid_cooldown_threshold=forbid_cooldown_threshold,
+                forbid_cooldown_seconds=min(forbid_cooldown_seconds, 45.0),
+                forbid_cooldown_jitter=forbid_cooldown_jitter,
+                forbid_max_cooldown_windows=max(1, forbid_max_cooldown_windows - 1),
+            )
+            live_data = live_payload.get("data") or []
+            live_inc = live_payload.get("included") or []
+            added = 0
+            for obj in live_data:
+                oid = str(obj.get("id", ""))
+                if oid and oid not in seen_ids:
+                    all_data.append(obj)
+                    seen_ids.add(oid)
+                    added += 1
+            all_included.extend(live_inc)
+            print(f"    in_game=true page 1 → {len(live_data)} projections ({added} new)")
+            live_links = live_payload.get("links") or {}
+            live_page = 2
+            while live_links.get("next") and live_page <= max_pages:
+                next_url = live_links["next"]
+                time.sleep(random.uniform(ip_lo, ip_hi))
+                live_payload = _api_get(
+                    session,
+                    next_url,
+                    {},
+                    retries=max(2, retries - 1),
+                    forbid_cooldown_threshold=forbid_cooldown_threshold,
+                    forbid_cooldown_seconds=min(forbid_cooldown_seconds, 45.0),
+                    forbid_cooldown_jitter=forbid_cooldown_jitter,
+                    forbid_max_cooldown_windows=max(1, forbid_max_cooldown_windows - 1),
+                )
+                live_data = live_payload.get("data") or []
+                live_inc = live_payload.get("included") or []
+                added = 0
+                for obj in live_data:
+                    oid = str(obj.get("id", ""))
+                    if oid and oid not in seen_ids:
+                        all_data.append(obj)
+                        seen_ids.add(oid)
+                        added += 1
+                all_included.extend(live_inc)
+                print(f"    in_game=true page {live_page} → {len(live_data)} projections ({added} new)")
+                live_links = live_payload.get("links") or {}
+                if not live_data:
+                    break
+                live_page += 1
+        except Exception as e:
+            print(f"  [WARN] in_game=true supplement skipped: {e}")
+
     session.close()
     return all_data, all_included
 
@@ -746,7 +807,7 @@ def main() -> None:
     ap.add_argument("--output",     default="step1_pp_props_today.csv")
     ap.add_argument("--league_id",  default="7")
     ap.add_argument("--per_page",   type=int, default=250)
-    ap.add_argument("--max_pages",  type=int, default=10)
+    ap.add_argument("--max_pages",  type=int, default=20)
     ap.add_argument("--retries",    type=int, default=5)
     ap.add_argument("--min_rows",   type=int, default=50,  help="Minimum props required to consider fetch valid")
     ap.add_argument("--min_teams",  type=int, default=2,   help="Minimum teams required to consider fetch valid (supports playoff/light slates)")
@@ -965,6 +1026,9 @@ def main() -> None:
     df, n_fantasy = drop_fantasy_props(df)
     if n_fantasy:
         print(f"  Dropped {n_fantasy} fantasy prop row(s)")
+    df, n_allstar = drop_allstar_props(df, sport="NBA")
+    if n_allstar:
+        print(f"  Dropped {n_allstar} All-Star prop row(s)")
 
     if len(df) == 0:
         print(no_props_log_line("NBA", str(args.date).strip()))

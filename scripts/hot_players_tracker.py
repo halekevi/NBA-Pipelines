@@ -102,14 +102,17 @@ def featured_hot_players(slate_date: str, limit: int = 8) -> list[dict]:
     """Same pool as /api/hot-players for a given ET slate date."""
     _slate_names, slate_pairs = load_today_slate() if slate_date == str(date.today()) else _load_slate_pairs_for_date(slate_date)
     players = _load_consistency_players()
-    pool = [
-        p
-        for p in players
-        if p.get("tier") in ("high", "medium") and _player_on_slate(p, slate_pairs)
-    ]
+    pool = [p for p in players if _player_on_slate(p, slate_pairs)]
     by_sport: dict[str, list[dict]] = {}
     featured: list[dict] = []
-    for p in sorted(pool, key=lambda x: -float(x.get("hit_rate", 0))):
+    for p in sorted(
+        pool,
+        key=lambda x: (
+            0 if x.get("tier") in ("high", "medium") else 1,
+            -float(x.get("hit_rate") or 0),
+            -int(x.get("total") or 0),
+        ),
+    ):
         sport = str(p.get("sport", "?"))
         if sport not in by_sport:
             by_sport[sport] = []

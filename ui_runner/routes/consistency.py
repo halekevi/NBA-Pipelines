@@ -43,6 +43,29 @@ _CACHE_CANDIDATES = (
     Path(__file__).resolve().parents[1] / "data" / "player_consistency.json",
 )
 
+# Keep in sync with scripts/build_player_consistency_ui.py SPORT_ALIASES.
+# Soccer/Tennis are title-case; .upper() matching silently drops them vs MLB.
+_SPORT_ALIASES = {
+    "nba": "NBA",
+    "mlb": "MLB",
+    "nhl": "NHL",
+    "nfl": "NFL",
+    "wnba": "WNBA",
+    "soccer": "Soccer",
+    "tennis": "Tennis",
+    "cbb": "CBB",
+    "cfb": "CFB",
+}
+
+
+def _canon_sport(raw: str) -> str:
+    key = str(raw or "").strip().lower()
+    return _SPORT_ALIASES.get(key, str(raw or "").strip().upper())
+
+
+def _canon_name(name: str) -> str:
+    return str(name or "").strip().lower()
+
 
 def _cache_path() -> Path:
     """Use the newest on-disk cache (avoids stale data/cache shadowing ui_runner/data on deploy)."""
@@ -200,18 +223,7 @@ def _load_live_today_slate_cached() -> tuple[set[str], set[tuple[str, str]]]:
 def _player_on_live_slate(p: dict, slate_pairs: set[tuple[str, str]]) -> bool:
     if not slate_pairs:
         return False
-    import sys
-
-    root = REPO_ROOT
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
-    try:
-        from scripts.build_player_consistency_ui import slate_pair_key
-    except Exception:
-        name = str(p.get("player") or "").strip().lower()
-        sport = str(p.get("sport") or "").strip()
-        return bool(name and sport and (name, sport) in slate_pairs)
-    pair = slate_pair_key(str(p.get("player") or ""), str(p.get("sport") or ""))
+    pair = (_canon_name(str(p.get("player") or "")), _canon_sport(str(p.get("sport") or "")))
     return bool(pair[0] and pair[1] and pair in slate_pairs)
 
 
@@ -244,22 +256,34 @@ def hot_players():
     players = data.get("players", [])
 
     _slate_names, slate_pairs = _load_live_today_slate_cached()
-    today = [
-        p
-        for p in players
-        if p.get("tier") in ("high", "medium") and _player_on_live_slate(p, slate_pairs)
-    ]
+    today = [p for p in players if _player_on_live_slate(p, slate_pairs)]
 
     if sport:
-        today = [p for p in today if str(p.get("sport", "")).upper() == sport.upper()]
+        want = _canon_sport(sport)
+        today = [p for p in today if _canon_sport(str(p.get("sport", ""))) == want]
 
+    def _hot_sort_key(p: dict) -> tuple:
+        tier = str(p.get("tier") or "")
+        tier_rank = 0 if tier in ("high", "medium") else 1
+        return (tier_rank, -float(p.get("hit_rate") or 0), -int(p.get("total") or 0))
+
+    min_rate = 0.35
+    ranked = sorted(today, key=_hot_sort_key)
     by_sport: dict[str, list] = {}
-    for p in sorted(today, key=lambda x: -float(x.get("hit_rate", 0))):
+    for p in ranked:
+        if float(p.get("hit_rate") or 0) < min_rate:
+            continue
         s = str(p.get("sport", "?"))
         if s not in by_sport:
             by_sport[s] = []
         if len(by_sport[s]) < limit:
             by_sport[s].append(_enrich_hot_player(p))
+    # Don't hide a live sport just because everyone is under the hot-rate floor.
+    for p in ranked:
+        s = str(p.get("sport", "?"))
+        if s in by_sport:
+            continue
+        by_sport[s] = [_enrich_hot_player(p)]
 
     payload = {
         "date": _eastern_today_ymd(),

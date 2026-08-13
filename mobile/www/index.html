@@ -2303,7 +2303,7 @@ body > nav.snav.glass-card {
 
 <script>
 (function () {
-  const API = '/api/hot-players?limit=8&_v=2';
+  const API = '/api/hot-players?limit=8&_v=3';
   const TRACK_API = '/api/hot-players/track-record';
   const SECTION = document.getElementById('hot-players-section');
   const SCROLL = document.getElementById('hot-players-scroll');
@@ -2397,9 +2397,28 @@ body > nav.snav.glass-card {
       '</div>';
   }
 
+  function mixAllSports(bySport) {
+    const sports = Object.keys(bySport).sort();
+    const out = [];
+    let i = 0;
+    let added = true;
+    while (added) {
+      added = false;
+      for (let s = 0; s < sports.length; s++) {
+        const list = bySport[sports[s]] || [];
+        if (i < list.length) {
+          out.push(list[i]);
+          added = true;
+        }
+      }
+      i++;
+    }
+    return out;
+  }
+
   function renderCards(sport) {
     SCROLL.innerHTML = '';
-    const list = sport === 'ALL' ? Object.values(allCardsBySport).flat() : (allCardsBySport[sport] || []);
+    const list = sport === 'ALL' ? mixAllSports(allCardsBySport) : (allCardsBySport[sport] || []);
     if (!list.length) {
       EMPTY.style.display = '';
       SCROLL.style.display = 'none';

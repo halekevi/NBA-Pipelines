@@ -8053,6 +8053,38 @@ def _safe_float(x, default=None):
         return default
 
 
+def _is_na_value(x) -> bool:
+    if x is None:
+        return True
+    if isinstance(x, (list, dict, tuple, set)):
+        return False
+    try:
+        result = pd.isna(x)
+        if isinstance(result, (bool, np.bool_)):
+            return bool(result)
+        return False
+    except Exception:
+        return False
+
+
+def _safe_bool(x, default: bool = False) -> bool:
+    if _is_na_value(x):
+        return default
+    try:
+        return bool(x)
+    except Exception:
+        return default
+
+
+def _safe_text(x, default: str = "") -> str:
+    if _is_na_value(x):
+        return default
+    text = str(x).strip()
+    if text.lower() in {"nan", "none", "<na>", "nat"}:
+        return default
+    return text
+
+
 def _clean_id(x) -> str:
     """Return a clean integer-like string for IDs, or ''."""
     if x is None:
@@ -10668,19 +10700,19 @@ def ticket_groups_to_payload(
                 "combined_hit_prob_curve": _safe_float(t.get("combined_hit_prob_curve")),
                 "est_multiplier_flex_nn": _safe_float(t.get("est_multiplier_flex_nn")),
                 "flat_multiplier_flex_nn": _safe_float(t.get("flat_multiplier_flex_nn")),
-                "using_flat_fallback": bool(t.get("using_flat_fallback")),
+                "using_flat_fallback": _safe_bool(t.get("using_flat_fallback")),
                 "has_data_warning": False,
-                "strong_builder": bool(t.get("strong_builder")),
+                "strong_builder": _safe_bool(t.get("strong_builder")),
                 "strong_builder_pick": t.get("strong_builder_pick"),
-                "core_build": bool(t.get("core_build")),
+                "core_build": _safe_bool(t.get("core_build")),
                 "core_recipe": t.get("core_recipe"),
                 "core_label": t.get("core_label"),
                 "pool_policy": t.get("pool_policy"),
-                "probability_ladder": bool(t.get("probability_ladder")),
-                "high_probability_parlay": bool(t.get("high_probability_parlay")),
-                "high_prob_parlay_relaxed": bool(t.get("high_prob_parlay_relaxed")),
+                "probability_ladder": _safe_bool(t.get("probability_ladder")),
+                "high_probability_parlay": _safe_bool(t.get("high_probability_parlay")),
+                "high_prob_parlay_relaxed": _safe_bool(t.get("high_prob_parlay_relaxed")),
                 "high_prob_parlay_rank": t.get("high_prob_parlay_rank"),
-                "stack_70_ladder": bool(t.get("stack_70_ladder")),
+                "stack_70_ladder": _safe_bool(t.get("stack_70_ladder")),
                 "ladder_rank": t.get("ladder_rank"),
                 "legs": [],
             }
@@ -10688,10 +10720,14 @@ def ticket_groups_to_payload(
             for row in rows:
 
                 def gv(field):
-                    return row.get(field, "") if isinstance(row, dict) else getattr(row, field, "")
+                    if isinstance(row, dict):
+                        val = row.get(field, "")
+                    else:
+                        val = getattr(row, field, "")
+                    return "" if _is_na_value(val) else val
 
                 _dpv = gd_leg_delta_pct(gv("line"), gv("standard_line"))
-                sport_s = str(gv("sport") or t.get("sport") or "").strip()
+                sport_s = _safe_text(gv("sport")) or _safe_text(t.get("sport"))
                 player_s = str(gv("player") or "")
                 team_s = str(gv("team") or "")
                 opp_s = str(gv("opp") or gv("opp_team") or "").strip()
@@ -22426,18 +22462,22 @@ def main():
 
                 _web_tb.print_exc()
                 print(f"[ERROR] write-web payload build failed: {web_exc}", flush=True)
-                full_payload = ticket_groups_to_payload(
-                    all_ticket_groups,
-                    args.date,
-                    thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                    ticket_track="graded_main",
-                    payload_mode="main",
-                )
-                payload = dict(full_payload)
-                long_payload = {"groups": []}
-                print("  [web-fallback] using workbook groups as tickets payload", flush=True)
+                try:
+                    full_payload = ticket_groups_to_payload(
+                        all_ticket_groups,
+                        args.date,
+                        thresholds,
+                        bankroll=max(0.0, float(args.bankroll)),
+                        curve_stake_usd=float(args.curve_stake_usd),
+                        ticket_track="graded_main",
+                        payload_mode="main",
+                    )
+                    payload = dict(full_payload)
+                    long_payload = {"groups": []}
+                    print("  [web-fallback] using workbook groups as tickets payload", flush=True)
+                except Exception as fb_exc:
+                    print(f"  [web-fallback] FAILED: {fb_exc}", flush=True)
+                    raise
             n_groups = len(payload["groups"])
             n_slips = sum(len(g["tickets"]) for g in payload["groups"])
             n_long = sum(len(g.get("tickets") or []) for g in long_payload.get("groups") or [])

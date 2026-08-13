@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}" data-deploy-sha="{{ deploy_git_sha|default('', true) }}">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <script>(function(){try{var t=localStorage.getItem('proporacle-theme')||localStorage.getItem('theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
 <meta name="theme-color" content="#050505"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -206,13 +206,25 @@ body::after{content:'';position:fixed;inset:0;
 .sec-header .sec-title{flex-shrink:0;}
 
 /* hero */
-.hero{width:100%;max-width:100%;box-sizing:border-box;display:flex;align-items:stretch;flex-direction:column;flex-wrap:nowrap;gap:16px;margin-bottom:18px;padding:clamp(20px,3vw,32px) clamp(18px,3vw,34px);background:rgba(255,255,255,0.03);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid rgba(255,255,255,0.09);border-radius:20px;box-shadow:var(--glass-shadow-lg);position:relative;overflow:hidden;isolation:isolate;}
+.hero{width:100%;max-width:100%;box-sizing:border-box;display:flex;align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:16px 28px;margin-bottom:18px;padding:clamp(20px,3vw,32px) clamp(18px,3vw,34px);background:rgba(255,255,255,0.03);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid rgba(255,255,255,0.09);border-radius:20px;box-shadow:var(--glass-shadow-lg);position:relative;overflow:hidden;isolation:isolate;}
 .hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--cyan),var(--purple));}
 .hero-eyebrow{font-size:11px;font-family:"Inter",sans-serif;font-weight:500;color:var(--muted);letter-spacing:2px;margin-bottom:12px;text-transform:uppercase;}
 .hero-title{font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:6px;line-height:.95;color:var(--text);}
 .hero-title .ht2{color:var(--accent);}
 .hero-title .prop-hero-prefix{text-transform:none;}
-.hero-copy{min-width:0;flex:0 1 auto;}
+.hero-copy{min-width:0;flex:1 1 280px;}
+.hero-lede{margin:10px 0 0;max-width:52ch;color:var(--muted2);font-size:clamp(13px,1.5vw,15px);line-height:1.5;}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;min-height:28px;}
+.hero-chip{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.4);background:rgba(212,175,55,.08);color:var(--accent);text-decoration:none;}
+.hero-chip:hover{background:rgba(212,175,55,.16);border-color:rgba(212,175,55,.55);}
+.hero-cta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+.hero-btn{display:inline-flex;align-items:center;text-decoration:none;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;}
+.hero-btn-gold{background:rgba(212,175,55,.16);border:1px solid rgba(212,175,55,.45);color:var(--accent);}
+.hero-btn-gold:hover{background:rgba(212,175,55,.24);}
+.hero-btn-ghost{border:1px solid rgba(255,255,255,.14);color:var(--text);}
+.hero-btn-ghost:hover{border-color:rgba(255,255,255,.28);}
+[data-theme="light"] .hero-lede{color:rgba(30,40,55,.78);}
+[data-theme="light"] .hero-btn-ghost{color:rgba(20,30,40,.82);border-color:rgba(70,110,140,.28);}
 /* “How to read this page” — sits in hero to the right on wide viewports */
 .hero .home-flow-lede{
   margin:0;
@@ -1097,12 +1109,20 @@ body > nav.snav.glass-card {
   <!-- HERO -->
   <div class="hero">
     <div class="hero-copy">
-      <div class="hero-eyebrow">NBA · NBA1H · NBA1Q · CBB · CFB · WCBB · NHL · SOCCER · MLB · NFL · TENNIS · WNBA · Prop Intelligence</div>
+      <div class="hero-eyebrow" id="hero-live-eyebrow">Live today</div>
       <h1 class="hero-title">
         <span class="ht1 prop-hero-prefix">Prop</span>
         <span class="ht2">Oracle</span>
       </h1>
+      <p class="hero-lede">Model vs line for today’s board. Sport tiles open the explorer; tickets are the built card. Matchup Edge stays inside the selected sport — players and defense ranked on that prop.</p>
+      <div class="hero-chips" id="hero-live-chips" aria-label="Live sports today"></div>
+      <div class="hero-cta-row">
+        <a class="hero-btn hero-btn-gold" href="/tickets">Open tickets</a>
+        <a class="hero-btn hero-btn-ghost" href="#top-edges">Jump to top edges</a>
+      </div>
     </div>
+    <p class="home-flow-lede"><strong>How to read this page.</strong> Live tiles = today’s slate. Top Edges = projection vs line. Matchup Edge opens after you pick a sport. Streaks stay collapsed until you want them.</p>
+  </div>
 
   <div id="home-skew-banner" class="home-skew-banner" role="status" aria-live="polite"></div>
     
@@ -2194,7 +2214,7 @@ body > nav.snav.glass-card {
   </details>
 
   <!-- HOT PLAYERS — consistency leaders on today's slate -->
-  <details class="home-cat" id="hot-players-cat" open>
+  <details class="home-cat" id="hot-players-cat">
     <summary><span class="home-cat-title">Hot <span>Players</span></span></summary>
     <div class="home-cat-body">
       {% include '_hot_players_section.html' %}
@@ -2207,11 +2227,10 @@ body > nav.snav.glass-card {
     <div class="home-cat-body">
   <div class="home-cat-flat" style="margin-bottom:12px;">
     <div class="sec-header">
-      <div class="sec-title">Top <span style="color:var(--accent)">Edges</span></div>
       <div class="sec-line"></div>
       <a href="/tickets" class="edges-see-all">See All Picks ↗</a>
     </div>
-    <div id="top-edges-debug" style="font-size:9px;font-family:Inter,sans-serif;color:var(--muted2);letter-spacing:0.04em;margin:-4px 0 10px;min-height:12px;"></div>
+    <div id="top-edges-debug" hidden aria-hidden="true"></div>
     
     <div class="sub-header" style="color:var(--green);">
       ▲ OVER EDGES
@@ -2234,14 +2253,13 @@ body > nav.snav.glass-card {
   </details>
 
   <!-- L5 STREAKS -->
-  <details class="home-cat" id="l5-streaks-cat" open>
+  <details class="home-cat" id="l5-streaks-cat">
     <summary><span class="home-cat-title">L5 <span>Streaks</span></span></summary>
     <div class="home-cat-body">
   <div class="home-cat-flat" style="margin-bottom:40px;">
     <div class="sec-header">
-      <div class="sec-title">L5 <span style="color:var(--accent)">Streaks</span></div>
-      <div class="sec-line"></div>
       <span style="font-size:9px;color:var(--muted);letter-spacing:2px;">PERFECT LAST 5</span>
+      <div class="sec-line"></div>
     </div>
 
     <div class="sub-header" style="color:var(--green);">
@@ -2260,14 +2278,13 @@ body > nav.snav.glass-card {
   </details>
 
   <!-- L10 STREAKS -->
-  <details class="home-cat">
+  <details class="home-cat" id="l10-streaks-cat">
     <summary><span class="home-cat-title">L10 <span>Streaks</span></span></summary>
     <div class="home-cat-body">
   <div class="home-cat-flat" style="margin-bottom:40px;">
     <div class="sec-header">
-      <div class="sec-title">L10 <span style="color:var(--accent)">Streaks</span></div>
-      <div class="sec-line"></div>
       <span style="font-size:9px;color:var(--muted);letter-spacing:2px;">LAST 10 GAMES</span>
+      <div class="sec-line"></div>
     </div>
 
     <div class="sub-header" style="color:var(--green);">
@@ -3610,17 +3627,57 @@ function autoOpenBootSlatePanel() {
     console.warn("autoOpenBootSlatePanel:", e);
   }
 }
+function syncHeroLiveChips() {
+  const host = document.getElementById("hero-live-chips");
+  const eye = document.getElementById("hero-live-eyebrow");
+  if (!host) return;
+  const labels = {
+    nba: "NBA", nba1h: "NBA 1H", nba1q: "NBA 1Q", cbb: "CBB", cfb: "CFB",
+    nhl: "NHL", soccer: "Soccer", mlb: "MLB", nfl: "NFL", tennis: "Tennis", wnba: "WNBA",
+  };
+  const cards = [...document.querySelectorAll("#slate-panel-header-row .scard")].filter((c) => {
+    const id = String(c.id || "").replace(/^sc-/, "");
+    return id && id !== "combined" && !c.classList.contains("inactive-sport");
+  });
+  const live = cards.filter((c) => c.classList.contains("fresh"));
+  const use = live.length ? live : cards.filter((c) => !c.classList.contains("loading"));
+  host.innerHTML = use.map((c) => {
+    const id = String(c.id || "").replace(/^sc-/, "");
+    const label = labels[id] || id.toUpperCase();
+    return `<a class="hero-chip" href="#slate-explorer" data-sport="${id}">${label}</a>`;
+  }).join("");
+  host.querySelectorAll("[data-sport]").forEach((a) => {
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      const sport = a.getAttribute("data-sport");
+      document.getElementById("slate-explorer")?.setAttribute("open", "");
+      document.getElementById("slate-explorer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      try { if (sport && typeof toggleSlatePanel === "function") toggleSlatePanel(sport); } catch (_) {}
+    });
+  });
+  if (eye) {
+    const n = live.length || use.length;
+    const dateEl = document.getElementById("slate-date");
+    const dateTxt = (dateEl && dateEl.textContent && dateEl.textContent !== "—") ? dateEl.textContent.trim() : "";
+    eye.textContent = n
+      ? `Live today${dateTxt ? " · " + dateTxt : ""} · ${n} sport${n === 1 ? "" : "s"}`
+      : "Live today";
+  }
+}
+
 function applyOffseasonSportCards() {
   const today = ymdInEastern(new Date());
   ["cbb", "cfb", "nfl", "wcbb"].forEach((id) => {
     document.getElementById(`sc-${id}`)?.classList.add("inactive-sport");
   });
-  if (!today) return;
-  document.querySelectorAll("#slate-panel-header-row [data-offseason-resume]").forEach((el) => {
-    const resume = String(el.getAttribute("data-offseason-resume") || "").trim();
-    if (resume && today < resume) el.classList.add("inactive-sport");
-    else el.classList.remove("inactive-sport");
-  });
+  if (today) {
+    document.querySelectorAll("#slate-panel-header-row [data-offseason-resume]").forEach((el) => {
+      const resume = String(el.getAttribute("data-offseason-resume") || "").trim();
+      if (resume && today < resume) el.classList.add("inactive-sport");
+      else el.classList.remove("inactive-sport");
+    });
+  }
+  syncHeroLiveChips();
 }
 
 /** Tennis always targets the next ET calendar day (tomorrow's board). */

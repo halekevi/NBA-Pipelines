@@ -71,6 +71,9 @@ param(
     [switch]$NFLOnly,
     # Run WNBA in the full parallel block even if pipeline date is before WNBA season start (default off).
     [switch]$ForceWNBA,
+    # Run NFL/CFB before their season/preseason resume dates (default off).
+    [switch]$ForceNFL,
+    [switch]$ForceCFB,
     [switch]$CombinedOnly,
     [switch]$SkipFetch,
     [switch]$RefreshCache,
@@ -239,6 +242,28 @@ $NBAOffSeason = (Get-Date) -lt $NBASeasonResume
 $NHL_SEASON_RESUME = "2026-09-01"
 $NHLSeasonResume = [datetime]::ParseExact($NHL_SEASON_RESUME, "yyyy-MM-dd", $null)
 $NHLOffSeason = (Get-Date) -lt $NHLSeasonResume
+
+# NFL: skip until preseason week 1 (not the calendar month of August).
+# Override: $env:PROPORACLE_NFL_RESUME / -ForceNFL / -ForceAll
+$NFL_SEASON_RESUME = "2026-08-13"
+if ($env:PROPORACLE_NFL_RESUME) { $NFL_SEASON_RESUME = $env:PROPORACLE_NFL_RESUME.Trim() }
+# CFB: skip until Week 0 (not Aug 1). Override: $env:PROPORACLE_CFB_RESUME / -ForceCFB / -ForceAll
+$CFB_SEASON_RESUME = "2026-08-29"
+if ($env:PROPORACLE_CFB_RESUME) { $CFB_SEASON_RESUME = $env:PROPORACLE_CFB_RESUME.Trim() }
+function Test-FootballOffSeason {
+    param([string]$PipelineDate, [string]$ResumeYmd, [switch]$Force)
+    if ($Force) { return $false }
+    if ($PipelineDate -lt $ResumeYmd) { return $true }
+    try {
+        $d = [datetime]::ParseExact($PipelineDate, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
+        # After bowls / Super Bowl window, stay paused until the next resume date.
+        return ($d.Month -ge 3 -and $d.Month -le 7)
+    } catch {
+        return $true
+    }
+}
+$NFLOffSeason = Test-FootballOffSeason -PipelineDate $Date -ResumeYmd $NFL_SEASON_RESUME -Force:($ForceNFL.IsPresent -or $ForceAll.IsPresent)
+$CFBOffSeason = Test-FootballOffSeason -PipelineDate $Date -ResumeYmd $CFB_SEASON_RESUME -Force:($ForceCFB.IsPresent -or $ForceAll.IsPresent)
 $OutDir    = Join-Path $Root "outputs\$Date"
 $NBARunOutDir = Join-Path $OutDir "nba"
 $NBA1HRunOutDir = Join-Path $OutDir "nba1h"
@@ -1682,6 +1707,13 @@ if ($WNBAOnly) {
 #  NFL ONLY
 # =============================================================================
 if ($NFLOnly) {
+    if ($NFLOffSeason) {
+        Write-Host "  [NFL] Off-season — paused until $NFL_SEASON_RESUME (preseason week 1; use -ForceNFL to run)" -ForegroundColor DarkGray
+        Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ nfl = "off_season" }
+        Run-Combined "after NFL (off-season)"
+        Print-Done
+        exit 0
+    }
     Write-Host "[ NFL PIPELINE ]" -ForegroundColor Magenta
     $nflPs1 = Join-Path $Root "scripts\run_nfl_pipeline.ps1"
     if (-not (Test-Path -LiteralPath $nflPs1)) {
@@ -2146,6 +2178,13 @@ if ($TennisOnly) {
 #  CFB ONLY  (College Football — CBB-style steps 1-6)
 # =============================================================================
 if ($CFBOnly) {
+    if ($CFBOffSeason) {
+        Write-Host "  [CFB] Off-season — paused until $CFB_SEASON_RESUME (Week 0; use -ForceCFB to run)" -ForegroundColor DarkGray
+        Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ cfb = "off_season" }
+        Run-Combined "after CFB (off-season)"
+        Print-Done
+        exit 0
+    }
     Write-Host "[ CFB PIPELINE ]" -ForegroundColor Magenta
     Write-Host ""
     $ok = $true
@@ -2390,24 +2429,16 @@ if (-not $CBB_PARALLEL_ACTIVE) {
     Write-Host "  [CBB] Parallel job skipped (men's season ended; date >= 2026-04-07)." -ForegroundColor DarkGray
 }
 
-# NFL PrizePicks-style board: run Aug–Feb only (off-season roughly Mar–Jul). Adjust if PP adds a summer slate.
-$NFL_PARALLEL_ACTIVE = $true
-try {
-    $dNfl = [datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
-    $NFL_PARALLEL_ACTIVE = ($dNfl.Month -ge 8 -or $dNfl.Month -le 2)
-} catch { }
+# NFL: skip until preseason week 1 (and Mar–Jul after the season). Not "any August date".
+$NFL_PARALLEL_ACTIVE = -not $NFLOffSeason
 if (-not $NFL_PARALLEL_ACTIVE) {
-    Write-Host "  [NFL] Parallel job skipped (off-season for $Date; active months Aug–Feb)." -ForegroundColor DarkGray
+    Write-Host "  [NFL] Parallel job skipped until $NFL_SEASON_RESUME (preseason; use -ForceNFL)." -ForegroundColor DarkGray
 }
 
-# College Football (PrizePicks league_id=15): Aug–Jan regular + bowls.
-$CFB_PARALLEL_ACTIVE = $true
-try {
-    $dCfb = [datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)
-    $CFB_PARALLEL_ACTIVE = ($dCfb.Month -ge 8 -or $dCfb.Month -le 1)
-} catch { }
+# CFB: skip until Week 0. Not "any August date".
+$CFB_PARALLEL_ACTIVE = -not $CFBOffSeason
 if (-not $CFB_PARALLEL_ACTIVE) {
-    Write-Host "  [CFB] Parallel job skipped (off-season for $Date; active months Aug–Jan)." -ForegroundColor DarkGray
+    Write-Host "  [CFB] Parallel job skipped until $CFB_SEASON_RESUME (Week 0; use -ForceCFB)." -ForegroundColor DarkGray
 }
 
 # Golf: keep -GolfOnly scaffolding; not in active summer in-season parallel set.
@@ -2718,9 +2749,20 @@ $CFBJob = Start-Job -ScriptBlock {
         } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
         finally { Pop-Location }
     }
+    function Test-Step1NoSlate-Job {
+        param([string]$CsvPath)
+        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
+        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
+        return (-not $rows -or $rows.Count -eq 0)
+    }
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "CFB Step 1 - Fetch PrizePicks"      $CFBDir ".\scripts\pipeline\step1_pp_cfb_scraper.py"      "--out `"$CFBRunOutDir\step1_cfb.csv`"" } } else { Write-Output "[CFB] Skipping step1 fetch" }
-    if ($ok) { $ok = Run-Step-Job "CFB Step 2 - Normalize"               $CFBDir ".\scripts\pipeline\step2_normalize.py"                            "--input `"$CFBRunOutDir\step1_cfb.csv`" --output `"$CFBRunOutDir\step2_cfb.csv`"" }
+    $cfbStep1 = Join-Path $CFBRunOutDir "step1_cfb.csv"
+    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "CFB Step 1 - Fetch PrizePicks"      $CFBDir ".\scripts\pipeline\step1_pp_cfb_scraper.py"      "--out `"$cfbStep1`"" } } else { Write-Output "[CFB] Skipping step1 fetch" }
+    if ($ok -and (Test-Step1NoSlate-Job -CsvPath $cfbStep1)) {
+        Write-Output "[CFB] No slate today — skipping remaining steps."
+        return $true
+    }
+    if ($ok) { $ok = Run-Step-Job "CFB Step 2 - Normalize"               $CFBDir ".\scripts\pipeline\step2_normalize.py"                            "--input `"$cfbStep1`" --output `"$CFBRunOutDir\step2_cfb.csv`"" }
     try {
         $cfbMonth = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Month
     } catch {
@@ -3555,8 +3597,19 @@ $NFLJob = Start-Job -ScriptBlock {
         } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
         finally { Pop-Location }
     }
+    function Test-Step1NoSlate-Job {
+        param([string]$CsvPath)
+        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
+        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
+        return (-not $rows -or $rows.Count -eq 0)
+    }
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "NFL Step 1 - Fetch PrizePicks" $NFLDir ".\scripts\step1_fetch_prizepicks_nfl.py" "--output `"$NFLRunOutDir\step1_pp_props_today.csv`" --date $Date" } } else { Write-Output "[NFL] Skipping step1 fetch" }
+    $nflStep1 = Join-Path $NFLRunOutDir "step1_pp_props_today.csv"
+    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "NFL Step 1 - Fetch PrizePicks" $NFLDir ".\scripts\step1_fetch_prizepicks_nfl.py" "--output `"$nflStep1`" --date $Date" } } else { Write-Output "[NFL] Skipping step1 fetch" }
+    if ($ok -and (Test-Step1NoSlate-Job -CsvPath $nflStep1)) {
+        Write-Output "[NFL] No slate today — skipping remaining steps."
+        return $true
+    }
     if ($ok) { $ok = Run-Step-Job "NFL Step 2 - Clean Props" $NFLDir ".\scripts\step2_clean_props.py" "" }
     try {
         $nflMonth = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Month
@@ -3634,6 +3687,12 @@ foreach ($job in $failedJobs) {
 $NBASuccess    = if ($NBAOffSeason) { $true } else { Test-Path (Join-Path $NBARunOutDir "step8_all_direction_clean.xlsx") }
 $CBBSuccess    = if (-not $CBB_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $CBBRunOutDir "step6_ranked_cbb.xlsx") }
 $CFBSuccess    = if (-not $CFB_PARALLEL_ACTIVE) { $true } else { (Test-Path (Join-Path $CFBRunOutDir "step8_cfb_direction_clean.xlsx")) -or (Test-Path (Join-Path $CFBRunOutDir "step6_ranked_cfb.xlsx")) }
+$cfbNoSlate = $false
+if ($CFB_PARALLEL_ACTIVE -and -not $CFBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CFBRunOutDir "step1_cfb.csv"))) {
+    Write-Host "  [CFB] no slate for $Date — not a failure." -ForegroundColor DarkGray
+    $CFBSuccess = $true
+    $cfbNoSlate = $true
+}
 $NHLSuccess    = if ($NHLOffSeason) { $true } else { Test-Path (Join-Path $NHLRunOutDir "step8_nhl_direction_clean.xlsx") }
 $SoccerSuccess = Test-Path (Join-Path $SoccerRunOutDir "step8_soccer_direction_clean.xlsx")
 if (-not $NHLSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $NHLRunOutDir "step1_nhl_props.csv"))) {
@@ -3670,6 +3729,12 @@ if (-not $MLBSuccess -and (Test-Step1NoSlate -CsvPath $mlbStep1Path)) {
 }
 $TennisSuccess = Test-Path (Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx")
 $NFLSuccess    = if (-not $NFL_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $NFLRunOutDir "step8_nfl_direction_clean.xlsx") }
+$nflNoSlate = $false
+if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $NFLRunOutDir "step1_pp_props_today.csv"))) {
+    Write-Host "  [NFL] no slate for $Date — not a failure." -ForegroundColor DarkGray
+    $NFLSuccess = $true
+    $nflNoSlate = $true
+}
 $WNBASuccess = $false
 if ($wnbaParallel) {
     $wnbaStep8Clean = Join-Path $OutDir "wnba\step8_wnba_direction_clean.xlsx"
@@ -3764,8 +3829,8 @@ $slateStatusSports = @{
     tennis = if ($tennisNoSlate) { "no_slate" } elseif ($TennisSuccess) { "complete" } else { "failed" }
     golf   = if (-not $GOLF_PARALLEL_ACTIVE) { "off_season" } elseif ($golfNoSlate) { "no_slate" } elseif ($GolfSuccess) { "complete" } else { "failed" }
     cbb    = if (-not $CBB_PARALLEL_ACTIVE) { "off_season" } elseif ($CBBSuccess) { "complete" } else { "failed" }
-    cfb    = if (-not $CFB_PARALLEL_ACTIVE) { "off_season" } elseif ($CFBSuccess) { "complete" } else { "failed" }
-    nfl    = if (-not $NFL_PARALLEL_ACTIVE) { "off_season" } elseif ($NFLSuccess) { "complete" } else { "failed" }
+    cfb    = if (-not $CFB_PARALLEL_ACTIVE) { "off_season" } elseif ($cfbNoSlate) { "no_slate" } elseif ($CFBSuccess) { "complete" } else { "failed" }
+    nfl    = if (-not $NFL_PARALLEL_ACTIVE) { "off_season" } elseif ($nflNoSlate) { "no_slate" } elseif ($NFLSuccess) { "complete" } else { "failed" }
 }
 if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
     $slateStatusSports["wnba"] = "off_season"
@@ -3779,13 +3844,13 @@ Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
 @(
     @{ Name="NBA";    Ok=$NBASuccess; Skip=$NBAOffSeason; NoSlate=$nbaNoSlate },
     @{ Name="CBB";    Ok=$CBBSuccess; Skip=(-not $CBB_PARALLEL_ACTIVE) },
-    @{ Name="CFB";    Ok=$CFBSuccess; Skip=(-not $CFB_PARALLEL_ACTIVE) },
+    @{ Name="CFB";    Ok=$CFBSuccess; Skip=(-not $CFB_PARALLEL_ACTIVE); NoSlate=$cfbNoSlate },
     @{ Name="NHL";    Ok=$NHLSuccess; Skip=$NHLOffSeason; NoSlate=$nhlNoSlate },
     @{ Name="Soccer"; Ok=$SoccerSuccess; Skip=$false; NoSlate=$soccerNoSlate },
     @{ Name="MLB";    Ok=$MLBSuccess; Skip=$false; NoSlate=$mlbNoSlate },
     @{ Name="Tennis"; Ok=$TennisSuccess; Skip=$false },
     @{ Name="Golf";   Ok=$GolfSuccess; Skip=(-not $GOLF_PARALLEL_ACTIVE); NoSlate=$golfNoSlate },
-    @{ Name="NFL";    Ok=$NFLSuccess; Skip=(-not $NFL_PARALLEL_ACTIVE) }
+    @{ Name="NFL";    Ok=$NFLSuccess; Skip=(-not $NFL_PARALLEL_ACTIVE); NoSlate=$nflNoSlate }
 ) | ForEach-Object {
     if ($_.Skip) {
         Write-Host "  $($_.Name) skipped (off-season / not required)." -ForegroundColor DarkGray

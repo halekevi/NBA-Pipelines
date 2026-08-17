@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-08-15T15:26:42.820643+00:00",
+  "generated_at": "2026-08-17T14:53:33.550868+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -84,24 +84,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -110,24 +110,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -136,24 +136,24 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -162,24 +162,24 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Sean Manaea",
+          "player": "Michael Wacha",
           "prop_type": "Pitches Thrown",
-          "line": 84.5,
-          "standard_line": 90.5,
+          "line": 88.5,
+          "standard_line": 94.5,
           "pick_type": "Demon",
           "delta": 6.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.8536090322580645
         }
       ]
     },
@@ -188,34 +188,34 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -224,34 +224,34 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -260,34 +260,34 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -296,34 +296,34 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -332,34 +332,34 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -368,34 +368,34 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -404,34 +404,34 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         },
         {
-          "player": "Sean Manaea",
+          "player": "Janson Junk",
           "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.5,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.7753832258064517
         }
       ]
     },
@@ -440,34 +440,34 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.8
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         },
         {
-          "player": "Sean Manaea",
+          "player": "Michael Wacha",
           "prop_type": "Pitches Thrown",
-          "line": 84.5,
-          "standard_line": 90.5,
+          "line": 88.5,
+          "standard_line": 94.5,
           "pick_type": "Demon",
           "delta": 6.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.8536090322580645
         }
       ]
     },
@@ -476,34 +476,34 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Sean Manaea",
+          "player": "Michael Wacha",
           "prop_type": "Pitches Thrown",
-          "line": 84.5,
-          "standard_line": 90.5,
+          "line": 88.5,
+          "standard_line": 94.5,
           "pick_type": "Demon",
           "delta": 6.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.8536090322580645
         }
       ]
     },
@@ -512,44 +512,44 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         },
         {
-          "player": "Sean Manaea",
+          "player": "Janson Junk",
           "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.5,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.7753832258064517
         }
       ]
     },
@@ -558,44 +558,44 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Shakira Austin",
-          "prop_type": "Pts+Rebs",
-          "line": 29.5,
-          "standard_line": 29.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.8
         },
         {
-          "player": "Jackie Young + Kayla McBride",
-          "prop_type": "Points (Combo)",
-          "line": 34.5,
-          "standard_line": 34.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
-        },
-        {
-          "player": "Jesús Luzardo",
+          "player": "Martín Pérez",
           "prop_type": "Pitching Outs",
-          "line": 17.5,
-          "standard_line": 19.0,
+          "line": 11.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.769963870967742
         },
         {
-          "player": "Sean Manaea",
+          "player": "Michael Wacha",
           "prop_type": "Pitches Thrown",
-          "line": 84.5,
-          "standard_line": 90.5,
+          "line": 88.5,
+          "standard_line": 94.5,
           "pick_type": "Demon",
           "delta": 6.0,
           "direction": "OVER",
-          "hit_rate": 0.6125
+          "hit_rate": 0.8536090322580645
         }
       ]
     }

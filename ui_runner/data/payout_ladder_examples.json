@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T14:00:50.954351+00:00",
+  "generated_at": "2026-08-17T14:53:33.550868+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
@@ -424,14 +424,14 @@
           "hit_rate": 0.769963870967742
         },
         {
-          "player": "Shane McClanahan",
+          "player": "Janson Junk",
           "prop_type": "Pitching Outs",
           "line": 11.5,
           "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.736931612903226
+          "hit_rate": 0.7753832258064517
         }
       ]
     },
@@ -542,14 +542,14 @@
           "hit_rate": 0.769963870967742
         },
         {
-          "player": "Shane McClanahan",
+          "player": "Janson Junk",
           "prop_type": "Pitching Outs",
           "line": 11.5,
           "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.736931612903226
+          "hit_rate": 0.7753832258064517
         }
       ]
     },

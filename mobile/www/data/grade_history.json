@@ -7208,5 +7208,121 @@
       "count": 0,
       "wins": 0
     }
+  },
+  {
+    "date": "2026-08-15",
+    "track": "long_parlay",
+    "n_tickets": 4,
+    "wins": 0,
+    "guarantees": 0,
+    "losses": 4,
+    "void_loss_ct": 0,
+    "win_rate": 0.0,
+    "avg_ev_predicted": -0.4,
+    "net_per_10": -10.0,
+    "roi_pct": -100.0,
+    "strong_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "ok_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "marginal_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "skip_tickets": {
+      "count": 4,
+      "wins": 0
+    }
+  },
+  {
+    "date": "2026-08-15",
+    "track": "strong_standard_shadow",
+    "n_tickets": 9,
+    "wins": 2,
+    "guarantees": 0,
+    "losses": 7,
+    "void_loss_ct": 0,
+    "win_rate": 0.2222,
+    "avg_ev_predicted": 1.4864,
+    "net_per_10": -3.33,
+    "roi_pct": -33.33,
+    "strong_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "ok_tickets": {
+      "count": 9,
+      "wins": 2
+    },
+    "marginal_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "skip_tickets": {
+      "count": 0,
+      "wins": 0
+    }
+  },
+  {
+    "date": "2026-08-15",
+    "track": "graded_main",
+    "n_tickets": 57,
+    "wins": 22,
+    "guarantees": 0,
+    "losses": 35,
+    "void_loss_ct": 2,
+    "win_rate": 0.386,
+    "avg_ev_predicted": -0.4611,
+    "net_per_10": -1.85,
+    "roi_pct": -18.53,
+    "strong_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "ok_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "marginal_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "skip_tickets": {
+      "count": 57,
+      "wins": 22
+    }
+  },
+  {
+    "date": "2026-08-16",
+    "track": "high_prob_std_gob",
+    "n_tickets": 15,
+    "wins": 6,
+    "guarantees": 0,
+    "losses": 9,
+    "void_loss_ct": 7,
+    "win_rate": 0.4,
+    "avg_ev_predicted": 0.3119,
+    "net_per_10": -5.45,
+    "roi_pct": -54.49,
+    "strong_tickets": {
+      "count": 15,
+      "wins": 6
+    },
+    "ok_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "marginal_tickets": {
+      "count": 0,
+      "wins": 0
+    },
+    "skip_tickets": {
+      "count": 0,
+      "wins": 0
+    }
   }
 ]

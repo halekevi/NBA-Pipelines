@@ -187,6 +187,10 @@ def main() -> None:
     usage_hit = pace_hit = star_hit = foul_hit = 0
     n = len(df)
 
+    # PRE-BUILD normalized lookup dicts to avoid linear scans per row
+    usage_norm_map = {_norm_name(v.get('player_name', '')): v for v in usage_players.values()}
+    foul_norm_map = {_norm_name(v.get('player_name', '')): v for v in foul_players.values()}
+
     for idx, row in df.iterrows():
         pname = _player_name(row)
         pnorm = _norm_name(pname)
@@ -197,9 +201,7 @@ def main() -> None:
         # Usage
         urec = usage_players.get(f"{pname}|{team}") or usage_players.get(f"{pname}|")
         if not urec:
-            for k, v in usage_players.items():
-                if _norm_name(v.get("player_name", "")) == pnorm:
-                    urec = v
+            urec = usage_norm_map.get(pnorm)
                     break
         if urec:
             usg = _scale_usage(urec.get("usage_pct"))
@@ -242,9 +244,7 @@ def main() -> None:
         # Fouls
         frec = foul_players.get(f"{pname}|{team}")
         if not frec:
-            for k, v in foul_players.items():
-                if _norm_name(v.get("player_name", "")) == pnorm:
-                    frec = v
+            frec = foul_norm_map.get(pnorm)
                     break
         if frec and frec.get("pf") is not None and frec.get("min"):
             pf, mn = float(frec["pf"]), float(frec["min"])

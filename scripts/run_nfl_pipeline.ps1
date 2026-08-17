@@ -24,8 +24,13 @@ if (-not (Test-Path $DataOutDir)) { New-Item -ItemType Directory -Force -Path $D
 $env:NFL_PIPELINE_ACTIVE = "1"
 $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
+if (-not ("$env:PROPORACLE_CURL_IMPERSONATE").Trim()) {
+    $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
+}
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 try { chcp 65001 | Out-Null } catch { }
+
+. (Join-Path $Root "scripts\prizepicks_step1_cascade.ps1")
 
 if (Test-Path "$Root\.venv\Scripts\Activate.ps1") {
     & "$Root\.venv\Scripts\Activate.ps1"
@@ -38,12 +43,18 @@ Write-Host "======================================================" -ForegroundC
 Write-Host ""
 
 function Run-Step {
-    param([string]$Label, [string]$Dir, [string]$Script, [string]$Arguments = "")
+    param(
+        [string]$Label,
+        [string]$Dir,
+        [string]$Script,
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$ArgList = @()
+    )
     Write-Host "  --> $Label" -ForegroundColor Yellow
     Push-Location $Dir
     try {
-        if ($Arguments -and $Arguments.Trim()) {
-            $argArray = $Arguments -split ' '
+        $argArray = @($ArgList | Where-Object { $_ -ne $null -and "$_" -ne "" })
+        if ($argArray.Count -gt 0) {
             $output = & py -3.14 $Script @argArray 2>&1
         } else {
             $output = & py -3.14 $Script 2>&1
@@ -89,7 +100,10 @@ $ok = $true
 
 if (-not $SkipFetch) {
     if ($ok) {
-        $ok = Run-Step "NFL Step 1 - Fetch PrizePicks" $NFLDir ".\scripts\step1_fetch_prizepicks_nfl.py" "--output `"$s1`" --date $Date"
+        $ok = Invoke-PrizePicksStep1Cascade -SportLabel "NFL" -WorkDir $NFLDir `
+            -ScriptRel ".\scripts\step1_fetch_prizepicks_nfl.py" `
+            -OutputPath $s1 -PipelineDate $Date `
+            -HttpArgs @("--output", $s1, "--date", $Date)
     }
 } else {
     Write-Host "  [SkipFetch] Using existing $s1" -ForegroundColor DarkGray
@@ -106,7 +120,7 @@ if ($ok -and $step1Rows -eq 0) {
 }
 
 if ($ok) {
-    $ok = Run-Step "NFL Step 2 - Clean Props" $NFLDir ".\scripts\step2_clean_props.py" "--input `"$s1`" --output `"$s2`""
+    $ok = Run-Step "NFL Step 2 - Clean Props" $NFLDir ".\scripts\step2_clean_props.py" --input $s1 --output $s2
 }
 try {
     $nflMonth = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Month
@@ -115,34 +129,34 @@ try {
 }
 if ($nflMonth -ge 9 -or $nflMonth -le 1) {
     if ($ok) {
-        $ok = Run-Step "NFL Refresh Rankings" $Root ".\scripts\refresh_rankings.py" "--sport nfl"
+        $ok = Run-Step "NFL Refresh Rankings" $Root ".\scripts\refresh_rankings.py" --sport nfl
     }
 } else {
     Write-Host "  [NFL] off-season, skipping rankings refresh" -ForegroundColor DarkGray
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 4 - Defense Rankings" $NFLDir ".\scripts\step4_defense_rankings.py" "--season $DefenseSeason --output data\defense_rankings.csv"
+    $ok = Run-Step "NFL Step 4 - Defense Rankings" $NFLDir ".\scripts\step4_defense_rankings.py" --season $DefenseSeason --output data\defense_rankings.csv
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 4b - Team Last-5 Form" $NFLDir ".\scripts\step4b_team_last5_games.py" "--season $DefenseSeason --output data\nfl_team_last5.csv"
+    $ok = Run-Step "NFL Step 4b - Team Last-5 Form" $NFLDir ".\scripts\step4b_team_last5_games.py" --season $DefenseSeason --output data\nfl_team_last5.csv
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 3 - Merge Defense" $NFLDir ".\scripts\step3_merge_defense_nfl.py" "--input `"$s2`" --output `"$s3`" --defense-source auto --team-form data\nfl_team_last5.csv"
+    $ok = Run-Step "NFL Step 3 - Merge Defense" $NFLDir ".\scripts\step3_merge_defense_nfl.py" --input $s2 --output $s3 --defense-source auto --team-form data\nfl_team_last5.csv
 }
 if ($ok -and (Test-Path -LiteralPath $s3)) {
     Copy-Item -LiteralPath $s3 -Destination $s3dated -Force
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" "--input `"$s3`" --output `"$s5`" --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 320"
+    $ok = Run-Step "NFL Step 5 - Boxscore Stats" $NFLDir ".\scripts\step5_attach_boxscore_stats_nfl.py" --input $s3 --output $s5 --date $Date --cache data\cache\nfl_boxscore_cache.csv --days 120
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 6 - Hit Rates" $NFLDir ".\scripts\step6_historical_hit_rates.py" "--input `"$s5`" --output `"$s6`""
+    $ok = Run-Step "NFL Step 6 - Hit Rates" $NFLDir ".\scripts\step6_historical_hit_rates.py" --input $s5 --output $s6
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 7 - Rank Props" $NFLDir ".\scripts\step7_rank_props_nfl.py" "--input `"$s6`" --output `"$s7`""
+    $ok = Run-Step "NFL Step 7 - Rank Props" $NFLDir ".\scripts\step7_rank_props_nfl.py" --input $s6 --output $s7
 }
 if ($ok) {
-    $ok = Run-Step "NFL Step 8 - Direction Context" $NFLDir ".\scripts\step8_add_direction_context_nfl.py" "--input `"$s7`" --output `"$s8`" --date $Date"
+    $ok = Run-Step "NFL Step 8 - Direction Context" $NFLDir ".\scripts\step8_add_direction_context_nfl.py" --input $s7 --output $s8 --date $Date
 }
 
 if ($ok -and (Test-Path -LiteralPath $s8)) {

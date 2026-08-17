@@ -239,11 +239,8 @@ def fetch_boards_via_cdp(
             print("  No warmed PP tab found — opened new page (solve DataDome in Chrome if 403).")
         page.set_default_timeout(max(30_000, int(request_timeout_ms) + 5_000))
         if not cdp_board_ready(page, primary_lid):
-            board_url = f"https://app.prizepicks.com/board?league_id={primary_lid}"
-            page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
-            page.wait_for_timeout(2000)
-            page.goto(board_url, wait_until="domcontentloaded", timeout=30_000)
-            page.wait_for_timeout(3000)
+            print("  [CDP] No PrizePicks tab ready — not navigating (avoids DataDome). Open /board in Chrome first.")
+            raise RuntimeError("CDP board not ready; skip league hop")
         else:
             try:
                 page.bring_to_front()
@@ -418,6 +415,7 @@ def main():
         default=30_000,
         help="CDP connect_over_cdp timeout in ms (default 30000; avoids Playwright 180s hang).",
     )
+    ap.add_argument("--playwright", action="store_true", help="Launch Chromium if CDP is not used.")
     args = ap.parse_args()
     out_path = Path(args.output)
     fail_fast = bool(args.fail_fast) or bool(str(args.cdp).strip())
@@ -453,14 +451,26 @@ def main():
 
     all_rows = []
     cdp_url = str(args.cdp or "").strip()
+    use_playwright = bool(args.playwright) and not cdp_url
 
-    if cdp_url:
+    if cdp_url or use_playwright:
         try:
-            cdp_results = fetch_boards_via_cdp(
-                boards_to_fetch,
-                cdp_url=cdp_url,
-                attach_timeout_ms=int(args.cdp_attach_timeout_ms),
-            )
+            if use_playwright:
+                from utils.prizepicks_cdp import session_fetch_projections
+
+                print("  [mode] Playwright Chromium — one launch per soccer board")
+                cdp_results = []
+                for lid, lname in boards_to_fetch:
+                    data, included, _st = session_fetch_projections(
+                        lid, playwright=True, per_page=250
+                    )
+                    cdp_results.append((lid, lname, data, included))
+            else:
+                cdp_results = fetch_boards_via_cdp(
+                    boards_to_fetch,
+                    cdp_url=cdp_url,
+                    attach_timeout_ms=int(args.cdp_attach_timeout_ms),
+                )
             for lid, lname, data, included in cdp_results:
                 if data:
                     rows = build_rows(data, included, lname)
@@ -469,11 +479,14 @@ def main():
                 else:
                     print(f"    ⚠️ No data for {lname} — may not be on the board today")
         except Exception as e:
+            if use_playwright:
+                print(f"❌ Playwright soccer fetch failed ({type(e).__name__}: {e})")
+                sys.exit(1)
             print(f"❌ CDP soccer fetch failed ({type(e).__name__}: {e})")
             print("   Falling back to fail-fast HTTP...")
             cdp_url = ""
 
-    if not cdp_url:
+    if not cdp_url and not use_playwright:
         for lid, lname in boards_to_fetch:
             print(f"\n  → {lname} (league_id={lid})")
             data, included = fetch_board(

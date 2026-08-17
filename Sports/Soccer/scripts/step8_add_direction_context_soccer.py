@@ -142,7 +142,19 @@ def write_sheet(wb, name: str, data: pd.DataFrame) -> None:
         direction = row[headers.index("Direction")] if "Direction" in headers else ""
         for ci, val in enumerate(row, 1):
             col_name    = headers[ci - 1]
-            display_val = "" if pd.isna(val) else val
+            try:
+                is_na = pd.isna(val)
+            except (TypeError, ValueError):
+                is_na = val is None
+            if is_na:
+                display_val = ""
+            elif hasattr(val, "item") and not isinstance(val, (bytes, str)):
+                try:
+                    display_val = val.item()
+                except Exception:
+                    display_val = val
+            else:
+                display_val = val
             cell        = ws.cell(row=ri, column=ci, value=display_val)
             cell.font      = Font(name="Arial", size=9)
             cell.alignment = Alignment(horizontal="center", vertical="center")
@@ -173,7 +185,7 @@ def write_sheet(wb, name: str, data: pd.DataFrame) -> None:
         "L5 Over": 8, "L5 Under": 8,
         "Def Rank": 9, "Def Tier": 10,
         "Def Boost Hist": 12, "Team Top3 Rank": 10, "Top3 Weak Over": 18, "Top3 Elite Fade": 14,
-        "Min Tier": 9, "Starter Tier": 11, "Shot Role": 10, "Usage Role": 10,
+        "Min Tier": 9, "Starter Tier": 11, "Shot Role": 10, "Usage Role": 10, "CV%": 8,
         "Void Reason": 20,
         "Open Line": 8,
         "Line Movement": 12,
@@ -186,17 +198,53 @@ def write_sheet(wb, name: str, data: pd.DataFrame) -> None:
     ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}1"
 
 
-_MIN_TIER_NUM_MAP = {0: "Low", 1: "Med", 2: "High", 3: "Elite"}
+_MIN_TIER_NUM_MAP = {0: "LOW", 1: "MEDIUM", 2: "HIGH", 3: "HIGH"}
+_MIN_TIER_STR_MAP = {
+    "0": "LOW", "1": "MEDIUM", "2": "HIGH", "3": "HIGH",
+    "LOW": "LOW", "MED": "MEDIUM", "MEDIUM": "MEDIUM",
+    "HIGH": "HIGH", "ELITE": "HIGH",
+}
+
+
+def restore_soccer_minutes_tier(df: pd.DataFrame) -> pd.DataFrame:
+    """Prefer step7b minutes_tier_label; map 0–3 codes; keep HIGH/MEDIUM/LOW."""
+    out = df.copy()
+    n = len(out)
+    label = pd.Series([""] * n, index=out.index, dtype=object)
+    if "minutes_tier_label" in out.columns:
+        label = out["minutes_tier_label"].astype(str).str.strip().str.upper().replace({"NAN": "", "NONE": ""})
+    raw = out["minutes_tier"] if "minutes_tier" in out.columns else pd.Series("", index=out.index)
+    raw_u = raw.astype(str).str.strip().str.upper().replace({"NAN": "", "NONE": ""})
+    mapped = raw_u.map(_MIN_TIER_STR_MAP)
+    num = pd.to_numeric(raw, errors="coerce")
+    from_num = num.round().astype("Int64").map(_MIN_TIER_NUM_MAP)
+    tier = label.where(label.isin(["LOW", "MEDIUM", "HIGH"]), mapped)
+    tier = tier.where(tier.isin(["LOW", "MEDIUM", "HIGH"]), from_num)
+    out["minutes_tier"] = tier.where(tier.isin(["LOW", "MEDIUM", "HIGH"]), pd.NA)
+    return out
+
+
+def attach_soccer_cv_pct(df: pd.DataFrame, *, min_games: int = 3) -> pd.DataFrame:
+    """CV% = std/mean of stat_g1..g10. Blank when fewer than min_games logs."""
+    out = df.copy()
+    gcols = [c for c in (f"stat_g{i}" for i in range(1, 11)) if c in out.columns]
+    if not gcols:
+        out["cv_pct"] = np.nan
+        return out
+    g = out[gcols].apply(pd.to_numeric, errors="coerce")
+    n = g.notna().sum(axis=1)
+    mean = g.mean(axis=1)
+    std = g.std(axis=1, ddof=0)
+    cv = (std / mean.replace(0, np.nan)) * 100.0
+    cv = cv.where(n.ge(min_games) & mean.gt(0), np.nan)
+    out["cv_pct"] = cv.round(1)
+    return out
 
 
 def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     df2 = df.copy()
-    # Convert numeric minutes_tier (0-3) back to human labels
-    if "minutes_tier" in df2.columns:
-        _mt_num = pd.to_numeric(df2["minutes_tier"], errors="coerce")
-        _mt_valid = _mt_num.notna()
-        if _mt_valid.any():
-            df2.loc[_mt_valid, "minutes_tier"] = _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP).fillna(df2.loc[_mt_valid, "minutes_tier"])
+    df2 = restore_soccer_minutes_tier(df2)
+    df2 = attach_soccer_cv_pct(df2)
     try:
         import platform
         _time_fmt = "%m/%d %#I:%M %p" if platform.system() == "Windows" else "%m/%d %-I:%M %p"
@@ -207,26 +255,6 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     if "line" in df2.columns:
         df2 = finalize_l10_ui_columns(df2, line_col="line")
     df2 = attach_hit_tracking_columns(df2, "SOCCER")
-
-    # Align L5 with stat_g1..5 vs line (same guardrail as WNBA/NBA/Tennis).
-    g5_cols = [c for c in ("stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5") if c in df2.columns]
-    if g5_cols and "line" in df2.columns:
-        g5 = df2[g5_cols].apply(pd.to_numeric, errors="coerce")
-        line = pd.to_numeric(df2["line"], errors="coerce")
-        valid_n = g5.notna().sum(axis=1)
-        over_n = g5.gt(line, axis=0).sum(axis=1)
-        under_n = g5.lt(line, axis=0).sum(axis=1)
-        has_hist = valid_n > 0
-        if "last5_over" not in df2.columns:
-            df2["last5_over"] = np.nan
-        if "last5_under" not in df2.columns:
-            df2["last5_under"] = np.nan
-        df2["last5_over"] = pd.to_numeric(df2["last5_over"], errors="coerce")
-        df2["last5_under"] = pd.to_numeric(df2["last5_under"], errors="coerce")
-        df2.loc[has_hist, "last5_over"] = over_n[has_hist]
-        df2.loc[has_hist, "last5_under"] = under_n[has_hist]
-        if "stat_last5_avg" in df2.columns:
-            df2.loc[has_hist, "stat_last5_avg"] = g5.mean(axis=1)[has_hist]
 
     keep = [
         "tier", "rank_score",
@@ -253,6 +281,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "def_boost_hist", "team_top3_rank", "top3_weak_overperformer", "top3_elite_fader",
         "deviation_level", "opp_pace",
         "minutes_tier", "starter_tier", "shot_role", "usage_role",
+        "cv_pct",
         "void_reason",
         # ── Game log ─────────────────────────────────────────────────────────
         "stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5",
@@ -294,7 +323,11 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         clean["team_top3_rank"] = pd.to_numeric(clean["team_top3_rank"], errors="coerce").round(0)
     for col in ["last5_over", "last5_under"]:
         if col in clean.columns:
-            clean[col] = pd.to_numeric(clean[col], errors="coerce").astype("Int64")
+            clean[col] = pd.to_numeric(clean[col], errors="coerce")
+    if "cv_pct" in clean.columns:
+        clean["cv_pct"] = pd.to_numeric(clean["cv_pct"], errors="coerce").round(1)
+    if "minutes_tier" in clean.columns:
+        clean["minutes_tier"] = clean["minutes_tier"].astype(object)
     if "standard_line" in clean.columns:
         clean["standard_line"] = pd.to_numeric(clean["standard_line"], errors="coerce").round(2)
 
@@ -336,6 +369,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "top3_elite_fader": "Top3 Elite Fade",
         "deviation_level": "Deviation Level", "opp_pace": "Opp Pace",
         "minutes_tier": "Min Tier", "starter_tier": "Starter Tier", "shot_role": "Shot Role", "usage_role": "Usage Role",
+        "cv_pct": "CV%",
         "void_reason": "Void Reason",
         # Game log
         "stat_last10_avg": "Last 10 Avg",
@@ -543,6 +577,8 @@ def main() -> None:
 
     out["final_bet_direction"] = final_dir
     out["final_dir_reason"]    = reason
+    out = restore_soccer_minutes_tier(out)
+    out = attach_soccer_cv_pct(out)
 
     out.to_csv(args.output, index=False, encoding="utf-8-sig")
     print(f"Saved -> {args.output}")

@@ -275,6 +275,22 @@ def rebuild_defense_by_stat(
             lambda r: _tier_label(float(r), n_teams)
         )
     summary["overall_rank"] = summary["pts_rank"]
+    try:
+        from utils.wnba_defensive_efficiency import team_defensive_efficiency
+
+        eff = team_defensive_efficiency(db_path=db_path)
+        if not eff.empty:
+            m = eff.rename(columns={"TEAM_ABBREVIATION": "team"})[
+                ["team", "DEF_EFF", "DEF_EFF_RANK"]
+            ]
+            summary = summary.merge(m, on="team", how="left")
+            summary["overall_rank"] = (
+                pd.to_numeric(summary["DEF_EFF_RANK"], errors="coerce")
+                .fillna(pd.to_numeric(summary["pts_rank"], errors="coerce"))
+                .astype("Int64")
+            )
+    except Exception:
+        pass
     summary["n_teams"] = n_teams
     out_path.parent.mkdir(parents=True, exist_ok=True)
     summary.to_csv(out_path, index=False)
@@ -351,9 +367,20 @@ def lookup_stat_defense(
             rank = int(float(row[rank_col]))
         except (TypeError, ValueError):
             rank = None
+    if rank is None and "overall_rank" in row.index and pd.notna(row["overall_rank"]):
+        try:
+            rank = int(float(row["overall_rank"]))
+        except (TypeError, ValueError):
+            rank = None
+    used_category = rank is not None and rank_col in row.index and pd.notna(row.get(rank_col))
     tier_raw = str(row[tier_col]) if tier_col in row.index and pd.notna(row.get(tier_col)) else ""
     n_teams = int(row["n_teams"]) if "n_teams" in row.index and pd.notna(row.get("n_teams")) else len(df)
-    coarse = coarse_bucket_from_tier(tier_raw) if tier_raw else coarse_bucket_from_rank(rank, n_teams)
+    if rank is None:
+        coarse = "UNK"
+    elif used_category and tier_raw:
+        coarse = coarse_bucket_from_tier(tier_raw)
+    else:
+        coarse = coarse_bucket_from_rank(rank, n_teams)
     return {
         "stat_def_category": cat,
         "stat_def_rank": rank,

@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-08-12T13:15:48.935293+00:00",
+  "generated_at": "2026-08-17T14:00:50.954351+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -84,24 +84,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -110,24 +110,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -136,24 +136,266 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.95
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
+        }
+      ]
+    },
+    {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Michael Wacha",
+          "prop_type": "Pitches Thrown",
+          "line": 88.5,
+          "standard_line": 94.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.8536090322580645
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
         }
       ]
     },
@@ -162,34 +404,198 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        },
+        {
+          "player": "Shane McClanahan",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.736931612903226
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        },
+        {
+          "player": "Michael Wacha",
+          "prop_type": "Pitches Thrown",
+          "line": 88.5,
+          "standard_line": 94.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.8536090322580645
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.8
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
+          "player": "Michael Wacha",
+          "prop_type": "Pitches Thrown",
+          "line": 88.5,
+          "standard_line": 94.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.8536090322580645
+        }
+      ]
+    },
+    {
+      "composition": "2S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.769963870967742
         },
         {
-          "player": "Marco Trungelliti",
-          "prop_type": "Total Games Won",
+          "player": "Shane McClanahan",
+          "prop_type": "Pitching Outs",
           "line": 11.5,
-          "standard_line": 12.5,
+          "standard_line": 13.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.9
+          "hit_rate": 0.736931612903226
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Odyssey Sims",
+          "prop_type": "Pts+Rebs+Asts",
+          "line": 15.5,
+          "standard_line": 15.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.8500000000000001
+        },
+        {
+          "player": "Janelle Salaün + Arike Ogunbowale",
+          "prop_type": "Points (Combo)",
+          "line": 26.5,
+          "standard_line": 26.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Martín Pérez",
+          "prop_type": "Pitching Outs",
+          "line": 11.5,
+          "standard_line": 13.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.769963870967742
+        },
+        {
+          "player": "Michael Wacha",
+          "prop_type": "Pitches Thrown",
+          "line": 88.5,
+          "standard_line": 94.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.8536090322580645
         }
       ]
     }

@@ -85,6 +85,7 @@ if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.T
 elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
 # NBA / NBA1H / NBA1Q grading: must match run_pipeline.ps1 $NBA_SEASON_RESUME.
 $NBA_SEASON_RESUME = "2026-10-01"
+$NHL_SEASON_RESUME = "2026-09-01"
 
 function Test-WnbaAllStarPause {
     param([string]$SlateDate)
@@ -1237,31 +1238,13 @@ else {
 # =============================================================================
 # STEP D — Combined slate for today (explicit; ensures outputs + web)
 # =============================================================================
-function Get-LiveBoardSyncExit {
-    param([string]$RepoRoot = $Root, [string]$Day = $Today)
-    $scriptPath = Join-Path $RepoRoot "scripts\assert_live_board_sync.py"
-    $templatesDir = Join-Path $RepoRoot "ui_runner\templates"
-    if (-not (Test-Path -LiteralPath $scriptPath)) { return 0 }
-    & py -3.14 -X utf8 $scriptPath --today $Day --templates-dir $templatesDir
-    return $LASTEXITCODE
-}
-
-$ticketsLagSlate = $false
-try {
-    $preSync = Get-LiveBoardSyncExit -RepoRoot $Root -Day $Today
-    if ($preSync -eq 2) { $ticketsLagSlate = $true }
-} catch { }
-
 if ($script:PipelineFailed) {
     Write-Log "STEP D - Combined slate: SKIPPED (pipeline failed)"
     Write-Host "Skipping combined slate — fix pipeline first." -ForegroundColor Yellow
-} elseif ($SkipPipeline -and -not (Test-Path (Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.xlsx")) -and -not $ticketsLagSlate) {
+} elseif ($SkipPipeline -and -not (Test-Path (Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.xlsx"))) {
     Write-Log "STEP D - Combined slate: SKIPPED (-SkipPipeline and no existing combined output)"
     Write-Host "Skipping combined slate — pipeline was skipped and no existing output found." -ForegroundColor Yellow
 } else {
-    if ($ticketsLagSlate -and $SkipPipeline) {
-        Write-Log "STEP D - Combined slate: tickets lag slate — running CombinedOnly despite -SkipPipeline"
-    }
     Write-Log "STEP D - Combined slate: START"
     $todayOutDir = Join-Path $Root "outputs\$Today"
     if (-not (Test-Path $todayOutDir)) {
@@ -1936,23 +1919,8 @@ else {
             }
             git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log "STEP E - pull: $_" }
 
-            $liveBoardBlocked = $false
-            try {
-                $stepESync = Get-LiveBoardSyncExit -RepoRoot $Root -Day $Today
-                if ($stepESync -eq 2) {
-                    $liveBoardBlocked = $true
-                    Write-Log "STEP E - live tickets/slate NOT published (dates out of sync). Run CombinedOnly --write-web."
-                    Write-Warning "STEP E skipped tickets_latest/slate_latest — publishing them would leave /tickets on yesterday."
-                }
-            } catch {
-                Write-Log "STEP E - board sync check failed: $($_.Exception.Message)"
-            }
-
             # Restore snapshotted live tickets onto main worktree
             foreach ($rel in $stepELiveRels) {
-                if ($liveBoardBlocked -and ($rel -match 'tickets_latest|slate_latest')) {
-                    continue
-                }
                 $src = Join-Path $stepELiveSnap ($rel -replace "/", "\")
                 if (Test-Path -LiteralPath $src) {
                     $dst = Join-Path $MainRoot ($rel -replace "/", "\")
@@ -1972,19 +1940,6 @@ else {
                         }
                         Copy-Item -Path (Join-Path $srcDir "*") -Destination $dstDir -Recurse -Force -ErrorAction SilentlyContinue
                     }
-                }
-            }
-
-            if ($liveBoardBlocked) {
-                $protectRels = @(
-                    "ui_runner/templates/tickets_latest.json",
-                    "ui_runner/docs/tickets_latest.json",
-                    "mobile/www/tickets_latest.json",
-                    "ui_runner/templates/slate_latest.json",
-                    "mobile/www/slate_latest.json"
-                )
-                foreach ($rel in $protectRels) {
-                    git checkout -- $rel 2>$null
                 }
             }
 
@@ -2490,25 +2445,23 @@ if ($NowHour -ge 10) {
             Write-Host "[LATE_FETCH] Today's slate still empty — running catchup late-fetch" -ForegroundColor Yellow
             Write-Log "[NBA_LATE_FETCH] CATCHUP: slate incomplete; running inline late-fetch"
         }
-        Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
-        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch -SkipLivePayoutCapture)"
+        Write-Host "[LATE_FETCH] Re-fetching in-season sports (fail-fast HTTP, no off-season boards)..." -ForegroundColor Cyan
+        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (in-season step1 --fail-fast + pipeline -SkipFetch)"
 
+    if ($Today -ge $NBA_SEASON_RESUME) {
     $NBADir = Join-Path $SportsRoot "NBA"
     $lateNbaOutDir = Join-Path $Root "outputs\$Today\nba"
     if (-not (Test-Path -LiteralPath $lateNbaOutDir)) {
         New-Item -ItemType Directory -Force -Path $lateNbaOutDir | Out-Null
     }
     $lateNbaArgs = @(
-        # Gentler late-fetch anti-403 settings.
         "--league_id", "7",
         "--game_mode", "pickem",
         "--per_page", "250",
         "--max_pages", "3",
-        "--retries", "6",
+        "--retries", "2",
         "--sleep", "2.0",
-        "--cooldown_seconds", "180",
-        "--max_cooldowns", "4",
-        "--jitter_seconds", "14.0",
+        "--fail-fast",
         "--append",
         "--date", $Today,
         "--output", (Join-Path $Root "outputs\$Today\nba\step1_pp_props_today.csv")
@@ -2524,11 +2477,17 @@ if ($NowHour -ge 10) {
         Write-Warning "[NBA_LATE_FETCH] NBA step1 failed (exit $LASTEXITCODE) — continuing other sports"
         Write-Log "[NBA_LATE_FETCH] WARN: NBA step1 exit $LASTEXITCODE"
     }
+    }
+    else {
+        Write-Host "[LATE_FETCH] Skipping NBA fetch (off-season until $NBA_SEASON_RESUME)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] SKIP: NBA off-season until $NBA_SEASON_RESUME"
+    }
 
+    if ($Today -ge $NHL_SEASON_RESUME) {
     $NHLDir = Join-Path $SportsRoot "NHL"
     Push-Location $NHLDir
     try {
-        & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--output" "outputs\step1_nhl_props.csv"
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--fail-fast" "--output" "outputs\step1_nhl_props.csv"
     }
     finally {
         Pop-Location
@@ -2537,11 +2496,16 @@ if ($NowHour -ge 10) {
         Write-Warning "[NBA_LATE_FETCH] NHL step1 failed (exit $LASTEXITCODE) — continuing"
         Write-Log "[NBA_LATE_FETCH] WARN: NHL step1 exit $LASTEXITCODE"
     }
+    }
+    else {
+        Write-Host "[LATE_FETCH] Skipping NHL fetch (off-season until $NHL_SEASON_RESUME)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] SKIP: NHL off-season until $NHL_SEASON_RESUME"
+    }
 
     $SoccerDir = Join-Path $SportsRoot "Soccer"
     Push-Location $SoccerDir
     try {
-        & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--date" "$Today" "--output" "outputs\step1_soccer_props.csv"
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--fail-fast" "--date" "$Today" "--output" "outputs\step1_soccer_props.csv"
     }
     finally {
         Pop-Location
@@ -2561,13 +2525,10 @@ if ($NowHour -ge 10) {
         "--date", "$Today",
         "--output", $mlbLateOut,
         "--per-page", "250",
-        "--max-pages", "10",
-        "--api-retries", "5",
-        "--api-session-waves", "3",
-        "--api-403-cooldown-after", "5",
-        "--api-403-cooldown-seconds", "90",
-        "--api-403-cooldown-jitter-min", "12",
-        "--api-403-cooldown-jitter-max", "40",
+        "--max-pages", "3",
+        "--api-retries", "1",
+        "--api-session-waves", "1",
+        "--api-403-cooldown-after", "1",
         "--append",
         "--allow-nearest-future"
     )
@@ -2589,14 +2550,8 @@ if ($NowHour -ge 10) {
             }
         }
         if ($LASTEXITCODE -ne 0) {
-            if (-not $mlbCdpReachable) {
-                Write-Warning "[NBA_LATE_FETCH] MLB CDP not reachable — trying Playwright"
-            } else {
-                Write-Warning "[NBA_LATE_FETCH] MLB CDP fetch failed (exit $LASTEXITCODE) — trying Playwright"
-            }
-            & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
-                --playwright --timeout 120 --retries 1 --retry_delay 5 `
-                --append --allow-nearest-future --date "$Today" --output $mlbLateOut
+            Write-Warning "[NBA_LATE_FETCH] MLB step1 failed — skipping Playwright (extra Chrome burns DataDome)"
+            Write-Log "[NBA_LATE_FETCH] SKIP Playwright after MLB HTTP/CDP fail"
         }
     }
     finally {

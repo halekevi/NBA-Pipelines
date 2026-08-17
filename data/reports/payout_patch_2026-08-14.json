@@ -1,0 +1,151 @@
+{
+  "date": "2026-08-14",
+  "generated_at": "2026-08-14T17:19:51.710681Z",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\ui_runner\\data\\combined_slate_tickets_2026-08-14.json",
+  "by_ticket_id": {
+    "2026-08-14|STRONG 2-Leg|2": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-14|STRONG 3-Leg|1": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "2026-08-14|MLB 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "2026-08-14|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.8,
+      "power_first_x": 3.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "2026-08-14|MLB Core Power 2 #2|1": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "2026-08-14|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    }
+  },
+  "by_leg_sig": {
+    "matthew liberatore|hits allowed|over|2.500||michael king|pitches thrown|over|87.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "landen roupp|earned runs allowed|over|0.500||matthew liberatore|hits allowed|over|2.500||michael king|pitches thrown|over|87.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "slip_type": "strong"
+    },
+    "clay holmes|walks allowed|over|0.500||grayson rodriguez|earned runs allowed|over|1.500||kumar rocker|walks allowed|over|0.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||clay holmes|walks allowed|over|0.500||grayson rodriguez|earned runs allowed|over|1.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "bubba chandler|walks allowed|over|0.500||grayson rodriguez|earned runs allowed|over|1.500||kumar rocker|walks allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "grayson rodriguez|earned runs allowed|over|1.500||michael king|pitches thrown|over|87.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 3.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "clay holmes|walks allowed|over|0.500||michael king|pitches thrown|over|87.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "kumar rocker|walks allowed|over|0.500||michael king|pitches thrown|over|87.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "clay holmes|walks allowed|over|0.500||kumar rocker|walks allowed|over|0.500||seth lugo|walks allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3
+    },
+    "bubba chandler|walks allowed|over|0.500||clay holmes|walks allowed|over|0.500||kumar rocker|walks allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-14|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3
+    }
+  }
+}

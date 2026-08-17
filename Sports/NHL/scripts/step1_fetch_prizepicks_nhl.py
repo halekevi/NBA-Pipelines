@@ -549,34 +549,50 @@ def main():
         default=3,
         help="HTTP: fresh session waves after page-1 failure (default 3).",
     )
+    parser.add_argument("--fail-fast", action="store_true", help="Short HTTP path; skip internal Playwright.")
+    parser.add_argument("--cdp", default="", help="Chrome DevTools URL for in-page fetch.")
+    parser.add_argument("--playwright", action="store_true", help="Launch Chromium for in-page fetch.")
     args = parser.parse_args()
     out_path = Path(args.output)
 
     print(f"📡 Fetching PrizePicks NHL | league_id={NHL_LEAGUE_ID} (HTTP first)")
 
-    rows = fetch_via_direct_api(
-        per_page=int(args.per_page),
-        max_pages=int(args.max_pages),
-        retries=int(args.api_retries),
-        first_page_waves=int(args.api_session_waves),
-    )
+    cdp_url = str(args.cdp or "").strip()
+    rows: list = []
+    if cdp_url or args.playwright:
+        from utils.prizepicks_cdp import session_fetch_projections
 
-    # Legacy requests fallback (prizepools + pickem merge)
-    if not rows:
-        print("  [NHL] HTTP empty — trying plain requests (prizepools + pickem)...")
-        rows_pp = fetch_via_requests("prizepools")
-        rows_pk = fetch_via_requests("pickem")
-        rows = _merge_projection_boards(rows_pp or [], rows_pk or [])
+        data, included, _st = session_fetch_projections(
+            str(NHL_LEAGUE_ID),
+            cdp_url=cdp_url,
+            playwright=bool(args.playwright) and not cdp_url,
+            per_page=int(args.per_page),
+            max_pages=int(args.max_pages),
+        )
+        rows = parse_rows(data, included) if data else []
+    else:
+        waves = 1 if args.fail_fast else int(args.api_session_waves)
+        rows = fetch_via_direct_api(
+            per_page=int(args.per_page),
+            max_pages=min(4, int(args.max_pages)) if args.fail_fast else int(args.max_pages),
+            retries=min(2, int(args.api_retries)) if args.fail_fast else int(args.api_retries),
+            first_page_waves=waves,
+        )
 
-    # Finally Playwright
-    if not rows:
-        try:
-            rows = fetch_via_playwright()
-        except ImportError:
-            print("\n❌ Playwright not installed:")
-            print("   pip install playwright --break-system-packages")
-            print("   playwright install chromium")
-            sys.exit(1)
+        if not rows and not args.fail_fast:
+            print("  [NHL] HTTP empty — trying plain requests (prizepools + pickem)...")
+            rows_pp = fetch_via_requests("prizepools")
+            rows_pk = fetch_via_requests("pickem")
+            rows = _merge_projection_boards(rows_pp or [], rows_pk or [])
+
+        if not rows and not args.fail_fast:
+            try:
+                rows = fetch_via_playwright()
+            except ImportError:
+                print("\n❌ Playwright not installed:")
+                print("   pip install playwright --break-system-packages")
+                print("   playwright install chromium")
+                sys.exit(1)
 
     if not rows:
         print("⚠️  No NHL props found. NHL may not be active on PrizePicks today.")

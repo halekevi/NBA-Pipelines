@@ -2,7 +2,7 @@
   "sport": "nba",
   "display_name": "NBA",
   "matchup_mode": "team",
-  "generated_at": "2026-08-12T16:36:22.377352+00:00",
+  "generated_at": "2026-08-15T15:26:51.765633+00:00",
   "season": 2026,
   "n_teams": 30,
   "elite_rank_cut": 4,
@@ -28,6 +28,36 @@
       "id": "fg3m",
       "label": "3-Pointers made",
       "threshold": 1.5
+    },
+    {
+      "id": "fgm",
+      "label": "FG made",
+      "threshold": 7.0
+    },
+    {
+      "id": "fga",
+      "label": "FG attempted",
+      "threshold": 14.0
+    },
+    {
+      "id": "fg2m",
+      "label": "Two pointers made",
+      "threshold": 5.0
+    },
+    {
+      "id": "fg2a",
+      "label": "Two pointers attempted",
+      "threshold": 10.0
+    },
+    {
+      "id": "ftm",
+      "label": "Free throws made",
+      "threshold": 4.0
+    },
+    {
+      "id": "fta",
+      "label": "Free throws attempted",
+      "threshold": 5.0
     },
     {
       "id": "stl",

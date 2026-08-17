@@ -54,6 +54,7 @@ if ((Split-Path -Leaf $ScriptDir) -eq "scripts") {
 $WNBADir = Join-Path $Root "Sports\WNBA"
 $NbaApiStep1 = Join-Path $Root "Sports\NBA\scripts\step1_fetch_prizepicks_api.py"
 $OutRoot = Join-Path $Root "outputs"
+. (Join-Path $Root "scripts\prizepicks_step1_cascade.ps1")
 
 if (-not $Date) { $Date = Get-Date -Format "yyyy-MM-dd" }
 $Cdp = $Cdp.Trim()
@@ -130,8 +131,10 @@ function Get-WnbaStep1HttpArgs {
     param(
         [string]$OutCsv,
         [string]$SlateDate,
-        [int]$Max403Retries = 5
+        [int]$Max403Retries = 5,
+        [switch]$FailFast403
     )
+    $waves = if ($FailFast403) { 1 } else { 3 }
     $argsList = @(
         "--league_id", "3",
         "--game_mode", "pickem",
@@ -142,10 +145,11 @@ function Get-WnbaStep1HttpArgs {
         "--max_cooldowns", "3",
         "--jitter_seconds", "10.0",
         "--max_403_retries", "$Max403Retries",
-        "--first-page-waves", "3",
+        "--first-page-waves", "$waves",
         "--output", $OutCsv,
         "--date", $SlateDate
     )
+    if ($FailFast403) { $argsList += "--fail-fast-403" }
     if ($Quiet403) { $argsList += "--quiet-403" }
     return ($argsList -join " ")
 }
@@ -153,7 +157,8 @@ function Get-WnbaStep1HttpArgs {
 function Invoke-WnbaStep1Http {
     param(
         [string]$Label,
-        [string]$Impersonate = ""
+        [string]$Impersonate = "",
+        [switch]$FailFast403
     )
     $outCsv = Join-Path $WnbaRunOutDir "step1_wnba_props.csv"
     $savedImp = [string]$env:PROPORACLE_CURL_IMPERSONATE
@@ -163,8 +168,8 @@ function Invoke-WnbaStep1Http {
         $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
     }
     try {
-        $max403 = if ($Max403Retries -gt 0) { $Max403Retries } else { 5 }
-        $httpArgs = Get-WnbaStep1HttpArgs -OutCsv $outCsv -SlateDate $Date -Max403Retries $max403
+        $max403 = if ($Max403Retries -gt 0) { $Max403Retries } elseif ($FailFast403) { 2 } else { 5 }
+        $httpArgs = Get-WnbaStep1HttpArgs -OutCsv $outCsv -SlateDate $Date -Max403Retries $max403 -FailFast403:$FailFast403
         return (Run-Step $Label $WNBADir ".\step1_fetch_prizepicks.py" $httpArgs)
     } finally {
         if ($Impersonate) {
@@ -317,14 +322,25 @@ if ($SkipFetch -and (Get-CsvDataRowCount -CsvPath $step1Csv) -eq 0) {
 if (-not $SkipFetch) {
     $cdpDefault = if ($Cdp) { $Cdp } else { "http://127.0.0.1:9222" }
     $cdpReachable = Test-CdpEndpoint -BaseUrl $cdpDefault
-    # When CDP Chrome is already listening (5AM C0a / launch_prizepicks_chrome_cdp), go browser-first.
-    # Avoids DataDome HTTP 403 backoff stacks (often 10–20+ min) while still keeping full HTTP
-    # retry/cooldown when CDP is down. -HttpOnly forces the HTTP path even if CDP is up.
-    $autoBrowserFirst = $cdpReachable -and -not $HttpOnly
-    $browserFirst = $UsePlaywright -or $Cdp -or $PreferBrowser -or $CdpWhenListening -or $autoBrowserFirst
+    # Default: MLB-style HTTP → CDP → Playwright (see prizepicks_step1_cascade.ps1).
+    # Opt into old browser-first with -PreferBrowser / -CdpWhenListening / -UsePlaywright.
+    $autoBrowserFirst = $false
+    $browserFirst = $UsePlaywright -or $PreferBrowser -or $CdpWhenListening
     $useBrowserFirst = $browserFirst -and ($Cdp -or $UsePlaywright -or $cdpReachable)
 
-    if ($useBrowserFirst) {
+    if (-not $HttpOnly -and -not $useBrowserFirst) {
+        if ($Cdp) { $env:PROPORACLE_PP_CDP = $Cdp }
+        $httpList = @(
+            "--league_id", "3", "--game_mode", "pickem", "--per_page", "250", "--max_pages", "10",
+            "--output", $step1Csv, "--date", $Date
+        )
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -SportLabel "WNBA" -WorkDir $WNBADir `
+                -ScriptRel ".\step1_fetch_prizepicks.py" `
+                -OutputPath $step1Csv -PipelineDate $Date `
+                -HttpArgs $httpList -FailFastFlag "--fail-fast-403"
+        }
+    } elseif ($useBrowserFirst) {
         if ($autoBrowserFirst -and -not $PreferBrowser -and -not $CdpWhenListening -and -not $Cdp -and -not $UsePlaywright) {
             Write-Host "  [WNBA step1] CDP listening at $cdpDefault — browser-first (skip HTTP 403 stacks)" -ForegroundColor DarkCyan
         }
@@ -341,7 +357,7 @@ if (-not $SkipFetch) {
         # If browser-first fails (cold tab / challenge), fall back to HTTP with full 403 handling.
         if (-not $ok -and -not $HttpOnly) {
             Write-Host "  [WNBA step1] Browser/CDP failed - falling back to HTTP (full 403 backoff)..." -ForegroundColor Yellow
-            $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP fallback, chrome131)"
+            $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP fallback, chrome131)" -FailFast403:$false
             if (-not $ok) {
                 Write-Host "  [WNBA step1] HTTP (chrome131) failed - retrying NBA API path (chrome120)..." -ForegroundColor Yellow
                 $ok = Invoke-WnbaStep1HttpNbaFallback
@@ -350,7 +366,7 @@ if (-not $SkipFetch) {
     } else {
         # CDP down (or -HttpOnly): keep full HTTP waves + chrome120. Do not shorten 403 sleeps.
         if ($ok) {
-            $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP, chrome131)"
+            $ok = Invoke-WnbaStep1Http -Label "WNBA Step 1 - Fetch PrizePicks (HTTP, chrome131)" -FailFast403:$false
         }
         if (-not $ok) {
             Write-Host "  [WNBA step1] HTTP (chrome131) failed - retrying NBA API path (chrome120)..." -ForegroundColor Yellow

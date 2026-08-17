@@ -182,9 +182,16 @@ def main() -> None:
         f"[NFL step4b] Fetching {args.max_week} regular-season weeks for season={args.season} "
         f"(last {args.n_games} games per team)..."
     )
-    rows = fetch_regular_season_games(
-        int(args.season), max_week=int(args.max_week), timeout=float(args.timeout), sleep_s=float(args.sleep)
-    )
+    try:
+        rows = fetch_regular_season_games(
+            int(args.season), max_week=int(args.max_week), timeout=float(args.timeout), sleep_s=float(args.sleep)
+        )
+    except Exception as e:
+        if out_path.is_file():
+            print(f"[NFL step4b] ESPN fetch failed ({e}); keeping existing {out_path}")
+            return
+        print(f"[NFL step4b] ESPN fetch failed ({e}) and no cache at {out_path}")
+        sys.exit(1)
     by_team: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for r in rows:
         by_team[r["team"]].append(r)

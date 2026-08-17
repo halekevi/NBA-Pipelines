@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-13 12:46:00 UTC",
-  "date": "2026-07-13",
-  "tennis_date": "2026-07-14",
+  "generated_at": "2026-08-17 14:00:51 UTC",
+  "date": "2026-08-17",
+  "tennis_date": "2026-08-17",
   "filters": {
     "tiers": "A,B",
     "min_hit_rate": 0.72,
@@ -18,7 +18,7 @@
     "nba_structured_variants": 8,
     "min_leg_hit_rate": null,
     "structured_min_leg_hit_rate": null,
-    "tennis_structured_min_leg_hit_rate": null,
+    "tennis_structured_min_leg_hit_rate": 0.72,
     "max_ticket_legs": 4,
     "leg_min_hit_by_n": {
       "2": 0.75,
@@ -47,10 +47,15 @@
   },
   "strong_tier_gates": {
     "max_legs": 3,
-    "min_p_win_2leg": 0.33,
-    "min_p_win_3leg": 0.42,
+    "min_p_win_2leg": 0.45,
+    "min_p_win_3leg": 0.35,
+    "min_p_win_4leg": 0.28,
+    "min_p_win_5leg": 0.18,
+    "min_p_win_6leg": 0.12,
+    "max_leg_prob_for_p_win": 0.76,
     "allow_cross_sport": false,
     "require_goblin": true,
+    "allow_standard_hot_on_mix": true,
     "require_tier_ab": true,
     "require_hot_streak": true
   },
@@ -60,6 +65,6 @@
     "failed_tier": 0,
     "failed_streak": 0
   },
-  "max_legs": 4,
+  "max_legs": 3,
   "sort": "p_win"
 }

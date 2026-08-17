@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-08-12T13:15:48.935293+00:00",
+  "generated_at": "2026-08-15T15:26:42.820643+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.8
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.6125
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.8
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.6125
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.8
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.6125
         }
       ]
     },
@@ -84,24 +84,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.8
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.6125
         }
       ]
     },
@@ -110,24 +110,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.8
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.6125
         }
       ]
     },
@@ -136,24 +136,266 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 3.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Sean Manaea",
+          "prop_type": "Pitches Thrown",
+          "line": 84.5,
+          "standard_line": 90.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 0.5,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 0.5,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.0,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 1.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 2.5,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 2.5,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.95
+          "hit_rate": 0.6125
         }
       ]
     },
@@ -162,34 +404,198 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Marcos Giron",
-          "prop_type": "Total Games",
-          "line": 21.5,
-          "standard_line": 22.5,
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        },
+        {
+          "player": "Sean Manaea",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        },
+        {
+          "player": "Sean Manaea",
+          "prop_type": "Pitches Thrown",
+          "line": 84.5,
+          "standard_line": 90.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
         },
         {
-          "player": "Elena Rybakina",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
+          "player": "Sean Manaea",
+          "prop_type": "Pitches Thrown",
+          "line": 84.5,
+          "standard_line": 90.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
           "direction": "OVER",
           "hit_rate": 0.95
         },
         {
-          "player": "Marco Trungelliti",
-          "prop_type": "Total Games Won",
-          "line": 11.5,
-          "standard_line": 12.5,
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.9
+          "hit_rate": 0.6125
+        },
+        {
+          "player": "Sean Manaea",
+          "prop_type": "Pitching Outs",
+          "line": 14.5,
+          "standard_line": 16.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        }
+      ]
+    },
+    {
+      "composition": "2S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "Shakira Austin",
+          "prop_type": "Pts+Rebs",
+          "line": 29.5,
+          "standard_line": 29.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Jackie Young + Kayla McBride",
+          "prop_type": "Points (Combo)",
+          "line": 34.5,
+          "standard_line": 34.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.95
+        },
+        {
+          "player": "Jesús Luzardo",
+          "prop_type": "Pitching Outs",
+          "line": 17.5,
+          "standard_line": 19.0,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.6125
+        },
+        {
+          "player": "Sean Manaea",
+          "prop_type": "Pitches Thrown",
+          "line": 84.5,
+          "standard_line": 90.5,
+          "pick_type": "Demon",
+          "delta": 6.0,
+          "direction": "OVER",
+          "hit_rate": 0.6125
         }
       ]
     }

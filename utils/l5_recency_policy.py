@@ -4,6 +4,7 @@ Cross-sport L5 recency policy (Jul 10–19 2026 as-of rebuild + Aug 2026 soccer 
 
 Findings:
 - L5 >= 4 lifts Goblins / most Std OVER across sports (stable default bar).
+- Goblin OVER with L5 >= 4 is not faded vs Elite / Above Avg D (discounted line).
 - Aug 8 graded: L5>=4 ~58.6% decided vs ~25% board; Goblin L5>=4 ~67%; L5=5/5 ~70%.
 - Aug 8–9 pooled Standards: L5 alone does NOT lift; directional L10>=8 does
   (OVER ~39%→51%, UNDER ~57%→66%). OVER also wants L5>=3 agreement with L10.
@@ -80,6 +81,10 @@ def _norm_direction(direction: object) -> str:
 def is_standard_pick(pick: object) -> bool:
     p = _norm_pick(pick)
     return "standard" in p and "goblin" not in p and "demon" not in p
+
+
+def is_goblin_pick(pick: object) -> bool:
+    return "goblin" in _norm_pick(pick)
 
 
 def l5_gate_clear_min_hits(sport: object) -> float | None:
@@ -161,6 +166,24 @@ def directional_l5_is_ge4(hits: float | None) -> bool:
         return float(hits) >= L5_GE4_MIN - 1e-9
     except (TypeError, ValueError):
         return False
+
+
+def goblin_over_clears_tough_defense(
+    pick: object,
+    direction: object,
+    l5_hits: object,
+) -> bool:
+    """Goblin OVER with directional L5 >= 4 is not faded vs Elite / Above Avg D.
+
+    Discounted goblin lines still clear vs tough D (e.g. Jackie Young pts 14.5
+    at 5/5 L5 vs Elite MIN). Standard OVER vs Elite D stays gated.
+    Missing L5 does not exempt.
+    """
+    if not is_goblin_pick(pick):
+        return False
+    if _norm_direction(direction) != "OVER":
+        return False
+    return directional_l5_is_ge4(l5_hits)
 
 
 def directional_l5_is_perfect(hits: float | None) -> bool:

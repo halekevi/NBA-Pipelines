@@ -423,6 +423,39 @@ def lookup_stat_defense(opp: object, prop: object, *, csv_path: str = "") -> dic
         "stat_def_coarse": coarse,
     }
 
+def suggested_standard_direction(
+    *,
+    opp: object,
+    prop: object,
+    edge: object = None,
+    l5_over: object = None,
+    l5_under: object = None,
+) -> str:
+    """Standard O/U from that prop's allowed-stat rank, then L5, then edge.
+
+    Goblins stay OVER-only at the caller. Weak/Below Avg → OVER, Elite/Above Avg → UNDER.
+    """
+    from utils.matchup_edge.stat_defense import display_tier_from_stat
+
+    lu = lookup_stat_defense(opp, prop)
+    tier = str(display_tier_from_stat(lu.get("stat_def_tier")) or "").strip().upper()
+    if tier in ("WEAK", "BELOW AVG"):
+        return "OVER"
+    if tier in ("ELITE", "ABOVE AVG"):
+        return "UNDER"
+    lo = pd.to_numeric(pd.Series([l5_over]), errors="coerce").iloc[0]
+    lu5 = pd.to_numeric(pd.Series([l5_under]), errors="coerce").iloc[0]
+    if pd.notna(lo) and pd.notna(lu5):
+        if float(lu5) >= 4 and float(lu5) > float(lo):
+            return "UNDER"
+        if float(lo) >= 4:
+            return "OVER"
+    ev = pd.to_numeric(pd.Series([edge]), errors="coerce").iloc[0]
+    if pd.notna(ev) and float(ev) < 0:
+        return "UNDER"
+    return "OVER"
+
+
 def attach_stat_defense_columns(df: pd.DataFrame, *, csv_path: str = "") -> pd.DataFrame:
     """Attach for SOCCER/SOC rows (sport label may be either)."""
     if df is None or len(df) == 0:

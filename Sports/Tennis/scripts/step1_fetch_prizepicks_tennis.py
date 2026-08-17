@@ -408,6 +408,7 @@ def main() -> None:
         default=30_000,
         help="CDP connect_over_cdp timeout in ms (default 30000).",
     )
+    ap.add_argument("--playwright", action="store_true")
     args = ap.parse_args()
     fail_fast = bool(args.fail_fast) or bool(str(args.cdp).strip())
 
@@ -517,20 +518,31 @@ def main() -> None:
     data: list[dict] = []
     included: list[dict] = []
     cdp_url = str(args.cdp or "").strip()
-    if cdp_url:
+    if cdp_url or args.playwright:
         try:
-            print(f"[Tennis step1] CDP fetch league_id={use_id}...")
-            data, included = fetch_tennis_via_cdp(
-                use_id,
-                cdp_url=cdp_url,
-                per_page=int(args.per_page),
-                attach_timeout_ms=int(args.cdp_attach_timeout_ms),
-            )
+            if args.playwright and not cdp_url:
+                from utils.prizepicks_cdp import session_fetch_projections
+
+                print(f"[Tennis step1] Playwright fetch league_id={use_id}...")
+                data, included, _st = session_fetch_projections(
+                    use_id, playwright=True, per_page=int(args.per_page)
+                )
+            else:
+                print(f"[Tennis step1] CDP fetch league_id={use_id}...")
+                data, included = fetch_tennis_via_cdp(
+                    use_id,
+                    cdp_url=cdp_url,
+                    per_page=int(args.per_page),
+                    attach_timeout_ms=int(args.cdp_attach_timeout_ms),
+                )
         except Exception as e:
+            if args.playwright and not cdp_url:
+                print(f"[Tennis step1] Playwright failed ({type(e).__name__}: {e})")
+                sys.exit(1)
             print(f"[Tennis step1] CDP failed ({type(e).__name__}: {e}) — falling back to fail-fast HTTP")
             cdp_url = ""
 
-    if not cdp_url:
+    if not cdp_url and not args.playwright:
         try:
             fetch_kw = {
                 "league_id": use_id,

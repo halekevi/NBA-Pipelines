@@ -361,7 +361,7 @@ def _pick_cdp_warmed_page(context: Any, league_id: str) -> Any | None:
 def _cdp_board_ready(page: Any, league_id: str) -> bool:
     try:
         url = (page.url or "").lower()
-        return "prizepicks.com" in url and f"league_id={league_id}" in url
+        return "app.prizepicks.com" in url
     except Exception:
         return False
 

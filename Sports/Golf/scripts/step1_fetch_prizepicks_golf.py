@@ -286,6 +286,9 @@ def main() -> None:
     ap.add_argument("--retries", type=int, default=5)
     ap.add_argument("--min_rows", type=int, default=3)
     ap.add_argument("--replace", action="store_true")
+    ap.add_argument("--fail-fast", action="store_true")
+    ap.add_argument("--cdp", default="")
+    ap.add_argument("--playwright", action="store_true")
     args = ap.parse_args()
 
     if args.list_leagues:
@@ -342,12 +345,25 @@ def main() -> None:
         use_id = str(args.league_id).strip()
 
     try:
-        data, included = nba.fetch_projections(
-            league_id=use_id,
-            per_page=args.per_page,
-            max_pages=args.max_pages,
-            retries=args.retries,
-        )
+        cdp_url = str(args.cdp or "").strip()
+        if cdp_url or args.playwright:
+            from utils.prizepicks_cdp import session_fetch_projections
+
+            data, included, _st = session_fetch_projections(
+                use_id,
+                cdp_url=cdp_url,
+                playwright=bool(args.playwright) and not cdp_url,
+                per_page=int(args.per_page),
+                max_pages=int(args.max_pages),
+            )
+        else:
+            data, included = nba.fetch_projections(
+                league_id=use_id,
+                per_page=args.per_page,
+                max_pages=min(4, args.max_pages) if args.fail_fast else args.max_pages,
+                retries=min(2, args.retries) if args.fail_fast else args.retries,
+                first_page_waves=1 if args.fail_fast else 3,
+            )
     except Exception as e:
         if _fallback_to_existing_csv(f"fetch failed ({e})"):
             print("[Golf step1] BOARD_OK_FALLBACK")

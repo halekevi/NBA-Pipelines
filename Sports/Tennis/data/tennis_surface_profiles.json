@@ -184,15 +184,15 @@
   "adrian mannarino_Hard": {
     "player": "Adrian Mannarino",
     "surface": "Hard",
-    "aces_per_match_mean": 5.423076923076923,
-    "df_per_match_mean": 2.2115384615384617,
-    "first_serve_pct": 0.5918395438848626,
-    "first_serve_won_pct": 0.7194173123117736,
+    "aces_per_match_mean": 5.490196078431373,
+    "df_per_match_mean": 2.215686274509804,
+    "first_serve_pct": 0.5921408959564228,
+    "first_serve_won_pct": 0.7203182520089633,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4230769230769231,
-    "n_matches_on_surface": 52
+    "win_rate_on_surface": 0.43137254901960786,
+    "n_matches_on_surface": 51
   },
   "adriana reami_Clay": {
     "player": "Adriana Reami",
@@ -262,15 +262,15 @@
   "ajla tomljanovic_Hard": {
     "player": "Ajla Tomljanovic",
     "surface": "Hard",
-    "aces_per_match_mean": 2.4489795918367347,
-    "df_per_match_mean": 6.918367346938775,
-    "first_serve_pct": 0.6619468643108788,
-    "first_serve_won_pct": 0.6421762046456551,
+    "aces_per_match_mean": 2.375,
+    "df_per_match_mean": 6.875,
+    "first_serve_pct": 0.663045853102796,
+    "first_serve_won_pct": 0.6402246868965275,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.43137254901960786,
-    "n_matches_on_surface": 51
+    "win_rate_on_surface": 0.44,
+    "n_matches_on_surface": 50
   },
   "akasha urhobo_Clay": {
     "player": "Akasha Urhobo",
@@ -444,15 +444,15 @@
   "alejandro davidovich fokina_Hard": {
     "player": "Alejandro Davidovich Fokina",
     "surface": "Hard",
-    "aces_per_match_mean": 4.1506849315068495,
-    "df_per_match_mean": 2.136986301369863,
-    "first_serve_pct": 0.6678014783018819,
-    "first_serve_won_pct": 0.6947278770019528,
+    "aces_per_match_mean": 4.166666666666667,
+    "df_per_match_mean": 2.0833333333333335,
+    "first_serve_pct": 0.6682529694220878,
+    "first_serve_won_pct": 0.6951176160343875,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5753424657534246,
-    "n_matches_on_surface": 73
+    "win_rate_on_surface": 0.5833333333333334,
+    "n_matches_on_surface": 72
   },
   "alejandro moro canas_Hard": {
     "player": "Alejandro Moro Canas",
@@ -483,15 +483,15 @@
   "alejandro tabilo_Hard": {
     "player": "Alejandro Tabilo",
     "surface": "Hard",
-    "aces_per_match_mean": 8.295454545454545,
-    "df_per_match_mean": 2.3181818181818183,
-    "first_serve_pct": 0.658888839345757,
-    "first_serve_won_pct": 0.7374619749598615,
+    "aces_per_match_mean": 8.30232558139535,
+    "df_per_match_mean": 2.2790697674418605,
+    "first_serve_pct": 0.6630617878236928,
+    "first_serve_won_pct": 0.736672054111752,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.38636363636363635,
-    "n_matches_on_surface": 44
+    "win_rate_on_surface": 0.3953488372093023,
+    "n_matches_on_surface": 43
   },
   "aleksa krivokapic_Hard": {
     "player": "Aleksa Krivokapic",
@@ -535,15 +535,15 @@
   "aleksandar kovacevic_Hard": {
     "player": "Aleksandar Kovacevic",
     "surface": "Hard",
-    "aces_per_match_mean": 10.92156862745098,
-    "df_per_match_mean": 3.372549019607843,
-    "first_serve_pct": 0.5991867205399917,
-    "first_serve_won_pct": 0.7761940380155666,
+    "aces_per_match_mean": 11.04,
+    "df_per_match_mean": 3.32,
+    "first_serve_pct": 0.6009482327285693,
+    "first_serve_won_pct": 0.7795440057323998,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.39215686274509803,
-    "n_matches_on_surface": 51
+    "win_rate_on_surface": 0.4,
+    "n_matches_on_surface": 50
   },
   "aleksandar vukic_Clay": {
     "player": "Aleksandar Vukic",
@@ -782,15 +782,15 @@
   "alex michelsen_Hard": {
     "player": "Alex Michelsen",
     "surface": "Hard",
-    "aces_per_match_mean": 5.6455696202531644,
-    "df_per_match_mean": 2.367088607594937,
-    "first_serve_pct": 0.6652438513640127,
-    "first_serve_won_pct": 0.7080121684241155,
+    "aces_per_match_mean": 5.64935064935065,
+    "df_per_match_mean": 2.3896103896103895,
+    "first_serve_pct": 0.6664647096462415,
+    "first_serve_won_pct": 0.7055933581588623,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.575,
-    "n_matches_on_surface": 80
+    "win_rate_on_surface": 0.5769230769230769,
+    "n_matches_on_surface": 78
   },
   "alex molcan_Clay": {
     "player": "Alex Molcan",
@@ -1016,15 +1016,15 @@
   "alexander zverev_Hard": {
     "player": "Alexander Zverev",
     "surface": "Hard",
-    "aces_per_match_mean": 9.21505376344086,
-    "df_per_match_mean": 1.8387096774193548,
-    "first_serve_pct": 0.7175601714575869,
-    "first_serve_won_pct": 0.7681711546286047,
+    "aces_per_match_mean": 9.179775280898877,
+    "df_per_match_mean": 1.7191011235955056,
+    "first_serve_pct": 0.7220728480001299,
+    "first_serve_won_pct": 0.7680147234519468,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7263157894736842,
-    "n_matches_on_surface": 95
+    "win_rate_on_surface": 0.7252747252747253,
+    "n_matches_on_surface": 91
   },
   "alexandra eala_Clay": {
     "player": "Alexandra Eala",
@@ -1146,15 +1146,15 @@
   "alexei popyrin_Hard": {
     "player": "Alexei Popyrin",
     "surface": "Hard",
-    "aces_per_match_mean": 10.53191489361702,
-    "df_per_match_mean": 2.723404255319149,
-    "first_serve_pct": 0.631019994596742,
-    "first_serve_won_pct": 0.7502233387774709,
+    "aces_per_match_mean": 10.673913043478262,
+    "df_per_match_mean": 2.760869565217391,
+    "first_serve_pct": 0.6306476434325811,
+    "first_serve_won_pct": 0.7522468275086583,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.3617021276595745,
-    "n_matches_on_surface": 47
+    "win_rate_on_surface": 0.3695652173913043,
+    "n_matches_on_surface": 46
   },
   "alexey vatutin_Hard": {
     "player": "Alexey Vatutin",
@@ -1796,15 +1796,15 @@
   "anastasia pavlyuchenkova_Hard": {
     "player": "Anastasia Pavlyuchenkova",
     "surface": "Hard",
-    "aces_per_match_mean": 3.888888888888889,
-    "df_per_match_mean": 5.2592592592592595,
-    "first_serve_pct": 0.5803648948282244,
-    "first_serve_won_pct": 0.6928427917164954,
+    "aces_per_match_mean": 3.608695652173913,
+    "df_per_match_mean": 5.086956521739131,
+    "first_serve_pct": 0.5819744756773049,
+    "first_serve_won_pct": 0.6856391041101026,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4074074074074074,
-    "n_matches_on_surface": 27
+    "win_rate_on_surface": 0.34782608695652173,
+    "n_matches_on_surface": 23
   },
   "anastasia potapova_Clay": {
     "player": "Anastasia Potapova",
@@ -1835,15 +1835,15 @@
   "anastasia potapova_Hard": {
     "player": "Anastasia Potapova",
     "surface": "Hard",
-    "aces_per_match_mean": 2.3962264150943398,
-    "df_per_match_mean": 4.754716981132075,
-    "first_serve_pct": 0.5443975994101159,
-    "first_serve_won_pct": 0.6505301333428027,
+    "aces_per_match_mean": 2.392156862745098,
+    "df_per_match_mean": 4.784313725490196,
+    "first_serve_pct": 0.5456930489413505,
+    "first_serve_won_pct": 0.6486753900638333,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5660377358490566,
-    "n_matches_on_surface": 53
+    "win_rate_on_surface": 0.5686274509803921,
+    "n_matches_on_surface": 51
   },
   "anastasia tikhonova_Clay": {
     "player": "Anastasia Tikhonova",
@@ -2173,15 +2173,15 @@
   "andrey rublev_Hard": {
     "player": "Andrey Rublev",
     "surface": "Hard",
-    "aces_per_match_mean": 8.736842105263158,
-    "df_per_match_mean": 2.9342105263157894,
-    "first_serve_pct": 0.6156467241829024,
-    "first_serve_won_pct": 0.7805289351747707,
+    "aces_per_match_mean": 8.821917808219178,
+    "df_per_match_mean": 2.9452054794520546,
+    "first_serve_pct": 0.6140779479125374,
+    "first_serve_won_pct": 0.7799113388778333,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5584415584415584,
-    "n_matches_on_surface": 77
+    "win_rate_on_surface": 0.5540540540540541,
+    "n_matches_on_surface": 74
   },
   "andzhelina kostova_Clay": {
     "player": "Andzhelina Kostova",
@@ -2238,15 +2238,15 @@
   "anhelina kalinina_Hard": {
     "player": "Anhelina Kalinina",
     "surface": "Hard",
-    "aces_per_match_mean": 2.347826086956522,
-    "df_per_match_mean": 3.4782608695652173,
-    "first_serve_pct": 0.6014295151002548,
-    "first_serve_won_pct": 0.6383030576395979,
+    "aces_per_match_mean": 2.3636363636363638,
+    "df_per_match_mean": 3.3636363636363638,
+    "first_serve_pct": 0.6009894425543068,
+    "first_serve_won_pct": 0.6411460340887807,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.34782608695652173,
-    "n_matches_on_surface": 23
+    "win_rate_on_surface": 0.36363636363636365,
+    "n_matches_on_surface": 22
   },
   "anja stankovic_Clay": {
     "player": "Anja Stankovic",
@@ -2433,15 +2433,15 @@
   "anna kalinskaya_Hard": {
     "player": "Anna Kalinskaya",
     "surface": "Hard",
-    "aces_per_match_mean": 2.015873015873016,
-    "df_per_match_mean": 3.8253968253968256,
-    "first_serve_pct": 0.6461072847593529,
-    "first_serve_won_pct": 0.6337214880575577,
+    "aces_per_match_mean": 2.0491803278688523,
+    "df_per_match_mean": 3.8360655737704916,
+    "first_serve_pct": 0.6459937523065441,
+    "first_serve_won_pct": 0.6352934343512576,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5714285714285714,
-    "n_matches_on_surface": 63
+    "win_rate_on_surface": 0.5737704918032787,
+    "n_matches_on_surface": 61
   },
   "anna karolina schmiedlova_Hard": {
     "player": "Anna Karolina Schmiedlova",
@@ -2979,15 +2979,15 @@
   "arthur fils_Hard": {
     "player": "Arthur Fils",
     "surface": "Hard",
-    "aces_per_match_mean": 6.932203389830509,
-    "df_per_match_mean": 2.711864406779661,
-    "first_serve_pct": 0.6226992619628637,
-    "first_serve_won_pct": 0.7552140261851886,
+    "aces_per_match_mean": 7.017543859649122,
+    "df_per_match_mean": 2.6491228070175437,
+    "first_serve_pct": 0.6213904641369994,
+    "first_serve_won_pct": 0.7538919865122918,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.65,
-    "n_matches_on_surface": 60
+    "win_rate_on_surface": 0.6551724137931034,
+    "n_matches_on_surface": 58
   },
   "arthur gea_Clay": {
     "player": "Arthur Gea",
@@ -3083,15 +3083,15 @@
   "aryna sabalenka_Hard": {
     "player": "Aryna Sabalenka",
     "surface": "Hard",
-    "aces_per_match_mean": 4.336842105263158,
-    "df_per_match_mean": 1.8842105263157896,
-    "first_serve_pct": 0.6458389600561484,
-    "first_serve_won_pct": 0.7147578719911071,
+    "aces_per_match_mean": 4.2444444444444445,
+    "df_per_match_mean": 1.9,
+    "first_serve_pct": 0.6471915456385164,
+    "first_serve_won_pct": 0.7099094981620548,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.8854166666666666,
-    "n_matches_on_surface": 96
+    "win_rate_on_surface": 0.8791208791208791,
+    "n_matches_on_surface": 91
   },
   "ashlyn krueger_Clay": {
     "player": "Ashlyn Krueger",
@@ -3122,15 +3122,15 @@
   "ashlyn krueger_Hard": {
     "player": "Ashlyn Krueger",
     "surface": "Hard",
-    "aces_per_match_mean": 4.907407407407407,
-    "df_per_match_mean": 5.574074074074074,
-    "first_serve_pct": 0.6459207259640751,
-    "first_serve_won_pct": 0.6422760271511259,
+    "aces_per_match_mean": 4.903846153846154,
+    "df_per_match_mean": 5.461538461538462,
+    "first_serve_pct": 0.6484352821645092,
+    "first_serve_won_pct": 0.6439020281953999,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5185185185185185,
-    "n_matches_on_surface": 54
+    "win_rate_on_surface": 0.5192307692307693,
+    "n_matches_on_surface": 52
   },
   "aslan karatsev_Hard": {
     "player": "Aslan Karatsev",
@@ -3395,15 +3395,15 @@
   "beatriz haddad maia_Hard": {
     "player": "Beatriz Haddad Maia",
     "surface": "Hard",
-    "aces_per_match_mean": 2.235294117647059,
-    "df_per_match_mean": 4.7254901960784315,
-    "first_serve_pct": 0.622968910120951,
-    "first_serve_won_pct": 0.6419930023582563,
+    "aces_per_match_mean": 2.14,
+    "df_per_match_mean": 4.68,
+    "first_serve_pct": 0.6239737428688246,
+    "first_serve_won_pct": 0.6411820687546279,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4528301886792453,
-    "n_matches_on_surface": 53
+    "win_rate_on_surface": 0.46153846153846156,
+    "n_matches_on_surface": 52
   },
   "beibit zhukayev_Grass": {
     "player": "Beibit Zhukayev",
@@ -3499,15 +3499,15 @@
   "ben shelton_Hard": {
     "player": "Ben Shelton",
     "surface": "Hard",
-    "aces_per_match_mean": 10.3,
-    "df_per_match_mean": 2.625,
-    "first_serve_pct": 0.6761511152708604,
-    "first_serve_won_pct": 0.7735043709959218,
+    "aces_per_match_mean": 10.302631578947368,
+    "df_per_match_mean": 2.5526315789473686,
+    "first_serve_pct": 0.6756711201035349,
+    "first_serve_won_pct": 0.7719186253749536,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6625,
-    "n_matches_on_surface": 80
+    "win_rate_on_surface": 0.6578947368421053,
+    "n_matches_on_surface": 76
   },
   "benjamin balleret_Clay": {
     "player": "Benjamin Balleret",
@@ -3707,15 +3707,15 @@
   "bianca andreescu_Hard": {
     "player": "Bianca Andreescu",
     "surface": "Hard",
-    "aces_per_match_mean": 3.4166666666666665,
-    "df_per_match_mean": 3.6666666666666665,
-    "first_serve_pct": 0.6401103357705106,
-    "first_serve_won_pct": 0.6294310405892308,
+    "aces_per_match_mean": 3.272727272727273,
+    "df_per_match_mean": 3.727272727272727,
+    "first_serve_pct": 0.6381229271145648,
+    "first_serve_won_pct": 0.6266907289986967,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.23076923076923078,
-    "n_matches_on_surface": 13
+    "win_rate_on_surface": 0.25,
+    "n_matches_on_surface": 12
   },
   "billy harris_Clay": {
     "player": "Billy Harris",
@@ -3915,15 +3915,15 @@
   "brandon holt_Hard": {
     "player": "Brandon Holt",
     "surface": "Hard",
-    "aces_per_match_mean": 6.0,
-    "df_per_match_mean": 0.8333333333333334,
-    "first_serve_pct": 0.6365726205505015,
-    "first_serve_won_pct": 0.6380794733352279,
+    "aces_per_match_mean": 6.6,
+    "df_per_match_mean": 1.0,
+    "first_serve_pct": 0.6445888990465667,
+    "first_serve_won_pct": 0.6480483091787439,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
     "win_rate_on_surface": 0.0,
-    "n_matches_on_surface": 6
+    "n_matches_on_surface": 5
   },
   "brandon nakashima_Clay": {
     "player": "Brandon Nakashima",
@@ -3954,15 +3954,15 @@
   "brandon nakashima_Hard": {
     "player": "Brandon Nakashima",
     "surface": "Hard",
-    "aces_per_match_mean": 9.615384615384615,
-    "df_per_match_mean": 0.9487179487179487,
-    "first_serve_pct": 0.666428709581985,
-    "first_serve_won_pct": 0.7651894613388458,
+    "aces_per_match_mean": 9.546666666666667,
+    "df_per_match_mean": 0.9333333333333333,
+    "first_serve_pct": 0.6693590727081222,
+    "first_serve_won_pct": 0.7647407351089205,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5512820512820513,
-    "n_matches_on_surface": 78
+    "win_rate_on_surface": 0.5466666666666666,
+    "n_matches_on_surface": 75
   },
   "branko djuric_Clay": {
     "player": "Branko Djuric",
@@ -4279,15 +4279,15 @@
   "carlos alcaraz_Hard": {
     "player": "Carlos Alcaraz",
     "surface": "Hard",
-    "aces_per_match_mean": 5.627906976744186,
-    "df_per_match_mean": 2.13953488372093,
-    "first_serve_pct": 0.6508091023563566,
-    "first_serve_won_pct": 0.7679166933483877,
+    "aces_per_match_mean": 5.6117647058823525,
+    "df_per_match_mean": 2.070588235294118,
+    "first_serve_pct": 0.6520066258212179,
+    "first_serve_won_pct": 0.7679173939424022,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.8255813953488372,
-    "n_matches_on_surface": 86
+    "win_rate_on_surface": 0.8352941176470589,
+    "n_matches_on_surface": 85
   },
   "carlos taberner_Clay": {
     "player": "Carlos Taberner",
@@ -4435,15 +4435,15 @@
   "caroline dolehide_Hard": {
     "player": "Caroline Dolehide",
     "surface": "Hard",
-    "aces_per_match_mean": 2.625,
-    "df_per_match_mean": 3.5,
-    "first_serve_pct": 0.6917884180357249,
-    "first_serve_won_pct": 0.6143912846772221,
+    "aces_per_match_mean": 2.5806451612903225,
+    "df_per_match_mean": 3.4838709677419355,
+    "first_serve_pct": 0.6905557863594579,
+    "first_serve_won_pct": 0.6103482284604468,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.40625,
-    "n_matches_on_surface": 32
+    "win_rate_on_surface": 0.41935483870967744,
+    "n_matches_on_surface": 31
   },
   "caroline garcia_Clay": {
     "player": "Caroline Garcia",
@@ -4500,15 +4500,15 @@
   "caroline wozniacki_Hard": {
     "player": "Caroline Wozniacki",
     "surface": "Hard",
-    "aces_per_match_mean": 2.8333333333333335,
-    "df_per_match_mean": 3.3333333333333335,
-    "first_serve_pct": 0.6448931006475763,
-    "first_serve_won_pct": 0.7117647910699717,
+    "aces_per_match_mean": 2.25,
+    "df_per_match_mean": 2.75,
+    "first_serve_pct": 0.6735750822067957,
+    "first_serve_won_pct": 0.7224574847079384,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6666666666666666,
-    "n_matches_on_surface": 6
+    "win_rate_on_surface": 0.75,
+    "n_matches_on_surface": 4
   },
   "carson branstine_Grass": {
     "player": "Carson Branstine",
@@ -4552,15 +4552,15 @@
   "casper ruud_Hard": {
     "player": "Casper Ruud",
     "surface": "Hard",
-    "aces_per_match_mean": 7.03030303030303,
-    "df_per_match_mean": 2.1818181818181817,
-    "first_serve_pct": 0.6749133866754398,
-    "first_serve_won_pct": 0.7352030126830411,
+    "aces_per_match_mean": 7.138461538461539,
+    "df_per_match_mean": 2.1384615384615384,
+    "first_serve_pct": 0.6773208875089103,
+    "first_serve_won_pct": 0.7398155597562136,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5571428571428572,
-    "n_matches_on_surface": 70
+    "win_rate_on_surface": 0.5652173913043478,
+    "n_matches_on_surface": 69
   },
   "caty mcnally_Clay": {
     "player": "Caty Mcnally",
@@ -4942,15 +4942,15 @@
   "clara burel_Hard": {
     "player": "Clara Burel",
     "surface": "Hard",
-    "aces_per_match_mean": 2.8181818181818183,
-    "df_per_match_mean": 5.454545454545454,
-    "first_serve_pct": 0.5354975493932566,
-    "first_serve_won_pct": 0.6206945524741391,
+    "aces_per_match_mean": 2.8,
+    "df_per_match_mean": 5.3,
+    "first_serve_pct": 0.545144865308192,
+    "first_serve_won_pct": 0.6133195632771085,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.45454545454545453,
-    "n_matches_on_surface": 11
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 10
   },
   "clara tauson_Clay": {
     "player": "Clara Tauson",
@@ -5124,15 +5124,15 @@
   "coco gauff_Hard": {
     "player": "Coco Gauff",
     "surface": "Hard",
-    "aces_per_match_mean": 3.3461538461538463,
-    "df_per_match_mean": 7.346153846153846,
-    "first_serve_pct": 0.6213853000411071,
-    "first_serve_won_pct": 0.7001611350340582,
+    "aces_per_match_mean": 3.2857142857142856,
+    "df_per_match_mean": 7.324675324675325,
+    "first_serve_pct": 0.6222402317876727,
+    "first_serve_won_pct": 0.7014619289955395,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.75,
-    "n_matches_on_surface": 84
+    "win_rate_on_surface": 0.7590361445783133,
+    "n_matches_on_surface": 83
   },
   "codie schalk van schalkwyk_Hard": {
     "player": "Codie Schalk Van Schalkwyk",
@@ -5306,15 +5306,15 @@
   "corentin moutet_Hard": {
     "player": "Corentin Moutet",
     "surface": "Hard",
-    "aces_per_match_mean": 3.4423076923076925,
-    "df_per_match_mean": 2.6153846153846154,
-    "first_serve_pct": 0.628988338405011,
-    "first_serve_won_pct": 0.6656449662663165,
+    "aces_per_match_mean": 3.4901960784313726,
+    "df_per_match_mean": 2.588235294117647,
+    "first_serve_pct": 0.6318994924811978,
+    "first_serve_won_pct": 0.6643884022768379,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.48148148148148145,
-    "n_matches_on_surface": 54
+    "win_rate_on_surface": 0.49056603773584906,
+    "n_matches_on_surface": 53
   },
   "courtney john lock_Hard": {
     "player": "Courtney John Lock",
@@ -5852,15 +5852,15 @@
   "daniil medvedev_Hard": {
     "player": "Daniil Medvedev",
     "surface": "Hard",
-    "aces_per_match_mean": 8.087912087912088,
-    "df_per_match_mean": 4.351648351648351,
-    "first_serve_pct": 0.6342912446850509,
-    "first_serve_won_pct": 0.7586184045000672,
+    "aces_per_match_mean": 8.1,
+    "df_per_match_mean": 4.322222222222222,
+    "first_serve_pct": 0.6364811020478724,
+    "first_serve_won_pct": 0.7590058255502423,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6739130434782609,
-    "n_matches_on_surface": 92
+    "win_rate_on_surface": 0.6813186813186813,
+    "n_matches_on_surface": 91
   },
   "danka kovinic_Clay": {
     "player": "Danka Kovinic",
@@ -5917,15 +5917,15 @@
   "daria kasatkina_Hard": {
     "player": "Daria Kasatkina",
     "surface": "Hard",
-    "aces_per_match_mean": 1.9245283018867925,
-    "df_per_match_mean": 5.69811320754717,
-    "first_serve_pct": 0.6633382161641598,
-    "first_serve_won_pct": 0.6026989960538682,
+    "aces_per_match_mean": 1.8235294117647058,
+    "df_per_match_mean": 5.549019607843137,
+    "first_serve_pct": 0.6646479059354023,
+    "first_serve_won_pct": 0.5988084551091931,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5185185185185185,
-    "n_matches_on_surface": 54
+    "win_rate_on_surface": 0.5192307692307693,
+    "n_matches_on_surface": 52
   },
   "daria lodikova_Clay": {
     "player": "Daria Lodikova",
@@ -6203,15 +6203,15 @@
   "dayana yastremska_Hard": {
     "player": "Dayana Yastremska",
     "surface": "Hard",
-    "aces_per_match_mean": 3.2,
-    "df_per_match_mean": 5.86,
-    "first_serve_pct": 0.5665245970318966,
-    "first_serve_won_pct": 0.6147319095991597,
+    "aces_per_match_mean": 3.2244897959183674,
+    "df_per_match_mean": 5.73469387755102,
+    "first_serve_pct": 0.567494745098422,
+    "first_serve_won_pct": 0.6163267370225372,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.43137254901960786,
-    "n_matches_on_surface": 51
+    "win_rate_on_surface": 0.44,
+    "n_matches_on_surface": 50
   },
   "dayeon back_Hard": {
     "player": "Dayeon Back",
@@ -6424,15 +6424,15 @@
   "diana shnaider_Hard": {
     "player": "Diana Shnaider",
     "surface": "Hard",
-    "aces_per_match_mean": 1.9852941176470589,
-    "df_per_match_mean": 3.4411764705882355,
-    "first_serve_pct": 0.6543647048372305,
-    "first_serve_won_pct": 0.6507436625987656,
+    "aces_per_match_mean": 2.0153846153846153,
+    "df_per_match_mean": 3.5076923076923077,
+    "first_serve_pct": 0.6535607125243305,
+    "first_serve_won_pct": 0.6498549361556362,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5652173913043478,
-    "n_matches_on_surface": 69
+    "win_rate_on_surface": 0.5606060606060606,
+    "n_matches_on_surface": 66
   },
   "diane parry_Clay": {
     "player": "Diane Parry",
@@ -6684,15 +6684,15 @@
   "donna vekic_Hard": {
     "player": "Donna Vekic",
     "surface": "Hard",
-    "aces_per_match_mean": 3.972972972972973,
-    "df_per_match_mean": 5.513513513513513,
-    "first_serve_pct": 0.526653361130779,
-    "first_serve_won_pct": 0.6728345045262024,
+    "aces_per_match_mean": 3.8333333333333335,
+    "df_per_match_mean": 5.416666666666667,
+    "first_serve_pct": 0.5240153538949223,
+    "first_serve_won_pct": 0.672200680376568,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.39473684210526316,
-    "n_matches_on_surface": 38
+    "win_rate_on_surface": 0.40540540540540543,
+    "n_matches_on_surface": 37
   },
   "dragos nicolae madaras_Hard": {
     "player": "Dragos Nicolae Madaras",
@@ -6853,15 +6853,15 @@
   "ekaterina alexandrova_Hard": {
     "player": "Ekaterina Alexandrova",
     "surface": "Hard",
-    "aces_per_match_mean": 5.042857142857143,
-    "df_per_match_mean": 4.728571428571429,
-    "first_serve_pct": 0.6157707279154134,
-    "first_serve_won_pct": 0.6860124090382127,
+    "aces_per_match_mean": 5.086956521739131,
+    "df_per_match_mean": 4.782608695652174,
+    "first_serve_pct": 0.6169117958991579,
+    "first_serve_won_pct": 0.6884583659907906,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5571428571428572,
-    "n_matches_on_surface": 70
+    "win_rate_on_surface": 0.5652173913043478,
+    "n_matches_on_surface": 69
   },
   "ekaterina kazionova_Clay": {
     "player": "Ekaterina Kazionova",
@@ -7087,15 +7087,15 @@
   "elena rybakina_Hard": {
     "player": "Elena Rybakina",
     "surface": "Hard",
-    "aces_per_match_mean": 7.244186046511628,
-    "df_per_match_mean": 2.9767441860465116,
-    "first_serve_pct": 0.5786955047207931,
-    "first_serve_won_pct": 0.7537994416251358,
+    "aces_per_match_mean": 7.094117647058823,
+    "df_per_match_mean": 2.8117647058823527,
+    "first_serve_pct": 0.5799561022416595,
+    "first_serve_won_pct": 0.754148400573261,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7415730337078652,
-    "n_matches_on_surface": 89
+    "win_rate_on_surface": 0.75,
+    "n_matches_on_surface": 88
   },
   "elias ymer_Clay": {
     "player": "Elias Ymer",
@@ -7152,15 +7152,15 @@
   "elina avanesyan_Hard": {
     "player": "Elina Avanesyan",
     "surface": "Hard",
-    "aces_per_match_mean": 0.8888888888888888,
-    "df_per_match_mean": 2.8055555555555554,
-    "first_serve_pct": 0.6664951370777511,
-    "first_serve_won_pct": 0.5746571590197695,
+    "aces_per_match_mean": 0.8484848484848485,
+    "df_per_match_mean": 2.878787878787879,
+    "first_serve_pct": 0.6596862833884435,
+    "first_serve_won_pct": 0.5780067896039458,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5135135135135135,
-    "n_matches_on_surface": 37
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 34
   },
   "elina svitolina_Clay": {
     "player": "Elina Svitolina",
@@ -7191,15 +7191,15 @@
   "elina svitolina_Hard": {
     "player": "Elina Svitolina",
     "surface": "Hard",
-    "aces_per_match_mean": 3.8035714285714284,
-    "df_per_match_mean": 3.5357142857142856,
-    "first_serve_pct": 0.5670145167473704,
-    "first_serve_won_pct": 0.6979130471075461,
+    "aces_per_match_mean": 3.7169811320754715,
+    "df_per_match_mean": 3.547169811320755,
+    "first_serve_pct": 0.5683777628458202,
+    "first_serve_won_pct": 0.6995845349237246,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6896551724137931,
-    "n_matches_on_surface": 58
+    "win_rate_on_surface": 0.6909090909090909,
+    "n_matches_on_surface": 55
   },
   "eliot spizzirri_Clay": {
     "player": "Eliot Spizzirri",
@@ -7256,15 +7256,15 @@
   "elisabetta cocciaretto_Hard": {
     "player": "Elisabetta Cocciaretto",
     "surface": "Hard",
-    "aces_per_match_mean": 1.6222222222222222,
-    "df_per_match_mean": 3.022222222222222,
-    "first_serve_pct": 0.6645633644261094,
-    "first_serve_won_pct": 0.6279904860545132,
+    "aces_per_match_mean": 1.6046511627906976,
+    "df_per_match_mean": 2.9069767441860463,
+    "first_serve_pct": 0.6642255954773053,
+    "first_serve_won_pct": 0.6261278294607598,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4897959183673469,
-    "n_matches_on_surface": 49
+    "win_rate_on_surface": 0.48936170212765956,
+    "n_matches_on_surface": 47
   },
   "elise mertens_Clay": {
     "player": "Elise Mertens",
@@ -7295,15 +7295,15 @@
   "elise mertens_Hard": {
     "player": "Elise Mertens",
     "surface": "Hard",
-    "aces_per_match_mean": 4.75,
-    "df_per_match_mean": 4.316666666666666,
-    "first_serve_pct": 0.5686045266714185,
-    "first_serve_won_pct": 0.7228597342461753,
+    "aces_per_match_mean": 4.779661016949152,
+    "df_per_match_mean": 4.237288135593221,
+    "first_serve_pct": 0.5695554508522901,
+    "first_serve_won_pct": 0.7222963812507612,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6,
-    "n_matches_on_surface": 65
+    "win_rate_on_surface": 0.609375,
+    "n_matches_on_surface": 64
   },
   "elizabeth mandlik_Clay": {
     "player": "Elizabeth Mandlik",
@@ -7711,15 +7711,15 @@
   "emma navarro_Hard": {
     "player": "Emma Navarro",
     "surface": "Hard",
-    "aces_per_match_mean": 1.8,
-    "df_per_match_mean": 3.327272727272727,
-    "first_serve_pct": 0.6354427598651357,
-    "first_serve_won_pct": 0.6445088385654902,
+    "aces_per_match_mean": 1.8333333333333333,
+    "df_per_match_mean": 3.2962962962962963,
+    "first_serve_pct": 0.6368825830535214,
+    "first_serve_won_pct": 0.6475042129705983,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5172413793103449,
-    "n_matches_on_surface": 58
+    "win_rate_on_surface": 0.5263157894736842,
+    "n_matches_on_surface": 57
   },
   "emma raducanu_Clay": {
     "player": "Emma Raducanu",
@@ -8062,15 +8062,15 @@
   "fabian marozsan_Hard": {
     "player": "Fabian Marozsan",
     "surface": "Hard",
-    "aces_per_match_mean": 5.642857142857143,
-    "df_per_match_mean": 2.482142857142857,
-    "first_serve_pct": 0.6522596132436834,
-    "first_serve_won_pct": 0.7153208966632281,
+    "aces_per_match_mean": 5.679245283018868,
+    "df_per_match_mean": 2.3773584905660377,
+    "first_serve_pct": 0.6513963692675658,
+    "first_serve_won_pct": 0.7135865878051038,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.48333333333333334,
-    "n_matches_on_surface": 60
+    "win_rate_on_surface": 0.47368421052631576,
+    "n_matches_on_surface": 57
   },
   "fabio fognini_Clay": {
     "player": "Fabio Fognini",
@@ -8387,15 +8387,15 @@
   "felix auger aliassime_Hard": {
     "player": "Felix Auger Aliassime",
     "surface": "Hard",
-    "aces_per_match_mean": 10.23076923076923,
-    "df_per_match_mean": 3.043956043956044,
-    "first_serve_pct": 0.6679852835394289,
-    "first_serve_won_pct": 0.775285581145561,
+    "aces_per_match_mean": 10.261363636363637,
+    "df_per_match_mean": 2.9318181818181817,
+    "first_serve_pct": 0.6721667506893099,
+    "first_serve_won_pct": 0.7759012405839782,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7032967032967034,
-    "n_matches_on_surface": 91
+    "win_rate_on_surface": 0.7045454545454546,
+    "n_matches_on_surface": 88
   },
   "filip cristian jianu_Clay": {
     "player": "Filip Cristian Jianu",
@@ -8582,15 +8582,15 @@
   "flavio cobolli_Hard": {
     "player": "Flavio Cobolli",
     "surface": "Hard",
-    "aces_per_match_mean": 5.852459016393443,
-    "df_per_match_mean": 3.3114754098360657,
-    "first_serve_pct": 0.5566902781244952,
-    "first_serve_won_pct": 0.7062785299762229,
+    "aces_per_match_mean": 5.793103448275862,
+    "df_per_match_mean": 3.3793103448275863,
+    "first_serve_pct": 0.5547264346102354,
+    "first_serve_won_pct": 0.7038255037489394,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5,
-    "n_matches_on_surface": 64
+    "win_rate_on_surface": 0.4918032786885246,
+    "n_matches_on_surface": 61
   },
   "frances tiafoe_Clay": {
     "player": "Frances Tiafoe",
@@ -8621,15 +8621,15 @@
   "frances tiafoe_Hard": {
     "player": "Frances Tiafoe",
     "surface": "Hard",
-    "aces_per_match_mean": 8.271428571428572,
-    "df_per_match_mean": 2.342857142857143,
-    "first_serve_pct": 0.5875357032941876,
-    "first_serve_won_pct": 0.7508902620885259,
+    "aces_per_match_mean": 8.40625,
+    "df_per_match_mean": 2.359375,
+    "first_serve_pct": 0.5914435872995718,
+    "first_serve_won_pct": 0.7479026906624261,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5972222222222222,
-    "n_matches_on_surface": 72
+    "win_rate_on_surface": 0.5757575757575758,
+    "n_matches_on_surface": 66
   },
   "francesca curmi_Clay": {
     "player": "Francesca Curmi",
@@ -8790,15 +8790,15 @@
   "francisco cerundolo_Hard": {
     "player": "Francisco Cerundolo",
     "surface": "Hard",
-    "aces_per_match_mean": 3.9661016949152543,
-    "df_per_match_mean": 3.016949152542373,
-    "first_serve_pct": 0.608124080593701,
-    "first_serve_won_pct": 0.6956372952380614,
+    "aces_per_match_mean": 4.0,
+    "df_per_match_mean": 3.0172413793103448,
+    "first_serve_pct": 0.6078331164660062,
+    "first_serve_won_pct": 0.6967115014777979,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5737704918032787,
-    "n_matches_on_surface": 61
+    "win_rate_on_surface": 0.5833333333333334,
+    "n_matches_on_surface": 60
   },
   "francisco comesana_Clay": {
     "player": "Francisco Comesana",
@@ -9050,15 +9050,15 @@
   "gael monfils_Hard": {
     "player": "Gael Monfils",
     "surface": "Hard",
-    "aces_per_match_mean": 9.475,
-    "df_per_match_mean": 5.3,
-    "first_serve_pct": 0.6080137296608982,
-    "first_serve_won_pct": 0.758607586795764,
+    "aces_per_match_mean": 9.45945945945946,
+    "df_per_match_mean": 5.1891891891891895,
+    "first_serve_pct": 0.6139207094516164,
+    "first_serve_won_pct": 0.7550360222718185,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5609756097560976,
-    "n_matches_on_surface": 41
+    "win_rate_on_surface": 0.5526315789473685,
+    "n_matches_on_surface": 38
   },
   "gauthier onclin_Hard": {
     "player": "Gauthier Onclin",
@@ -9180,15 +9180,15 @@
   "giovanni mpetshi perricard_Hard": {
     "player": "Giovanni Mpetshi Perricard",
     "surface": "Hard",
-    "aces_per_match_mean": 15.9,
-    "df_per_match_mean": 4.1,
-    "first_serve_pct": 0.6740498072567562,
-    "first_serve_won_pct": 0.7944948157701482,
+    "aces_per_match_mean": 15.94915254237288,
+    "df_per_match_mean": 4.0,
+    "first_serve_pct": 0.6758944244762887,
+    "first_serve_won_pct": 0.7962268009135797,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.45901639344262296,
-    "n_matches_on_surface": 61
+    "win_rate_on_surface": 0.4666666666666667,
+    "n_matches_on_surface": 60
   },
   "giulia safina popa_Clay": {
     "player": "Giulia Safina Popa",
@@ -9375,15 +9375,15 @@
   "grigor dimitrov_Hard": {
     "player": "Grigor Dimitrov",
     "surface": "Hard",
-    "aces_per_match_mean": 8.13953488372093,
-    "df_per_match_mean": 4.0,
-    "first_serve_pct": 0.5962399268479193,
-    "first_serve_won_pct": 0.7807197492168302,
+    "aces_per_match_mean": 8.095238095238095,
+    "df_per_match_mean": 3.880952380952381,
+    "first_serve_pct": 0.5998222314745335,
+    "first_serve_won_pct": 0.778716294082353,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5681818181818182,
-    "n_matches_on_surface": 44
+    "win_rate_on_surface": 0.5813953488372093,
+    "n_matches_on_surface": 43
   },
   "guiomar maristany zuleta de reales_Clay": {
     "player": "Guiomar Maristany Zuleta De Reales",
@@ -9726,15 +9726,15 @@
   "harriet dart_Hard": {
     "player": "Harriet Dart",
     "surface": "Hard",
-    "aces_per_match_mean": 2.0,
-    "df_per_match_mean": 6.5,
-    "first_serve_pct": 0.5389235037667525,
-    "first_serve_won_pct": 0.5750336357947435,
+    "aces_per_match_mean": 2.2222222222222223,
+    "df_per_match_mean": 6.777777777777778,
+    "first_serve_pct": 0.5424191501222623,
+    "first_serve_won_pct": 0.586638680294813,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.3,
-    "n_matches_on_surface": 10
+    "win_rate_on_surface": 0.3333333333333333,
+    "n_matches_on_surface": 9
   },
   "hazem naw_Hard": {
     "player": "Hazem Naw",
@@ -9934,15 +9934,15 @@
   "holger rune_Hard": {
     "player": "Holger Rune",
     "surface": "Hard",
-    "aces_per_match_mean": 6.084745762711864,
-    "df_per_match_mean": 2.8983050847457625,
-    "first_serve_pct": 0.6139138173652918,
-    "first_serve_won_pct": 0.7320552521462018,
+    "aces_per_match_mean": 6.203703703703703,
+    "df_per_match_mean": 2.814814814814815,
+    "first_serve_pct": 0.6214361852353363,
+    "first_serve_won_pct": 0.7324859602942029,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6557377049180327,
-    "n_matches_on_surface": 61
+    "win_rate_on_surface": 0.6428571428571429,
+    "n_matches_on_surface": 56
   },
   "hong yi cody wong_Hard": {
     "player": "Hong Yi Cody Wong",
@@ -9986,15 +9986,15 @@
   "hubert hurkacz_Hard": {
     "player": "Hubert Hurkacz",
     "surface": "Hard",
-    "aces_per_match_mean": 13.411764705882353,
-    "df_per_match_mean": 1.7941176470588236,
-    "first_serve_pct": 0.6430669887809067,
-    "first_serve_won_pct": 0.7675997900677279,
+    "aces_per_match_mean": 13.612903225806452,
+    "df_per_match_mean": 1.8387096774193548,
+    "first_serve_pct": 0.6498660298850298,
+    "first_serve_won_pct": 0.7742697134280968,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.47058823529411764,
-    "n_matches_on_surface": 34
+    "win_rate_on_surface": 0.45161290322580644,
+    "n_matches_on_surface": 31
   },
   "hugo dellien_Clay": {
     "player": "Hugo Dellien",
@@ -10194,15 +10194,15 @@
   "iga swiatek_Hard": {
     "player": "Iga Swiatek",
     "surface": "Hard",
-    "aces_per_match_mean": 3.074074074074074,
-    "df_per_match_mean": 2.8518518518518516,
-    "first_serve_pct": 0.6264148261677628,
-    "first_serve_won_pct": 0.7051309872518238,
+    "aces_per_match_mean": 3.051948051948052,
+    "df_per_match_mean": 2.883116883116883,
+    "first_serve_pct": 0.6257520469207206,
+    "first_serve_won_pct": 0.7045265815447567,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7586206896551724,
-    "n_matches_on_surface": 87
+    "win_rate_on_surface": 0.7590361445783133,
+    "n_matches_on_surface": 83
   },
   "ignacio buse_Clay": {
     "player": "Ignacio Buse",
@@ -10675,15 +10675,15 @@
   "jack draper_Hard": {
     "player": "Jack Draper",
     "surface": "Hard",
-    "aces_per_match_mean": 9.0,
-    "df_per_match_mean": 2.872340425531915,
-    "first_serve_pct": 0.6120030053692777,
-    "first_serve_won_pct": 0.7798871759967164,
+    "aces_per_match_mean": 9.232558139534884,
+    "df_per_match_mean": 2.744186046511628,
+    "first_serve_pct": 0.6175582285906956,
+    "first_serve_won_pct": 0.777980093017801,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7346938775510204,
-    "n_matches_on_surface": 49
+    "win_rate_on_surface": 0.7333333333333333,
+    "n_matches_on_surface": 45
   },
   "jack loutit_Hard": {
     "player": "Jack Loutit",
@@ -11013,15 +11013,15 @@
   "jan lennard struff_Hard": {
     "player": "Jan Lennard Struff",
     "surface": "Hard",
-    "aces_per_match_mean": 10.0,
-    "df_per_match_mean": 4.314285714285714,
-    "first_serve_pct": 0.6034995202409903,
-    "first_serve_won_pct": 0.7474608212099151,
+    "aces_per_match_mean": 10.029411764705882,
+    "df_per_match_mean": 4.147058823529412,
+    "first_serve_pct": 0.6040463984722735,
+    "first_serve_won_pct": 0.7476233311316488,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.358974358974359,
-    "n_matches_on_surface": 39
+    "win_rate_on_surface": 0.3684210526315789,
+    "n_matches_on_surface": 38
   },
   "jana fett_Clay": {
     "player": "Jana Fett",
@@ -11117,15 +11117,15 @@
   "jannik sinner_Hard": {
     "player": "Jannik Sinner",
     "surface": "Hard",
-    "aces_per_match_mean": 8.236559139784946,
-    "df_per_match_mean": 1.5053763440860215,
-    "first_serve_pct": 0.6316847288249628,
-    "first_serve_won_pct": 0.8109793291980911,
+    "aces_per_match_mean": 8.112359550561798,
+    "df_per_match_mean": 1.4382022471910112,
+    "first_serve_pct": 0.6356771721519128,
+    "first_serve_won_pct": 0.8123444729160731,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.9361702127659575,
-    "n_matches_on_surface": 94
+    "win_rate_on_surface": 0.9325842696629213,
+    "n_matches_on_surface": 89
   },
   "jaqueline cristian_Clay": {
     "player": "Jaqueline Cristian",
@@ -11208,15 +11208,15 @@
   "jasmine paolini_Hard": {
     "player": "Jasmine Paolini",
     "surface": "Hard",
-    "aces_per_match_mean": 1.591549295774648,
-    "df_per_match_mean": 1.7183098591549295,
-    "first_serve_pct": 0.6570977331105387,
-    "first_serve_won_pct": 0.6267709534797749,
+    "aces_per_match_mean": 1.5797101449275361,
+    "df_per_match_mean": 1.7246376811594204,
+    "first_serve_pct": 0.658725734736391,
+    "first_serve_won_pct": 0.6265474228959803,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6233766233766234,
-    "n_matches_on_surface": 77
+    "win_rate_on_surface": 0.6266666666666667,
+    "n_matches_on_surface": 75
   },
   "jason kubler_Clay": {
     "player": "Jason Kubler",
@@ -11273,15 +11273,15 @@
   "jaume munar_Hard": {
     "player": "Jaume Munar",
     "surface": "Hard",
-    "aces_per_match_mean": 5.0,
-    "df_per_match_mean": 2.6470588235294117,
-    "first_serve_pct": 0.6325976100595859,
-    "first_serve_won_pct": 0.7261827873273793,
+    "aces_per_match_mean": 4.96,
+    "df_per_match_mean": 2.6,
+    "first_serve_pct": 0.6332907993741796,
+    "first_serve_won_pct": 0.7262236844532373,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5185185185185185,
-    "n_matches_on_surface": 54
+    "win_rate_on_surface": 0.5283018867924528,
+    "n_matches_on_surface": 53
   },
   "jay clarke_Grass": {
     "player": "Jay Clarke",
@@ -11364,15 +11364,15 @@
   "jelena ostapenko_Hard": {
     "player": "Jelena Ostapenko",
     "surface": "Hard",
-    "aces_per_match_mean": 3.6904761904761907,
-    "df_per_match_mean": 5.9523809523809526,
-    "first_serve_pct": 0.5550020556136486,
-    "first_serve_won_pct": 0.652856209477367,
+    "aces_per_match_mean": 3.731707317073171,
+    "df_per_match_mean": 5.926829268292683,
+    "first_serve_pct": 0.5550598721177042,
+    "first_serve_won_pct": 0.6565844097085222,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4186046511627907,
-    "n_matches_on_surface": 43
+    "win_rate_on_surface": 0.42857142857142855,
+    "n_matches_on_surface": 42
   },
   "jennifer brady_Clay": {
     "player": "Jennifer Brady",
@@ -11572,15 +11572,15 @@
   "jessica bouzas maneiro_Hard": {
     "player": "Jessica Bouzas Maneiro",
     "surface": "Hard",
-    "aces_per_match_mean": 1.8846153846153846,
-    "df_per_match_mean": 5.75,
-    "first_serve_pct": 0.5949999325494164,
-    "first_serve_won_pct": 0.6102815685584058,
+    "aces_per_match_mean": 1.92,
+    "df_per_match_mean": 5.58,
+    "first_serve_pct": 0.5988951135559428,
+    "first_serve_won_pct": 0.6115543697622806,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.42857142857142855,
-    "n_matches_on_surface": 56
+    "win_rate_on_surface": 0.42592592592592593,
+    "n_matches_on_surface": 54
   },
   "jessica pegula_Clay": {
     "player": "Jessica Pegula",
@@ -11611,15 +11611,15 @@
   "jessica pegula_Hard": {
     "player": "Jessica Pegula",
     "surface": "Hard",
-    "aces_per_match_mean": 3.3225806451612905,
-    "df_per_match_mean": 2.075268817204301,
-    "first_serve_pct": 0.6286573141218895,
-    "first_serve_won_pct": 0.6944990670395234,
+    "aces_per_match_mean": 3.3181818181818183,
+    "df_per_match_mean": 2.0113636363636362,
+    "first_serve_pct": 0.6286782159698509,
+    "first_serve_won_pct": 0.6948646237994244,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7291666666666666,
-    "n_matches_on_surface": 96
+    "win_rate_on_surface": 0.7252747252747253,
+    "n_matches_on_surface": 91
   },
   "jessica pieri_Clay": {
     "player": "Jessica Pieri",
@@ -11754,15 +11754,15 @@
   "jiri lehecka_Hard": {
     "player": "Jiri Lehecka",
     "surface": "Hard",
-    "aces_per_match_mean": 8.139240506329115,
-    "df_per_match_mean": 2.2911392405063293,
-    "first_serve_pct": 0.6218676306432072,
-    "first_serve_won_pct": 0.7646870009945248,
+    "aces_per_match_mean": 8.052631578947368,
+    "df_per_match_mean": 2.1842105263157894,
+    "first_serve_pct": 0.6227991898476134,
+    "first_serve_won_pct": 0.763986073287415,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6309523809523809,
-    "n_matches_on_surface": 84
+    "win_rate_on_surface": 0.6296296296296297,
+    "n_matches_on_surface": 81
   },
   "joanna garland_Clay": {
     "player": "Joanna Garland",
@@ -12014,15 +12014,15 @@
   "jordan thompson_Hard": {
     "player": "Jordan Thompson",
     "surface": "Hard",
-    "aces_per_match_mean": 8.46875,
-    "df_per_match_mean": 1.59375,
-    "first_serve_pct": 0.5857730569908743,
-    "first_serve_won_pct": 0.7348852961236111,
+    "aces_per_match_mean": 8.733333333333333,
+    "df_per_match_mean": 1.5666666666666667,
+    "first_serve_pct": 0.5888796748453468,
+    "first_serve_won_pct": 0.7317586015794709,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5,
-    "n_matches_on_surface": 34
+    "win_rate_on_surface": 0.4838709677419355,
+    "n_matches_on_surface": 31
   },
   "jose rubin statham_Hard": {
     "player": "Jose Rubin Statham",
@@ -12677,15 +12677,15 @@
   "karen khachanov_Hard": {
     "player": "Karen Khachanov",
     "surface": "Hard",
-    "aces_per_match_mean": 8.015151515151516,
-    "df_per_match_mean": 2.1363636363636362,
-    "first_serve_pct": 0.6422041870603754,
-    "first_serve_won_pct": 0.760114860298171,
+    "aces_per_match_mean": 8.046875,
+    "df_per_match_mean": 2.125,
+    "first_serve_pct": 0.6433375824500374,
+    "first_serve_won_pct": 0.7623966754889404,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5606060606060606,
-    "n_matches_on_surface": 66
+    "win_rate_on_surface": 0.5625,
+    "n_matches_on_surface": 64
   },
   "karim bennani_Clay": {
     "player": "Karim Bennani",
@@ -12794,15 +12794,15 @@
   "karolina muchova_Hard": {
     "player": "Karolina Muchova",
     "surface": "Hard",
-    "aces_per_match_mean": 3.607594936708861,
-    "df_per_match_mean": 1.8354430379746836,
-    "first_serve_pct": 0.6275318905326129,
-    "first_serve_won_pct": 0.6981974083658241,
+    "aces_per_match_mean": 3.5844155844155843,
+    "df_per_match_mean": 1.7532467532467533,
+    "first_serve_pct": 0.6305552714446954,
+    "first_serve_won_pct": 0.6993463432679456,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.725,
-    "n_matches_on_surface": 80
+    "win_rate_on_surface": 0.7307692307692307,
+    "n_matches_on_surface": 78
   },
   "karolina pliskova_Clay": {
     "player": "Karolina Pliskova",
@@ -12820,15 +12820,15 @@
   "karolina pliskova_Hard": {
     "player": "Karolina Pliskova",
     "surface": "Hard",
-    "aces_per_match_mean": 4.2,
-    "df_per_match_mean": 5.7,
-    "first_serve_pct": 0.6325467076782866,
-    "first_serve_won_pct": 0.6281720929546103,
+    "aces_per_match_mean": 3.875,
+    "df_per_match_mean": 4.625,
+    "first_serve_pct": 0.6432474871619608,
+    "first_serve_won_pct": 0.628684503948365,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5454545454545454,
-    "n_matches_on_surface": 11
+    "win_rate_on_surface": 0.5555555555555556,
+    "n_matches_on_surface": 9
   },
   "karue sell_Clay": {
     "player": "Karue Sell",
@@ -12924,15 +12924,15 @@
   "katerina siniakova_Hard": {
     "player": "Katerina Siniakova",
     "surface": "Hard",
-    "aces_per_match_mean": 1.7321428571428572,
-    "df_per_match_mean": 4.982142857142857,
-    "first_serve_pct": 0.6175741487525285,
-    "first_serve_won_pct": 0.6287103641252644,
+    "aces_per_match_mean": 1.7454545454545454,
+    "df_per_match_mean": 4.927272727272728,
+    "first_serve_pct": 0.6193576692847467,
+    "first_serve_won_pct": 0.6292323707457239,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5178571428571429,
-    "n_matches_on_surface": 56
+    "win_rate_on_surface": 0.5272727272727272,
+    "n_matches_on_surface": 55
   },
   "katerina tsygourova_Clay": {
     "player": "Katerina Tsygourova",
@@ -13041,15 +13041,15 @@
   "katie boulter_Hard": {
     "player": "Katie Boulter",
     "surface": "Hard",
-    "aces_per_match_mean": 2.5918367346938775,
-    "df_per_match_mean": 4.591836734693878,
-    "first_serve_pct": 0.5659709082752811,
-    "first_serve_won_pct": 0.6779659367471248,
+    "aces_per_match_mean": 2.6041666666666665,
+    "df_per_match_mean": 4.520833333333333,
+    "first_serve_pct": 0.5666688952712758,
+    "first_serve_won_pct": 0.6788788449822022,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5357142857142857,
-    "n_matches_on_surface": 56
+    "win_rate_on_surface": 0.5454545454545454,
+    "n_matches_on_surface": 55
   },
   "katie swan_Hard": {
     "player": "Katie Swan",
@@ -13860,15 +13860,15 @@
   "leylah fernandez_Hard": {
     "player": "Leylah Fernandez",
     "surface": "Hard",
-    "aces_per_match_mean": 2.8550724637681157,
-    "df_per_match_mean": 4.2898550724637685,
-    "first_serve_pct": 0.619546120795591,
-    "first_serve_won_pct": 0.6671688023357348,
+    "aces_per_match_mean": 2.723076923076923,
+    "df_per_match_mean": 4.123076923076923,
+    "first_serve_pct": 0.6180203831752548,
+    "first_serve_won_pct": 0.665606901140057,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5492957746478874,
-    "n_matches_on_surface": 71
+    "win_rate_on_surface": 0.5373134328358209,
+    "n_matches_on_surface": 67
   },
   "leyre romero gormaz_Clay": {
     "player": "Leyre Romero Gormaz",
@@ -14133,15 +14133,15 @@
   "linda noskova_Hard": {
     "player": "Linda Noskova",
     "surface": "Hard",
-    "aces_per_match_mean": 6.0606060606060606,
-    "df_per_match_mean": 4.893939393939394,
-    "first_serve_pct": 0.5814400766160804,
-    "first_serve_won_pct": 0.7101011492881105,
+    "aces_per_match_mean": 6.092307692307692,
+    "df_per_match_mean": 4.907692307692308,
+    "first_serve_pct": 0.5806568017766898,
+    "first_serve_won_pct": 0.7113656750195555,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6119402985074627,
-    "n_matches_on_surface": 67
+    "win_rate_on_surface": 0.6212121212121212,
+    "n_matches_on_surface": 66
   },
   "liova ayite ajavon_Hard": {
     "player": "Liova Ayite Ajavon",
@@ -14211,15 +14211,15 @@
   "liudmila samsonova_Hard": {
     "player": "Liudmila Samsonova",
     "surface": "Hard",
-    "aces_per_match_mean": 3.9056603773584904,
-    "df_per_match_mean": 4.452830188679245,
-    "first_serve_pct": 0.5502275533623541,
-    "first_serve_won_pct": 0.6788597074461643,
+    "aces_per_match_mean": 3.8979591836734695,
+    "df_per_match_mean": 4.448979591836735,
+    "first_serve_pct": 0.5568588402599733,
+    "first_serve_won_pct": 0.6728628322522654,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4716981132075472,
-    "n_matches_on_surface": 53
+    "win_rate_on_surface": 0.4489795918367347,
+    "n_matches_on_surface": 49
   },
   "lloyd harris_Clay": {
     "player": "Lloyd Harris",
@@ -14341,15 +14341,15 @@
   "lorenzo musetti_Hard": {
     "player": "Lorenzo Musetti",
     "surface": "Hard",
-    "aces_per_match_mean": 5.3428571428571425,
-    "df_per_match_mean": 2.4857142857142858,
-    "first_serve_pct": 0.6425637684410197,
-    "first_serve_won_pct": 0.7177043243871227,
+    "aces_per_match_mean": 5.338235294117647,
+    "df_per_match_mean": 2.426470588235294,
+    "first_serve_pct": 0.6448525972262383,
+    "first_serve_won_pct": 0.717510499962076,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6056338028169014,
-    "n_matches_on_surface": 71
+    "win_rate_on_surface": 0.6086956521739131,
+    "n_matches_on_surface": 69
   },
   "lorenzo sonego_Clay": {
     "player": "Lorenzo Sonego",
@@ -14536,15 +14536,15 @@
   "lucia bronzetti_Hard": {
     "player": "Lucia Bronzetti",
     "surface": "Hard",
-    "aces_per_match_mean": 2.3617021276595747,
-    "df_per_match_mean": 2.297872340425532,
-    "first_serve_pct": 0.621161642360024,
-    "first_serve_won_pct": 0.6220480181075947,
+    "aces_per_match_mean": 2.4130434782608696,
+    "df_per_match_mean": 2.239130434782609,
+    "first_serve_pct": 0.6222963407321684,
+    "first_serve_won_pct": 0.6230543320717254,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4791666666666667,
-    "n_matches_on_surface": 48
+    "win_rate_on_surface": 0.48936170212765956,
+    "n_matches_on_surface": 47
   },
   "lucia cortez llorca_Hard": {
     "player": "Lucia Cortez Llorca",
@@ -14614,15 +14614,15 @@
   "luciano darderi_Hard": {
     "player": "Luciano Darderi",
     "surface": "Hard",
-    "aces_per_match_mean": 7.7073170731707314,
-    "df_per_match_mean": 3.1707317073170733,
-    "first_serve_pct": 0.5955951838837789,
-    "first_serve_won_pct": 0.7161109574796031,
+    "aces_per_match_mean": 7.564102564102564,
+    "df_per_match_mean": 3.1794871794871793,
+    "first_serve_pct": 0.5986993926160502,
+    "first_serve_won_pct": 0.7118592318199345,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.2926829268292683,
-    "n_matches_on_surface": 41
+    "win_rate_on_surface": 0.28205128205128205,
+    "n_matches_on_surface": 39
   },
   "lucie havlickova_Hard": {
     "player": "Lucie Havlickova",
@@ -14874,15 +14874,15 @@
   "lulu sun_Hard": {
     "player": "Lulu Sun",
     "surface": "Hard",
-    "aces_per_match_mean": 5.684210526315789,
-    "df_per_match_mean": 3.5789473684210527,
-    "first_serve_pct": 0.570214544956576,
-    "first_serve_won_pct": 0.6986546440621939,
+    "aces_per_match_mean": 5.777777777777778,
+    "df_per_match_mean": 3.4444444444444446,
+    "first_serve_pct": 0.5715647254590915,
+    "first_serve_won_pct": 0.699435845218104,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.39473684210526316,
-    "n_matches_on_surface": 38
+    "win_rate_on_surface": 0.3888888888888889,
+    "n_matches_on_surface": 36
   },
   "maaya rajeshwaran revathi_Hard": {
     "player": "Maaya Rajeshwaran Revathi",
@@ -15030,15 +15030,15 @@
   "magda linette_Hard": {
     "player": "Magda Linette",
     "surface": "Hard",
-    "aces_per_match_mean": 3.46875,
-    "df_per_match_mean": 2.09375,
-    "first_serve_pct": 0.6094697196578962,
-    "first_serve_won_pct": 0.6318604045913614,
+    "aces_per_match_mean": 3.532258064516129,
+    "df_per_match_mean": 2.129032258064516,
+    "first_serve_pct": 0.6091146722121448,
+    "first_serve_won_pct": 0.629601699665329,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5151515151515151,
-    "n_matches_on_surface": 66
+    "win_rate_on_surface": 0.515625,
+    "n_matches_on_surface": 64
   },
   "magdalena frech_Clay": {
     "player": "Magdalena Frech",
@@ -15069,15 +15069,15 @@
   "magdalena frech_Hard": {
     "player": "Magdalena Frech",
     "surface": "Hard",
-    "aces_per_match_mean": 2.5,
-    "df_per_match_mean": 2.2666666666666666,
-    "first_serve_pct": 0.6225372577377328,
-    "first_serve_won_pct": 0.6298703579053054,
+    "aces_per_match_mean": 2.5172413793103448,
+    "df_per_match_mean": 2.2586206896551726,
+    "first_serve_pct": 0.6191263886741065,
+    "first_serve_won_pct": 0.6312743560480848,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
     "win_rate_on_surface": 0.5,
-    "n_matches_on_surface": 62
+    "n_matches_on_surface": 60
   },
   "mai hontama_Hard": {
     "player": "Mai Hontama",
@@ -15355,15 +15355,15 @@
   "marcos giron_Hard": {
     "player": "Marcos Giron",
     "surface": "Hard",
-    "aces_per_match_mean": 5.4603174603174605,
-    "df_per_match_mean": 1.6349206349206349,
-    "first_serve_pct": 0.6142866579066933,
-    "first_serve_won_pct": 0.7313461531541997,
+    "aces_per_match_mean": 5.419354838709677,
+    "df_per_match_mean": 1.6290322580645162,
+    "first_serve_pct": 0.6159260176381849,
+    "first_serve_won_pct": 0.7314957257924287,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5,
-    "n_matches_on_surface": 64
+    "win_rate_on_surface": 0.5079365079365079,
+    "n_matches_on_surface": 63
   },
   "marcos lee chan baratau_Hard": {
     "player": "Marcos Lee Chan Baratau",
@@ -15628,15 +15628,15 @@
   "mariano navone_Hard": {
     "player": "Mariano Navone",
     "surface": "Hard",
-    "aces_per_match_mean": 4.21875,
-    "df_per_match_mean": 3.40625,
-    "first_serve_pct": 0.6096224642310054,
-    "first_serve_won_pct": 0.6839961527946947,
+    "aces_per_match_mean": 4.258064516129032,
+    "df_per_match_mean": 3.4516129032258065,
+    "first_serve_pct": 0.6088575974857691,
+    "first_serve_won_pct": 0.6839892375198207,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.2647058823529412,
-    "n_matches_on_surface": 34
+    "win_rate_on_surface": 0.2727272727272727,
+    "n_matches_on_surface": 33
   },
   "marie bouzkova_Clay": {
     "player": "Marie Bouzkova",
@@ -15667,15 +15667,15 @@
   "marie bouzkova_Hard": {
     "player": "Marie Bouzkova",
     "surface": "Hard",
-    "aces_per_match_mean": 2.1607142857142856,
-    "df_per_match_mean": 3.892857142857143,
-    "first_serve_pct": 0.6263160461199978,
-    "first_serve_won_pct": 0.6303838154613349,
+    "aces_per_match_mean": 2.1818181818181817,
+    "df_per_match_mean": 3.8545454545454545,
+    "first_serve_pct": 0.6265316500253559,
+    "first_serve_won_pct": 0.6304371397353199,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5517241379310345,
-    "n_matches_on_surface": 58
+    "win_rate_on_surface": 0.5614035087719298,
+    "n_matches_on_surface": 57
   },
   "marin cilic_Clay": {
     "player": "Marin Cilic",
@@ -15927,15 +15927,15 @@
   "marta kostyuk_Hard": {
     "player": "Marta Kostyuk",
     "surface": "Hard",
-    "aces_per_match_mean": 3.537037037037037,
-    "df_per_match_mean": 6.2592592592592595,
-    "first_serve_pct": 0.5856140520946724,
-    "first_serve_won_pct": 0.6900460076055926,
+    "aces_per_match_mean": 3.4705882352941178,
+    "df_per_match_mean": 6.117647058823529,
+    "first_serve_pct": 0.5840369159506523,
+    "first_serve_won_pct": 0.694751942649882,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.603448275862069,
-    "n_matches_on_surface": 58
+    "win_rate_on_surface": 0.6,
+    "n_matches_on_surface": 55
   },
   "martha matoula_Clay": {
     "player": "Martha Matoula",
@@ -16278,15 +16278,15 @@
   "matteo arnaldi_Hard": {
     "player": "Matteo Arnaldi",
     "surface": "Hard",
-    "aces_per_match_mean": 7.095238095238095,
-    "df_per_match_mean": 3.738095238095238,
-    "first_serve_pct": 0.5652260717838293,
-    "first_serve_won_pct": 0.7201577110565639,
+    "aces_per_match_mean": 7.048780487804878,
+    "df_per_match_mean": 3.6341463414634148,
+    "first_serve_pct": 0.5668169515834349,
+    "first_serve_won_pct": 0.7210928215257928,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.40476190476190477,
-    "n_matches_on_surface": 42
+    "win_rate_on_surface": 0.4146341463414634,
+    "n_matches_on_surface": 41
   },
   "matteo berrettini_Clay": {
     "player": "Matteo Berrettini",
@@ -16317,15 +16317,15 @@
   "matteo berrettini_Hard": {
     "player": "Matteo Berrettini",
     "surface": "Hard",
-    "aces_per_match_mean": 10.784313725490197,
-    "df_per_match_mean": 1.4705882352941178,
-    "first_serve_pct": 0.6706952019782392,
-    "first_serve_won_pct": 0.7713132576377152,
+    "aces_per_match_mean": 10.86,
+    "df_per_match_mean": 1.44,
+    "first_serve_pct": 0.6718868837955818,
+    "first_serve_won_pct": 0.7721940682450148,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5925925925925926,
-    "n_matches_on_surface": 54
+    "win_rate_on_surface": 0.6037735849056604,
+    "n_matches_on_surface": 53
   },
   "matteo gigante_Clay": {
     "player": "Matteo Gigante",
@@ -16421,15 +16421,15 @@
   "max purcell_Hard": {
     "player": "Max Purcell",
     "surface": "Hard",
-    "aces_per_match_mean": 8.25,
-    "df_per_match_mean": 2.75,
-    "first_serve_pct": 0.4903262265237436,
-    "first_serve_won_pct": 0.7535475176071645,
+    "aces_per_match_mean": 7.0,
+    "df_per_match_mean": 3.5,
+    "first_serve_pct": 0.5088575812526154,
+    "first_serve_won_pct": 0.6822102425876011,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
     "win_rate_on_surface": 0.5,
-    "n_matches_on_surface": 4
+    "n_matches_on_surface": 2
   },
   "max schoenhaus_Clay": {
     "player": "Max Schoenhaus",
@@ -17045,15 +17045,15 @@
   "miomir kecmanovic_Hard": {
     "player": "Miomir Kecmanovic",
     "surface": "Hard",
-    "aces_per_match_mean": 5.611940298507463,
-    "df_per_match_mean": 2.4776119402985075,
-    "first_serve_pct": 0.614843535654381,
-    "first_serve_won_pct": 0.7470547337985939,
+    "aces_per_match_mean": 5.621212121212121,
+    "df_per_match_mean": 2.484848484848485,
+    "first_serve_pct": 0.6168756112692229,
+    "first_serve_won_pct": 0.7470094220108798,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.49295774647887325,
-    "n_matches_on_surface": 71
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 70
   },
   "miriam bianca bulgaru_Clay": {
     "player": "Miriam Bianca Bulgaru",
@@ -17123,15 +17123,15 @@
   "mirra andreeva_Hard": {
     "player": "Mirra Andreeva",
     "surface": "Hard",
-    "aces_per_match_mean": 3.3857142857142857,
-    "df_per_match_mean": 3.7857142857142856,
-    "first_serve_pct": 0.6217925589960327,
-    "first_serve_won_pct": 0.6861272990290295,
+    "aces_per_match_mean": 3.212121212121212,
+    "df_per_match_mean": 3.8484848484848486,
+    "first_serve_pct": 0.6220280285048443,
+    "first_serve_won_pct": 0.6812816957229249,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.7222222222222222,
-    "n_matches_on_surface": 72
+    "win_rate_on_surface": 0.7205882352941176,
+    "n_matches_on_surface": 68
   },
   "mirza basic_Hard": {
     "player": "Mirza Basic",
@@ -17695,15 +17695,15 @@
   "nicolas jarry_Hard": {
     "player": "Nicolas Jarry",
     "surface": "Hard",
-    "aces_per_match_mean": 10.777777777777779,
-    "df_per_match_mean": 2.8333333333333335,
-    "first_serve_pct": 0.6374316198534412,
-    "first_serve_won_pct": 0.7634126510677839,
+    "aces_per_match_mean": 10.647058823529411,
+    "df_per_match_mean": 2.7058823529411766,
+    "first_serve_pct": 0.6423747705358538,
+    "first_serve_won_pct": 0.7608476573741448,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.2777777777777778,
-    "n_matches_on_surface": 18
+    "win_rate_on_surface": 0.29411764705882354,
+    "n_matches_on_surface": 17
   },
   "nicolas mejia_Clay": {
     "player": "Nicolas Mejia",
@@ -18072,15 +18072,15 @@
   "nuno borges_Hard": {
     "player": "Nuno Borges",
     "surface": "Hard",
-    "aces_per_match_mean": 5.9655172413793105,
-    "df_per_match_mean": 2.793103448275862,
-    "first_serve_pct": 0.6492869561971467,
-    "first_serve_won_pct": 0.7153573352427562,
+    "aces_per_match_mean": 5.982142857142857,
+    "df_per_match_mean": 2.75,
+    "first_serve_pct": 0.651306803763404,
+    "first_serve_won_pct": 0.7145327622817383,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4666666666666667,
-    "n_matches_on_surface": 60
+    "win_rate_on_surface": 0.46551724137931033,
+    "n_matches_on_surface": 58
   },
   "nuria brancaccio_Clay": {
     "player": "Nuria Brancaccio",
@@ -18540,15 +18540,15 @@
   "pablo carreno busta_Hard": {
     "player": "Pablo Carreno Busta",
     "surface": "Hard",
-    "aces_per_match_mean": 3.4838709677419355,
-    "df_per_match_mean": 2.096774193548387,
-    "first_serve_pct": 0.6425684079287711,
-    "first_serve_won_pct": 0.697773033177533,
+    "aces_per_match_mean": 3.0,
+    "df_per_match_mean": 2.0,
+    "first_serve_pct": 0.643403246600717,
+    "first_serve_won_pct": 0.688799460854443,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4411764705882353,
-    "n_matches_on_surface": 34
+    "win_rate_on_surface": 0.41935483870967744,
+    "n_matches_on_surface": 31
   },
   "pablo llamas ruiz_Clay": {
     "player": "Pablo Llamas Ruiz",
@@ -18696,15 +18696,15 @@
   "paula badosa_Hard": {
     "player": "Paula Badosa",
     "surface": "Hard",
-    "aces_per_match_mean": 5.0,
-    "df_per_match_mean": 5.711538461538462,
-    "first_serve_pct": 0.5668686778558786,
-    "first_serve_won_pct": 0.7228812160211332,
+    "aces_per_match_mean": 4.829787234042553,
+    "df_per_match_mean": 5.702127659574468,
+    "first_serve_pct": 0.5709624900847001,
+    "first_serve_won_pct": 0.7179746533095483,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5925925925925926,
-    "n_matches_on_surface": 54
+    "win_rate_on_surface": 0.5714285714285714,
+    "n_matches_on_surface": 49
   },
   "pavel kotov_Clay": {
     "player": "Pavel Kotov",
@@ -18982,15 +18982,15 @@
   "peyton stearns_Hard": {
     "player": "Peyton Stearns",
     "surface": "Hard",
-    "aces_per_match_mean": 3.6666666666666665,
-    "df_per_match_mean": 3.764705882352941,
-    "first_serve_pct": 0.6040790792063826,
-    "first_serve_won_pct": 0.6461355167416245,
+    "aces_per_match_mean": 3.7,
+    "df_per_match_mean": 3.74,
+    "first_serve_pct": 0.603986747747032,
+    "first_serve_won_pct": 0.6476296556478855,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.47058823529411764,
-    "n_matches_on_surface": 51
+    "win_rate_on_surface": 0.48,
+    "n_matches_on_surface": 50
   },
   "philip henning_Clay": {
     "player": "Philip Henning",
@@ -19255,15 +19255,15 @@
   "qinwen zheng_Hard": {
     "player": "Qinwen Zheng",
     "surface": "Hard",
-    "aces_per_match_mean": 7.574468085106383,
-    "df_per_match_mean": 3.6595744680851063,
-    "first_serve_pct": 0.5464561162670686,
-    "first_serve_won_pct": 0.7576692176554778,
+    "aces_per_match_mean": 7.488888888888889,
+    "df_per_match_mean": 3.6444444444444444,
+    "first_serve_pct": 0.5474122409608229,
+    "first_serve_won_pct": 0.7546113789630414,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6808510638297872,
-    "n_matches_on_surface": 47
+    "win_rate_on_surface": 0.6888888888888889,
+    "n_matches_on_surface": 45
   },
   "quentin halys_Clay": {
     "player": "Quentin Halys",
@@ -19697,15 +19697,15 @@
   "reilly opelka_Hard": {
     "player": "Reilly Opelka",
     "surface": "Hard",
-    "aces_per_match_mean": 19.019607843137255,
-    "df_per_match_mean": 4.098039215686274,
-    "first_serve_pct": 0.666252540064063,
-    "first_serve_won_pct": 0.8012385739475947,
+    "aces_per_match_mean": 19.02,
+    "df_per_match_mean": 4.12,
+    "first_serve_pct": 0.6661529333310976,
+    "first_serve_won_pct": 0.8005286515489956,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.49019607843137253,
-    "n_matches_on_surface": 51
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 50
   },
   "remy bertola_Hard": {
     "player": "Remy Bertola",
@@ -20022,15 +20022,15 @@
   "robin montgomery_Hard": {
     "player": "Robin Montgomery",
     "surface": "Hard",
-    "aces_per_match_mean": 5.5,
-    "df_per_match_mean": 6.75,
-    "first_serve_pct": 0.607448287858016,
-    "first_serve_won_pct": 0.704468818210002,
+    "aces_per_match_mean": 5.0,
+    "df_per_match_mean": 6.0,
+    "first_serve_pct": 0.6024972913866048,
+    "first_serve_won_pct": 0.6973788835748967,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5,
-    "n_matches_on_surface": 8
+    "win_rate_on_surface": 0.5714285714285714,
+    "n_matches_on_surface": 7
   },
   "rodrigo pacheco mendez_Hard": {
     "player": "Rodrigo Pacheco Mendez",
@@ -20490,15 +20490,15 @@
   "sebastian baez_Hard": {
     "player": "Sebastian Baez",
     "surface": "Hard",
-    "aces_per_match_mean": 1.825,
-    "df_per_match_mean": 1.9,
-    "first_serve_pct": 0.7353185429563794,
-    "first_serve_won_pct": 0.6265677728550232,
+    "aces_per_match_mean": 1.868421052631579,
+    "df_per_match_mean": 1.7105263157894737,
+    "first_serve_pct": 0.737844813908475,
+    "first_serve_won_pct": 0.627281145182649,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.375,
-    "n_matches_on_surface": 40
+    "win_rate_on_surface": 0.3684210526315789,
+    "n_matches_on_surface": 38
   },
   "sebastian dominko_Clay": {
     "player": "Sebastian Dominko",
@@ -20529,15 +20529,15 @@
   "sebastian korda_Hard": {
     "player": "Sebastian Korda",
     "surface": "Hard",
-    "aces_per_match_mean": 9.320754716981131,
-    "df_per_match_mean": 2.2641509433962264,
-    "first_serve_pct": 0.6126516663294794,
-    "first_serve_won_pct": 0.7702534877224859,
+    "aces_per_match_mean": 9.403846153846153,
+    "df_per_match_mean": 2.3076923076923075,
+    "first_serve_pct": 0.6126319723833418,
+    "first_serve_won_pct": 0.7708437426621209,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5849056603773585,
-    "n_matches_on_surface": 53
+    "win_rate_on_surface": 0.5961538461538461,
+    "n_matches_on_surface": 52
   },
   "sebastian ofner_Clay": {
     "player": "Sebastian Ofner",
@@ -20724,15 +20724,15 @@
   "shuai zhang_Hard": {
     "player": "Shuai Zhang",
     "surface": "Hard",
-    "aces_per_match_mean": 1.9444444444444444,
-    "df_per_match_mean": 2.1944444444444446,
-    "first_serve_pct": 0.6637847628661314,
-    "first_serve_won_pct": 0.6172412763339327,
+    "aces_per_match_mean": 1.9142857142857144,
+    "df_per_match_mean": 2.2285714285714286,
+    "first_serve_pct": 0.6613214703765923,
+    "first_serve_won_pct": 0.61979737629268,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4864864864864865,
-    "n_matches_on_surface": 37
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 36
   },
   "siddharth vishwakarma_Hard": {
     "player": "Siddharth Vishwakarma",
@@ -21231,15 +21231,15 @@
   "stefanos tsitsipas_Hard": {
     "player": "Stefanos Tsitsipas",
     "surface": "Hard",
-    "aces_per_match_mean": 7.696428571428571,
-    "df_per_match_mean": 3.017857142857143,
-    "first_serve_pct": 0.6134480150702762,
-    "first_serve_won_pct": 0.7708358764455622,
+    "aces_per_match_mean": 7.555555555555555,
+    "df_per_match_mean": 2.8703703703703702,
+    "first_serve_pct": 0.6156215747113271,
+    "first_serve_won_pct": 0.7709449206552014,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5833333333333334,
-    "n_matches_on_surface": 60
+    "win_rate_on_surface": 0.5862068965517241,
+    "n_matches_on_surface": 58
   },
   "sten hiiesalu_Hard": {
     "player": "Sten Hiiesalu",
@@ -21556,15 +21556,15 @@
   "tallon griekspoor_Hard": {
     "player": "Tallon Griekspoor",
     "surface": "Hard",
-    "aces_per_match_mean": 9.08955223880597,
-    "df_per_match_mean": 2.8358208955223883,
-    "first_serve_pct": 0.656952250188958,
-    "first_serve_won_pct": 0.762501047301322,
+    "aces_per_match_mean": 9.136363636363637,
+    "df_per_match_mean": 2.772727272727273,
+    "first_serve_pct": 0.6582027060212372,
+    "first_serve_won_pct": 0.7636512372765162,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4925373134328358,
-    "n_matches_on_surface": 67
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 66
   },
   "tamara korpatsch_Clay": {
     "player": "Tamara Korpatsch",
@@ -21751,15 +21751,15 @@
   "taylor fritz_Hard": {
     "player": "Taylor Fritz",
     "surface": "Hard",
-    "aces_per_match_mean": 11.978947368421053,
-    "df_per_match_mean": 2.1157894736842104,
-    "first_serve_pct": 0.6450469582929612,
-    "first_serve_won_pct": 0.7934774681744087,
+    "aces_per_match_mean": 11.96808510638298,
+    "df_per_match_mean": 2.074468085106383,
+    "first_serve_pct": 0.645086773297928,
+    "first_serve_won_pct": 0.7930835212977934,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6597938144329897,
-    "n_matches_on_surface": 97
+    "win_rate_on_surface": 0.6666666666666666,
+    "n_matches_on_surface": 96
   },
   "taylor townsend_Clay": {
     "player": "Taylor Townsend",
@@ -21790,15 +21790,15 @@
   "taylor townsend_Hard": {
     "player": "Taylor Townsend",
     "surface": "Hard",
-    "aces_per_match_mean": 5.71875,
-    "df_per_match_mean": 3.0625,
-    "first_serve_pct": 0.6742045657012706,
-    "first_serve_won_pct": 0.67171804789694,
+    "aces_per_match_mean": 5.413793103448276,
+    "df_per_match_mean": 2.9655172413793105,
+    "first_serve_pct": 0.6777004898070565,
+    "first_serve_won_pct": 0.6715474505359237,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6060606060606061,
-    "n_matches_on_surface": 33
+    "win_rate_on_surface": 0.6,
+    "n_matches_on_surface": 30
   },
   "taym al azmeh_Hard": {
     "player": "Taym Al Azmeh",
@@ -22284,15 +22284,15 @@
   "tomas machac_Hard": {
     "player": "Tomas Machac",
     "surface": "Hard",
-    "aces_per_match_mean": 6.230769230769231,
-    "df_per_match_mean": 3.0,
-    "first_serve_pct": 0.6174037755942886,
-    "first_serve_won_pct": 0.720939342965783,
+    "aces_per_match_mean": 6.234375,
+    "df_per_match_mean": 2.96875,
+    "first_serve_pct": 0.6170847879053091,
+    "first_serve_won_pct": 0.7221120496235034,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5909090909090909,
-    "n_matches_on_surface": 66
+    "win_rate_on_surface": 0.6,
+    "n_matches_on_surface": 65
   },
   "tomas martin etcheverry_Clay": {
     "player": "Tomas Martin Etcheverry",
@@ -22323,15 +22323,15 @@
   "tomas martin etcheverry_Hard": {
     "player": "Tomas Martin Etcheverry",
     "surface": "Hard",
-    "aces_per_match_mean": 9.0,
-    "df_per_match_mean": 1.7962962962962963,
-    "first_serve_pct": 0.6459839767561122,
-    "first_serve_won_pct": 0.7396092534915524,
+    "aces_per_match_mean": 8.961538461538462,
+    "df_per_match_mean": 1.7307692307692308,
+    "first_serve_pct": 0.6472341751313967,
+    "first_serve_won_pct": 0.7407528192716168,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.5172413793103449,
-    "n_matches_on_surface": 58
+    "win_rate_on_surface": 0.5178571428571429,
+    "n_matches_on_surface": 56
   },
   "tomasz berkieta_Hard": {
     "player": "Tomasz Berkieta",
@@ -22375,15 +22375,15 @@
   "tommy paul_Hard": {
     "player": "Tommy Paul",
     "surface": "Hard",
-    "aces_per_match_mean": 6.754098360655738,
-    "df_per_match_mean": 1.9344262295081966,
-    "first_serve_pct": 0.607823279049652,
-    "first_serve_won_pct": 0.7495003463949662,
+    "aces_per_match_mean": 6.783333333333333,
+    "df_per_match_mean": 1.9,
+    "first_serve_pct": 0.6063765241491068,
+    "first_serve_won_pct": 0.7505338337887126,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6557377049180327,
-    "n_matches_on_surface": 61
+    "win_rate_on_surface": 0.6666666666666666,
+    "n_matches_on_surface": 60
   },
   "trevor svajda_Hard": {
     "player": "Trevor Svajda",
@@ -22570,15 +22570,15 @@
   "ugo humbert_Hard": {
     "player": "Ugo Humbert",
     "surface": "Hard",
-    "aces_per_match_mean": 7.884057971014493,
-    "df_per_match_mean": 2.289855072463768,
-    "first_serve_pct": 0.6240130756731607,
-    "first_serve_won_pct": 0.7663927017913601,
+    "aces_per_match_mean": 7.882352941176471,
+    "df_per_match_mean": 2.2794117647058822,
+    "first_serve_pct": 0.6238860170621116,
+    "first_serve_won_pct": 0.7667523667607776,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.6142857142857143,
-    "n_matches_on_surface": 70
+    "win_rate_on_surface": 0.6231884057971014,
+    "n_matches_on_surface": 69
   },
   "urszula radwanska_Hard": {
     "player": "Urszula Radwanska",
@@ -22778,15 +22778,15 @@
   "varvara gracheva_Hard": {
     "player": "Varvara Gracheva",
     "surface": "Hard",
-    "aces_per_match_mean": 2.325,
-    "df_per_match_mean": 4.375,
-    "first_serve_pct": 0.6032238755655013,
-    "first_serve_won_pct": 0.5966594464276476,
+    "aces_per_match_mean": 2.3684210526315788,
+    "df_per_match_mean": 4.342105263157895,
+    "first_serve_pct": 0.6029533501550614,
+    "first_serve_won_pct": 0.5985893882044252,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.3902439024390244,
-    "n_matches_on_surface": 41
+    "win_rate_on_surface": 0.38461538461538464,
+    "n_matches_on_surface": 39
   },
   "varvara lepchenko_Clay": {
     "player": "Varvara Lepchenko",
@@ -23246,15 +23246,15 @@
   "viktoriya tomova_Hard": {
     "player": "Viktoriya Tomova",
     "surface": "Hard",
-    "aces_per_match_mean": 1.2903225806451613,
-    "df_per_match_mean": 3.6451612903225805,
-    "first_serve_pct": 0.62193982107465,
-    "first_serve_won_pct": 0.5910788132071715,
+    "aces_per_match_mean": 1.3,
+    "df_per_match_mean": 3.5,
+    "first_serve_pct": 0.6262005602085109,
+    "first_serve_won_pct": 0.5901465196791567,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.3870967741935484,
-    "n_matches_on_surface": 31
+    "win_rate_on_surface": 0.4,
+    "n_matches_on_surface": 30
   },
   "vilius gaubas_Clay": {
     "player": "Vilius Gaubas",
@@ -23545,15 +23545,15 @@
   "xin yu wang_Hard": {
     "player": "Xin Yu Wang",
     "surface": "Hard",
-    "aces_per_match_mean": 3.21875,
-    "df_per_match_mean": 3.234375,
-    "first_serve_pct": 0.6367482799517963,
-    "first_serve_won_pct": 0.652992459477145,
+    "aces_per_match_mean": 3.238095238095238,
+    "df_per_match_mean": 3.2063492063492065,
+    "first_serve_pct": 0.6370873857385769,
+    "first_serve_won_pct": 0.6542304350244013,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.49230769230769234,
-    "n_matches_on_surface": 65
+    "win_rate_on_surface": 0.5,
+    "n_matches_on_surface": 64
   },
   "xinxin yao_Hard": {
     "player": "Xinxin Yao",
@@ -23623,15 +23623,15 @@
   "yafan wang_Hard": {
     "player": "Yafan Wang",
     "surface": "Hard",
-    "aces_per_match_mean": 2.6315789473684212,
-    "df_per_match_mean": 2.789473684210526,
-    "first_serve_pct": 0.6113243853754888,
-    "first_serve_won_pct": 0.6420111306812736,
+    "aces_per_match_mean": 2.611111111111111,
+    "df_per_match_mean": 2.7777777777777777,
+    "first_serve_pct": 0.6134349993778309,
+    "first_serve_won_pct": 0.6350427568043934,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.3684210526315789,
-    "n_matches_on_surface": 19
+    "win_rate_on_surface": 0.3888888888888889,
+    "n_matches_on_surface": 18
   },
   "yanaki milev_Clay": {
     "player": "Yanaki Milev",
@@ -23974,15 +23974,15 @@
   "yoshihito nishioka_Hard": {
     "player": "Yoshihito Nishioka",
     "surface": "Hard",
-    "aces_per_match_mean": 2.689655172413793,
-    "df_per_match_mean": 1.8620689655172413,
-    "first_serve_pct": 0.6222584814958285,
-    "first_serve_won_pct": 0.6691263398781697,
+    "aces_per_match_mean": 2.5925925925925926,
+    "df_per_match_mean": 1.962962962962963,
+    "first_serve_pct": 0.6208452070595357,
+    "first_serve_won_pct": 0.6692369291576227,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.42857142857142855,
-    "n_matches_on_surface": 35
+    "win_rate_on_surface": 0.42424242424242425,
+    "n_matches_on_surface": 33
   },
   "yosuke watanuki_Hard": {
     "player": "Yosuke Watanuki",
@@ -24065,15 +24065,15 @@
   "yue yuan_Hard": {
     "player": "Yue Yuan",
     "surface": "Hard",
-    "aces_per_match_mean": 2.8043478260869565,
-    "df_per_match_mean": 1.7173913043478262,
-    "first_serve_pct": 0.6098876385148122,
-    "first_serve_won_pct": 0.6394626178757288,
+    "aces_per_match_mean": 2.8222222222222224,
+    "df_per_match_mean": 1.7333333333333334,
+    "first_serve_pct": 0.6092506034403088,
+    "first_serve_won_pct": 0.6389978458620659,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4166666666666667,
-    "n_matches_on_surface": 48
+    "win_rate_on_surface": 0.425531914893617,
+    "n_matches_on_surface": 47
   },
   "yufei ren_Hard": {
     "player": "Yufei Ren",
@@ -24117,15 +24117,15 @@
   "yulia putintseva_Hard": {
     "player": "Yulia Putintseva",
     "surface": "Hard",
-    "aces_per_match_mean": 1.5818181818181818,
-    "df_per_match_mean": 1.8909090909090909,
-    "first_serve_pct": 0.6963496569823352,
-    "first_serve_won_pct": 0.6169840761350595,
+    "aces_per_match_mean": 1.6153846153846154,
+    "df_per_match_mean": 1.9230769230769231,
+    "first_serve_pct": 0.7015082103504663,
+    "first_serve_won_pct": 0.6177259011607679,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.4642857142857143,
-    "n_matches_on_surface": 56
+    "win_rate_on_surface": 0.4528301886792453,
+    "n_matches_on_surface": 53
   },
   "yuliia starodubtseva_Clay": {
     "player": "Yuliia Starodubtseva",
@@ -24286,15 +24286,15 @@
   "zhizhen zhang_Hard": {
     "player": "Zhizhen Zhang",
     "surface": "Hard",
-    "aces_per_match_mean": 7.333333333333333,
-    "df_per_match_mean": 1.7222222222222223,
-    "first_serve_pct": 0.6463007987033149,
-    "first_serve_won_pct": 0.7215665689555859,
+    "aces_per_match_mean": 7.411764705882353,
+    "df_per_match_mean": 1.6470588235294117,
+    "first_serve_pct": 0.652788661560876,
+    "first_serve_won_pct": 0.717761661247091,
     "games_won_per_match": null,
     "games_lost_per_match": null,
     "sets_played_per_match": null,
-    "win_rate_on_surface": 0.34210526315789475,
-    "n_matches_on_surface": 38
+    "win_rate_on_surface": 0.3333333333333333,
+    "n_matches_on_surface": 36
   },
   "zhuoxuan bai_Hard": {
     "player": "Zhuoxuan Bai",

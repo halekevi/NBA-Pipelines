@@ -2,13 +2,17 @@
 """
 defense_report.py  (WNBA Pipeline)
 
-Pulls WNBA team defensive stats from ESPN APIs and outputs:
+Pulls WNBA team defensive stats and outputs:
   wnba_defense_summary.csv
 
-Sources tried in order:
-  1. site.api.espn.com  /teams/{id}/statistics   (splits → categories)
-  2. cdn.espn.com       /core/wnba/standings      (opponent pts per game)
-  3. site.api.espn.com  /summary scoreboard scan  (compute opp pts from box scores)
+Overall rank (OVERALL_DEF_RANK) is possession-based defensive efficiency
+from box scores when available (opp points / opp possessions; lower = better),
+matching TeamRankings-style D-eff rather than raw opponent PPG.
+
+Sources:
+  1. Box-score DEF_EFF from proporacle_ref.db (primary overall rank)
+  2. site.api.espn.com  /teams/{id}/statistics
+  3. cdn.espn.com standings opponent PPG (kept as OPP_PPG / OPP_PTS_RANK)
 
 Defense ranking: dynamic N_TEAMS — quintiles → Elite / Above Avg / Avg / Below Avg / Weak
 
@@ -35,6 +39,7 @@ _ROOT = Path(__file__).resolve().parents[2]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 from utils.defense_tiers import def_tier_from_overall_rank
+from utils.wnba_defensive_efficiency import team_defensive_efficiency
 
 ESPN_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -261,6 +266,7 @@ def main():
     ap.add_argument("--season", default="2026")
     ap.add_argument("--out",    default="wnba_defense_summary.csv")
     ap.add_argument("--sleep",  type=float, default=0.6)
+    ap.add_argument("--min-date", default="2026-05-01", help="Box-score season start (YYYY-MM-DD)")
     ap.add_argument("--debug",  action="store_true", help="Print raw stat keys")
     args = ap.parse_args()
 
@@ -314,33 +320,48 @@ def main():
     # --- Identify best defensive column ---
     n_teams = len(df)
 
-    # Priority: OPP_PPG from standings, then search stat cols
     rank_cols = []
+    pts_col = ""
+    rating_col = ""
+
+    print(f"\n→ Computing box-score defensive efficiency (min_date={args.min_date})...")
+    try:
+        eff = team_defensive_efficiency(min_date=str(args.min_date))
+    except Exception as e:
+        print(f"  [WARN] box-score DEF_EFF failed: {e}")
+        eff = pd.DataFrame()
+    if not eff.empty:
+        df = df.merge(eff, on="TEAM_ABBREVIATION", how="left")
+        print(f"  ✓ DEF_EFF for {int(df['DEF_EFF'].notna().sum())} teams")
+        rank_cols.append("DEF_EFF_RANK")
+    else:
+        print("  [WARN] No box-score DEF_EFF — falling back to ESPN opp PPG")
 
     if "OPP_PPG" in df.columns and df["OPP_PPG"].notna().sum() >= 3:
         df["OPP_PPG"] = pd.to_numeric(df["OPP_PPG"], errors="coerce")
         df["OPP_PTS_RANK"] = rank_series(df["OPP_PPG"], ascending=True)  # lower = better defense
-        rank_cols.append("OPP_PTS_RANK")
-        print(f"  ✓ Using OPP_PPG (opponent points per game) as primary metric")
+        print("  ✓ OPP_PPG kept as secondary (pace-contaminated) metric")
 
     pts_col = find_col(df, DEF_PATTERNS[:9])
     if pts_col and pts_col not in ("OPP_PPG",) and df[pts_col].notna().sum() >= 3:
         df[pts_col] = pd.to_numeric(df[pts_col], errors="coerce")
         df["ESPN_PTS_RANK"] = rank_series(df[pts_col], ascending=True)
-        rank_cols.append("ESPN_PTS_RANK")
-        print(f"  ✓ Using ESPN stat col: {pts_col}")
+        print(f"  ✓ ESPN stat col present: {pts_col}")
 
     rating_col = find_col(df, DEF_PATTERNS[9:12])
     if rating_col and df[rating_col].notna().sum() >= 3:
         df[rating_col] = pd.to_numeric(df[rating_col], errors="coerce")
         df["DEF_RATING_RANK"] = rank_series(df[rating_col], ascending=True)
-        rank_cols.append("DEF_RATING_RANK")
-        print(f"  ✓ Using defensive rating col: {rating_col}")
+        print(f"  ✓ ESPN defensive rating col: {rating_col}")
 
-    if rank_cols:
-        df["OVERALL_DEF_SCORE"] = df[[c for c in rank_cols]].mean(axis=1)
-        df["OVERALL_DEF_RANK"]  = rank_series(df["OVERALL_DEF_SCORE"], ascending=True)
-        print(f"\n  → Composite rank from: {rank_cols}")
+    if "DEF_EFF" in df.columns and df["DEF_EFF"].notna().sum() >= 3:
+        df["OVERALL_DEF_SCORE"] = pd.to_numeric(df["DEF_EFF"], errors="coerce")
+        df["OVERALL_DEF_RANK"] = rank_series(df["OVERALL_DEF_SCORE"], ascending=True)
+        print("\n  → Overall rank from box-score DEF_EFF (opp pts / opp poss)")
+    elif "OPP_PTS_RANK" in df.columns:
+        df["OVERALL_DEF_SCORE"] = df["OPP_PTS_RANK"]
+        df["OVERALL_DEF_RANK"] = rank_series(df["OVERALL_DEF_SCORE"], ascending=True)
+        print("\n  → Overall rank fallback: OPP_PPG")
     else:
         print("\n⚠️  No defensive metrics found after all sources.")
         print("     Dumping ALL available columns so you can identify the right key:")
@@ -353,19 +374,21 @@ def main():
         df["OVERALL_DEF_SCORE"] = np.nan
         df["OVERALL_DEF_RANK"]  = pd.Series(range(1, len(df) + 1), index=df.index, dtype="Int64")
 
+    n_teams = int(pd.to_numeric(df["OVERALL_DEF_RANK"], errors="coerce").notna().sum()) or len(df)
     df["DEF_TIER"] = df["OVERALL_DEF_RANK"].apply(lambda r: tier_from_rank(r, n_teams))
 
     # Select clean output columns
     out_cols = ["TEAM_ABBREVIATION", "TEAM_NAME", "TEAM_ID"]
-    for c in ["OPP_PPG", pts_col, rating_col, "OPP_PTS_RANK", "ESPN_PTS_RANK",
-              "DEF_RATING_RANK", "OVERALL_DEF_SCORE", "OVERALL_DEF_RANK", "DEF_TIER"]:
+    for c in ["GP", "DEF_EFF", "DEF_EFF_RANK", "OPP_POSS", "OPP_PPG", pts_col, rating_col,
+              "OPP_PTS_RANK", "ESPN_PTS_RANK", "DEF_RATING_RANK",
+              "OVERALL_DEF_SCORE", "OVERALL_DEF_RANK", "DEF_TIER"]:
         if c and c in df.columns and c not in out_cols:
             out_cols.append(c)
 
     df[out_cols].to_csv(args.out, index=False)
     print(f"\n✅ Saved → {args.out}  (teams={len(df)})")
 
-    display_cols = [c for c in ["TEAM_ABBREVIATION", "OPP_PPG", pts_col, "OVERALL_DEF_RANK", "DEF_TIER"]
+    display_cols = [c for c in ["TEAM_ABBREVIATION", "DEF_EFF", "OPP_PPG", "OVERALL_DEF_RANK", "DEF_TIER"]
                     if c and c in df.columns]
     print(df[display_cols].sort_values("OVERALL_DEF_RANK").to_string(index=False))
 

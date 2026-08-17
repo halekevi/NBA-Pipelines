@@ -23,9 +23,25 @@ from scripts.l10_streak_utils import (  # noqa: E402
     finalize_l10_ui_columns,
 )
 from utils.defense_tiers import normalize_def_tier_label  # noqa: E402
+from utils.l5_recency_policy import (  # noqa: E402
+    L5_COLD_MAX,
+    L5_COLD_PENALTY,
+    L5_GE4_BOOST,
+    L5_GE4_MIN,
+    L5_PERFECT,
+    L5_PERFECT_EXTRA_BOOST,
+    MLB_STD_OVER_PERFECT_L5_PENALTY,
+    l5_perfect_score_boost_allowed,
+    mlb_standard_over_perfect_l5,
+)
 
 # Graded-backed ticket scoring constants (all sports).
 HOT_L10_BOOST = 0.12
+# Prefer directional L5 >= 4 across sports; extra bump at perfect 5/5
+# (see utils.l5_recency_policy — MLB Standards skip the perfect bump).
+HOT_L5_GE4_BOOST = L5_GE4_BOOST
+HOT_L5_PERFECT_BOOST = L5_PERFECT_EXTRA_BOOST
+MLB_STD_OVER_L5_PERFECT_PENALTY = MLB_STD_OVER_PERFECT_L5_PENALTY
 COLD_L10_PENALTY = -0.08
 DEMON_OVER_PENALTY = -0.18
 WNBA_STD_OVER_D_PENALTY = -0.12
@@ -166,19 +182,49 @@ def context_signal_adjustment_series(df: pd.DataFrame) -> pd.Series:
     adj = adj + np.where(
         pd.isna(side_l5),
         0.0,
-        np.where(side_l5 >= 4, 0.06, np.where(side_l5 <= 2, -0.05, 0.0)),
+        np.where(
+            side_l5 >= L5_GE4_MIN - 1e-9,
+            HOT_L5_GE4_BOOST,
+            np.where(side_l5 <= L5_COLD_MAX + 1e-9, L5_COLD_PENALTY, 0.0),
+        ),
+    )
+
+    pick_raw = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.lower()
+    is_demon = pick_raw.str.contains("demon", na=False)
+    is_standard = ~pick_raw.str.contains("goblin", na=False) & ~is_demon
+    sport_u = out.get("sport", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
+
+    # Extra bump for perfect L5 (on top of >=4). MLB Standards excluded.
+    perfect_mask = (~pd.isna(side_l5)) & (side_l5 >= L5_PERFECT - 1e-9)
+    perfect_ok = [
+        l5_perfect_score_boost_allowed(sp, pk)
+        for sp, pk in zip(sport_u.tolist(), pick_raw.tolist())
+    ]
+    adj = adj + np.where(perfect_mask & np.asarray(perfect_ok, dtype=bool), HOT_L5_PERFECT_BOOST, 0.0)
+
+    # MLB Standard OVER at L5=5: reverse the GE4 bump and apply avoid penalty.
+    mlb_perfect_over = [
+        mlb_standard_over_perfect_l5(sp, pk, "OVER" if om else ("UNDER" if um else ""), hits)
+        for sp, pk, om, um, hits in zip(
+            sport_u.tolist(),
+            pick_raw.tolist(),
+            over_mask.tolist(),
+            under_mask.tolist(),
+            list(side_l5),
+        )
+    ]
+    adj = adj + np.where(
+        np.asarray(mlb_perfect_over, dtype=bool),
+        MLB_STD_OVER_L5_PERFECT_PENALTY - HOT_L5_GE4_BOOST,
+        0.0,
     )
 
     streak = l10_streak_series(out)
     adj = adj + np.where(streak.eq("HOT"), HOT_L10_BOOST, 0.0)
     adj = adj + np.where(streak.eq("COLD"), COLD_L10_PENALTY, 0.0)
 
-    pick_raw = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.lower()
-    is_demon = pick_raw.str.contains("demon", na=False)
-    is_standard = ~pick_raw.str.contains("goblin", na=False) & ~is_demon
     adj = adj + np.where(is_demon & over_mask, DEMON_OVER_PENALTY, 0.0)
 
-    sport_u = out.get("sport", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
     tier_u = out.get("tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
     adj = adj + np.where(
         sport_u.eq("WNBA") & is_standard & over_mask & tier_u.eq("D"),
@@ -190,8 +236,20 @@ def context_signal_adjustment_series(df: pd.DataFrame) -> pd.Series:
     adj = adj + np.where(mlp.notna(), (mlp.clip(0.35, 0.92) - 0.55) * 0.25, 0.0)
 
     def_tier = out.get("def_tier", pd.Series("", index=out.index)).map(_norm_def_tier_upper)
+    is_goblin = pick_raw.str.contains("goblin", na=False)
+    goblin_over_l5 = (
+        is_goblin
+        & over_mask
+        & (~pd.isna(side_l5))
+        & (side_l5 >= L5_GE4_MIN - 1e-9)
+    )
     adj = adj + np.where(over_mask & def_tier.eq("WEAK"), 0.04, 0.0)
-    adj = adj + np.where(over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]), -0.03, 0.0)
+    # Goblin OVER with L5>=4: discounted line still clears Elite/Above Avg D.
+    adj = adj + np.where(
+        over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]) & ~goblin_over_l5,
+        -0.03,
+        0.0,
+    )
     adj = adj + np.where(under_mask & def_tier.isin(["ELITE", "ABOVE AVG"]), 0.04, 0.0)
     adj = adj + np.where(under_mask & def_tier.eq("WEAK"), -0.03, 0.0)
 

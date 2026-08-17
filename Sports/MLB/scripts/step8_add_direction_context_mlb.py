@@ -38,6 +38,7 @@ else:
 
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
+from utils.slate_context_fill import fill_cv_pct_if_missing
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -45,7 +46,7 @@ from datetime import date
 
 
 def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
-    """Publish dated clean XLSX to repo outputs/<slate>/ and Sports/MLB/outputs/<slate>/ (matches NBA + WNBA pattern)."""
+    """Publish dated clean XLSX to repo outputs/<slate>/ only (canonical historical tree)."""
     src = Path(output_xlsx_path)
     if not src.is_file():
         return
@@ -54,14 +55,14 @@ def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
         d = date.today().isoformat()
     repo_root = Path(__file__).resolve().parents[3]
     dated_name = f"step8_mlb_direction_clean_{d}.xlsx"
-    for dated_dir in (repo_root / "outputs" / d, repo_root / "Sports" / "MLB" / "outputs" / d):
-        try:
-            dated_dir.mkdir(parents=True, exist_ok=True)
-            dated_path = dated_dir / dated_name
-            shutil.copy2(src, dated_path)
-            print(f"[MLB step8] Dated copy -> {dated_path}")
-        except Exception as e:
-            print(f"[MLB step8] WARN: dated copy failed ({dated_dir}): {e}")
+    dated_dir = repo_root / "outputs" / d
+    try:
+        dated_dir.mkdir(parents=True, exist_ok=True)
+        dated_path = dated_dir / dated_name
+        shutil.copy2(src, dated_path)
+        print(f"[MLB step8] Dated copy -> {dated_path}")
+    except Exception as e:
+        print(f"[MLB step8] WARN: dated copy failed ({dated_dir}): {e}")
 
 
 def _norm_pick_type(x: str) -> str:
@@ -252,18 +253,18 @@ def _attach_distribution_std(df: pd.DataFrame, *, g_prefix: str = "stat_g") -> p
     return out
 
 
-def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
+def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     df2 = df.copy()
     df2 = df2.where(pd.notna(df2), None)
+    # Convert numeric minutes_tier (0-3) back to human labels
     if "minutes_tier" in df2.columns:
         _mt_num = pd.to_numeric(df2["minutes_tier"], errors="coerce")
         _mt_valid = _mt_num.notna()
         if _mt_valid.any():
-            df2["minutes_tier"] = df2["minutes_tier"].astype(object)
-            df2.loc[_mt_valid, "minutes_tier"] = (
-                _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP)
-            )
+            df2.loc[_mt_valid, "minutes_tier"] = _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP).fillna(df2.loc[_mt_valid, "minutes_tier"])
+    df2 = fill_cv_pct_if_missing(df2)
     df2["game_time"] = pd.to_datetime(df2.get("start_time", ""), errors="coerce").dt.strftime("%-I:%M %p")
+    # Calendar date for same-day MLB grading (avoids grading full multi-day slate vs one day's games).
     _gd = _row_game_datetimes(df2)
     df2["slate_game_date"] = _gd.dt.strftime("%Y-%m-%d").where(_gd.notna(), "").fillna("")
 
@@ -295,6 +296,7 @@ def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
         "HITS_ALLOWED_RANK", "RUNS_ALLOWED_RANK", "HR_ALLOWED_RANK",
         "HITS_PER_GAME", "RUNS_PER_GAME",
         "minutes_tier", "batting_order_tier", "pitcher_role",
+        "cv_pct",
         "lineup_confirmed", "batting_order_pos",
         "opp_starter_name", "opp_starter_hand",
         "opp_starter_era", "opp_starter_whip",
@@ -324,6 +326,7 @@ def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
         "top3_elite_fader",
     ]
     keep = [c for c in keep if c in df2.columns]
+    # Rolling game values (step4): required so combined slate / UI L5 Over|Under match game logs.
     stat_g_cols = sorted(
         (c for c in df2.columns if c.startswith("stat_g") and c[6:].isdigit()),
         key=lambda c: int(c[6:]),
@@ -337,9 +340,20 @@ def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
     clean = df2[keep].copy()
 
     for col in [
-        "rank_score", "edge", "abs_edge", "projection", "ml_prob", "edge_score", "blended_score",
-        "line_hit_rate_over_ou_5", "same_series_hit_rate", "open_line", "line_movement",
-        "implied_prob", "implied_prob_over", "implied_prob_under",
+        "rank_score",
+        "edge",
+        "abs_edge",
+        "projection",
+        "ml_prob",
+        "edge_score",
+        "blended_score",
+        "line_hit_rate_over_ou_5",
+        "same_series_hit_rate",
+        "open_line",
+        "line_movement",
+        "implied_prob",
+        "implied_prob_over",
+        "implied_prob_under",
     ]:
         if col in clean.columns:
             if col in ("implied_prob", "implied_prob_over", "implied_prob_under"):
@@ -403,6 +417,7 @@ def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
         "RUNS_ALLOWED_RANK": "Opp Runs Allowed Rank",
         "HR_ALLOWED_RANK": "Opp HR Allowed Rank",
         "minutes_tier": "Min Tier", "batting_order_tier": "Bat Order",
+        "cv_pct": "CV%",
         "pitcher_role": "Pitcher Role",
         "lineup_confirmed": "Lineup Confirmed",
         "batting_order_pos": "Batting Order Pos",
@@ -442,46 +457,41 @@ def _prepare_clean_frame(df: pd.DataFrame) -> pd.DataFrame:
         "void_reason": "Void Reason",
         **HIT_TRACKING_RENAME,
     }
+    # Keep snake_case line-movement cols (NHL step8 / combined audit contract).
     _lm_cols = (
-        "open_line", "line_movement", "line_direction_shift",
-        "implied_prob", "implied_prob_over", "implied_prob_under",
+        "open_line",
+        "line_movement",
+        "line_direction_shift",
+        "implied_prob",
+        "implied_prob_over",
+        "implied_prob_under",
     )
     rename = {k: v for k, v in rename.items() if k not in _lm_cols}
     clean = clean.rename(columns=rename)
-    return clean.where(pd.notna(clean), None)
-
-
-def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str, *, styled: bool = False) -> None:
-    """Write MLB clean workbook. Fast path = single ALL sheet (seconds vs minutes)."""
-    clean = _prepare_clean_frame(df)
-    tmp_path = str(Path(xlsx_path).with_suffix(".tmp.xlsx"))
-    Path(xlsx_path).parent.mkdir(parents=True, exist_ok=True)
-
-    if (not styled) or len(clean) >= 1500:
-        with pd.ExcelWriter(tmp_path, engine="openpyxl") as writer:
-            clean.to_excel(writer, sheet_name="ALL", index=False)
-        os.replace(tmp_path, xlsx_path)
-        print(f"Clean XLSX saved (fast) -> {xlsx_path}  rows={len(clean)}")
-        return
+    clean = clean.where(pd.notna(clean), None)
 
     wb = Workbook()
     wb.remove(wb.active)
     write_sheet(wb, "ALL", clean, HEADER_COLOR)
+
     for tier in ["A", "B", "C", "D"]:
         subset = clean[clean["Tier"] == tier].copy()
         if len(subset):
             tier_bg = TIER_COLORS.get(tier, ("333333",))[0]
             write_sheet(wb, f"Tier {tier}", subset, tier_bg)
+
+    # Pitcher / Hitter split tabs
     if "Player Type" in clean.columns:
         pitchers = clean[clean["Player Type"].astype(str).str.lower() == "pitcher"].copy()
-        hitters = clean[clean["Player Type"].astype(str).str.lower() == "hitter"].copy()
-        if len(pitchers):
-            write_sheet(wb, "Pitchers", pitchers, PITCHER_TAB_COLOR)
-        if len(hitters):
-            write_sheet(wb, "Hitters", hitters, HITTER_TAB_COLOR)
+        hitters  = clean[clean["Player Type"].astype(str).str.lower() == "hitter"].copy()
+        if len(pitchers): write_sheet(wb, "Pitchers", pitchers, PITCHER_TAB_COLOR)
+        if len(hitters):  write_sheet(wb, "Hitters",  hitters,  HITTER_TAB_COLOR)
+
+    tmp_path = str(Path(xlsx_path).with_suffix(".tmp.xlsx"))
     wb.save(tmp_path)
     os.replace(tmp_path, xlsx_path)
     print(f"Clean XLSX saved -> {xlsx_path}")
+
 
 def main() -> None:
     ap = argparse.ArgumentParser()

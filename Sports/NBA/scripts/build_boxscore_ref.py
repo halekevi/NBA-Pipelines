@@ -54,14 +54,11 @@ from typing import Callable, Optional, TypeVar
 import requests
 
 # ── Config ────────────────────────────────────────────────────────────────────
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "cache" / "proporacle_ref.db"
+# Repo root: Sports/NBA/scripts/this.py → parents[3]
+DB_PATH = Path(__file__).resolve().parents[3] / "data" / "cache" / "proporacle_ref.db"
 
 HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    ),
-    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
 }
 
 # requests.Session is not documented as thread-safe; use one session per worker thread.
@@ -115,18 +112,31 @@ NHL_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summ
 SOC_SCOREBOARD  = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/scoreboard?dates={date}"
 SOC_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
 
-# Soccer leagues to cover
+# Soccer leagues to cover (keep in sync with scripts/build_boxscore_ref.py).
 SOCCER_LEAGUES = [
     ("eng.1",          "EPL"),
+    ("eng.2",          "Championship"),
+    ("eng.league_cup", "EFL Cup"),
     ("esp.1",          "La Liga"),
     ("ger.1",          "Bundesliga"),
     ("ita.1",          "Serie A"),
+    ("ita.2",          "Serie B"),
+    ("ita.coppa_italia", "Coppa Italia"),
     ("fra.1",          "Ligue 1"),
     ("usa.1",          "MLS"),
+    ("usa.nwsl",       "NWSL"),
     ("uefa.champions", "UCL"),
+    ("uefa.europa",    "UEL"),
+    ("uefa.nations",   "UEFA Nations League"),
+    ("fifa.world",     "World Cup"),
+    ("fifa.friendly",  "FIFA Friendlies"),
+    ("fifa.worldq.uefa", "FIFA World Cup Qualifying - UEFA"),
+    ("fifa.worldq.conmebol", "FIFA World Cup Qualifying - CONMEBOL"),
+    ("fifa.worldq.concacaf", "FIFA World Cup Qualifying - CONCACAF"),
     ("arg.1",          "Argentina"),
     ("bra.1",          "Brasileirao"),
     ("mex.1",          "Liga MX"),
+    ("ksa.1",          "Saudi Pro League"),
 ]
 
 # CBB conference group IDs (same as fetch_actuals.py)
@@ -471,8 +481,10 @@ def _get(url: str, retries: int = 3) -> Optional[dict]:
                 print(f"    ⚠️  429 rate-limit — sleeping {wait}s")
                 time.sleep(wait)
                 continue
-            if r.status_code == 404:
-                return None
+            if r.status_code == 403:
+                _thread_local.session = None
+                time.sleep(2.0 * attempt)
+                continue
             r.raise_for_status()
             return r.json()
         except Exception as e:

@@ -508,7 +508,7 @@ def _pick_cdp_warmed_page(context: Any, league_id: str) -> Any | None:
 def _cdp_board_ready(page: Any, league_id: str) -> bool:
     try:
         url = (page.url or "").lower()
-        return "prizepicks.com" in url and f"league_id={league_id}" in url
+        return "app.prizepicks.com" in url
     except Exception:
         return False
 
@@ -517,6 +517,11 @@ def _fetch_via_cdp_inpage(
     page: Any, league_id: str, *, reuse_warmed_tab: bool = False
 ) -> Tuple[List[dict], List[dict]]:
     """In-page fetch() from an attached Chrome tab (inherits warmed session + client hints)."""
+    # Bound Playwright waits so a stuck DataDome fetch cannot hang the daily forever.
+    try:
+        page.set_default_timeout(60_000)
+    except Exception:
+        pass
     if not reuse_warmed_tab or not _cdp_board_ready(page, league_id):
         page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
         page.wait_for_timeout(4000)
@@ -539,18 +544,28 @@ def _fetch_via_cdp_inpage(
                 "referer": window.location.href,
                 "x-requested-with": "XMLHttpRequest",
             });
-            const r = await fetch(
-                "https://api.prizepicks.com/leagues?state_code=&game_mode=pickem",
-                { credentials: "include", headers: hdrs(), mode: "cors" }
-            );
-            if (!r.ok) return { data: [], status: r.status };
-            const j = await r.json();
-            return { data: Array.isArray(j?.data) ? j.data : [], status: r.status };
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 45000);
+            try {
+                const r = await fetch(
+                    "https://api.prizepicks.com/leagues?state_code=&game_mode=pickem",
+                    { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal }
+                );
+                if (!r.ok) return { data: [], status: r.status };
+                const j = await r.json();
+                return { data: Array.isArray(j?.data) ? j.data : [], status: r.status };
+            } catch (e) {
+                return { data: [], status: 0, error: String(e && e.name ? e.name : e) };
+            } finally {
+                clearTimeout(timer);
+            }
         }"""
     )
     league_rows = list((leagues or {}).get("data") or [])
     leagues_status = int((leagues or {}).get("status") or 0)
     print(f"  [CDP in-page] leagues_status={leagues_status} rows={len(league_rows)}")
+    if (leagues or {}).get("error"):
+        print(f"  [CDP in-page] leagues error={(leagues or {}).get('error')}")
     if leagues_status == 403:
         print(
             "  [CDP] leagues 403 — solve DataDome in the visible Chrome window "
@@ -571,17 +586,32 @@ def _fetch_via_cdp_inpage(
             const allIncluded = [];
             let lastStatus = 200;
             while (pageNum <= 12) {
-                const url = `https://api.prizepicks.com/projections?league_id=${leagueId}`
-                    + `&per_page=250&single_stat=true&page=${pageNum}`;
-                const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors" });
-                lastStatus = r.status;
-                if (!r.ok) break;
-                const j = await r.json();
-                const chunk = Array.isArray(j?.data) ? j.data : [];
-                if (Array.isArray(j?.included)) allIncluded.push(...j.included);
-                allData.push(...chunk);
-                if (chunk.length < 250) break;
-                pageNum += 1;
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 45000);
+                try {
+                    const url = `https://api.prizepicks.com/projections?league_id=${leagueId}`
+                        + `&per_page=250&single_stat=true&page=${pageNum}`;
+                    const r = await fetch(url, {
+                        credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal
+                    });
+                    lastStatus = r.status;
+                    if (!r.ok) break;
+                    const j = await r.json();
+                    const chunk = Array.isArray(j?.data) ? j.data : [];
+                    if (Array.isArray(j?.included)) allIncluded.push(...j.included);
+                    allData.push(...chunk);
+                    if (chunk.length < 250) break;
+                    pageNum += 1;
+                } catch (e) {
+                    return {
+                        data: allData,
+                        included: allIncluded,
+                        status: lastStatus || 0,
+                        error: String(e && e.name ? e.name : e),
+                    };
+                } finally {
+                    clearTimeout(timer);
+                }
             }
             return { data: allData, included: allIncluded, status: lastStatus };
         }""",
@@ -591,6 +621,8 @@ def _fetch_via_cdp_inpage(
     included = list((payload or {}).get("included") or [])
     status = (payload or {}).get("status", 200)
     print(f"  [CDP in-page] projections_status={status} rows={len(data)}")
+    if (payload or {}).get("error"):
+        print(f"  [CDP in-page] projections error={(payload or {}).get('error')}")
     return data, included
 
 
@@ -707,7 +739,7 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
         page = None
         if use_cdp:
             print(f"🌐 Connecting to existing Chrome via CDP: {cdp}")
-            browser = p.chromium.connect_over_cdp(cdp)
+            browser = p.chromium.connect_over_cdp(cdp, timeout=30_000)
             if not browser.contexts:
                 raise RuntimeError("CDP browser has no contexts (is Chrome running with --remote-debugging-port?)")
             context = browser.contexts[0]
@@ -739,7 +771,17 @@ def fetch_via_playwright(timeout_s: int = 90, cdp_url: str | None = None) -> Tup
                     except Exception:
                         pass
                     return data, included
-                print("  ⚠️  CDP in-page fetch returned 0 rows — falling back to network intercept...")
+                print("  ⚠️  CDP in-page fetch returned 0 rows — not navigating (avoids DataDome league hop)")
+                if cdp_opened_new_page:
+                    try:
+                        page.close()
+                    except Exception:
+                        pass
+                try:
+                    browser.close()
+                except Exception:
+                    pass
+                return data, included
             except Exception as exc:
                 print(f"  ⚠️  CDP in-page fetch failed ({exc}) — falling back to network intercept...")
         elif use_profile:

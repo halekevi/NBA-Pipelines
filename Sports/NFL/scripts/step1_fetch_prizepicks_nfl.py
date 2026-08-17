@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-NFL step1 — PrizePicks direct API fetch (league_id=9).
+NFL step1 — PrizePicks fetch for game (9), preseason NFLP (44), and NFLSZN (163).
 
-Cloned from Sports/NBA/scripts/step1_fetch_prizepicks_api.py (curl_cffi + pagination).
 Writes: Sports/NFL/data/step1_pp_nfl_{YYYY-MM-DD}.csv
+Season-long rows skip the same-day game-date filter. Use --no-season / --no-preseason
+to drop boards. --include-halves adds NFL1H/2H/1Q/4Q when those boards are live.
 
 Usage:
   py Sports/NFL/scripts/step1_fetch_prizepicks_nfl.py --date today
@@ -27,7 +28,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import requests
 
-_CURL_IMPERSONATE = (os.environ.get("PROPORACLE_CURL_IMPERSONATE") or "chrome120").strip()
+_CURL_IMPERSONATE = (os.environ.get("PROPORACLE_CURL_IMPERSONATE") or "chrome131").strip()
 try:
     from curl_cffi.requests import Session as _CurlCffiSession
 
@@ -44,14 +45,23 @@ _REPO_ROOT = _SCRIPT_DIR.resolve().parents[2]
 _NFL_DATA_DIR = _NFL_ROOT / "data"
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+if str(_NFL_ROOT) not in sys.path:
+    sys.path.insert(0, str(_NFL_ROOT))
 
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
+from prizepicks_league_ids import (
+    DEFAULT_NFL_BOARDS,
+    NFL as NFL_LEAGUE_ID,
+    PERIOD_BOARDS,
+    SEASON_BOARD_IDS,
+)
 
-LEAGUE_ID = "9"
+LEAGUE_ID = NFL_LEAGUE_ID
 DEFAULT_TZ = "America/New_York"
 BOARD_SIZE_MIN = 5
 
 OUTPUT_COLS = [
+    "projection_id",
     "player_id",
     "player_name",
     "team",
@@ -61,6 +71,7 @@ OUTPUT_COLS = [
     "start_time",
     "game_id",
     "position",
+    "league",
     "league_id",
     "fetch_date",
 ]
@@ -95,6 +106,7 @@ NFL_PROP_TYPE_MAP: Dict[str, str] = {
 }
 
 BASE_URL = "https://api.prizepicks.com/projections"
+PARTNER_URL = "https://partner-api.prizepicks.com/projections"
 DEFAULT_SESSION_JITTER: Tuple[float, float] = (5.0, 12.0)
 DEFAULT_INTER_PAGE_DELAY: Tuple[float, float] = (6.0, 14.0)
 DEFAULT_WAVE_GAP: Tuple[float, float] = (12.0, 28.0)
@@ -281,6 +293,38 @@ def fetch_projections(
     *,
     first_page_waves: int = 3,
 ) -> Tuple[List[dict], List[dict]]:
+    try:
+        print("  Trying partner-api.prizepicks.com ...")
+        data, included = _fetch_projections_from(
+            PARTNER_URL,
+            league_id,
+            per_page=per_page,
+            max_pages=max_pages,
+            retries=max(2, min(retries, 3)),
+            first_page_waves=1,
+        )
+        return data, included
+    except Exception as e:
+        print(f"  [WARN] partner-api failed ({e}); falling back to api.prizepicks.com")
+    return _fetch_projections_from(
+        BASE_URL,
+        league_id,
+        per_page=per_page,
+        max_pages=max_pages,
+        retries=retries,
+        first_page_waves=first_page_waves,
+    )
+
+
+def _fetch_projections_from(
+    base_url: str,
+    league_id: str,
+    per_page: int = 250,
+    max_pages: int = 10,
+    retries: int = 5,
+    *,
+    first_page_waves: int = 3,
+) -> Tuple[List[dict], List[dict]]:
     all_data: List[dict] = []
     all_included: List[dict] = []
     seen_ids: set = set()
@@ -308,7 +352,7 @@ def fetch_projections(
         session = _make_session(session_jitter=jitter)
         print(f"  Fetching page 1 (league_id={league_id}, wave {wave + 1}/{waves})...")
         try:
-            payload = _api_get(session, BASE_URL, params, retries=retries)
+            payload = _api_get(session, base_url, params, retries=retries)
             break
         except RuntimeError as e:
             if wave + 1 >= waves:
@@ -380,7 +424,14 @@ def _included_index(included: List[dict]) -> Dict[Tuple[str, str], dict]:
     return idx
 
 
-def build_nfl_rows(data: List[dict], included: List[dict], *, fetch_date: str) -> List[dict]:
+def build_nfl_rows(
+    data: List[dict],
+    included: List[dict],
+    *,
+    fetch_date: str,
+    league_id: str,
+    league: str,
+) -> List[dict]:
     inc = _included_index(included)
     rows: List[dict] = []
 
@@ -440,7 +491,8 @@ def build_nfl_rows(data: List[dict], included: List[dict], *, fetch_date: str) -
                 "start_time": start_time,
                 "game_id": str(game_id or "").strip(),
                 "position": position,
-                "league_id": LEAGUE_ID,
+                "league": league,
+                "league_id": str(league_id),
                 "fetch_date": fetch_date,
             }
         )
@@ -456,6 +508,9 @@ def _log_health(df: pd.DataFrame) -> None:
     n = len(df)
     n_players = df["player_name"].astype(str).replace("", pd.NA).dropna().nunique() if n else 0
     print(f"\n[NFL step1] Health: total_props={n} unique_players={n_players}")
+    if n and "league" in df.columns:
+        leagues = df["league"].astype(str).value_counts().to_dict()
+        print(f"[NFL step1] Boards: {leagues}")
     if n:
         breakdown = df["prop_type"].value_counts().to_dict()
         print(f"[NFL step1] Prop type breakdown ({len(breakdown)} types):")
@@ -464,7 +519,9 @@ def _log_health(df: pd.DataFrame) -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="NFL PrizePicks step1 — direct API (league_id=9)")
+    ap = argparse.ArgumentParser(
+        description="NFL PrizePicks step1 — NFL (9) + NFLP preseason (44) + NFLSZN (163)"
+    )
     ap.add_argument("--output", default="", help="Output CSV (default: Sports/NFL/data/step1_pp_nfl_{date}.csv)")
     ap.add_argument("--date", default="today", help="Target slate date (YYYY-MM-DD or 'today')")
     ap.add_argument("--tz", default=DEFAULT_TZ)
@@ -485,6 +542,13 @@ def main() -> int:
     )
     ap.add_argument("--replace", action="store_true", help="Overwrite output with this fetch only.")
     ap.add_argument("--raw_json", default="", help="Optional raw API JSON dump path")
+    ap.add_argument("--fail-fast", action="store_true")
+    ap.add_argument("--cdp", default="")
+    ap.add_argument("--playwright", action="store_true")
+    ap.add_argument("--no-season", action="store_true", help="Skip NFLSZN season-long board 163.")
+    ap.add_argument("--no-preseason", action="store_true", help="Skip NFLP preseason board 44.")
+    ap.add_argument("--include-halves", action="store_true", help="Also fetch NFL1H/2H/1Q/4Q boards.")
+    ap.add_argument("--league_id", default="", help="Fetch a single league_id only.")
     args = ap.parse_args()
     _ensure_utf8_stdio()
 
@@ -493,22 +557,68 @@ def main() -> int:
     if not out_path.is_absolute():
         out_path = (_REPO_ROOT / out_path).resolve() if str(out_path).startswith("Sports") else (_NFL_ROOT / out_path).resolve()
 
-    print(f"[NFL step1] PrizePicks fetch | league_id={LEAGUE_ID} | date={fetch_date}")
+    boards = dict(DEFAULT_NFL_BOARDS)
+    if args.no_season:
+        boards = {k: v for k, v in boards.items() if k not in SEASON_BOARD_IDS}
+    if args.no_preseason:
+        boards = {k: v for k, v in boards.items() if v != "NFLP"}
+    if args.include_halves:
+        boards.update(PERIOD_BOARDS)
+    single = str(args.league_id or "").strip()
+    if single:
+        boards = {single: boards.get(single, f"NFL_{single}")}
+
+    print(f"[NFL step1] PrizePicks fetch | boards={boards} | date={fetch_date}")
     print(f"[NFL step1] Output → {out_path}")
 
-    try:
-        data, included = fetch_projections(
-            league_id=LEAGUE_ID,
-            per_page=args.per_page,
-            max_pages=args.max_pages,
-            retries=args.retries,
-        )
-    except Exception as e:
-        print(f"[NFL step1] WARN: fetch failed ({e}) — writing empty board CSV")
-        _write_empty(out_path)
-        return 0
+    cdp_url = str(args.cdp or "").strip()
+    all_rows: List[dict] = []
+    raw_dump: dict[str, Any] = {}
+    any_fetch_ok = False
+    for lid, league_name in boards.items():
+        print(f"[NFL step1] --- board {league_name} league_id={lid} ---")
+        try:
+            if cdp_url or args.playwright:
+                from utils.prizepicks_cdp import session_fetch_projections
 
-    if not data:
+                data, included, _st = session_fetch_projections(
+                    lid,
+                    cdp_url=cdp_url,
+                    playwright=bool(args.playwright) and not cdp_url,
+                    per_page=int(args.per_page),
+                    max_pages=int(args.max_pages),
+                )
+            else:
+                pages = int(args.max_pages)
+                if args.fail_fast and lid not in SEASON_BOARD_IDS:
+                    pages = min(4, pages)
+                data, included = fetch_projections(
+                    league_id=lid,
+                    per_page=args.per_page,
+                    max_pages=pages,
+                    retries=min(2, args.retries) if args.fail_fast else args.retries,
+                    first_page_waves=1 if args.fail_fast else 3,
+                )
+            any_fetch_ok = True
+        except Exception as e:
+            print(f"[NFL step1] WARN: {league_name} fetch failed ({e})")
+            if args.fail_fast and not any_fetch_ok:
+                print(f"[NFL step1] fetch failed ({e})")
+                sys.exit(1)
+            continue
+        print(f"[NFL step1] {league_name}: {len(data)} projections")
+        if args.raw_json:
+            raw_dump[lid] = {"league": league_name, "data": data, "included": included}
+        all_rows.extend(
+            build_nfl_rows(
+                data, included, fetch_date=fetch_date, league_id=lid, league=league_name
+            )
+        )
+
+    if not all_rows:
+        if (args.fail_fast or cdp_url or args.playwright) and not any_fetch_ok:
+            print("[NFL step1] fetch failed on all boards")
+            sys.exit(1)
         print("[NFL step1] WARN: empty board — API returned 0 projections (off-season or no lines)")
         _write_empty(out_path)
         return 0
@@ -516,30 +626,33 @@ def main() -> int:
     if args.raw_json:
         try:
             with open(args.raw_json, "w", encoding="utf-8") as f:
-                json.dump({"data": data, "included": included}, f, ensure_ascii=False)
+                json.dump(raw_dump, f, ensure_ascii=False)
             print(f"[NFL step1] Raw JSON → {args.raw_json}")
         except Exception as e:
             print(f"  [WARN] raw_json write failed: {e}")
 
-    rows = build_nfl_rows(data, included, fetch_date=fetch_date)
-    df = pd.DataFrame(rows).fillna("")
+    df = pd.DataFrame(all_rows).fillna("")
     if "projection_id" in df.columns:
         df = df.drop_duplicates(subset=["projection_id"], keep="first").reset_index(drop=True)
 
-    # Date filter
     fetched_rows = len(df)
-    filtered_df, _fallback = apply_game_date_filter(
-        df,
-        target_date=fetch_date,
-        tz_name=str(args.tz).strip() or DEFAULT_TZ,
-        allow_nearest_future=bool(args.allow_nearest_future),
-    )
+    szn_mask = df.get("league_id", pd.Series("", index=df.index)).astype(str).isin(SEASON_BOARD_IDS)
+    szn_df = df.loc[szn_mask].copy() if bool(szn_mask.any()) else df.iloc[0:0].copy()
+    game_df = df.loc[~szn_mask].copy() if bool((~szn_mask).any()) else df.iloc[0:0].copy()
+    if len(game_df):
+        game_df, _fallback = apply_game_date_filter(
+            game_df,
+            target_date=fetch_date,
+            tz_name=str(args.tz).strip() or DEFAULT_TZ,
+            allow_nearest_future=bool(args.allow_nearest_future),
+        )
+    df = pd.concat([game_df, szn_df], ignore_index=True)
     print(
-        f"[NFL step1] Date filter {fetch_date}: fetched={fetched_rows} survived={len(filtered_df)}"
+        f"[NFL step1] Date filter {fetch_date}: fetched={fetched_rows} "
+        f"game_survived={len(game_df)} season_kept={len(szn_df)}"
     )
-    if args.allow_nearest_future:
-        print("[NFL step1] allow-nearest-future: skipping date filter")
-    df = filtered_df
+    if len(szn_df):
+        print(f"[NFL step1] NFLSZN kept without game-date filter ({len(szn_df)} rows)")
 
     if len(df) == 0:
         print(no_props_log_line("NFL", fetch_date))

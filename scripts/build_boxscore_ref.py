@@ -121,21 +121,31 @@ NHL_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summ
 SOC_SCOREBOARD  = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/scoreboard?dates={date}"
 SOC_SUMMARY     = "https://site.api.espn.com/apis/site/v2/sports/soccer/{league}/summary?event={event_id}"
 
-# Soccer leagues to cover
+# Soccer leagues to cover (keep in sync with Sports/NBA/scripts/build_boxscore_ref.py).
 SOCCER_LEAGUES = [
     ("eng.1",          "EPL"),
+    ("eng.2",          "Championship"),
+    ("eng.league_cup", "EFL Cup"),
     ("esp.1",          "La Liga"),
     ("ger.1",          "Bundesliga"),
     ("ita.1",          "Serie A"),
+    ("ita.2",          "Serie B"),
+    ("ita.coppa_italia", "Coppa Italia"),
     ("fra.1",          "Ligue 1"),
     ("usa.1",          "MLS"),
     ("usa.nwsl",       "NWSL"),
     ("uefa.champions", "UCL"),
+    ("uefa.europa",    "UEL"),
     ("uefa.nations",   "UEFA Nations League"),
+    ("fifa.world",     "World Cup"),
+    ("fifa.friendly",  "FIFA Friendlies"),
     ("fifa.worldq.uefa", "FIFA World Cup Qualifying - UEFA"),
+    ("fifa.worldq.conmebol", "FIFA World Cup Qualifying - CONMEBOL"),
+    ("fifa.worldq.concacaf", "FIFA World Cup Qualifying - CONCACAF"),
     ("arg.1",          "Argentina"),
     ("bra.1",          "Brasileirao"),
     ("mex.1",          "Liga MX"),
+    ("ksa.1",          "Saudi Pro League"),
 ]
 
 # CBB conference group IDs (same as fetch_actuals.py)

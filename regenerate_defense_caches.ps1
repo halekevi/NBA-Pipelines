@@ -69,7 +69,7 @@ try {
         "--season 2025-26 --out data\cache\defense_team_summary.csv"
 
     if (-not $SkipWNBA) {
-        Invoke-DefenseStep "WNBA wnba_defense_summary (ESPN)" `
+        Invoke-DefenseStep "WNBA wnba_defense_summary (box-score DEF_EFF)" `
             (Join-Path $SportsRoot "WNBA") `
             ".\defense_report.py" `
             "--season 2026 --out wnba_defense_summary.csv"

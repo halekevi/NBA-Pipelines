@@ -58,7 +58,7 @@ from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_l
 
 # PrizePicks sits behind Cloudflare; stdlib TLS (requests) is often JA3-flagged.
 # curl_cffi impersonates a real browser TLS + HTTP/2 fingerprint (see _make_session).
-_CURL_IMPERSONATE = (os.environ.get("PROPORACLE_CURL_IMPERSONATE") or "chrome120").strip()
+_CURL_IMPERSONATE = (os.environ.get("PROPORACLE_CURL_IMPERSONATE") or "chrome131").strip()
 try:
     from curl_cffi.requests import Session as _CurlCffiSession
 
@@ -843,6 +843,10 @@ def main() -> None:
     ap.add_argument("--cooldown_seconds", type=float, default=90.0)
     ap.add_argument("--max_cooldowns",    type=int,   default=3)
     ap.add_argument("--jitter_seconds",   type=float, default=10.0)
+    ap.add_argument("--fail-fast", "--fail-fast-403", action="store_true", dest="fail_fast",
+                    help="Short HTTP path for pipeline cascade (1 wave, no long 403 stacks).")
+    ap.add_argument("--cdp", default="", help="Attach to Chrome DevTools and fetch in-page.")
+    ap.add_argument("--playwright", action="store_true", help="Launch Chromium and fetch in-page.")
     args = ap.parse_args()
     _ensure_utf8_stdio()
     if args.append and args.replace:
@@ -857,17 +861,32 @@ def main() -> None:
     print(f"📡 PrizePicks fetch | league_id={args.league_id} | direct API (no browser)")
 
     out_path = Path(args.output)
+    cdp_url = str(args.cdp or "").strip()
+    use_browser = bool(cdp_url) or bool(args.playwright)
     try:
-        data, included = fetch_projections(
-            league_id=str(args.league_id),
-            per_page=args.per_page,
-            max_pages=args.max_pages,
-            retries=args.retries,
-            forbid_cooldown_threshold=max(1, int(args.max_cooldowns)),
-            forbid_cooldown_seconds=max(15.0, float(args.cooldown_seconds)),
-            forbid_cooldown_jitter=(max(1.0, float(args.jitter_seconds) * 0.8), max(2.0, float(args.jitter_seconds) * 2.2)),
-            forbid_max_cooldown_windows=max(1, int(args.max_cooldowns)),
-        )
+        if use_browser:
+            from utils.prizepicks_cdp import session_fetch_projections
+
+            data, included, _st = session_fetch_projections(
+                str(args.league_id),
+                cdp_url=cdp_url,
+                playwright=bool(args.playwright) and not cdp_url,
+                per_page=int(args.per_page),
+                max_pages=int(args.max_pages),
+            )
+        else:
+            ff = bool(args.fail_fast)
+            data, included = fetch_projections(
+                league_id=str(args.league_id),
+                per_page=args.per_page,
+                max_pages=min(args.max_pages, 4) if ff else args.max_pages,
+                retries=min(2, args.retries) if ff else args.retries,
+                forbid_cooldown_threshold=99 if ff else max(1, int(args.max_cooldowns)),
+                forbid_cooldown_seconds=12.0 if ff else max(15.0, float(args.cooldown_seconds)),
+                forbid_cooldown_jitter=(2.0, 6.0) if ff else (max(1.0, float(args.jitter_seconds) * 0.8), max(2.0, float(args.jitter_seconds) * 2.2)),
+                forbid_max_cooldown_windows=0 if ff else max(1, int(args.max_cooldowns)),
+                first_page_waves=1 if ff else 3,
+            )
     except Exception as e:
         print(f"❌ Fetch failed: {e}")
         if not (args.append and out_path.is_file()):

@@ -92,8 +92,8 @@ def test_standard_over_requires_elite_gate():
     )
 
 
-def test_soccer_standard_over_banned_under_allowed():
-    """Soccer Shots OVER is hard-gated on Standard; UNDER stays allowed."""
+def test_soccer_standard_over_and_under_allowed():
+    """Soccer no longer has a sport-wide UNDER/HQ OVER gate."""
     over = {
         "sport": "SOCCER",
         "pick_type": "Standard",
@@ -114,7 +114,7 @@ def test_soccer_standard_over_banned_under_allowed():
         "leg_prob": 0.70,
         "ml_prob": 0.70,
     }
-    assert soccer_allowed_leg(over) is False
+    assert soccer_allowed_leg(over) is True
     assert soccer_allowed_leg(under) is True
 
 

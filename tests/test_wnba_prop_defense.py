@@ -15,6 +15,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from utils.wnba_prop_defense import (  # noqa: E402
     attach_stat_defense_columns,
+    clear_defense_cache,
+    lookup_stat_defense,
     prop_category,
     soft_priority_delta,
 )
@@ -22,6 +24,27 @@ from combined_slate_tickets import (  # noqa: E402
     _attach_ticket_pick_order,
     _same_game_density_multiplier,
 )
+
+
+def test_lookup_falls_back_to_overall_rank(tmp_path):
+    csv = tmp_path / "wnba_defense_by_stat.csv"
+    pd.DataFrame(
+        [
+            {
+                "team": "WSH",
+                "pts_rank": 13,
+                "pts_tier": "EASY",
+                "overall_rank": 3,
+                "n_teams": 15,
+            }
+        ]
+    ).to_csv(csv, index=False)
+    clear_defense_cache()
+    pts = lookup_stat_defense("WSH", "Points", csv_path=str(csv))
+    assert pts["stat_def_rank"] == 13
+    unknown = lookup_stat_defense("WSH", "Steals", csv_path=str(csv))
+    assert unknown["stat_def_rank"] == 3
+    clear_defense_cache()
 
 
 def test_prop_category_mapping():

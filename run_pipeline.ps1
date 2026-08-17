@@ -209,6 +209,7 @@ if ((Split-Path -Leaf $Root) -eq "scripts") {
     $Root = Split-Path -Parent $Root
 }
 # All sport trees live under <repo>\Sports\ (not repo root).
+. (Join-Path $Root "scripts\prizepicks_step1_cascade.ps1")
 $SportsRoot = Join-Path $Root "Sports"
 $NBADir    = Join-Path $SportsRoot "NBA"
 $CBBDir    = Join-Path $SportsRoot "CBB"
@@ -1686,7 +1687,6 @@ if ($WNBAOnly) {
     }
     $wnbaInvoke = @{
         Date = $Date
-        CdpWhenListening = $true
     }
     # WNBA cache wipe only via scripts\run_wnba_pipeline.ps1 -RefreshCache (not NBA -RefreshCache).
     if ($SkipFetch) { $wnbaInvoke["SkipFetch"] = $true }
@@ -1747,7 +1747,7 @@ if ($NHLOnly) {
     Write-Host "[ NHL PIPELINE ]" -ForegroundColor Magenta
     Write-Host ""
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step "NHL Step 1 - Fetch PrizePicks" $NHLDir ".\scripts\step1_fetch_prizepicks_nhl.py"         "--output `"$NHLRunOutDir\step1_nhl_props.csv`" --date $Date" } } else { Write-Host "  [NHL] Skipping step1 fetch -- using existing $NHLRunOutDir\step1_nhl_props.csv" -ForegroundColor DarkGray }
+    if (-not $SkipFetch) { if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -SportLabel "NHL" -WorkDir $NHLDir -ScriptRel ".\scripts\step1_fetch_prizepicks_nhl.py" -OutputPath "$NHLRunOutDir\step1_nhl_props.csv" -PipelineDate $Date -HttpArgs @("--output", "$NHLRunOutDir\step1_nhl_props.csv", "--date", $Date) } } else { Write-Host "  [NHL] Skipping step1 fetch -- using existing $NHLRunOutDir\step1_nhl_props.csv" -ForegroundColor DarkGray }
     if ($ok -and (Test-Step1NoSlate -CsvPath "$NHLRunOutDir\step1_nhl_props.csv")) {
         Write-Host "  [NHL] No slate today — skipping steps 2-8." -ForegroundColor DarkGray
         Clear-NHLGeneratedOutputs -BaseDir $NHLRunOutDir
@@ -1987,21 +1987,13 @@ if ($SoccerOnly) {
     Write-Host ""
     $ok = $true
     if (-not $SkipFetch) {
-        $soccerCdp = if ($env:PROPORACLE_PP_CDP) { "$($env:PROPORACLE_PP_CDP)".Trim() }
-                     elseif ($env:PRIZEPICKS_CDP) { "$($env:PRIZEPICKS_CDP)".Trim() }
-                     elseif ($WNBACdp) { "$WNBACdp".Trim() }
-                     else { "http://127.0.0.1:9222" }
-        $soccerStep1Args = "--output `"$SoccerRunOutDir\step1_soccer_props.csv`" --date $Date"
-        $cdpOk = $false
-        try {
-            $probe = Invoke-RestMethod -Uri "$($soccerCdp.TrimEnd('/'))/json/version" -TimeoutSec 2 -ErrorAction Stop
-            if ($probe) { $cdpOk = $true }
-        } catch { $cdpOk = $false }
-        if ($cdpOk) {
-            Write-Host "  [Soccer] CDP reachable at $soccerCdp — attaching for step1" -ForegroundColor DarkGray
-            $soccerStep1Args += " --cdp `"$soccerCdp`""
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -SportLabel "Soccer" -WorkDir $SoccerDir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_soccer.py" `
+                -OutputPath "$SoccerRunOutDir\step1_soccer_props.csv" `
+                -PipelineDate $Date `
+                -HttpArgs @("--output", "$SoccerRunOutDir\step1_soccer_props.csv", "--date", $Date)
         }
-        if ($ok) { $ok = Run-Step "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" $soccerStep1Args }
     } else {
         Write-Host "  [Soccer] Skipping step1 fetch -- using existing $SoccerRunOutDir\step1_soccer_props.csv" -ForegroundColor DarkGray
     }
@@ -2061,7 +2053,11 @@ if ($GolfOnly) {
     $ok = $true
     if (-not $SkipFetch) {
         if ($ok) {
-            $ok = Run-Step "Golf Step 1 - Fetch PrizePicks" $GolfDir ".\scripts\step1_fetch_prizepicks_golf.py" "--league_id 1 --replace --output `"$GolfRunOutDir\step1_golf_props.csv`""
+            $ok = Invoke-PrizePicksStep1Cascade -SportLabel "Golf" -WorkDir $GolfDir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_golf.py" `
+                -OutputPath "$GolfRunOutDir\step1_golf_props.csv" `
+                -SkipDateHealth `
+                -HttpArgs @("--league_id", "1", "--replace", "--output", "$GolfRunOutDir\step1_golf_props.csv")
         }
     } else {
         Write-Host "  [Golf] Skipping step1 fetch -- using existing $GolfRunOutDir\step1_golf_props.csv" -ForegroundColor DarkGray
@@ -2136,13 +2132,14 @@ if ($TennisOnly) {
     Write-Host "  [Tennis] Step1 loads the full PrizePicks tennis board (often spans several days). Step8 --date keeps only rows for $TennisDate." -ForegroundColor DarkGray
     $ok = $true
     if (-not $SkipFetch) {
-        $tennisCdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-        $tennisStep1Args = "--league_id 5 --replace --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
-        if (Test-MlbCdpReachable -CdpUrl $tennisCdpUrl) {
-            Write-Host "  [Tennis] CDP reachable — fetching via Chrome" -ForegroundColor DarkGray
-            $tennisStep1Args += " --cdp `"$tennisCdpUrl`""
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -SportLabel "Tennis" -WorkDir $TennisDir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_tennis.py" `
+                -OutputPath "$TennisRunOutDir\step1_tennis_props.csv" `
+                -PipelineDate $TennisDate `
+                -SkipDateHealth `
+                -HttpArgs @("--league_id", "5", "--replace", "--output", "$TennisRunOutDir\step1_tennis_props.csv")
         }
-        if ($ok) { $ok = Run-Step "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" $tennisStep1Args }
     } else {
         Write-Host "  [Tennis] Skipping step1 fetch -- using existing $TennisRunOutDir\step1_tennis_props.csv" -ForegroundColor DarkGray
     }
@@ -2262,8 +2259,11 @@ if ($NBAOnly) {
     $nbaStep1Solo = Join-Path $NBARunOutDir "step1_pp_props_today.csv"
     if (-not $SkipFetch) {
         if ($ok) {
-            $ok = Run-Step "NBA Step 1 - Fetch PrizePicks" $NBADir ".\scripts\step1_fetch_prizepicks_api.py" `
-                "--league_id 7 --game_mode pickem --per_page 250 --max_pages 5 --sleep 2.0 --cooldown_seconds 90 --max_cooldowns 3 --jitter_seconds 10.0 --replace --output `"$nbaStep1Solo`" --date $Date"
+            $ok = Invoke-PrizePicksStep1Cascade -SportLabel "NBA" -WorkDir $NBADir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_api.py" `
+                -OutputPath $nbaStep1Solo `
+                -PipelineDate $Date `
+                -HttpArgs @("--league_id", "7", "--game_mode", "pickem", "--per_page", "250", "--max_pages", "5", "--replace", "--output", $nbaStep1Solo, "--date", $Date)
         }
     } else {
         Write-Host "  [NBA] Skipping step1 fetch -- using existing $nbaStep1Solo" -ForegroundColor DarkGray
@@ -2475,6 +2475,7 @@ Wait-FetchStagger
 $NBAJob = Start-Job -ScriptBlock {
     param($NBADir, $Date, $OddsApiKey, $SkipFetch, $RepoRoot, $NBARunOutDir, $OffSeason)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     if ($OffSeason) {
         Write-Output "[NBA] Off-season — paused until 2026-10-01"
         return $true
@@ -2577,8 +2578,10 @@ $NBAJob = Start-Job -ScriptBlock {
     $nbaStep1 = Join-Path $NBARunOutDir "step1_pp_props_today.csv"
     if (-not $SkipFetch) {
         if ($ok) {
-            $ok = Run-Step-Job "NBA Step 1 - Fetch PrizePicks" $NBADir ".\scripts\step1_fetch_prizepicks_api.py" `
-                "--league_id 7 --game_mode pickem --per_page 250 --max_pages 5 --sleep 2.0 --cooldown_seconds 90 --max_cooldowns 3 --jitter_seconds 10.0 --replace --output `"$nbaStep1`" --date $Date"
+            $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "NBA" -WorkDir $NBADir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_api.py" `
+                -OutputPath $nbaStep1 -PipelineDate $Date `
+                -HttpArgs @("--league_id", "7", "--game_mode", "pickem", "--per_page", "250", "--max_pages", "5", "--replace", "--output", $nbaStep1, "--date", $Date)
         }
     } else {
         Write-Output "[NBA] Skipping step1 fetch"
@@ -2792,6 +2795,7 @@ Wait-FetchStagger
 $NHLJob = Start-Job -ScriptBlock {
     param($NHLDir, $SkipFetch, $RepoRoot, $Date, $NHLRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[NHL] --> $Label"
@@ -2888,7 +2892,7 @@ $NHLJob = Start-Job -ScriptBlock {
     }
     $ok = $true
     $nhlStep1 = Join-Path $NHLRunOutDir "step1_nhl_props.csv"
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "NHL Step 1 - Fetch PrizePicks" $NHLDir ".\scripts\step1_fetch_prizepicks_nhl.py"        "--output `"$nhlStep1`" --date $Date" } } else { Write-Output "[NHL] Skipping step1 fetch" }
+    if (-not $SkipFetch) { if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "NHL" -WorkDir $NHLDir -ScriptRel ".\scripts\step1_fetch_prizepicks_nhl.py" -OutputPath $nhlStep1 -PipelineDate $Date -HttpArgs @("--output", $nhlStep1, "--date", $Date) } } else { Write-Output "[NHL] Skipping step1 fetch" }
     if ($ok -and (Test-Step1NoSlate-Job -CsvPath $nhlStep1)) {
         Write-Output "[NHL] No slate today — skipping steps 2-8."
         Clear-NHLGeneratedOutputs-Job -BaseDir $NHLRunOutDir
@@ -2958,6 +2962,7 @@ Wait-FetchStagger
 $SoccerJob = Start-Job -ScriptBlock {
     param($SoccerDir, $Date, $SkipFetch, $RepoRoot, $SkipDefenseRefresh, $SoccerRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[SOCCER] --> $Label"
@@ -3011,18 +3016,12 @@ $SoccerJob = Start-Job -ScriptBlock {
     $ok = $true
     $soccerStep1 = Join-Path $SoccerRunOutDir "step1_soccer_props.csv"
         if (-not $SkipFetch) {
-        $soccerCdpJob = if ($env:PROPORACLE_PP_CDP) { "$($env:PROPORACLE_PP_CDP)".Trim() }
-                        elseif ($env:PRIZEPICKS_CDP) { "$($env:PRIZEPICKS_CDP)".Trim() }
-                        elseif ($CdpUrl) { "$CdpUrl".Trim() }
-                        else { "http://127.0.0.1:9222" }
-        $soccerStep1ArgsJob = "--output `"$soccerStep1`" --date $Date"
-        $cdpOkJob = $false
-        try {
-            $probeJob = Invoke-RestMethod -Uri "$($soccerCdpJob.TrimEnd('/'))/json/version" -TimeoutSec 2 -ErrorAction Stop
-            if ($probeJob) { $cdpOkJob = $true }
-        } catch { $cdpOkJob = $false }
-        if ($cdpOkJob) { $soccerStep1ArgsJob += " --cdp `"$soccerCdpJob`"" }
-        if ($ok) { $ok = Run-Step-Job "Soccer Step 1 - Fetch PrizePicks" $SoccerDir ".\scripts\step1_fetch_prizepicks_soccer.py" $soccerStep1ArgsJob }
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "Soccer" -WorkDir $SoccerDir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_soccer.py" `
+                -OutputPath $soccerStep1 -PipelineDate $Date `
+                -HttpArgs @("--output", $soccerStep1, "--date", $Date)
+        }
     } else { Write-Output "[Soccer] Skipping step1 fetch" }
     if ($ok -and (Test-Step1NoSlate-Job -CsvPath $soccerStep1)) {
         Write-Output "[Soccer] No slate today — skipping steps 2-8."
@@ -3069,6 +3068,7 @@ $TennisCdpReachable = Test-MlbCdpReachable -CdpUrl $TennisCdpUrl
 $TennisJob = Start-Job -ScriptBlock {
     param($TennisDir, $TennisDate, $PipelineDate, $SkipFetch, $RepoRoot, $TennisRunOutDir, $CdpUrl, $CdpReachable)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[TENNIS] --> $Label"
@@ -3106,12 +3106,13 @@ $TennisJob = Start-Job -ScriptBlock {
     Write-Output "[TENNIS] Step8 filters to ET date $TennisDate; step1 loads full PrizePicks tennis board (may include several calendar days)"
     $ok = $true
     if (-not $SkipFetch) {
-        $tennisStep1Args = "--league_id 5 --replace --output `"$TennisRunOutDir\step1_tennis_props.csv`" --fail-fast"
-        if ($CdpReachable -and $CdpUrl) {
-            Write-Output "[TENNIS] CDP reachable — fetching via Chrome"
-            $tennisStep1Args += " --cdp `"$CdpUrl`""
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "Tennis" -WorkDir $TennisDir `
+                -ScriptRel ".\scripts\step1_fetch_prizepicks_tennis.py" `
+                -OutputPath "$TennisRunOutDir\step1_tennis_props.csv" `
+                -SkipDateHealth `
+                -HttpArgs @("--league_id", "5", "--replace", "--output", "$TennisRunOutDir\step1_tennis_props.csv")
         }
-        if ($ok) { $ok = Run-Step-Job "Tennis Step 1 - Fetch PrizePicks" $TennisDir ".\scripts\step1_fetch_prizepicks_tennis.py" $tennisStep1Args }
     } else { Write-Output "[Tennis] Skipping step1 fetch" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" "--input `"$TennisRunOutDir\step1_tennis_props.csv`" --output `"$TennisRunOutDir\step2_tennis_picktypes.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" "--input `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --output `"$TennisRunOutDir\step3_tennis_with_defense.csv`"" }
@@ -3139,6 +3140,7 @@ Wait-FetchStagger
 $GolfJob = Start-Job -ScriptBlock {
     param($GolfDir, $Date, $SkipFetch, $GolfRunOutDir, $RepoRoot)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[GOLF] --> $Label"
@@ -3175,7 +3177,7 @@ $GolfJob = Start-Job -ScriptBlock {
     }
     $golfStep1 = Join-Path $GolfRunOutDir "step1_golf_props.csv"
     if (-not $SkipFetch) {
-        if ($ok) { $ok = Run-Step-Job "Golf Step 1 - Fetch PrizePicks" $GolfDir ".\scripts\step1_fetch_prizepicks_golf.py" "--league_id 1 --replace --output `"$golfStep1`"" }
+        if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "Golf" -WorkDir $GolfDir -ScriptRel ".\scripts\step1_fetch_prizepicks_golf.py" -OutputPath $golfStep1 -SkipDateHealth -HttpArgs @("--league_id", "1", "--replace", "--output", $golfStep1) }
     } else {
         Write-Output "[Golf] Skipping step1 fetch"
     }
@@ -3531,8 +3533,6 @@ if ($wnbaParallel) {
         try {
             $wnbaInvoke = @{
                 Date = $PipelineDate
-                # Prefer CDP when 9222 is up (avoids HTTP 403 stacks); HTTP full backoff if CDP down.
-                CdpWhenListening = $true
             }
             # WNBA ESPN cache is independent of NBA -RefreshCache (do not wipe 6297-row backfill on full runs).
             if ($SkipFetchFlag) { $wnbaInvoke["SkipFetch"] = $true }
@@ -3558,6 +3558,7 @@ Wait-FetchStagger
 $NFLJob = Start-Job -ScriptBlock {
     param($NFLDir, $Date, $SkipFetch, $RepoRoot, $DefenseSeason, $NFLRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     $env:NFL_PIPELINE_ACTIVE = "1"
     $nflOutD = Join-Path $NFLDir "outputs"
     if (-not (Test-Path $nflOutD)) {
@@ -3605,7 +3606,7 @@ $NFLJob = Start-Job -ScriptBlock {
     }
     $ok = $true
     $nflStep1 = Join-Path $NFLRunOutDir "step1_pp_props_today.csv"
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "NFL Step 1 - Fetch PrizePicks" $NFLDir ".\scripts\step1_fetch_prizepicks_nfl.py" "--output `"$nflStep1`" --date $Date" } } else { Write-Output "[NFL] Skipping step1 fetch" }
+    if (-not $SkipFetch) { if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "NFL" -WorkDir $NFLDir -ScriptRel ".\scripts\step1_fetch_prizepicks_nfl.py" -OutputPath $nflStep1 -PipelineDate $Date -HttpArgs @("--output", $nflStep1, "--date", $Date) } } else { Write-Output "[NFL] Skipping step1 fetch" }
     if ($ok -and (Test-Step1NoSlate-Job -CsvPath $nflStep1)) {
         Write-Output "[NFL] No slate today — skipping remaining steps."
         return $true

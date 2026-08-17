@@ -977,6 +977,33 @@ def main() -> None:
 
     bet_dir = np.where(forced.eq(1), "OVER", np.where(out["edge"] >= 0, "OVER", "UNDER"))
     out["bet_direction"] = bet_dir
+    # Standard: prop-category opponent D + directional L5 (Goblins stay OVER-only).
+    try:
+        from utils.soccer_prop_defense import suggested_standard_direction
+
+        std = out["pick_type"].astype(str).str.strip().eq("Standard")
+        if std.any():
+            opp_s = out["opp_team"] if "opp_team" in out.columns else out.get("opp", "")
+            prop_s = out["prop_type"] if "prop_type" in out.columns else out.get("prop", "")
+            l5o = out["last5_over"] if "last5_over" in out.columns else np.nan
+            l5u = out["last5_under"] if "last5_under" in out.columns else np.nan
+            dirs = []
+            for idx in out.index:
+                if not bool(std.loc[idx]):
+                    dirs.append(out.at[idx, "bet_direction"])
+                    continue
+                dirs.append(
+                    suggested_standard_direction(
+                        opp=opp_s.loc[idx] if hasattr(opp_s, "loc") else opp_s,
+                        prop=prop_s.loc[idx] if hasattr(prop_s, "loc") else prop_s,
+                        edge=out.at[idx, "edge"] if "edge" in out.columns else None,
+                        l5_over=l5o.loc[idx] if hasattr(l5o, "loc") else None,
+                        l5_under=l5u.loc[idx] if hasattr(l5u, "loc") else None,
+                    )
+                )
+            out["bet_direction"] = dirs
+    except Exception as exc:
+        print(f"  [soccer] Standard category-D direction skipped: {exc}")
 
     eligible    = pd.Series(True,  index=out.index)
     void_reason = pd.Series("",    index=out.index)

@@ -1,0 +1,72 @@
+{
+  "date": "2026-08-15",
+  "generated_at": "2026-08-15T17:00:39.320632Z",
+  "tickets_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE_main_cp\\ui_runner\\data\\combined_slate_tickets_2026-08-15.json",
+  "by_ticket_id": {
+    "2026-08-15|STRONG 2-Leg|3": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "2026-08-15|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "2026-08-15|WNBA 3-Leg Mixed|1": {
+      "power_min_x": 2.5,
+      "power_first_x": 6.0,
+      "display_min_x": 2.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|WNBA 3-Leg Mixed|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    }
+  },
+  "by_leg_sig": {
+    "jesús luzardo|pitches thrown|over|91.500||sean manaea|pitches thrown|over|84.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|STRONG 2-Leg|3",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "hubert hurkacz|total games won|over|9.500||magdalena frech|total games won|over|7.500||simona waltert|total games won|over|3.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "magdalena frech|total games won|over|7.500||simona waltert|total games won|over|3.500||tommy paul|total games won|over|11.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "jonquel jones|rebounds|over|6.500||napheesa collier|rebounds|over|5.500||shakira austin|pts+rebs|over|29.500": {
+      "power_min_x": 2.5,
+      "power_first_x": 6.0,
+      "display_min_x": 2.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-15|WNBA 3-Leg Mixed|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    }
+  }
+}

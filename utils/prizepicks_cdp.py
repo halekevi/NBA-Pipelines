@@ -18,6 +18,23 @@ def connect_over_cdp(playwright: Any, cdp_url: str, *, timeout_ms: int = 30_000)
     return playwright.chromium.connect_over_cdp(cdp, timeout=int(timeout_ms))
 
 
+def probe_cdp_attach(cdp_url: str, *, timeout_ms: int = 8_000) -> bool:
+    """True only if Playwright can attach. json/version can succeed while connect hangs."""
+    cdp = (cdp_url or "").strip()
+    if not cdp:
+        return False
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception:
+        return False
+    try:
+        with sync_playwright() as p:
+            p.chromium.connect_over_cdp(cdp, timeout=int(timeout_ms))
+        return True
+    except Exception:
+        return False
+
+
 def align_cdp_context_for_datadome(context: Any) -> None:
     try:
         context.grant_permissions(
@@ -59,15 +76,16 @@ def pick_cdp_warmed_page(context: Any, league_id: str | None = None) -> Any | No
 
 
 def cdp_board_ready(page: Any, league_id: str | None = None) -> bool:
+    """True if this tab can run in-page fetch(). Any PP /board is enough — do not
+    require league_id= in the URL (navigating leagues is what DataDome flags).
+    """
     try:
         url = (page.url or "").lower()
     except Exception:
         return False
     if "app.prizepicks.com" not in url:
         return False
-    if league_id and f"league_id={league_id}" in url:
-        return True
-    return "/board" in url
+    return "/board" in url or "prizepicks.com" in url
 
 
 def fetch_projections_inpage(
@@ -170,3 +188,85 @@ def fetch_projections_inpage(
     status = int((payload or {}).get("status") or 0)
     url = str((payload or {}).get("url") or "")
     return data, included, status, url
+
+
+def session_fetch_projections(
+    league_id: str,
+    *,
+    cdp_url: str = "",
+    playwright: bool = False,
+    per_page: int = 250,
+    attach_timeout_ms: int = 30_000,
+    request_timeout_ms: int = 25_000,
+    max_pages: int = 20,
+) -> tuple[list[dict], list[dict], int]:
+    """Fetch one league via warmed CDP Chrome, or a launched Playwright Chromium.
+
+    Pipeline contract: HTTP first (caller), then this with cdp_url, then playwright=True.
+    Returns (data, included, http_status).
+    """
+    from playwright.sync_api import sync_playwright
+
+    lid = str(league_id).strip()
+    cdp = (cdp_url or "").strip()
+    if not cdp and not playwright:
+        raise ValueError("session_fetch_projections requires cdp_url or playwright=True")
+
+    with sync_playwright() as p:
+        opened_new = False
+        launched = False
+        if cdp:
+            browser = connect_over_cdp(p, cdp, timeout_ms=attach_timeout_ms)
+            if not browser.contexts:
+                raise RuntimeError("CDP browser has no contexts; start Chrome with --remote-debugging-port.")
+            context = browser.contexts[0]
+            align_cdp_context_for_datadome(context)
+            page = pick_cdp_warmed_page(context, lid)
+            if page is not None:
+                print(f"  Reusing warmed PP tab: {page.url}")
+            else:
+                page = context.new_page()
+                opened_new = True
+                print("  No warmed PP tab — opened new page (solve DataDome in Chrome if 403).")
+        else:
+            launched = True
+            browser = p.chromium.launch(headless=False)
+            context = browser.new_context()
+            align_cdp_context_for_datadome(context)
+            page = context.new_page()
+            opened_new = True
+            print("  [playwright] launched Chromium for PrizePicks board fetch")
+
+        page.set_default_timeout(max(30_000, int(request_timeout_ms) + 5_000))
+        if not cdp_board_ready(page, lid):
+            board_url = f"https://app.prizepicks.com/board?league_id={lid}"
+            page.goto("https://app.prizepicks.com/", wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_timeout(2000)
+            page.goto(board_url, wait_until="domcontentloaded", timeout=30_000)
+            page.wait_for_timeout(3000)
+        else:
+            try:
+                page.bring_to_front()
+            except Exception:
+                pass
+            page.wait_for_timeout(800)
+
+        data, included, status, url = fetch_projections_inpage(
+            page,
+            lid,
+            per_page=per_page,
+            request_timeout_ms=request_timeout_ms,
+            max_pages=max_pages,
+        )
+        print(f"  [PP session] league_id={lid} status={status} rows={len(data)} url={url}")
+        if opened_new:
+            try:
+                page.close()
+            except Exception:
+                pass
+        if launched:
+            try:
+                browser.close()
+            except Exception:
+                pass
+        return data, included, status

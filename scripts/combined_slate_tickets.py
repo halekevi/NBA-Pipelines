@@ -142,11 +142,6 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file_
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
-from utils.stat_def_slate import (
-    attach_and_apply_category_defense,
-    category_def_align_mask,
-    directional_l5_hits_series,
-)
 from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
 from utils.fantasy_prop_filter import is_fantasy_prop_label as _is_fantasy_prop_label
 from utils.category_hit_rate import (
@@ -193,10 +188,19 @@ from utils.stack_70_eligible import (
 from utils.ticket_tier_defense_gates import (
     apply_tier_defense_ticket_pool_filter,
     leg_passes_tier_defense_gate,
+    tennis_games_won_sweet_spot,
+    tennis_opp_rank_over_exclusion_mask,
+    tennis_over_blocked_by_opp_rank,
     tier_defense_exclusion_mask,
 )
 from utils.prop_signal_score import l10_streak_series
+from utils.slate_context_fill import (
+    fill_cv_pct_if_missing,
+    fill_min_tier_labels,
+    summarize_board_context_fill,
+)
 from utils.l5_recency_policy import (
+    L5_GE4_MIN as _L5_GE4_MIN,
     L5_PERFECT as _STANDARD_PROP_GATE_L5_PERFECT,
     L5_PERFECT_GATE_CLEAR_SPORTS as _STANDARD_PROP_GATE_L5_CLEAR_SPORTS,
     l5_clears_standard_prop_gate as _l5_clears_standard_prop_gate,
@@ -737,6 +741,8 @@ C = {
     "golf": "F0F8E8",
     "hdr_wcbb": "4A235A",
     "hdr_mlb": "922B21",
+    "hdr_wnba": "6C3483",
+    "wnba": "F5EEF8",
     "hdr_nba1q": "1F618D",
     "hdr_nba1h": "117A65",
     "wcbb": "F5EEF8",
@@ -3092,21 +3098,7 @@ SOCCER_EXCLUDED_PROPS = {
     "attempted dribbles",
 }
 
-# Soccer-only ticket gates (independent of NHL/Tennis/MLB).
-# Graded history prefers Standard UNDER; Goblins are OVER-only (product rule).
-# High-quality Goblin OVER can still clear HQ floors when UNDER-preferred mode is on.
-SOCCER_UNDER_PREFERRED: bool = os.getenv("PROPORACLE_SOCCER_UNDER_PREFERRED", "1").strip().lower() not in (
-    "0",
-    "false",
-    "no",
-    "off",
-)
-# Soft preference only — OVER can clear these HQ floors (was effectively 999 / hard ban).
-SOCCER_OVER_MIN_EDGE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_EDGE", "0.15"))
-SOCCER_OVER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_HIT_RATE", "0.75"))
-SOCCER_OVER_MIN_LEG_PROB: float = float(os.getenv("PROPORACLE_SOCCER_OVER_MIN_LEG_PROB", "0.72"))
-SOCCER_UNDER_MIN_HIT_RATE: float = float(os.getenv("PROPORACLE_SOCCER_UNDER_MIN_HIT_RATE", "0.62"))
-# Raise per-leg hit floors vs global defaults (aligned with graded UNDER slices).
+# Per-leg hit floors vs global defaults (ticket assembly, not a sport-wide OVER ban).
 SOCCER_LEG_MIN_HIT_RATE = {
     2: 0.58,
     3: 0.60,
@@ -3367,12 +3359,7 @@ def _nhl_ticket_pool_exclusion_mask(df: pd.DataFrame) -> tuple[pd.Series, int, i
 
 
 def _soccer_ticket_pool_exclusion_mask(df: pd.DataFrame) -> tuple[pd.Series, int]:
-    """
-    Soccer pool hygiene only — does NOT ban all OVER.
-
-    Drops excluded props; low-quality OVER is filtered later by soccer_allowed_leg /
-    SOCCER_OVER_MIN_* floors (UNDER remains preferred, not exclusive).
-    """
+    """Drop noisy soccer props (passes/tackles/fouls/etc.). Direction is not gated here."""
     if not {"sport"}.issubset(df.columns):
         z = pd.Series(False, index=df.index)
         return z, 0
@@ -3390,39 +3377,8 @@ def _soccer_ticket_pool_exclusion_mask(df: pd.DataFrame) -> tuple[pd.Series, int
     return m_ex, int(m_ex.sum())
 
 
-def _soccer_row_hit_rate(row: Mapping[str, Any] | pd.Series) -> float | None:
-    if isinstance(row, pd.Series):
-        raw = row.get("hit_rate")
-    else:
-        raw = row.get("hit_rate")
-    return _to_prob_0_1(raw)
-
-
-def _soccer_row_edge(row: Mapping[str, Any] | pd.Series) -> float:
-    if isinstance(row, pd.Series):
-        row_d = row.to_dict()
-    else:
-        row_d = dict(row)
-    for key in ("abs_edge", "edge", "edge_vs_line"):
-        try:
-            v = float(row_d.get(key) or 0.0)
-            if key != "abs_edge":
-                v = abs(v)
-            if np.isfinite(v):
-                return float(v)
-        except (TypeError, ValueError):
-            continue
-    return 0.0
-
-
 def soccer_allowed_leg(leg) -> bool:
-    """
-    Soccer sport gate (own pipeline):
-
-    - Goblin = OVER only (never UNDER); Standard UNDER preferred
-    - Standard OVER banned (Jul-19 ~15% leg HR); Goblin OVER only with HQ floors
-    - Demon never ticket-eligible here
-    """
+    """Soccer hygiene only: no Demon, no Goblin UNDER, no excluded props. Same OVER/UNDER mix as other sports."""
     if isinstance(leg, dict):
         row = leg
     else:
@@ -3438,60 +3394,7 @@ def soccer_allowed_leg(leg) -> bool:
     prop = _norm_prop_label(row.get("prop_type") or row.get("prop") or "")
     if prop in SOCCER_EXCLUDED_PROPS:
         return False
-    direction = str(row.get("direction") or row.get("over_under") or "").upper().strip()
-    hr = _soccer_row_hit_rate(row)
-    edge = _soccer_row_edge(row)
-    leg_prob = _leg_prob_for_p_win_from_mapping(row)
-
-    if direction == "UNDER":
-        # Standard (or blank) UNDER only — Goblins already rejected above.
-        if hr is not None and hr < float(SOCCER_UNDER_MIN_HIT_RATE):
-            return False
-        return pick in ("", "standard") or "standard" in pick
-
-    if direction == "OVER":
-        # Standard OVER: prop×direction ledger gates (not a blanket Standard ban).
-        # Goblin OVER remains HQ-gated below.
-        if "standard" in pick and "goblin" not in pick:
-            if _leg_standard_prop_direction_gated(row):
-                return False
-            # Non-gated Standard OVER still needs HQ floors when UNDER-preferred.
-        elif "goblin" not in pick and pick not in ("",):
-            return False
-        if "goblin" in pick or pick == "":
-            if SOCCER_UNDER_PREFERRED:
-                if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
-                    return False
-                if edge < float(SOCCER_OVER_MIN_EDGE):
-                    return False
-                if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
-                    return False
-            return "goblin" in pick or pick == ""
-        # Standard OVER that cleared prop gate: apply same HQ floors as Goblin OVER.
-        if SOCCER_UNDER_PREFERRED:
-            if hr is not None and hr < float(SOCCER_OVER_MIN_HIT_RATE):
-                return False
-            if edge < float(SOCCER_OVER_MIN_EDGE):
-                return False
-            if float(leg_prob or 0.0) < float(SOCCER_OVER_MIN_LEG_PROB):
-                return False
-        return True
-
-    return False
-
-
-def _soccer_allowed_mask(df: pd.DataFrame) -> pd.Series:
-    """Vectorized soccer_allowed_leg for pool assembly."""
-    if df.empty:
-        return pd.Series(dtype=bool, index=df.index)
-    sp = df.get("sport", pd.Series("", index=df.index)).astype(str).str.upper().str.strip()
-    soc = sp.eq("SOCCER") | sp.eq("SOC")
-    if not soc.any():
-        return pd.Series(True, index=df.index)
-    out = pd.Series(True, index=df.index)
-    if soc.any():
-        out.loc[soc] = df.loc[soc].apply(soccer_allowed_leg, axis=1)
-    return out.fillna(False)
+    return True
 
 
 def _is_attempt_prop_series(prop_s: pd.Series) -> pd.Series:
@@ -3518,6 +3421,8 @@ def _join_sport_key(sport: object) -> str:
         return "NBA"
     if s == "SOCCER" or s.startswith("SOCCER") or s.startswith("WORLDCUP") or "WORLD CUP" in s:
         return "SOCCER"
+    if s.startswith("NFL"):
+        return "NFL"
     return s
 
 
@@ -3557,6 +3462,12 @@ def _ud_join_sport(ud_sid: object) -> str:
         "SOCCER1H": "SOCCER",
         "SOCCER2H": "SOCCER",
         "SOCCERSZN": "SOCCER",
+        "NFLP": "NFL",
+        "NFLSZN": "NFL",
+        "NFL1H": "NFL",
+        "NFL2H": "NFL",
+        "NFL1Q": "NFL",
+        "NFL4Q": "NFL",
     }
     return m.get(u, u)
 
@@ -4312,8 +4223,6 @@ NHL_LEG_MIN_HIT_RATE = {
     3: 0.57,
     4: 0.60,
 }
-# Soccer OVER edge floor is defined with the SOCCER_* gates above (soft UNDER preference).
-
 # ── Model-performance ticket gates (Track A + auto-gate from tracker) ─────────
 # REVERT NBA1H WHEN: model_gate_recommendations.json NBA1H block has
 # consecutive_days_above_052 >= 3 (written by track_model_performance.py --nba1h-monitor).
@@ -4615,8 +4524,7 @@ MAIN_STANDARD_MIN_L10_SAMPLE: float = float(
 MAIN_GOBLIN_L5_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
-        "PROPORACLE_MAIN_GOBLIN_L5_SPORTS",
-        "MLB,WNBA,TENNIS,SOCCER,SOC,NBA,NBA1H,NBA1Q,NHL,CBB,WCBB,NFL,CFB",
+        "PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"
     ).split(",")
     if s.strip()
 )
@@ -4624,10 +4532,7 @@ MAIN_STANDARD_L10_SPORTS: frozenset[str] = frozenset(
     s.strip().upper()
     for s in os.getenv(
         "PROPORACLE_MAIN_STANDARD_L10_SPORTS",
-        os.getenv(
-            "PROPORACLE_MAIN_GOBLIN_L5_SPORTS",
-            "MLB,WNBA,TENNIS,SOCCER,SOC,NBA,NBA1H,NBA1Q,NHL,CBB,WCBB,NFL,CFB",
-        ),
+        os.getenv("PROPORACLE_MAIN_GOBLIN_L5_SPORTS", "MLB,WNBA,TENNIS,SOCCER,SOC"),
     ).split(",")
     if s.strip()
 )
@@ -4756,16 +4661,18 @@ def _tennis_allowed_mask(df: pd.DataFrame) -> pd.Series:
         sub_idx = std_ok[std_ok].index
         tier_pass = ~tier_defense_exclusion_mask(df.loc[sub_idx], sport="TENNIS")
         allowed.loc[sub_idx] = tier_pass
+    over_rank_drop = tennis_opp_rank_over_exclusion_mask(df)
+    allowed = allowed & ~over_rank_drop
     return allowed.fillna(False)
 
 
 def tennis_allowed_leg(leg) -> bool:
     """
-    Tennis ticket gate (Jul-22/23 tighten):
-    - Hard-ban Ace / Double Faults (any pick) — 0% Goblin OVER both days.
-    - Goblin OVER on Total Games / Games Won only, with L5 floor.
-    - Standard OVER or UNDER on those totals (tier×def + L5) — Std OVER Games Won
-      was the strongest Jul-22/23 lane.
+    Tennis ticket gate:
+    - Hard-ban Ace / Double Faults.
+    - Goblin OVER on Total Games / Games Won only, L5 floor + opponent-rank fades
+      (Games Won vs top-10; Total Games vs 11–25).
+    - Standard OVER/UNDER on those totals (tier×def + L5 + same rank fades on OVER).
     """
     if isinstance(leg, dict):
         sport = str(leg.get("sport", "")).upper()
@@ -4787,10 +4694,19 @@ def tennis_allowed_leg(leg) -> bool:
     if not any(p in prop_label for p in TENNIS_ELIGIBLE_PROPS):
         return False
     l5_hits = _tennis_directional_l5_hits(row)
+    opp_rank = row.get("opponent_rank")
+    if opp_rank is None:
+        opp_rank = row.get("opponent_def_rank")
     if pick_type == "goblin" and direction == "OVER":
-        return l5_hits >= float(TENNIS_GOBLIN_MIN_L5_HITS)
+        if l5_hits < float(TENNIS_GOBLIN_MIN_L5_HITS):
+            return False
+        return not tennis_over_blocked_by_opp_rank(prop_label, opp_rank, pick_type="goblin")
     if pick_type == "standard" and direction in ("UNDER", "OVER"):
         if l5_hits < float(TENNIS_STD_MIN_L5_HITS):
+            return False
+        if direction == "OVER" and tennis_over_blocked_by_opp_rank(
+            prop_label, opp_rank, pick_type="standard"
+        ):
             return False
         return leg_passes_tier_defense_gate(leg, sport="TENNIS")
     return False
@@ -5154,10 +5070,6 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         pick_type = out.get("pick_type", pd.Series("Standard", index=out.index)).astype(str).str.upper().str.strip()
         def_tier_raw = out.get("def_tier", pd.Series("", index=out.index))
         def_tier = def_tier_raw.map(_norm_def_tier_cell_upper)
-        if "stat_def_tier" in out.columns:
-            st = out["stat_def_tier"].map(_norm_def_tier_cell_upper)
-            use_st = st.astype(str).str.strip().ne("") & ~st.isin(["N/A", "UNK"])
-            def_tier = st.where(use_st, def_tier)
         min_tier = out.get("min_tier", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
         role = (
             out.get("usage_role", pd.Series("", index=out.index)).astype(str).str.upper().str.strip()
@@ -5194,16 +5106,22 @@ def _attach_ticket_pick_order(df: pd.DataFrame, mode: str) -> pd.DataFrame:
         over_mask = direction.eq("OVER")
         under_mask = direction.eq("UNDER")
 
-        # Defense directional preference (category-specific def_tier after slate attach)
+        # Defense directional preference.
+        # Goblin OVER with L5>=4 is not faded vs Elite/Above Avg (discounted line).
+        goblin_over_l5 = (
+            pick_type.str.contains("GOBLIN", na=False)
+            & over_mask
+            & (~pd.isna(side_l5))
+            & (np.asarray(side_l5, dtype=float) >= float(_L5_GE4_MIN) - 1e-9)
+        )
         pri = pri + np.where(over_mask & def_tier.eq("WEAK"), 0.05, 0.0)
-        pri = pri + np.where(over_mask & def_tier.eq("BELOW AVG"), 0.04, 0.0)
-        pri = pri + np.where(over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]), -0.03, 0.0)
+        pri = pri + np.where(
+            over_mask & def_tier.isin(["ABOVE AVG", "ELITE"]) & ~goblin_over_l5,
+            -0.03,
+            0.0,
+        )
         pri = pri + np.where(under_mask & def_tier.isin(["ELITE", "ABOVE AVG"]), 0.04, 0.0)
-        pri = pri + np.where(under_mask & def_tier.isin(["WEAK", "BELOW AVG"]), -0.04, 0.0)
-        # L5>=4 stacked with category ALIGN
-        l5_ok = pd.Series(side_l5, index=out.index).ge(4)
-        align = category_def_align_mask(out, def_tier=def_tier)
-        pri = pri + np.where(l5_ok & align, 0.06, 0.0)
+        pri = pri + np.where(under_mask & def_tier.eq("WEAK"), -0.04, 0.0)
 
         # Minutes directional preference
         pri = pri + np.where(over_mask & min_tier.isin(["HIGH"]), 0.04, 0.0)
@@ -5617,8 +5535,7 @@ _WIN_RATE_EXTRA_SPORTS = frozenset()
 MAIN_BANNED_GOBLIN_PROP_NORMS: dict[str, frozenset[str]] = {
     # Tennis Ace/DF Goblin OVER: 0% on Jul-22 (0/20) and Jul-23 (0/9) — hard ban.
     "TENNIS": frozenset({"aces", "ace", "doublefaults", "doublefault"}),
-    # Soccer Goblin OVER is not globally banned — soccer_allowed_leg keeps HQ OVER
-    # (UNDER preferred) so Goblins ship like other sports.
+    # Soccer Goblin OVER is not globally banned.
     # MLB: Jul-18 miss engine was Hits / TB / H+R+RBI Goblin OVER 0.5 on long tickets.
     # Prefer pitcher props (same allowlist philosophy as STRONG).
     "MLB": frozenset(
@@ -5700,9 +5617,6 @@ _STANDARD_PROP_GATE_HARD: frozenset[tuple[str, str, str]] = frozenset(
         ("WNBA", "ptsrebs", "OVER"),
         ("WNBA", "ptsasts", "OVER"),
         ("WNBA", "assists", "UNDER"),
-        # Soccer
-        ("SOCCER", "shots", "OVER"),
-        ("SOC", "shots", "OVER"),
     }
 )
 # L5 exception: directional L5 clears Standard prop gates per
@@ -5804,6 +5718,17 @@ def _row_directional_l10_hits(row_d: dict) -> tuple[float | None, float | None]:
     return hits, n
 
 
+def _row_category_def_align(row_d: dict) -> bool:
+    """OVER vs Weak/Below Avg, UNDER vs Elite/Above Avg (prop-category def_tier)."""
+    direction = _row_direction_u(row_d)
+    tier = _norm_def_tier_cell_upper(row_d.get("def_tier") or row_d.get("stat_def_tier"))
+    if direction == "OVER" and tier in ("WEAK", "BELOW AVG"):
+        return True
+    if direction == "UNDER" and tier in ("ELITE", "ABOVE AVG"):
+        return True
+    return False
+
+
 def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> bool:
     """
     MAIN Goblin recency floors for MLB/WNBA/Tennis/Soccer:
@@ -5819,14 +5744,20 @@ def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> boo
     if sport not in MAIN_GOBLIN_L5_SPORTS:
         return True
     floor = float(MAIN_GOBLIN_MIN_L5_HITS if min_hits is None else min_hits)
+    soccer = sport in ("SOCCER", "SOC")
     if floor > 0:
         hits = _row_directional_l5_hits(row_d)
-        if hits is None or float(hits) + 1e-9 < floor:
+        if hits is None:
+            if not (soccer and _row_category_def_align(row_d)):
+                return False
+        elif float(hits) + 1e-9 < floor:
             return False
     l10_floor = float(MAIN_GOBLIN_MIN_L10_HITS)
     if l10_floor > 0:
         h10, n10 = _row_directional_l10_hits(row_d)
         if h10 is None or n10 is None:
+            if soccer:
+                return True
             return False
         if float(n10) + 1e-9 < float(MAIN_GOBLIN_MIN_L10_SAMPLE):
             return False
@@ -5858,13 +5789,19 @@ def _row_main_standard_recency_ok(row_d: dict) -> bool:
         l5_floor = float(MAIN_STANDARD_OVER_MIN_L5_HITS)
     else:
         return False
+    soccer = sport in ("SOCCER", "SOC")
     if l5_floor > 0:
         hits = _row_directional_l5_hits(row_d)
-        if hits is None or float(hits) + 1e-9 < l5_floor:
+        if hits is None:
+            if not (soccer and _row_category_def_align(row_d)):
+                return False
+        elif float(hits) + 1e-9 < l5_floor:
             return False
     if l10_floor > 0:
         h10, n10 = _row_directional_l10_hits(row_d)
         if h10 is None or n10 is None:
+            if soccer:
+                return True
             return False
         if float(n10) + 1e-9 < float(MAIN_STANDARD_MIN_L10_SAMPLE):
             return False
@@ -6576,8 +6513,7 @@ def _standard_direction_floor(row: dict | pd.Series) -> float:
         # Standard OVER blocked elsewhere; if reached, demand a steep floor.
         return 0.75
     if sport in ("SOCCER", "SOC"):
-        # Standard OVER banned in soccer_allowed_leg; steep if reached.
-        return max(0.74, base + 0.10)
+        return max(0.62, base - 0.02)
     if sport == "MLB":
         # Standard OVER banned on MAIN; steep if reached.
         return max(0.70, base + 0.08)
@@ -8067,38 +8003,6 @@ def _safe_float(x, default=None):
         return f if np.isfinite(f) else default
     except Exception:
         return default
-
-
-def _is_na_value(x) -> bool:
-    if x is None:
-        return True
-    if isinstance(x, (list, dict, tuple, set)):
-        return False
-    try:
-        result = pd.isna(x)
-        if isinstance(result, (bool, np.bool_)):
-            return bool(result)
-        return False
-    except Exception:
-        return False
-
-
-def _safe_bool(x, default: bool = False) -> bool:
-    if _is_na_value(x):
-        return default
-    try:
-        return bool(x)
-    except Exception:
-        return default
-
-
-def _safe_text(x, default: str = "") -> str:
-    if _is_na_value(x):
-        return default
-    text = str(x).strip()
-    if text.lower() in {"nan", "none", "<na>", "nat"}:
-        return default
-    return text
 
 
 def _clean_id(x) -> str:
@@ -10382,20 +10286,6 @@ def inject_core_build_tickets(full_payload: dict, main_payload: dict) -> dict:
     return out
 
 
-def _ticket_has_low_quality_soccer_over_leg(ticket: dict) -> bool:
-    """True when a soccer OVER leg fails the sport HQ gate (UNDER-preferred soft filter)."""
-    for leg in ticket.get("legs") or []:
-        if not isinstance(leg, dict):
-            continue
-        sp = str(leg.get("sport") or "").strip().upper()
-        if sp not in ("SOCCER", "SOC"):
-            continue
-        direction = str(leg.get("direction") or leg.get("over_under") or "").upper()
-        if direction == "OVER" and not soccer_allowed_leg(leg):
-            return True
-    return False
-
-
 def _web_supplement_group_priority(group_name: str, sport_key: str) -> tuple[int, str]:
     """Lower sort key = higher priority. MLB Goblin/Power Play before Standard."""
     gn = str(group_name or "").lower()
@@ -10463,8 +10353,6 @@ def append_in_season_web_supplement_groups(
         kept: list[dict] = []
         for t in g.get("tickets") or []:
             if not isinstance(t, dict):
-                continue
-            if _ticket_has_low_quality_soccer_over_leg(t):
                 continue
             n = _slip_leg_count(t, g)
             if n < lo or n > hi:
@@ -10716,19 +10604,19 @@ def ticket_groups_to_payload(
                 "combined_hit_prob_curve": _safe_float(t.get("combined_hit_prob_curve")),
                 "est_multiplier_flex_nn": _safe_float(t.get("est_multiplier_flex_nn")),
                 "flat_multiplier_flex_nn": _safe_float(t.get("flat_multiplier_flex_nn")),
-                "using_flat_fallback": _safe_bool(t.get("using_flat_fallback")),
+                "using_flat_fallback": bool(t.get("using_flat_fallback")),
                 "has_data_warning": False,
-                "strong_builder": _safe_bool(t.get("strong_builder")),
+                "strong_builder": bool(t.get("strong_builder")),
                 "strong_builder_pick": t.get("strong_builder_pick"),
-                "core_build": _safe_bool(t.get("core_build")),
+                "core_build": bool(t.get("core_build")),
                 "core_recipe": t.get("core_recipe"),
                 "core_label": t.get("core_label"),
                 "pool_policy": t.get("pool_policy"),
-                "probability_ladder": _safe_bool(t.get("probability_ladder")),
-                "high_probability_parlay": _safe_bool(t.get("high_probability_parlay")),
-                "high_prob_parlay_relaxed": _safe_bool(t.get("high_prob_parlay_relaxed")),
+                "probability_ladder": bool(t.get("probability_ladder")),
+                "high_probability_parlay": bool(t.get("high_probability_parlay")),
+                "high_prob_parlay_relaxed": bool(t.get("high_prob_parlay_relaxed")),
                 "high_prob_parlay_rank": t.get("high_prob_parlay_rank"),
-                "stack_70_ladder": _safe_bool(t.get("stack_70_ladder")),
+                "stack_70_ladder": bool(t.get("stack_70_ladder")),
                 "ladder_rank": t.get("ladder_rank"),
                 "legs": [],
             }
@@ -10736,14 +10624,10 @@ def ticket_groups_to_payload(
             for row in rows:
 
                 def gv(field):
-                    if isinstance(row, dict):
-                        val = row.get(field, "")
-                    else:
-                        val = getattr(row, field, "")
-                    return "" if _is_na_value(val) else val
+                    return row.get(field, "") if isinstance(row, dict) else getattr(row, field, "")
 
                 _dpv = gd_leg_delta_pct(gv("line"), gv("standard_line"))
-                sport_s = _safe_text(gv("sport")) or _safe_text(t.get("sport"))
+                sport_s = str(gv("sport") or t.get("sport") or "").strip()
                 player_s = str(gv("player") or "")
                 team_s = str(gv("team") or "")
                 opp_s = str(gv("opp") or gv("opp_team") or "").strip()
@@ -10824,8 +10708,12 @@ def ticket_groups_to_payload(
                     "intel_cv_pct":            _safe_float(gv("intel_cv_pct")),
                     "intel_opp_vs_league_pct": _safe_float(gv("intel_opp_vs_league_pct")),
                     "intel_l5_vs_season":      _safe_float(gv("intel_l5_vs_season")),
-                    "l5_over": _safe_float(gv("l5_over") or gv("L5 Over") or gv("line_hits_over_5")),
-                    "l5_under": _safe_float(gv("l5_under") or gv("L5 Under") or gv("line_hits_under_5")),
+                    "l5_over": _safe_float(
+                        gv("l5_over") or gv("L5 Over") or gv("last5_over") or gv("line_hits_over_5")
+                    ),
+                    "l5_under": _safe_float(
+                        gv("l5_under") or gv("L5 Under") or gv("last5_under") or gv("line_hits_under_5")
+                    ),
                     "l5_games_played": _safe_float(
                         gv("l5_games_played") or gv("line_games_played_5") or gv("Games (5g)")
                     ),
@@ -10841,10 +10729,6 @@ def ticket_groups_to_payload(
                         gv("l10_under") or gv("L10 Under") or gv("line_hits_under_10") or gv("under_L10")
                     ),
                     "def_tier": str(gv("def_tier") or gv("Def Tier") or ""),
-                    "overall_def_tier": str(gv("overall_def_tier") or ""),
-                    "stat_def_category": str(gv("stat_def_category") or ""),
-                    "stat_def_rank": _safe_float(gv("stat_def_rank")),
-                    "stat_def_tier": str(gv("stat_def_tier") or ""),
                     "pace_tier": str(gv("pace_tier") or gv("Pace Tier") or ""),
                     "context_score": _safe_float(gv("context_score")),
                     "usage_boost": _safe_float(gv("usage_boost")),
@@ -10971,10 +10855,6 @@ def dataframe_to_slate_sport_rows(df: Optional[pd.DataFrame]) -> List[dict]:
             "season_avg": g("season_avg") or g("szn_avg"),
             "ml_prob":    g("ml_prob"),
             "def_tier":   g("def_tier") if g("def_tier") else g("Def Tier"),
-            "overall_def_tier": g("overall_def_tier"),
-            "stat_def_category": g("stat_def_category"),
-            "stat_def_rank": g("stat_def_rank"),
-            "stat_def_tier": g("stat_def_tier"),
             "opponent_def_rank": g("opponent_def_rank")
             or g("opp_def_rank")
             or g("OVERALL_DEF_RANK")
@@ -11192,7 +11072,6 @@ def publish_wnba_slate_merge_into_web(
         return False
 
     wnba_df = _overlay_wnba_defense_ranks(wnba_df)
-    wnba_df = attach_and_apply_category_defense(wnba_df)
     rows = dataframe_to_slate_sport_rows(wnba_df)
     if web_outdirs is None:
         web_outdirs = [os.path.join(REPO_ROOT, "ui_runner", "templates")]
@@ -12371,21 +12250,6 @@ def generate_payout_ladder_examples(payload: dict, out_path: str) -> None:
     print(f"[OK] Payout ladder examples -> {out_path}")
 
 
-def _l5_over_under_series(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
-    """Safe L5 over/under Series (never scalar) so .add() cannot crash when cols missing."""
-    over = (
-        pd.to_numeric(df["l5_over"], errors="coerce")
-        if "l5_over" in df.columns
-        else pd.Series(np.nan, index=df.index, dtype="float64")
-    )
-    under = (
-        pd.to_numeric(df["l5_under"], errors="coerce")
-        if "l5_under" in df.columns
-        else pd.Series(np.nan, index=df.index, dtype="float64")
-    )
-    return over, under
-
-
 def _apply_l5_truth_from_stat_games(
     df: pd.DataFrame, sport_label: str, *, min_stat_games: int = 3
 ) -> pd.DataFrame:
@@ -13204,6 +13068,40 @@ def _tennis_hit_rate_zero_like_proxy(df: pd.DataFrame, log_prefix: str) -> None:
     )
 
 
+def _coalesce_board_col(df: pd.DataFrame, dest: str, sources: tuple[str, ...], *, numeric: bool) -> pd.DataFrame:
+    """Fill dest from the first non-empty alias so rename+dedupe cannot keep a blank L5 Over."""
+    pieces = [df[c] for c in sources if c in df.columns]
+    if not pieces:
+        return df
+    if numeric:
+        acc = pd.to_numeric(pieces[0], errors="coerce")
+        for p in pieces[1:]:
+            acc = acc.combine_first(pd.to_numeric(p, errors="coerce"))
+        df[dest] = acc
+        return df
+    acc = pieces[0]
+    for p in pieces[1:]:
+        as_txt = acc.astype(str).str.strip()
+        empty = acc.isna() | as_txt.eq("") | as_txt.str.lower().isin(["nan", "none", "nat", "<na>"])
+        acc = acc.where(~empty, p)
+    df[dest] = acc
+    return df
+
+
+def _log_board_context_fill(df: pd.DataFrame, log_prefix: str) -> None:
+    s = summarize_board_context_fill(df)
+    print(
+        f"  [{log_prefix}] context fill: L5 {s['l5']}/{s['rows']}  "
+        f"CV% {s['cv']}/{s['rows']}  Min Tier {s['min_tier']}/{s['rows']}  "
+        f"(G1–G5 n>=3: {s['g3']})"
+    )
+    if s["g3"] >= 20 and s["l5"] < max(5, int(0.2 * s["g3"])):
+        print(
+            f"  [{log_prefix}] WARN: game logs present but L5 Over is sparse — "
+            "check last5_over / L5 Over mapping on step8"
+        )
+
+
 # ── Load & normalize step8 "direction clean" boards (Soccer, Tennis, …) ───────
 def _load_step8_board_like(
     path: str,
@@ -13212,6 +13110,7 @@ def _load_step8_board_like(
     sheet_order: tuple[str, ...],
     sport: str,
     log_prefix: str,
+    min_stat_games_l5: int = 5,
 ) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename=fallback_filename)
     df: pd.DataFrame
@@ -13234,6 +13133,37 @@ def _load_step8_board_like(
                 raise
             print(f"  [{log_prefix}] XLSX locked; using CSV fallback: {csv_path}")
             df = pd.read_csv(csv_path)
+
+    df = _coalesce_board_col(
+        df, "l5_over", ("l5_over", "L5 Over", "last5_over", "line_hits_over_5"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "l5_under", ("l5_under", "L5 Under", "last5_under", "line_hits_under_5"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "min_tier", ("min_tier", "Min Tier", "minutes_tier_label", "minutes_tier"), numeric=False
+    )
+    df = _coalesce_board_col(
+        df, "cv_pct", ("cv_pct", "CV%"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "def_tier", ("def_tier", "Def Tier", "DEF_TIER"), numeric=False
+    )
+    df = _coalesce_board_col(
+        df, "h2h_avg", ("h2h_avg", "H2H Avg"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "h2h_over_rate", ("h2h_over_rate", "H2H Over%", "h2h_over_pct"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "h2h_last", ("h2h_last", "H2H Last"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "h2h_games", ("h2h_games", "H2H Games", "H2H GP"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "b2b_flag", ("b2b_flag", "B2B", "is_back_to_back", "back_to_back"), numeric=False
+    )
 
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
@@ -13274,9 +13204,19 @@ def _load_step8_board_like(
         "line_games_played_10": "l10_games_played",
         "Def Rank":         "def_rank",
         "Def Tier":         "def_tier",
+        "DEF_TIER":         "def_tier",
         "Min Tier":         "min_tier",
+        "minutes_tier":     "min_tier",
+        "minutes_tier_label": "min_tier",
         "Shot Role":        "shot_role",
         "Usage Role":       "usage_role",
+        "H2H Avg":          "h2h_avg",
+        "H2H Over%":        "h2h_over_rate",
+        "H2H Games":        "h2h_games",
+        "H2H GP":           "h2h_games",
+        "H2H Last":         "h2h_last",
+        "CV%":              "cv_pct",
+        "cv_pct":           "cv_pct",
         "Lineup Confirmed": "lineup_confirmed",
         "lineup_confirmed": "lineup_confirmed",
         "Batting Order Pos": "batting_order_pos",
@@ -13392,6 +13332,8 @@ def _load_step8_board_like(
         "pos":                "pos",
         "line_hit_rate_over_ou_5":  "hit_rate",
         "line_hit_rate_over_ou_10": "_board_hit10",
+        "last5_over": "l5_over",
+        "last5_under": "l5_under",
         "hit_rate_over_L10": "l10_over",
         "hit_rate_under_L10": "l10_under",
         "over_L10": "l10_over",
@@ -13534,6 +13476,7 @@ def _load_step8_board_like(
         )
 
     # Backfill sparse board stats so slate columns are populated.
+    hr_for_counts = pd.to_numeric(df.get("hit_rate", np.nan), errors="coerce").clip(lower=0.0, upper=1.0)
     if "l5_over" not in df.columns:
         df["l5_over"] = np.nan
     if "l5_under" not in df.columns:
@@ -13548,22 +13491,29 @@ def _load_step8_board_like(
         df["season_avg"] = np.nan
 
     df = _ensure_stat_g_columns(df)
-    df = _apply_l5_truth_from_stat_games(df, sport, min_stat_games=3)
+    df = _apply_l5_truth_from_stat_games(df, sport, min_stat_games=int(min_stat_games_l5))
     df = _apply_l10_truth_from_stat_games(df, sport, min_stat_games=6)
     df = _fill_projection_from_avgs(df)
 
-    # Never invent L5 from hit_rate (hit_rate*5). That produced fake tennis/golf 5/5s.
-    # Also clear residual L5 on no-log rows for sports that previously filled from hit_rate.
-    stat_cols = [c for c in [f"stat_g{i}" for i in range(1, 6)] if c in df.columns]
-    row_series_n = (
-        df[stat_cols].apply(pd.to_numeric, errors="coerce").notna().sum(axis=1)
-        if stat_cols
-        else pd.Series(0, index=df.index)
-    )
-    no_log = row_series_n.lt(1)
-    if bool(no_log.any()) and str(sport).strip().upper() in {"TENNIS", "GOLF", "SOCCER", "SOC"}:
-        df.loc[no_log, "l5_over"] = np.nan
-        df.loc[no_log, "l5_under"] = np.nan
+    # IMPORTANT:
+    # For these boards, upstream "Hit Rate (5g)/(10g)" is direction-aware in many cases
+    # (e.g. when stat_g* are missing, step7 fills line_hit_rate into the over_* columns).
+    # If hit_rate represents the chosen bet side, we must derive L5/L10 counts
+    # directionally so UNDER rows don't get reversed.
+    dirv = df.get("direction", pd.Series(["OVER"] * len(df), index=df.index)).astype(str).str.upper().fillna("OVER")
+
+    l5_hit_as_over = (hr_for_counts * 5.0).round()
+    l5_over_fill = l5_hit_as_over.where(dirv.ne("UNDER"), 5.0 - l5_hit_as_over)
+    l5_under_fill = 5.0 - l5_over_fill
+
+    l10_hit_as_over = (hr_for_counts * 10.0).round()
+    l10_over_fill = l10_hit_as_over.where(dirv.ne("UNDER"), 10.0 - l10_hit_as_over)
+    l10_under_fill = 10.0 - l10_over_fill
+
+    df["l5_over"] = pd.to_numeric(df["l5_over"], errors="coerce").combine_first(l5_over_fill)
+    df["l5_under"] = pd.to_numeric(df["l5_under"], errors="coerce").combine_first(l5_under_fill)
+    df["l10_over"] = pd.to_numeric(df["l10_over"], errors="coerce").combine_first(l10_over_fill)
+    df["l10_under"] = pd.to_numeric(df["l10_under"], errors="coerce").combine_first(l10_under_fill)
 
     proj = pd.to_numeric(df.get("projection", np.nan), errors="coerce")
     if not isinstance(proj, pd.Series):
@@ -13571,56 +13521,8 @@ def _load_step8_board_like(
     else:
         proj = proj.reindex(df.index).astype("float64", copy=False)
 
-    df["l5_avg"] = pd.to_numeric(df["l5_avg"], errors="coerce")
-    if stat_cols:
-        gmean = df[stat_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
-        df["l5_avg"] = df["l5_avg"].combine_first(gmean)
-    # Never backfill avgs from a literal 0.0 projection (unsupported / missing-stat props).
-    proj_for_avg = proj.where(proj.abs() >= 0.05, np.nan)
-    df["l5_avg"] = df["l5_avg"].combine_first(proj_for_avg)
-    sea = pd.to_numeric(df["season_avg"], errors="coerce")
-    df["season_avg"] = sea.combine_first(df["l5_avg"]).combine_first(proj_for_avg)
-
-    # Drop / null-out fake proj≈0 rows that produce edge≈-line with no history.
-    fake_zero_proj = (
-        proj.notna()
-        & (proj.abs() < 0.05)
-        & sea.isna()
-        & row_series_n.lt(1)
-    )
-    if bool(fake_zero_proj.any()):
-        df.loc[fake_zero_proj, "projection"] = np.nan
-        proj = pd.to_numeric(df.get("projection", np.nan), errors="coerce")
-        if not isinstance(proj, pd.Series):
-            proj = pd.Series(np.nan, index=df.index, dtype="float64")
-        print(
-            f"  [{log_prefix}] cleared {int(fake_zero_proj.sum())} fake zero-projection row(s) "
-            "(no season/L5 history)"
-        )
-
-    # Drop unsupported props and rows with no usable projection (prevents A-tier UNDER @ edge=-line).
-    unsupported = pd.Series(False, index=df.index)
-    if "unsupported_prop" in df.columns:
-        unsupported = pd.to_numeric(df["unsupported_prop"], errors="coerce").fillna(0).ne(0)
-    if "unsupported_reason" in df.columns:
-        unsupported = unsupported | df["unsupported_reason"].astype(str).str.contains(
-            "UNSUPPORTED", case=False, na=False
-        )
-    drop_dead = unsupported | (
-        pd.to_numeric(df.get("projection", np.nan), errors="coerce").isna()
-        & sea.isna()
-        & row_series_n.lt(1)
-        & pd.to_numeric(df.get("line", np.nan), errors="coerce").ge(2.5)
-    )
-    if bool(drop_dead.any()):
-        n_drop = int(drop_dead.sum())
-        df = df.loc[~drop_dead].copy()
-        print(f"  [{log_prefix}] dropped {n_drop} unsupported/no-stat prop row(s)")
-        proj = pd.to_numeric(df.get("projection", np.nan), errors="coerce")
-        if not isinstance(proj, pd.Series):
-            proj = pd.Series(np.nan, index=df.index, dtype="float64")
-        else:
-            proj = proj.reindex(df.index).astype("float64", copy=False)
+    df["l5_avg"] = pd.to_numeric(df["l5_avg"], errors="coerce").combine_first(proj)
+    df["season_avg"] = pd.to_numeric(df["season_avg"], errors="coerce").combine_first(df["l5_avg"]).combine_first(proj)
 
     # Edge is only meaningful when projection exists (e.g. WNBA step8 often omits it; sheet edge
     # can be 0 - line = -line with abs_edge = line, tripping distance/Demon heuristics). When
@@ -13658,7 +13560,25 @@ def _load_step8_board_like(
     df = df[df["line"].notna() & (df["line"] >= 0)]
     df = _board_history_enrichment(df, sport)
     df = _merge_step1_pp_metadata(df, path, sport)
+    df = fill_min_tier_labels(df)
+    df = fill_cv_pct_if_missing(df, min_games=3)
+    for c in (
+        "shot_role",
+        "min_tier",
+        "usage_role",
+        "h2h_avg",
+        "h2h_over_rate",
+        "h2h_games",
+        "h2h_last",
+        "b2b_flag",
+        "cv_pct",
+        "opp_vs_avg_pct",
+        "l10_streak",
+    ):
+        if c not in df.columns:
+            df[c] = np.nan
     df = df.astype(object).where(df.notna(), other=None)
+    _log_board_context_fill(df, log_prefix)
     return df
 
 
@@ -13669,6 +13589,7 @@ def load_soccer(path: str) -> pd.DataFrame:
         sheet_order=("Soccer", "ALL"),
         sport="Soccer",
         log_prefix="load_soccer",
+        min_stat_games_l5=3,
     )
     if df is None or df.empty:
         return df
@@ -13772,6 +13693,7 @@ def load_soccer(path: str) -> pd.DataFrame:
                 f"  [load_soccer] kept {int(bad_opp.sum())} rows with unknown opponent metadata "
                 f"(opp_known=False; opponent-dependent fields nulled)"
             )
+    _log_board_context_fill(df, "load_soccer")
     return df
 
 
@@ -13801,6 +13723,40 @@ def _tennis_board_hit_rate_proxy(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def _apply_tennis_opp_rank_score_boost(df: pd.DataFrame) -> pd.DataFrame:
+    """Bump rank_score for Games Won OVER vs opp ATP/WTA 51–100 (+12.5 pp graded)."""
+    if df is None or df.empty or "rank_score" not in df.columns:
+        return df
+    out = df.copy()
+    if "prop_type" in out.columns:
+        prop = out["prop_type"]
+    elif "prop" in out.columns:
+        prop = out["prop"]
+    else:
+        prop = pd.Series("", index=out.index)
+    rank_col = next((c for c in ("opponent_rank", "opponent_def_rank") if c in out.columns), None)
+    opp = (
+        pd.to_numeric(out[rank_col], errors="coerce")
+        if rank_col
+        else pd.Series(np.nan, index=out.index)
+    )
+    direction = pd.Series("OVER", index=out.index)
+    for c in ("direction", "over_under"):
+        if c in out.columns:
+            direction = out[c].astype(str).str.upper().str.strip()
+            break
+    sweet = [
+        bool(tennis_games_won_sweet_spot(prop.iat[i], opp.iat[i])) and direction.iat[i] == "OVER"
+        for i in range(len(out))
+    ]
+    mask = pd.Series(sweet, index=out.index)
+    if mask.any():
+        rs = pd.to_numeric(out["rank_score"], errors="coerce")
+        out.loc[mask, "rank_score"] = rs.loc[mask] + 0.15
+        print(f"  [load_tennis] Games Won sweet-spot (opp 51–100) boost on {int(mask.sum())} legs")
+    return out
+
+
 def load_tennis(path: str) -> pd.DataFrame:
     base = _load_step8_board_like(
         path,
@@ -13808,8 +13764,9 @@ def load_tennis(path: str) -> pd.DataFrame:
         sheet_order=("Tennis", "ALL"),
         sport="Tennis",
         log_prefix="load_tennis",
+        min_stat_games_l5=3,
     )
-    return _tennis_board_hit_rate_proxy(base)
+    return _apply_tennis_opp_rank_score_boost(_tennis_board_hit_rate_proxy(base))
 
 
 def _golf_board_hit_rate_proxy(df: pd.DataFrame) -> pd.DataFrame:
@@ -13853,6 +13810,7 @@ def load_wnba(path: str) -> pd.DataFrame:
         sheet_order=("WNBA", "ALL"),
         sport="WNBA",
         log_prefix="load_wnba",
+        min_stat_games_l5=3,
     )
 
 
@@ -13986,8 +13944,9 @@ def load_wcbb(path: str) -> pd.DataFrame:
             hr = hr / 100.0
         df["hit_rate"] = hr
 
-    # Tiny-window shrink (same idea as NBA1H); safe when L5 cols are absent.
-    l5o, l5u = _l5_over_under_series(df)
+    # NBA1H can overstate hit_rate on tiny windows (e.g., 5/5 => 100%).
+    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14001,8 +13960,10 @@ def load_wcbb(path: str) -> pd.DataFrame:
     df.loc[use_shrink, "hit_rate"] = shrunk[use_shrink.to_numpy()]
     df["hit_rate"] = pd.to_numeric(df["hit_rate"], errors="coerce").clip(lower=0.35, upper=0.92)
 
-    # Second shrink pass kept for parity with other loaders (idempotent on already-shrunk rates).
-    l5o, l5u = _l5_over_under_series(df)
+    # NBA split boards can show extreme 5/5 streaks; shrink tiny-window rates so UI/tickets
+    # do not overstate confidence (e.g., 100% from only 5 samples).
+    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14087,55 +14048,38 @@ def _resolve_readable_mlb_step8(path: str) -> str:
 
 
 def load_mlb(path: str) -> pd.DataFrame:
-    """Load MLB step8 clean board; prefer dated CSV sibling (xlsx openpyxl is slow)."""
-    path = str(path or "").strip()
-    csv_candidates: list[str] = []
-    if path.lower().endswith((".xlsx", ".xlsm", ".xls")):
-        sibling = os.path.splitext(path)[0] + ".csv"
-        # Prefer direction CSV next to clean xlsx (same folder).
-        csv_candidates.extend(
-            [
-                sibling.replace("_clean", ""),
-                os.path.join(os.path.dirname(path), "step8_mlb_direction.csv"),
-            ]
-        )
-    # When caller points at Sports/MLB default, also probe today's dated CSV.
-    try:
-        from datetime import date as _date
-
-        _today = _date.today().isoformat()
-        csv_candidates.append(
-            os.path.join(REPO_ROOT, "outputs", _today, "mlb", "step8_mlb_direction.csv")
-        )
-    except Exception:
-        pass
-    seen_csv: set[str] = set()
-    for c in csv_candidates:
-        c = os.path.abspath(c)
-        if c in seen_csv or not os.path.isfile(c):
-            continue
-        seen_csv.add(c)
-        xlsx_m = os.path.getmtime(path) if path and os.path.isfile(path) else 0
-        csv_m = os.path.getmtime(c)
-        # Skip only if CSV is clearly stale vs a newer clean xlsx (rebuild without CSV).
-        if xlsx_m and csv_m < (xlsx_m - 7200):
-            continue
-        try:
-            df = pd.read_csv(c, low_memory=False, encoding="utf-8-sig")
-            print(f"  [load_mlb] fast CSV load ({len(df)} rows) <- {c}")
-            return _normalize_mlb_board(df)
-        except Exception as exc:
-            print(f"  [load_mlb] CSV load failed ({exc}); trying next/xlsx")
-
     path = _resolve_readable_mlb_step8(path)
+
     xl = pd.ExcelFile(path, engine="openpyxl")
     sheet = "MLB" if "MLB" in xl.sheet_names else (
         "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
     df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
-    return _normalize_mlb_board(df)
 
+    df = _coalesce_board_col(
+        df, "l5_over", ("l5_over", "L5 Over", "last5_over", "line_hits_over_5"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "l5_under", ("l5_under", "L5 Under", "last5_under", "line_hits_under_5"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "min_tier", ("min_tier", "Min Tier", "minutes_tier_label", "minutes_tier"), numeric=False
+    )
+    df = _coalesce_board_col(
+        df, "cv_pct", ("cv_pct", "CV%"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "def_tier", ("def_tier", "Def Tier", "DEF_TIER"), numeric=False
+    )
+    df = _coalesce_board_col(
+        df, "h2h_avg", ("h2h_avg", "H2H Avg"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "h2h_over_rate", ("h2h_over_rate", "H2H Over%", "h2h_over_pct"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "b2b_flag", ("b2b_flag", "B2B", "is_back_to_back", "back_to_back"), numeric=False
+    )
 
-def _normalize_mlb_board(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
         "Player":           "player",
@@ -14166,9 +14110,18 @@ def _normalize_mlb_board(df: pd.DataFrame) -> pd.DataFrame:
         "Season Avg":       "season_avg",
         "L5 Over":          "l5_over",
         "L5 Under":         "l5_under",
+        "last5_over":       "l5_over",
+        "last5_under":      "l5_under",
         "Def Rank":         "def_rank",
         "Def Tier":         "def_tier",
+        "DEF_TIER":         "def_tier",
         "Min Tier":         "min_tier",
+        "minutes_tier":     "min_tier",
+        "CV%":              "cv_pct",
+        "cv_pct":           "cv_pct",
+        "H2H Avg":          "h2h_avg",
+        "H2H Over%":        "h2h_over_rate",
+        "h2h_over_pct":     "h2h_over_rate",
         "Shot Role":        "shot_role",
         "Usage Role":       "usage_role",
         "Lineup Confirmed": "lineup_confirmed",
@@ -14323,7 +14276,8 @@ def _normalize_mlb_board(df: pd.DataFrame) -> pd.DataFrame:
 
     # NBA split boards can show extreme 5/5 streaks; shrink tiny-window rates so UI/tickets
     # do not overstate confidence (e.g., 100% from only 5 samples).
-    l5o, l5u = _l5_over_under_series(df)
+    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14354,7 +14308,8 @@ def _normalize_mlb_board(df: pd.DataFrame) -> pd.DataFrame:
         )
 
     # Sample size for L5 (after stat_g reconciliation and shrink).
-    l5o_g, l5u_g = _l5_over_under_series(df)
+    l5o_g = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+    l5u_g = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
     _l5sum = l5o_g.add(l5u_g, fill_value=0)
     df["l5_games"] = _l5sum.where(_l5sum > 0, np.nan)
 
@@ -14370,7 +14325,27 @@ def _normalize_mlb_board(df: pd.DataFrame) -> pd.DataFrame:
         df["espn_player_id"] = df["espn_player_id"].apply(_clean_id)
 
     df = df[df["line"].notna() & (df["line"] >= 0)]
+    df = _ensure_stat_g_columns(df)
+    df = _apply_l10_truth_from_stat_games(df, "MLB", min_stat_games=6)
+    df = fill_min_tier_labels(df)
+    df = fill_cv_pct_if_missing(df, min_games=3)
+    for c in (
+        "shot_role",
+        "min_tier",
+        "usage_role",
+        "h2h_avg",
+        "h2h_over_rate",
+        "h2h_games",
+        "h2h_last",
+        "b2b_flag",
+        "cv_pct",
+        "opp_vs_avg_pct",
+        "l10_streak",
+    ):
+        if c not in df.columns:
+            df[c] = np.nan
     df = df.astype(object).where(df.notna(), other=None)
+    _log_board_context_fill(df, "load_mlb")
     return df
 
 
@@ -14456,7 +14431,8 @@ def load_nba1q(path: str) -> pd.DataFrame:
 
     # Derive L5 game sample size from over+under counts when available.
     if "l5_games" not in df.columns:
-        l5o, l5u = _l5_over_under_series(df)
+        l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+        l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
         derived = l5o.add(l5u, fill_value=0)
         df["l5_games"] = derived.where(derived > 0, np.nan)
 
@@ -14505,7 +14481,8 @@ def load_nba1q(path: str) -> pd.DataFrame:
         df["hit_rate"] = hr
 
     # NBA1Q: shrink tiny-window streak rates (e.g., 5/5) toward a prior.
-    l5o, l5u = _l5_over_under_series(df)
+    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14629,7 +14606,8 @@ def load_nba1h(path: str) -> pd.DataFrame:
 
     # Derive L5 game sample size from over+under counts when available.
     if "l5_games" not in df.columns:
-        l5o, l5u = _l5_over_under_series(df)
+        l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+        l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
         derived = l5o.add(l5u, fill_value=0)
         df["l5_games"] = derived.where(derived > 0, np.nan)
 
@@ -14678,7 +14656,8 @@ def load_nba1h(path: str) -> pd.DataFrame:
         df["hit_rate"] = hr
 
     # NBA1H: shrink tiny-window streak rates (e.g., 5/5) toward a prior.
-    l5o, l5u = _l5_over_under_series(df)
+    l5o = pd.to_numeric(df.get("l5_over", np.nan), errors="coerce")
+    l5u = pd.to_numeric(df.get("l5_under", np.nan), errors="coerce")
     l5n = l5o.add(l5u, fill_value=0)
     hits = np.where(
         df["direction"].astype(str).str.upper().eq("UNDER").to_numpy(),
@@ -14841,10 +14820,6 @@ def build_combined_slate(
         "hit_rate_status",
         "reliability_note",
         "def_tier",
-        "overall_def_tier",
-        "stat_def_category",
-        "stat_def_rank",
-        "stat_def_tier",
         "opponent_def_rank",
         "def_rank",
         "pace_tier",
@@ -15329,6 +15304,10 @@ def filter_eligible(
         if funnel_tracker is not None:
             funnel_tracker.checkpoint_df(stage, df[mask], default_sport=sport_hint)
 
+    if "league" in df.columns:
+        lg = df["league"].astype(str).str.strip().str.upper()
+        _apply_gate(~lg.isin({"NFLSZN", "SOCCERSZN"}), "season_long_board", "after_season_long_board")
+
     if {"pick_type", "direction"}.issubset(df.columns):
         invalid_side = df.apply(
             lambda r: is_invalid_market_side(
@@ -15468,7 +15447,7 @@ _STRUCTURE_SPECS: dict[str, dict[str, object]] = {
 
 # Focused "core first" recipes per sport pipeline (Jul-20 win autopsy):
 # MLB Goblin pitcher OVER 2–3L Power; WNBA Goblin Flex 3 + Long Goblin Flex 4–6;
-# Tennis Goblin; Soccer Standard (UNDER-biased via soccer_allowed_leg).
+# Tennis Goblin; Soccer same Goblin/Standard mix as MLB/WNBA.
 # WNBA Flex 4–6 are Goblin-long CORE slips; mixed MAIN still drops them via
 # filter_main_high_prob_payload max_keep (core_build respects length cap).
 CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
@@ -15487,8 +15466,9 @@ CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
         {"structure": "goblin3", "label": "Core Power 3", "variants": 1},
     ],
     "SOCCER": [
+        {"structure": "flex", "label": "Core Flex 3", "variants": 3},
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
         {"structure": "standard", "label": "Core Standard 2", "variants": 2},
-        {"structure": "power_std3", "label": "Core Standard 3", "variants": 2},
     ],
     "NHL": [
         {"structure": "power", "label": "Core Power 2", "variants": 2},
@@ -15534,14 +15514,16 @@ CORE_PROP_FOCUS_NORMS: dict[str, frozenset[str]] = {
             "gamesplayed",
         }
     ),
-    # Soccer Standard — UNDER-friendly; shots/SOT/goals (shots OVER hard-gated on Std).
+    # Soccer Goblin OVER + Standard O/U — shots/SOT/goals/assists/saves (no tackles/fouls).
     "SOCCER": frozenset(
         {
             "shots",
             "shotsontarget",
             "goals",
-            "fouls",
-            "tackles",
+            "assists",
+            "goalassist",
+            "saves",
+            "goaliesaves",
         }
     ),
     "SOC": frozenset(
@@ -15549,8 +15531,10 @@ CORE_PROP_FOCUS_NORMS: dict[str, frozenset[str]] = {
             "shots",
             "shotsontarget",
             "goals",
-            "fouls",
-            "tackles",
+            "assists",
+            "goalassist",
+            "saves",
+            "goaliesaves",
         }
     ),
     "NHL": frozenset(
@@ -15570,7 +15554,6 @@ CORE_PROP_FOCUS_DIRECTION: dict[str, str] = {
     "MLB": "OVER",
     "WNBA": "OVER",
     "TENNIS": "OVER",
-    # Soccer: prefer UNDER; keep blank so soccer_allowed_leg can still pass HQ OVER.
     "SOCCER": "",
     "SOC": "",
     # NHL: graded history favors UNDER (SOG/Goals/Assists).
@@ -15742,7 +15725,7 @@ def build_single_structure_ticket(
     q = 0.70 if flow in ("power", "standard") else 0.50  # top 30% / top 50%
 
     # NHL/Tennis keep mixed pick_type pools (sport gates already encode Goblin vs Standard).
-    # Soccer uses normal Goblin/Standard split like NBA/WNBA — own soccer_allowed_leg gate.
+    # Soccer uses the same Goblin/Standard split as NBA/WNBA.
     sport_up = sport_label.upper()
     skip_picktype_filter = sport_up in ("NHL", "TENNIS")
 
@@ -15806,7 +15789,7 @@ def build_single_structure_ticket(
         cand = pd.concat([over_df, under_df], ignore_index=True)
     else:
         # Flex: allow UNDER when directional L5 supports it.
-        if not under_df.empty and sport_up not in ("SOCCER", "SOC"):
+        if not under_df.empty:
             l5_u = pd.to_numeric(under_df.get("l5_under", 0), errors="coerce").fillna(0.0)
             under_df = under_df[l5_u >= 4].copy()
         cand = pd.concat([over_df, under_df], ignore_index=True)
@@ -16009,7 +15992,7 @@ def build_structure_ticket_variants(
     elif flow == "power":
         cand = pd.concat([over_df, under_df], ignore_index=True)
     else:
-        if not under_df.empty and sport_up not in ("SOCCER", "SOC"):
+        if not under_df.empty:
             l5_u = pd.to_numeric(under_df.get("l5_under", 0), errors="coerce").fillna(0.0)
             under_df = under_df[l5_u >= 4].copy()
         cand = pd.concat([over_df, under_df], ignore_index=True)
@@ -16156,14 +16139,12 @@ def apply_nba_context_confidence_filter(
     l5_under = pd.to_numeric(out.get("l5_under", 0), errors="coerce").fillna(0)
     l5_sample = l5_over + l5_under
 
-    def_over_good = def_tier.isin(["WEAK", "BELOW AVG"])
+    def_over_good = def_tier.isin(["WEAK", "AVG", "ABOVE AVG", "AVERAGE", "BELOW AVG"])
     def_under_good = def_tier.isin(["ELITE", "ABOVE AVG"])
     pace_over_good = pace_tier.eq("FAST")
     pace_under_good = pace_tier.isin(["NORMAL", "SLOW"])
 
     score = pd.Series(0, index=out.index, dtype="int64")
-    l5_side = l5_under.where(direction.eq("UNDER"), l5_over)
-    score += (l5_side >= 4).astype(int)
     score += (l5_sample >= min_l5_sample).astype(int)
     score += (((direction == "OVER") & def_over_good) | ((direction == "UNDER") & def_under_good)).astype(int)
     score += (((direction == "OVER") & pace_over_good) | ((direction == "UNDER") & pace_under_good)).astype(int)
@@ -16187,13 +16168,10 @@ def compute_bet_signal_core(leg: dict) -> tuple[int, list[str]]:
     """
     sport = str(leg.get("sport", "") or "").upper()
     direction = str(leg.get("direction", "") or "").upper()
-    def_tier = _norm_def_tier_cell_upper(
-        leg.get("def_tier") or leg.get("stat_def_tier") or ""
-    )
+    def_tier = _norm_def_tier_cell_upper(leg.get("def_tier", ""))
     pace_tier = str(leg.get("pace_tier", "") or "").upper().strip()
     l5o = _signal_float(leg.get("l5_over"))
     l5u = _signal_float(leg.get("l5_under"))
-    l5_side = l5u if direction == "UNDER" else l5o
     l5_sample = int(round((l5o or 0) + (l5u or 0)))
 
     explicit_score = _signal_float(leg.get("context_score"))
@@ -16201,14 +16179,11 @@ def compute_bet_signal_core(leg: dict) -> tuple[int, list[str]]:
     reasons: list[str] = []
 
     if explicit_score is None:
-        if l5_side is not None and l5_side >= 4:
-            score += 1
-            reasons.append("L5>=4 in pick direction")
-        elif l5_sample >= 5:
+        if l5_sample >= 5:
             score += 1
             reasons.append("enough recent sample")
 
-        over_def_good = def_tier in {"WEAK", "BELOW AVG"}
+        over_def_good = def_tier in {"WEAK", "AVG", "ABOVE AVG", "AVERAGE", "BELOW AVG"}
         under_def_good = def_tier in {"ELITE", "ABOVE AVG"}
         if (direction == "OVER" and over_def_good) or (direction == "UNDER" and under_def_good):
             score += 1
@@ -18001,13 +17976,13 @@ def build_final_web_ticket_groups(
 def _filter_pool_cross_pick_mode(pool_df: pd.DataFrame | None, sport_label: str, mode: str) -> pd.DataFrame:
     """
     mode: standard | goblin | mix (Standard+Goblin only; Demon excluded when pick_type present).
-    NHL/Soccer pools have no Goblin split — all rows count as Standard for standard/mix; goblin-only skips them.
+    NHL/Tennis keep mixed pick_type pools. Soccer uses Goblin vs Standard like WNBA.
     """
     if pool_df is None or len(pool_df) == 0:
         return pd.DataFrame()
     df = pool_df.copy()
     su = str(sport_label).upper()
-    skip_pt = su in ("NHL", "SOCCER", "SOC", "TENNIS")
+    skip_pt = su in ("NHL", "TENNIS")
     if "pick_type" in df.columns and not skip_pt:
         pt = df["pick_type"].astype(str).str.strip().str.lower()
         if mode == "standard":
@@ -18733,8 +18708,9 @@ SLATE_COLS = [
     "cv_pct",
     "opp_vs_avg_pct",
     "game_time",
+    "league",
 ]
-SLATE_WIDTHS = [6, 5, 10, 20, 6, 6, 7, 10, 8, 7, 10, 8, 10, 18, 9, 10, 6, 11, 11, 9, 10, 9, 6, 8, 7, 10, 10, 8, 10, 7, 7, 9, 10, 8, 8, 10, 9, 10, 10, 8, 9, 8, 10, 7, 8, 10, 16]
+SLATE_WIDTHS = [6, 5, 10, 20, 6, 6, 7, 10, 8, 7, 10, 8, 10, 18, 9, 10, 6, 11, 11, 9, 10, 9, 6, 8, 7, 10, 10, 8, 10, 7, 7, 9, 10, 8, 8, 8, 10, 9, 10, 10, 8, 9, 8, 10, 7, 8, 10, 16, 10]
 SLATE_HDRS = [
     "Sport",
     "Tier",
@@ -18771,6 +18747,7 @@ SLATE_HDRS = [
     "L5 Match %",
     "L10 Over",
     "L10 Under",
+    "L10 Streak",
     "Def Tier",
     "Min Tier",
     "Shot Role",
@@ -18783,6 +18760,7 @@ SLATE_HDRS = [
     "CV%",
     "Opp vs Avg%",
     "Game Time",
+    "Board",
 ]
 
 _SLATE_HDR_BY_COL = dict(zip(SLATE_COLS, SLATE_HDRS))
@@ -18806,6 +18784,7 @@ FULL_SLATE_EXTRA_HDRS = {
     "game_script_note": "Script Note",
     "l5_side_hits": "L5 Side Hits",
     "l5_consistency": "L5 Match %",
+    "l10_streak": "L10 Streak",
     "line_underdog": "Line (UD)",
     "pick_platform": "Platform",
     "line_draftkings": "Line (DK)",
@@ -19045,11 +19024,12 @@ def write_slate_sheet(
         hc(ws, 1, ci, h, bg=bg_hdr, sz=hdr_sz)
     ws.freeze_panes = "A2"
 
-    for ri, row in enumerate(df[cols].itertuples(index=False), 2):
+    sport_idx = cols.index("sport") if "sport" in cols else None
+    for ri, rec in enumerate(df[cols].itertuples(index=False, name=None), 2):
         if full_slate_visual:
             ws.row_dimensions[ri].height = 19
         bg = C["alt"] if ri % 2 == 0 else C["white"]
-        sp = getattr(row, "sport", "")
+        sp = rec[sport_idx] if sport_idx is not None else ""
         spu = str(sp).upper() if sp else ""
         if spu == "NBA":
             bg_row = C["nba"] if ri % 2 == 0 else C["white"]
@@ -19061,11 +19041,15 @@ def write_slate_sheet(
             bg_row = C["soccer"] if ri % 2 == 0 else C["white"]
         elif spu == "TENNIS":
             bg_row = C["tennis"] if ri % 2 == 0 else C["white"]
+        elif spu == "MLB":
+            bg_row = C["mlb"] if ri % 2 == 0 else C["white"]
+        elif spu == "WNBA":
+            bg_row = C.get("wnba", C["alt"]) if ri % 2 == 0 else C["white"]
         else:
             bg_row = bg
 
         for ci, col in enumerate(cols, 1):
-            val = getattr(row, col, "")
+            val = rec[ci - 1]
             if val is None or (isinstance(val, float) and np.isnan(val)):
                 val = ""
             if col == "tier":
@@ -20603,33 +20587,6 @@ def main():
             soccer_date=getattr(args, "soccer_date", None),
         )
         print("[OK] Slate web JSON only (skipped workbook + tickets).")
-        try:
-            tickets_path = Path(args.web_outdir) / "tickets_latest.json"
-            tickets_date = ""
-            if tickets_path.is_file():
-                try:
-                    _tp = json.loads(tickets_path.read_text(encoding="utf-8"))
-                    tickets_date = str((_tp or {}).get("date") or "").strip()[:10]
-                except Exception:
-                    tickets_date = ""
-            slate_date = str(args.date or "").strip()[:10]
-            if tickets_date and slate_date and tickets_date < slate_date:
-                print(
-                    f"[WARN] tickets_latest.json is still {tickets_date} while slate is {slate_date}. "
-                    "Do not git-push live JSON until CombinedOnly --write-web finishes."
-                )
-        except Exception:
-            pass
-        try:
-            import subprocess
-
-            subprocess.run(
-                [sys.executable, str(Path(REPO_ROOT) / "scripts" / "refresh_pipeline_status.py"), "--date", str(args.date)],
-                cwd=str(REPO_ROOT),
-                check=False,
-            )
-        except Exception as _ps_exc:
-            print(f"  [pipeline_status] refresh skipped: {_ps_exc}")
         return
 
     print("Building combined slate...")
@@ -20639,7 +20596,6 @@ def main():
                                     wnba=wnba,
                                     wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h,
                                     nfl=nfl, cfb=cfb)
-    combined = attach_and_apply_category_defense(combined)
     reliability_index = _load_prop_reliability_index()
     if reliability_index:
         print(f"  [reliability] loaded {len(reliability_index)} prop-direction buckets from {PROP_RELIABILITY_LATEST_PATH}")
@@ -20852,18 +20808,11 @@ def main():
         n_tennis_allowed = 0
         n_nhl_excluded = 0
         n_nhl_allowed = 0
-        n_soccer_excluded = 0
-        n_soccer_allowed = 0
         if sport == "TENNIS" and len(filtered_df) > 0:
             _tennis_mask = _tennis_allowed_mask(filtered_df)
             n_tennis_allowed = int(_tennis_mask.sum())
             n_tennis_excluded = int((~_tennis_mask).sum())
             filtered_df = filtered_df[_tennis_mask].copy()
-        elif sport in ("SOCCER", "SOC") and len(filtered_df) > 0:
-            _soccer_mask = _soccer_allowed_mask(filtered_df)
-            n_soccer_allowed = int(_soccer_mask.sum())
-            n_soccer_excluded = int((~_soccer_mask).sum())
-            filtered_df = filtered_df[_soccer_mask].copy()
         elif sport == "NHL" and len(filtered_df) > 0:
             _nhl_mask = filtered_df.apply(nhl_allowed_leg, axis=1)
             n_nhl_allowed = int(_nhl_mask.sum())
@@ -20887,12 +20836,8 @@ def main():
                 f"  [main-pool] tennis allowed: {n_tennis_allowed} legs "
                 f"(totals Goblin OVER / Std O|U + L5 floors; Ace/DF banned)"
             )
-        if sport in ("SOCCER", "SOC"):
-            print(
-                f"  [main-pool] soccer gate: excluded_props={soccer_over_ex_n}, "
-                f"ineligible={n_soccer_excluded}, allowed={n_soccer_allowed} "
-                f"(UNDER preferred; HQ OVER + Goblin/Standard ok)"
-            )
+        if sport in ("SOCCER", "SOC") and soccer_over_ex_n:
+            print(f"  [main-pool] soccer excluded props: {soccer_over_ex_n}")
         if sport == "NHL" and NHL_UNDER_PREFERRED:
             print(
                 f"  [main-pool] NHL: {nhl_over_dir_ex_n} OVER legs blocked (non-Goblin), "
@@ -20933,12 +20878,9 @@ def main():
             ddir = filtered_df["direction"].astype(str).str.upper().str.strip()
             dtier = filtered_df["def_tier"].map(_norm_def_tier_cell_upper)
             def_bonus = pd.Series(0.0, index=filtered_df.index)
-            def_bonus = def_bonus + (((ddir == "OVER") & dtier.isin(["WEAK", "BELOW AVG"])).astype(float) * 0.05)
-            def_bonus = def_bonus + (((ddir == "UNDER") & dtier.isin(["ELITE", "ABOVE AVG"])).astype(float) * 0.05)
+            def_bonus = def_bonus + (((ddir == "OVER") & dtier.eq("ABOVE AVG")).astype(float) * 0.05)
+            def_bonus = def_bonus + (((ddir == "UNDER") & dtier.eq("ELITE")).astype(float) * 0.05)
             def_bonus = def_bonus - (((ddir == "OVER") & dtier.eq("ELITE")).astype(float) * 0.03)
-            l5_side = directional_l5_hits_series(filtered_df)
-            align = category_def_align_mask(filtered_df, def_tier=dtier)
-            def_bonus = def_bonus + (((l5_side >= 4) & align).astype(float) * 0.06)
             filtered_df["_def_tier_bonus"] = def_bonus
 
             if "blended_score" in filtered_df.columns:
@@ -21056,29 +20998,10 @@ def main():
         elif pt is None and sport in ("TENNIS", "MLB", "SOCCER", "SOC"):
             effective_min_hit = min(float(args.min_hit_rate), 0.52)
 
-        # Soccer sport gate already applied above; trace direction mix (UNDER preferred, HQ OVER ok).
-        if sport in ("SOCCER", "SOC") and "direction" in filtered_df.columns and len(filtered_df) > 0:
-            _dir = filtered_df["direction"].astype(str).str.upper().str.strip()
-            _over_kept = int(_dir.eq("OVER").sum())
-            _under_kept = int(_dir.eq("UNDER").sum())
-            _gob = (
-                filtered_df["pick_type"].astype(str).str.lower().str.contains("goblin", na=False)
-                if "pick_type" in filtered_df.columns
-                else pd.Series(False, index=filtered_df.index)
-            )
-            print(
-                "  [SOCCER GATE TRACE] "
-                f"pool OVER={_over_kept} UNDER={_under_kept} "
-                f"Goblin={int(_gob.sum())} "
-                f"(UNDER preferred; HQ OVER floors "
-                f"hr>={SOCCER_OVER_MIN_HIT_RATE:.2f}/edge>={SOCCER_OVER_MIN_EDGE:.2f}/"
-                f"p>={SOCCER_OVER_MIN_LEG_PROB:.2f})"
-            )
-
         # MLB: allow both OVER and UNDER; directional edge + L5 consistency now controls selection.
 
         # NHL/Soccer demon pool inclusion requires quality gate.
-        if sport in ("NHL", "SOCCER") and "pick_type" in filtered_df.columns:
+        if sport == "NHL" and "pick_type" in filtered_df.columns:
             _pt = filtered_df["pick_type"].astype(str).str.strip().str.upper()
             _is_demon = _pt.eq("DEMON")
             demon_candidates = int(_is_demon.sum())
@@ -22291,6 +22214,8 @@ def main():
         write_slate_sheet(wb, wcbb, "WCBB Slate", C["hdr_wcbb"], "WCBB")
     if mlb is not None and len(mlb) > 0:
         write_slate_sheet(wb, mlb, "MLB Slate", C["hdr_mlb"], "MLB")
+    if wnba is not None and len(wnba) > 0:
+        write_slate_sheet(wb, wnba, "WNBA Slate", C["hdr_wnba"], "WNBA")
     if nba1q is not None and len(nba1q) > 0:
         write_slate_sheet(wb, nba1q, "NBA1Q Slate", C["hdr_nba1q"], "NBA1Q")
     if nba1h is not None and len(nba1h) > 0:
@@ -22452,73 +22377,51 @@ def main():
     print(f"   Sheets ({len(wb.sheetnames)}): {wb.sheetnames}")
 
     if args.write_web:
-        print("\nWriting web outputs...", flush=True)
+        print("\nWriting web outputs...")
         if all_ticket_groups:
-            try:
-                full_payload = ticket_groups_to_payload(
-                    all_ticket_groups,
-                    args.date,
-                    thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                    ticket_track="graded_main",
-                    payload_mode="main",
-                )
-                payload, long_payload = resolve_graded_main_and_long_payloads(
+            full_payload = ticket_groups_to_payload(
+                all_ticket_groups,
+                args.date,
+                thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                ticket_track="graded_main",
+                payload_mode="main",
+            )
+            payload, long_payload = resolve_graded_main_and_long_payloads(
+                full_payload,
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                mlb=mlb,
+                soccer=soccer,
+                tennis=tennis,
+                nhl=nhl,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            payload = inject_strong_builder_tickets(full_payload, payload)
+            payload = inject_core_build_tickets(full_payload, payload)
+            if payload.get("pool_mode") != MAIN_POOL_MODE:
+                payload = inject_probability_ladder_groups(
                     full_payload,
-                    nba1q=nba1q,
-                    nba=nba,
-                    nba1h=nba1h,
-                    wnba=wnba,
-                    mlb=mlb,
-                    soccer=soccer,
-                    tennis=tennis,
-                    nhl=nhl,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                    pool_fn=lambda f: pool(f, for_win_rate=True),
-                    graded_analysis=_load_graded_analysis(),
+                    payload,
+                    cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
                 )
-                payload = inject_strong_builder_tickets(full_payload, payload)
-                payload = inject_core_build_tickets(full_payload, payload)
-                if payload.get("pool_mode") != MAIN_POOL_MODE:
-                    payload = inject_probability_ladder_groups(
-                        full_payload,
-                        payload,
-                        cross_only=bool(getattr(args, "ladder_cross_only", LADDER_CROSS_ONLY_DEFAULT)),
-                    )
-                else:
-                    print(f"  [main-track] skipping probability ladder groups ({MAIN_POOL_MODE})")
-                # Always surface thin in-season quality boards (Soccer UNDER / MLB / Tennis)
-                # even when MAIN is win-rate Goblin — otherwise World Cup never appears on /tickets.
-                payload = append_in_season_web_supplement_groups(
-                    payload, full_payload, str(args.date)
-                )
-                payload = filter_main_high_prob_payload(payload)
-                write_full_ticket_export_snapshot(payload, str(args.date))
-            except Exception as web_exc:
-                import traceback as _web_tb
-
-                _web_tb.print_exc()
-                print(f"[ERROR] write-web payload build failed: {web_exc}", flush=True)
-                try:
-                    full_payload = ticket_groups_to_payload(
-                        all_ticket_groups,
-                        args.date,
-                        thresholds,
-                        bankroll=max(0.0, float(args.bankroll)),
-                        curve_stake_usd=float(args.curve_stake_usd),
-                        ticket_track="graded_main",
-                        payload_mode="main",
-                    )
-                    payload = dict(full_payload)
-                    long_payload = {"groups": []}
-                    print("  [web-fallback] using workbook groups as tickets payload", flush=True)
-                except Exception as fb_exc:
-                    print(f"  [web-fallback] FAILED: {fb_exc}", flush=True)
-                    raise
+            else:
+                print(f"  [main-track] skipping probability ladder groups ({MAIN_POOL_MODE})")
+            # Always surface thin in-season quality boards (Soccer UNDER / MLB / Tennis)
+            # even when MAIN is win-rate Goblin — otherwise World Cup never appears on /tickets.
+            payload = append_in_season_web_supplement_groups(
+                payload, full_payload, str(args.date)
+            )
+            payload = filter_main_high_prob_payload(payload)
+            write_full_ticket_export_snapshot(payload, str(args.date))
             n_groups = len(payload["groups"])
             n_slips = sum(len(g["tickets"]) for g in payload["groups"])
             n_long = sum(len(g.get("tickets") or []) for g in long_payload.get("groups") or [])
@@ -22528,126 +22431,88 @@ def main():
                 f"{n_long} long-parlay slips "
                 f"({'enabled' if LONG_PARLAY_ENABLED else 'disabled'} 5-6 track)."
             )
-            # Write tickets_latest BEFORE shadow/sidecar emits. Those rebuilds have
-            # historically crashed after the workbook was saved and left /tickets on yesterday.
-            _web_ev_early = not bool(args.no_web_ev_gate)
-            write_web_outputs(
+            gated_preview = filter_positive_ev_tickets_payload(
                 payload,
-                args.web_outdir,
-                require_positive_ev=_web_ev_early,
-                merge_existing_for_date=bool(args.merge_web_latest),
                 apply_template_cap=bool(args.web_template_cap),
-                discard_tracker=discard_tracker,
             )
-            write_slate_json(
-                nba,
-                cbb,
-                nhl,
-                soccer,
-                args.date,
-                args.web_outdir,
-                wcbb=wcbb,
-                mlb=mlb,
+            print_positive_ev_gate_report(gated_preview)
+            _write_long_parlay_ticket_snapshot(long_payload, str(args.date))
+            _emit_winrate_goblin_opt3_shadow_payload(
                 nba1q=nba1q,
+                nba=nba,
                 nba1h=nba1h,
-                tennis=tennis,
-                golf=golf,
-                nfl=nfl,
                 wnba=wnba,
-                cfb=cfb,
-                tennis_date=getattr(args, "tennis_date", None),
-                soccer_date=getattr(args, "soccer_date", None),
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
             )
-            print("[OK] Web outputs complete.", flush=True)
-            args._web_json_written = True
-            try:
-                gated_preview = filter_positive_ev_tickets_payload(
-                    payload,
-                    apply_template_cap=bool(args.web_template_cap),
-                )
-                print_positive_ev_gate_report(gated_preview)
-                _write_long_parlay_ticket_snapshot(long_payload, str(args.date))
-            except Exception as _post_web_exc:
-                print(f"  [web] WARN: post-write gate/snapshot failed ({_post_web_exc})", flush=True)
-            try:
-                _emit_winrate_goblin_opt3_shadow_payload(
-                    nba1q=nba1q,
-                    nba=nba,
-                    nba1h=nba1h,
-                    wnba=wnba,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                    pool_fn=lambda f: pool(f, for_win_rate=True),
-                    graded_analysis=_load_graded_analysis(),
-                )
-                _emit_main_pool_mode_sidecars(
-                    nba1q=nba1q,
-                    nba=nba,
-                    nba1h=nba1h,
-                    wnba=wnba,
-                    mlb=mlb,
-                    soccer=soccer,
-                    tennis=tennis,
-                    nhl=nhl,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                    pool_fn=lambda f: pool(f, for_win_rate=True),
-                    graded_analysis=_load_graded_analysis(),
-                )
-                _emit_winrate_mlb_goblin_shadow_payload(
-                    mlb=mlb,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                    pool_fn=lambda f: pool(f, for_win_rate=True),
-                    graded_analysis=_load_graded_analysis(),
-                )
-                _std_shadow_frames = [
-                    nba1q,
-                    nba,
-                    nba1h,
-                    wnba,
-                    mlb,
-                    soccer,
-                    tennis,
-                    nhl,
-                ]
-                _emit_strong_standard_shadow_payload(
-                    frames=_std_shadow_frames,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                )
-                _emit_strong_mix_shadow_payload(
-                    frames=_std_shadow_frames,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                )
-                _emit_strong_standard_prob_shadow_payload(
-                    frames=_std_shadow_frames,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                )
-                _emit_strong_recombo_shadow_payload(
-                    strong_tickets=_extract_strong_builder_slips(full_payload),
-                    frames=_std_shadow_frames,
-                    date_str=str(args.date),
-                    thresholds=thresholds,
-                    bankroll=max(0.0, float(args.bankroll)),
-                    curve_stake_usd=float(args.curve_stake_usd),
-                )
-            except Exception as _shadow_exc:
-                print(f"  [web] WARN: shadow/sidecar emit failed ({_shadow_exc}); tickets_latest already written", flush=True)
+            _emit_main_pool_mode_sidecars(
+                nba1q=nba1q,
+                nba=nba,
+                nba1h=nba1h,
+                wnba=wnba,
+                mlb=mlb,
+                soccer=soccer,
+                tennis=tennis,
+                nhl=nhl,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            _emit_winrate_mlb_goblin_shadow_payload(
+                mlb=mlb,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+                pool_fn=lambda f: pool(f, for_win_rate=True),
+                graded_analysis=_load_graded_analysis(),
+            )
+            _std_shadow_frames = [
+                nba1q,
+                nba,
+                nba1h,
+                wnba,
+                mlb,
+                soccer,
+                tennis,
+                nhl,
+            ]
+            _emit_strong_standard_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_mix_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_standard_prob_shadow_payload(
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
+            _emit_strong_recombo_shadow_payload(
+                strong_tickets=_extract_strong_builder_slips(full_payload),
+                frames=_std_shadow_frames,
+                date_str=str(args.date),
+                thresholds=thresholds,
+                bankroll=max(0.0, float(args.bankroll)),
+                curve_stake_usd=float(args.curve_stake_usd),
+            )
         else:
             print("  WARNING: workbook produced 0 groups — falling back to FINAL builder.")
             nhl_pool_web = pool(nhl) if nhl is not None and len(nhl) > 0 else None
@@ -22823,21 +22688,19 @@ def main():
                 curve_stake_usd=float(args.curve_stake_usd),
             )
         _web_ev = not bool(args.no_web_ev_gate)
-        if not bool(getattr(args, "_web_json_written", False)):
-            write_web_outputs(
-                payload,
-                args.web_outdir,
-                require_positive_ev=_web_ev,
-                merge_existing_for_date=bool(args.merge_web_latest),
-                apply_template_cap=bool(args.web_template_cap),
-                discard_tracker=discard_tracker,
-            )
-            write_slate_json(nba, cbb, nhl, soccer, args.date, args.web_outdir,
-                             wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h, tennis=tennis, golf=golf,
-                             nfl=nfl, wnba=wnba, cfb=cfb,
-                             tennis_date=getattr(args, "tennis_date", None),
-                             soccer_date=getattr(args, "soccer_date", None))
-            print("[OK] Web outputs complete.", flush=True)
+        write_web_outputs(
+            payload,
+            args.web_outdir,
+            require_positive_ev=_web_ev,
+            merge_existing_for_date=bool(args.merge_web_latest),
+            apply_template_cap=bool(args.web_template_cap),
+            discard_tracker=discard_tracker,
+        )
+        write_slate_json(nba, cbb, nhl, soccer, args.date, args.web_outdir,
+                         wcbb=wcbb, mlb=mlb, nba1q=nba1q, nba1h=nba1h, tennis=tennis, golf=golf,
+                         nfl=nfl, wnba=wnba, cfb=cfb,
+                         tennis_date=getattr(args, "tennis_date", None),
+                         soccer_date=getattr(args, "soccer_date", None))
         try:
             ex_out = os.path.join(REPO_ROOT, "ui_runner", "data", "payout_ladder_examples.json")
             generate_payout_ladder_examples(payload, ex_out)
@@ -22852,6 +22715,8 @@ def main():
                 apply_template_cap=bool(args.web_template_cap),
                 discard_tracker=discard_tracker,
             )
+        # Avoid Windows console codepage issues with unicode checkmarks.
+        print("[OK] Web outputs complete.")
 
     if getattr(args, "also_win_rate", False) and not getattr(args, "win_rate_mode", False):
         wr_path = str(getattr(args, "win_rate_output", "") or "").strip()

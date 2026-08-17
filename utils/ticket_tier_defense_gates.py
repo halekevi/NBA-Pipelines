@@ -301,3 +301,56 @@ def leg_passes_tier_defense_gate(row: pd.Series | dict[str, Any], *, sport: str 
     if bool(_goblin_over_mask(one).iloc[0]):
         return True
     return not bool(tier_defense_exclusion_mask(one, sport=sport).iloc[0])
+
+
+def tennis_games_won_sweet_spot(row, *, sport=None):
+    """
+    Gate for tennis games_won props — returns True if the leg is in a
+    favorable sweet spot (passes tier x defense gate and is not a
+    bottom-tier player facing an elite opponent on an OVER).
+    """
+    import pandas as pd
+    if isinstance(row, dict):
+        row = pd.Series(row)
+    one = pd.DataFrame([row.to_dict()])
+    if sport:
+        one["sport"] = sport
+    elif "sport" not in one.columns:
+        one["sport"] = "TENNIS"
+    if bool(_goblin_over_mask(one).iloc[0]):
+        return True
+    return not bool(tier_defense_exclusion_mask(one, sport="TENNIS").iloc[0])
+
+
+def tennis_opp_rank_over_exclusion_mask(df, *, elite_rank=25):
+    """
+    Returns a boolean mask of rows to exclude:
+    Standard OVER legs where the opponent is elite (rank <= elite_rank).
+    Used to drop tennis OVER legs against top-ranked opponents.
+    """
+    import pandas as pd
+    if df is None or df.empty:
+        return pd.Series(dtype=bool)
+    direction = _direction_series(df)
+    standard = _standard_mask(df)
+    opp_rank = _numeric_col(df, "opponent_rank")
+    opp_elite = opp_rank.le(elite_rank) & opp_rank.notna()
+    return (standard & direction.eq("OVER") & opp_elite).fillna(False)
+
+
+def tennis_over_blocked_by_opp_rank(row, *, sport=None, elite_rank=25):
+    """
+    Single-row check: returns True if this tennis OVER leg is blocked
+    because the opponent rank is elite. Goblin OVER always passes.
+    """
+    import pandas as pd
+    if isinstance(row, dict):
+        row = pd.Series(row)
+    one = pd.DataFrame([row.to_dict()])
+    if sport:
+        one["sport"] = sport
+    elif "sport" not in one.columns:
+        one["sport"] = "TENNIS"
+    if bool(_goblin_over_mask(one).iloc[0]):
+        return False
+    return bool(tennis_opp_rank_over_exclusion_mask(one, elite_rank=elite_rank).iloc[0])

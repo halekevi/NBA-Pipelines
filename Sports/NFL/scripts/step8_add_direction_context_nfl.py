@@ -157,6 +157,7 @@ def main() -> None:
             "Opp L5 PA/G": op_l5_pa.round(1),
             "Opp L5 +/-": op_l5_pm.round(1),
             "Def Tier": dtr,
+            "League": col("league"),
         }
     )
 

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "date": "2026-08-11",
-  "generated_at": "2026-08-11T20:51:12.789652Z",
+  "date": "2026-08-17",
+  "generated_at": "2026-08-17T13:26:37.034200Z",
   "rows": [
     {
       "date": "2026-07-12",
@@ -167,6 +167,118 @@
       "notes": "ticket_id=2026-08-09|MLB Core Power 2 #1|1; sports=MLB; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-08-09|MLB Core Power 2 #1|1",
       "_dedupe_key": "2026-08-09|davis martin|earned runs allowed|over|1.500||eduardo rodriguez|hits allowed|over|3.500|1.5"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.2",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 2-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 2-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|freddy peralta|hits allowed|over|3.500||ryan weathers|walks allowed|over|0.500|1.2"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 2-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 2-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|freddy peralta|hits allowed|over|3.500||ryan weathers|walks allowed|over|0.500|1.3"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.7",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 2-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 2-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|freddy peralta|hits allowed|over|3.500||ryan weathers|walks allowed|over|0.500|1.7"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.6",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 2-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 2-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|freddy peralta|hits allowed|over|3.500||ryan weathers|walks allowed|over|0.500|1.6"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB Core Power 2 #1|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB Core Power 2 #1|1",
+      "_dedupe_key": "2026-08-16|edward cabrera|walks allowed|over|0.500||freddy peralta|earned runs allowed|over|0.500|1.3"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB Core Power 2 #2|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB Core Power 2 #2|1",
+      "_dedupe_key": "2026-08-16|freddy peralta|earned runs allowed|over|0.500||ryan weathers|walks allowed|over|0.500|1.3"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "2",
+      "leg_composition": "0S+2G+0D",
+      "goblin_deltas": [
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.3",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB Core Power 2 #3|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB Core Power 2 #3|1",
+      "_dedupe_key": "2026-08-16|freddy peralta|earned runs allowed|over|0.500||jake irvin|walks allowed|over|0.500|1.3"
     },
     {
       "date": "2026-08-09",
@@ -1601,6 +1713,57 @@
       "notes": "ticket_id=2026-08-11|MLB 3-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
       "ticket_id": "2026-08-11|MLB 3-Leg Goblin OVER|1",
       "_dedupe_key": "2026-08-11|brandon young|walks allowed|over|0.500||nick lodolo|walks allowed|over|0.500||paul skenes|hits allowed|over|2.500|1.6"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "3",
+      "leg_composition": "0S+3G+0D",
+      "goblin_deltas": [
+        "1",
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.4",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 3-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 3-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|andrew painter|earned runs allowed|over|0.500||edward cabrera|walks allowed|over|0.500||ryan weathers|walks allowed|over|0.500|1.4"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "3",
+      "leg_composition": "0S+3G+0D",
+      "goblin_deltas": [
+        "1",
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.8",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 3-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 3-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|andrew painter|earned runs allowed|over|0.500||edward cabrera|walks allowed|over|0.500||ryan weathers|walks allowed|over|0.500|1.8"
+    },
+    {
+      "date": "2026-08-16",
+      "n_legs": "3",
+      "leg_composition": "0S+3G+0D",
+      "goblin_deltas": [
+        "1",
+        "1",
+        "1.5"
+      ],
+      "demon_deltas": [],
+      "power_payout_x": "1.5",
+      "flex_payout_x": "",
+      "source": "live_cdp",
+      "notes": "ticket_id=2026-08-16|MLB 3-Leg Goblin OVER|1; sports=MLB; CDP power_min_x Min Guarantee",
+      "ticket_id": "2026-08-16|MLB 3-Leg Goblin OVER|1",
+      "_dedupe_key": "2026-08-16|andrew painter|earned runs allowed|over|0.500||edward cabrera|walks allowed|over|0.500||ryan weathers|walks allowed|over|0.500|1.5"
     },
     {
       "date": "2026-08-08",

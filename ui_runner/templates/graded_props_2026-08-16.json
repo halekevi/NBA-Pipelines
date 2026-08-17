@@ -2786,8 +2786,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-17|SOCCER Core Power 2 #1|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""
@@ -4708,8 +4708,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-17|SOCCER Core Power 2 #1|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""
@@ -443500,7 +443500,7 @@
       "tier": "B",
       "edge": "4.9",
       "ml_prob": "0.82",
-      "actual_value": "15.0",
+      "actual_value": "24.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -456706,7 +456706,7 @@
       "tier": "B",
       "edge": "0.9",
       "ml_prob": "0.58",
-      "actual_value": "15.0",
+      "actual_value": "24.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -456748,12 +456748,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -469292,7 +469292,7 @@
       "tier": "C",
       "edge": "3.9",
       "ml_prob": "0.82",
-      "actual_value": "15.0",
+      "actual_value": "24.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -469334,12 +469334,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -475864,7 +475864,7 @@
       "tier": "C",
       "edge": "-0.1",
       "ml_prob": "0.58",
-      "actual_value": "15.0",
+      "actual_value": "24.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -475906,12 +475906,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -483428,7 +483428,7 @@
       "tier": "C",
       "edge": "-1.1",
       "ml_prob": "0.58",
-      "actual_value": "15.0",
+      "actual_value": "24.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -483470,12 +483470,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -483490,7 +483490,7 @@
       "tier": "C",
       "edge": "-0.3",
       "ml_prob": "0.3659",
-      "actual_value": "2.0",
+      "actual_value": "3.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -483532,12 +483532,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -498990,7 +498990,7 @@
       "tier": "C",
       "edge": "-3.7",
       "ml_prob": "0.58",
-      "actual_value": "12.0",
+      "actual_value": "16.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -499032,12 +499032,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -499052,7 +499052,7 @@
       "tier": "C",
       "edge": "-2.7",
       "ml_prob": "0.58",
-      "actual_value": "12.0",
+      "actual_value": "16.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -499094,12 +499094,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -499114,7 +499114,7 @@
       "tier": "C",
       "edge": "-1.7",
       "ml_prob": "0.58",
-      "actual_value": "12.0",
+      "actual_value": "16.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -499156,12 +499156,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -510284,7 +510284,7 @@
       "tier": "B",
       "def": "avg",
       "decided": 47,
-      "hits": 15
+      "hits": 16
     },
     {
       "prop": "Total Games Won",
@@ -510380,7 +510380,7 @@
       "tier": "C",
       "def": "avg",
       "decided": 32,
-      "hits": 8
+      "hits": 10
     },
     {
       "prop": "Total Games Won",
@@ -510388,7 +510388,7 @@
       "tier": "C",
       "def": "avg",
       "decided": 87,
-      "hits": 30
+      "hits": 33
     },
     {
       "prop": "Total Sets",
@@ -510396,7 +510396,7 @@
       "tier": "C",
       "def": "avg",
       "decided": 15,
-      "hits": 6
+      "hits": 7
     },
     {
       "prop": "Total Tie Breaks",
@@ -511484,7 +511484,7 @@
       "tier": "C",
       "def": "avg",
       "decided": 16,
-      "hits": 7
+      "hits": 8
     },
     {
       "prop": "Total Games Won",

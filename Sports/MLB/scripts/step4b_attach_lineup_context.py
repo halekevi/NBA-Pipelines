@@ -593,6 +593,31 @@ def main() -> None:
             df[c] = df[c].astype(object)
 
     day_cache: Dict[str, Dict[str, dict]] = {}
+
+    # PRE-RESOLVE: batch resolve all unique player IDs and batter hands before row loop
+    # This avoids repeated API calls with sleep inside the 9000+ row loop
+    log.info('[step4b] Pre-resolving unique player IDs and batter hands...')
+    unique_players = df[['player', 'mlb_player_id']].drop_duplicates()
+    pid_map: Dict[str, Optional[int]] = {}
+    hand_map: Dict[int, str] = {}
+    for _, pr in unique_players.iterrows():
+        pname = str(pr.get('player', '') or '').strip()
+        pid_raw = str(pr.get('mlb_player_id', '') or '').strip()
+        pid = None
+        if pid_raw and pid_raw.split('|')[0].isdigit():
+            pid = int(pid_raw.split('|')[0])
+        elif pname:
+            pid = pid_map.get(pname.lower())
+            if pid is None:
+                pid = resolve_player_id(pname, id_cache)
+                pid_map[pname.lower()] = pid
+        if pname:
+            pid_map[pname.lower()] = pid
+        if pid:
+            bhand = resolve_batter_hand(pid, id_cache)
+            hand_map[pid] = bhand
+    log.info('[step4b] Pre-resolved %d unique players', len(pid_map))
+
     for idx, row in df.iterrows():
         gdate = str(row.get("game_date", ""))[:10]
         if not gdate or gdate == "nan":
@@ -619,7 +644,10 @@ def main() -> None:
         if pid_raw and pid_raw.split("|")[0].isdigit():
             pid = int(pid_raw.split("|")[0])
         elif pname:
-            pid = resolve_player_id(pname, id_cache)
+            pid = pid_map.get(pname.lower())
+            if pid is None:
+                pid = resolve_player_id(pname, id_cache)
+                pid_map[pname.lower()] = pid
 
         if pid and pid in bo_map:
             pos = bo_map[pid]
@@ -663,7 +691,7 @@ def main() -> None:
             splits = fetch_pitcher_splits(int(opp_starter["id"]), season, splits_cache)
             bhand = ""
             if pid:
-                bhand = resolve_batter_hand(pid, id_cache)
+                bhand = hand_map.get(pid) or resolve_batter_hand(pid, id_cache)
                 if bhand == "S":
                     opp_hand = str(opp_starter.get("hand", "R")).upper()[:1]
                     bhand = "L" if opp_hand == "R" else "R"

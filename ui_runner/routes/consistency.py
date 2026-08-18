@@ -15,6 +15,8 @@ consistency_bp = Blueprint("consistency", __name__)
 
 # Response cache for /api/hot-players (avoid re-parsing multi-MB slate every hit).
 _HOT_PLAYERS_TTL_SEC = 300.0
+# Overall graded hit rate required to appear on the Hot Players board.
+HOT_PLAYERS_MIN_HIT_RATE = 0.70
 _hot_players_resp_cache: dict = {"key": None, "payload": None, "expires": 0.0}
 _slate_pairs_cache: dict = {"mtime": -1.0, "names": set(), "pairs": set()}
 
@@ -245,6 +247,8 @@ def hot_players():
 
     by_sport: dict[str, list] = {}
     for p in sorted(today, key=lambda x: -float(x.get("hit_rate", 0))):
+        if float(p.get("hit_rate") or 0) < HOT_PLAYERS_MIN_HIT_RATE:
+            continue
         s = str(p.get("sport", "?"))
         if s not in by_sport:
             by_sport[s] = []

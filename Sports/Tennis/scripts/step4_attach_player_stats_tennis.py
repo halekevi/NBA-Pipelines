@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,7 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 from tennis_shared import (
+    SACKMANN_PLAYER_STALE_DAYS,
     build_sackmann_player_index,
     build_sackmann_player_log,
     ensure_sackmann_matches,
@@ -26,10 +28,25 @@ from tennis_shared import (
     norm_key,
     parse_tennis_season_stats,
     refresh_match_games_cache,
+    sackmann_coverage_end,
+    sackmann_player_fresh,
 )
 
 
+_ESPN_MATCH_KEYS = {
+    "games_won",
+    "match_total_games",
+    "sets_won",
+    "total_sets",
+    "total_tie_breaks",
+}
+
+
 def _espn_vals_from_cache(cache: dict, aid: str, hk: str) -> list[float]:
+    # ESPN tennis scoreboards have linescores (games/sets) but almost never
+    # per-match aces / double faults. Do not treat missing stats as 0.
+    if hk not in _ESPN_MATCH_KEYS:
+        return []
     hist = cache.get(aid) or []
     vals: list[float] = []
     for m in hist:
@@ -37,9 +54,12 @@ def _espn_vals_from_cache(cache: dict, aid: str, hk: str) -> list[float]:
         if v is None:
             continue
         try:
-            vals.append(float(v))
+            fv = float(v)
         except (TypeError, ValueError):
             continue
+        if fv != fv:
+            continue
+        vals.append(fv)
     return vals
 
 
@@ -93,24 +113,50 @@ def main() -> None:
 
     history_src = str(args.history_source).strip().lower()
     use_sackmann = history_src in ("sackmann", "both")
-    use_espn = history_src in ("espn", "both") or not use_sackmann
-
-    if args.refresh_cache or not mpath.is_file() or use_espn:
-        print("[Tennis step4] Refreshing ESPN match games cache (scoreboard)...")
-        cache = refresh_match_games_cache(mpath)
-    else:
-        cache = load_match_games_cache(mpath)
+    # Always allow ESPN scoreboard fallback for games/sets. Sackmann-only used to
+    # skip it and leave RG-era L5 on summer boards.
+    use_espn = True
+    try:
+        slate_date = date.fromisoformat(str(args.date or "").strip()[:10])
+    except ValueError:
+        slate_date = date.today()
 
     sackmann_df = pd.DataFrame()
     sackmann_index: dict[str, list] = {}
+    coverage_end = None
     if use_sackmann:
         print("[Tennis step4] Loading Sackmann match history...")
         sackmann_df = ensure_sackmann_matches()
         if sackmann_df.empty:
             print("  [WARN] Sackmann matches empty — ESPN fallback only")
+            use_espn = True
         else:
             sackmann_index = build_sackmann_player_index(sackmann_df)
+            coverage_end = sackmann_coverage_end(sackmann_df)
             print(f"  Sackmann rows={len(sackmann_df):,}  indexed_players={len(sackmann_index):,}")
+            if coverage_end:
+                age_days = (slate_date - coverage_end).days
+                print(f"  Sackmann newest tourney_date={coverage_end.isoformat()} ({age_days}d before slate {slate_date})")
+                if age_days > SACKMANN_PLAYER_STALE_DAYS:
+                    print(
+                        "  [WARN] Sackmann is stale vs the slate. "
+                        "Aces / DF / break points L5 will not use May-era matches. "
+                        "ESPN scoreboard covers games/sets."
+                    )
+                    use_espn = True
+
+    cache_age_h = None
+    if mpath.is_file():
+        cache_age_h = (time.time() - mpath.stat().st_mtime) / 3600.0
+    if args.refresh_cache or not mpath.is_file() or (
+        use_espn and (cache_age_h is None or cache_age_h > 12)
+    ):
+        days_back = 80 if use_espn else 2
+        print(f"[Tennis step4] Refreshing ESPN match games cache (scoreboard, days_back={days_back})...")
+        cache = refresh_match_games_cache(mpath, days_back=days_back)
+    else:
+        print(f"[Tennis step4] Using ESPN match cache ({cache_age_h:.1f}h old)")
+        cache = load_match_games_cache(mpath)
 
     stat_cache: dict[tuple[str, str], dict[str, float | None]] = {}
 
@@ -226,8 +272,23 @@ def main() -> None:
         pk = norm_key(player_name)
         prop_norm = str(r.get("prop_norm") or "")
         filled = False
+        espn_ok = bool(use_espn and hk in _ESPN_MATCH_KEYS and aid)
 
-        if use_sackmann and sackmann_index and pk:
+        # Live ESPN linescores beat Sackmann for games/sets. Sackmann ATP/WTA
+        # files stop at RG (~May), so using them here inflated Tiafoe Games Won
+        # L5 to 24/31/29 (BO5) vs PrizePicks 12/17/13/27/23.
+        if espn_ok:
+            vals = _espn_vals_from_cache(cache, aid, hk)
+            if len(vals) >= 3:
+                for j, v in enumerate(vals[:10]):
+                    df.iat[pos, df.columns.get_loc(f"stat_g{j + 1}")] = v
+                df.iat[pos, df.columns.get_loc("stat_status")] = "OK"
+                espn_fill += 1
+                filled = True
+
+        if (not filled) and use_sackmann and sackmann_index and pk and sackmann_player_fresh(
+            sackmann_index, pk, slate_date
+        ):
             sack_vals = build_sackmann_player_log(
                 sackmann_df,
                 pk,
@@ -248,14 +309,15 @@ def main() -> None:
             else:
                 vals = _espn_vals_from_cache(cache, aid, hk)
                 if not vals:
-                    df.iat[pos, df.columns.get_loc("stat_status")] = "NO_DATA"
+                    df.iat[pos, df.columns.get_loc("stat_status")] = "STALE_HISTORY" if use_sackmann else "NO_DATA"
                 else:
                     df.iat[pos, df.columns.get_loc("stat_status")] = "OK"
                     for j, v in enumerate(vals[:10]):
                         df.iat[pos, df.columns.get_loc(f"stat_g{j + 1}")] = v
                     espn_fill += 1
+                    filled = True
         elif not filled:
-            df.iat[pos, df.columns.get_loc("stat_status")] = "NO_DATA"
+            df.iat[pos, df.columns.get_loc("stat_status")] = "STALE_HISTORY" if use_sackmann else "NO_DATA"
 
         st = stat_cache.get((aid, tour))
         if st:

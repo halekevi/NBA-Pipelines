@@ -15,6 +15,8 @@ consistency_bp = Blueprint("consistency", __name__)
 
 # Response cache for /api/hot-players (avoid re-parsing multi-MB slate every hit).
 _HOT_PLAYERS_TTL_SEC = 300.0
+# Overall graded hit rate required to appear on the Hot Players board.
+HOT_PLAYERS_MIN_HIT_RATE = 0.70
 _hot_players_resp_cache: dict = {"key": None, "payload": None, "expires": 0.0}
 _slate_pairs_cache: dict = {"mtime": -1.0, "names": set(), "pairs": set()}
 
@@ -267,23 +269,16 @@ def hot_players():
         tier_rank = 0 if tier in ("high", "medium") else 1
         return (tier_rank, -float(p.get("hit_rate") or 0), -int(p.get("total") or 0))
 
-    min_rate = 0.35
     ranked = sorted(today, key=_hot_sort_key)
     by_sport: dict[str, list] = {}
     for p in ranked:
-        if float(p.get("hit_rate") or 0) < min_rate:
+        if float(p.get("hit_rate") or 0) < HOT_PLAYERS_MIN_HIT_RATE:
             continue
         s = str(p.get("sport", "?"))
         if s not in by_sport:
             by_sport[s] = []
         if len(by_sport[s]) < limit:
             by_sport[s].append(_enrich_hot_player(p))
-    # Don't hide a live sport just because everyone is under the hot-rate floor.
-    for p in ranked:
-        s = str(p.get("sport", "?"))
-        if s in by_sport:
-            continue
-        by_sport[s] = [_enrich_hot_player(p)]
 
     payload = {
         "date": _eastern_today_ymd(),

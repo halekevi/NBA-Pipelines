@@ -27,6 +27,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+HOT_PLAYERS_MIN_HIT_RATE = 0.70
+
 from scripts.build_player_consistency_ui import (  # noqa: E402
     SPORT_ALIASES,
     _norm_name,
@@ -113,6 +115,8 @@ def featured_hot_players(slate_date: str, limit: int = 8) -> list[dict]:
             -int(x.get("total") or 0),
         ),
     ):
+        if float(p.get("hit_rate") or 0) < HOT_PLAYERS_MIN_HIT_RATE:
+            continue
         sport = str(p.get("sport", "?"))
         if sport not in by_sport:
             by_sport[sport] = []

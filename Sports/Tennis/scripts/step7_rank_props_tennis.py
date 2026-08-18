@@ -16,6 +16,9 @@ _SCRIPT_DIR = Path(__file__).resolve().parent
 _TENNIS_REPO = Path(__file__).resolve().parents[3]
 if str(_TENNIS_REPO) not in sys.path:
     sys.path.insert(0, str(_TENNIS_REPO))
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+from tennis_shared import apply_format_matched_stat_g  # noqa: E402
 from utils.consistency_grade_scores import apply_consistency_grade_scores  # noqa: E402
 from utils.prop_signal_score import apply_ml_rank_blend  # noqa: E402
 from utils.group_rank_tier import (  # noqa: E402
@@ -44,6 +47,10 @@ def main() -> None:
     if df.empty:
         print("ERROR [Tennis step7] empty input")
         sys.exit(1)
+
+    dropped = apply_format_matched_stat_g(df, n=10)
+    if dropped:
+        print(f"[Tennis step7] Format filter dropped BO5 history on {dropped} BO3-line rows")
 
     hr5 = pd.to_numeric(df.get("line_hit_rate_over_ou_5", np.nan), errors="coerce")
     hr10 = pd.to_numeric(df.get("line_hit_rate_over_ou_10", np.nan), errors="coerce")

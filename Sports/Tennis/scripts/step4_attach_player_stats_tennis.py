@@ -19,8 +19,10 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 from tennis_shared import (
     SACKMANN_PLAYER_STALE_DAYS,
+    apply_format_matched_stat_g,
     build_sackmann_player_index,
     build_sackmann_player_log,
+    collect_history_values,
     ensure_sackmann_matches,
     fetch_athlete_statistics,
     history_value_key,
@@ -42,25 +44,24 @@ _ESPN_MATCH_KEYS = {
 }
 
 
-def _espn_vals_from_cache(cache: dict, aid: str, hk: str) -> list[float]:
+def _row_line(row: pd.Series) -> object:
+    if "line" in row.index and str(row.get("line") or "").strip():
+        return row.get("line")
+    if "line_score" in row.index and str(row.get("line_score") or "").strip():
+        return row.get("line_score")
+    return None
+
+
+def _espn_vals_from_cache(cache: dict, aid: str, hk: str, *, line: object = None, last_n: int = 10) -> list[float]:
     # ESPN tennis scoreboards have linescores (games/sets) but almost never
     # per-match aces / double faults. Do not treat missing stats as 0.
+    # Skip slam / BO5 matches when the posted line is a BO3 market.
     if hk not in _ESPN_MATCH_KEYS:
         return []
     hist = cache.get(aid) or []
-    vals: list[float] = []
-    for m in hist:
-        v = m.get(hk)
-        if v is None:
-            continue
-        try:
-            fv = float(v)
-        except (TypeError, ValueError):
-            continue
-        if fv != fv:
-            continue
-        vals.append(fv)
-    return vals
+    if not isinstance(hist, list):
+        return []
+    return collect_history_values(hist, hk, last_n, line=line)
 
 
 def main() -> None:
@@ -270,7 +271,7 @@ def main() -> None:
 
         player_name = str(r.get(player_col) or r.get("player") or "")
         pk = norm_key(player_name)
-        prop_norm = str(r.get("prop_norm") or "")
+        line = _row_line(r)
         filled = False
         espn_ok = bool(use_espn and hk in _ESPN_MATCH_KEYS and aid)
 
@@ -278,7 +279,7 @@ def main() -> None:
         # files stop at RG (~May), so using them here inflated Tiafoe Games Won
         # L5 to 24/31/29 (BO5) vs PrizePicks 12/17/13/27/23.
         if espn_ok:
-            vals = _espn_vals_from_cache(cache, aid, hk)
+            vals = _espn_vals_from_cache(cache, aid, hk, line=line, last_n=10)
             if len(vals) >= 3:
                 for j, v in enumerate(vals[:10]):
                     df.iat[pos, df.columns.get_loc(f"stat_g{j + 1}")] = v
@@ -295,6 +296,7 @@ def main() -> None:
                 hk,
                 last_n=last_n,
                 player_index=sackmann_index,
+                line=line,
             )
             if len(sack_vals) >= min_sack:
                 for j, v in enumerate(sack_vals[:10]):
@@ -307,7 +309,7 @@ def main() -> None:
             if not aid:
                 df.iat[pos, df.columns.get_loc("stat_status")] = "NO_ID"
             else:
-                vals = _espn_vals_from_cache(cache, aid, hk)
+                vals = _espn_vals_from_cache(cache, aid, hk, line=line, last_n=10)
                 if not vals:
                     df.iat[pos, df.columns.get_loc("stat_status")] = "STALE_HISTORY" if use_sackmann else "NO_DATA"
                 else:
@@ -326,6 +328,9 @@ def main() -> None:
                     df.iat[pos, df.columns.get_loc(k)] = v
 
     gcols = [f"stat_g{i}" for i in range(1, 11)]
+    dropped = apply_format_matched_stat_g(df, n=10)
+    if dropped:
+        print(f"[Tennis step4] Format filter dropped BO5 history on {dropped} BO3-line rows")
     sub = df[gcols].apply(pd.to_numeric, errors="coerce")
     df["stat_last5_avg"] = sub.iloc[:, :5].mean(axis=1)
     df["stat_last10_avg"] = sub.mean(axis=1)

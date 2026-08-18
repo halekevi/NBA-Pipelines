@@ -11,7 +11,7 @@ import sys
 import time
 import unicodedata
 import urllib.request
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -111,7 +111,23 @@ _norm_key = norm_key
 _TENNIS_ROOT = Path(__file__).resolve().parent.parent
 _SACKMANN_DIR = _TENNIS_ROOT / "data" / "sackmann"
 _SACKMANN_MAX_AGE_DAYS = 1.0
+# Player L5 is stale if newest Sackmann match is older than this vs the slate date.
+SACKMANN_PLAYER_STALE_DAYS = 14
 _SACKMANN_SET_RE = re.compile(r"(\d+)\s*-\s*(\d+)(?:\(\d+\))?")
+_ROUND_ORDER = {
+    "F": 8,
+    "BR": 7,
+    "SF": 6,
+    "QF": 5,
+    "R16": 4,
+    "R32": 3,
+    "R64": 2,
+    "R128": 1,
+    "RR": 3,
+    "Q3": 0,
+    "Q2": 0,
+    "Q1": 0,
+}
 
 _SACKMANN_PROP_MAP: dict[str, tuple[str, ...]] = {
     "aces": ("aces",),
@@ -233,8 +249,11 @@ def _comp_status_final(comp: dict[str, Any]) -> bool:
     return str(st.get("name") or "").upper() == "STATUS_FINAL"
 
 
-def iter_scoreboard_matches(tour: str) -> Iterator[dict[str, Any]]:
+def iter_scoreboard_matches(tour: str, date_ymd: str | None = None) -> Iterator[dict[str, Any]]:
     url = URL_ATP_BOARD if tour.upper() == "ATP" else URL_WTA_BOARD
+    ymd = str(date_ymd or "").strip().replace("-", "")
+    if len(ymd) == 8 and ymd.isdigit():
+        url = f"{url}?dates={ymd}"
     try:
         data = fetch_json(url)
     except Exception:
@@ -259,10 +278,6 @@ def iter_scoreboard_matches(tour: str) -> Iterator[dict[str, Any]]:
                     gw = _games_from_linescores(c)
                     aces = _stat_from_competitor(c, "aces", "ace")
                     dbl = _stat_from_competitor(c, "doublefault", "doublefaults", "double faults")
-                    if aces is None:
-                        aces = 0.0
-                    if dbl is None:
-                        dbl = 0.0
                     sw = _sets_won_from_linescores(c, other_c)
                     opp_sw = _sets_won_from_linescores(other_c, c) if other_c is not None else 0.0
                     total_sets = float(sw + opp_sw) if (sw or opp_sw) else float(
@@ -290,8 +305,8 @@ def iter_scoreboard_matches(tour: str) -> Iterator[dict[str, Any]]:
                         "games_won": gw,
                         "match_total_games": float(match_total),
                         "opponent": opp,
-                        "aces": float(aces),
-                        "double_faults": float(dbl),
+                        "aces": float(aces) if aces is not None else None,
+                        "double_faults": float(dbl) if dbl is not None else None,
                         "sets_won": float(sw),
                         "total_sets": float(total_sets),
                         "total_tie_breaks": float(tb),
@@ -347,18 +362,39 @@ def build_player_stats_index(
     return by_player
 
 
-def refresh_match_games_cache(cache_path: Path, tours: tuple[str, ...] = ("ATP", "WTA")) -> dict[str, list[dict[str, Any]]]:
-    """Map espn_athlete_id -> list of recent match dicts (newest first)."""
-    by_id: dict[str, list[dict[str, Any]]] = {}
+def refresh_match_games_cache(
+    cache_path: Path,
+    tours: tuple[str, ...] = ("ATP", "WTA"),
+    *,
+    days_back: int = 80,
+) -> dict[str, list[dict[str, Any]]]:
+    """Map espn_athlete_id -> list of recent match dicts (newest first).
+
+    Walks dated ESPN scoreboards so L5 is not limited to today's board.
+    """
+    by_id: dict[str, list[dict[str, Any]]] = load_match_games_cache(cache_path)
     seen: set[tuple[str, str]] = set()
-    for tour in tours:
-        for m in iter_scoreboard_matches(tour):
-            aid = m["espn_athlete_id"]
-            key = (aid, m.get("match_date_utc") or "")
-            if key in seen:
+    for aid, rows in by_id.items():
+        for m in rows:
+            seen.add((str(aid), str(m.get("match_date_utc") or "")))
+    today = date.today()
+    n_days = max(1, int(days_back))
+    for offset in range(n_days + 1):
+        ymd = (today - timedelta(days=offset)).strftime("%Y%m%d")
+        for tour in tours:
+            try:
+                matches = list(iter_scoreboard_matches(tour, ymd))
+            except Exception:
                 continue
-            seen.add(key)
-            by_id.setdefault(aid, []).append(m)
+            for m in matches:
+                aid = str(m.get("espn_athlete_id") or "")
+                key = (aid, str(m.get("match_date_utc") or ""))
+                if not aid or key in seen:
+                    continue
+                seen.add(key)
+                by_id.setdefault(aid, []).append(m)
+        if offset and offset % 15 == 0:
+            print(f"  [ESPN tennis] scoreboard walk {offset}/{n_days} days")
     for aid in by_id:
         by_id[aid].sort(key=lambda x: str(x.get("match_date_utc") or ""), reverse=True)
         by_id[aid] = by_id[aid][:24]
@@ -481,6 +517,148 @@ def history_value_key(prop_norm: str) -> str | None:
     return None
 
 
+# Posted BO3 lines never live in slam territory. Above these, keep BO5 history.
+_BO3_LINE_MAX = {
+    "match_total_games": 31.5,
+    "games_won": 19.5,
+    "sets_won": 2.5,
+    "total_sets": 2.5,
+}
+
+
+def _to_float(val: object) -> float | None:
+    if val is None or val == "":
+        return None
+    try:
+        fv = float(val)
+    except (TypeError, ValueError):
+        return None
+    if fv != fv:
+        return None
+    return fv
+
+
+def line_expects_best_of_three(prop_norm: str, line: object) -> bool:
+    """True when the posted PrizePicks line is a best-of-3 market."""
+    cap = _BO3_LINE_MAX.get(str(prop_norm or "").strip())
+    if cap is None:
+        return False
+    lv = _to_float(line)
+    if lv is None:
+        return True
+    return lv <= cap
+
+
+def match_is_best_of_five(rec: dict[str, Any] | None) -> bool:
+    """Detect slam / best-of-5 matches that must not project a BO3 line."""
+    if not isinstance(rec, dict):
+        return False
+    ts = _to_float(rec.get("total_sets"))
+    if ts is not None and ts >= 4:
+        return True
+    mtg = _to_float(rec.get("match_total_games"))
+    if mtg is not None and mtg >= 40:
+        return True
+    gw = _to_float(rec.get("games_won"))
+    # BO3 winner tops out around 21 (7-6 7-6 7-6).
+    if gw is not None and gw >= 24:
+        return True
+    return False
+
+
+def history_value_fits_posted_line(
+    rec: dict[str, Any] | None,
+    prop_norm: str,
+    line: object,
+    *,
+    value: object = None,
+) -> bool:
+    """Drop BO5 / slam results when the live line is best-of-3."""
+    if not line_expects_best_of_three(prop_norm, line):
+        return True
+    if match_is_best_of_five(rec):
+        return False
+    fv = _to_float(value)
+    if fv is None:
+        return True
+    key = str(prop_norm or "").strip()
+    if key == "match_total_games" and fv >= 40:
+        return False
+    if key == "games_won" and fv >= 24:
+        return False
+    if key in ("total_sets", "sets_won") and fv >= 4:
+        return False
+    return True
+
+
+def collect_history_values(
+    records: list[dict[str, Any]],
+    prop_norm: str,
+    last_n: int = 10,
+    *,
+    line: object = None,
+) -> list[float]:
+    """Newest-first history for prop_norm, skipping format-mismatched matches."""
+    vals: list[float] = []
+    want = max(1, int(last_n))
+    for rec in records:
+        if len(vals) >= want:
+            break
+        if not isinstance(rec, dict):
+            continue
+        raw = rec.get(prop_norm)
+        fv = _to_float(raw)
+        if fv is None:
+            continue
+        if not history_value_fits_posted_line(rec, prop_norm, line, value=fv):
+            continue
+        vals.append(fv)
+    return vals
+
+
+def apply_format_matched_stat_g(df: pd.DataFrame, n: int = 10) -> int:
+    """
+    Drop flattened stat_g values that look like best-of-5 when the posted line is BO3.
+    Rebuilds stat_last5_avg / stat_last10_avg. Returns how many rows changed.
+    """
+    gcols = [f"stat_g{i}" for i in range(1, n + 1) if f"stat_g{i}" in df.columns]
+    if not gcols:
+        return 0
+    line_col = "line" if "line" in df.columns else ("line_score" if "line_score" in df.columns else "")
+    prop_col = "prop_norm" if "prop_norm" in df.columns else ""
+    if not line_col or not prop_col:
+        return 0
+    changed = 0
+    nan = float("nan")
+    for idx in df.index:
+        prop_norm = str(df.at[idx, prop_col] or "")
+        line = df.at[idx, line_col]
+        if not line_expects_best_of_three(prop_norm, line):
+            continue
+        kept: list[float] = []
+        old: list[float | None] = []
+        for c in gcols:
+            fv = _to_float(df.at[idx, c])
+            old.append(fv)
+            if fv is None:
+                continue
+            if history_value_fits_posted_line(None, prop_norm, line, value=fv):
+                kept.append(fv)
+        new: list[float | None] = list(kept) + [None] * (len(gcols) - len(kept))
+        if old == new:
+            continue
+        changed += 1
+        for j, c in enumerate(gcols):
+            df.at[idx, c] = nan if new[j] is None else new[j]
+    if changed:
+        sub = df[gcols].apply(pd.to_numeric, errors="coerce")
+        df["stat_last5_avg"] = sub.iloc[:, :5].mean(axis=1)
+        df["stat_last10_avg"] = sub.mean(axis=1)
+        if "stat_season_avg" in df.columns:
+            df["stat_season_avg"] = df["stat_last10_avg"]
+    return changed
+
+
 def _sackmann_file_stale(path: Path) -> bool:
     if not path.is_file():
         return True
@@ -594,8 +772,13 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
     for _, rd in matches.iterrows():
         w_name = str(rd.get("winner_name") or "")
         l_name = str(rd.get("loser_name") or "")
-        date = str(rd.get("tourney_date") or "")
+        tourney_date = str(rd.get("tourney_date") or "")
         score = str(rd.get("score") or "")
+        try:
+            match_num = int(float(rd.get("match_num")))
+        except (TypeError, ValueError):
+            match_num = 0
+        rnd = str(rd.get("round") or "").strip().upper()
         parsed = _parse_score_both_sides(score)
         mtg = parsed["match_total_games"] if parsed else None
         total_sets = parsed["total_sets"] if parsed else None
@@ -619,37 +802,46 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
             except (TypeError, ValueError):
                 l_bp = float("nan")
 
+        rec_base = {
+            "date": tourney_date,
+            "match_num": match_num,
+            "round": rnd,
+            "match_total_games": mtg,
+            "total_sets": total_sets,
+            "total_tie_breaks": total_tb,
+        }
         _append(
             norm_key(w_name),
             {
-                "date": date,
+                **rec_base,
                 "aces": w_ace,
                 "double_faults": w_df,
                 "games_won": w_side.get("games_won"),
                 "sets_won": w_side.get("sets_won"),
-                "match_total_games": mtg,
-                "total_sets": total_sets,
-                "total_tie_breaks": total_tb,
                 "break_points_won": w_bp,
             },
         )
         _append(
             norm_key(l_name),
             {
-                "date": date,
+                **rec_base,
                 "aces": l_ace,
                 "double_faults": l_df,
                 "games_won": l_side.get("games_won"),
                 "sets_won": l_side.get("sets_won"),
-                "match_total_games": mtg,
-                "total_sets": total_sets,
-                "total_tie_breaks": total_tb,
                 "break_points_won": l_bp,
             },
         )
 
     for pk in index:
-        index[pk].sort(key=lambda x: str(x.get("date") or ""), reverse=True)
+        index[pk].sort(
+            key=lambda x: (
+                str(x.get("date") or ""),
+                int(x.get("match_num") or 0),
+                _ROUND_ORDER.get(str(x.get("round") or "").upper(), 0),
+            ),
+            reverse=True,
+        )
     return index
 
 
@@ -660,6 +852,7 @@ def build_sackmann_player_log(
     last_n: int = 20,
     *,
     player_index: dict[str, list[dict[str, Any]]] | None = None,
+    line: object = None,
 ) -> list[float]:
     """
     Return up to last_n float values for prop_norm from Sackmann matches, newest first.
@@ -672,16 +865,41 @@ def build_sackmann_player_log(
     if player_index is None:
         player_index = build_sackmann_player_index(matches)
     rows = player_index.get(pk) or []
-    vals: list[float] = []
-    for rec in rows[: max(1, int(last_n))]:
-        raw = rec.get(prop_norm)
-        if raw is None:
-            continue
-        try:
-            fv = float(raw)
-        except (TypeError, ValueError):
-            continue
-        if fv != fv:  # NaN
-            continue
-        vals.append(fv)
-    return vals
+    return collect_history_values(rows, prop_norm, last_n, line=line)
+
+
+def parse_sackmann_tourney_date(val: object) -> date | None:
+    digits = "".join(ch for ch in str(val or "") if ch.isdigit())[:8]
+    if len(digits) != 8:
+        return None
+    try:
+        return date(int(digits[:4]), int(digits[4:6]), int(digits[6:8]))
+    except ValueError:
+        return None
+
+
+def sackmann_coverage_end(matches: pd.DataFrame) -> date | None:
+    if matches is None or matches.empty or "tourney_date" not in matches.columns:
+        return None
+    newest: date | None = None
+    for val in matches["tourney_date"].tolist():
+        parsed = parse_sackmann_tourney_date(val)
+        if parsed and (newest is None or parsed > newest):
+            newest = parsed
+    return newest
+
+
+def sackmann_player_fresh(
+    player_index: dict[str, list[dict[str, Any]]],
+    player_norm: str,
+    slate: date,
+    *,
+    max_age_days: int = SACKMANN_PLAYER_STALE_DAYS,
+) -> bool:
+    rows = player_index.get((player_norm or "").strip()) or []
+    if not rows:
+        return False
+    newest = parse_sackmann_tourney_date(rows[0].get("date"))
+    if newest is None:
+        return False
+    return (slate - newest).days <= max(1, int(max_age_days))

@@ -12,8 +12,12 @@ import numpy as np
 import pandas as pd
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
+_SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+from tennis_shared import apply_format_matched_stat_g  # noqa: E402
 from utils.hit_tracking_columns import assign_l5_aliases_from_hits  # noqa: E402
 
 
@@ -73,6 +77,10 @@ def main() -> None:
     if df.empty:
         print("ERROR [Tennis step5] empty input")
         sys.exit(1)
+
+    dropped = apply_format_matched_stat_g(df, n=10)
+    if dropped:
+        print(f"[Tennis step5] Format filter dropped BO5 history on {dropped} BO3-line rows")
 
     if args.line_col not in df.columns:
         raise RuntimeError(f"Missing column: {args.line_col}")

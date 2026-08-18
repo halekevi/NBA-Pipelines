@@ -1,74 +1,90 @@
 {
   "nba": {
     "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-18 15:38:50"
     }
   },
   "nba1h": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
     }
   },
   "nba1q": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
     }
   },
   "cbb": {
-    "slate": {
-      "exists": true,
-      "modified": "2026-08-18 17:43:48"
-    }
-  },
-  "cfb": {
     "slate": {
       "exists": false,
       "modified": ""
     }
   },
-  "nhl": {
+  "cfb": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
+    }
+  },
+  "nhl": {
+    "slate": {
+      "exists": false,
+      "modified": ""
     }
   },
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
     }
   },
   "nfl": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
     }
   },
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 19:09:30"
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
+    }
+  },
+  "wnba1h": {
+    "slate": {
+      "exists": false,
+      "modified": ""
+    }
+  },
+  "wnba1q": {
+    "slate": {
+      "exists": false,
+      "modified": ""
     }
   },
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 17:43:48"
+      "modified": "2026-08-18 15:38:50"
     }
+  },
+  "tennis_match_day": "2026-08-18",
+  "game_day": {
+    "tennis": true
   }
 }

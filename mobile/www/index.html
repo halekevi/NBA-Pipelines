@@ -207,8 +207,6 @@ body::after{content:'';position:fixed;inset:0;
 
 /* shell — width = viewport minus fixed % gutters (hero + home-cat cards fill this) */
 .shell{position:relative;z-index:1;width:var(--po-content-width);max-width:var(--po-content-max);margin:0 auto;padding:clamp(12px,2.5vw,28px) 0;box-sizing:border-box;}
-.home-flow-lede{font-size:clamp(12px,1.4vw,13px);color:var(--muted);line-height:1.5;max-width:min(72ch,100%);margin:0 0 14px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);}
-[data-theme="light"] .home-flow-lede{border-color:rgba(70,110,140,.14);background:rgba(232,244,252,.78);}
 .home-jump{display:inline-block;font-size:11px;margin-top:6px;}
 .home-jump a{color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.35);}
 .home-jump a:hover{border-bottom-color:var(--accent);}
@@ -234,7 +232,6 @@ body::after{content:'';position:fixed;inset:0;
 .hero-title .ht2{color:var(--accent);}
 .hero-title .prop-hero-prefix{text-transform:none;}
 .hero-copy{min-width:0;flex:1 1 280px;}
-.hero-lede{margin:10px 0 0;max-width:52ch;color:var(--muted2);font-size:clamp(13px,1.5vw,15px);line-height:1.5;}
 .hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;min-height:28px;}
 .hero-chip{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.4);background:rgba(212,175,55,.08);color:var(--accent);text-decoration:none;}
 .hero-chip:hover{background:rgba(212,175,55,.16);border-color:rgba(212,175,55,.55);}
@@ -244,29 +241,7 @@ body::after{content:'';position:fixed;inset:0;
 .hero-btn-gold:hover{background:rgba(212,175,55,.24);}
 .hero-btn-ghost{border:1px solid rgba(255,255,255,.14);color:var(--text);}
 .hero-btn-ghost:hover{border-color:rgba(255,255,255,.28);}
-[data-theme="light"] .hero-lede{color:rgba(30,40,55,.78);}
 [data-theme="light"] .hero-btn-ghost{color:rgba(20,30,40,.82);border-color:rgba(70,110,140,.28);}
-/* “How to read this page” — sits in hero to the right on wide viewports */
-.hero .home-flow-lede{
-  margin:0;
-  flex:1 1 min(280px,100%);
-  max-width:min(56ch,100%);
-  min-width:0;
-  align-self:center;
-  position:relative;
-  z-index:1;
-  background:rgba(0,0,0,.14);
-  border-color:rgba(255,255,255,.06);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
-}
-[data-theme="light"] .hero .home-flow-lede{
-  background:rgba(230,243,252,.82)!important;
-  border-color:rgba(70,110,140,.12)!important;
-  box-shadow:none!important;
-}
-@media(max-width:720px){
-  .hero .home-flow-lede{flex:1 1 100%;max-width:100%;align-self:stretch;margin-top:6px;}
-}
 
 /* status cards */
 .status-row{display:flex;flex-direction:column;gap:14px;margin-bottom:28px;}
@@ -1178,14 +1153,12 @@ body > nav.snav.glass-card {
         <span class="ht1 prop-hero-prefix">Prop</span>
         <span class="ht2">Oracle</span>
       </h1>
-      <p class="hero-lede">Model vs line for today’s board. Sport tiles open the explorer; tickets are the built card. Matchup Edge stays inside the selected sport — players and defense ranked on that prop.</p>
       <div class="hero-chips" id="hero-live-chips" aria-label="Live sports today"></div>
       <div class="hero-cta-row">
         <a class="hero-btn hero-btn-gold" href="tickets.html">Open tickets</a>
         <a class="hero-btn hero-btn-ghost" href="#top-edges">Jump to top edges</a>
       </div>
     </div>
-    <p class="home-flow-lede"><strong>How to read this page.</strong> Live tiles = today’s slate. Top Edges = projection vs line. Matchup Edge opens after you pick a sport. Streaks stay collapsed until you want them.</p>
   </div>
 
   <div id="home-skew-banner" class="home-skew-banner" role="status" aria-live="polite"></div>

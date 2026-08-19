@@ -1,0 +1,16 @@
+---
+description: Daily best-props lists must cover WNBA, MLB, soccer, and tennis
+alwaysApply: true
+---
+
+# Best-props list (active sports)
+
+When ranking or locking **Standard Over / Standard Under / Goblin** plays for a slate, always output **four sections**: WNBA, MLB, Soccer, Tennis.
+
+- Do not skip a sport because the pool is thin. If nothing clears L5+D, say so in that section.
+- Soccer/tennis often store hits in `last5_over` / `last5_under` (not `l5_over`). Use those when `l5_over` is empty.
+- Filters: directional L5 >= 4; Goblins Over-only; no Demons.
+- **WNBA / MLB:** Overs vs Weak D only; Unders vs Elite D only.
+- **Soccer:** rank opponent defense like WNBA/NBA. Overs vs Weak/Below Avg; Unders vs Elite/Above Avg. Avg is mid and does not clear the D gate.
+- **Tennis:** no team D — rank the **individual opponent** (ATP/WTA). Overs vs Weak/Below Avg opponent; Unders vs Elite/Above Avg opponent. No prop preference (Total Games, Games Won, Aces, DF all eligible). Unknown opponent does not pass D.
+- Prefer `scripts/rank_best_props_today.py` so all four sports are generated the same way.

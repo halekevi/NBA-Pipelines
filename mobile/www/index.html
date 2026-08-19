@@ -207,8 +207,6 @@ body::after{content:'';position:fixed;inset:0;
 
 /* shell — width = viewport minus fixed % gutters (hero + home-cat cards fill this) */
 .shell{position:relative;z-index:1;width:var(--po-content-width);max-width:var(--po-content-max);margin:0 auto;padding:clamp(12px,2.5vw,28px) 0;box-sizing:border-box;}
-.home-flow-lede{font-size:clamp(12px,1.4vw,13px);color:var(--muted);line-height:1.5;max-width:min(72ch,100%);margin:0 0 14px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);}
-[data-theme="light"] .home-flow-lede{border-color:rgba(70,110,140,.14);background:rgba(232,244,252,.78);}
 .home-jump{display:inline-block;font-size:11px;margin-top:6px;}
 .home-jump a{color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.35);}
 .home-jump a:hover{border-bottom-color:var(--accent);}
@@ -234,7 +232,6 @@ body::after{content:'';position:fixed;inset:0;
 .hero-title .ht2{color:var(--accent);}
 .hero-title .prop-hero-prefix{text-transform:none;}
 .hero-copy{min-width:0;flex:1 1 280px;}
-.hero-lede{margin:10px 0 0;max-width:52ch;color:var(--muted2);font-size:clamp(13px,1.5vw,15px);line-height:1.5;}
 .hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;min-height:28px;}
 .hero-chip{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:999px;border:1px solid rgba(212,175,55,.4);background:rgba(212,175,55,.08);color:var(--accent);text-decoration:none;}
 .hero-chip:hover{background:rgba(212,175,55,.16);border-color:rgba(212,175,55,.55);}
@@ -244,29 +241,7 @@ body::after{content:'';position:fixed;inset:0;
 .hero-btn-gold:hover{background:rgba(212,175,55,.24);}
 .hero-btn-ghost{border:1px solid rgba(255,255,255,.14);color:var(--text);}
 .hero-btn-ghost:hover{border-color:rgba(255,255,255,.28);}
-[data-theme="light"] .hero-lede{color:rgba(30,40,55,.78);}
 [data-theme="light"] .hero-btn-ghost{color:rgba(20,30,40,.82);border-color:rgba(70,110,140,.28);}
-/* “How to read this page” — sits in hero to the right on wide viewports */
-.hero .home-flow-lede{
-  margin:0;
-  flex:1 1 min(280px,100%);
-  max-width:min(56ch,100%);
-  min-width:0;
-  align-self:center;
-  position:relative;
-  z-index:1;
-  background:rgba(0,0,0,.14);
-  border-color:rgba(255,255,255,.06);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
-}
-[data-theme="light"] .hero .home-flow-lede{
-  background:rgba(230,243,252,.82)!important;
-  border-color:rgba(70,110,140,.12)!important;
-  box-shadow:none!important;
-}
-@media(max-width:720px){
-  .hero .home-flow-lede{flex:1 1 100%;max-width:100%;align-self:stretch;margin-top:6px;}
-}
 
 /* status cards */
 .status-row{display:flex;flex-direction:column;gap:14px;margin-bottom:28px;}
@@ -378,7 +353,18 @@ body::after{content:'';position:fixed;inset:0;
 .edge-num.under{color:var(--amber);}
 .edge-hr{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .edge-line-badge{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.edge-mini{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.edge-mini{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;white-space:normal;overflow:hidden;text-align:right;line-height:1.25;max-width:168px;}
+.pick-demon{background:rgba(255,127,159,.12);color:#ff9db8;border:1px solid rgba(255,127,159,.28);}
+.te-legend{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 14px;}
+.te-sport{margin:0 0 22px;}
+.te-sport-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:0 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.te-sport-hd span{font-family:"Inter",sans-serif;font-size:11px;letter-spacing:.04em;color:var(--muted);font-weight:600;}
+.te-empty{font-size:12px;color:var(--muted);padding:6px 0 12px;}
+.te-badge{font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle;}
+.te-badge-gold{background:rgba(212,175,55,.18);color:#d4af37;border:1px solid rgba(212,175,55,.45);}
+.te-badge-silver{background:rgba(180,190,210,.16);color:#c5d0e0;border:1px solid rgba(180,190,210,.4);}
+.te-badge-bronze{background:rgba(196,120,70,.16);color:#e0a070;border:1px solid rgba(196,120,70,.4);}
+.edge-meta{font-size:11px;color:var(--muted2);line-height:1.35;margin-top:4px;font-family:"Inter",sans-serif;}
 
 /* Top Edges chart block — collapsed until card click */
 .edge-expand{display:none;border-top:1px solid rgba(255,255,255,.06);padding:12px 14px 14px;background:rgba(8,8,22,.6);}
@@ -1105,7 +1091,7 @@ body > nav.snav.glass-card {
 </style>
 <link rel="stylesheet" href="static/nav-mobile-shared.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/mobile-content-width.css?v=20260719gradesm2"/>
-<link rel="stylesheet" href="static/matchup-edge.css?v=20260812share1"/>
+<link rel="stylesheet" href="static/matchup-edge.css?v=20260729findu1"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260719gradesm2"/>
 <link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
 </head>
@@ -1128,7 +1114,7 @@ body > nav.snav.glass-card {
 
 <nav class="snav glass-card">
   <div class="nav-accent"></div>
-  <a class="snav-brand active" href="index.html">
+  <a class="snav-brand" href="index.html" class="active">
     <div class="hybrid-logo">
       <img src="static/proporacle-logo-v3.png?v=20260404b" alt="PropOracle" class="logo-icon" loading="lazy">
       <span class="nav-brand brand-wordmark"><span class="wb-first">Prop</span><span class="oracle-word gold-shimmer">Oracle</span></span>
@@ -1178,14 +1164,12 @@ body > nav.snav.glass-card {
         <span class="ht1 prop-hero-prefix">Prop</span>
         <span class="ht2">Oracle</span>
       </h1>
-      <p class="hero-lede">Model vs line for today’s board. Sport tiles open the explorer; tickets are the built card. Matchup Edge stays inside the selected sport — players and defense ranked on that prop.</p>
       <div class="hero-chips" id="hero-live-chips" aria-label="Live sports today"></div>
       <div class="hero-cta-row">
         <a class="hero-btn hero-btn-gold" href="tickets.html">Open tickets</a>
         <a class="hero-btn hero-btn-ghost" href="#top-edges">Jump to top edges</a>
       </div>
     </div>
-    <p class="home-flow-lede"><strong>How to read this page.</strong> Live tiles = today’s slate. Top Edges = projection vs line. Matchup Edge opens after you pick a sport. Streaks stay collapsed until you want them.</p>
   </div>
 
   <div id="home-skew-banner" class="home-skew-banner" role="status" aria-live="polite"></div>
@@ -2533,23 +2517,11 @@ body > nav.snav.glass-card {
       <a href="tickets.html" class="edges-see-all">See All Picks ↗</a>
     </div>
     <div id="top-edges-debug" hidden aria-hidden="true"></div>
-    
-    <div class="sub-header" style="color:var(--green);">
-      ▲ OVER EDGES
-      <span class="sh-line" style="background:rgba(125,255,203,.2);"></span>
-    </div>
-    <div class="edge-bucket-label" style="color:var(--cyan);">Standard overs</div>
-    <div id="over-edges-standard" class="edge-grid"></div>
-    <div class="edge-bucket-label" style="color:var(--purple);">Goblin overs</div>
-    <div id="over-edges-goblin" class="edge-grid" style="margin-bottom:18px;"></div>
-
-    <div class="sub-header" style="color:var(--amber);">
-      ▼ UNDER EDGES
-      <span class="sh-line" style="background:rgba(255,192,107,.2);"></span>
-    </div>
-    
-    <div class="edge-bucket-label" style="color:var(--cyan);">Standard unders</div>
-    <div id="under-edges-standard" class="edge-grid edge-grid--under" style="margin-bottom:0;"></div>
+    <div class="te-legend">L5 4+ on the play side. WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers), no prop preference.</div>
+    <div id="top-edges-board"></div>
+    <div id="over-edges-standard" class="edge-grid" hidden></div>
+    <div id="over-edges-goblin" class="edge-grid" hidden></div>
+    <div id="under-edges-standard" class="edge-grid edge-grid--under" hidden></div>
   </div>
     </div>
   </details>
@@ -2621,10 +2593,13 @@ body > nav.snav.glass-card {
 </div>
 
 <script src="static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="static/matchup-edge.js?v=20260812share1" defer></script>
+<script src="static/matchup-edge.js?v=20260812opp2" defer></script>
+<script src="static/top_edges_badge_board.js?v=20260818te1" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
+let TOP_EDGES_POOL = null;
+let _topEdgesPoolPromise = null;
 const PLAYER_DATA = {};
 let SLATE_DEBUG_META = { source: "", generated_at: "", date: "" };
 /** True after Full Slate rows successfully mapped into ALL_SLATE (Excel or merged JSON). */
@@ -2715,10 +2690,10 @@ function mapApiPickToSlateRow(p) {
     rank_score: rankScore,
     rank_tier: p.rank_tier ?? p.tier,
     ml_prob: p.ml_prob,
-    def_tier: p.def_tier,
+    def_tier: p.def_tier || p.DEF_TIER || p.stat_def_tier,
     game_time: p.game_time || "",
-    l5_over: p.l5_over,
-    l5_under: p.l5_under != null ? p.l5_under : resolvedUnderHits(p, 5),
+    l5_over: p.l5_over != null ? p.l5_over : p.last5_over,
+    l5_under: p.l5_under != null ? p.l5_under : (p.last5_under != null ? p.last5_under : resolvedUnderHits(p, 5)),
     l10_over: p.l10_over,
     l10_under: p.l10_under != null ? p.l10_under : resolvedUnderHits(p, 10),
     l10_streak: p.l10_streak,
@@ -2740,7 +2715,11 @@ function mapApiPickToSlateRow(p) {
       return hist;
     })(),
     standard_projection: p.standard_projection,
-    opponent_def_rank: p.opponent_def_rank,
+    opponent_def_rank: p.opponent_def_rank != null ? p.opponent_def_rank : p.opponent_rank,
+    opponent_rank: p.opponent_rank,
+    last5_over: p.last5_over != null ? p.last5_over : p.l5_over,
+    last5_under: p.last5_under != null ? p.last5_under : p.l5_under,
+    model_dir: p.model_dir,
     image_url: p.image_url,
     confidence_tier: p.confidence_tier,
     confidence_slice_hr: p.confidence_slice_hr,
@@ -3365,10 +3344,76 @@ function formatL5Cell(overVal, underVal, gamesPlayed, window) {
   return { over: fmt(overVal), under: fmt(underVal) };
 }
 
-/** Goblin is OVER-only in this product — exclude from under-edge and under-streak surfaces. */
+function pickTypeNorm(p) {
+  return String(p?.pick ?? p?.pick_type ?? "").trim().toLowerCase();
+}
+
+/** Goblin is OVER-only — never on under boards. */
 function isGoblinPick(p) {
-  const t = String(p?.pick ?? p?.pick_type ?? "").trim().toLowerCase();
-  return t === "goblin";
+  return pickTypeNorm(p) === "goblin";
+}
+
+/** Demons are OVER-only and do not appear on Top Edges / streak boards. */
+function isDemonPick(p) {
+  return pickTypeNorm(p) === "demon";
+}
+
+function isStandardPick(p) {
+  const t = pickTypeNorm(p);
+  return t === "standard" || t === "std" || t === "";
+}
+
+function isTopEdgesBoardPick(p) {
+  return !isDemonPick(p) && (isStandardPick(p) || isGoblinPick(p));
+}
+
+function sportKeyOfPick(p) {
+  return String(p?.sport || "").trim().toUpperCase() || "OTHER";
+}
+
+/** Round-robin sports so MLB cannot fill all 10 Top Edges slots. */
+function diversifyBySport(items, limit, getPick) {
+  const n = Math.max(0, Number(limit) || 0);
+  if (!n || !items.length) return [];
+  const buckets = new Map();
+  const order = [];
+  for (const item of items) {
+    const p = typeof getPick === "function" ? getPick(item) : item;
+    const s = sportKeyOfPick(p);
+    if (!buckets.has(s)) {
+      buckets.set(s, []);
+      order.push(s);
+    }
+    buckets.get(s).push(item);
+  }
+  const out = [];
+  while (out.length < n) {
+    let added = false;
+    for (const s of order) {
+      const b = buckets.get(s);
+      if (b && b.length) {
+        out.push(b.shift());
+        added = true;
+        if (out.length >= n) break;
+      }
+    }
+    if (!added) break;
+  }
+  return out;
+}
+
+function edgeHitCountsLabel(p) {
+  const l5o = resolvedOverHits(p, 5);
+  const l5u = resolvedUnderHits(p, 5);
+  const l10o = resolvedOverHits(p, 10);
+  const l10u = resolvedUnderHits(p, 10);
+  const l5 = (l5o != null || l5u != null)
+    ? `L5 O${l5o ?? "—"}/U${l5u ?? "—"}`
+    : "L5 —";
+  const l10 = (l10o != null || l10u != null)
+    ? `L10 O${l10o ?? "—"}/U${l10u ?? "—"}`
+    : "L10 —";
+  return `${l5} · ${l10}`;
 }
 
 /**
@@ -3576,9 +3621,10 @@ function picksFromSlateLatestJson(data) {
       const key = `${player}|${prop}|${dirv}|${line}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      let l5_under = row.l5_under;
-      if (l5_under == null && row.l5_over != null) {
-        const ho = streakHits(row.l5_over, 5);
+      const l5o = row.l5_over != null ? row.l5_over : row.last5_over;
+      let l5_under = row.l5_under != null ? row.l5_under : row.last5_under;
+      if (l5_under == null && l5o != null) {
+        const ho = streakHits(l5o, 5);
         if (ho != null) l5_under = 5 - ho;
       }
       let l10_under = row.l10_under;
@@ -3607,6 +3653,8 @@ function picksFromSlateLatestJson(data) {
         tier: row.tier || row.rank_tier || "",
         initials: row.initials || (row.player||"").split(" ").filter(w=>w).map(w=>w[0]).join("").slice(0,2).toUpperCase(),
         player,
+        team: row.team || "",
+        opp: row.opp || row.opp_team || "",
         prop,
         line,
         pick: row.pick_type || "Standard",
@@ -3615,20 +3663,29 @@ function picksFromSlateLatestJson(data) {
         edge,
         projection: row.projection,
         rank_tier: row.rank_tier ?? row.tier ?? "",
-        l5_over: row.l5_over,
+        l5_over: l5o,
         l5_under,
         l10_over: row.l10_over,
         l10_under,
+        last5_over: row.last5_over != null ? row.last5_over : l5o,
+        last5_under: row.last5_under != null ? row.last5_under : l5_under,
         l5_avg: row.l5_avg,
         season_avg: row.season_avg || row.szn_avg,
+        def_tier: row.def_tier || row.DEF_TIER || row.stat_def_tier,
+        opponent_def_rank: row.opponent_def_rank != null ? row.opponent_def_rank : row.opponent_rank,
+        opponent_rank: row.opponent_rank,
+        model_dir: row.model_dir,
         actual_series: actualSeriesRow,
         line_series: lineSeriesRow,
       });
     }
   }
   picks.sort((a, b) => Math.abs(Number(b.edge) || 0) - Math.abs(Number(a.edge) || 0));
+  const keepSports = new Set(["WNBA", "MLB", "SOCCER", "TENNIS"]);
+  const keep = picks.filter((p) => keepSports.has(String(p.sport || "").toUpperCase()));
+  const rest = picks.filter((p) => !keepSports.has(String(p.sport || "").toUpperCase()));
   const cap = 2500;
-  const capped = picks.length > cap ? picks.slice(0, cap) : picks;
+  const capped = keep.concat(rest.length > cap ? rest.slice(0, cap) : rest);
   return {
     picks: capped,
     date: String(data.date || ""),
@@ -3800,6 +3857,17 @@ async function loadSlateData() {
           if (row.rank_score == null) row.rank_score = _m.rank_score ?? _m.rank;
           if (row.ml_prob == null) row.ml_prob = _m.ml_prob;
           if (row.def_tier == null) row.def_tier = _m.def_tier;
+          if (row.opponent_def_rank == null) row.opponent_def_rank = _m.opponent_def_rank;
+          if (row.opponent_rank == null) row.opponent_rank = _m.opponent_rank;
+          if (row.last5_over == null) row.last5_over = _m.last5_over;
+          if (row.last5_under == null) row.last5_under = _m.last5_under;
+          if (row.model_dir == null) row.model_dir = _m.model_dir;
+          if ((row.l5_over == null || row.l5_over === "") && (_m.l5_over != null || _m.last5_over != null)) {
+            row.l5_over = _m.l5_over != null ? _m.l5_over : _m.last5_over;
+          }
+          if ((row.l5_under == null || row.l5_under === "") && (_m.l5_under != null || _m.last5_under != null)) {
+            row.l5_under = _m.l5_under != null ? _m.l5_under : _m.last5_under;
+          }
           if (row.game_time == null || row.game_time === "") row.game_time = _m.game_time;
           if (row.book_line == null) row.book_line = _m.book_line ?? _m.prop_line;
           if (row.abs_edge == null) row.abs_edge = _m.abs_edge;
@@ -3813,6 +3881,7 @@ async function loadSlateData() {
       }
     }
     renderEdges();
+    try { loadTopEdgesSportPool(); } catch (_) {}
     renderStreaks();
     // Slate panel rows are fetched lazily per sport via /api/slate-sport/<sport>.
   })();
@@ -4319,9 +4388,10 @@ function makeSparkSVG(data, line, isOver, W=150, H=48, projRef=null) {
 /** Legacy: charts are always rendered; accordion state removed */
 let EDGE_DISPLAY_PICK = {};
 
-function buildEdgeCard(p, idx) {
+function buildEdgeCard(p, idx, rec) {
   const isOver=p.dir==="OVER", dc=isOver?"over":"under";
-  const sc=`sp-${safeSportKey(p)}`, pc=p.pick==="Goblin"?"pick-goblin":"pick-standard";
+  const sc=`sp-${safeSportKey(p)}`;
+  const pc=isGoblinPick(p)?"pick-goblin":isDemonPick(p)?"pick-demon":"pick-standard";
   const sportLabel = sportDisplayLabel(p.sport);
   const edgeDisp = fmtEdgePick(p);
   const hitDisplay = topEdgeL5HitPct(p);
@@ -4331,6 +4401,16 @@ function buildEdgeCard(p, idx) {
     const v = coercePropLine(p);
     return Number.isFinite(v) ? v : p.line ?? "—";
   })();
+  const l5l10 = rec ? `L5 ${rec.l5_over ?? "—"}/${rec.l5_under ?? "—"}` : edgeHitCountsLabel(p);
+  const badge = rec && rec.badge ? String(rec.badge) : "";
+  const badgeHtml = badge ? `<span class="te-badge te-badge-${badge.toLowerCase()}">${badge.toUpperCase()}</span>` : "";
+  const cover = rec && rec.cover != null && Number.isFinite(Number(rec.cover)) ? Number(rec.cover) : null;
+  const coverDisp = cover != null ? `${cover >= 0 ? "+" : ""}${cover.toFixed(1)}` : edgeDisp;
+  const avgS = rec && rec.season_avg != null && Number.isFinite(Number(rec.season_avg)) ? Number(rec.season_avg).toFixed(2) : "—";
+  const dS = rec && rec.def ? (rec.def_rank != null ? `${rec.def} #${rec.def_rank}` : rec.def) : "";
+  const matchup = (rec && rec.matchup) || [p.team, p.opp].filter(Boolean).join(" vs ");
+  const coverS = cover != null ? `${cover >= 0 ? "+" : ""}${cover.toFixed(2)}` : "n/a";
+  const metaBits = rec ? [`L5 ${rec.l5_over ?? "—"}/${rec.l5_under ?? "—"}`, `avg ${avgS} vs ${lineDisp} (${coverS})`, dS, matchup].filter(Boolean) : [];
   const div=document.createElement("div");
   div.className=`edge-card insight-card ${dc}`;
   const hitBar=Math.min(100,hitPct);
@@ -4340,8 +4420,8 @@ function buildEdgeCard(p, idx) {
       <div class="edge-row edge-row-top">
         <div class="edge-avatar ${dc}">${p.initials || (p.player||"").split(" ").filter(w=>w).map(w=>w[0]).join("").slice(0,2).toUpperCase()}</div>
         <div class="edge-val">
-          <div class="edge-num edge-badge ${dc}">${edgeDisp}</div>
-          <div class="edge-mini">${hitPct}% · L${lineDisp}</div>
+          <div class="edge-num edge-badge ${dc}">${badgeHtml}${coverDisp}</div>
+          <div class="edge-mini">${l5l10}</div>
         </div>
       </div>
       <div class="edge-row edge-row-main">
@@ -4354,8 +4434,9 @@ function buildEdgeCard(p, idx) {
           <span class="edge-pick ${pc}">${p.pick}</span>
           ${p.tier ? `<span class="tier-badge tier-${p.tier}">${p.tier}</span>` : ''}${confDotHtml(p)}
         </div>
-        <div class="edge-line-badge">${hitPct}% hit</div>
+        <div class="edge-line-badge">${rec && rec.badge ? rec.badge : `${hitPct}% hit`}</div>
       </div>
+      ${rec ? `<div class="edge-meta">${metaBits.join(" · ")}</div>` : ""}
     </div>
     <div style="padding:0 12px 10px;display:flex;align-items:center;gap:8px;">
       <div style="flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;">
@@ -4381,6 +4462,8 @@ function buildEdgeCard(p, idx) {
         <div class="expand-stat"><div class="expand-stat-lbl">HIT RATE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">EDGE</div><div class="expand-stat-val" style="color:var(--accent)">${edgeDisp}</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">PICK TYPE</div><div class="expand-stat-val" style="color:var(--cyan);font-size:clamp(11px,1.3vw,15px);">${p.pick}</div></div>
+        <div class="expand-stat"><div class="expand-stat-lbl">L5 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 5) ?? "—"} / ${resolvedUnderHits(p, 5) ?? "—"}</div></div>
+        <div class="expand-stat"><div class="expand-stat-lbl">L10 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 10) ?? "—"} / ${resolvedUnderHits(p, 10) ?? "—"}</div></div>
       </div>
     </div>`;
   return div;
@@ -4453,9 +4536,9 @@ function switchExpandTab(idx, tab, btn) {
   renderExpandChart(idx, p, tab);
 }
 
-/** UNDER edge display: Standard picks only (Goblin has no under side here). Real UNDER legs as-is; OVER legs → synthetic under card. */
+/** UNDER edge display: Standard picks only (Goblin/Demon have no under board). Real UNDER legs as-is; OVER legs → synthetic under card. */
 function underEdgeDisplayPick(basePick) {
-  if (isGoblinPick(basePick)) return null;
+  if (isDemonPick(basePick) || isGoblinPick(basePick) || !isStandardPick(basePick)) return null;
 
   const dir = String(basePick.dir || "").trim().toUpperCase();
   if (dir === "UNDER") {
@@ -4536,7 +4619,134 @@ function pickPrimaryLineRows(rows) {
   return Array.from(out.values());
 }
 
+async function fetchTopEdgesSportRows(sport) {
+  const id = String(sport || "").toLowerCase();
+  try {
+    let res = await fetch(`/api/slate-sport/${encodeURIComponent(id)}`, { cache: "no-store" });
+    if (!res.ok) res = await fetch(`slate_sport_${id}.json`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const d = await res.json();
+    return Array.isArray(d.rows) ? d.rows : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function pickFromTopEdgesSportRow(row, sportLabel) {
+  if (!row || typeof row !== "object") return null;
+  const l5o = row.l5_over != null ? row.l5_over : row.last5_over;
+  const l5u = row.l5_under != null ? row.l5_under : row.last5_under;
+  return mapApiPickToSlateRow({
+    ...row,
+    sport: String(row.sport || sportLabel || "").toUpperCase(),
+    pick: row.pick || row.pick_type,
+    prop: row.prop || row.prop_type,
+    dir: row.dir || row.direction,
+    l5_over: l5o,
+    l5_under: l5u,
+    last5_over: row.last5_over != null ? row.last5_over : l5o,
+    last5_under: row.last5_under != null ? row.last5_under : l5u,
+    opponent_rank: row.opponent_rank,
+    opponent_def_rank: row.opponent_def_rank != null ? row.opponent_def_rank : row.opponent_rank,
+    model_dir: row.model_dir,
+    def_tier: row.def_tier || row.DEF_TIER || row.stat_def_tier,
+  });
+}
+
+async function loadTopEdgesSportPool() {
+  if (_topEdgesPoolPromise) return _topEdgesPoolPromise;
+  _topEdgesPoolPromise = (async () => {
+    const pool = [];
+    await Promise.all(["wnba", "mlb", "soccer", "tennis"].map(async (sp) => {
+      const rows = await fetchTopEdgesSportRows(sp);
+      for (const r of rows) {
+        const p = pickFromTopEdgesSportRow(r, sp.toUpperCase());
+        if (p && p.player && p.prop) pool.push(p);
+      }
+    }));
+    TOP_EDGES_POOL = pool;
+    renderEdges();
+    return pool;
+  })();
+  return _topEdgesPoolPromise;
+}
+
+function renderBadgeTopEdges(board) {
+  const os = document.getElementById("over-edges-standard");
+  const og = document.getElementById("over-edges-goblin");
+  const us = document.getElementById("under-edges-standard");
+  if (os) os.innerHTML = "";
+  if (og) og.innerHTML = "";
+  if (us) us.innerHTML = "";
+  EDGE_DISPLAY_PICK = {};
+  board.innerHTML = "";
+  const pool = (Array.isArray(TOP_EDGES_POOL) && TOP_EDGES_POOL.length) ? TOP_EDGES_POOL : ALL_SLATE;
+  const ranked = TopEdgesBadgeBoard.rankFromSlate(pool);
+  const notes = {
+    WNBA: "Weak D overs · Elite D unders",
+    MLB: "Weak D overs · Elite D unders",
+    SOCCER: "Weak/Below Avg overs · Elite/Above Avg unders",
+    TENNIS: "opponent ATP/WTA rank",
+  };
+  const emptyMsg = "none that clear L5 4+ / D filter";
+  let cardN = 0;
+  for (const sp of TopEdgesBadgeBoard.SPORTS) {
+    const buckets = ranked[sp] || { stdO: [], stdU: [], gob: [] };
+    const wrap = document.createElement("div");
+    wrap.className = "te-sport";
+    const hd = document.createElement("div");
+    hd.className = "te-sport-hd";
+    hd.innerHTML = `${sp}<span>${notes[sp] || ""}</span>`;
+    wrap.appendChild(hd);
+    const blocks = [
+      ["Standard OVER", buckets.stdO],
+      ["Goblin OVER", buckets.gob],
+      ["Standard UNDER", buckets.stdU],
+    ];
+    for (const [label, list] of blocks) {
+      const lab = document.createElement("div");
+      lab.className = "edge-bucket-label";
+      lab.textContent = label;
+      wrap.appendChild(lab);
+      if (!list.length) {
+        const em = document.createElement("div");
+        em.className = "te-empty";
+        em.textContent = emptyMsg;
+        wrap.appendChild(em);
+        continue;
+      }
+      const grid = document.createElement("div");
+      grid.className = "edge-grid";
+      for (const rec of list) {
+        const idx = 100000 + cardN++;
+        const p = rec.pick || rec;
+        EDGE_DISPLAY_PICK[idx] = p;
+        grid.appendChild(buildEdgeCard(p, idx, rec));
+        queueMicrotask(() => renderExpandChart(idx, p, "l5"));
+      }
+      wrap.appendChild(grid);
+    }
+    board.appendChild(wrap);
+  }
+  wireEdgeCardExpandHandlers();
+  const emptyHost = document.getElementById("top-edges-empty");
+  if (emptyHost) {
+    emptyHost.hidden = true;
+    emptyHost.innerHTML = "";
+  }
+}
+
 function renderEdges() {
+  const board = document.getElementById("top-edges-board");
+  if (board && window.TopEdgesBadgeBoard && typeof TopEdgesBadgeBoard.rankFromSlate === "function") {
+    renderBadgeTopEdges(board);
+    return;
+  }
+  if (board && !window.TopEdgesBadgeBoard) {
+    board.innerHTML = '<div class="te-empty">Loading Top Edges…</div>';
+    setTimeout(() => { if (window.TopEdgesBadgeBoard) renderEdges(); }, 80);
+    return;
+  }
   const os=document.getElementById("over-edges-standard");
   const og=document.getElementById("over-edges-goblin");
   const us=document.getElementById("under-edges-standard");
@@ -4551,7 +4761,7 @@ function renderEdges() {
   const overRows = [];
   for (const p of ALL_SLATE) {
     const dir = String(p.dir || "").trim().toUpperCase();
-    if (dir === "OVER" && !isFantasyScoreEdgePick(p)) overRows.push(p);
+    if (dir === "OVER" && !isFantasyScoreEdgePick(p) && isTopEdgesBoardPick(p)) overRows.push(p);
   }
   // Top Edges quality gate: prefer strong L5 (>=4/5). If nothing clears it,
   // fall back to best available slate rows so homepage still shows fetched props.
@@ -4572,11 +4782,16 @@ function renderEdges() {
         return num(b.edge) - num(a.edge);
       });
   }
-  const stdO = overPrimary.filter((p) => !isGoblinPick(p));
-  const gobO = overPrimary.filter((p) => isGoblinPick(p));
+  const EDGE_CARD_LIMIT = 10;
   const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
-  stdO.sort(byEdgeDesc);
-  gobO.sort(byEdgeDesc);
+  const stdO = diversifyBySport(
+    overPrimary.filter((p) => isStandardPick(p)).slice().sort(byEdgeDesc),
+    EDGE_CARD_LIMIT
+  );
+  const gobO = diversifyBySport(
+    overPrimary.filter((p) => isGoblinPick(p)).slice().sort(byEdgeDesc),
+    EDGE_CARD_LIMIT
+  );
 
   const underSourceRows = collectUnderEdgeRows();
   const underByKey = new Map();
@@ -4624,7 +4839,7 @@ function renderEdges() {
         return num(b.disp.edge) - num(a.disp.edge);
       });
   }
-  const EDGE_CARD_LIMIT = 10;
+  underRows = diversifyBySport(underRows, EDGE_CARD_LIMIT, (row) => row.disp);
 
   const appendAll = (arr, el) => {
     for (const p of arr.slice(0, EDGE_CARD_LIMIT)) {
@@ -4697,7 +4912,7 @@ function renderEdges() {
 }
 
 function wireEdgeCardExpandHandlers() {
-  ["over-edges-standard", "over-edges-goblin", "under-edges-standard"].forEach((id) => {
+  ["over-edges-standard", "over-edges-goblin", "under-edges-standard", "top-edges-board"].forEach((id) => {
     const el = document.getElementById(id);
     if (!el || el.dataset.expandWired === "1") return;
     el.dataset.expandWired = "1";
@@ -4846,7 +5061,7 @@ function renderStreaks() {
   function underStreakRows(n, minHits) {
     const out = [];
     for (const p of ALL_SLATE) {
-      if (isGoblinPick(p)) continue;
+      if (isDemonPick(p) || isGoblinPick(p) || !isStandardPick(p)) continue;
       if (isFantasyScoreEdgePick(p)) continue;
       const h = resolvedUnderHits(p, n);
       if (h === null || h < 1) continue;
@@ -4858,7 +5073,7 @@ function renderStreaks() {
   }
 
   const l5all = [...ALL_SLATE]
-    .filter((p) => !isFantasyScoreEdgePick(p))
+    .filter((p) => !isFantasyScoreEdgePick(p) && isTopEdgesBoardPick(p))
     .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
     .filter(p => p.h !== null && p.h >= 4)
     .sort((a, b) => b.h - a.h);
@@ -4867,7 +5082,7 @@ function renderStreaks() {
   let l5U = underStreakRows(5, 4);
   if (!l5O.length && !l5U.length) {
     const soft = [...ALL_SLATE]
-      .filter((p) => !isFantasyScoreEdgePick(p))
+      .filter((p) => !isFantasyScoreEdgePick(p) && isTopEdgesBoardPick(p))
       .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
@@ -4876,7 +5091,7 @@ function renderStreaks() {
   }
 
   const l10all = [...ALL_SLATE]
-    .filter((p) => !isFantasyScoreEdgePick(p))
+    .filter((p) => !isFantasyScoreEdgePick(p) && isTopEdgesBoardPick(p))
     .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
     .filter(p => p.h !== null && p.h >= 8)
     .sort((a, b) => b.h - a.h);
@@ -4885,7 +5100,7 @@ function renderStreaks() {
   let l10U = underStreakRows(10, 8);
   if (!l10O.length && !l10U.length) {
     const soft = [...ALL_SLATE]
-      .filter((p) => !isFantasyScoreEdgePick(p))
+      .filter((p) => !isFantasyScoreEdgePick(p) && isTopEdgesBoardPick(p))
       .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
@@ -5288,14 +5503,19 @@ function syncCardsFromCombinedRows(rows) {
       abs_edge: _v(r, ["abs_edge", "Abs Edge"]),
       projection: Number(_v(r, ["projection", "Projection", "Proj"])),
       ml_prob: _v(r, ["ml_prob", "ML Prob"]),
-      def_tier: _v(r, ["def_tier", "Def Tier"]),
+      def_tier: _v(r, ["def_tier", "Def Tier", "DEF_TIER", "stat_def_tier"]),
       rank_score: _v(r, ["rank_score", "Rank Score", "rank"]),
       game_time: _v(r, ["game_time", "Game Time"]),
       book_line: _v(r, ["book_line", "Book Line", "prop_line"]),
-      l5_over: _v(r, ["l5_over", "L5 Over", "L5 O"]),
-      l5_under: _v(r, ["l5_under", "L5 Under", "L5 U"]),
+      l5_over: _v(r, ["l5_over", "last5_over", "L5 Over", "L5 O"]),
+      l5_under: _v(r, ["l5_under", "last5_under", "L5 Under", "L5 U"]),
       l10_over: _v(r, ["l10_over", "L10 Over", "L10 O"]),
       l10_under: _v(r, ["l10_under", "L10 Under", "L10 U"]),
+      last5_over: _v(r, ["last5_over", "l5_over"]),
+      last5_under: _v(r, ["last5_under", "l5_under"]),
+      opponent_rank: _v(r, ["opponent_rank", "Opponent Rank"]),
+      opponent_def_rank: _v(r, ["opponent_def_rank", "OVERALL_DEF_RANK", "opponent_rank"]),
+      model_dir: _v(r, ["model_dir"]),
       tier: _v(r, ["tier", "Tier"]),
       rank_tier: _v(r, ["rank_tier", "Rank Tier"]) || _v(r, ["tier", "Tier"]),
       l5_avg: _v(r, ["l5_avg", "L5 Avg"]),
@@ -6012,6 +6232,7 @@ function sortSlateDynamic(sport, key) {
     bindOffseasonToggle();
     collapseNonSlateSections();
     bindHotPlayersEmptyState();
+    try { loadTopEdgesSportPool(); } catch (_) {}
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
   else run();

@@ -1011,6 +1011,7 @@ function Publish-TennisStep8Artifacts {
     $sportOut = Join-Path $sportOutDir "step8_tennis_direction_clean.xlsx"
     $sportRoot = Join-Path $TennisDir "step8_tennis_direction_clean.xlsx"
     $tennisDatedName = "step8_tennis_direction_clean_$TennisDate.xlsx"
+    $step8Csv = Join-Path $TennisRunOutDir "step8_tennis_direction.csv"
     try {
         if (-not (Test-Path -LiteralPath $sportOutDir)) {
             New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
@@ -1019,12 +1020,31 @@ function Publish-TennisStep8Artifacts {
         Copy-Item -LiteralPath $step8Clean -Destination $sportRoot -Force -ErrorAction Stop
         $runDated = Join-Path $TennisRunOutDir $tennisDatedName
         Copy-Item -LiteralPath $step8Clean -Destination $runDated -Force -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $step8Csv) {
+            Copy-Item -LiteralPath $step8Csv -Destination (Join-Path $sportOutDir "step8_tennis_direction.csv") -Force -ErrorAction SilentlyContinue
+            Copy-Item -LiteralPath $step8Csv -Destination (Join-Path $TennisDir "step8_tennis_direction.csv") -Force -ErrorAction SilentlyContinue
+            Copy-Item -LiteralPath $step8Csv -Destination (Join-Path $OutDir "step8_tennis_direction.csv") -Force -ErrorAction SilentlyContinue
+        }
         $tag = if ($Reason) { " ($Reason)" } else { "" }
         Write-Host "  [Tennis publish] sport outputs + root$tag" -ForegroundColor DarkGray
     } catch {
         Write-Host "  [Tennis publish] WARN: could not mirror to Sports/Tennis: $_" -ForegroundColor Yellow
     }
     Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName $tennisDatedName -Label "Tennis"
+    $pubScript = Join-Path $Root "scripts\_publish_tennis_slate_only.py"
+    if (Test-Path -LiteralPath $pubScript) {
+        $tag = if ($Reason) { " ($Reason)" } else { "" }
+        Write-Host "  [Tennis publish] slate_sport_tennis.json$tag" -ForegroundColor DarkGray
+        Push-Location $Root
+        try {
+            & py -3.14 $pubScript $TennisDate
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "  [Tennis publish] WARN: _publish_tennis_slate_only exit $LASTEXITCODE" -ForegroundColor Yellow
+            }
+        } finally {
+            Pop-Location
+        }
+    }
 }
 
 # -- NHL step4b-pre: slate D-pairs (pairings.php) then step4b attach --

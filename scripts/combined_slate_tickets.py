@@ -10878,6 +10878,8 @@ def dataframe_to_slate_sport_rows(df: Optional[pd.DataFrame]) -> List[dict]:
 
     if df is None or len(df) == 0:
         return []
+    if "player_atp_rank" in df.columns:
+        df = _fill_tennis_opp_rank_from_slate(df)
     df = strip_pitcher_ks_hitter_defense(df)
     df = enrich_read_fields_dataframe(df)
 
@@ -13257,6 +13259,12 @@ def _load_step8_board_like(
     df = _coalesce_board_col(
         df, "b2b_flag", ("b2b_flag", "B2B", "is_back_to_back", "back_to_back"), numeric=False
     )
+    df = _coalesce_board_col(
+        df, "opponent_rank", ("opponent_rank", "Opponent Rank"), numeric=True
+    )
+    df = _coalesce_board_col(
+        df, "player_atp_rank", ("player_atp_rank", "Player Rank"), numeric=True
+    )
 
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
@@ -13301,6 +13309,8 @@ def _load_step8_board_like(
         "line_games_played_10": "l10_games_played",
         "Def Rank":         "def_rank",
         "Def Tier":         "def_tier",
+        "Opponent Rank":    "opponent_rank",
+        "Player Rank":      "player_atp_rank",
         "DEF_TIER":         "def_tier",
         "Min Tier":         "min_tier",
         "minutes_tier":     "min_tier",
@@ -13899,6 +13909,36 @@ def _fill_tennis_opp_rank_from_slate(df: pd.DataFrame, rank_source: pd.DataFrame
     return out
 
 
+def _tennis_step8_rank_csv(xlsx_path: str) -> pd.DataFrame | None:
+    """Find step8_tennis_direction.csv next to the clean xlsx or in sport/dated outputs."""
+    p = Path(xlsx_path)
+    cands = [
+        p.parent / "step8_tennis_direction.csv",
+        p.parent / "step8_tennis_direction_clean.csv",
+        Path(REPO_ROOT) / "Sports" / "Tennis" / "outputs" / "step8_tennis_direction.csv",
+        Path(REPO_ROOT) / "Sports" / "Tennis" / "step8_tennis_direction.csv",
+    ]
+    if p.parent.name.lower() == "tennis":
+        cands.append(p.parent.parent / "step8_tennis_direction.csv")
+    for part in p.parts:
+        if len(part) == 10 and part[4:5] == "-" and part[7:8] == "-":
+            dated = Path(REPO_ROOT) / "outputs" / part
+            cands.append(dated / "tennis" / "step8_tennis_direction.csv")
+            cands.append(dated / "step8_tennis_direction.csv")
+            break
+    seen: set[str] = set()
+    for c in cands:
+        key = str(c).lower()
+        if key in seen or not c.is_file():
+            continue
+        seen.add(key)
+        try:
+            return pd.read_csv(c, encoding="utf-8-sig", low_memory=False)
+        except Exception:
+            continue
+    return None
+
+
 def load_tennis(path: str) -> pd.DataFrame:
     base = _load_step8_board_like(
         path,
@@ -13908,14 +13948,15 @@ def load_tennis(path: str) -> pd.DataFrame:
         log_prefix="load_tennis",
         min_stat_games_l5=3,
     )
-    rank_src = None
-    csv_path = Path(path).parent / "step8_tennis_direction.csv"
-    if csv_path.is_file():
-        try:
-            rank_src = pd.read_csv(csv_path, encoding="utf-8-sig", low_memory=False)
-        except Exception:
-            rank_src = None
+    rank_src = _tennis_step8_rank_csv(path)
     base = _fill_tennis_opp_rank_from_slate(base, rank_src)
+    if "l5_over" in base.columns:
+        base["last5_over"] = base.get("last5_over", base["l5_over"])
+        if "last5_over" not in base.columns or base["last5_over"].isna().all():
+            base["last5_over"] = base["l5_over"]
+    if "l5_under" in base.columns:
+        if "last5_under" not in base.columns:
+            base["last5_under"] = base["l5_under"]
     return _apply_tennis_opp_rank_score_boost(_tennis_board_hit_rate_proxy(base))
 
 

@@ -36,7 +36,8 @@ else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
 from scripts.l10_streak_utils import finalize_l10_ui_columns
-from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
+from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns, fill_l5_from_stat_games
+from utils.slate_context_fill import fill_cv_pct_if_missing
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -233,6 +234,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         _mt_valid = _mt_num.notna()
         if _mt_valid.any():
             df2.loc[_mt_valid, "minutes_tier"] = _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP).fillna(df2.loc[_mt_valid, "minutes_tier"])
+    df2 = fill_cv_pct_if_missing(df2)
     try:
         import platform
         _time_fmt = "%m/%d %#I:%M %p" if platform.system() == "Windows" else "%m/%d %-I:%M %p"
@@ -253,16 +255,24 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
 
     l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
     l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
-    # Prefer explicit hit counts from step5/6 before approximating from hit-rate.
     l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
     l5_under = l5_under.combine_first(pd.to_numeric(df2.get("line_hits_under_5", np.nan), errors="coerce"))
     l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
     l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
-    # Approximate L5 split from hr5 when explicit counts are absent.
-    l5_over_fallback = (hr5.fillna(0.5) * 5.0).round().clip(0, 5)
-    l5_under_fallback = (5 - l5_over_fallback).clip(0, 5)
-    df2["last5_over"] = l5_over.fillna(l5_over_fallback)
-    df2["last5_under"] = l5_under.fillna(l5_under_fallback)
+    df2 = fill_l5_from_stat_games(df2, line_col="line", min_games=1)
+    from_g = pd.to_numeric(df2.get("l5_over"), errors="coerce")
+    l5_over = from_g.combine_first(l5_over)
+    l5_under = pd.to_numeric(df2.get("l5_under"), errors="coerce").combine_first(l5_under)
+    gcols = [c for c in (f"stat_g{i}" for i in range(1, 6)) if c in df2.columns]
+    has_g = (
+        df2[gcols].apply(pd.to_numeric, errors="coerce").notna().any(axis=1)
+        if gcols
+        else pd.Series(False, index=df2.index)
+    )
+    # Never invent L5 from a hit-rate fallback when there are no real last-game
+    # values — stale Sackmann was producing fake 5/0 and 0/5 tennis marks.
+    df2["last5_over"] = l5_over.where(has_g, np.nan)
+    df2["last5_under"] = l5_under.where(has_g, np.nan)
     df2["l5_over"] = df2["last5_over"]
     df2["l5_under"] = df2["last5_under"]
 
@@ -321,6 +331,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "l10_over", "l10_under", "l10_over_pct", "l10_streak", "l10_games_played",
         "OVERALL_DEF_RANK", "DEF_TIER",
         "minutes_tier", "shot_role", "usage_role",
+        "cv_pct",
         "void_reason",
         # ── Game log ─────────────────────────────────────────────────────────
         "stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5",
@@ -387,7 +398,9 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "stat_last5_avg": "Last 5 Avg", "stat_season_avg": "Season Avg",
         "last5_over": "L5 Over", "last5_under": "L5 Under",
         "OVERALL_DEF_RANK": "Def Rank", "DEF_TIER": "Def Tier",
+        "player_atp_rank": "Player Rank", "opponent_rank": "Opponent Rank",
         "minutes_tier": "Min Tier", "shot_role": "Shot Role", "usage_role": "Usage Role",
+        "cv_pct": "CV%",
         "void_reason": "Void Reason",
         # Game log
         "stat_last10_avg": "Last 10 Avg",
@@ -686,6 +699,13 @@ def main() -> None:
         if xp.is_file():
             shutil.copy2(xp, dated_xlsx)
             print(f"[Tennis step8] Dated clean workbook -> {dated_xlsx}")
+        csv_src = Path(args.output)
+        if not csv_src.is_file():
+            csv_src = xp.with_name("step8_tennis_direction.csv")
+        if csv_src.is_file():
+            dated_csv = dated_dir / "step8_tennis_direction.csv"
+            shutil.copy2(csv_src, dated_csv)
+            print(f"[Tennis step8] Dated direction CSV -> {dated_csv}")
     except Exception as e:
         print(f"[Tennis step8] WARN dated copy skipped: {e}")
 

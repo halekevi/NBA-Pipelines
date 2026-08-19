@@ -1,90 +1,74 @@
 {
   "nba": {
     "slate": {
-      "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "exists": false,
+      "modified": ""
     }
   },
   "nba1h": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "nba1q": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "cbb": {
     "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "cfb": {
     "slate": {
-      "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "exists": false,
+      "modified": ""
     }
   },
   "nhl": {
     "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "nfl": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 19:09:30"
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
-    }
-  },
-  "wnba1h": {
-    "slate": {
-      "exists": false,
-      "modified": ""
-    }
-  },
-  "wnba1q": {
-    "slate": {
-      "exists": false,
-      "modified": ""
+      "modified": "2026-08-19 10:39:11"
     }
   },
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-18 15:38:50"
+      "modified": "2026-08-19 10:39:11"
     }
-  },
-  "tennis_match_day": "2026-08-18",
-  "game_day": {
-    "tennis": true
   }
 }

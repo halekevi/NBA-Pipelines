@@ -435,19 +435,76 @@ def resolve_athlete_id(player_name: str, rankings: list[dict[str, Any]]) -> tupl
     return best, best_tour
 
 
-def resolve_opp_rank(opp_name: str, rankings: list[dict[str, Any]]) -> float:
+def resolve_opp_rank(opp_name: str, rankings: list[dict[str, Any]]) -> float | None:
+    """ATP/WTA rank for a named opponent. Unknown names return None (not a fake 75)."""
     if not str(opp_name or "").strip() or str(opp_name).upper() in ("UNKNOWN_OPP", "UNK"):
-        return 75.0
+        return None
     pk = norm_key(opp_name)
     for r in rankings:
         if r.get("player_key") == pk:
-            return float(r.get("rank") or 75)
-    best = 75.0
+            try:
+                return float(r.get("rank"))
+            except (TypeError, ValueError):
+                return None
+    best: float | None = None
     for r in rankings:
         rk = r.get("player_key") or ""
         if pk and rk and (pk in rk or rk in pk):
-            best = min(best, float(r.get("rank") or 75))
+            try:
+                v = float(r.get("rank"))
+            except (TypeError, ValueError):
+                continue
+            best = v if best is None else min(best, v)
     return best
+
+
+def fill_opponent_rank_from_slate_players(df: pd.DataFrame) -> pd.DataFrame:
+    """Fill opponent_rank from the opponent's player_atp_rank on this slate.
+
+    Pipeline placeholder 75 is treated as missing. Named UNKNOWN_OPP stays empty.
+    """
+    if df is None or getattr(df, "empty", True):
+        return df
+    out = df.copy()
+
+    def _rk(v):
+        try:
+            if v is None or (isinstance(v, float) and pd.isna(v)):
+                return None
+            n = int(float(v))
+            if n <= 0 or n >= 900:
+                return None
+            return n
+        except Exception:
+            return None
+
+    def _name(v) -> str:
+        s = str(v or "").strip().upper()
+        return "" if s in ("", "NAN", "NONE", "NULL", "UNKNOWN_OPP", "UNK") else s
+
+    name_rank: dict[str, int] = {}
+    if "player" in out.columns and "player_atp_rank" in out.columns:
+        for _, r in out.iterrows():
+            n = _name(r.get("player"))
+            rk = _rk(r.get("player_atp_rank"))
+            if n and rk:
+                name_rank[n] = rk
+    ocol = "opp_team" if "opp_team" in out.columns else ("opp" if "opp" in out.columns else None)
+    filled = []
+    for _, r in out.iterrows():
+        opp = _name(r.get(ocol) if ocol else "")
+        rk = name_rank.get(opp)
+        if rk is None and opp:
+            for n, v in name_rank.items():
+                if opp in n or n in opp:
+                    rk = v
+                    break
+        existing = _rk(r.get("opponent_rank"))
+        if existing == 75:
+            existing = None
+        filled.append(rk if rk is not None else existing)
+    out["opponent_rank"] = filled
+    return out
 
 
 PROP_NORM_MAP = {

@@ -390,6 +390,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "stat_last5_avg": "Last 5 Avg", "stat_season_avg": "Season Avg",
         "last5_over": "L5 Over", "last5_under": "L5 Under",
         "OVERALL_DEF_RANK": "Def Rank", "DEF_TIER": "Def Tier",
+        "player_atp_rank": "Player Rank", "opponent_rank": "Opponent Rank",
         "minutes_tier": "Min Tier", "shot_role": "Shot Role", "usage_role": "Usage Role",
         "cv_pct": "CV%",
         "void_reason": "Void Reason",
@@ -690,6 +691,13 @@ def main() -> None:
         if xp.is_file():
             shutil.copy2(xp, dated_xlsx)
             print(f"[Tennis step8] Dated clean workbook -> {dated_xlsx}")
+        csv_src = Path(args.output)
+        if not csv_src.is_file():
+            csv_src = xp.with_name("step8_tennis_direction.csv")
+        if csv_src.is_file():
+            dated_csv = dated_dir / "step8_tennis_direction.csv"
+            shutil.copy2(csv_src, dated_csv)
+            print(f"[Tennis step8] Dated direction CSV -> {dated_csv}")
     except Exception as e:
         print(f"[Tennis step8] WARN dated copy skipped: {e}")
 

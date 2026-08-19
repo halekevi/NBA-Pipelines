@@ -178,12 +178,13 @@ def _load_match_cache() -> dict[str, list[dict[str, Any]]]:
         return {}
 
 
-def _resolve_opp_rank(opp_name: str, rankings: list[dict[str, Any]]) -> float:
+def _resolve_opp_rank(opp_name: str, rankings: list[dict[str, Any]]) -> float | None:
     if str(_TENNIS_SCRIPTS) not in sys.path:
         sys.path.insert(0, str(_TENNIS_SCRIPTS))
     from tennis_shared import resolve_opp_rank  # noqa: WPS433
 
-    return float(resolve_opp_rank(opp_name, rankings))
+    v = resolve_opp_rank(opp_name, rankings)
+    return None if v is None else float(v)
 
 
 def _resolve_player_rank(player_name: str, rankings: list[dict[str, Any]]) -> int | None:
@@ -303,10 +304,20 @@ def _classify_tennis_edge(
     rank = float(opp_rank) if opp_rank is not None and not (isinstance(opp_rank, float) and np.isnan(opp_rank)) else np.nan
     eff = threshold * 0.55 if cat_id in ("aces", "double_faults", "break_points_won") else threshold
     rank_lbl = f"#{int(rank)}" if not np.isnan(rank) else "?"
+    elite_cut = 10 if cat_id == "games_won" else elite_rank_cut
+
+    if cat_id in ("match_total_games", "total_games") and not np.isnan(rank) and 11 <= rank <= 25:
+        return "AVOID", f"Tight-match opponent ({rank_lbl}) — Total Games OVER fades (11–25)."
+
+    if cat_id == "games_won" and not np.isnan(rank) and 51 <= rank <= 100:
+        if pp_edge is not None and not (isinstance(pp_edge, float) and np.isnan(pp_edge)) and float(pp_edge) >= 0.5:
+            return "TOP_EDGE", f"PP edge +{float(pp_edge):.1f} vs 51–100 opponent ({rank_lbl})."
+        if season_avg >= eff * 0.85:
+            return "TOP_EDGE", f"Games Won vs 51–100 opponent ({rank_lbl}) — graded sweet spot."
 
     if pp_edge is not None and not (isinstance(pp_edge, float) and np.isnan(pp_edge)):
         pe = float(pp_edge)
-        if not np.isnan(rank) and rank <= elite_rank_cut:
+        if not np.isnan(rank) and rank <= elite_cut:
             if pe >= 2.0:
                 return "OK_EDGE", f"PP edge +{pe:.1f} but elite opponent ({rank_lbl}) — tough matchup."
             if pe >= 1.0:
@@ -327,13 +338,13 @@ def _classify_tennis_edge(
         if pe <= -2.0:
             return "AVOID", f"PP edge {pe:.1f} on board — lean UNDER or skip OVER."
 
-    if not np.isnan(rank) and rank <= elite_rank_cut and season_avg < eff * 0.9:
+    if not np.isnan(rank) and rank <= elite_cut and season_avg < eff * 0.9:
         return "AVOID", f"Elite opponent ({rank_lbl}); production below threshold."
     if not np.isnan(rank) and rank >= weak_rank_cut and season_avg >= eff:
         return "TOP_EDGE", f"Strong avg vs weak opponent ({rank_lbl})."
-    if not np.isnan(rank) and elite_rank_cut < rank < weak_rank_cut and season_avg >= eff * 0.85:
+    if not np.isnan(rank) and elite_cut < rank < weak_rank_cut and season_avg >= eff * 0.85:
         return "OK_EDGE", f"Solid vs average opponent ({rank_lbl})."
-    if not np.isnan(rank) and rank <= elite_rank_cut:
+    if not np.isnan(rank) and rank <= elite_cut:
         return "NEUTRAL", f"Elite opponent ({rank_lbl}) — no clear OVER edge."
     return "NEUTRAL", "No strong matchup edge either way."
 

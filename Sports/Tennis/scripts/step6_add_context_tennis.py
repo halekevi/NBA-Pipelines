@@ -14,7 +14,7 @@ import pandas as pd
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
-from tennis_shared import load_or_refresh_rankings, norm_key, resolve_opp_rank
+from tennis_shared import fill_opponent_rank_from_slate_players, load_or_refresh_rankings, norm_key, resolve_opp_rank
 
 
 ROUND_RE = re.compile(r"\b(R128|R64|R32|R16|QF|SF|F)\b", re.I)
@@ -90,8 +90,14 @@ def main() -> None:
     df["player_atp_rank"] = pranks
 
     opp_col = "opp_team" if "opp_team" in df.columns else "opp"
-    oranks = [resolve_opp_rank(str(df.iloc[i].get(opp_col, "")), rankings) for i in range(len(df))]
+    oranks = []
+    for i in range(len(df)):
+        v = resolve_opp_rank(str(df.iloc[i].get(opp_col, "")), rankings)
+        oranks.append(np.nan if v is None else v)
     df["opponent_rank"] = oranks
+    df = fill_opponent_rank_from_slate_players(df)
+    n_filled = int(pd.to_numeric(df["opponent_rank"], errors="coerce").notna().sum())
+    print(f"[Tennis step6] opponent_rank filled {n_filled}/{len(df)}")
     df["ranking_diff"] = pd.to_numeric(df["player_atp_rank"], errors="coerce") - pd.to_numeric(
         df["opponent_rank"], errors="coerce"
     )

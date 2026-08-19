@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -301,43 +302,12 @@ def _badge(rec: dict, n_teams: int | None) -> dict:
 
 def fill_tennis_opp_rank_from_slate(df: pd.DataFrame) -> pd.DataFrame:
     """Replace placeholder opponent_rank=75 with the opponent's player_atp_rank on this slate."""
-    if df is None or df.empty:
-        return df
-    out = df.copy()
+    tennis_scripts = _REPO / "Sports" / "Tennis" / "scripts"
+    if str(tennis_scripts) not in sys.path:
+        sys.path.insert(0, str(tennis_scripts))
+    from tennis_shared import fill_opponent_rank_from_slate_players
 
-    def _rk(v):
-        n = _num(v)
-        if n is None or n <= 0 or n >= 900:
-            return None
-        return n
-
-    def _name(v) -> str:
-        s = _clean(v).upper()
-        return "" if s in _UNKNOWN_OPP or s == "NAN" else s
-
-    name_rank: dict[str, int] = {}
-    if "player" in out.columns and "player_atp_rank" in out.columns:
-        for _, r in out.iterrows():
-            n = _name(r.get("player"))
-            rk = _rk(r.get("player_atp_rank"))
-            if n and rk:
-                name_rank[n] = rk
-    ocol = "opp_team" if "opp_team" in out.columns else ("opp" if "opp" in out.columns else None)
-    filled = []
-    for _, r in out.iterrows():
-        opp = _name(r.get(ocol) if ocol else "")
-        rk = name_rank.get(opp)
-        if rk is None and opp:
-            for n, v in name_rank.items():
-                if opp in n or n in opp:
-                    rk = v
-                    break
-        existing = _rk(r.get("opponent_rank"))
-        if existing == 75:
-            existing = None
-        filled.append(rk if rk is not None else existing)
-    out["opponent_rank"] = filled
-    return out
+    return fill_opponent_rank_from_slate_players(df)
 
 
 def load_sport(root: Path, date: str, sport: str, folder: str, fname: str) -> pd.DataFrame:

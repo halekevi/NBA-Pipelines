@@ -103,6 +103,133 @@ def _normalize_rate(series: pd.Series) -> pd.Series:
     return np.where(s > 1.0, s / 100.0, s)
 
 
+def assign_l5_aliases_from_hits(
+    df: pd.DataFrame,
+    mask: pd.Series | None,
+    over,
+    under,
+    push=None,
+) -> pd.DataFrame:
+    """
+    Dual-write L5 hit counts to all common aliases used by step8 / tickets / UI.
+
+    Writes ``l5_over`` / ``l5_under`` / ``last5_over`` / ``last5_under`` and, when
+    present or created, ``line_hits_*_5``. Call from sport step5 after computing
+    over5/under5 so NBA/NFL/CBB/WCBB/CFB/etc match Soccer/Golf dual-write.
+    """
+    if df is None or df.empty:
+        return df
+    out = df
+    cols = ("l5_over", "l5_under", "last5_over", "last5_under", "line_hits_over_5", "line_hits_under_5")
+    for col in cols:
+        if col not in out.columns:
+            out[col] = np.nan
+    if push is not None:
+        for col in ("last5_push", "line_hits_push_5"):
+            if col not in out.columns:
+                out[col] = np.nan
+
+    if mask is None:
+        out["l5_over"] = over
+        out["l5_under"] = under
+        out["last5_over"] = over
+        out["last5_under"] = under
+        out["line_hits_over_5"] = over
+        out["line_hits_under_5"] = under
+        if push is not None:
+            out["last5_push"] = push
+            out["line_hits_push_5"] = push
+        return out
+
+    out.loc[mask, "l5_over"] = over
+    out.loc[mask, "l5_under"] = under
+    out.loc[mask, "last5_over"] = over
+    out.loc[mask, "last5_under"] = under
+    out.loc[mask, "line_hits_over_5"] = over
+    out.loc[mask, "line_hits_under_5"] = under
+    if push is not None:
+        out.loc[mask, "last5_push"] = push
+        out.loc[mask, "line_hits_push_5"] = push
+    return out
+
+
+def fill_l5_from_stat_games(
+    df: pd.DataFrame,
+    *,
+    line_col: str = "line",
+    min_games: int = 1,
+) -> pd.DataFrame:
+    """
+    Recompute L5 over/under hit counts from ``stat_g1..stat_g5`` vs ``line``.
+
+    Writes ``l5_over`` / ``l5_under`` and mirrors to ``last5_over`` /
+    ``last5_under`` / ``line_hits_over_5`` / ``line_hits_under_5`` when history
+    exists so every sport step8 / grader path gets the same columns.
+    """
+    if df is None or df.empty:
+        return df
+    g5_cols = [c for c in (f"stat_g{i}" for i in range(1, 6)) if c in df.columns]
+    if not g5_cols or line_col not in df.columns:
+        return df
+
+    out = df.copy()
+    g5 = out[g5_cols].apply(pd.to_numeric, errors="coerce")
+    line = pd.to_numeric(out[line_col], errors="coerce")
+    valid_n = g5.notna().sum(axis=1)
+    over_n = g5.gt(line, axis=0).sum(axis=1).astype(float)
+    under_n = g5.lt(line, axis=0).sum(axis=1).astype(float)
+    has_hist = (valid_n >= int(min_games)) & line.notna()
+    if not bool(has_hist.any()):
+        return out
+
+    for col in (
+        "l5_over",
+        "l5_under",
+        "last5_over",
+        "last5_under",
+        "line_hits_over_5",
+        "line_hits_under_5",
+    ):
+        if col not in out.columns:
+            out[col] = np.nan
+        else:
+            out[col] = pd.to_numeric(out[col], errors="coerce")
+
+    out.loc[has_hist, "l5_over"] = over_n[has_hist]
+    out.loc[has_hist, "l5_under"] = under_n[has_hist]
+    out.loc[has_hist, "last5_over"] = over_n[has_hist]
+    out.loc[has_hist, "last5_under"] = under_n[has_hist]
+    out.loc[has_hist, "line_hits_over_5"] = over_n[has_hist]
+    out.loc[has_hist, "line_hits_under_5"] = under_n[has_hist]
+    return out
+
+
+def _mirror_l5_aliases(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep l5_over / last5_over / line_hits_over_5 (and under) in sync."""
+    out = df
+    l5o = pd.to_numeric(out.get("l5_over"), errors="coerce")
+    l5u = pd.to_numeric(out.get("l5_under"), errors="coerce")
+    for col in ("last5_over", "line_hits_over_5"):
+        if col not in out.columns:
+            out[col] = l5o
+        else:
+            out[col] = pd.to_numeric(out[col], errors="coerce").combine_first(l5o)
+            l5o = l5o.combine_first(pd.to_numeric(out[col], errors="coerce"))
+    for col in ("last5_under", "line_hits_under_5"):
+        if col not in out.columns:
+            out[col] = l5u
+        else:
+            out[col] = pd.to_numeric(out[col], errors="coerce").combine_first(l5u)
+            l5u = l5u.combine_first(pd.to_numeric(out[col], errors="coerce"))
+    out["l5_over"] = l5o
+    out["l5_under"] = l5u
+    out["last5_over"] = pd.to_numeric(out["last5_over"], errors="coerce").combine_first(l5o)
+    out["last5_under"] = pd.to_numeric(out["last5_under"], errors="coerce").combine_first(l5u)
+    out["line_hits_over_5"] = pd.to_numeric(out["line_hits_over_5"], errors="coerce").combine_first(l5o)
+    out["line_hits_under_5"] = pd.to_numeric(out["line_hits_under_5"], errors="coerce").combine_first(l5u)
+    return out
+
+
 def attach_hit_window_columns(df: pd.DataFrame, *, line_col: str = "line") -> pd.DataFrame:
     """Coalesce L5/L10 aliases and run finalize_l10_ui_columns when line + stat_g* exist."""
     if df is None or df.empty:
@@ -116,6 +243,10 @@ def attach_hit_window_columns(df: pd.DataFrame, *, line_col: str = "line") -> pd
             if alt in out.columns and alt != target:
                 series = series.combine_first(pd.to_numeric(out[alt], errors="coerce"))
         out[target] = series
+
+    # Prefer truth from game logs when present (WNBA/NBA step8 pattern for all sports).
+    out = fill_l5_from_stat_games(out, line_col=line_col, min_games=1)
+    out = _mirror_l5_aliases(out)
 
     if line_col in out.columns:
         out = finalize_l10_ui_columns(out, line_col=line_col)

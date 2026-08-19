@@ -254,7 +254,7 @@ except ImportError:
     _APP_USES_FLASK_COMPRESS = False
 
 # Visible on every response (curl -I); bump when you need to confirm Railway shipped new code.
-# cache-bust: 2026-08-18te2 Top Edges
+# cache-bust: 2026-08-18te3 Top Edges
 _UI_BUILD_ID = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "2026-05-16-pp-ud-btns")[:12] or "2026-05-16-pp-ud-btns"
 
 

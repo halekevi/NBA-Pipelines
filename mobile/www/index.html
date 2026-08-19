@@ -3386,6 +3386,36 @@ function isTopEdgesBoardPick(p) {
   return !isDemonPick(p) && (isStandardPick(p) || isGoblinPick(p));
 }
 
+/** Same player/prop/direction on PP — prefer Standard board line over Goblin alt. */
+function boardLineKey(p) {
+  return [
+    String(p.sport || "").trim().toUpperCase(),
+    String(p.player || "").trim().toLowerCase(),
+    String(p.prop || "").trim().toLowerCase(),
+    String(p.dir || "").trim().toUpperCase(),
+  ].join("|");
+}
+
+function preferStandardBoardLine(rows) {
+  const byKey = new Map();
+  for (const p of rows) {
+    const k = boardLineKey(p);
+    const cur = byKey.get(k);
+    if (!cur) {
+      byKey.set(k, p);
+      continue;
+    }
+    if (isStandardPick(p) && isGoblinPick(cur)) {
+      byKey.set(k, p);
+    } else if (isGoblinPick(p) && isStandardPick(cur)) {
+      continue;
+    } else if (Number(p.edge) > Number(cur.edge)) {
+      byKey.set(k, p);
+    }
+  }
+  return Array.from(byKey.values());
+}
+
 function sportKeyOfPick(p) {
   return String(p?.sport || "").trim().toUpperCase() || "OTHER";
 }
@@ -4433,16 +4463,21 @@ function buildEdgeCard(p, idx, rec) {
     const v = coercePropLine(p);
     return Number.isFinite(v) ? v : p.line ?? "—";
   })();
-  const l5l10 = rec ? `L5 ${rec.l5_over ?? "—"}/${rec.l5_under ?? "—"}` : edgeHitCountsLabel(p);
   const badge = rec && rec.badge ? String(rec.badge) : "";
   const badgeHtml = badge ? `<span class="te-badge te-badge-${badge.toLowerCase()}">${badge.toUpperCase()}</span>` : "";
   const cover = rec && rec.cover != null && Number.isFinite(Number(rec.cover)) ? Number(rec.cover) : null;
   const coverDisp = cover != null ? `${cover >= 0 ? "+" : ""}${cover.toFixed(1)}` : edgeDisp;
+  const l5o = rec ? (rec.l5_over ?? "—") : (resolvedOverHits(p, 5) ?? "—");
+  const l5u = rec ? (rec.l5_under ?? "—") : (resolvedUnderHits(p, 5) ?? "—");
   const avgS = rec && rec.season_avg != null && Number.isFinite(Number(rec.season_avg)) ? Number(rec.season_avg).toFixed(2) : "—";
   const dS = rec && rec.def ? (rec.def_rank != null ? `${rec.def} #${rec.def_rank}` : rec.def) : "";
   const matchup = (rec && rec.matchup) || [p.team, p.opp].filter(Boolean).join(" vs ");
   const coverS = cover != null ? `${cover >= 0 ? "+" : ""}${cover.toFixed(2)}` : "n/a";
-  const metaBits = rec ? [`L5 ${rec.l5_over ?? "—"}/${rec.l5_under ?? "—"}`, `avg ${avgS} vs ${lineDisp} (${coverS})`, dS, matchup].filter(Boolean) : [];
+  const metaBits = [`L5 ${l5o}/${l5u}`];
+  if (rec) metaBits.push(`avg ${avgS} vs ${lineDisp} (${coverS})`);
+  if (dS) metaBits.push(dS);
+  if (matchup) metaBits.push(matchup);
+  const l5l10 = rec ? `L5 ${l5o}/${l5u}` : edgeHitCountsLabel(p);
   const div=document.createElement("div");
   div.className=`edge-card insight-card ${dc}`;
   const hitBar=Math.min(100,hitPct);
@@ -4814,6 +4849,7 @@ function renderEdges() {
         return num(b.edge) - num(a.edge);
       });
   }
+  overPrimary = preferStandardBoardLine(overPrimary);
   const EDGE_CARD_LIMIT = 10;
   const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
   const stdO = diversifyBySport(
@@ -5110,7 +5146,7 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 4)
     .sort((a, b) => b.h - a.h);
 
-  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5O = preferStandardBoardLine(l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
   let l5U = underStreakRows(5, 4);
   if (!l5O.length && !l5U.length) {
     const soft = [...ALL_SLATE]
@@ -5118,7 +5154,7 @@ function renderStreaks() {
       .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
-    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5O = preferStandardBoardLine(soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
     l5U = underStreakRows(5, 1);
   }
 
@@ -5128,7 +5164,7 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 8)
     .sort((a, b) => b.h - a.h);
 
-  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10O = preferStandardBoardLine(l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
   let l10U = underStreakRows(10, 8);
   if (!l10O.length && !l10U.length) {
     const soft = [...ALL_SLATE]
@@ -5136,7 +5172,7 @@ function renderStreaks() {
       .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
-    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10O = preferStandardBoardLine(soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
     l10U = underStreakRows(10, 1);
   }
 

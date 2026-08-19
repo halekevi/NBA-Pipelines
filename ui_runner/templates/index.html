@@ -3065,6 +3065,36 @@ function isTopEdgesBoardPick(p) {
   return !isDemonPick(p) && (isStandardPick(p) || isGoblinPick(p));
 }
 
+/** Same player/prop/direction on PP — prefer Standard board line over Goblin alt. */
+function boardLineKey(p) {
+  return [
+    String(p.sport || "").trim().toUpperCase(),
+    String(p.player || "").trim().toLowerCase(),
+    String(p.prop || "").trim().toLowerCase(),
+    String(p.dir || "").trim().toUpperCase(),
+  ].join("|");
+}
+
+function preferStandardBoardLine(rows) {
+  const byKey = new Map();
+  for (const p of rows) {
+    const k = boardLineKey(p);
+    const cur = byKey.get(k);
+    if (!cur) {
+      byKey.set(k, p);
+      continue;
+    }
+    if (isStandardPick(p) && isGoblinPick(cur)) {
+      byKey.set(k, p);
+    } else if (isGoblinPick(p) && isStandardPick(cur)) {
+      continue;
+    } else if (Number(p.edge) > Number(cur.edge)) {
+      byKey.set(k, p);
+    }
+  }
+  return Array.from(byKey.values());
+}
+
 function sportKeyOfPick(p) {
   return String(p?.sport || "").trim().toUpperCase() || "OTHER";
 }
@@ -4498,6 +4528,7 @@ function renderEdges() {
         return num(b.edge) - num(a.edge);
       });
   }
+  overPrimary = preferStandardBoardLine(overPrimary);
   const EDGE_CARD_LIMIT = 10;
   const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
   const stdO = diversifyBySport(
@@ -4794,7 +4825,7 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 4)
     .sort((a, b) => b.h - a.h);
 
-  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5O = preferStandardBoardLine(l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
   let l5U = underStreakRows(5, 4);
   if (!l5O.length && !l5U.length) {
     const soft = [...ALL_SLATE]
@@ -4802,7 +4833,7 @@ function renderStreaks() {
       .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
-    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5O = preferStandardBoardLine(soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
     l5U = underStreakRows(5, 1);
   }
 
@@ -4812,7 +4843,7 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 8)
     .sort((a, b) => b.h - a.h);
 
-  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10O = preferStandardBoardLine(l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
   let l10U = underStreakRows(10, 8);
   if (!l10O.length && !l10U.length) {
     const soft = [...ALL_SLATE]
@@ -4820,7 +4851,7 @@ function renderStreaks() {
       .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
-    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10O = preferStandardBoardLine(soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
     l10U = underStreakRows(10, 1);
   }
 

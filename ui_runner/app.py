@@ -1119,6 +1119,10 @@ _SLATE_SPORT_UI_KEYS = frozenset(
         "standard_line",
         "standard_projection",
         "opponent_def_rank",
+        "opponent_rank",
+        "last5_over",
+        "last5_under",
+        "model_dir",
         "stat_def_rank",
         "stat_def_tier",
         "stat_def_category",
@@ -5346,6 +5350,7 @@ def _api_slate_pick_moat_fields(r: dict[str, Any]) -> dict[str, Any]:
         "OVERALL_DEF_RANK",
         "def_rank",
         "ncaa_rank",
+        "opponent_rank",
     ):
         if k in r:
             def_rank = fnum(r.get(k))
@@ -5367,8 +5372,12 @@ def _api_slate_pick_moat_fields(r: dict[str, Any]) -> dict[str, Any]:
         "ml_prob": fnum(r.get("ml_prob")),
         "tier": fstr(r.get("tier")),
         "rank": fnum(r.get("rank_score")),
-        "def_tier": fstr(r.get("def_tier") or r.get("Def Tier")),
+        "def_tier": fstr(r.get("def_tier") or r.get("Def Tier") or r.get("DEF_TIER") or r.get("stat_def_tier")),
         "opponent_def_rank": def_rank,
+        "opponent_rank": fnum(r.get("opponent_rank")),
+        "last5_over": fnum(r.get("last5_over") if r.get("last5_over") is not None else r.get("l5_over")),
+        "last5_under": fnum(r.get("last5_under") if r.get("last5_under") is not None else r.get("l5_under")),
+        "model_dir": fstr(r.get("model_dir")),
         "book_line": book_line,
         "prop_line": prop_line,
         "game_time": gt,
@@ -5433,7 +5442,11 @@ def _picks_payload_from_slate_latest() -> dict[str, Any] | None:
                 continue
             seen.add(key)
             l5_over = row.get("l5_over")
+            if l5_over is None:
+                l5_over = row.get("last5_over")
             l5_under = row.get("l5_under")
+            if l5_under is None:
+                l5_under = row.get("last5_under")
             if l5_under is None and l5_over is not None:
                 ho = _side_hit_count_for_slate_picks(l5_over, 5)
                 if ho is not None:
@@ -5478,10 +5491,14 @@ def _picks_payload_from_slate_latest() -> dict[str, Any] | None:
     if not picks:
         return None
     picks.sort(key=lambda p: _api_slate_pick_abs_edge(p), reverse=True)
-    # Cap: full slate can be 10k+ rows; hero table + edges only need top props by |edge|.
+    # Cap other sports; never drop WNBA/MLB/Soccer/Tennis (Top Edges board).
+    _keep_sports = {"WNBA", "MLB", "SOCCER", "TENNIS"}
+    keep = [p for p in picks if str(p.get("sport") or "").strip().upper() in _keep_sports]
+    rest = [p for p in picks if str(p.get("sport") or "").strip().upper() not in _keep_sports]
     _max = 2500
-    if len(picks) > _max:
-        picks = picks[:_max]
+    if len(rest) > _max:
+        rest = rest[:_max]
+    picks = keep + rest
     return {
         "picks": picks,
         "generated_at": data.get("generated_at"),
@@ -5615,7 +5632,7 @@ def api_slate():
 
     try:
         return _gz_json_response(
-            f"slate-picks-v3-tickets-or-slate:{sport_q or 'all'}:{_explorer_json_gz_bust_token()}",
+            f"slate-picks-v4-tickets-or-slate:{sport_q or 'all'}:{_explorer_json_gz_bust_token()}",
             _build_filtered,
             ttl=_PIPELINE_JSON_TTL,
         )
@@ -5647,7 +5664,7 @@ def api_slate_sport():
         return jsonify({"error": str(e), "sports": {}}), 404
     try:
         return _gz_json_response(
-            f"slate-sport-slim-v2:{_explorer_json_gz_bust_token()}",
+            f"slate-sport-slim-v3:{_explorer_json_gz_bust_token()}",
             lambda: _slim_slate_sport_payload(_selected_slate_sport_payload()),
             ttl=_PIPELINE_JSON_TTL,
         )

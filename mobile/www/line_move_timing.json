@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-08-18T16:10:35+00:00",
+  "updated_at": "2026-08-19T14:01:14+00:00",
   "sample_days": 33,
-  "snapshot_days": 15,
+  "snapshot_days": 16,
   "date_range": [
     "2026-05-10",
     "2026-08-18"
@@ -55,18 +55,19 @@
     {
       "id": "1PM",
       "label": "Into 1PM",
-      "moves": 98,
-      "days": 18,
-      "fav_pct": 54.1,
-      "unfav_pct": 45.9,
-      "avg_abs": 2.194,
-      "net_fav_abs": 7.0,
-      "role": "high_volume"
+      "moves": 103,
+      "days": 19,
+      "fav_pct": 54.4,
+      "unfav_pct": 45.6,
+      "avg_abs": 2.126,
+      "net_fav_abs": 8.0,
+      "role": "favorable"
     }
   ],
   "tips": [
-    "Most Standard line movement lands into 1PM (98 moves across 18 days).",
+    "Most Standard line movement lands into 1PM (103 moves across 19 days).",
     "Most unfavorable stretch historically: into 9AM (62.5% against your direction).",
+    "Most favorable stretch: into 1PM (54.4% with your direction).",
     "Practical: lock strong Standard overs earlier when you can; re-check mid-morning (≈10:30) before afternoon slips."
   ],
   "definitions": {

@@ -137,10 +137,26 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[5AM DAILY] Snapshot logging failed" -ForegroundColor Yellow
 }
 
+$Health = Join-Path $Root "scripts\Write-DailyRunHealth.ps1"
+$healthExit = 0
+if (Test-Path -LiteralPath $Health) {
+    Write-Host "[5AM DAILY] Writing health stamp (fails task if board date != today)..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File $Health -RepoRoot $Root -Label "5AM" -RequireTickets
+    $healthExit = $LASTEXITCODE
+}
+else {
+    Write-Host "[5AM DAILY] WARN: Write-DailyRunHealth.ps1 missing" -ForegroundColor Yellow
+}
+
 if ($dailyExit -ne 0) {
     Write-Host "[5AM DAILY] run_daily failed (exit $dailyExit)" -ForegroundColor Red
     try { Stop-Transcript | Out-Null } catch { }
     exit $dailyExit
+}
+if ($healthExit -ne 0) {
+    Write-Host "[5AM DAILY] HEALTH CHECK FAILED (exit $healthExit) — Task Scheduler will show non-zero LastTaskResult" -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
+    exit $healthExit
 }
 
 Write-Host "[5AM DAILY] Complete" -ForegroundColor Green

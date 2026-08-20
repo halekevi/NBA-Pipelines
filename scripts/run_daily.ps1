@@ -43,7 +43,7 @@ param(
     [switch]$AllowMissingSlates,
     [switch]$SkipPeriodHistorySync,
     [int]$PeriodHistoryLookbackDays = 10,
-    [int]$A1TimeoutMinutes = 30,
+    [int]$A1TimeoutMinutes = 90,
     [switch]$PollHistoricalActuals,
     [int]$PollPasses = 4,
     [int]$PollIntervalSeconds = 5400,
@@ -443,7 +443,11 @@ else {
         # Incremental: past seasons stay in SQLite; only current season is re-fetched per player.
         # (Do not pass legacy --refresh-current — it forced a full multi-season re-download and was very slow.)
         $a1Proc = Start-Process -FilePath "py" `
-            -ArgumentList @("-3.14", "-u", $fetchScript) `
+            -ArgumentList @(
+                "-3.14", "-u", $fetchScript,
+                "--active-slate-days", "3",
+                "--workers", "20"
+            ) `
             -NoNewWindow -PassThru
 
         $waitSec = [Math]::Max(60, $A1TimeoutMinutes * 60)
@@ -2127,6 +2131,37 @@ else {
                         Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
                     }
                 }
+                # Stash pop has been deleting/overwriting today's published board
+                # (e.g. mobile/www/tickets_latest.json). Always re-assert committed
+                # publish artifacts from HEAD after pop.
+                $publishGuard = @(
+                    "mobile/www/tickets_latest.json",
+                    "mobile/www/slate_latest.json",
+                    "mobile/www/slate_display_date.json",
+                    "mobile/www/pipeline_status.json",
+                    "mobile/www/slate_sport_combined.json",
+                    "mobile/www/slate_sport_wnba.json",
+                    "mobile/www/slate_sport_mlb.json",
+                    "mobile/www/slate_sport_soccer.json",
+                    "mobile/www/slate_sport_tennis.json",
+                    "ui_runner/templates/tickets_latest.json",
+                    "ui_runner/templates/slate_display_date.json",
+                    "ui_runner/templates/pipeline_status.json"
+                )
+                foreach ($rel in $publishGuard) {
+                    $tracked = git ls-files -- $rel 2>$null
+                    if ($tracked) {
+                        git checkout HEAD -- $rel 2>&1 | Out-Null
+                    }
+                }
+                # Prefer ui_runner tickets copy into mobile if HEAD lacked mobile tickets.
+                $tplTickets = Join-Path $MainRoot "ui_runner\templates\tickets_latest.json"
+                $mobTickets = Join-Path $MainRoot "mobile\www\tickets_latest.json"
+                if ((Test-Path -LiteralPath $tplTickets) -and -not (Test-Path -LiteralPath $mobTickets)) {
+                    Copy-Item -LiteralPath $tplTickets -Destination $mobTickets -Force
+                    Write-Log "STEP E - restored mobile/www/tickets_latest.json from templates after stash pop"
+                }
+                Write-Log "STEP E - re-asserted publish artifacts from HEAD after stash pop"
             }
             Pop-Location
             if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {

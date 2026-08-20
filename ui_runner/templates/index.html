@@ -197,6 +197,39 @@ body::after{content:'';position:fixed;inset:0;
 .streak-grid{display:grid;gap:clamp(8px,1.5vw,12px);grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));margin-bottom:18px;}
 .edge-source-note{font-size:11px;color:var(--muted2);line-height:1.45;max-width:70ch;margin:-6px 0 16px;letter-spacing:.02em;}
 .edge-bucket-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
+#top-edges-board .te-bucket-label{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:#e8ecf4;margin:18px 0 10px;padding:0 0 8px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+#top-edges-board .te-bucket-n{
+  font-size:10px;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;
+  color:var(--muted2,#b8c0d0);background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:2px 8px;
+}
+#top-edges-board.te-board--single .edge-sport{display:none!important;}
+#top-edges-board .te-card .edge-card-top{gap:6px;padding:12px 14px 8px;}
+#top-edges-board .te-card .edge-row-main{flex-direction:column;align-items:flex-start;gap:2px;}
+#top-edges-board .te-card .edge-name{font-size:15px;white-space:normal;line-height:1.25;}
+#top-edges-board .te-card .edge-prop{max-width:100%;text-align:left;font-size:12px;color:#c5cddc;white-space:normal;}
+#top-edges-board .te-card .edge-meta{display:none;}
+#top-edges-board .te-card .edge-line-badge{display:none;}
+#top-edges-board .te-card .te-card-sub{
+  font-size:11px;color:var(--muted2,#b8c0d0);line-height:1.35;margin-top:2px;
+  font-family:"Inter",sans-serif;
+}
+#top-edges-board .te-card .te-hit{
+  padding:0 14px 12px;display:flex;align-items:center;gap:8px;
+}
+#top-edges-board .te-card .te-hit-track{
+  flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;
+}
+#top-edges-board .te-card .te-hit-fill{height:100%;border-radius:3px;}
+#top-edges-board .te-card .te-hit-pct{
+  font-size:10px;font-weight:700;font-family:"Inter",sans-serif;min-width:32px;text-align:right;
+}
+#top-edges-board .edge-grid{gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));}
 .edges-see-all{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:1px solid rgba(212,175,55,.28);padding:8px 16px;border-radius:999px;transition:background .15s,border-color .15s;white-space:nowrap;flex-shrink:0;}
 .edges-see-all:hover{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.45);}
 [data-theme="light"] .edges-see-all{border-color:rgba(75,111,150,.35);color:var(--accent);}
@@ -2259,7 +2292,7 @@ body > nav.snav.glass-card {
     <div id="top-edges-debug" hidden aria-hidden="true"></div>
     <div class="te-legend">
       <details>
-        <summary>L5 4+ · D-aligned overs/unders</summary>
+        <summary>L5 4+ · D-aligned overs/unders · tap card for charts</summary>
         <p class="te-legend-full">WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers). D miss lowers badge; it does not remove the play from this board when L5 clears.</p>
       </details>
     </div>
@@ -4191,7 +4224,6 @@ function buildEdgeCard(p, idx, rec) {
   const edgeDisp = fmtEdgePick(p);
   const hitDisplay = topEdgeL5HitPct(p);
   const hitPct = Number.isFinite(hitDisplay) ? hitDisplay : 0;
-  const hc=hitPct>=90?"var(--green)":hitPct>=75?"var(--amber)":"var(--red)";
   const lineDisp = (() => {
     const v = coercePropLine(p);
     return Number.isFinite(v) ? v : p.line ?? "—";
@@ -4210,17 +4242,43 @@ function buildEdgeCard(p, idx, rec) {
   if (rec) metaBits.push(`avg ${avgS} vs ${lineDisp} (${coverS})`);
   if (dS) metaBits.push(dS);
   if (matchup) metaBits.push(matchup);
+  const subBits = [];
+  if (dS) subBits.push(dS);
+  if (matchup) subBits.push(matchup);
   const l5l10 = rec ? `L5 ${l5o}/${l5u}` : edgeHitCountsLabel(p);
   const div=document.createElement("div");
-  div.className=`edge-card insight-card ${dc}`;
+  div.className=`edge-card insight-card ${dc}${rec ? " te-card" : ""}`;
   const hitBar=Math.min(100,hitPct);
   const hitColor=hitPct>=90?'var(--green)':hitPct>=75?'var(--amber)':'var(--red)';
-  div.innerHTML=`
+  const hitBlock = `
+    <div class="te-hit">
+      <div class="te-hit-track"><div class="te-hit-fill" style="width:${hitBar}%;background:${hitColor};"></div></div>
+      <span class="te-hit-pct" style="color:${hitColor};">${hitPct}%</span>
+    </div>`;
+  const collapsed = rec ? `
+    <div class="edge-card-top">
+      <div class="edge-row edge-row-top">
+        <div class="edge-tags">
+          <span class="edge-sport ${sc}">${sportLabel}</span>
+          <span class="edge-pick ${pc}">${p.pick}</span>
+        </div>
+        <div class="edge-val">
+          <div class="edge-num edge-badge ${dc}">${badgeHtml}${coverDisp}</div>
+          <div class="edge-mini">${l5l10}</div>
+        </div>
+      </div>
+      <div class="edge-row edge-row-main">
+        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
+        <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
+        ${subBits.length ? `<div class="te-card-sub">${subBits.join(" · ")}</div>` : ""}
+      </div>
+    </div>
+    ${hitBlock}` : `
     <div class="edge-card-top">
       <div class="edge-row edge-row-top">
         <div class="edge-avatar ${dc}">${p.initials || (p.player||"").split(" ").filter(w=>w).map(w=>w[0]).join("").slice(0,2).toUpperCase()}</div>
         <div class="edge-val">
-          <div class="edge-num edge-badge ${dc}">${badgeHtml}${coverDisp}</div>
+          <div class="edge-num edge-badge ${dc}">${coverDisp}</div>
           <div class="edge-mini">${l5l10}</div>
         </div>
       </div>
@@ -4234,17 +4292,19 @@ function buildEdgeCard(p, idx, rec) {
           <span class="edge-pick ${pc}">${p.pick}</span>
           ${p.tier ? `<span class="tier-badge tier-${p.tier}">${p.tier}</span>` : ''}${confDotHtml(p)}
         </div>
-        <div class="edge-line-badge">${rec && rec.badge ? rec.badge : `${hitPct}% hit`}</div>
+        <div class="edge-line-badge">${hitPct}% hit</div>
       </div>
-      ${rec ? `<div class="edge-meta">${metaBits.join(" · ")}</div>` : ""}
     </div>
     <div style="padding:0 12px 10px;display:flex;align-items:center;gap:8px;">
       <div style="flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;">
         <div style="width:${hitBar}%;height:100%;background:${hitColor};border-radius:3px;transition:width .6s ease;"></div>
       </div>
       <span style="font-size:10px;font-weight:700;color:${hitColor};font-family:'Inter',sans-serif;min-width:32px;text-align:right;">${hitPct}%</span>
-    </div>
+    </div>`;
+  div.innerHTML=`
+    ${collapsed}
     <div class="edge-expand" id="expand-${idx}">
+      ${rec ? `<div class="edge-meta" style="display:block;margin:0 0 10px;">${metaBits.join(" · ")}</div>` : ""}
       <div class="expand-tabs">
         <button class="expand-tab active" onclick="switchExpandTab(${idx},'l5',this)">L5</button>
         <button class="expand-tab" onclick="switchExpandTab(${idx},'l10',this)">L10</button>
@@ -4569,8 +4629,8 @@ function renderBadgeTopEdges(board) {
     for (const [label, list] of blocks) {
       if (!list.length) continue;
       const lab = document.createElement("div");
-      lab.className = "edge-bucket-label";
-      lab.textContent = label;
+      lab.className = "edge-bucket-label te-bucket-label";
+      lab.innerHTML = `<span>${label}</span><span class="te-bucket-n">${list.length}</span>`;
       wrap.appendChild(lab);
       const grid = document.createElement("div");
       grid.className = "edge-grid";

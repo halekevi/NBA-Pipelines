@@ -63,7 +63,7 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE (default 8) — min L10 games for that floor
 - PROPORACLE_MAIN_STANDARD_OVER_MIN_L10_HITS (default 8) — Standard OVER L10 floor
 - PROPORACLE_MAIN_STANDARD_UNDER_MIN_L10_HITS (default 8) — Standard UNDER L10 floor
-- PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS (default 3) — Standard OVER L5 agreement
+- PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS (default 4) — Standard OVER L5 agreement (Aug-19 L5≥4)
 - PROPORACLE_MAIN_STANDARD_UNDER_MIN_L5_HITS (default 0) — Standard UNDER L5 (off; no lift)
 - PROPORACLE_MAIN_MAX_LEGS_PER_GAME (default 2) — hard same-game stack cap
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
@@ -223,7 +223,11 @@ from utils.prop_signal_score import l10_streak_series
 from utils.slate_context_fill import (
     fill_cv_pct_if_missing,
     fill_min_tier_labels,
+    flip_tennis_total_games_all_under,
+    overlay_live_step1_board,
+    strip_pitcher_ks_hitter_defense,
     summarize_board_context_fill,
+    tennis_total_games_over_blocked_by_l5,
 )
 from utils.l5_recency_policy import (
     L5_GE4_MIN as _L5_GE4_MIN,
@@ -3087,12 +3091,43 @@ ATTEMPT_PROPS = {
     "two pointers attempted",
 }
 
-# Keep priority tiers focused on single-stat regular props.
-# Combo props are still allowed (unless otherwise excluded) but should not get
-# an extra priority bonus versus regular markets.
-TIER1_PROPS = {"points", "rebounds"}
-TIER2_PROPS = {"assists", "3-pt made"}
+# Priority tiers (Aug-19 graded L5≥4 HR): basket single-stat + combos that cleared
+# L5≥4 at high rates (Pts/Asts/Rebs families, 3PT). Combos get Tier1 so tickets
+# seed from the same high-WR pool as the best-props list.
+TIER1_PROPS = {
+    "points",
+    "rebounds",
+    "assists",
+    "3-pt made",
+    "pts+asts",
+    "pts+rebs",
+    "pts+rebs+asts",
+    "rebs+asts",
+    "pra",
+    "pa",
+    "pr",
+    "ra",
+}
+TIER2_PROPS = set()  # reserved; Tier1 absorbed former Tier2 after Aug-19 L5 study
 TIER3_PROPS = {"steals", "blocked shots", "turnovers", "free throws made"}
+
+# Non-basketball props with strong Aug-19 L5≥4 decided HR (n≥8, HR≥65%).
+# Used only for soft ticket-seed priority — not hard exclusions.
+L5_HOT_PROPS_EXTRA = frozenset(
+    {
+        "total games won",
+        "total games",
+        "games won",
+        "games played",
+        "strikeouts",
+        "pitching outs",
+        "pitches thrown",
+        "plate appearances",
+        "hits",
+        "runs",
+        "goals",
+    }
+)
 
 UNDER_ALLOWED_PROPS = {"free throws attempted", "turnovers"}
 
@@ -3885,7 +3920,7 @@ def propagate_alt_book_lines_to_sport_frame(
 
 def _prop_priority_bonus(v: object) -> float:
     p = _norm_prop_label(v)
-    if p in TIER1_PROPS:
+    if p in TIER1_PROPS or p in L5_HOT_PROPS_EXTRA:
         return 0.10
     if p in TIER3_PROPS:
         return -0.10
@@ -4542,8 +4577,10 @@ MAIN_STANDARD_OVER_MIN_L10_HITS: float = float(
 MAIN_STANDARD_UNDER_MIN_L10_HITS: float = float(
     os.getenv("PROPORACLE_MAIN_STANDARD_UNDER_MIN_L10_HITS", "8")
 )
+# Aug-19 graded: L5≥4 lifted decided HR (WNBA ~73%, MLB ~60%, Tennis ~69%).
+# Std OVER agreement floor matches Goblin L5 bar so tickets seed from that pool.
 MAIN_STANDARD_OVER_MIN_L5_HITS: float = float(
-    os.getenv("PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS", "3")
+    os.getenv("PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS", "4")
 )
 MAIN_STANDARD_UNDER_MIN_L5_HITS: float = float(
     os.getenv("PROPORACLE_MAIN_STANDARD_UNDER_MIN_L5_HITS", "0")
@@ -4727,6 +4764,8 @@ def tennis_allowed_leg(leg) -> bool:
     opp_rank = row.get("opponent_rank")
     if opp_rank is None:
         opp_rank = row.get("opponent_def_rank")
+    if tennis_total_games_over_blocked_by_l5(row):
+        return False
     if pick_type == "goblin" and direction == "OVER":
         if l5_hits < float(TENNIS_GOBLIN_MIN_L5_HITS):
             return False
@@ -13651,7 +13690,8 @@ def _load_step8_board_like(
 
     df = df[df["line"].notna() & (df["line"] >= 0)]
     df = _board_history_enrichment(df, sport)
-    df = _merge_step1_pp_metadata(df, path, sport)
+    if str(sport).strip().lower() == "tennis":
+        df = flip_tennis_total_games_all_under(df)
     df = fill_min_tier_labels(df)
     df = fill_cv_pct_if_missing(df, min_games=3)
     for c in (

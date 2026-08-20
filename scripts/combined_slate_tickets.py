@@ -63,7 +63,7 @@ Jul-25 construction env knobs (MAIN / Goblin / Long; EV = WR × floor):
 - PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE (default 8) — min L10 games for that floor
 - PROPORACLE_MAIN_STANDARD_OVER_MIN_L10_HITS (default 8) — Standard OVER L10 floor
 - PROPORACLE_MAIN_STANDARD_UNDER_MIN_L10_HITS (default 8) — Standard UNDER L10 floor
-- PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS (default 3) — Standard OVER L5 agreement
+- PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS (default 4) — Standard OVER L5 agreement (Aug-19 L5≥4)
 - PROPORACLE_MAIN_STANDARD_UNDER_MIN_L5_HITS (default 0) — Standard UNDER L5 (off; no lift)
 - PROPORACLE_MAIN_MAX_LEGS_PER_GAME (default 2) — hard same-game stack cap
 - PROPORACLE_GOBLIN_4L_SEED_EXTRA / PROPORACLE_MLB_GOBLIN_4L_RANK_BOOST — upweight 4L
@@ -3091,12 +3091,43 @@ ATTEMPT_PROPS = {
     "two pointers attempted",
 }
 
-# Keep priority tiers focused on single-stat regular props.
-# Combo props are still allowed (unless otherwise excluded) but should not get
-# an extra priority bonus versus regular markets.
-TIER1_PROPS = {"points", "rebounds"}
-TIER2_PROPS = {"assists", "3-pt made"}
+# Priority tiers (Aug-19 graded L5≥4 HR): basket single-stat + combos that cleared
+# L5≥4 at high rates (Pts/Asts/Rebs families, 3PT). Combos get Tier1 so tickets
+# seed from the same high-WR pool as the best-props list.
+TIER1_PROPS = {
+    "points",
+    "rebounds",
+    "assists",
+    "3-pt made",
+    "pts+asts",
+    "pts+rebs",
+    "pts+rebs+asts",
+    "rebs+asts",
+    "pra",
+    "pa",
+    "pr",
+    "ra",
+}
+TIER2_PROPS = set()  # reserved; Tier1 absorbed former Tier2 after Aug-19 L5 study
 TIER3_PROPS = {"steals", "blocked shots", "turnovers", "free throws made"}
+
+# Non-basketball props with strong Aug-19 L5≥4 decided HR (n≥8, HR≥65%).
+# Used only for soft ticket-seed priority — not hard exclusions.
+L5_HOT_PROPS_EXTRA = frozenset(
+    {
+        "total games won",
+        "total games",
+        "games won",
+        "games played",
+        "strikeouts",
+        "pitching outs",
+        "pitches thrown",
+        "plate appearances",
+        "hits",
+        "runs",
+        "goals",
+    }
+)
 
 UNDER_ALLOWED_PROPS = {"free throws attempted", "turnovers"}
 
@@ -3889,7 +3920,7 @@ def propagate_alt_book_lines_to_sport_frame(
 
 def _prop_priority_bonus(v: object) -> float:
     p = _norm_prop_label(v)
-    if p in TIER1_PROPS:
+    if p in TIER1_PROPS or p in L5_HOT_PROPS_EXTRA:
         return 0.10
     if p in TIER3_PROPS:
         return -0.10
@@ -4546,8 +4577,10 @@ MAIN_STANDARD_OVER_MIN_L10_HITS: float = float(
 MAIN_STANDARD_UNDER_MIN_L10_HITS: float = float(
     os.getenv("PROPORACLE_MAIN_STANDARD_UNDER_MIN_L10_HITS", "8")
 )
+# Aug-19 graded: L5≥4 lifted decided HR (WNBA ~73%, MLB ~60%, Tennis ~69%).
+# Std OVER agreement floor matches Goblin L5 bar so tickets seed from that pool.
 MAIN_STANDARD_OVER_MIN_L5_HITS: float = float(
-    os.getenv("PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS", "3")
+    os.getenv("PROPORACLE_MAIN_STANDARD_OVER_MIN_L5_HITS", "4")
 )
 MAIN_STANDARD_UNDER_MIN_L5_HITS: float = float(
     os.getenv("PROPORACLE_MAIN_STANDARD_UNDER_MIN_L5_HITS", "0")

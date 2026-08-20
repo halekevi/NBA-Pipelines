@@ -334,18 +334,30 @@ body::after{content:'';position:fixed;inset:0;
 .edge-line-badge{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .edge-mini{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;white-space:normal;overflow:hidden;text-align:right;line-height:1.25;max-width:168px;}
 .pick-demon{background:rgba(255,127,159,.12);color:#ff9db8;border:1px solid rgba(255,127,159,.28);}
-.te-legend{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 14px;}
-.te-sport-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;padding:0;align-items:center;}
+.te-legend{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 10px;}
+.te-legend-short{margin:0;}
+.te-legend details{margin:0;}
+.te-legend summary{
+  cursor:pointer;list-style:none;color:var(--muted2,#b8c0d0);font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;user-select:none;
+}
+.te-legend summary::-webkit-details-marker{display:none;}
+.te-legend summary::after{content:"▸";font-size:10px;opacity:.7;transition:transform .15s;}
+.te-legend details[open] summary::after{transform:rotate(90deg);}
+.te-legend-full{margin:6px 0 0;max-width:62ch;}
+.te-sport-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0;align-items:center;}
 .te-sport-tab{
   appearance:none;cursor:pointer;border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.04);color:var(--muted2,#b8c0d0);
   font-family:"Inter",sans-serif;font-size:12px;font-weight:650;letter-spacing:.04em;
   padding:8px 12px;border-radius:999px;min-height:36px;line-height:1;
-  display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s,color .15s;
+  display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s,color .15s,opacity .15s;
 }
 .te-sport-tab:hover{border-color:rgba(255,255,255,.28);color:#fff;background:rgba(255,255,255,.07);}
 .te-sport-tab:focus-visible{outline:2px solid rgba(240,165,0,.55);outline-offset:2px;}
 .te-sport-tab.active{border-color:rgba(240,165,0,.55);background:rgba(240,165,0,.14);color:#f0d080;}
+.te-sport-tab.is-empty{opacity:.42;}
+.te-sport-tab.is-empty:not(.active):hover{opacity:.7;}
 .te-sport-tab .te-tab-count{
   font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;
   opacity:.75;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.25);
@@ -355,7 +367,16 @@ body::after{content:'';position:fixed;inset:0;
 .te-sport[hidden]{display:none!important;}
 .te-sport-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:0 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
 .te-sport-hd span{font-family:"Inter",sans-serif;font-size:11px;letter-spacing:.04em;color:var(--muted);font-weight:600;}
+#top-edges-board.te-board--single .te-sport-hd .te-sport-name{display:none;}
+#top-edges-board.te-board--single .te-sport-hd{font-size:0;margin:0 0 10px;}
+#top-edges-board.te-board--single .te-sport-hd span{
+  font-size:11px;letter-spacing:.04em;font-family:"Inter",sans-serif;font-weight:600;
+}
 .te-empty{font-size:12px;color:var(--muted);padding:6px 0 12px;}
+.te-sport-empty{
+  font-size:13px;color:var(--muted);padding:18px 4px 8px;text-align:left;
+  border:1px dashed rgba(255,255,255,.1);border-radius:12px;margin:4px 0 8px;
+}
 @media (max-width:640px){
   .te-sport-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:12px;gap:6px;}
   .te-sport-tab{flex:0 0 auto;white-space:nowrap;padding:7px 11px;font-size:11px;}
@@ -2236,7 +2257,12 @@ body > nav.snav.glass-card {
       <a href="/tickets" class="edges-see-all">See All Picks ↗</a>
     </div>
     <div id="top-edges-debug" hidden aria-hidden="true"></div>
-    <div class="te-legend">L5 4+ on the play side. WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers), no prop preference.</div>
+    <div class="te-legend">
+      <details>
+        <summary>L5 4+ · D-aligned overs/unders</summary>
+        <p class="te-legend-full">WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers). D miss lowers badge; it does not remove the play from this board when L5 clears.</p>
+      </details>
+    </div>
     <div id="top-edges-sport-tabs" class="te-sport-tabs" role="tablist" aria-label="Filter Top Edges by sport">
       <button type="button" class="te-sport-tab active" role="tab" data-sport="ALL" aria-selected="true"><span>All</span></button>
       <button type="button" class="te-sport-tab" role="tab" data-sport="WNBA" aria-selected="false"><span>WNBA</span></button>
@@ -4457,6 +4483,7 @@ function applyTopEdgesSportFilter(sport) {
   try { sessionStorage.setItem("teSportFilter", want); } catch (_) { /* ignore */ }
   const board = document.getElementById("top-edges-board");
   if (board) {
+    board.classList.toggle("te-board--single", want !== "ALL");
     board.querySelectorAll(".te-sport[data-sport]").forEach((el) => {
       const sp = String(el.getAttribute("data-sport") || "").toUpperCase();
       el.hidden = want !== "ALL" && sp !== want;
@@ -4483,10 +4510,12 @@ function renderTopEdgesSportTabs(counts) {
   for (const [sp, n] of items) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "te-sport-tab" + (sp === _teSportFilter ? " active" : "");
+    const empty = sp !== "ALL" && n <= 0;
+    btn.className = "te-sport-tab" + (sp === _teSportFilter ? " active" : "") + (empty ? " is-empty" : "");
     btn.setAttribute("role", "tab");
     btn.setAttribute("data-sport", sp);
     btn.setAttribute("aria-selected", sp === _teSportFilter ? "true" : "false");
+    if (empty) btn.title = "No clears for this sport on the current slate";
     const label = sp === "ALL" ? "All" : (sp === "SOCCER" ? "Soccer" : sp);
     btn.innerHTML = `<span>${label}</span><span class="te-tab-count">${n}</span>`;
     btn.addEventListener("click", () => applyTopEdgesSportFilter(sp));
@@ -4511,7 +4540,6 @@ function renderBadgeTopEdges(board) {
     SOCCER: "Weak/Below Avg overs · Elite/Above Avg unders",
     TENNIS: "opponent ATP/WTA rank",
   };
-  const emptyMsg = "none that clear L5 4+ / D filter";
   const counts = {};
   let cardN = 0;
   for (const sp of TopEdgesBadgeBoard.SPORTS) {
@@ -4523,25 +4551,27 @@ function renderBadgeTopEdges(board) {
     wrap.setAttribute("data-sport", sp);
     const hd = document.createElement("div");
     hd.className = "te-sport-hd";
-    hd.innerHTML = `${sp}<span>${notes[sp] || ""}</span>`;
+    hd.innerHTML = `<span class="te-sport-name">${sp}</span><span>${notes[sp] || ""}</span>`;
     wrap.appendChild(hd);
+    if (!nCards) {
+      const em = document.createElement("div");
+      em.className = "te-sport-empty";
+      em.textContent = "No L5 4+ / D-aligned clears on this slate.";
+      wrap.appendChild(em);
+      board.appendChild(wrap);
+      continue;
+    }
     const blocks = [
       ["Standard OVER", buckets.stdO],
       ["Goblin OVER", buckets.gob],
       ["Standard UNDER", buckets.stdU],
     ];
     for (const [label, list] of blocks) {
+      if (!list.length) continue;
       const lab = document.createElement("div");
       lab.className = "edge-bucket-label";
       lab.textContent = label;
       wrap.appendChild(lab);
-      if (!list.length) {
-        const em = document.createElement("div");
-        em.className = "te-empty";
-        em.textContent = emptyMsg;
-        wrap.appendChild(em);
-        continue;
-      }
       const grid = document.createElement("div");
       grid.className = "edge-grid";
       for (const rec of list) {

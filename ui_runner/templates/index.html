@@ -335,10 +335,31 @@ body::after{content:'';position:fixed;inset:0;
 .edge-mini{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;white-space:normal;overflow:hidden;text-align:right;line-height:1.25;max-width:168px;}
 .pick-demon{background:rgba(255,127,159,.12);color:#ff9db8;border:1px solid rgba(255,127,159,.28);}
 .te-legend{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 14px;}
+.te-sport-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;padding:0;align-items:center;}
+.te-sport-tab{
+  appearance:none;cursor:pointer;border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.04);color:var(--muted2,#b8c0d0);
+  font-family:"Inter",sans-serif;font-size:12px;font-weight:650;letter-spacing:.04em;
+  padding:8px 12px;border-radius:999px;min-height:36px;line-height:1;
+  display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s,color .15s;
+}
+.te-sport-tab:hover{border-color:rgba(255,255,255,.28);color:#fff;background:rgba(255,255,255,.07);}
+.te-sport-tab:focus-visible{outline:2px solid rgba(240,165,0,.55);outline-offset:2px;}
+.te-sport-tab.active{border-color:rgba(240,165,0,.55);background:rgba(240,165,0,.14);color:#f0d080;}
+.te-sport-tab .te-tab-count{
+  font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;
+  opacity:.75;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.25);
+}
+.te-sport-tab.active .te-tab-count{opacity:.95;background:rgba(0,0,0,.35);color:#ffe9b0;}
 .te-sport{margin:0 0 22px;}
+.te-sport[hidden]{display:none!important;}
 .te-sport-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:0 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
 .te-sport-hd span{font-family:"Inter",sans-serif;font-size:11px;letter-spacing:.04em;color:var(--muted);font-weight:600;}
 .te-empty{font-size:12px;color:var(--muted);padding:6px 0 12px;}
+@media (max-width:640px){
+  .te-sport-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:12px;gap:6px;}
+  .te-sport-tab{flex:0 0 auto;white-space:nowrap;padding:7px 11px;font-size:11px;}
+}
 .te-badge{font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle;}
 .te-badge-gold{background:rgba(212,175,55,.18);color:#d4af37;border:1px solid rgba(212,175,55,.45);}
 .te-badge-silver{background:rgba(180,190,210,.16);color:#c5d0e0;border:1px solid rgba(180,190,210,.4);}
@@ -2216,6 +2237,13 @@ body > nav.snav.glass-card {
     </div>
     <div id="top-edges-debug" hidden aria-hidden="true"></div>
     <div class="te-legend">L5 4+ on the play side. WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers), no prop preference.</div>
+    <div id="top-edges-sport-tabs" class="te-sport-tabs" role="tablist" aria-label="Filter Top Edges by sport">
+      <button type="button" class="te-sport-tab active" role="tab" data-sport="ALL" aria-selected="true"><span>All</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="WNBA" aria-selected="false"><span>WNBA</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="MLB" aria-selected="false"><span>MLB</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="SOCCER" aria-selected="false"><span>Soccer</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="TENNIS" aria-selected="false"><span>Tennis</span></button>
+    </div>
     <div id="top-edges-board"></div>
     <div id="over-edges-standard" class="edge-grid" hidden></div>
     <div id="over-edges-goblin" class="edge-grid" hidden></div>
@@ -4417,6 +4445,55 @@ async function loadTopEdgesSportPool() {
   return _topEdgesPoolPromise;
 }
 
+let _teSportFilter = "ALL";
+try {
+  const saved = sessionStorage.getItem("teSportFilter");
+  if (saved && /^(ALL|WNBA|MLB|SOCCER|TENNIS)$/i.test(saved)) _teSportFilter = saved.toUpperCase();
+} catch (_) { /* ignore */ }
+
+function applyTopEdgesSportFilter(sport) {
+  const want = String(sport || "ALL").trim().toUpperCase() || "ALL";
+  _teSportFilter = want;
+  try { sessionStorage.setItem("teSportFilter", want); } catch (_) { /* ignore */ }
+  const board = document.getElementById("top-edges-board");
+  if (board) {
+    board.querySelectorAll(".te-sport[data-sport]").forEach((el) => {
+      const sp = String(el.getAttribute("data-sport") || "").toUpperCase();
+      el.hidden = want !== "ALL" && sp !== want;
+    });
+  }
+  const tabs = document.getElementById("top-edges-sport-tabs");
+  if (tabs) {
+    tabs.querySelectorAll(".te-sport-tab").forEach((btn) => {
+      const sp = String(btn.getAttribute("data-sport") || "").toUpperCase();
+      const on = sp === want;
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+}
+
+function renderTopEdgesSportTabs(counts) {
+  const host = document.getElementById("top-edges-sport-tabs");
+  if (!host) return;
+  const sports = (window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.SPORTS) || ["WNBA", "MLB", "SOCCER", "TENNIS"];
+  const total = sports.reduce((n, sp) => n + (Number(counts?.[sp]) || 0), 0);
+  const items = [["ALL", total], ...sports.map((sp) => [sp, Number(counts?.[sp]) || 0])];
+  host.innerHTML = "";
+  for (const [sp, n] of items) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "te-sport-tab" + (sp === _teSportFilter ? " active" : "");
+    btn.setAttribute("role", "tab");
+    btn.setAttribute("data-sport", sp);
+    btn.setAttribute("aria-selected", sp === _teSportFilter ? "true" : "false");
+    const label = sp === "ALL" ? "All" : (sp === "SOCCER" ? "Soccer" : sp);
+    btn.innerHTML = `<span>${label}</span><span class="te-tab-count">${n}</span>`;
+    btn.addEventListener("click", () => applyTopEdgesSportFilter(sp));
+    host.appendChild(btn);
+  }
+}
+
 function renderBadgeTopEdges(board) {
   const os = document.getElementById("over-edges-standard");
   const og = document.getElementById("over-edges-goblin");
@@ -4435,11 +4512,15 @@ function renderBadgeTopEdges(board) {
     TENNIS: "opponent ATP/WTA rank",
   };
   const emptyMsg = "none that clear L5 4+ / D filter";
+  const counts = {};
   let cardN = 0;
   for (const sp of TopEdgesBadgeBoard.SPORTS) {
     const buckets = ranked[sp] || { stdO: [], stdU: [], gob: [] };
+    const nCards = (buckets.stdO?.length || 0) + (buckets.stdU?.length || 0) + (buckets.gob?.length || 0);
+    counts[sp] = nCards;
     const wrap = document.createElement("div");
     wrap.className = "te-sport";
+    wrap.setAttribute("data-sport", sp);
     const hd = document.createElement("div");
     hd.className = "te-sport-hd";
     hd.innerHTML = `${sp}<span>${notes[sp] || ""}</span>`;
@@ -4474,6 +4555,8 @@ function renderBadgeTopEdges(board) {
     }
     board.appendChild(wrap);
   }
+  renderTopEdgesSportTabs(counts);
+  applyTopEdgesSportFilter(_teSportFilter);
   wireEdgeCardExpandHandlers();
   const emptyHost = document.getElementById("top-edges-empty");
   if (emptyHost) {

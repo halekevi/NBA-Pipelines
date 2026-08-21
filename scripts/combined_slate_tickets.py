@@ -4569,6 +4569,14 @@ MAIN_LONG_GOBLIN_MIN_L5_HITS: float = float(
 # Aug-8: Goblin L5>=4 + L10>=8/10 → ~70.8% (+4.3 vs L5>=4 alone). Set 0 to disable.
 MAIN_GOBLIN_MIN_L10_HITS: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_HITS", "8"))
 MAIN_GOBLIN_MIN_L10_SAMPLE: float = float(os.getenv("PROPORACLE_MAIN_GOBLIN_MIN_L10_SAMPLE", "8"))
+# Soccer Goblin OVER L10 counts rarely reach 8 (slate max often ~5). Keep L5>=4 as the
+# primary bar and use a soccer-specific L10 floor so soft-void L5 boards are not wiped.
+MAIN_GOBLIN_SOCCER_MIN_L10_HITS: float = float(
+    os.getenv("PROPORACLE_MAIN_GOBLIN_SOCCER_MIN_L10_HITS", "4")
+)
+MAIN_GOBLIN_SOCCER_MIN_L10_SAMPLE: float = float(
+    os.getenv("PROPORACLE_MAIN_GOBLIN_SOCCER_MIN_L10_SAMPLE", "4")
+)
 # Hard same-game cap: reject tickets with >N legs from one matchup (correlation).
 MAIN_MAX_LEGS_PER_GAME: int = int(os.getenv("PROPORACLE_MAIN_MAX_LEGS_PER_GAME", "2"))
 # Aug8–9 pooled: Std OVER base ~39% → L10≥8 ~51%; +L5≥3 agreement ~60%.
@@ -5804,7 +5812,9 @@ def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> boo
     """
     MAIN Goblin recency floors for MLB/WNBA/Tennis/Soccer:
       - directional L5 >= MAIN_GOBLIN_MIN_L5_HITS (default 4; long slips may pass 5)
-      - directional L10 >= MAIN_GOBLIN_MIN_L10_HITS with sample >= MIN_L10_SAMPLE (default 8/8)
+      - directional L10 >= MAIN_GOBLIN_MIN_L10_HITS (default 8) with sample >= MIN_L10_SAMPLE
+        (Soccer uses MAIN_GOBLIN_SOCCER_MIN_L10_HITS, default 4 — L10=8 is near-impossible
+        on soccer Goblin OVER boards)
 
     Standards are not gated here. Disable L5 with MIN_L5=0; disable L10 with MIN_L10=0.
     """
@@ -5823,14 +5833,19 @@ def _row_main_goblin_l5_ok(row_d: dict, *, min_hits: float | None = None) -> boo
                 return False
         elif float(hits) + 1e-9 < floor:
             return False
-    l10_floor = float(MAIN_GOBLIN_MIN_L10_HITS)
+    l10_floor = float(
+        MAIN_GOBLIN_SOCCER_MIN_L10_HITS if soccer else MAIN_GOBLIN_MIN_L10_HITS
+    )
+    l10_sample = float(
+        MAIN_GOBLIN_SOCCER_MIN_L10_SAMPLE if soccer else MAIN_GOBLIN_MIN_L10_SAMPLE
+    )
     if l10_floor > 0:
         h10, n10 = _row_directional_l10_hits(row_d)
         if h10 is None or n10 is None:
             if soccer:
                 return True
             return False
-        if float(n10) + 1e-9 < float(MAIN_GOBLIN_MIN_L10_SAMPLE):
+        if float(n10) + 1e-9 < l10_sample:
             return False
         if float(h10) + 1e-9 < l10_floor:
             return False

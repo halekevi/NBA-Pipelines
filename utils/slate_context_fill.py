@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 
@@ -81,3 +83,186 @@ def summarize_board_context_fill(df: pd.DataFrame) -> dict[str, int]:
         "min_tier": int(mt_ok.sum()),
         "g3": g3,
     }
+
+
+def _norm_txt(v: object) -> str:
+    return re.sub(r"\s+", " ", str(v or "").strip().lower())
+
+
+def _norm_pick_type_label(x: object) -> str:
+    t = str(x or "").strip().lower()
+    if "gob" in t:
+        return "Goblin"
+    if "dem" in t:
+        return "Demon"
+    return "Standard"
+
+
+def is_pitcher_strikeout_row(row: pd.Series | dict) -> bool:
+    """True when the market is pitcher Ks (not hitter/batter Ks)."""
+    if isinstance(row, dict):
+        prop = row.get("prop_type") or row.get("prop") or row.get("prop_norm") or ""
+        ptype = row.get("player_type") or row.get("player_type_norm") or row.get("pos") or ""
+    else:
+        prop = row.get("prop_type") or row.get("prop") or row.get("prop_norm") or ""
+        ptype = row.get("player_type") or row.get("player_type_norm") or row.get("pos") or ""
+    p = _norm_txt(prop)
+    compact = "".join(ch for ch in p if ch.isalnum())
+    if "hitter" in p or "batter" in p:
+        return False
+    pt = _norm_txt(ptype)
+    if "hitter" in pt or "batter" in pt:
+        return False
+    is_k = (
+        "strikeout" in p
+        or compact in {"ks", "so", "k", "pitchingstrikeouts", "pitcherstrikeouts"}
+    )
+    if not is_k:
+        return False
+    if "pitch" in pt or pt in {"p", "sp", "rp", "cp", "lhp", "rhp"}:
+        return True
+    return "hitter" not in p and "batter" not in p
+
+
+def strip_pitcher_ks_hitter_defense(df: pd.DataFrame) -> pd.DataFrame:
+    """Pitcher Ks face opposing bats, not opposing 'defense' rank/tier (hitter D)."""
+    if df is None or df.empty:
+        return df
+    out = df.copy()
+    mask = out.apply(is_pitcher_strikeout_row, axis=1)
+    if not bool(mask.any()):
+        return out
+    for col in (
+        "opponent_def_rank",
+        "opp_def_rank",
+        "OVERALL_DEF_RANK",
+        "def_rank",
+        "def_tier",
+        "DEF_TIER",
+        "opponent_def_tier",
+    ):
+        if col in out.columns:
+            out.loc[mask, col] = pd.NA
+    return out
+
+
+def overlay_live_step1_board(df: pd.DataFrame, step1: pd.DataFrame) -> pd.DataFrame:
+    """Prefer live PrizePicks line + pick_type from latest step1 onto step8 rows.
+
+    Match projection_id when present, else player+prop (and pick_type when unique).
+    Goblin/Demon live cards force OVER (PP alt markets are More-only).
+    """
+    if df is None or df.empty or step1 is None or step1.empty:
+        return df
+    out = df.copy()
+    s1 = step1.copy()
+    for col in ("player", "prop_type", "pick_type", "line"):
+        if col not in s1.columns:
+            if col == "prop_type" and "prop" in s1.columns:
+                s1["prop_type"] = s1["prop"]
+            elif col == "pick_type" and "pick" in s1.columns:
+                s1["pick_type"] = s1["pick"]
+    if "player" not in s1.columns or "prop_type" not in s1.columns:
+        return out
+    if "pick_type" in s1.columns:
+        s1["pick_type"] = s1["pick_type"].map(_norm_pick_type_label)
+    s1["_p"] = s1["player"].map(_norm_txt)
+    s1["_pr"] = s1["prop_type"].map(_norm_txt)
+    s1["_line"] = pd.to_numeric(s1.get("line"), errors="coerce")
+
+    live_by_id: dict[str, pd.Series] = {}
+    id_col = next((c for c in ("projection_id", "pp_projection_id") if c in s1.columns), None)
+    if id_col:
+        for _, r in s1.iterrows():
+            kid = str(r.get(id_col) or "").strip()
+            if kid and kid.lower() not in {"nan", "none", ""}:
+                live_by_id[kid] = r
+
+    groups: dict[tuple[str, str], pd.DataFrame] = {}
+    for (p, pr), g in s1.groupby(["_p", "_pr"], dropna=False):
+        groups[(str(p), str(pr))] = g
+
+    out_id = None
+    for c in ("projection_id", "pp_projection_id"):
+        if c in out.columns:
+            out_id = c
+            break
+
+    for idx, row in out.iterrows():
+        live = None
+        if out_id is not None:
+            kid = str(row.get(out_id) or "").strip()
+            live = live_by_id.get(kid)
+        if live is None:
+            key = (_norm_txt(row.get("player")), _norm_txt(row.get("prop_type") or row.get("prop")))
+            g = groups.get(key)
+            if g is None or g.empty:
+                continue
+            if len(g) == 1:
+                live = g.iloc[0]
+            else:
+                pt = _norm_pick_type_label(row.get("pick_type"))
+                same_pt = g[g["pick_type"].astype(str) == pt] if "pick_type" in g.columns else g.iloc[0:0]
+                if len(same_pt) == 1:
+                    live = same_pt.iloc[0]
+                else:
+                    live_pts = set(g["pick_type"].astype(str).tolist()) if "pick_type" in g.columns else set()
+                    if pt == "Standard" and live_pts and live_pts.isdisjoint({"Standard"}):
+                        live = g.iloc[0]
+                    else:
+                        line = pd.to_numeric(pd.Series([row.get("line")]), errors="coerce").iloc[0]
+                        if pd.notna(line) and "_line" in g.columns:
+                            near = g[np.isclose(g["_line"].fillna(-999), float(line), atol=0.05)]
+                            if len(near) >= 1:
+                                live = near.iloc[0]
+                        if live is None:
+                            live = g.iloc[0]
+        if live is None:
+            continue
+        live_line = pd.to_numeric(pd.Series([live.get("line")]), errors="coerce").iloc[0]
+        live_pt = _norm_pick_type_label(live.get("pick_type"))
+        if pd.notna(live_line):
+            out.at[idx, "line"] = float(live_line)
+        if live_pt:
+            out.at[idx, "pick_type"] = live_pt
+        if live_pt in ("Goblin", "Demon"):
+            out.at[idx, "direction"] = "OVER"
+    return out
+
+
+def tennis_total_games_over_blocked_by_l5(row: pd.Series | dict) -> bool:
+    """Do not rank Total Games OVER when L5 is all under the current line."""
+    if isinstance(row, dict):
+        prop = row.get("prop_type") or row.get("prop") or ""
+        direction = row.get("direction") or row.get("over_under") or ""
+        l5o = row.get("l5_over")
+        l5u = row.get("l5_under")
+    else:
+        prop = row.get("prop_type") or row.get("prop") or ""
+        direction = row.get("direction") or row.get("over_under") or ""
+        l5o = row.get("l5_over") if "l5_over" in row.index else None
+        l5u = row.get("l5_under") if "l5_under" in row.index else None
+    p = _norm_txt(prop)
+    compact = "".join(ch for ch in p if ch.isalnum())
+    if "games won" in p or compact in {"gameswon", "totalgameswon"}:
+        return False
+    if "total games" not in p and compact not in {"totalgames", "gamesplayed", "matchtotalgames"}:
+        return False
+    if str(direction or "").strip().upper() != "OVER":
+        return False
+    over_n = pd.to_numeric(pd.Series([l5o]), errors="coerce").iloc[0]
+    under_n = pd.to_numeric(pd.Series([l5u]), errors="coerce").iloc[0]
+    if pd.isna(over_n) or pd.isna(under_n):
+        return False
+    return float(over_n) <= 0.0 and float(under_n) >= 4.0
+
+
+def flip_tennis_total_games_all_under(df: pd.DataFrame) -> pd.DataFrame:
+    """If L5 vs current line is 0 over / ≥4 under, recommend UNDER not OVER."""
+    if df is None or df.empty or "direction" not in df.columns:
+        return df
+    out = df.copy()
+    for idx, row in out.iterrows():
+        if tennis_total_games_over_blocked_by_l5(row):
+            out.at[idx, "direction"] = "UNDER"
+    return out

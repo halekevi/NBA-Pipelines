@@ -6426,8 +6426,9 @@ def _row_high_leg_hr_reserved(
     graded_ctx: dict[str, Any] | None = None,
 ) -> bool:
     """
-    Legs reserved for the high-leg-HR ticket section (win-rate / Today's Best).
-    Excluded from main graded ticket pool so performance tracking stays clean.
+    Legs that also qualify for the HIGH LEG HR ticket section (win-rate / Today's Best).
+
+    These are shared with graded main (not exclusively removed from the main pool).
     """
     return _row_win_rate_eligible(
         row,
@@ -21304,14 +21305,13 @@ def main():
             else:
                 demon_passed = 0
 
-        # Main EV tickets: reserve win-rate picks so they are not reused in loose EV parlays.
-        # Main win-rate builder must see the full eligible pool (for_win_rate=True).
+        # High-leg-HR legs stay on graded main AND feed the HIGH LEG HR panel.
+        # (Exclusive reserve used to strip WNBA/MLB from main while the panel often
+        # published empty — legs should be shared across both tracks.)
         if not getattr(args, "win_rate_mode", False) and not for_win_rate and len(filtered_df) > 0:
             _hr_min_prob = float(getattr(args, "min_leg_prob", 0.55) or 0.55)
 
-            def _reserve_for_win_rate(row: pd.Series) -> bool:
-                # Keep sport-gated Soccer / Tennis legs on the main board (not stolen
-                # into a separate win-rate section that rarely emits those sports).
+            def _mark_high_leg_hr(row: pd.Series) -> bool:
                 if sport == "TENNIS" and tennis_allowed_leg(row):
                     return False
                 if sport in ("SOCCER", "SOC") and soccer_allowed_leg(row):
@@ -21323,13 +21323,12 @@ def main():
                     graded_ctx=_graded_ctx_main,
                 )
 
-            _hr_mask = filtered_df.apply(_reserve_for_win_rate, axis=1)
+            _hr_mask = filtered_df.apply(_mark_high_leg_hr, axis=1)
             _hr_n = int(_hr_mask.sum())
             if _hr_n > 0:
-                filtered_df = filtered_df[~_hr_mask].copy()
                 print(
-                    f"  [pool] Reserved {_hr_n} high-leg-HR legs for win-rate section "
-                    f"(excluded from graded main tickets)"
+                    f"  [pool] {_hr_n} high-leg-HR legs kept on graded main "
+                    f"(also eligible for HIGH LEG HR panel — shared, not exclusive)"
                 )
 
         # Tier floor: exclude Tier D from all pools
@@ -23998,7 +23997,7 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
     """Pinned panel: top 5 win-rate tickets (sorted by est_win_prob, bench legs filtered)."""
     _placeholder = (
         '<motionless class="winrate-best-panel" id="winrate-best-panel" aria-live="polite">'
-        '<motionless class="winrate-best-title">⚡ HIGH LEG HR — Not in graded main track</motionless>'
+        '<motionless class="winrate-best-title">⚡ HIGH LEG HR</motionless>'
         '<motionless class="winrate-best-sub">High-leg-HR tickets generating…</motionless>'
         "</motionless>"
     ).replace("motionless", "div")
@@ -24029,10 +24028,10 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
     if not top:
         return (
             '<div class="winrate-best-panel" id="winrate-best-panel">'
-            '<div class="winrate-best-title">⚡ HIGH LEG HR — Not in graded main track</div>'
+            '<div class="winrate-best-title">⚡ HIGH LEG HR</div>'
             '<div class="winrate-best-sub">No qualifying high-leg-HR tickets for this slate '
             '(deep-bench SUPPORT legs and same-game bench stacks are excluded). '
-            'Rebuild win-rate JSON after the next ticket run.</div>'
+            'These legs can still appear on graded main. Rebuild after the next ticket run.</div>'
             "</div>"
         )
     rows: list[str] = []
@@ -24077,14 +24076,14 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
             f'<div>EV {_fmt(ev_f, 1)} · Payout {_fmt(pay_f, 1)}x · {int(n_legs)}-leg</div>'
             f"</span></div>"
         )
-    sub_parts = ["High-leg-HR only — excluded from graded main track · sorted by modeled win probability"]
+    sub_parts = ["High-leg HR spotlight · also eligible on graded main · sorted by modeled win probability"]
     if generated_at:
         sub_parts.append(f"Updated: {generated_at}")
     sub = _h(" · ".join(sub_parts))
     body = "".join(rows)
     return (
         '<div class="winrate-best-panel" id="winrate-best-panel">'
-        '<div class="winrate-best-title">⚡ HIGH LEG HR — Not in graded main track</div>'
+        '<div class="winrate-best-title">⚡ HIGH LEG HR</div>'
         f'<div class="winrate-best-sub">{sub}</div>'
         f"{body}"
         "</div>"

@@ -5610,13 +5610,10 @@ _WIN_RATE_PRIMARY_SPORTS = frozenset(
 )
 # Extra sports formerly needed leg_prob>=0.60; now treated as primary when in MAIN pool.
 _WIN_RATE_EXTRA_SPORTS = frozenset()
-# Prop norms banned from MAIN / win-rate high-prob tickets (graded slice evidence).
+# Historical Goblin prop norms (Jul graded slices). Soft reference / audit only —
+# Aug 2026: hard sport bans removed from MAIN eligibility (_main_leg_prop_banned).
 MAIN_BANNED_GOBLIN_PROP_NORMS: dict[str, frozenset[str]] = {
-    # Tennis Ace/DF Goblin OVER: 0% on Jul-22 (0/20) and Jul-23 (0/9) — hard ban.
     "TENNIS": frozenset({"aces", "ace", "doublefaults", "doublefault"}),
-    # Soccer Goblin OVER is not globally banned.
-    # MLB: Jul-18 miss engine was Hits / TB / H+R+RBI Goblin OVER 0.5 on long tickets.
-    # Prefer pitcher props (same allowlist philosophy as STRONG).
     "MLB": frozenset(
         {
             "hits",
@@ -5640,7 +5637,7 @@ MAIN_BANNED_GOBLIN_PROP_NORMS: dict[str, frozenset[str]] = {
     ),
 }
 
-# MLB Goblin OVER props still allowed on MAIN (pitcher-centric).
+# Pitcher-centric MLB Goblin norms (audit / stress floors; not a hard eligibility ban).
 MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS: frozenset[str] = frozenset(
     {
         "strikeouts",  # pitcher Ks when not tagged hitter/batter
@@ -5981,32 +5978,14 @@ def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:
 
 
 def _main_leg_prop_banned(row_d: dict) -> bool:
-    """True when sport×pick×prop is a known low-HR MAIN ban."""
-    sport = str(row_d.get("sport") or "").strip().upper()
-    pick = str(row_d.get("pick_type") or "").strip().lower()
-    direction = str(
-        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
-    ).strip().upper()
+    """Fantasy Score exclusion only.
+
+    Sport Goblin bans (esp. MLB hitter Goblin OVER pitcher-allowlist / Tennis Ace·DF)
+    were removed from MAIN eligibility Aug 2026 — they wiped L5+D seed legs.
+    Standard prop×direction ledger gates and Demon exclusion remain elsewhere.
+    """
     prop_raw = row_d.get("prop_type") or row_d.get("prop") or ""
-    if _is_fantasy_prop_label(prop_raw):
-        return True
-    prop = _norm_main_prop_key(prop_raw)
-    if sport == "MLB" and "goblin" in pick and direction == "OVER":
-        # Hard-ban hitter core Goblin OVERs (Hits/TB/HRRBI/…). Pitcher allowlist only.
-        if not prop:
-            return True
-        if prop in MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS:
-            return False
-        if prop in MAIN_BANNED_GOBLIN_PROP_NORMS.get("MLB", frozenset()):
-            return True
-        # Unknown MLB Goblin OVER prop: ban (fail closed toward pitcher-centric board).
-        return True
-    if "goblin" not in pick:
-        return False
-    banned = MAIN_BANNED_GOBLIN_PROP_NORMS.get(sport)
-    if not banned:
-        return False
-    return bool(prop) and prop in banned
+    return bool(_is_fantasy_prop_label(prop_raw))
 
 
 def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
@@ -6022,8 +6001,10 @@ def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
 def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
     """
     Shared hygiene for MAIN / FINAL / long-parlay builders:
-    banned MLB Goblin OVER props + Standard prop×direction ledger gates +
+    Fantasy Score exclusion + Standard prop×direction ledger gates +
     MLB Standard OVER at perfect L5.
+
+    MLB hitter / Tennis Ace·DF Goblin sport bans are intentionally not applied.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
@@ -6451,6 +6432,65 @@ def _row_high_leg_hr_reserved(
     )
 
 
+def _row_composite_hr_value(row_d: dict) -> float:
+    """Empirical HR for win-rate / four-leg gates.
+
+    WNBA (and some other) step8 exports often omit ``hit_rate`` /
+    ``composite_hit_rate`` while still shipping ``line_hit_rate``,
+    ``last5_hit_rate``, or directional L5 counts. Treating missing as 0.0
+    wiped L5+D best-props from the MAIN seed pool.
+    """
+    for key in (
+        "composite_hit_rate",
+        "hit_rate",
+        "line_hit_rate",
+        "last5_hit_rate",
+        "l5_side_hit_rate",
+        "hit_rate_l5",
+    ):
+        raw = row_d.get(key)
+        if raw is None or raw == "":
+            continue
+        try:
+            v = float(raw)
+            if not math.isfinite(v):
+                continue
+            if v > 1.0:
+                v = v / 100.0
+            return float(v)
+        except (TypeError, ValueError):
+            continue
+    direction = str(
+        row_d.get("direction")
+        or row_d.get("over_under")
+        or row_d.get("bet_direction")
+        or row_d.get("final_bet_direction")
+        or ""
+    ).strip().upper()
+    side_keys = (
+        ("under_hit_rate",)
+        if direction in ("UNDER", "LOWER")
+        else ("over_hit_rate", "l10_over_pct")
+    )
+    for key in side_keys:
+        raw = row_d.get(key)
+        if raw is None or raw == "":
+            continue
+        try:
+            v = float(raw)
+            if not math.isfinite(v):
+                continue
+            if v > 1.0:
+                v = v / 100.0
+            return float(v)
+        except (TypeError, ValueError):
+            continue
+    hits = _row_directional_l5_hits(row_d)
+    if hits is not None and float(hits) >= 0.0:
+        return float(min(1.0, float(hits) / 5.0))
+    return 0.0
+
+
 def _row_win_rate_eligible(
     row: pd.Series | dict,
     *,
@@ -6468,7 +6508,7 @@ def _row_win_rate_eligible(
         row_d = dict(row)
     if graded_ctx and _row_in_avoid_slice(row_d, graded_ctx):
         return False
-    # Includes MLB Std OVER + MAIN banned Goblin props (MLB pitcher allowlist, Tennis, …).
+    # Includes Standard prop×direction gates + MLB Std OVER L5=5 avoid (not Goblin sport bans).
     if _leg_mlb_construction_banned(row_d):
         return False
     pt = str(row_d.get("pick_type") or "").strip().lower()
@@ -6499,13 +6539,7 @@ def _row_win_rate_eligible(
         pass
     else:
         return False
-    comp = row_d.get("composite_hit_rate")
-    if comp is None or comp == "":
-        comp = row_d.get("hit_rate")
-    try:
-        comp_f = float(comp) if comp is not None and comp != "" else 0.0
-    except (TypeError, ValueError):
-        comp_f = 0.0
+    comp_f = _row_composite_hr_value(row_d)
     if comp_f < float(min_composite_hr):
         return False
     leg_prob = _leg_prob_for_p_win_from_mapping(row_d)
@@ -6741,8 +6775,7 @@ def _winrate_ticket_mlb_same_game_hitter_stack(ticket: dict) -> bool:
     """
     Audit helper: 2+ MLB hitter props from the same game (or same team).
 
-    Not a hard MAIN reject — Jul 14–18 rebuild showed this gate adds no lift once
-    hitter Goblin OVER props are already banned at the leg pool.
+    Not a hard MAIN reject — kept as an audit signal for same-game hitter stacks.
     """
     legs = [leg for leg in (ticket.get("legs") or ticket.get("rows") or []) if isinstance(leg, dict)]
     mlb_hitters = [leg for leg in legs if _winrate_leg_is_mlb_hitter_prop(leg)]
@@ -6981,14 +7014,7 @@ def _row_main_four_leg_eligible(row: pd.Series | dict) -> bool:
     leg_p = _leg_prob_for_p_win_from_mapping(row_d)
     if leg_p < float(MAIN_FOUR_LEG_MIN_LEG_PROB):
         return False
-    comp = row_d.get("composite_hit_rate")
-    if comp is None or comp == "":
-        comp = row_d.get("hit_rate")
-    try:
-        comp_f = float(comp) if comp is not None and comp != "" else 0.0
-    except (TypeError, ValueError):
-        comp_f = 0.0
-    if comp_f < float(MAIN_FOUR_LEG_MIN_COMPOSITE_HR):
+    if _row_composite_hr_value(row_d) < float(MAIN_FOUR_LEG_MIN_COMPOSITE_HR):
         return False
     # Aug-8: L5=5/5 ~70% — require perfect directional L5 on Goblin 4+ legs.
     if not _row_main_goblin_l5_ok(row_d, min_hits=float(MAIN_LONG_GOBLIN_MIN_L5_HITS)):
@@ -9039,7 +9065,7 @@ def tighten_long_parlay_payload(payload: dict) -> dict:
 
 
 def filter_payload_mlb_construction_hygiene(payload: dict) -> dict:
-    """Drop slips that still carry banned MLB Goblin OVER / MLB Standard OVER legs."""
+    """Drop slips that still carry Fantasy / Standard-gated / MLB Std OVER L5=5-avoid legs."""
     if not isinstance(payload, dict):
         return payload
     out = dict(payload)
@@ -16108,7 +16134,8 @@ def filter_eligible(
     if "prop_type" in df.columns:
         prop_norm = df["prop_type"].apply(_norm_prop_label)
         _apply_gate(~prop_norm.isin(TICKET_EXCLUDED_PROPS), "prop_banned", "after_prop_ban")
-    # MLB construction hygiene (hitter Goblin OVER + Standard OVER) for FINAL/long/MAIN pools.
+    # Construction hygiene: Fantasy + Standard prop×direction gates + MLB Std OVER L5=5 avoid.
+    # (Goblin sport bans / MLB hitter Goblin pitcher-allowlist removed Aug 2026.)
     mlb_hygiene = df.apply(
         lambda r: not _leg_mlb_construction_banned(r.to_dict()),
         axis=1,
@@ -16281,9 +16308,8 @@ CORE_BUILD_FIRST_DEFAULT: bool = os.getenv(
 
 # Prop focus for CORE boards (Jul-20 win autopsy + existing MAIN/STRONG gates).
 # Norms use the same keying as _norm_main_prop_key.
+# MLB: no pitcher-only focus — hitter Goblins are eligible on MAIN again (Aug 2026).
 CORE_PROP_FOCUS_NORMS: dict[str, frozenset[str]] = {
-    # MLB Goblin OVER — pitcher only (Hits Allowed led wins; avoid hitter Hits/TB).
-    "MLB": frozenset(MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS),
     # WNBA Goblin — assists / 3PT led wins; rebounds OK on Goblin (Std rebounds OVER banned).
     "WNBA": frozenset(
         {

@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-18T17:19:32.919402+00:00",
+  "fetched_at": "2026-08-20T12:12:38.922900+00:00",
   "season": 2026,
   "teams": {
     "ATH": {
@@ -8,14 +8,25 @@
         "id": 663687,
         "name": "Hogan Harris",
         "hand": "L",
-        "era": 3.5,
-        "whip": 1.52,
+        "era": 3.79,
+        "whip": 1.57,
         "games_started": 0,
         "saves": 12,
-        "innings_pitched": 54.0,
+        "innings_pitched": 54.2,
         "strikeouts": 72
       },
       "rotation": [
+        {
+          "id": 605488,
+          "name": "Jeffrey Springs",
+          "hand": "L",
+          "era": 6.02,
+          "whip": 1.48,
+          "games_started": 23,
+          "saves": 0,
+          "innings_pitched": 113.2,
+          "strikeouts": 89
+        },
         {
           "id": 669372,
           "name": "J.T. Ginn",
@@ -53,28 +64,17 @@
           "id": 678022,
           "name": "Jack Perkins",
           "hand": "R",
-          "era": 7.27,
-          "whip": 1.52,
+          "era": 6.96,
+          "whip": 1.48,
           "games_started": 11,
           "saves": 3,
-          "innings_pitched": 81.2,
-          "strikeouts": 94
-        },
-        {
-          "id": 686930,
-          "name": "Mason Barnett",
-          "hand": "R",
-          "era": 7.08,
-          "whip": 1.62,
-          "games_started": 4,
-          "saves": 2,
-          "innings_pitched": 40.2,
-          "strikeouts": 38
+          "innings_pitched": 85.1,
+          "strikeouts": 98
         }
       ],
       "reliever_count": 6,
-      "staff_lhp": 5,
-      "staff_rhp": 8,
+      "staff_lhp": 6,
+      "staff_rhp": 7,
       "staff_total": 13
     },
     "ATL": {
@@ -139,12 +139,12 @@
           "id": 641816,
           "name": "Tyler Mahle",
           "hand": "R",
-          "era": 0.75,
-          "whip": 0.75,
-          "games_started": 2,
+          "era": 1.45,
+          "whip": 0.86,
+          "games_started": 3,
           "saves": 0,
-          "innings_pitched": 12.0,
-          "strikeouts": 16
+          "innings_pitched": 18.2,
+          "strikeouts": 19
         }
       ],
       "reliever_count": 6,
@@ -158,12 +158,12 @@
         "id": 805299,
         "name": "Brandyn Garcia",
         "hand": "L",
-        "era": 2.52,
-        "whip": 0.81,
+        "era": 2.48,
+        "whip": 0.83,
         "games_started": 0,
         "saves": 4,
-        "innings_pitched": 35.2,
-        "strikeouts": 41
+        "innings_pitched": 36.1,
+        "strikeouts": 42
       },
       "rotation": [
         {
@@ -181,12 +181,12 @@
           "id": 518876,
           "name": "Merrill Kelly",
           "hand": "R",
-          "era": 5.11,
-          "whip": 1.48,
-          "games_started": 22,
+          "era": 5.37,
+          "whip": 1.52,
+          "games_started": 23,
           "saves": 0,
-          "innings_pitched": 125.0,
-          "strikeouts": 82
+          "innings_pitched": 129.0,
+          "strikeouts": 84
         },
         {
           "id": 647336,
@@ -214,12 +214,12 @@
           "id": 694297,
           "name": "Brandon Pfaadt",
           "hand": "R",
-          "era": 3.11,
-          "whip": 1.13,
-          "games_started": 12,
+          "era": 3.39,
+          "whip": 1.14,
+          "games_started": 13,
           "saves": 0,
-          "innings_pitched": 92.2,
-          "strikeouts": 61
+          "innings_pitched": 98.1,
+          "strikeouts": 69
         }
       ],
       "reliever_count": 7,
@@ -242,6 +242,17 @@
       },
       "rotation": [
         {
+          "id": 669358,
+          "name": "Shane Baz",
+          "hand": "R",
+          "era": 4.02,
+          "whip": 1.35,
+          "games_started": 25,
+          "saves": 0,
+          "innings_pitched": 145.2,
+          "strikeouts": 132
+        },
+        {
           "id": 680694,
           "name": "Kyle Bradish",
           "hand": "R",
@@ -251,17 +262,6 @@
           "saves": 0,
           "innings_pitched": 133.0,
           "strikeouts": 124
-        },
-        {
-          "id": 669358,
-          "name": "Shane Baz",
-          "hand": "R",
-          "era": 4.0,
-          "whip": 1.36,
-          "games_started": 24,
-          "saves": 0,
-          "innings_pitched": 139.1,
-          "strikeouts": 122
         },
         {
           "id": 669432,
@@ -289,12 +289,12 @@
           "id": 605135,
           "name": "Chris Bassitt",
           "hand": "R",
-          "era": 5.11,
+          "era": 5.08,
           "whip": 1.62,
-          "games_started": 11,
+          "games_started": 12,
           "saves": 0,
-          "innings_pitched": 61.2,
-          "strikeouts": 40
+          "innings_pitched": 67.1,
+          "strikeouts": 46
         }
       ],
       "reliever_count": 8,
@@ -308,12 +308,12 @@
         "id": 547973,
         "name": "Aroldis Chapman",
         "hand": "L",
-        "era": 1.99,
+        "era": 1.94,
         "whip": 1.2,
         "games_started": 0,
         "saves": 27,
-        "innings_pitched": 40.2,
-        "strikeouts": 52
+        "innings_pitched": 41.2,
+        "strikeouts": 53
       },
       "rotation": [
         {
@@ -331,23 +331,23 @@
           "id": 624133,
           "name": "Ranger Suarez",
           "hand": "L",
-          "era": 3.25,
-          "whip": 1.19,
-          "games_started": 21,
+          "era": 3.41,
+          "whip": 1.18,
+          "games_started": 22,
           "saves": 0,
-          "innings_pitched": 108.0,
-          "strikeouts": 110
+          "innings_pitched": 113.1,
+          "strikeouts": 113
         },
         {
           "id": 801139,
           "name": "Payton Tolle",
           "hand": "L",
-          "era": 2.97,
-          "whip": 1.06,
-          "games_started": 20,
+          "era": 3.08,
+          "whip": 1.08,
+          "games_started": 21,
           "saves": 0,
-          "innings_pitched": 115.0,
-          "strikeouts": 128
+          "innings_pitched": 120.0,
+          "strikeouts": 134
         },
         {
           "id": 687562,
@@ -383,11 +383,11 @@
         "id": 657097,
         "name": "Jacob Webb",
         "hand": "R",
-        "era": 2.29,
+        "era": 2.25,
         "whip": 1.18,
         "games_started": 0,
         "saves": 9,
-        "innings_pitched": 55.0,
+        "innings_pitched": 56.0,
         "strikeouts": 63
       },
       "rotation": [
@@ -458,11 +458,11 @@
         "id": 641941,
         "name": "Emilio Pag\u00e1n",
         "hand": "R",
-        "era": 3.81,
-        "whip": 1.06,
+        "era": 4.3,
+        "whip": 1.09,
         "games_started": 0,
-        "saves": 15,
-        "innings_pitched": 28.1,
+        "saves": 16,
+        "innings_pitched": 29.1,
         "strikeouts": 31
       },
       "rotation": [
@@ -470,12 +470,23 @@
           "id": 671096,
           "name": "Andrew Abbott",
           "hand": "L",
-          "era": 4.13,
-          "whip": 1.42,
-          "games_started": 25,
+          "era": 4.07,
+          "whip": 1.4,
+          "games_started": 26,
           "saves": 0,
-          "innings_pitched": 133.0,
-          "strikeouts": 102
+          "innings_pitched": 139.1,
+          "strikeouts": 108
+        },
+        {
+          "id": 695505,
+          "name": "Chase Burns",
+          "hand": "R",
+          "era": 2.51,
+          "whip": 1.11,
+          "games_started": 24,
+          "saves": 0,
+          "innings_pitched": 136.0,
+          "strikeouts": 159
         },
         {
           "id": 663903,
@@ -487,17 +498,6 @@
           "saves": 0,
           "innings_pitched": 125.2,
           "strikeouts": 104
-        },
-        {
-          "id": 695505,
-          "name": "Chase Burns",
-          "hand": "R",
-          "era": 2.47,
-          "whip": 1.09,
-          "games_started": 23,
-          "saves": 0,
-          "innings_pitched": 131.0,
-          "strikeouts": 151
         },
         {
           "id": 695076,
@@ -533,12 +533,12 @@
         "id": 671922,
         "name": "Cade Smith",
         "hand": "R",
-        "era": 2.29,
-        "whip": 1.11,
+        "era": 2.25,
+        "whip": 1.09,
         "games_started": 0,
         "saves": 31,
-        "innings_pitched": 55.0,
-        "strikeouts": 77
+        "innings_pitched": 56.0,
+        "strikeouts": 79
       },
       "rotation": [
         {
@@ -564,6 +564,17 @@
           "strikeouts": 117
         },
         {
+          "id": 800048,
+          "name": "Parker Messick",
+          "hand": "L",
+          "era": 2.54,
+          "whip": 1.03,
+          "games_started": 25,
+          "saves": 0,
+          "innings_pitched": 149.0,
+          "strikeouts": 152
+        },
+        {
           "id": 668909,
           "name": "Gavin Williams",
           "hand": "R",
@@ -573,17 +584,6 @@
           "saves": 0,
           "innings_pitched": 149.0,
           "strikeouts": 190
-        },
-        {
-          "id": 800048,
-          "name": "Parker Messick",
-          "hand": "L",
-          "era": 2.59,
-          "whip": 1.03,
-          "games_started": 24,
-          "saves": 0,
-          "innings_pitched": 142.1,
-          "strikeouts": 142
         },
         {
           "id": 656492,
@@ -608,14 +608,25 @@
         "id": 605447,
         "name": "Jordan Romano",
         "hand": "R",
-        "era": 3.09,
-        "whip": 1.54,
+        "era": 2.63,
+        "whip": 1.39,
         "games_started": 0,
         "saves": 8,
-        "innings_pitched": 11.2,
-        "strikeouts": 14
+        "innings_pitched": 13.2,
+        "strikeouts": 15
       },
       "rotation": [
+        {
+          "id": 607536,
+          "name": "Kyle Freeland",
+          "hand": "L",
+          "era": 6.37,
+          "whip": 1.46,
+          "games_started": 23,
+          "saves": 0,
+          "innings_pitched": 124.1,
+          "strikeouts": 103
+        },
         {
           "id": 608372,
           "name": "Tomoyuki Sugano",
@@ -628,26 +639,15 @@
           "strikeouts": 69
         },
         {
-          "id": 607536,
-          "name": "Kyle Freeland",
-          "hand": "L",
-          "era": 6.27,
-          "whip": 1.44,
-          "games_started": 22,
-          "saves": 0,
-          "innings_pitched": 120.2,
-          "strikeouts": 98
-        },
-        {
           "id": 663372,
           "name": "Ryan Feltner",
           "hand": "R",
-          "era": 5.59,
-          "whip": 1.49,
-          "games_started": 18,
+          "era": 5.97,
+          "whip": 1.53,
+          "games_started": 19,
           "saves": 0,
-          "innings_pitched": 87.0,
-          "strikeouts": 61
+          "innings_pitched": 92.0,
+          "strikeouts": 64
         },
         {
           "id": 687312,
@@ -683,12 +683,12 @@
         "id": 691799,
         "name": "Grant Taylor",
         "hand": "R",
-        "era": 2.11,
+        "era": 2.05,
         "whip": 1.02,
         "games_started": 4,
-        "saves": 6,
-        "innings_pitched": 64.0,
-        "strikeouts": 81
+        "saves": 7,
+        "innings_pitched": 66.0,
+        "strikeouts": 85
       },
       "rotation": [
         {
@@ -717,34 +717,34 @@
           "id": 607200,
           "name": "Erick Fedde",
           "hand": "R",
-          "era": 4.51,
-          "whip": 1.41,
+          "era": 4.33,
+          "whip": 1.4,
           "games_started": 12,
           "saves": 0,
-          "innings_pitched": 109.2,
-          "strikeouts": 77
+          "innings_pitched": 114.1,
+          "strikeouts": 82
         },
         {
           "id": 663542,
           "name": "Bryan Hudson",
           "hand": "L",
-          "era": 3.14,
-          "whip": 1.28,
-          "games_started": 6,
+          "era": 3.42,
+          "whip": 1.29,
+          "games_started": 7,
           "saves": 5,
-          "innings_pitched": 51.2,
-          "strikeouts": 50
+          "innings_pitched": 52.2,
+          "strikeouts": 51
         },
         {
           "id": 691799,
           "name": "Grant Taylor",
           "hand": "R",
-          "era": 2.11,
+          "era": 2.05,
           "whip": 1.02,
           "games_started": 4,
-          "saves": 6,
-          "innings_pitched": 64.0,
-          "strikeouts": 81
+          "saves": 7,
+          "innings_pitched": 66.0,
+          "strikeouts": 85
         }
       ],
       "reliever_count": 5,
@@ -758,12 +758,12 @@
         "id": 445276,
         "name": "Kenley Jansen",
         "hand": "R",
-        "era": 3.74,
-        "whip": 1.19,
+        "era": 4.19,
+        "whip": 1.22,
         "games_started": 0,
         "saves": 16,
-        "innings_pitched": 33.2,
-        "strikeouts": 39
+        "innings_pitched": 34.1,
+        "strikeouts": 40
       },
       "rotation": [
         {
@@ -781,12 +781,12 @@
           "id": 672456,
           "name": "Keider Montero",
           "hand": "R",
-          "era": 3.22,
-          "whip": 0.99,
-          "games_started": 20,
+          "era": 3.3,
+          "whip": 1.0,
+          "games_started": 21,
           "saves": 1,
-          "innings_pitched": 128.2,
-          "strikeouts": 86
+          "innings_pitched": 133.2,
+          "strikeouts": 89
         },
         {
           "id": 675512,
@@ -814,12 +814,12 @@
           "id": 663947,
           "name": "Tyler Holton",
           "hand": "L",
-          "era": 3.1,
+          "era": 3.07,
           "whip": 1.26,
           "games_started": 3,
           "saves": 2,
-          "innings_pitched": 58.0,
-          "strikeouts": 45
+          "innings_pitched": 58.2,
+          "strikeouts": 47
         }
       ],
       "reliever_count": 6,
@@ -833,11 +833,11 @@
         "id": 623352,
         "name": "Josh Hader",
         "hand": "L",
-        "era": 0.9,
+        "era": 0.87,
         "whip": 0.77,
         "games_started": 0,
-        "saves": 17,
-        "innings_pitched": 30.0,
+        "saves": 18,
+        "innings_pitched": 31.0,
         "strikeouts": 41
       },
       "rotation": [
@@ -878,12 +878,12 @@
           "id": 664299,
           "name": "Cristian Javier",
           "hand": "R",
-          "era": 6.68,
-          "whip": 1.7,
-          "games_started": 6,
+          "era": 6.44,
+          "whip": 1.68,
+          "games_started": 7,
           "saves": 0,
-          "innings_pitched": 32.1,
-          "strikeouts": 25
+          "innings_pitched": 36.1,
+          "strikeouts": 30
         },
         {
           "id": 669713,
@@ -897,7 +897,7 @@
           "strikeouts": 18
         }
       ],
-      "reliever_count": 6,
+      "reliever_count": 5,
       "staff_lhp": 4,
       "staff_rhp": 9,
       "staff_total": 13
@@ -905,17 +905,28 @@
     "KC": {
       "api_abbrev": "KC",
       "closer": {
-        "id": 668674,
-        "name": "Lucas Erceg",
+        "id": 656638,
+        "name": "Alex Lange",
         "hand": "R",
-        "era": 6.23,
-        "whip": 1.89,
+        "era": 5.98,
+        "whip": 1.51,
         "games_started": 0,
-        "saves": 12,
-        "innings_pitched": 43.1,
-        "strikeouts": 31
+        "saves": 10,
+        "innings_pitched": 49.2,
+        "strikeouts": 53
       },
       "rotation": [
+        {
+          "id": 607625,
+          "name": "Seth Lugo",
+          "hand": "R",
+          "era": 4.71,
+          "whip": 1.38,
+          "games_started": 26,
+          "saves": 0,
+          "innings_pitched": 145.1,
+          "strikeouts": 111
+        },
         {
           "id": 608379,
           "name": "Michael Wacha",
@@ -926,17 +937,6 @@
           "saves": 0,
           "innings_pitched": 155.2,
           "strikeouts": 120
-        },
-        {
-          "id": 607625,
-          "name": "Seth Lugo",
-          "hand": "R",
-          "era": 4.59,
-          "whip": 1.38,
-          "games_started": 25,
-          "saves": 0,
-          "innings_pitched": 139.1,
-          "strikeouts": 108
         },
         {
           "id": 702070,
@@ -964,12 +964,12 @@
           "id": 663738,
           "name": "Daniel Lynch IV",
           "hand": "L",
-          "era": 2.88,
+          "era": 2.83,
           "whip": 1.02,
-          "games_started": 2,
+          "games_started": 3,
           "saves": 1,
-          "innings_pitched": 50.0,
-          "strikeouts": 40
+          "innings_pitched": 54.0,
+          "strikeouts": 41
         }
       ],
       "reliever_count": 7,
@@ -980,15 +980,15 @@
     "LAA": {
       "api_abbrev": "LAA",
       "closer": {
-        "id": 696519,
-        "name": "Samy Natera Jr.",
-        "hand": "L",
-        "era": 2.0,
-        "whip": 0.85,
+        "id": 690829,
+        "name": "Ben Joyce",
+        "hand": "R",
+        "era": 0.0,
+        "whip": 0.33,
         "games_started": 0,
         "saves": 3,
-        "innings_pitched": 27.0,
-        "strikeouts": 42
+        "innings_pitched": 6.0,
+        "strikeouts": 8
       },
       "rotation": [
         {
@@ -1006,12 +1006,12 @@
           "id": 700712,
           "name": "Walbert Ure\u00f1a",
           "hand": "R",
-          "era": 2.67,
-          "whip": 1.25,
-          "games_started": 20,
+          "era": 2.8,
+          "whip": 1.24,
+          "games_started": 21,
           "saves": 0,
-          "innings_pitched": 107.2,
-          "strikeouts": 102
+          "innings_pitched": 112.2,
+          "strikeouts": 109
         },
         {
           "id": 680570,
@@ -1039,12 +1039,12 @@
           "id": 691946,
           "name": "George Klassen",
           "hand": "R",
-          "era": 5.52,
-          "whip": 2.11,
-          "games_started": 4,
+          "era": 3.74,
+          "whip": 1.62,
+          "games_started": 5,
           "saves": 0,
-          "innings_pitched": 14.2,
-          "strikeouts": 14
+          "innings_pitched": 21.2,
+          "strikeouts": 21
         }
       ],
       "reliever_count": 8,
@@ -1058,12 +1058,12 @@
         "id": 656945,
         "name": "Tanner Scott",
         "hand": "L",
-        "era": 2.2,
+        "era": 2.28,
         "whip": 0.92,
         "games_started": 0,
-        "saves": 16,
-        "innings_pitched": 49.0,
-        "strikeouts": 62
+        "saves": 18,
+        "innings_pitched": 51.1,
+        "strikeouts": 63
       },
       "rotation": [
         {
@@ -1081,11 +1081,22 @@
           "id": 808963,
           "name": "Roki Sasaki",
           "hand": "R",
-          "era": 4.46,
-          "whip": 1.29,
-          "games_started": 21,
+          "era": 4.42,
+          "whip": 1.3,
+          "games_started": 22,
           "saves": 0,
-          "innings_pitched": 111.0,
+          "innings_pitched": 116.0,
+          "strikeouts": 114
+        },
+        {
+          "id": 686218,
+          "name": "Emmet Sheehan",
+          "hand": "R",
+          "era": 5.29,
+          "whip": 1.29,
+          "games_started": 20,
+          "saves": 0,
+          "innings_pitched": 95.1,
           "strikeouts": 108
         },
         {
@@ -1109,20 +1120,9 @@
           "saves": 0,
           "innings_pitched": 17.0,
           "strikeouts": 19
-        },
-        {
-          "id": 605483,
-          "name": "Blake Snell",
-          "hand": "L",
-          "era": 3.6,
-          "whip": 1.13,
-          "games_started": 3,
-          "saves": 0,
-          "innings_pitched": 15.0,
-          "strikeouts": 20
         }
       ],
-      "reliever_count": 5,
+      "reliever_count": 4,
       "staff_lhp": 6,
       "staff_rhp": 7,
       "staff_total": 13
@@ -1145,12 +1145,12 @@
           "id": 645261,
           "name": "Sandy Alcantara",
           "hand": "R",
-          "era": 3.43,
-          "whip": 1.17,
-          "games_started": 26,
+          "era": 3.46,
+          "whip": 1.18,
+          "games_started": 27,
           "saves": 0,
-          "innings_pitched": 170.2,
-          "strikeouts": 130
+          "innings_pitched": 176.2,
+          "strikeouts": 131
         },
         {
           "id": 691587,
@@ -1178,12 +1178,12 @@
           "id": 663969,
           "name": "Tyler Phillips",
           "hand": "R",
-          "era": 3.65,
-          "whip": 1.36,
+          "era": 3.67,
+          "whip": 1.37,
           "games_started": 14,
           "saves": 2,
-          "innings_pitched": 98.2,
-          "strikeouts": 76
+          "innings_pitched": 100.2,
+          "strikeouts": 79
         },
         {
           "id": 687473,
@@ -1197,7 +1197,7 @@
           "strikeouts": 49
         }
       ],
-      "reliever_count": 6,
+      "reliever_count": 5,
       "staff_lhp": 2,
       "staff_rhp": 11,
       "staff_total": 13
@@ -1231,23 +1231,23 @@
           "id": 690986,
           "name": "Kyle Harrison",
           "hand": "L",
-          "era": 2.99,
-          "whip": 1.13,
-          "games_started": 19,
+          "era": 2.84,
+          "whip": 1.11,
+          "games_started": 20,
           "saves": 0,
-          "innings_pitched": 93.1,
-          "strikeouts": 114
+          "innings_pitched": 98.1,
+          "strikeouts": 122
         },
         {
           "id": 675660,
           "name": "Shane Drohan",
           "hand": "L",
-          "era": 3.94,
-          "whip": 1.24,
+          "era": 3.86,
+          "whip": 1.25,
           "games_started": 14,
           "saves": 1,
-          "innings_pitched": 98.1,
-          "strikeouts": 98
+          "innings_pitched": 100.1,
+          "strikeouts": 99
         },
         {
           "id": 688107,
@@ -1283,24 +1283,24 @@
         "id": 672782,
         "name": "Yoendrys G\u00f3mez",
         "hand": "R",
-        "era": 1.95,
-        "whip": 1.19,
+        "era": 1.85,
+        "whip": 1.15,
         "games_started": 0,
-        "saves": 17,
-        "innings_pitched": 37.0,
-        "strikeouts": 37
+        "saves": 19,
+        "innings_pitched": 39.0,
+        "strikeouts": 39
       },
       "rotation": [
         {
           "id": 671737,
           "name": "Taj Bradley",
           "hand": "R",
-          "era": 3.98,
-          "whip": 1.29,
-          "games_started": 24,
+          "era": 3.9,
+          "whip": 1.28,
+          "games_started": 25,
           "saves": 0,
-          "innings_pitched": 135.2,
-          "strikeouts": 151
+          "innings_pitched": 140.2,
+          "strikeouts": 158
         },
         {
           "id": 641927,
@@ -1314,6 +1314,17 @@
           "strikeouts": 71
         },
         {
+          "id": 805673,
+          "name": "Zebby Matthews",
+          "hand": "R",
+          "era": 5.12,
+          "whip": 1.33,
+          "games_started": 17,
+          "saves": 0,
+          "innings_pitched": 96.2,
+          "strikeouts": 81
+        },
+        {
           "id": 687570,
           "name": "Connor Prielipp",
           "hand": "L",
@@ -1323,17 +1334,6 @@
           "saves": 0,
           "innings_pitched": 87.2,
           "strikeouts": 94
-        },
-        {
-          "id": 805673,
-          "name": "Zebby Matthews",
-          "hand": "R",
-          "era": 5.34,
-          "whip": 1.35,
-          "games_started": 16,
-          "saves": 0,
-          "innings_pitched": 91.0,
-          "strikeouts": 77
         },
         {
           "id": 665152,
@@ -1358,11 +1358,11 @@
         "id": 673540,
         "name": "Kodai Senga",
         "hand": "R",
-        "era": 7.79,
-        "whip": 1.65,
+        "era": 7.82,
+        "whip": 1.68,
         "games_started": 8,
-        "saves": 3,
-        "innings_pitched": 49.2,
+        "saves": 4,
+        "innings_pitched": 50.2,
         "strikeouts": 60
       },
       "rotation": [
@@ -1403,26 +1403,26 @@
           "id": 804267,
           "name": "Zac Thornton",
           "hand": "L",
-          "era": 2.78,
-          "whip": 1.1,
-          "games_started": 8,
+          "era": 3.04,
+          "whip": 1.13,
+          "games_started": 9,
           "saves": 0,
-          "innings_pitched": 45.1,
-          "strikeouts": 29
+          "innings_pitched": 50.1,
+          "strikeouts": 36
         },
         {
           "id": 673540,
           "name": "Kodai Senga",
           "hand": "R",
-          "era": 7.79,
-          "whip": 1.65,
+          "era": 7.82,
+          "whip": 1.68,
           "games_started": 8,
-          "saves": 3,
-          "innings_pitched": 49.2,
+          "saves": 4,
+          "innings_pitched": 50.2,
           "strikeouts": 60
         }
       ],
-      "reliever_count": 7,
+      "reliever_count": 6,
       "staff_lhp": 4,
       "staff_rhp": 9,
       "staff_total": 13
@@ -1433,12 +1433,12 @@
         "id": 670280,
         "name": "David Bednar",
         "hand": "R",
-        "era": 2.48,
-        "whip": 1.03,
+        "era": 2.4,
+        "whip": 0.99,
         "games_started": 0,
-        "saves": 27,
-        "innings_pitched": 54.1,
-        "strikeouts": 61
+        "saves": 29,
+        "innings_pitched": 56.1,
+        "strikeouts": 64
       },
       "rotation": [
         {
@@ -1467,12 +1467,12 @@
           "id": 701542,
           "name": "Will Warren",
           "hand": "R",
-          "era": 4.42,
-          "whip": 1.41,
-          "games_started": 23,
+          "era": 4.43,
+          "whip": 1.4,
+          "games_started": 24,
           "saves": 0,
-          "innings_pitched": 118.0,
-          "strikeouts": 117
+          "innings_pitched": 122.0,
+          "strikeouts": 122
         },
         {
           "id": 543037,
@@ -1486,21 +1486,21 @@
           "strikeouts": 92
         },
         {
-          "id": 621112,
-          "name": "Paul Blackburn",
-          "hand": "R",
-          "era": 1.85,
-          "whip": 1.04,
-          "games_started": 2,
-          "saves": 1,
-          "innings_pitched": 68.0,
-          "strikeouts": 54
+          "id": 607074,
+          "name": "Carlos Rod\u00f3n",
+          "hand": "L",
+          "era": 3.22,
+          "whip": 1.23,
+          "games_started": 10,
+          "saves": 0,
+          "innings_pitched": 50.1,
+          "strikeouts": 56
         }
       ],
       "reliever_count": 6,
-      "staff_lhp": 4,
+      "staff_lhp": 5,
       "staff_rhp": 8,
-      "staff_total": 12
+      "staff_total": 13
     },
     "PHI": {
       "api_abbrev": "PHI",
@@ -1508,12 +1508,12 @@
         "id": 661395,
         "name": "Jhoan Duran",
         "hand": "R",
-        "era": 1.83,
+        "era": 1.79,
         "whip": 1.04,
         "games_started": 0,
-        "saves": 27,
-        "innings_pitched": 44.1,
-        "strikeouts": 62
+        "saves": 28,
+        "innings_pitched": 45.1,
+        "strikeouts": 63
       },
       "rotation": [
         {
@@ -1528,6 +1528,17 @@
           "strikeouts": 187
         },
         {
+          "id": 605400,
+          "name": "Aaron Nola",
+          "hand": "R",
+          "era": 5.12,
+          "whip": 1.42,
+          "games_started": 26,
+          "saves": 0,
+          "innings_pitched": 137.0,
+          "strikeouts": 146
+        },
+        {
           "id": 666200,
           "name": "Jes\u00fas Luzardo",
           "hand": "L",
@@ -1539,26 +1550,15 @@
           "strikeouts": 185
         },
         {
-          "id": 605400,
-          "name": "Aaron Nola",
-          "hand": "R",
-          "era": 5.33,
-          "whip": 1.45,
-          "games_started": 25,
-          "saves": 0,
-          "innings_pitched": 130.0,
-          "strikeouts": 138
-        },
-        {
           "id": 554430,
           "name": "Zack Wheeler",
           "hand": "R",
-          "era": 2.89,
-          "whip": 1.0,
-          "games_started": 20,
+          "era": 2.92,
+          "whip": 1.01,
+          "games_started": 21,
           "saves": 0,
-          "innings_pitched": 115.1,
-          "strikeouts": 137
+          "innings_pitched": 120.1,
+          "strikeouts": 144
         },
         {
           "id": 691725,
@@ -1583,35 +1583,35 @@
         "id": 642397,
         "name": "Gregory Soto",
         "hand": "L",
-        "era": 3.59,
-        "whip": 1.14,
+        "era": 3.48,
+        "whip": 1.12,
         "games_started": 0,
         "saves": 14,
-        "innings_pitched": 52.2,
-        "strikeouts": 64
+        "innings_pitched": 54.1,
+        "strikeouts": 66
       },
       "rotation": [
         {
           "id": 694973,
           "name": "Paul Skenes",
           "hand": "R",
-          "era": 3.88,
-          "whip": 1.12,
-          "games_started": 25,
+          "era": 3.95,
+          "whip": 1.14,
+          "games_started": 26,
           "saves": 0,
-          "innings_pitched": 134.2,
-          "strikeouts": 166
+          "innings_pitched": 139.0,
+          "strikeouts": 171
         },
         {
           "id": 677952,
           "name": "Braxton Ashcraft",
           "hand": "R",
-          "era": 3.82,
-          "whip": 1.1,
-          "games_started": 24,
+          "era": 3.68,
+          "whip": 1.08,
+          "games_started": 25,
           "saves": 0,
-          "innings_pitched": 141.1,
-          "strikeouts": 155
+          "innings_pitched": 149.1,
+          "strikeouts": 159
         },
         {
           "id": 696149,
@@ -1658,24 +1658,24 @@
         "id": 695243,
         "name": "Mason Miller",
         "hand": "R",
-        "era": 0.88,
-        "whip": 0.84,
+        "era": 0.86,
+        "whip": 0.82,
         "games_started": 0,
-        "saves": 30,
-        "innings_pitched": 51.1,
-        "strikeouts": 93
+        "saves": 31,
+        "innings_pitched": 52.1,
+        "strikeouts": 95
       },
       "rotation": [
         {
           "id": 650633,
           "name": "Michael King",
           "hand": "R",
-          "era": 3.41,
-          "whip": 1.19,
-          "games_started": 25,
+          "era": 3.38,
+          "whip": 1.17,
+          "games_started": 26,
           "saves": 0,
-          "innings_pitched": 142.1,
-          "strikeouts": 124
+          "innings_pitched": 149.0,
+          "strikeouts": 128
         },
         {
           "id": 621111,
@@ -1733,24 +1733,24 @@
         "id": 662253,
         "name": "Andr\u00e9s Mu\u00f1oz",
         "hand": "R",
-        "era": 4.37,
-        "whip": 1.24,
+        "era": 4.27,
+        "whip": 1.21,
         "games_started": 0,
-        "saves": 22,
-        "innings_pitched": 45.1,
-        "strikeouts": 72
+        "saves": 23,
+        "innings_pitched": 46.1,
+        "strikeouts": 73
       },
       "rotation": [
         {
           "id": 669302,
           "name": "Logan Gilbert",
           "hand": "R",
-          "era": 3.28,
-          "whip": 0.99,
-          "games_started": 24,
+          "era": 3.35,
+          "whip": 1.01,
+          "games_started": 25,
           "saves": 0,
-          "innings_pitched": 145.1,
-          "strikeouts": 152
+          "innings_pitched": 150.1,
+          "strikeouts": 157
         },
         {
           "id": 693433,
@@ -1789,12 +1789,12 @@
           "id": 682243,
           "name": "Bryce Miller",
           "hand": "R",
-          "era": 3.39,
-          "whip": 0.99,
-          "games_started": 14,
+          "era": 3.71,
+          "whip": 1.04,
+          "games_started": 15,
           "saves": 0,
-          "innings_pitched": 85.0,
-          "strikeouts": 84
+          "innings_pitched": 89.2,
+          "strikeouts": 87
         }
       ],
       "reliever_count": 8,
@@ -1808,12 +1808,12 @@
         "id": 681916,
         "name": "Dylan Smith",
         "hand": "R",
-        "era": 2.96,
-        "whip": 1.23,
+        "era": 2.73,
+        "whip": 1.18,
         "games_started": 0,
-        "saves": 2,
-        "innings_pitched": 24.1,
-        "strikeouts": 28
+        "saves": 3,
+        "innings_pitched": 26.1,
+        "strikeouts": 33
       },
       "rotation": [
         {
@@ -1842,23 +1842,23 @@
           "id": 605288,
           "name": "Adrian Houser",
           "hand": "R",
-          "era": 4.28,
-          "whip": 1.32,
+          "era": 4.08,
+          "whip": 1.31,
           "games_started": 15,
           "saves": 0,
-          "innings_pitched": 103.0,
-          "strikeouts": 70
+          "innings_pitched": 108.0,
+          "strikeouts": 73
         },
         {
           "id": 687931,
           "name": "Carson Whisenhunt",
           "hand": "L",
-          "era": 6.11,
-          "whip": 1.71,
-          "games_started": 6,
+          "era": 7.03,
+          "whip": 1.84,
+          "games_started": 7,
           "saves": 0,
-          "innings_pitched": 28.0,
-          "strikeouts": 22
+          "innings_pitched": 32.0,
+          "strikeouts": 23
         },
         {
           "id": 694918,
@@ -1872,7 +1872,7 @@
           "strikeouts": 20
         }
       ],
-      "reliever_count": 7,
+      "reliever_count": 6,
       "staff_lhp": 3,
       "staff_rhp": 10,
       "staff_total": 13
@@ -1883,14 +1883,36 @@
         "id": 676617,
         "name": "Riley O'Brien",
         "hand": "R",
-        "era": 3.02,
-        "whip": 1.09,
+        "era": 2.96,
+        "whip": 1.06,
         "games_started": 0,
-        "saves": 31,
-        "innings_pitched": 50.2,
-        "strikeouts": 52
+        "saves": 32,
+        "innings_pitched": 51.2,
+        "strikeouts": 53
       },
       "rotation": [
+        {
+          "id": 669461,
+          "name": "Matthew Liberatore",
+          "hand": "L",
+          "era": 5.04,
+          "whip": 1.44,
+          "games_started": 25,
+          "saves": 0,
+          "innings_pitched": 125.0,
+          "strikeouts": 125
+        },
+        {
+          "id": 681517,
+          "name": "Kyle Leahy",
+          "hand": "R",
+          "era": 3.24,
+          "whip": 1.31,
+          "games_started": 24,
+          "saves": 0,
+          "innings_pitched": 122.1,
+          "strikeouts": 111
+        },
         {
           "id": 700241,
           "name": "Michael McGreevy",
@@ -1912,28 +1934,6 @@
           "saves": 0,
           "innings_pitched": 136.0,
           "strikeouts": 97
-        },
-        {
-          "id": 669461,
-          "name": "Matthew Liberatore",
-          "hand": "L",
-          "era": 5.07,
-          "whip": 1.48,
-          "games_started": 24,
-          "saves": 0,
-          "innings_pitched": 119.0,
-          "strikeouts": 116
-        },
-        {
-          "id": 681517,
-          "name": "Kyle Leahy",
-          "hand": "R",
-          "era": 3.38,
-          "whip": 1.34,
-          "games_started": 23,
-          "saves": 0,
-          "innings_pitched": 117.1,
-          "strikeouts": 105
         },
         {
           "id": 690928,
@@ -1958,35 +1958,35 @@
         "id": 641329,
         "name": "Bryan Baker",
         "hand": "R",
-        "era": 1.47,
-        "whip": 0.88,
+        "era": 1.44,
+        "whip": 0.86,
         "games_started": 0,
-        "saves": 35,
-        "innings_pitched": 49.0,
-        "strikeouts": 55
+        "saves": 36,
+        "innings_pitched": 50.0,
+        "strikeouts": 56
       },
       "rotation": [
-        {
-          "id": 607259,
-          "name": "Nick Martinez",
-          "hand": "R",
-          "era": 2.74,
-          "whip": 1.09,
-          "games_started": 23,
-          "saves": 0,
-          "innings_pitched": 138.0,
-          "strikeouts": 78
-        },
         {
           "id": 656876,
           "name": "Drew Rasmussen",
           "hand": "R",
-          "era": 2.78,
-          "whip": 0.91,
-          "games_started": 23,
+          "era": 3.01,
+          "whip": 0.95,
+          "games_started": 24,
           "saves": 0,
-          "innings_pitched": 129.1,
-          "strikeouts": 133
+          "innings_pitched": 134.1,
+          "strikeouts": 138
+        },
+        {
+          "id": 607259,
+          "name": "Nick Martinez",
+          "hand": "R",
+          "era": 3.05,
+          "whip": 1.14,
+          "games_started": 24,
+          "saves": 0,
+          "innings_pitched": 141.2,
+          "strikeouts": 83
         },
         {
           "id": 663556,
@@ -2003,11 +2003,11 @@
           "id": 571927,
           "name": "Steven Matz",
           "hand": "L",
-          "era": 6.02,
-          "whip": 1.27,
+          "era": 6.17,
+          "whip": 1.29,
           "games_started": 11,
           "saves": 1,
-          "innings_pitched": 64.1,
+          "innings_pitched": 65.2,
           "strikeouts": 49
         },
         {
@@ -2022,7 +2022,7 @@
           "strikeouts": 115
         }
       ],
-      "reliever_count": 5,
+      "reliever_count": 6,
       "staff_lhp": 5,
       "staff_rhp": 8,
       "staff_total": 13
@@ -2067,34 +2067,34 @@
           "id": 677958,
           "name": "Kumar Rocker",
           "hand": "R",
-          "era": 4.5,
+          "era": 4.46,
           "whip": 1.4,
-          "games_started": 21,
+          "games_started": 22,
           "saves": 0,
-          "innings_pitched": 116.0,
-          "strikeouts": 106
+          "innings_pitched": 121.0,
+          "strikeouts": 109
         },
         {
           "id": 615698,
           "name": "Cal Quantrill",
           "hand": "R",
-          "era": 3.44,
-          "whip": 1.2,
-          "games_started": 8,
+          "era": 3.13,
+          "whip": 1.15,
+          "games_started": 9,
           "saves": 0,
-          "innings_pitched": 70.2,
-          "strikeouts": 49
+          "innings_pitched": 77.2,
+          "strikeouts": 54
         },
         {
           "id": 641302,
           "name": "Tyler Alexander",
           "hand": "L",
-          "era": 3.35,
-          "whip": 1.29,
+          "era": 3.29,
+          "whip": 1.3,
           "games_started": 4,
           "saves": 4,
-          "innings_pitched": 53.2,
-          "strikeouts": 46
+          "innings_pitched": 54.2,
+          "strikeouts": 47
         }
       ],
       "reliever_count": 4,
@@ -2128,6 +2128,17 @@
           "strikeouts": 201
         },
         {
+          "id": 453286,
+          "name": "Max Scherzer",
+          "hand": "R",
+          "era": 7.4,
+          "whip": 1.51,
+          "games_started": 11,
+          "saves": 0,
+          "innings_pitched": 45.0,
+          "strikeouts": 32
+        },
+        {
           "id": 669456,
           "name": "Shane Bieber",
           "hand": "R",
@@ -2137,17 +2148,6 @@
           "saves": 0,
           "innings_pitched": 48.2,
           "strikeouts": 37
-        },
-        {
-          "id": 453286,
-          "name": "Max Scherzer",
-          "hand": "R",
-          "era": 6.59,
-          "whip": 1.46,
-          "games_started": 10,
-          "saves": 0,
-          "innings_pitched": 41.0,
-          "strikeouts": 31
         },
         {
           "id": 680573,
@@ -2164,17 +2164,17 @@
           "id": 680755,
           "name": "Braydon Fisher",
           "hand": "R",
-          "era": 3.57,
-          "whip": 1.24,
+          "era": 3.52,
+          "whip": 1.23,
           "games_started": 8,
           "saves": 1,
-          "innings_pitched": 63.0,
-          "strikeouts": 57
+          "innings_pitched": 64.0,
+          "strikeouts": 58
         }
       ],
       "reliever_count": 5,
-      "staff_lhp": 2,
-      "staff_rhp": 11,
+      "staff_lhp": 3,
+      "staff_rhp": 10,
       "staff_total": 13
     },
     "WSH": {
@@ -2195,12 +2195,12 @@
           "id": 676917,
           "name": "Cade Cavalli",
           "hand": "R",
-          "era": 3.36,
-          "whip": 1.24,
-          "games_started": 26,
+          "era": 3.22,
+          "whip": 1.22,
+          "games_started": 27,
           "saves": 0,
-          "innings_pitched": 136.2,
-          "strikeouts": 151
+          "innings_pitched": 142.2,
+          "strikeouts": 162
         },
         {
           "id": 663623,
@@ -2239,17 +2239,17 @@
           "id": 800600,
           "name": "Jackson Kent",
           "hand": "L",
-          "era": 6.75,
-          "whip": 2.0,
-          "games_started": 1,
+          "era": 9.39,
+          "whip": 2.48,
+          "games_started": 2,
           "saves": 0,
-          "innings_pitched": 4.0,
-          "strikeouts": 6
+          "innings_pitched": 7.2,
+          "strikeouts": 9
         }
       ],
       "reliever_count": 8,
-      "staff_lhp": 4,
-      "staff_rhp": 9,
+      "staff_lhp": 5,
+      "staff_rhp": 8,
       "staff_total": 13
     }
   }

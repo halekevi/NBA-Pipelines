@@ -219,7 +219,7 @@ from utils.ticket_tier_defense_gates import (
     tennis_over_blocked_by_opp_rank,
     tier_defense_exclusion_mask,
 )
-from utils.best_props_pool import prefer_best_props_seed
+from utils.best_props_pool import prefer_best_props_seed, sort_ticket_seed_pool
 from utils.prop_signal_score import l10_streak_series
 from utils.slate_context_fill import (
     fill_cv_pct_if_missing,
@@ -15167,7 +15167,8 @@ def build_combined_slate(
     combined = add_l5_play_side_columns(combined)
     combined = add_prop_quality_score(combined)
 
-    combined = combined.sort_values("rank_score", ascending=False, na_position="last").reset_index(drop=True)
+    if "best_props_seed_tier" in combined.columns or "rank_score" in combined.columns:
+        combined = sort_ticket_seed_pool(combined)
     return combined
 
 
@@ -18037,9 +18038,9 @@ def build_final_web_ticket_groups(
         return 2 if n >= 4 else 1
 
     def _sort_rank(df: pd.DataFrame) -> pd.DataFrame:
-        if df is None or len(df) == 0 or "rank_score" not in df.columns:
+        if df is None or len(df) == 0:
             return df
-        return df.sort_values("rank_score", ascending=False, na_position="last")
+        return sort_ticket_seed_pool(df)
 
     _pct: dict[str, int] = player_ticket_counts if player_ticket_counts is not None else defaultdict(int)
 
@@ -21424,7 +21425,7 @@ def main():
                 print(f"         stack-70: kept {stack_n}/{before_stack} legs (70% stack filter)")
         # Safety net: soft-void / other bypasses must still respect Goblin L5+L10 floors.
         pooled = _filter_df_main_goblin_recency(pooled)
-        # Prefer Gold→Silver (L5≥4 + cover/Δ + D badge) before rank_score order.
+        # Prefer L5=5+D → L5=4+D → L5>=4 no-D before rank_score order.
         if pooled is not None and len(pooled) > 0:
             before_bp = len(pooled)
             seeded = prefer_best_props_seed(pooled, prefer_gold_silver=True)
@@ -21432,9 +21433,16 @@ def main():
                 n_g = int((seeded.get("best_props_badge") == "Gold").sum()) if "best_props_badge" in seeded.columns else 0
                 n_s = int((seeded.get("best_props_badge") == "Silver").sum()) if "best_props_badge" in seeded.columns else 0
                 n_b = int((seeded.get("best_props_badge") == "Bronze").sum()) if "best_props_badge" in seeded.columns else 0
+                tier_bits = []
+                if "best_props_seed_tier" in seeded.columns:
+                    vc = seeded["best_props_seed_tier"].value_counts().to_dict()
+                    for t_i, lab in ((0, "L5=5+D"), (1, "L5=4+D"), (2, "L5 no-D")):
+                        if int(vc.get(t_i, 0)) > 0:
+                            tier_bits.append(f"{lab}={int(vc.get(t_i, 0))}")
+                tier_s = (" " + " ".join(tier_bits)) if tier_bits else ""
                 print(
                     f"  [best-props-seed] {sport}: {len(seeded)}/{before_bp} legs "
-                    f"(Gold={n_g} Silver={n_s} Bronze={n_b})"
+                    f"(Gold={n_g} Silver={n_s} Bronze={n_b}){tier_s}"
                 )
                 pooled = seeded
         discard_tracker.log_count(str(sport), "final_pool_kept", int(len(pooled) if pooled is not None else 0))

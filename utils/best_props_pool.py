@@ -3,10 +3,14 @@
 Mirrors scripts/rank_best_props_today.py badge recipe:
   Hard gate: directional L5 >= 4; Std OVER/UNDER + Goblin OVER only.
   Badge: Gold/Silver/Bronze from L5, Cover, Delta, Dir, D, Rank checks.
-  Sort: badge → L5 → cover magnitude.
 
-Tickets prefer Gold then Silver; Bronze is kept only when the preferred
-pool is too thin to build slips.
+Ticket seed priority (L5-first with D as the main add-on gate):
+  0) L5 == 5 and agreeing def direction
+  1) L5 == 4 and agreeing def direction
+  2) L5 >= 4 without congruent def (L5=5 no-D before L5=4 no-D)
+
+Within each tier: higher L5, then cover magnitude. Preferred pool expands
+tier-by-tier until min_preferred legs are available.
 """
 from __future__ import annotations
 
@@ -28,6 +32,15 @@ _UNKNOWN_OPP = {"unknown_opp", "unk", "unknown", ""}
 DELTA_FLOOR = 0.50
 DELTA_PCT = 0.15
 BADGE_ORDER = {"Gold": 0, "Silver": 1, "Bronze": 2, "": 3}
+# Seed tiers: L5=5+D → L5=4+D → L5>=4 without D
+SEED_TIER_L5_5_D = 0
+SEED_TIER_L5_4_D = 1
+SEED_TIER_L5_NO_D = 2
+SEED_TIER_LABELS = {
+    SEED_TIER_L5_5_D: "L5=5+D",
+    SEED_TIER_L5_4_D: "L5=4+D",
+    SEED_TIER_L5_NO_D: "L5>=4 no-D",
+}
 MIN_PREFERRED_LEGS = 8
 
 
@@ -275,7 +288,19 @@ def _badge(rec: dict[str, Any], n_teams: int | None) -> dict[str, Any]:
         "misses": misses,
         "badge": badge,
         "miss_s": ", ".join(misses) if misses else "",
+        "d_ok": bool(checks.get("D") is True),
     }
+
+
+def _seed_tier(l5: int | None, d_ok: bool) -> int:
+    """L5=5+D → L5=4+D → L5>=4 without congruent D."""
+    if l5 is None or l5 < 4:
+        return 99
+    if l5 >= 5 and d_ok:
+        return SEED_TIER_L5_5_D
+    if l5 == 4 and d_ok:
+        return SEED_TIER_L5_4_D
+    return SEED_TIER_L5_NO_D
 
 
 def row_to_best_props_rec(r: dict | pd.Series, n_teams: int | None = None) -> dict[str, Any] | None:
@@ -304,6 +329,7 @@ def row_to_best_props_rec(r: dict | pd.Series, n_teams: int | None = None) -> di
     if side == "UNDER" and (l5u is None or l5u < 4):
         return None
 
+    l5_dir = l5o if side == "OVER" else l5u
     rec: dict[str, Any] = {
         "sport": str(r.get("sport") or "").strip().upper(),
         "player": str(r.get("player") or "").strip(),
@@ -324,6 +350,8 @@ def row_to_best_props_rec(r: dict | pd.Series, n_teams: int | None = None) -> di
     rec.update(_badge(rec, n_teams))
     if not rec.get("badge"):
         return None
+    rec["seed_tier"] = _seed_tier(l5_dir, bool(rec.get("d_ok")))
+    rec["l5_dir"] = l5_dir
     return rec
 
 
@@ -336,6 +364,8 @@ def annotate_best_props_pool(df: pd.DataFrame) -> pd.DataFrame:
     covers: list[float | None] = []
     l5_dir: list[int | None] = []
     miss_s: list[str] = []
+    seed_tiers: list[int] = []
+    d_oks: list[bool] = []
     keep_idx: list[Any] = []
     for idx in df.index:
         row = df.loc[idx]
@@ -345,9 +375,10 @@ def annotate_best_props_pool(df: pd.DataFrame) -> pd.DataFrame:
         keep_idx.append(idx)
         badges.append(str(rec.get("badge") or ""))
         covers.append(rec.get("cover"))
-        over = rec.get("side") == "OVER"
-        l5_dir.append(rec["l5_over"] if over else rec["l5_under"])
+        l5_dir.append(rec.get("l5_dir"))
         miss_s.append(str(rec.get("miss_s") or ""))
+        seed_tiers.append(int(rec.get("seed_tier", 99)))
+        d_oks.append(bool(rec.get("d_ok")))
     if not keep_idx:
         return df.iloc[0:0].copy()
     out = df.loc[keep_idx].copy()
@@ -355,7 +386,9 @@ def annotate_best_props_pool(df: pd.DataFrame) -> pd.DataFrame:
     out["best_props_cover"] = covers
     out["best_props_l5"] = l5_dir
     out["best_props_misses"] = miss_s
-    badge_ords = [BADGE_ORDER.get(b, 3) for b in badges]
+    out["best_props_seed_tier"] = seed_tiers
+    out["best_props_d_ok"] = d_oks
+    # Within no-D tier, still prefer L5=5 over L5=4 via _bp_l5.
     l5_keys = [(-(x or 0)) for x in l5_dir]
     cover_keys: list[float] = []
     for i, c in enumerate(covers):
@@ -366,16 +399,18 @@ def annotate_best_props_pool(df: pd.DataFrame) -> pd.DataFrame:
             cover_keys.append(-float(c))
         else:
             cover_keys.append(float(c))
+    badge_ords = [BADGE_ORDER.get(b, 3) for b in badges]
     out = out.assign(
-        _bp_badge_ord=badge_ords,
+        _bp_seed=seed_tiers,
         _bp_l5=l5_keys,
         _bp_cover=cover_keys,
+        _bp_badge_ord=badge_ords,
     )
     out = out.sort_values(
-        ["_bp_badge_ord", "_bp_l5", "_bp_cover"],
-        ascending=[True, True, True],
+        ["_bp_seed", "_bp_l5", "_bp_badge_ord", "_bp_cover"],
+        ascending=[True, True, True, True],
     )
-    return out.drop(columns=["_bp_badge_ord", "_bp_l5", "_bp_cover"], errors="ignore")
+    return out.drop(columns=["_bp_seed", "_bp_l5", "_bp_cover", "_bp_badge_ord"], errors="ignore")
 
 
 def prefer_best_props_seed(
@@ -384,10 +419,12 @@ def prefer_best_props_seed(
     prefer_gold_silver: bool = True,
     min_preferred: int = MIN_PREFERRED_LEGS,
 ) -> pd.DataFrame:
-    """Reorder (and optionally trim Bronze) ticket pool to Gold→Silver first.
+    """Reorder ticket pool: L5=5+D → L5=4+D → L5>=4 no-D.
 
-    If Gold+Silver count >= min_preferred, Bronze is dropped. Otherwise Bronze
-    stays at the end so thin sports can still fill slips.
+    Expands seed tiers until ``min_preferred`` legs are available. Bronze badge
+    legs may still appear inside those tiers; ``prefer_gold_silver`` drops
+    Bronze only after the tiered pool is chosen and Gold+Silver alone is thick
+    enough.
     """
     if df is None or df.empty:
         return df.iloc[0:0].copy() if df is not None else pd.DataFrame()
@@ -395,8 +432,45 @@ def prefer_best_props_seed(
     if annotated.empty:
         # No L5≥4 badge legs — keep original order rather than emptying the pool.
         return df
+
+    tier_col = "best_props_seed_tier"
+    chosen = annotated.iloc[0:0].copy()
+    for tier in (SEED_TIER_L5_5_D, SEED_TIER_L5_4_D, SEED_TIER_L5_NO_D):
+        part = annotated[annotated[tier_col] == tier]
+        if part.empty:
+            continue
+        chosen = pd.concat([chosen, part], ignore_index=True)
+        if len(chosen) >= int(min_preferred):
+            break
+    if chosen.empty:
+        chosen = annotated
+
     if prefer_gold_silver:
-        pref = annotated[annotated["best_props_badge"].isin(["Gold", "Silver"])]
+        pref = chosen[chosen["best_props_badge"].isin(["Gold", "Silver"])]
         if len(pref) >= int(min_preferred):
             return pref.reset_index(drop=True)
-    return annotated.reset_index(drop=True)
+    return chosen.reset_index(drop=True)
+
+
+def sort_ticket_seed_pool(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep L5/D seed tiers ahead of rank_score when sorting ticket candidates."""
+    if df is None or getattr(df, "empty", True):
+        return df
+    out = df.copy()
+    cols: list[str] = []
+    asc: list[bool] = []
+    if "best_props_seed_tier" in out.columns:
+        out["_seed_tier_sort"] = pd.to_numeric(out["best_props_seed_tier"], errors="coerce").fillna(99)
+        cols.append("_seed_tier_sort")
+        asc.append(True)
+    if "best_props_l5" in out.columns:
+        out["_l5_sort"] = pd.to_numeric(out["best_props_l5"], errors="coerce").fillna(0)
+        cols.append("_l5_sort")
+        asc.append(False)
+    if "rank_score" in out.columns:
+        cols.append("rank_score")
+        asc.append(False)
+    if not cols:
+        return out
+    out = out.sort_values(cols, ascending=asc, na_position="last")
+    return out.drop(columns=["_seed_tier_sort", "_l5_sort"], errors="ignore").reset_index(drop=True)

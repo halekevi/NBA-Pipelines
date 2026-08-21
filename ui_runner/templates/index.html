@@ -209,6 +209,9 @@ body::after{content:'';position:fixed;inset:0;
   border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:2px 8px;
 }
 #top-edges-board.te-board--single .edge-sport{display:none!important;}
+#top-edges-board.te-board--single .te-card .te-head .edge-sport{
+  display:none!important;
+}
 #top-edges-board .te-card{
   border-radius:14px;
 }
@@ -223,15 +226,12 @@ body::after{content:'';position:fixed;inset:0;
   padding:12px 12px 6px;
 }
 #top-edges-board .te-card .te-head{
-  display:grid;
-  grid-template-columns:auto auto auto 1fr;
+  display:flex;
   align-items:center;
-  column-gap:6px;
+  justify-content:flex-start;
+  gap:6px;
   width:100%;
   min-height:28px;
-}
-#top-edges-board.te-board--single .te-card .te-head{
-  grid-template-columns:auto auto 1fr;
 }
 #top-edges-board .te-card .te-head .edge-sport,
 #top-edges-board .te-card .te-pick-badge,
@@ -251,24 +251,24 @@ body::after{content:'';position:fixed;inset:0;
   line-height:1!important;
   text-transform:uppercase;
   white-space:nowrap;
-  vertical-align:middle;
-  float:none!important;
-  position:static!important;
+  flex:0 0 auto;
+}
+#top-edges-board.te-board--single .te-card .te-head .edge-sport{
+  display:none!important;
 }
 #top-edges-board .te-card .te-edge{
-  grid-column:-1;
-  justify-self:end;
+  margin-left:auto;
   align-self:center;
   font-family:'Bebas Neue',sans-serif;
   font-size:22px;
   letter-spacing:.3px;
   line-height:28px;
   height:28px;
-  margin:0;
   padding:0;
   display:inline-flex;
   align-items:center;
   text-shadow:none;
+  flex:0 0 auto;
 }
 #top-edges-board .te-card .te-edge.over{color:var(--green);}
 #top-edges-board .te-card .te-edge.under{color:var(--amber);}

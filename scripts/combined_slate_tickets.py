@@ -5964,32 +5964,14 @@ def _main_mlb_prop_is_hitter_core(prop_norm: str) -> bool:
 
 
 def _main_leg_prop_banned(row_d: dict) -> bool:
-    """True when sport×pick×prop is a known low-HR MAIN ban."""
-    sport = str(row_d.get("sport") or "").strip().upper()
-    pick = str(row_d.get("pick_type") or "").strip().lower()
-    direction = str(
-        row_d.get("direction") or row_d.get("over_under") or row_d.get("bet_direction") or ""
-    ).strip().upper()
+    """Fantasy Score exclusion only.
+
+    Sport Goblin bans (esp. MLB hitter Goblin OVER pitcher-allowlist / Tennis Ace·DF)
+    were removed from MAIN eligibility Aug 2026 — they wiped L5+D seed legs.
+    Standard prop×direction ledger gates and Demon exclusion remain elsewhere.
+    """
     prop_raw = row_d.get("prop_type") or row_d.get("prop") or ""
-    if _is_fantasy_prop_label(prop_raw):
-        return True
-    prop = _norm_main_prop_key(prop_raw)
-    if sport == "MLB" and "goblin" in pick and direction == "OVER":
-        # Hard-ban hitter core Goblin OVERs (Hits/TB/HRRBI/…). Pitcher allowlist only.
-        if not prop:
-            return True
-        if prop in MAIN_MLB_GOBLIN_OVER_ALLOW_NORMS:
-            return False
-        if prop in MAIN_BANNED_GOBLIN_PROP_NORMS.get("MLB", frozenset()):
-            return True
-        # Unknown MLB Goblin OVER prop: ban (fail closed toward pitcher-centric board).
-        return True
-    if "goblin" not in pick:
-        return False
-    banned = MAIN_BANNED_GOBLIN_PROP_NORMS.get(sport)
-    if not banned:
-        return False
-    return bool(prop) and prop in banned
+    return bool(_is_fantasy_prop_label(prop_raw))
 
 
 def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
@@ -6005,8 +5987,10 @@ def _leg_mlb_standard_over_banned(row_d: dict) -> bool:
 def _leg_mlb_construction_banned(row_d: dict | pd.Series) -> bool:
     """
     Shared hygiene for MAIN / FINAL / long-parlay builders:
-    banned MLB Goblin OVER props + Standard prop×direction ledger gates +
+    Fantasy Score exclusion + Standard prop×direction ledger gates +
     MLB Standard OVER at perfect L5.
+
+    MLB hitter / Tennis Ace·DF Goblin sport bans are intentionally not applied.
     """
     if isinstance(row_d, pd.Series):
         row_d = row_d.to_dict()
@@ -6422,8 +6406,9 @@ def _row_high_leg_hr_reserved(
     graded_ctx: dict[str, Any] | None = None,
 ) -> bool:
     """
-    Legs reserved for the high-leg-HR ticket section (win-rate / Today's Best).
-    Excluded from main graded ticket pool so performance tracking stays clean.
+    Legs that also qualify for the HIGH LEG HR ticket section (win-rate / Today's Best).
+
+    These are shared with graded main (not exclusively removed from the main pool).
     """
     return _row_win_rate_eligible(
         row,
@@ -6431,6 +6416,65 @@ def _row_high_leg_hr_reserved(
         min_composite_hr=min_composite_hr,
         graded_ctx=graded_ctx,
     )
+
+
+def _row_composite_hr_value(row_d: dict) -> float:
+    """Empirical HR for win-rate / four-leg gates.
+
+    WNBA (and some other) step8 exports often omit ``hit_rate`` /
+    ``composite_hit_rate`` while still shipping ``line_hit_rate``,
+    ``last5_hit_rate``, or directional L5 counts. Treating missing as 0.0
+    wiped L5+D best-props from the MAIN seed pool.
+    """
+    for key in (
+        "composite_hit_rate",
+        "hit_rate",
+        "line_hit_rate",
+        "last5_hit_rate",
+        "l5_side_hit_rate",
+        "hit_rate_l5",
+    ):
+        raw = row_d.get(key)
+        if raw is None or raw == "":
+            continue
+        try:
+            v = float(raw)
+            if not math.isfinite(v):
+                continue
+            if v > 1.0:
+                v = v / 100.0
+            return float(v)
+        except (TypeError, ValueError):
+            continue
+    direction = str(
+        row_d.get("direction")
+        or row_d.get("over_under")
+        or row_d.get("bet_direction")
+        or row_d.get("final_bet_direction")
+        or ""
+    ).strip().upper()
+    side_keys = (
+        ("under_hit_rate",)
+        if direction in ("UNDER", "LOWER")
+        else ("over_hit_rate", "l10_over_pct")
+    )
+    for key in side_keys:
+        raw = row_d.get(key)
+        if raw is None or raw == "":
+            continue
+        try:
+            v = float(raw)
+            if not math.isfinite(v):
+                continue
+            if v > 1.0:
+                v = v / 100.0
+            return float(v)
+        except (TypeError, ValueError):
+            continue
+    hits = _row_directional_l5_hits(row_d)
+    if hits is not None and float(hits) >= 0.0:
+        return float(min(1.0, float(hits) / 5.0))
+    return 0.0
 
 
 def _row_win_rate_eligible(
@@ -6481,13 +6525,7 @@ def _row_win_rate_eligible(
         pass
     else:
         return False
-    comp = row_d.get("composite_hit_rate")
-    if comp is None or comp == "":
-        comp = row_d.get("hit_rate")
-    try:
-        comp_f = float(comp) if comp is not None and comp != "" else 0.0
-    except (TypeError, ValueError):
-        comp_f = 0.0
+    comp_f = _row_composite_hr_value(row_d)
     if comp_f < float(min_composite_hr):
         return False
     leg_prob = _leg_prob_for_p_win_from_mapping(row_d)
@@ -6879,14 +6917,7 @@ def _row_main_four_leg_eligible(row: pd.Series | dict) -> bool:
     leg_p = _leg_prob_for_p_win_from_mapping(row_d)
     if leg_p < float(MAIN_FOUR_LEG_MIN_LEG_PROB):
         return False
-    comp = row_d.get("composite_hit_rate")
-    if comp is None or comp == "":
-        comp = row_d.get("hit_rate")
-    try:
-        comp_f = float(comp) if comp is not None and comp != "" else 0.0
-    except (TypeError, ValueError):
-        comp_f = 0.0
-    if comp_f < float(MAIN_FOUR_LEG_MIN_COMPOSITE_HR):
+    if _row_composite_hr_value(row_d) < float(MAIN_FOUR_LEG_MIN_COMPOSITE_HR):
         return False
     # Aug-8: L5=5/5 ~70% — require perfect directional L5 on Goblin 4+ legs.
     if not _row_main_goblin_l5_ok(row_d, min_hits=float(MAIN_LONG_GOBLIN_MIN_L5_HITS)):
@@ -21298,14 +21329,13 @@ def main():
             else:
                 demon_passed = 0
 
-        # Main EV tickets: reserve win-rate picks so they are not reused in loose EV parlays.
-        # Main win-rate builder must see the full eligible pool (for_win_rate=True).
+        # High-leg-HR legs stay on graded main AND feed the HIGH LEG HR panel.
+        # (Exclusive reserve used to strip WNBA/MLB from main while the panel often
+        # published empty — legs should be shared across both tracks.)
         if not getattr(args, "win_rate_mode", False) and not for_win_rate and len(filtered_df) > 0:
             _hr_min_prob = float(getattr(args, "min_leg_prob", 0.55) or 0.55)
 
-            def _reserve_for_win_rate(row: pd.Series) -> bool:
-                # Keep sport-gated Soccer / Tennis legs on the main board (not stolen
-                # into a separate win-rate section that rarely emits those sports).
+            def _mark_high_leg_hr(row: pd.Series) -> bool:
                 if sport == "TENNIS" and tennis_allowed_leg(row):
                     return False
                 if sport in ("SOCCER", "SOC") and soccer_allowed_leg(row):
@@ -21317,13 +21347,12 @@ def main():
                     graded_ctx=_graded_ctx_main,
                 )
 
-            _hr_mask = filtered_df.apply(_reserve_for_win_rate, axis=1)
+            _hr_mask = filtered_df.apply(_mark_high_leg_hr, axis=1)
             _hr_n = int(_hr_mask.sum())
             if _hr_n > 0:
-                filtered_df = filtered_df[~_hr_mask].copy()
                 print(
-                    f"  [pool] Reserved {_hr_n} high-leg-HR legs for win-rate section "
-                    f"(excluded from graded main tickets)"
+                    f"  [pool] {_hr_n} high-leg-HR legs kept on graded main "
+                    f"(also eligible for HIGH LEG HR panel — shared, not exclusive)"
                 )
 
         # Tier floor: exclude Tier D from all pools
@@ -23972,7 +24001,7 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
     """Pinned panel: top 5 win-rate tickets (sorted by est_win_prob, bench legs filtered)."""
     _placeholder = (
         '<motionless class="winrate-best-panel" id="winrate-best-panel" aria-live="polite">'
-        '<motionless class="winrate-best-title">⚡ HIGH LEG HR — Not in graded main track</motionless>'
+        '<motionless class="winrate-best-title">⚡ HIGH LEG HR</motionless>'
         '<motionless class="winrate-best-sub">High-leg-HR tickets generating…</motionless>'
         "</motionless>"
     ).replace("motionless", "div")
@@ -24003,10 +24032,10 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
     if not top:
         return (
             '<div class="winrate-best-panel" id="winrate-best-panel">'
-            '<div class="winrate-best-title">⚡ HIGH LEG HR — Not in graded main track</div>'
+            '<div class="winrate-best-title">⚡ HIGH LEG HR</div>'
             '<div class="winrate-best-sub">No qualifying high-leg-HR tickets for this slate '
             '(deep-bench SUPPORT legs and same-game bench stacks are excluded). '
-            'Rebuild win-rate JSON after the next ticket run.</div>'
+            'These legs can still appear on graded main. Rebuild after the next ticket run.</div>'
             "</div>"
         )
     rows: list[str] = []
@@ -24051,14 +24080,14 @@ def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
             f'<div>EV {_fmt(ev_f, 1)} · Payout {_fmt(pay_f, 1)}x · {int(n_legs)}-leg</div>'
             f"</span></div>"
         )
-    sub_parts = ["High-leg-HR only — excluded from graded main track · sorted by modeled win probability"]
+    sub_parts = ["High-leg HR spotlight · also eligible on graded main · sorted by modeled win probability"]
     if generated_at:
         sub_parts.append(f"Updated: {generated_at}")
     sub = _h(" · ".join(sub_parts))
     body = "".join(rows)
     return (
         '<div class="winrate-best-panel" id="winrate-best-panel">'
-        '<div class="winrate-best-title">⚡ HIGH LEG HR — Not in graded main track</div>'
+        '<div class="winrate-best-title">⚡ HIGH LEG HR</div>'
         f'<div class="winrate-best-sub">{sub}</div>'
         f"{body}"
         "</div>"

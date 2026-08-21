@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-08-18T15:05:13.072055+00:00",
+  "generated_at": "2026-08-21T01:50:01.872156+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -84,24 +84,24 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -110,24 +110,24 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -136,24 +136,24 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -162,24 +162,24 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Zac Thornton",
-          "prop_type": "Pitching Outs",
-          "line": 11.5,
-          "standard_line": 15.5,
+          "player": "Sara Bejlek",
+          "prop_type": "Total Games Won",
+          "line": 6.5,
+          "standard_line": 11.5,
           "pick_type": "Demon",
-          "delta": 4.0,
+          "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.8576412903225807
+          "hit_rate": 0.8
         }
       ]
     },
@@ -188,34 +188,34 @@
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -224,34 +224,34 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -260,34 +260,34 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -296,34 +296,34 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -332,34 +332,34 @@
       "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -368,34 +368,34 @@
       "goblin_delta": 3.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         }
       ]
     },
@@ -404,34 +404,34 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         },
         {
-          "player": "Kyle Leahy",
-          "prop_type": "Pitching Outs",
-          "line": 11.5,
-          "standard_line": 13.0,
+          "player": "Madison Keys",
+          "prop_type": "Total Games Won",
+          "line": 10.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8238348387096776
+          "hit_rate": 0.8
         }
       ]
     },
@@ -440,34 +440,34 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
-          "line": 14.5,
-          "standard_line": 16.0,
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         },
         {
-          "player": "Zac Thornton",
-          "prop_type": "Pitching Outs",
-          "line": 11.5,
-          "standard_line": 15.5,
+          "player": "Sara Bejlek",
+          "prop_type": "Total Games Won",
+          "line": 6.5,
+          "standard_line": 11.5,
           "pick_type": "Demon",
-          "delta": 4.0,
+          "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.8576412903225807
+          "hit_rate": 0.8
         }
       ]
     },
@@ -476,34 +476,34 @@
       "goblin_delta": null,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
+          "player": "Courtney Williams",
+          "prop_type": "Points",
+          "line": 14.5,
+          "standard_line": 14.5,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "UNDER",
-          "hit_rate": 0.75152
+          "hit_rate": 0.9
         },
         {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
           "pick_type": "Standard",
           "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Zac Thornton",
-          "prop_type": "Pitching Outs",
-          "line": 11.5,
-          "standard_line": 15.5,
-          "pick_type": "Demon",
-          "delta": 4.0,
           "direction": "OVER",
-          "hit_rate": 0.8576412903225807
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Sara Bejlek",
+          "prop_type": "Total Games Won",
+          "line": 6.5,
+          "standard_line": 11.5,
+          "pick_type": "Demon",
+          "delta": 5.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
         }
       ]
     },
@@ -512,44 +512,44 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
         },
         {
-          "player": "Kyle Leahy",
-          "prop_type": "Pitching Outs",
-          "line": 11.5,
-          "standard_line": 13.0,
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 2.0,
           "direction": "OVER",
-          "hit_rate": 0.8238348387096776
+          "hit_rate": 1.0
+        },
+        {
+          "player": "Madison Keys",
+          "prop_type": "Total Games Won",
+          "line": 10.5,
+          "standard_line": 12.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
         }
       ]
     },
@@ -558,44 +558,44 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "Cal Quantrill",
-          "prop_type": "Hits Allowed",
-          "line": 4.5,
-          "standard_line": 4.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.75152
-        },
-        {
-          "player": "Eric Lauer",
-          "prop_type": "Hits Allowed",
-          "line": 6.5,
-          "standard_line": 6.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "UNDER",
-          "hit_rate": 0.7014800000000001
-        },
-        {
-          "player": "Nick Martinez",
-          "prop_type": "Pitching Outs",
+          "player": "Courtney Williams",
+          "prop_type": "Points",
           "line": 14.5,
-          "standard_line": 16.0,
+          "standard_line": 14.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "UNDER",
+          "hit_rate": 0.9
+        },
+        {
+          "player": "Bridget Carleton",
+          "prop_type": "Pts+Rebs",
+          "line": 19.5,
+          "standard_line": 19.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8
+        },
+        {
+          "player": "Frances Tiafoe",
+          "prop_type": "Total Games Won",
+          "line": 9.5,
+          "standard_line": 12.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.8560929032258064
+          "hit_rate": 1.0
         },
         {
-          "player": "Zac Thornton",
-          "prop_type": "Pitching Outs",
-          "line": 11.5,
-          "standard_line": 15.5,
+          "player": "Sara Bejlek",
+          "prop_type": "Total Games Won",
+          "line": 6.5,
+          "standard_line": 11.5,
           "pick_type": "Demon",
-          "delta": 4.0,
+          "delta": 5.0,
           "direction": "OVER",
-          "hit_rate": 0.8576412903225807
+          "hit_rate": 0.8
         }
       ]
     }

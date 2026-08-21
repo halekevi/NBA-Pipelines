@@ -228,17 +228,41 @@ def winrate_priority_series(df: pd.DataFrame) -> pd.Series:
         else pd.Series(False, index=df.index)
     )
 
-    cat = pd.to_numeric(df.get("category_hr"), errors="coerce")
-    ml = pd.to_numeric(df.get("ml_prob"), errors="coerce")
-    pq = pd.to_numeric(df.get("prop_quality_score"), errors="coerce")
-    rs = pd.to_numeric(df.get("rank_score"), errors="coerce")
+    nan_s = pd.Series(np.nan, index=df.index)
+    cat = (
+        pd.to_numeric(df["category_hr"], errors="coerce")
+        if "category_hr" in df.columns
+        else nan_s.copy()
+    )
+    ml = (
+        pd.to_numeric(df["ml_prob"], errors="coerce")
+        if "ml_prob" in df.columns
+        else nan_s.copy()
+    )
+    pq = (
+        pd.to_numeric(df["prop_quality_score"], errors="coerce")
+        if "prop_quality_score" in df.columns
+        else nan_s.copy()
+    )
+    rs = (
+        pd.to_numeric(df["rank_score"], errors="coerce")
+        if "rank_score" in df.columns
+        else nan_s.copy()
+    )
 
     direction = df.get("direction", pd.Series("", index=df.index)).astype(str).str.upper().str.strip()
-    nan_s = pd.Series(np.nan, index=df.index)
     l5_o = pd.to_numeric(df.get("l5_over", nan_s), errors="coerce")
     l5_u = pd.to_numeric(df.get("l5_under", nan_s), errors="coerce")
     l10_o = pd.to_numeric(df.get("l10_over", nan_s), errors="coerce")
     l10_u = pd.to_numeric(df.get("l10_under", nan_s), errors="coerce")
+    if not isinstance(l5_o, pd.Series):
+        l5_o = pd.Series(l5_o, index=df.index)
+    if not isinstance(l5_u, pd.Series):
+        l5_u = pd.Series(l5_u, index=df.index)
+    if not isinstance(l10_o, pd.Series):
+        l10_o = pd.Series(l10_o, index=df.index)
+    if not isinstance(l10_u, pd.Series):
+        l10_u = pd.Series(l10_u, index=df.index)
     side_l5 = np.where(direction.eq("UNDER"), l5_u, l5_o)
     side_l10 = np.where(direction.eq("UNDER"), l10_u, l10_o)
     # Map counts to ~0..1 recent HR proxies (L5 /5, L10 /10).

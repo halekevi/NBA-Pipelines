@@ -219,6 +219,7 @@ from utils.ticket_tier_defense_gates import (
     tennis_over_blocked_by_opp_rank,
     tier_defense_exclusion_mask,
 )
+from utils.best_props_pool import prefer_best_props_seed
 from utils.prop_signal_score import l10_streak_series
 from utils.slate_context_fill import (
     fill_cv_pct_if_missing,
@@ -4363,7 +4364,7 @@ def _best_props_rank_pool_fallback(
     *,
     max_keep: int = _BEST_PROPS_POOL_MAX_LEGS,
 ) -> pd.DataFrame:
-    """Top rank_score legs when strict gates leave a pool too thin to build slips."""
+    """Top best-props (Gold→Silver) legs when strict gates leave a pool too thin."""
     if df is None or df.empty:
         return pd.DataFrame()
     out = df.copy()
@@ -4373,6 +4374,9 @@ def _best_props_rank_pool_fallback(
         out = out[~out["tier"].astype(str).str.strip().str.upper().eq("D")].copy()
     if out.empty:
         return out
+    seeded = prefer_best_props_seed(out, prefer_gold_silver=True, min_preferred=2)
+    if seeded is not None and not seeded.empty:
+        return seeded.head(int(max_keep)).copy()
     rank_col = "rank_score" if "rank_score" in out.columns else "blended_score"
     if rank_col not in out.columns:
         return out.head(int(max_keep))
@@ -17102,9 +17106,7 @@ def _strong_candidate_legs(
             return gob
         out = pd.concat([gob, std], axis=0)
         out = out[~out.index.duplicated(keep="first")]
-        if "prop_quality_score" in out.columns:
-            out = out.sort_values("prop_quality_score", ascending=False)
-        return out
+        return prefer_best_props_seed(out, prefer_gold_silver=True, min_preferred=4)
 
     if mode in ("standard_prob", "standard_high_prob", "std_prob"):
         # Probability-first Standard: no HOT requirement; O or U with direction floors.
@@ -17168,7 +17170,10 @@ def _strong_candidate_legs(
         if lp < floor:
             continue
         filtered.append(idx)
-    return out.loc[filtered].copy() if filtered else out.iloc[0:0].copy()
+    if not filtered:
+        return out.iloc[0:0].copy()
+    filtered_df = out.loc[filtered].copy()
+    return prefer_best_props_seed(filtered_df, prefer_gold_silver=True, min_preferred=4)
 
 
 def _strong_candidate_legs_standard(df: pd.DataFrame) -> pd.DataFrame:
@@ -21419,6 +21424,19 @@ def main():
                 print(f"         stack-70: kept {stack_n}/{before_stack} legs (70% stack filter)")
         # Safety net: soft-void / other bypasses must still respect Goblin L5+L10 floors.
         pooled = _filter_df_main_goblin_recency(pooled)
+        # Prefer Gold→Silver (L5≥4 + cover/Δ + D badge) before rank_score order.
+        if pooled is not None and len(pooled) > 0:
+            before_bp = len(pooled)
+            seeded = prefer_best_props_seed(pooled, prefer_gold_silver=True)
+            if seeded is not None and not seeded.empty:
+                n_g = int((seeded.get("best_props_badge") == "Gold").sum()) if "best_props_badge" in seeded.columns else 0
+                n_s = int((seeded.get("best_props_badge") == "Silver").sum()) if "best_props_badge" in seeded.columns else 0
+                n_b = int((seeded.get("best_props_badge") == "Bronze").sum()) if "best_props_badge" in seeded.columns else 0
+                print(
+                    f"  [best-props-seed] {sport}: {len(seeded)}/{before_bp} legs "
+                    f"(Gold={n_g} Silver={n_s} Bronze={n_b})"
+                )
+                pooled = seeded
         discard_tracker.log_count(str(sport), "final_pool_kept", int(len(pooled) if pooled is not None else 0))
         gob_n = std_n = dem_n = 0
         if pooled is not None and "pick_type" in pooled.columns:

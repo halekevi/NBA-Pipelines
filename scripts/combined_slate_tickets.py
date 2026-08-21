@@ -2755,13 +2755,11 @@ def filter_web_tickets_for_ui(
     # Keep at least one single-sport ticket visible per sport in /tickets UI.
     # This prevents strict web gates from hiding entire sports (e.g. NBA1H/SOCCER/WNBA)
     # when they still have generated candidates in the payload.
+    # Also runs for win-rate MAIN (high_prob_std_gob) — otherwise WNBA vanishes when
+    # only STRONG is named generically and live_cdp prefer drops WNBA-labeled groups.
     ensure_cov_raw = os.getenv("PROPORACLE_WEB_ENSURE_SPORT_COVERAGE", "1").strip().lower()
     ensure_sport_coverage = ensure_cov_raw not in {"0", "false", "no", "off"}
-    if (
-        ensure_sport_coverage
-        and sport_candidates
-        and str(payload.get("pool_mode") or "") != MAIN_POOL_MODE
-    ):
+    if ensure_sport_coverage and sport_candidates:
         present_sports: set[str] = set()
         existing_group_names: set[str] = set()
         for g in out_groups:
@@ -6806,17 +6804,101 @@ def _ticket_is_mlb_goblin_n(ticket: dict, n_legs: int) -> bool:
     return True
 
 
+def _ticket_rows_or_legs(ticket: dict) -> list[dict]:
+    """Candidate tickets use ``rows``; web slips use ``legs``."""
+    if not isinstance(ticket, dict):
+        return []
+    rows = ticket.get("rows")
+    if isinstance(rows, list) and rows:
+        return [r for r in rows if isinstance(r, dict)]
+    legs = ticket.get("legs")
+    if isinstance(legs, list) and legs:
+        return [r for r in legs if isinstance(r, dict)]
+    return []
+
+
+def _leg_directional_l5(leg: dict) -> float | None:
+    """Directional L5 hits for a leg (OVER→l5_over/last5_over, UNDER→under)."""
+    if not isinstance(leg, dict):
+        return None
+    dirc = str(
+        leg.get("final_bet_direction")
+        or leg.get("bet_direction")
+        or leg.get("direction")
+        or leg.get("over_under")
+        or ""
+    ).strip().upper()
+    under = dirc in ("UNDER", "LOWER", "U")
+    keys = ("l5_under", "last5_under") if under else ("l5_over", "last5_over")
+    for k in keys:
+        raw = leg.get(k)
+        if raw is None or raw == "":
+            continue
+        try:
+            v = float(raw)
+            if math.isfinite(v):
+                return v
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _ticket_l5_seed_sort_key(ticket: dict) -> tuple[float, float, float]:
+    """Lower is better: avg seed tier (0=L5=5+D), then -min L5, then -mean L5.
+
+    Matches best-props priority: fill with L5=5 (+ Def) before L5=4 / no-D.
+    """
+    rows = _ticket_rows_or_legs(ticket)
+    if not rows:
+        return (99.0, 0.0, 0.0)
+    tiers: list[float] = []
+    l5s: list[float] = []
+    for r in rows:
+        l5 = _leg_directional_l5(r)
+        if l5 is None:
+            tiers.append(99.0)
+            continue
+        l5s.append(float(l5))
+        # D congruence: prefer best_props_d_ok / checks when present; else tier by L5 only.
+        d_ok = r.get("best_props_d_ok")
+        if d_ok is None and isinstance(r.get("best_props_checks"), dict):
+            d_ok = r["best_props_checks"].get("D")
+        if d_ok is True and l5 >= 5:
+            tiers.append(0.0)
+        elif d_ok is True and l5 >= 4:
+            tiers.append(1.0)
+        elif l5 >= 5:
+            tiers.append(2.0)
+        elif l5 >= 4:
+            tiers.append(3.0)
+        else:
+            tiers.append(99.0)
+    if not l5s:
+        return (99.0, 0.0, 0.0)
+    return (sum(tiers) / len(tiers), -min(l5s), -sum(l5s) / len(l5s))
+
+
 def _winrate_ticket_rank_score(ticket: dict) -> float:
     """
     Panel/build sort: floor-EV proxy = p_win × Min Guarantee (Jul-24).
 
     Optimizes for EV = WR × floor, not WR alone. MLB Goblin 4L gets a mild boost.
+    L5=5 (all legs) and L5≥4 tickets get a mild hit-rate boost so WNBA/Soccer
+    best-props seeds are not starved by high-floor MLB/Tennis.
     """
     p = _winrate_ticket_win_prob(ticket)
     floor = _ticket_rank_floor_x(ticket)
     score = float(p) * float(floor)
     if _ticket_is_mlb_goblin_n(ticket, 4):
         score *= float(MLB_GOBLIN_4L_RANK_BOOST)
+    _tier, neg_min_l5, _neg_mean = _ticket_l5_seed_sort_key(ticket)
+    min_l5 = -float(neg_min_l5)
+    if min_l5 >= 5:
+        score *= 1.28
+    elif min_l5 >= 4:
+        score *= 1.12
+    if _tier <= 0.5:  # mostly L5=5+D
+        score *= 1.08
     if _winrate_ticket_construction_reject(ticket):
         score *= 0.85
     return score
@@ -7014,6 +7096,13 @@ def build_win_rate_ticket_groups(
         )
         if wr_df is None or len(wr_df) < 2:
             continue
+        # L5=5+D → L5=4+D → L5≥4 before rank_score (best-props seed order).
+        try:
+            seeded = prefer_best_props_seed(wr_df, prefer_gold_silver=True, min_preferred=4)
+            if seeded is not None and not seeded.empty:
+                wr_df = sort_ticket_seed_pool(seeded)
+        except Exception:
+            pass
         for n in build_leg_counts:
             if len(wr_df) < n:
                 continue
@@ -7060,6 +7149,7 @@ def build_win_rate_ticket_groups(
     candidates.sort(
         key=lambda x: (
             _leg_count_pref(x),
+            _ticket_l5_seed_sort_key(x),
             -_winrate_ticket_rank_score(x),
             -_winrate_ticket_win_prob(x),
             -float(x.get("win_rate_score") or 0.0),
@@ -7096,6 +7186,23 @@ def build_win_rate_ticket_groups(
             if _try_pick(t):
                 taken += 1
 
+    def _seed_sport_min(sport: str, limit: int, *, prefer_n: int | None = None) -> None:
+        """Guarantee L5-first slips per sport so WNBA is not starved by MLB/Tennis floor-EV."""
+        if limit <= 0:
+            return
+        su = str(sport).strip().upper()
+        taken = 0
+        for t in candidates:
+            if len(picked) >= int(max_tickets) or taken >= limit:
+                break
+            if str(t.get("_sport_label") or "").strip().upper() != su:
+                continue
+            rows = t.get("rows") or []
+            if prefer_n is not None and len(rows) != int(prefer_n):
+                continue
+            if _try_pick(t):
+                taken += 1
+
     # Seed preferred lengths first. Goblin-long reserves multiple 4/5/6 slips so the
     # short-book fill (often filling MAIN_MAX_SLIPS with 3-legs) cannot starve Long Goblin.
     long_seed_per_n = 0
@@ -7122,6 +7229,12 @@ def build_win_rate_ticket_groups(
                 _seed_target_n(target_n, max(1, long_seed_per_n // 2))
         _seed_target_n(3, 1)
         _seed_target_n(2, 1)
+
+    # Active-slate sport floors (L5-sorted candidates): WNBA first so L5=5 Gold boards land.
+    for _sp, _n in (("WNBA", 3), ("MLB", 2), ("TENNIS", 2), ("SOCCER", 2)):
+        _seed_sport_min(_sp, _n, prefer_n=MAIN_DEFAULT_LEGS if prefer_three_leg else None)
+        if prefer_three_leg and MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS:
+            _seed_sport_min(_sp, 1, prefer_n=MAIN_GRADED_MIN_LEGS)
 
     for t in candidates:
         if len(picked) >= int(max_tickets):
@@ -8661,13 +8774,15 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
 
     Excludes void-prone sports (default: Tennis) and same-game deep-bench stacks.
     Rank = p_win × Min Guarantee (Jul-24); p_win still gates MAIN_MIN_P_WIN_FLOOR.
+    Reserves L5-first slots per active sport (WNBA/MLB/TENNIS/SOCCER) so WNBA
+    Goblin/Standard boards are not wiped by MLB floor-EV piles.
     """
     if not isinstance(payload, dict):
         return {}
     floor_p = float(MAIN_MIN_P_WIN_FLOOR)
     max_slips = int(MAIN_MAX_SLIPS)
     exclude = set(main_exclude_sports_for_date(str(payload.get("date") or "")))
-    candidates: list[tuple[float, float, dict, dict]] = []
+    candidates: list[tuple[tuple, float, float, dict, dict]] = []
     for g in payload.get("groups") or []:
         if not isinstance(g, dict):
             continue
@@ -8696,12 +8811,72 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
             if _winrate_ticket_construction_reject(t):
                 continue
             rank = _winrate_ticket_rank_score(t)
-            candidates.append((rank, p_win, dict(t), g))
-    candidates.sort(key=lambda x: (-x[0], -x[1], str(x[3].get("group_name") or "")))
-    candidates = candidates[:max_slips]
+            l5_key = _ticket_l5_seed_sort_key(t)
+            candidates.append((l5_key, rank, p_win, dict(t), g))
+    # Global order: L5 seed first, then floor-EV.
+    candidates.sort(key=lambda x: (x[0], -x[1], -x[2], str(x[4].get("group_name") or "")))
+
+    def _cand_sport(t: dict, g: dict) -> str:
+        sports = sorted(_ticket_leg_sports(t))
+        if len(sports) == 1:
+            return sports[0]
+        gn = str(g.get("group_name") or "").strip().upper()
+        for sp in ("WNBA", "MLB", "TENNIS", "SOCCER", "NBA", "NHL"):
+            if gn.startswith(sp + " ") or gn == sp:
+                return sp
+        return sports[0] if sports else "MIXED"
+
+    picked: list[tuple[tuple, float, float, dict, dict]] = []
+    seen_sig: set[tuple] = set()
+    per_sport: Counter[str] = Counter()
+    # Soft floors so L5=5 WNBA boards survive MLB Goblin volume.
+    sport_floor = {"WNBA": 3, "MLB": 2, "TENNIS": 2, "SOCCER": 2}
+
+    def _take(c: tuple[tuple, float, float, dict, dict]) -> bool:
+        _l5k, _rk, _pw, t, g = c
+        try:
+            sig = (
+                tuple(
+                    sorted(
+                        f"{leg.get('player') or ''}|{leg.get('prop_type') or ''}|{leg.get('line') or ''}"
+                        for leg in (t.get("legs") or [])
+                        if isinstance(leg, dict)
+                    )
+                ),
+                str(g.get("group_name") or ""),
+            )
+        except Exception:
+            sig = (id(t), str(g.get("group_name") or ""))
+        if sig in seen_sig:
+            return False
+        if len(picked) >= max_slips:
+            return False
+        seen_sig.add(sig)
+        picked.append(c)
+        per_sport[_cand_sport(t, g)] += 1
+        return True
+
+    # Pass 1: sport floors (already L5-sorted).
+    for sp, need in sport_floor.items():
+        if need <= 0:
+            continue
+        for c in candidates:
+            if per_sport[sp] >= need or len(picked) >= max_slips:
+                break
+            _l5k, _rk, _pw, t, g = c
+            if _cand_sport(t, g) != sp:
+                continue
+            _take(c)
+
+    # Pass 2: fill remaining by L5 then floor-EV.
+    for c in candidates:
+        if len(picked) >= max_slips:
+            break
+        _take(c)
+
     by_group: dict[str, list[dict]] = {}
     group_meta: dict[str, dict] = {}
-    for _rank, _p, t, g in candidates:
+    for _l5k, _rank, _p, t, g in picked:
         gn = str(g.get("group_name") or "Group")
         by_group.setdefault(gn, []).append(t)
         group_meta[gn] = g
@@ -8716,7 +8891,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
     out["main_min_p_win_floor"] = floor_p
     out["main_max_slips"] = max_slips
     out["main_exclude_sports"] = sorted(exclude)
-    out["main_rank_mode"] = "floor_ev"
+    out["main_rank_mode"] = "l5_seed_then_floor_ev"
     _finalize_payload_l10_streaks(out)
     return out
 
@@ -10315,15 +10490,141 @@ def prefer_main_min_payout_payload(payload: dict) -> dict:
     Final MAIN/web filter: prefer ≥ MAIN_PREFERRED_MIN_PAYOUT_X; floor-gate STRONG.
 
     Must run after display payouts are finalized so display_min_x is authoritative.
+    Soft-restores L5-first tickets for active sports wiped only by pending live_cdp.
     """
     if not isinstance(payload, dict):
         return payload
+    before_groups = list(payload.get("groups") or [])
     out = dict(payload)
     groups = list(out.get("groups") or [])
     out["groups"] = _prefer_main_payout_floor_groups(groups)
     out["preferred_min_payout_x"] = float(MAIN_PREFERRED_MIN_PAYOUT_X)
     out["short_floor_hard_x"] = float(SHORT_FLOOR_HARD_X)
     out["short_floor_high_p_win"] = float(SHORT_FLOOR_HIGH_P_WIN)
+    out = _restore_l5_active_sport_coverage(out, before_groups)
+    return out
+
+
+def _payload_leg_sports(groups: list[dict]) -> set[str]:
+    sports: set[str] = set()
+    for g in groups:
+        if not isinstance(g, dict):
+            continue
+        gn = str(g.get("group_name") or "").strip().upper()
+        # STRONG / Coverage / Cross-sport do not count as a named sport board.
+        if gn.startswith("STRONG") or "COVERAGE" in gn or gn.startswith("X-SPORT") or "CROSS" in gn:
+            for t in g.get("tickets") or []:
+                if isinstance(t, dict):
+                    sports |= _ticket_leg_sports(t)
+            continue
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict):
+                sports |= _ticket_leg_sports(t)
+    return sports
+
+
+def _named_sport_board_sports(groups: list[dict]) -> set[str]:
+    """Sports that have a dedicated group label (e.g. 'WNBA 3-Leg …'), not only STRONG."""
+    out: set[str] = set()
+    for g in groups:
+        if not isinstance(g, dict):
+            continue
+        gn = str(g.get("group_name") or "").strip().upper()
+        if not gn or gn.startswith("STRONG") or "COVERAGE" in gn:
+            continue
+        for sp in ("WNBA", "MLB", "TENNIS", "SOCCER", "NBA", "NHL", "NFL", "CFB"):
+            if gn.startswith(sp + " ") or gn == sp:
+                out.add(sp)
+                break
+    return out
+
+
+def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) -> dict:
+    """
+    After live_cdp prefer cuts pending floors, restore best L5=5 / L5≥4 tickets for
+    active sports that lost their named boards (esp. WNBA under STRONG-only).
+    """
+    if not isinstance(payload, dict):
+        return payload
+    after = list(payload.get("groups") or [])
+    named_after = _named_sport_board_sports(after)
+    active = ("WNBA", "MLB", "TENNIS", "SOCCER")
+    missing = [sp for sp in active if sp not in named_after]
+    if not missing:
+        return payload
+
+    # Candidate tickets from pre-prefer snapshot, L5-first.
+    cands: list[tuple[tuple, float, dict, dict]] = []
+    for g in before_groups:
+        if not isinstance(g, dict):
+            continue
+        gn = str(g.get("group_name") or "")
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            sports = _ticket_leg_sports(t)
+            if len(sports) != 1:
+                continue
+            sp = next(iter(sports))
+            if sp not in missing:
+                continue
+            # Prefer named sport boards over STRONG when restoring labels.
+            if str(gn).upper().startswith("STRONG"):
+                continue
+            l5_key = _ticket_l5_seed_sort_key(t)
+            # Only restore quality L5 boards (min L5 ≥ 4).
+            if -l5_key[1] < 4:
+                continue
+            rank = _winrate_ticket_rank_score(t)
+            cands.append((l5_key, rank, dict(t), dict(g)))
+    if not cands:
+        return payload
+    cands.sort(key=lambda x: (x[0], -x[1]))
+
+    out = dict(payload)
+    groups = list(after)
+    existing_names = {str(g.get("group_name") or "") for g in groups if isinstance(g, dict)}
+    restored: Counter[str] = Counter()
+    for l5_key, _rank, t, g in cands:
+        sp = next(iter(_ticket_leg_sports(t)))
+        if restored[sp] >= 3:
+            continue
+        gn = str(g.get("group_name") or f"{sp} L5 Coverage")
+        # Soft-allow unknown floors: mark pending so UI can still show the slip.
+        pay = t.get("payout") if isinstance(t.get("payout"), dict) else {}
+        if not _ticket_has_live_cdp_payout(t):
+            t = dict(t)
+            pay = dict(pay) if isinstance(pay, dict) else {}
+            pay.setdefault("payout_source", pay.get("payout_source") or "pending_cdp")
+            t["payout"] = pay
+            t["l5_sport_coverage_restore"] = True
+        if gn in existing_names:
+            # Append into existing group if present.
+            for gg in groups:
+                if str(gg.get("group_name") or "") == gn:
+                    tickets = [x for x in (gg.get("tickets") or []) if isinstance(x, dict)]
+                    tickets.append(t)
+                    gg["tickets"] = tickets
+                    restored[sp] += 1
+                    break
+            continue
+        ng = {
+            "group_name": gn,
+            "n_legs": _ticket_n_legs(t),
+            "tickets": [t],
+            "hot_legs": int(t.get("hot_legs") or 0),
+            "cold_legs": int(t.get("cold_legs") or 0),
+        }
+        groups.append(ng)
+        existing_names.add(gn)
+        restored[sp] += 1
+    if restored:
+        print(
+            "  [web] restored L5 sport boards after payout prefer: "
+            + ", ".join(f"{sp}={restored[sp]}" for sp in sorted(restored))
+        )
+        out["groups"] = groups
+        out["l5_sport_coverage_restored"] = dict(restored)
     return out
 
 
@@ -10502,6 +10803,103 @@ def append_in_season_web_supplement_groups(
     print(
         "  [web-supplement] appended groups from full export: "
         + ", ".join(f"{sp}={added_by_sport[sp]}" for sp in sorted(added_by_sport.keys()))
+    )
+    return out
+
+
+def ensure_named_sport_boards_from_full(
+    main_payload: dict,
+    full_payload: dict,
+    *,
+    sports: tuple[str, ...] = ("WNBA",),
+    min_groups: int = 2,
+    min_legs: int | None = None,
+    max_legs: int | None = None,
+) -> dict:
+    """
+    Pull named sport boards (e.g. WNBA 3-Leg Goblin / Standard) from the full Excel
+    export when graded main only has STRONG/cross-sport coverage for that sport.
+    Prefers groups whose tickets clear L5≥4 (L5=5 first).
+    """
+    if not isinstance(main_payload, dict) or not isinstance(full_payload, dict):
+        return main_payload
+    lo = int(min_legs if min_legs is not None else MAIN_GRADED_MIN_LEGS)
+    hi = int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS)
+    named = _named_sport_board_sports(list(main_payload.get("groups") or []))
+    want = [sp for sp in sports if sp and sp not in named]
+    if not want:
+        return main_payload
+
+    out = dict(main_payload)
+    groups = list(out.get("groups") or [])
+    existing_names = {str(g.get("group_name") or "") for g in groups if isinstance(g, dict)}
+    added: Counter[str] = Counter()
+
+    scored: list[tuple[tuple, float, dict]] = []
+    for g in full_payload.get("groups") or []:
+        if not isinstance(g, dict):
+            continue
+        gn = str(g.get("group_name") or "")
+        if not gn or gn in existing_names:
+            continue
+        gnu = gn.upper()
+        if gnu.startswith("STRONG") or "LADDER" in gnu and "CROSS" in gnu:
+            continue
+        sport_key = None
+        for sp in want:
+            if gnu.startswith(sp + " ") or gnu == sp:
+                sport_key = sp
+                break
+        if not sport_key:
+            continue
+        kept: list[dict] = []
+        best_l5 = (99.0, 0.0, 0.0)
+        best_rank = -1.0
+        for t in g.get("tickets") or []:
+            if not isinstance(t, dict):
+                continue
+            n = _slip_leg_count(t, g)
+            if n < lo or n > hi:
+                continue
+            sports_t = _ticket_leg_sports(t)
+            if sports_t != {sport_key}:
+                continue
+            l5_key = _ticket_l5_seed_sort_key(t)
+            if -l5_key[1] < 4:
+                continue
+            kept.append(t)
+            if l5_key < best_l5:
+                best_l5 = l5_key
+            best_rank = max(best_rank, _winrate_ticket_rank_score(t))
+        if not kept:
+            continue
+        ng = dict(g)
+        ng["tickets"] = kept
+        ng["n_legs"] = int(g.get("n_legs") or _slip_leg_count(kept[0], g))
+        scored.append((best_l5, best_rank, ng))
+
+    scored.sort(key=lambda x: (x[0], -x[1]))
+    for _l5, _rk, ng in scored:
+        gn = str(ng.get("group_name") or "")
+        sport_key = None
+        for sp in want:
+            if gn.upper().startswith(sp + " "):
+                sport_key = sp
+                break
+        if not sport_key or added[sport_key] >= int(min_groups):
+            continue
+        if gn in existing_names:
+            continue
+        groups.append(ng)
+        existing_names.add(gn)
+        added[sport_key] += 1
+
+    if not added:
+        return main_payload
+    out["groups"] = groups
+    print(
+        "  [web] ensured named L5 sport boards from full export: "
+        + ", ".join(f"{sp}={added[sp]}" for sp in sorted(added))
     )
     return out
 
@@ -15688,10 +16086,13 @@ CORE_PIPELINE_RECIPES: dict[str, list[dict[str, object]]] = {
         {"structure": "goblin3", "label": "Core Power 3", "variants": 3},
     ],
     "WNBA": [
-        {"structure": "flex", "label": "Core Flex 3", "variants": 3},
-        {"structure": "flex4", "label": "Core Flex 4", "variants": 2},
-        {"structure": "flex5", "label": "Core Flex 5", "variants": 2},
-        {"structure": "flex6", "label": "Core Flex 6", "variants": 2},
+        # Short Goblin/Power first so CORE injects WNBA onto graded main (Flex 4–6 often empty).
+        {"structure": "goblin3", "label": "Core Power 3", "variants": 3},
+        {"structure": "power", "label": "Core Power 2", "variants": 2},
+        {"structure": "flex", "label": "Core Flex 3", "variants": 2},
+        {"structure": "flex4", "label": "Core Flex 4", "variants": 1},
+        {"structure": "flex5", "label": "Core Flex 5", "variants": 1},
+        {"structure": "flex6", "label": "Core Flex 6", "variants": 1},
     ],
     "TENNIS": [
         {"structure": "power", "label": "Core Power 2", "variants": 1},
@@ -15734,7 +16135,25 @@ CORE_PROP_FOCUS_NORMS: dict[str, frozenset[str]] = {
             "threepointersmade",
             "rebounds",
             "defensiverebounds",
-            "points",  # secondary; keep thin for Flex 3 fill
+            "points",
+            # Combo props dominate L5=5 Gold boards — keep them in CORE.
+            "ptsrebs",
+            "pointsrebounds",
+            "pts+rebs",
+            "points+rebounds",
+            "ptsasts",
+            "pointsassists",
+            "pts+asts",
+            "points+assists",
+            "rebsasts",
+            "reboundsassists",
+            "rebs+asts",
+            "rebounds+assists",
+            "pra",
+            "ptsrebsasts",
+            "pointsreboundsassists",
+            "pts+rebs+asts",
+            "points+rebounds+assists",
         }
     ),
     # Tennis Goblin OVER game totals only (aces/DF banned on MAIN).
@@ -15861,6 +16280,13 @@ def _prepare_core_pipeline_pool(sport_label: str, pool_df: pd.DataFrame) -> pd.D
                 f"  [core] {sp}: prop focus kept {len(focused)}/{len(out)} "
                 f"(below {min_keep}) — using broader pool"
             )
+    # Prefer L5=5+D → L5=4+D before structure builders pick first legs.
+    try:
+        seeded = prefer_best_props_seed(out, prefer_gold_silver=True, min_preferred=4)
+        if seeded is not None and not seeded.empty:
+            out = sort_ticket_seed_pool(seeded)
+    except Exception:
+        pass
     return _filter_df_main_goblin_recency(out.reset_index(drop=True))
 
 
@@ -22723,6 +23149,9 @@ def main():
             payload = append_in_season_web_supplement_groups(
                 payload, full_payload, str(args.date)
             )
+            payload = ensure_named_sport_boards_from_full(
+                payload, full_payload, sports=("WNBA", "SOCCER"), min_groups=3
+            )
             payload = filter_main_high_prob_payload(payload)
             write_full_ticket_export_snapshot(payload, str(args.date))
             n_groups = len(payload["groups"])
@@ -22896,6 +23325,9 @@ def main():
             # even when MAIN is win-rate Goblin — otherwise World Cup never appears on /tickets.
             payload = append_in_season_web_supplement_groups(
                 payload, full_payload, str(args.date)
+            )
+            payload = ensure_named_sport_boards_from_full(
+                payload, full_payload, sports=("WNBA", "SOCCER"), min_groups=3
             )
             payload = filter_main_high_prob_payload(payload)
             write_full_ticket_export_snapshot(payload, str(args.date))

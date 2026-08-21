@@ -4355,7 +4355,7 @@ function buildEdgeCard(p, idx, rec) {
         <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
         <div class="te-l5">${l5l10}</div>
       </div>
-      ${subBits.length ? `<div class="te-card-sub">${subBits.join(" · ")}</div>` : ""}
+      ${subBits.length ? `<div class="te-card-sub"><span class="te-opp-lbl">Opp:</span> ${subBits.join(" · ")}</div>` : ""}
     </div>
     ${hitBlock}` : `
     <div class="edge-card-top">

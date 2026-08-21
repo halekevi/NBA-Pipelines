@@ -8656,6 +8656,12 @@ L5_TICKET_PIPELINE_SPORTS: tuple[str, ...] = tuple(
 )
 # Soft floor of named L5 slips reserved per in-season pipeline sport on MAIN.
 L5_SPORT_BOARD_FLOOR: int = max(1, int(os.getenv("PROPORACLE_L5_SPORT_BOARD_FLOOR", "2")))
+# After live_cdp prefer (≥1.5x) wipes pending / sub-floor slips, restore this many
+# named L5≥4 boards per pipeline sport so WNBA/Soccer/etc. are not left at a token 2.
+L5_SPORT_RESTORE_FLOOR: int = max(
+    int(L5_SPORT_BOARD_FLOOR),
+    int(os.getenv("PROPORACLE_L5_SPORT_RESTORE_FLOOR", "8")),
+)
 
 
 def l5_pipeline_sports_for_date(
@@ -10603,15 +10609,57 @@ def _named_sport_board_sports(groups: list[dict]) -> set[str]:
     return out
 
 
+def _named_sport_ticket_counts(groups: list[dict]) -> Counter[str]:
+    """Count named (non-STRONG) single-sport slips per pipeline sport."""
+    counts: Counter[str] = Counter()
+    for g in groups:
+        if not isinstance(g, dict):
+            continue
+        gn = str(g.get("group_name") or "").strip().upper()
+        if not gn or gn.startswith("STRONG") or "COVERAGE" in gn:
+            continue
+        sport_key = None
+        for sp in L5_TICKET_PIPELINE_SPORTS:
+            if gn.startswith(sp + " ") or gn == sp:
+                sport_key = sp
+                break
+        if not sport_key:
+            continue
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict) and _ticket_leg_sports(t) == {sport_key}:
+                counts[sport_key] += 1
+    return counts
+
+
+def _ticket_leg_sig_for_restore(ticket: dict) -> tuple:
+    """Stable leg signature so restore does not re-add slips already on the board."""
+    legs = []
+    for leg in ticket.get("legs") or []:
+        if not isinstance(leg, dict):
+            continue
+        legs.append(
+            (
+                str(leg.get("sport") or "").strip().upper(),
+                str(leg.get("player") or leg.get("name") or "").strip().lower(),
+                str(leg.get("prop_type") or leg.get("stat") or "").strip().lower(),
+                str(leg.get("direction") or leg.get("side") or "").strip().upper(),
+                str(leg.get("line") or ""),
+                str(leg.get("pick_type") or "").strip().lower(),
+            )
+        )
+    return tuple(sorted(legs))
+
+
 def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) -> dict:
     """
     After live_cdp prefer cuts pending floors, restore best L5=5 / L5≥4 tickets for
-    every pipeline sport that lost its named boards (not STRONG-only).
+    every pipeline sport that lost or was thinned below L5_SPORT_RESTORE_FLOOR named boards.
     """
     if not isinstance(payload, dict):
         return payload
     after = list(payload.get("groups") or [])
-    named_after = _named_sport_board_sports(after)
+    floor = int(L5_SPORT_RESTORE_FLOOR)
+    named_counts = _named_sport_ticket_counts(after)
     # Any single-sport ticket in the pre-prefer board is eligible for restore.
     present_before: set[str] = set()
     for g in before_groups:
@@ -10624,9 +10672,21 @@ def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) 
         str(payload.get("date") or "") or None,
         present=present_before or None,
     )
-    missing = [sp for sp in active if sp not in named_after]
-    if not missing:
+    # Top up thin sports too — prefer can leave a single named slip and skip restore.
+    need = {sp: max(0, floor - int(named_counts.get(sp, 0))) for sp in active}
+    need = {sp: n for sp, n in need.items() if n > 0}
+    if not need:
         return payload
+
+    existing_sigs: set[tuple] = set()
+    for g in after:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict):
+                sig = _ticket_leg_sig_for_restore(t)
+                if sig:
+                    existing_sigs.add(sig)
 
     # Candidate tickets from pre-prefer snapshot, L5-first.
     cands: list[tuple[tuple, float, dict, dict]] = []
@@ -10641,10 +10701,13 @@ def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) 
             if len(sports) != 1:
                 continue
             sp = next(iter(sports))
-            if sp not in missing:
+            if sp not in need:
                 continue
             # Prefer named sport boards over STRONG when restoring labels.
             if str(gn).upper().startswith("STRONG"):
+                continue
+            sig = _ticket_leg_sig_for_restore(t)
+            if sig and sig in existing_sigs:
                 continue
             l5_key = _ticket_l5_seed_sort_key(t)
             # Only restore quality L5 boards (min L5 ≥ 4).
@@ -10660,10 +10723,9 @@ def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) 
     groups = list(after)
     existing_names = {str(g.get("group_name") or "") for g in groups if isinstance(g, dict)}
     restored: Counter[str] = Counter()
-    floor = int(L5_SPORT_BOARD_FLOOR)
     for l5_key, _rank, t, g in cands:
         sp = next(iter(_ticket_leg_sports(t)))
-        if restored[sp] >= floor:
+        if restored[sp] >= need.get(sp, 0):
             continue
         gn = str(g.get("group_name") or f"{sp} L5 Coverage")
         # Soft-allow unknown floors: mark pending so UI can still show the slip.
@@ -10674,6 +10736,9 @@ def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) 
             pay.setdefault("payout_source", pay.get("payout_source") or "pending_cdp")
             t["payout"] = pay
             t["l5_sport_coverage_restore"] = True
+        sig = _ticket_leg_sig_for_restore(t)
+        if sig:
+            existing_sigs.add(sig)
         if gn in existing_names:
             # Append into existing group if present.
             for gg in groups:
@@ -10698,9 +10763,11 @@ def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) 
         print(
             "  [web] restored L5 sport boards after payout prefer: "
             + ", ".join(f"{sp}={restored[sp]}" for sp in sorted(restored))
+            + f" (floor={floor})"
         )
         out["groups"] = groups
         out["l5_sport_coverage_restored"] = dict(restored)
+        out["l5_sport_restore_floor"] = floor
     return out
 
 

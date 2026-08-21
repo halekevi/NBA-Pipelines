@@ -215,9 +215,132 @@ body::after{content:'';position:fixed;inset:0;
 }
 .edge-grid{display:grid;gap:clamp(8px,1.5vw,14px);grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));margin-bottom:14px;}
 .edge-grid--under{margin-bottom:0;}
-.streak-grid{display:grid;gap:clamp(8px,1.5vw,12px);grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));margin-bottom:18px;}
+.streak-grid{display:grid;gap:clamp(8px,1.5vw,12px);grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));margin-bottom:18px;}
 .edge-source-note{font-size:11px;color:var(--muted2);line-height:1.45;max-width:70ch;margin:-6px 0 16px;letter-spacing:.02em;}
 .edge-bucket-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
+#top-edges-board .te-bucket-label{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:#e8ecf4;margin:18px 0 10px;padding:0 0 8px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+#top-edges-board .te-bucket-n{
+  font-size:10px;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;
+  color:var(--muted2,#b8c0d0);background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:2px 8px;
+}
+#top-edges-board.te-board--single .edge-sport{display:none!important;}
+#top-edges-board.te-board--single .te-card .te-head .edge-sport{
+  display:none!important;
+}
+#top-edges-board .te-card{
+  border-radius:14px;
+}
+#top-edges-board .te-card.insight-card{
+  padding:0!important;
+}
+#top-edges-board .te-card .edge-card-top{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:8px;
+  padding:12px 12px 6px;
+}
+#top-edges-board .te-card .te-head{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:6px;
+  width:100%;
+  min-height:28px;
+}
+#top-edges-board .te-card .te-head .edge-sport,
+#top-edges-board .te-card .te-pick-badge,
+#top-edges-board .te-card .te-badge{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  height:28px;
+  margin:0!important;
+  padding:0 10px!important;
+  border-radius:8px;
+  box-sizing:border-box;
+  font-family:"Inter",sans-serif;
+  font-size:11px!important;
+  font-weight:800;
+  letter-spacing:.08em;
+  line-height:1!important;
+  text-transform:uppercase;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+#top-edges-board.te-board--single .te-card .te-head .edge-sport{
+  display:none!important;
+}
+#top-edges-board .te-card .te-edge{
+  margin-left:auto;
+  align-self:center;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;
+  letter-spacing:.3px;
+  line-height:28px;
+  height:28px;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  text-shadow:none;
+  flex:0 0 auto;
+}
+#top-edges-board .te-card .te-edge.over{color:var(--green);}
+#top-edges-board .te-card .te-edge.under{color:var(--amber);}
+#top-edges-board .te-card .edge-name{
+  width:100%;min-width:0;font-size:15px;white-space:normal;line-height:1.25;letter-spacing:-0.15px;
+  text-align:left;margin:0;
+}
+#top-edges-board .te-card .edge-prop{
+  max-width:none;text-align:left;font-size:12px;color:#c5cddc;white-space:normal;line-height:1.3;
+  flex:0 1 auto;min-width:0;margin:0;
+}
+#top-edges-board .te-card .te-prop-row{
+  display:flex;align-items:baseline;justify-content:flex-start;gap:10px;width:100%;flex-wrap:wrap;
+}
+#top-edges-board .te-card .te-l5{
+  flex:0 0 auto;font-size:12px;font-weight:700;font-family:"Inter",sans-serif;
+  color:#e8ecf4;letter-spacing:.02em;white-space:nowrap;line-height:1.3;
+}
+#top-edges-board .te-card .edge-meta{display:none;}
+#top-edges-board .te-card .edge-line-badge{display:none;}
+#top-edges-board .te-card .te-card-sub{
+  font-size:11px;color:var(--muted2,#b8c0d0);line-height:1.3;margin:0;
+  font-family:"Inter",sans-serif;text-align:left;width:100%;
+}
+#top-edges-board .te-card .te-opp-lbl{
+  color:#c5cddc;font-weight:700;margin-right:2px;
+}
+#top-edges-board .te-card .te-hit{
+  padding:6px 12px 12px;display:flex;align-items:center;gap:8px;
+}
+#top-edges-board .te-card .te-hit-track{
+  flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;
+}
+#top-edges-board .te-card .te-hit-fill{height:100%;border-radius:2px;}
+#top-edges-board .te-card .te-hit-pct{
+  font-size:10px;font-weight:700;font-family:"Inter",sans-serif;min-width:30px;text-align:right;
+}
+#top-edges-board .te-bucket-label{margin:12px 0 8px;padding:0 0 6px;}
+#top-edges-board .edge-grid{
+  gap:8px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+@media(max-width:1200px){
+  #top-edges-board .edge-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+@media(max-width:900px){
+  #top-edges-board .edge-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:560px){
+  #top-edges-board .edge-grid{grid-template-columns:1fr!important;}
+}
 .edges-see-all{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:1px solid rgba(212,175,55,.28);padding:8px 16px;border-radius:999px;transition:background .15s,border-color .15s;white-space:nowrap;flex-shrink:0;}
 .edges-see-all:hover{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.45);}
 [data-theme="light"] .edges-see-all{border-color:rgba(75,111,150,.35);color:var(--accent);}
@@ -355,18 +478,30 @@ body::after{content:'';position:fixed;inset:0;
 .edge-line-badge{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .edge-mini{font-size:10px;color:var(--muted);font-family:"Inter",sans-serif;white-space:normal;overflow:hidden;text-align:right;line-height:1.25;max-width:168px;}
 .pick-demon{background:rgba(255,127,159,.12);color:#ff9db8;border:1px solid rgba(255,127,159,.28);}
-.te-legend{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 14px;}
-.te-sport-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;padding:0;align-items:center;}
+.te-legend{font-size:11px;color:var(--muted);line-height:1.45;margin:0 0 10px;}
+.te-legend-short{margin:0;}
+.te-legend details{margin:0;}
+.te-legend summary{
+  cursor:pointer;list-style:none;color:var(--muted2,#b8c0d0);font-weight:600;
+  display:inline-flex;align-items:center;gap:6px;user-select:none;
+}
+.te-legend summary::-webkit-details-marker{display:none;}
+.te-legend summary::after{content:"▸";font-size:10px;opacity:.7;transition:transform .15s;}
+.te-legend details[open] summary::after{transform:rotate(90deg);}
+.te-legend-full{margin:6px 0 0;max-width:62ch;}
+.te-sport-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0;align-items:center;}
 .te-sport-tab{
   appearance:none;cursor:pointer;border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.04);color:var(--muted2,#b8c0d0);
   font-family:"Inter",sans-serif;font-size:12px;font-weight:650;letter-spacing:.04em;
   padding:8px 12px;border-radius:999px;min-height:36px;line-height:1;
-  display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s,color .15s;
+  display:inline-flex;align-items:center;gap:6px;transition:border-color .15s,background .15s,color .15s,opacity .15s;
 }
 .te-sport-tab:hover{border-color:rgba(255,255,255,.28);color:#fff;background:rgba(255,255,255,.07);}
 .te-sport-tab:focus-visible{outline:2px solid rgba(240,165,0,.55);outline-offset:2px;}
 .te-sport-tab.active{border-color:rgba(240,165,0,.55);background:rgba(240,165,0,.14);color:#f0d080;}
+.te-sport-tab.is-empty{opacity:.42;}
+.te-sport-tab.is-empty:not(.active):hover{opacity:.7;}
 .te-sport-tab .te-tab-count{
   font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;
   opacity:.75;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.25);
@@ -376,7 +511,16 @@ body::after{content:'';position:fixed;inset:0;
 .te-sport[hidden]{display:none!important;}
 .te-sport-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:0 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
 .te-sport-hd span{font-family:"Inter",sans-serif;font-size:11px;letter-spacing:.04em;color:var(--muted);font-weight:600;}
+#top-edges-board.te-board--single .te-sport-hd .te-sport-name{display:none;}
+#top-edges-board.te-board--single .te-sport-hd{font-size:0;margin:0 0 10px;}
+#top-edges-board.te-board--single .te-sport-hd span{
+  font-size:11px;letter-spacing:.04em;font-family:"Inter",sans-serif;font-weight:600;
+}
 .te-empty{font-size:12px;color:var(--muted);padding:6px 0 12px;}
+.te-sport-empty{
+  font-size:13px;color:var(--muted);padding:18px 4px 8px;text-align:left;
+  border:1px dashed rgba(255,255,255,.1);border-radius:12px;margin:4px 0 8px;
+}
 @media (max-width:640px){
   .te-sport-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:12px;gap:6px;}
   .te-sport-tab{flex:0 0 auto;white-space:nowrap;padding:7px 11px;font-size:11px;}
@@ -417,10 +561,18 @@ body::after{content:'';position:fixed;inset:0;
 .expand-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .expand-chart{margin-bottom:12px;}
 .expand-proj{margin-top:10px;}
-.expand-proj-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;}
-.expand-proj-bar{height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;position:relative;}
-.expand-proj-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#2ecc71,#c8ff00);transition:width .6s ease;}
-.expand-proj-marker{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.3);}
+.expand-proj-title{font-size:10px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
+.expand-proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.expand-proj-cell{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:10px 8px;text-align:center;min-width:0;}
+.expand-proj-cell-lbl{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;line-height:1.25;}
+.expand-proj-cell-val{font-family:'Bebas Neue',sans-serif;font-size:clamp(16px,2vw,22px);color:var(--text);line-height:1.1;}
+.expand-proj-cell-val.is-line{color:#f39c12;}
+.expand-proj-cell-val.is-proj{color:var(--cyan,#7fc7d9);}
+.expand-proj-note{margin-top:8px;font-size:11px;font-family:"Inter",sans-serif;font-weight:500;color:rgba(232,236,244,.88);line-height:1.35;}
+.expand-proj-note .proj-delta{color:var(--green,#2ecc71);font-weight:700;}
+.expand-proj-note .proj-delta.is-under{color:var(--amber,#f0b429);}
+.expand-proj-bar{display:none;}
+.expand-proj-lbl{display:none;}
 .expand-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
 .expand-stat{background:rgba(255,255,255,0.04);backdrop-filter:blur(10px) saturate(180%);-webkit-backdrop-filter:blur(10px) saturate(180%);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:10px;text-align:center;overflow:hidden;min-width:0;}
 .expand-stat-lbl{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:1.5px;margin-bottom:4px;}
@@ -1114,7 +1266,7 @@ body > nav.snav.glass-card {
 <link rel="stylesheet" href="static/mobile-content-width.css?v=20260716slatecards3"/>
 <link rel="stylesheet" href="static/matchup-edge.css?v=20260812share1"/>
 <link rel="stylesheet" href="static/site-nav-datetime.css?v=20260720halfnav1"/>
-<link rel="stylesheet" href="static/player-consistency.css?v=20260525hotprop"/>
+<link rel="stylesheet" href="static/player-consistency.css?v=20260820hotwide"/>
 </head>
 <body>
 
@@ -2557,8 +2709,19 @@ body > nav.snav.glass-card {
       <a href="tickets.html" class="edges-see-all">See All Picks ↗</a>
     </div>
     <div id="top-edges-debug" hidden aria-hidden="true"></div>
-    <div class="te-legend">L5 4+ on the play side. WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers), no prop preference.</div>
-    <div id="top-edges-sport-tabs" class="te-sport-tabs" role="tablist" aria-label="Filter Top Edges by sport"></div>
+    <div class="te-legend">
+      <details>
+        <summary>L5 4+ · D-aligned overs/unders · tap card for charts</summary>
+        <p class="te-legend-full">WNBA/MLB: Weak D overs, Elite D unders. Soccer: Weak/Below Avg overs, Elite/Above Avg unders. Tennis: opponent ATP/WTA rank (same tiers). D miss lowers badge; it does not remove the play from this board when L5 clears.</p>
+      </details>
+    </div>
+    <div id="top-edges-sport-tabs" class="te-sport-tabs" role="tablist" aria-label="Filter Top Edges by sport">
+      <button type="button" class="te-sport-tab active" role="tab" data-sport="ALL" aria-selected="true"><span>All</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="WNBA" aria-selected="false"><span>WNBA</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="MLB" aria-selected="false"><span>MLB</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="SOCCER" aria-selected="false"><span>Soccer</span></button>
+      <button type="button" class="te-sport-tab" role="tab" data-sport="TENNIS" aria-selected="false"><span>Tennis</span></button>
+    </div>
     <div id="top-edges-board"></div>
     <div id="over-edges-standard" class="edge-grid" hidden></div>
     <div id="over-edges-goblin" class="edge-grid" hidden></div>
@@ -3114,7 +3277,8 @@ function empiricalHitPctForPick(p, n = 5) {
   const lineVal = coercePropLine(p);
   if (!Number.isFinite(lineVal)) return null;
   let hits = 0;
-  // Match MLB/NHL pipeline: strict > / < vs line; pushes (== line) are not over or under hits.
+  // Historical line_series when present (how often they beat that market historically);
+  // otherwise fall back to this card's current book line.
   for (let i = 0; i < hist.actual.length; i++) {
     const cap =
       hist.lineSeries && Number.isFinite(hist.lineSeries[i])
@@ -4480,7 +4644,6 @@ function buildEdgeCard(p, idx, rec) {
   const edgeDisp = fmtEdgePick(p);
   const hitDisplay = topEdgeL5HitPct(p);
   const hitPct = Number.isFinite(hitDisplay) ? hitDisplay : 0;
-  const hc=hitPct>=90?"var(--green)":hitPct>=75?"var(--amber)":"var(--red)";
   const lineDisp = (() => {
     const v = coercePropLine(p);
     return Number.isFinite(v) ? v : p.line ?? "—";
@@ -4499,17 +4662,40 @@ function buildEdgeCard(p, idx, rec) {
   if (rec) metaBits.push(`avg ${avgS} vs ${lineDisp} (${coverS})`);
   if (dS) metaBits.push(dS);
   if (matchup) metaBits.push(matchup);
+  const subBits = [];
+  if (dS) subBits.push(dS);
+  if (matchup) subBits.push(matchup);
   const l5l10 = rec ? `L5 ${l5o}/${l5u}` : edgeHitCountsLabel(p);
   const div=document.createElement("div");
-  div.className=`edge-card insight-card ${dc}`;
+  div.className=`edge-card insight-card ${dc}${rec ? " te-card" : ""}`;
   const hitBar=Math.min(100,hitPct);
   const hitColor=hitPct>=90?'var(--green)':hitPct>=75?'var(--amber)':'var(--red)';
-  div.innerHTML=`
+  const hitBlock = `
+    <div class="te-hit">
+      <div class="te-hit-track"><div class="te-hit-fill" style="width:${hitBar}%;background:${hitColor};"></div></div>
+      <span class="te-hit-pct" style="color:${hitColor};">${hitPct}%</span>
+    </div>`;
+  const collapsed = rec ? `
+    <div class="edge-card-top">
+      <div class="te-head">
+        <span class="edge-sport ${sc}">${sportLabel}</span>
+        <span class="edge-pick ${pc} te-pick-badge">${p.pick}</span>
+        ${badgeHtml}
+        <span class="te-edge ${dc}">${coverDisp}</span>
+      </div>
+      <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
+      <div class="te-prop-row">
+        <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
+        <div class="te-l5">${l5l10}</div>
+      </div>
+      ${subBits.length ? `<div class="te-card-sub"><span class="te-opp-lbl">Opp:</span> ${subBits.join(" · ")}</div>` : ""}
+    </div>
+    ${hitBlock}` : `
     <div class="edge-card-top">
       <div class="edge-row edge-row-top">
         <div class="edge-avatar ${dc}">${p.initials || (p.player||"").split(" ").filter(w=>w).map(w=>w[0]).join("").slice(0,2).toUpperCase()}</div>
         <div class="edge-val">
-          <div class="edge-num edge-badge ${dc}">${badgeHtml}${coverDisp}</div>
+          <div class="edge-num edge-badge ${dc}">${coverDisp}</div>
           <div class="edge-mini">${l5l10}</div>
         </div>
       </div>
@@ -4523,17 +4709,19 @@ function buildEdgeCard(p, idx, rec) {
           <span class="edge-pick ${pc}">${p.pick}</span>
           ${p.tier ? `<span class="tier-badge tier-${p.tier}">${p.tier}</span>` : ''}${confDotHtml(p)}
         </div>
-        <div class="edge-line-badge">${rec && rec.badge ? rec.badge : `${hitPct}% hit`}</div>
+        <div class="edge-line-badge">${hitPct}% hit</div>
       </div>
-      ${rec ? `<div class="edge-meta">${metaBits.join(" · ")}</div>` : ""}
     </div>
     <div style="padding:0 12px 10px;display:flex;align-items:center;gap:8px;">
       <div style="flex:1;height:3px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;">
         <div style="width:${hitBar}%;height:100%;background:${hitColor};border-radius:3px;transition:width .6s ease;"></div>
       </div>
       <span style="font-size:10px;font-weight:700;color:${hitColor};font-family:'Inter',sans-serif;min-width:32px;text-align:right;">${hitPct}%</span>
-    </div>
+    </div>`;
+  div.innerHTML=`
+    ${collapsed}
     <div class="edge-expand" id="expand-${idx}">
+      ${rec ? `<div class="edge-meta" style="display:block;margin:0 0 10px;">${metaBits.join(" · ")}</div>` : ""}
       <div class="expand-tabs">
         <button class="expand-tab active" onclick="switchExpandTab(${idx},'l5',this)">L5</button>
         <button class="expand-tab" onclick="switchExpandTab(${idx},'l10',this)">L10</button>
@@ -4541,18 +4729,29 @@ function buildEdgeCard(p, idx, rec) {
       </div>
       <div class="expand-chart" id="chart-${idx}"></div>
       <div class="expand-proj">
-        <div class="expand-proj-lbl"><span>PROJECTION VS LINE</span><span id="plbl-${idx}"></span></div>
-        <div class="expand-proj-bar">
-          <div class="expand-proj-fill" id="pfill-${idx}" style="width:0%"></div>
-          <div class="expand-proj-marker" id="pmkr-${idx}"></div>
+        <div class="expand-proj-title">Tonight vs the book line</div>
+        <div class="expand-proj-grid">
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Recent L5</div>
+            <div class="expand-proj-cell-val" id="pavg-${idx}">—</div>
+          </div>
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Book line</div>
+            <div class="expand-proj-cell-val is-line" id="pline-${idx}">—</div>
+          </div>
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Model proj</div>
+            <div class="expand-proj-cell-val is-proj" id="pproj-${idx}">—</div>
+          </div>
         </div>
+        <div class="expand-proj-note" id="pnote-${idx}"></div>
       </div>
       <div class="expand-stats">
-        <div class="expand-stat"><div class="expand-stat-lbl">HIT RATE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
+        <div class="expand-stat" title="Share of recent games that cleared the historical/Standard market line (not always today's Goblin/Demon line)"><div class="expand-stat-lbl">VS HIST LINE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">EDGE</div><div class="expand-stat-val" style="color:var(--accent)">${edgeDisp}</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">PICK TYPE</div><div class="expand-stat-val" style="color:var(--cyan);font-size:clamp(11px,1.3vw,15px);">${p.pick}</div></div>
-        <div class="expand-stat"><div class="expand-stat-lbl">L5 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 5) ?? "—"} / ${resolvedUnderHits(p, 5) ?? "—"}</div></div>
-        <div class="expand-stat"><div class="expand-stat-lbl">L10 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 10) ?? "—"} / ${resolvedUnderHits(p, 10) ?? "—"}</div></div>
+        <div class="expand-stat" title="Hits vs today's book line on this card"><div class="expand-stat-lbl">L5 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 5) ?? "—"} / ${resolvedUnderHits(p, 5) ?? "—"}</div></div>
+        <div class="expand-stat" title="Hits vs today's book line on this card"><div class="expand-stat-lbl">L10 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 10) ?? "—"} / ${resolvedUnderHits(p, 10) ?? "—"}</div></div>
       </div>
     </div>`;
   return div;
@@ -4560,19 +4759,21 @@ function buildEdgeCard(p, idx, rec) {
 
 function renderExpandChart(idx, p, tab) {
   const chartEl = document.getElementById(`chart-${idx}`);
-  const pfillEl = document.getElementById(`pfill-${idx}`);
-  const pmkrEl = document.getElementById(`pmkr-${idx}`);
-  const plblEl = document.getElementById(`plbl-${idx}`);
-  if (!chartEl || !pfillEl || !pmkrEl || !plblEl) return;
+  const pavgEl = document.getElementById(`pavg-${idx}`);
+  const plineEl = document.getElementById(`pline-${idx}`);
+  const pprojEl = document.getElementById(`pproj-${idx}`);
+  const pnoteEl = document.getElementById(`pnote-${idx}`);
+  if (!chartEl) return;
   const isOver = p.dir === "OVER";
   const n = tab === "l5" || tab === "h2h" ? 5 : 10;
   const hist = expandHistForEdgeChart(p, n);
   if (!hist || !hist.actual.length) {
     chartEl.innerHTML =
       `<div style="height:100px;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:11px;border:1px dashed rgba(255,255,255,.12);border-radius:10px;">No chart series for this leg.</div>`;
-    pfillEl.style.width = "0%";
-    pmkrEl.style.left = "0%";
-    plblEl.textContent = "No data";
+    if (pavgEl) pavgEl.textContent = "—";
+    if (plineEl) plineEl.textContent = "—";
+    if (pprojEl) pprojEl.textContent = "—";
+    if (pnoteEl) pnoteEl.textContent = "No projection data for this leg.";
     return;
   }
   const show = hist.actual;
@@ -4600,22 +4801,34 @@ function renderExpandChart(idx, p, tab) {
     scaleExtras,
   );
   const avg = show.reduce((a, b) => a + b, 0) / show.length;
-  const refN = Number.isFinite(proj)
-    ? proj
-    : Number.isFinite(displayBook)
-      ? displayBook
-      : avg;
-  const maxV = Math.max(
-    refN * 1.5,
-    (Number.isFinite(displayBook) ? displayBook : 0) * 1.5,
-    avg * 1.3,
-    1
-  );
-  pfillEl.style.width =
-    Math.min(100, Math.round((avg / maxV) * 100)) + "%";
-  pmkrEl.style.left =
-    Math.min(100, Math.round((refN / maxV) * 100)) + "%";
-  plblEl.textContent = `${avg.toFixed(1)} L5 · Line ${Number.isFinite(displayBook) ? displayBook.toFixed(1) : "—"} · Proj ${Number.isFinite(proj) ? proj.toFixed(1) : "—"}`;
+  if (pavgEl) pavgEl.textContent = Number.isFinite(avg) ? avg.toFixed(1) : "—";
+  if (plineEl) plineEl.textContent = Number.isFinite(displayBook) ? displayBook.toFixed(1) : "—";
+  if (pprojEl) pprojEl.textContent = Number.isFinite(proj) ? proj.toFixed(1) : "—";
+  if (pnoteEl) {
+    if (Number.isFinite(proj) && Number.isFinite(displayBook)) {
+      const delta = proj - displayBook;
+      const abs = Math.abs(delta).toFixed(1);
+      const cls = delta >= 0 ? "proj-delta" : "proj-delta is-under";
+      const side = isOver
+        ? (delta >= 0
+            ? `Model expects <span class="${cls}">+${abs}</span> over the book line.`
+            : `Model expects <span class="${cls}">${abs}</span> under the book line.`)
+        : (delta <= 0
+            ? `Model expects <span class="${cls}">${abs}</span> under the book line.`
+            : `Model expects <span class="${cls}">+${abs}</span> over the book line.`);
+      const recentBit = Number.isFinite(avg)
+        ? ` Recent form averaged ${avg.toFixed(1)}.`
+        : "";
+      pnoteEl.innerHTML = side + recentBit;
+    } else if (Number.isFinite(avg) && Number.isFinite(displayBook)) {
+      const delta = avg - displayBook;
+      const abs = Math.abs(delta).toFixed(1);
+      const cls = delta >= 0 ? "proj-delta" : "proj-delta is-under";
+      pnoteEl.innerHTML = `Recent L5 averaged <span class="${cls}">${delta >= 0 ? "+" : "−"}${abs}</span> vs the book line.`;
+    } else {
+      pnoteEl.textContent = "Compare recent form and model projection to the book line.";
+    }
+  }
 }
 
 function switchExpandTab(idx, tab, btn) {
@@ -4772,6 +4985,7 @@ function applyTopEdgesSportFilter(sport) {
   try { sessionStorage.setItem("teSportFilter", want); } catch (_) { /* ignore */ }
   const board = document.getElementById("top-edges-board");
   if (board) {
+    board.classList.toggle("te-board--single", want !== "ALL");
     board.querySelectorAll(".te-sport[data-sport]").forEach((el) => {
       const sp = String(el.getAttribute("data-sport") || "").toUpperCase();
       el.hidden = want !== "ALL" && sp !== want;
@@ -4798,11 +5012,14 @@ function renderTopEdgesSportTabs(counts) {
   for (const [sp, n] of items) {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "te-sport-tab" + (sp === _teSportFilter ? " active" : "");
+    const empty = sp !== "ALL" && n <= 0;
+    btn.className = "te-sport-tab" + (sp === _teSportFilter ? " active" : "") + (empty ? " is-empty" : "");
     btn.setAttribute("role", "tab");
     btn.setAttribute("data-sport", sp);
     btn.setAttribute("aria-selected", sp === _teSportFilter ? "true" : "false");
-    btn.innerHTML = `<span>${sp === "ALL" ? "All sports" : sp}</span><span class="te-tab-count">${n}</span>`;
+    if (empty) btn.title = "No clears for this sport on the current slate";
+    const label = sp === "ALL" ? "All" : (sp === "SOCCER" ? "Soccer" : sp);
+    btn.innerHTML = `<span>${label}</span><span class="te-tab-count">${n}</span>`;
     btn.addEventListener("click", () => applyTopEdgesSportFilter(sp));
     host.appendChild(btn);
   }
@@ -4825,7 +5042,6 @@ function renderBadgeTopEdges(board) {
     SOCCER: "Weak/Below Avg overs · Elite/Above Avg unders",
     TENNIS: "opponent ATP/WTA rank",
   };
-  const emptyMsg = "none that clear L5 4+ / D filter";
   const counts = {};
   let cardN = 0;
   for (const sp of TopEdgesBadgeBoard.SPORTS) {
@@ -4837,25 +5053,27 @@ function renderBadgeTopEdges(board) {
     wrap.setAttribute("data-sport", sp);
     const hd = document.createElement("div");
     hd.className = "te-sport-hd";
-    hd.innerHTML = `${sp}<span>${notes[sp] || ""}</span>`;
+    hd.innerHTML = `<span class="te-sport-name">${sp}</span><span>${notes[sp] || ""}</span>`;
     wrap.appendChild(hd);
+    if (!nCards) {
+      const em = document.createElement("div");
+      em.className = "te-sport-empty";
+      em.textContent = "No L5 4+ / D-aligned clears on this slate.";
+      wrap.appendChild(em);
+      board.appendChild(wrap);
+      continue;
+    }
     const blocks = [
       ["Standard OVER", buckets.stdO],
       ["Goblin OVER", buckets.gob],
       ["Standard UNDER", buckets.stdU],
     ];
     for (const [label, list] of blocks) {
+      if (!list.length) continue;
       const lab = document.createElement("div");
-      lab.className = "edge-bucket-label";
-      lab.textContent = label;
+      lab.className = "edge-bucket-label te-bucket-label";
+      lab.innerHTML = `<span>${label}</span><span class="te-bucket-n">${list.length}</span>`;
       wrap.appendChild(lab);
-      if (!list.length) {
-        const em = document.createElement("div");
-        em.className = "te-empty";
-        em.textContent = emptyMsg;
-        wrap.appendChild(em);
-        continue;
-      }
       const grid = document.createElement("div");
       grid.className = "edge-grid";
       for (const rec of list) {
@@ -5166,24 +5384,24 @@ function streakCard(p, n) {
     <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${hc};border-radius:3px 0 0 3px;"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
       <div style="min-width:0;flex:1;">
-        <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">${p.player}</div>
-        <div style="font-size:10px;color:var(--muted);">${p.dir} ${lineDisp} · ${p.prop}</div>
-        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-          <span class="edge-sport ${sc}">${sportLabel}</span>
-          <span class="edge-pick ${pc}">${p.pick}</span>
-          ${badge?`<span style="font-size:9px;color:${hc};letter-spacing:.5px;">${badge}</span>`:''}
+        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${p.player}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.3;">${p.dir} ${lineDisp} · ${p.prop}</div>
+        <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+          <span class="edge-sport ${sc}" style="font-size:10px;padding:3px 8px;">${sportLabel}</span>
+          <span class="edge-pick ${pc}" style="font-size:10px;padding:3px 8px;">${p.pick}</span>
+          ${badge?`<span style="font-size:11px;font-weight:700;color:${hc};letter-spacing:.4px;">${badge}</span>`:''}
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${hc};line-height:1;">${hits}/${n}</div>
-        <div style="font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:1px;">L${n} ${p.dir}</div>
-        <div style="font-size:10px;color:var(--accent);margin-top:2px;">${fmtEdgePick(p)} edge</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:${hc};line-height:1;">${hits}/${n}</div>
+        <div style="font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:2px;">L${n} ${p.dir}</div>
+        <div style="font-size:12px;color:var(--accent);margin-top:3px;">${fmtEdgePick(p)} edge</div>
       </div>
     </div>
     <div style="margin:8px 0 10px;">${spark}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <span style="font-size:9px;color:var(--muted);letter-spacing:1px;">HIT RATE L${n}</span>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${pctCol};">${pct}%</span>
+      <span style="font-size:11px;color:var(--muted);letter-spacing:1px;">HIT RATE L${n}</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:${pctCol};">${pct}%</span>
     </div>
     <div style="height:4px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
       <div style="width:${pct}%;height:100%;background:${hc};border-radius:3px;"></div>

@@ -234,6 +234,9 @@ body::after{content:'';position:fixed;inset:0;
 #top-edges-board .te-card .te-top-right{
   display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;
 }
+#top-edges-board .te-card .te-top-right .edge-sport{
+  font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;letter-spacing:.04em;
+}
 #top-edges-board .te-card .te-pick-badge{
   font-size:11px;font-weight:800;padding:5px 10px;border-radius:8px;letter-spacing:.06em;
   text-transform:uppercase;line-height:1.1;
@@ -4300,8 +4303,7 @@ function buildEdgeCard(p, idx, rec) {
     </div>`;
   const collapsed = rec ? `
     <div class="edge-card-top">
-      <div class="edge-row edge-row-top">
-        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
+      <div class="edge-row edge-row-top te-badge-row">
         <div class="te-top-right">
           <span class="edge-sport ${sc}">${sportLabel}</span>
           <span class="edge-pick ${pc} te-pick-badge">${p.pick}</span>
@@ -4310,6 +4312,7 @@ function buildEdgeCard(p, idx, rec) {
         </div>
       </div>
       <div class="edge-row edge-row-main">
+        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
         <div class="te-prop-row">
           <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
           <div class="te-l5">${l5l10}</div>

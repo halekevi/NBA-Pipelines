@@ -7230,9 +7230,18 @@ def build_win_rate_ticket_groups(
         _seed_target_n(3, 1)
         _seed_target_n(2, 1)
 
-    # Active-slate sport floors (L5-sorted candidates): WNBA first so L5=5 Gold boards land.
-    for _sp, _n in (("WNBA", 3), ("MLB", 2), ("TENNIS", 2), ("SOCCER", 2)):
-        _seed_sport_min(_sp, _n, prefer_n=MAIN_DEFAULT_LEGS if prefer_three_leg else None)
+    # Per-pipeline-sport floors (L5-sorted): every in-season sport, not just WNBA.
+    present_sp = {
+        str(t.get("_sport_label") or "").strip().upper()
+        for t in candidates
+        if str(t.get("_sport_label") or "").strip()
+    }
+    for _sp in l5_pipeline_sports_for_date(present=present_sp):
+        _seed_sport_min(
+            _sp,
+            int(L5_SPORT_BOARD_FLOOR),
+            prefer_n=MAIN_DEFAULT_LEGS if prefer_three_leg else None,
+        )
         if prefer_three_leg and MAIN_GRADED_MIN_LEGS < MAIN_DEFAULT_LEGS:
             _seed_sport_min(_sp, 1, prefer_n=MAIN_GRADED_MIN_LEGS)
 
@@ -8619,6 +8628,39 @@ MAIN_EXCLUDE_SPORTS: frozenset[str] = frozenset(
     if s.strip()
 )
 
+# All pipeline sports get the same L5 ticket rule: L5=5+D → L5=4+D → L5≥4 no-D,
+# plus named-board sport floors / restore after live_cdp prefer. Order is UI priority
+# only; in-season + not main-excluded sports are selected at runtime.
+L5_TICKET_PIPELINE_SPORTS: tuple[str, ...] = tuple(
+    s.strip().upper()
+    for s in os.getenv(
+        "PROPORACLE_L5_TICKET_PIPELINE_SPORTS",
+        "WNBA,MLB,SOCCER,TENNIS,NBA,NBA1H,NBA1Q,NHL,NFL,CFB,CBB,WCBB",
+    ).split(",")
+    if s.strip()
+)
+# Soft floor of named L5 slips reserved per in-season pipeline sport on MAIN.
+L5_SPORT_BOARD_FLOOR: int = max(1, int(os.getenv("PROPORACLE_L5_SPORT_BOARD_FLOOR", "2")))
+
+
+def l5_pipeline_sports_for_date(
+    slate_date: str | None = None,
+    *,
+    present: set[str] | frozenset[str] | None = None,
+) -> list[str]:
+    """In-season pipeline sports that receive L5=5-first ticket seeding/coverage."""
+    exclude = set(main_exclude_sports_for_date(slate_date))
+    out: list[str] = []
+    for sp in L5_TICKET_PIPELINE_SPORTS:
+        if sp in exclude:
+            continue
+        if MAIN_ALLOWED_SPORTS and sp not in MAIN_ALLOWED_SPORTS:
+            continue
+        if present is not None and sp not in present:
+            continue
+        out.append(sp)
+    return out
+
 
 def main_exclude_sports_for_date(slate_date: str | None = None) -> frozenset[str]:
     """
@@ -8821,7 +8863,7 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
         if len(sports) == 1:
             return sports[0]
         gn = str(g.get("group_name") or "").strip().upper()
-        for sp in ("WNBA", "MLB", "TENNIS", "SOCCER", "NBA", "NHL"):
+        for sp in L5_TICKET_PIPELINE_SPORTS:
             if gn.startswith(sp + " ") or gn == sp:
                 return sp
         return sports[0] if sports else "MIXED"
@@ -8829,8 +8871,15 @@ def filter_main_track_high_win_prob(payload: dict) -> dict:
     picked: list[tuple[tuple, float, float, dict, dict]] = []
     seen_sig: set[tuple] = set()
     per_sport: Counter[str] = Counter()
-    # Soft floors so L5=5 WNBA boards survive MLB Goblin volume.
-    sport_floor = {"WNBA": 3, "MLB": 2, "TENNIS": 2, "SOCCER": 2}
+    # Soft floors so each pipeline sport's L5 boards survive high-floor piles.
+    present_sp = {_cand_sport(t, g) for _l5k, _rk, _pw, t, g in candidates}
+    sport_floor = {
+        sp: int(L5_SPORT_BOARD_FLOOR)
+        for sp in l5_pipeline_sports_for_date(
+            str(payload.get("date") or "") or None,
+            present=present_sp,
+        )
+    }
 
     def _take(c: tuple[tuple, float, float, dict, dict]) -> bool:
         _l5k, _rk, _pw, t, g = c
@@ -10532,7 +10581,7 @@ def _named_sport_board_sports(groups: list[dict]) -> set[str]:
         gn = str(g.get("group_name") or "").strip().upper()
         if not gn or gn.startswith("STRONG") or "COVERAGE" in gn:
             continue
-        for sp in ("WNBA", "MLB", "TENNIS", "SOCCER", "NBA", "NHL", "NFL", "CFB"):
+        for sp in L5_TICKET_PIPELINE_SPORTS:
             if gn.startswith(sp + " ") or gn == sp:
                 out.add(sp)
                 break
@@ -10542,13 +10591,24 @@ def _named_sport_board_sports(groups: list[dict]) -> set[str]:
 def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) -> dict:
     """
     After live_cdp prefer cuts pending floors, restore best L5=5 / L5≥4 tickets for
-    active sports that lost their named boards (esp. WNBA under STRONG-only).
+    every pipeline sport that lost its named boards (not STRONG-only).
     """
     if not isinstance(payload, dict):
         return payload
     after = list(payload.get("groups") or [])
     named_after = _named_sport_board_sports(after)
-    active = ("WNBA", "MLB", "TENNIS", "SOCCER")
+    # Any single-sport ticket in the pre-prefer board is eligible for restore.
+    present_before: set[str] = set()
+    for g in before_groups:
+        if not isinstance(g, dict):
+            continue
+        for t in g.get("tickets") or []:
+            if isinstance(t, dict) and len(_ticket_leg_sports(t)) == 1:
+                present_before |= _ticket_leg_sports(t)
+    active = l5_pipeline_sports_for_date(
+        str(payload.get("date") or "") or None,
+        present=present_before or None,
+    )
     missing = [sp for sp in active if sp not in named_after]
     if not missing:
         return payload
@@ -10585,9 +10645,10 @@ def _restore_l5_active_sport_coverage(payload: dict, before_groups: list[dict]) 
     groups = list(after)
     existing_names = {str(g.get("group_name") or "") for g in groups if isinstance(g, dict)}
     restored: Counter[str] = Counter()
+    floor = int(L5_SPORT_BOARD_FLOOR)
     for l5_key, _rank, t, g in cands:
         sp = next(iter(_ticket_leg_sports(t)))
-        if restored[sp] >= 3:
+        if restored[sp] >= floor:
             continue
         gn = str(g.get("group_name") or f"{sp} L5 Coverage")
         # Soft-allow unknown floors: mark pending so UI can still show the slip.
@@ -10741,8 +10802,10 @@ def append_in_season_web_supplement_groups(
             if isinstance(t, dict):
                 main_sports |= _ticket_leg_sports(t)
     wanted = {s for s in WEB_SUPPLEMENT_SPORTS if s and s not in main_sports}
-    # Never treat WNBA as a supplement-only sport — it is the graded main track in summer.
-    wanted.discard("WNBA")
+    # Also supplement any in-season L5 pipeline sport missing from MAIN.
+    for sp in l5_pipeline_sports_for_date(slate_date):
+        if sp not in main_sports:
+            wanted.add(sp)
     wanted = {s for s in wanted if not _sport_slug_off_season(s.lower(), slate_date)}
     if not wanted:
         return main_payload
@@ -10811,14 +10874,14 @@ def ensure_named_sport_boards_from_full(
     main_payload: dict,
     full_payload: dict,
     *,
-    sports: tuple[str, ...] = ("WNBA",),
-    min_groups: int = 2,
+    sports: tuple[str, ...] | list[str] | None = None,
+    min_groups: int | None = None,
     min_legs: int | None = None,
     max_legs: int | None = None,
 ) -> dict:
     """
-    Pull named sport boards (e.g. WNBA 3-Leg Goblin / Standard) from the full Excel
-    export when graded main only has STRONG/cross-sport coverage for that sport.
+    Pull named sport boards from the full Excel export when graded main only has
+    STRONG/cross-sport coverage for that sport. Applies to every L5 pipeline sport.
     Prefers groups whose tickets clear L5≥4 (L5=5 first).
     """
     if not isinstance(main_payload, dict) or not isinstance(full_payload, dict):
@@ -10826,9 +10889,22 @@ def ensure_named_sport_boards_from_full(
     lo = int(min_legs if min_legs is not None else MAIN_GRADED_MIN_LEGS)
     hi = int(max_legs if max_legs is not None else MAIN_GRADED_MAX_LEGS)
     named = _named_sport_board_sports(list(main_payload.get("groups") or []))
+    slate = str(main_payload.get("date") or full_payload.get("date") or "") or None
+    if sports is None:
+        # Infer present sports from full export + main, then keep in-season pipeline set.
+        present: set[str] = set()
+        for payload in (main_payload, full_payload):
+            for g in payload.get("groups") or []:
+                if not isinstance(g, dict):
+                    continue
+                for t in g.get("tickets") or []:
+                    if isinstance(t, dict):
+                        present |= _ticket_leg_sports(t)
+        sports = tuple(l5_pipeline_sports_for_date(slate, present=present or None))
     want = [sp for sp in sports if sp and sp not in named]
     if not want:
         return main_payload
+    floor = int(min_groups if min_groups is not None else L5_SPORT_BOARD_FLOOR)
 
     out = dict(main_payload)
     groups = list(out.get("groups") or [])
@@ -10843,7 +10919,7 @@ def ensure_named_sport_boards_from_full(
         if not gn or gn in existing_names:
             continue
         gnu = gn.upper()
-        if gnu.startswith("STRONG") or "LADDER" in gnu and "CROSS" in gnu:
+        if gnu.startswith("STRONG") or ("LADDER" in gnu and "CROSS" in gnu):
             continue
         sport_key = None
         for sp in want:
@@ -10883,10 +10959,10 @@ def ensure_named_sport_boards_from_full(
         gn = str(ng.get("group_name") or "")
         sport_key = None
         for sp in want:
-            if gn.upper().startswith(sp + " "):
+            if gn.upper().startswith(sp + " ") or gn.upper() == sp:
                 sport_key = sp
                 break
-        if not sport_key or added[sport_key] >= int(min_groups):
+        if not sport_key or added[sport_key] >= floor:
             continue
         if gn in existing_names:
             continue
@@ -23149,9 +23225,7 @@ def main():
             payload = append_in_season_web_supplement_groups(
                 payload, full_payload, str(args.date)
             )
-            payload = ensure_named_sport_boards_from_full(
-                payload, full_payload, sports=("WNBA", "SOCCER"), min_groups=3
-            )
+            payload = ensure_named_sport_boards_from_full(payload, full_payload)
             payload = filter_main_high_prob_payload(payload)
             write_full_ticket_export_snapshot(payload, str(args.date))
             n_groups = len(payload["groups"])
@@ -23326,9 +23400,7 @@ def main():
             payload = append_in_season_web_supplement_groups(
                 payload, full_payload, str(args.date)
             )
-            payload = ensure_named_sport_boards_from_full(
-                payload, full_payload, sports=("WNBA", "SOCCER"), min_groups=3
-            )
+            payload = ensure_named_sport_boards_from_full(payload, full_payload)
             payload = filter_main_high_prob_payload(payload)
             write_full_ticket_export_snapshot(payload, str(args.date))
             n_groups = len(payload["groups"])

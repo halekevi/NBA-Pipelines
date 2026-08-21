@@ -7,10 +7,16 @@ alwaysApply: true
 
 When ranking or locking **Standard Over / Standard Under / Goblin** plays for a slate, always output **four sections**: WNBA, MLB, Soccer, Tennis.
 
-- Do not skip a sport because the pool is thin. If nothing clears L5+D, say so in that section.
+- Do not skip a sport because the pool is thin. If nothing clears L5, say so in that section.
 - Soccer/tennis often store hits in `last5_over` / `last5_under` (not `l5_over`). Use those when `l5_over` is empty.
-- Filters: directional L5 >= 4; Goblins Over-only; no Demons.
-- **WNBA / MLB:** Overs vs Weak D only; Unders vs Elite D only.
-- **Soccer:** rank opponent defense like WNBA/NBA. Overs vs Weak/Below Avg; Unders vs Elite/Above Avg. Avg is mid and does not clear the D gate.
-- **Tennis:** no team D — rank the **individual opponent** (ATP/WTA). Overs vs Weak/Below Avg opponent; Unders vs Elite/Above Avg opponent. No prop preference (Total Games, Games Won, Aces, DF all eligible). Unknown opponent does not pass D.
+- **Hard list gate:** directional L5 >= 4; Goblins Over-only; no Demons.
+- **D is badge-only (not a hard filter):** failing defense alignment should still appear on the list, usually as **Silver** when D is the only miss (Gold = L5 + Cover + Delta + Dir + D + Rank all pass).
+- **D alignment for badges:**
+  - **WNBA / MLB:** Overs vs Weak; Unders vs Elite.
+  - **Soccer:** Overs vs Weak/Below Avg; Unders vs Elite/Above Avg. Avg does not pass D.
+  - **Tennis:** individual opponent (ATP/WTA). Overs vs Weak/Below Avg; Unders vs Elite/Above Avg. Unknown opponent does not pass D.
 - Prefer `scripts/rank_best_props_today.py` so all four sports are generated the same way.
+
+# Pipeline tickets (all sports)
+
+Combined / graded-main ticket construction uses the **same L5 seed order for every in-season pipeline sport** (not WNBA-only): **L5=5+D → L5=4+D → L5≥4 no-D**, with per-sport named-board floors so one sport’s high floor-EV pile cannot wipe another.

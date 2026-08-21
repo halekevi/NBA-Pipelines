@@ -214,9 +214,13 @@ body::after{content:'';position:fixed;inset:0;
 }
 #top-edges-board .te-card .edge-card-top{gap:8px;padding:12px 12px 6px;}
 #top-edges-board .te-card .edge-row{gap:8px;}
-#top-edges-board .te-card .edge-row-top{align-items:flex-start;}
+#top-edges-board .te-card .edge-row-top{
+  align-items:flex-start;justify-content:space-between;gap:10px;
+}
 #top-edges-board .te-card .edge-row-main{flex-direction:column;align-items:flex-start;gap:4px;}
-#top-edges-board .te-card .edge-name{font-size:14px;white-space:normal;line-height:1.25;letter-spacing:-0.15px;}
+#top-edges-board .te-card .edge-name{
+  flex:1 1 auto;min-width:0;font-size:14px;white-space:normal;line-height:1.25;letter-spacing:-0.15px;
+}
 #top-edges-board .te-card .edge-prop{max-width:100%;text-align:left;font-size:12px;color:#c5cddc;white-space:normal;line-height:1.3;flex:1 1 auto;min-width:0;}
 #top-edges-board .te-card .te-prop-row{
   display:flex;align-items:baseline;justify-content:space-between;gap:8px;width:100%;
@@ -227,25 +231,19 @@ body::after{content:'';position:fixed;inset:0;
 }
 #top-edges-board .te-card .edge-meta{display:none;}
 #top-edges-board .te-card .edge-line-badge{display:none;}
-#top-edges-board .te-card .edge-tags{gap:4px;}
-#top-edges-board .te-card .edge-sport,
-#top-edges-board .te-card .edge-pick{
-  font-size:9px;padding:3px 8px;border-radius:8px;letter-spacing:.04em;
+#top-edges-board .te-card .te-top-right{
+  display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end;
 }
-#top-edges-board .te-card .edge-val{
-  gap:6px;align-items:flex-end;flex-direction:column;text-align:right;
-}
-#top-edges-board .te-card .edge-num{
-  font-size:22px;letter-spacing:.3px;line-height:1;
-  display:inline-flex;align-items:center;gap:0;
-}
-#top-edges-board .te-card .edge-mini{
-  font-size:12px;font-weight:650;max-width:none;line-height:1.2;
-  color:#d5dbe8;letter-spacing:.02em;
+#top-edges-board .te-card .te-pick-badge{
+  font-size:11px;font-weight:800;padding:5px 10px;border-radius:8px;letter-spacing:.06em;
+  text-transform:uppercase;line-height:1.1;
 }
 #top-edges-board .te-card .te-badge{
-  font-size:10px;padding:3px 8px;margin-right:6px;border-radius:6px;
+  font-size:11px;font-weight:800;padding:5px 10px;margin-right:0;border-radius:8px;
   letter-spacing:.1em;line-height:1.1;
+}
+#top-edges-board .te-card .edge-num{
+  font-size:22px;letter-spacing:.3px;line-height:1;margin-left:2px;
 }
 #top-edges-board .te-card .te-card-sub{
   font-size:11px;color:var(--muted2,#b8c0d0);line-height:1.3;margin-top:2px;
@@ -4303,16 +4301,15 @@ function buildEdgeCard(p, idx, rec) {
   const collapsed = rec ? `
     <div class="edge-card-top">
       <div class="edge-row edge-row-top">
-        <div class="edge-tags">
+        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
+        <div class="te-top-right">
           <span class="edge-sport ${sc}">${sportLabel}</span>
-          <span class="edge-pick ${pc}">${p.pick}</span>
-        </div>
-        <div class="edge-val">
-          <div class="edge-num edge-badge ${dc}">${badgeHtml}${coverDisp}</div>
+          <span class="edge-pick ${pc} te-pick-badge">${p.pick}</span>
+          ${badgeHtml}
+          <div class="edge-num edge-badge ${dc}">${coverDisp}</div>
         </div>
       </div>
       <div class="edge-row edge-row-main">
-        <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
         <div class="te-prop-row">
           <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
           <div class="te-l5">${l5l10}</div>

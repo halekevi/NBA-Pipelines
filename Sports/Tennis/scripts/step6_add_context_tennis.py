@@ -14,7 +14,15 @@ import pandas as pd
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
-from tennis_shared import fill_opponent_rank_from_slate_players, load_or_refresh_rankings, norm_key, resolve_opp_rank
+from tennis_shared import (
+    ensure_opponent_atp_wta_rank,
+    hydrate_rankings_from_slate,
+    load_or_refresh_rankings,
+    norm_key,
+    is_doubles_pair,
+    split_pair,
+    resolve_opp_rank_pair,
+)
 
 
 ROUND_RE = re.compile(r"\b(R128|R64|R32|R16|QF|SF|F)\b", re.I)
@@ -76,6 +84,7 @@ def main() -> None:
     if not rpath.is_absolute():
         rpath = root / rpath
     rankings = load_or_refresh_rankings(rpath)
+    rankings = hydrate_rankings_from_slate(df, rankings, cache_path=rpath.parent / "tennis_opp_rank_cache.json")
     by_id = {str(r["espn_athlete_id"]): float(r.get("rank") or 999) for r in rankings}
     by_pk = {str(r.get("player_key") or ""): float(r.get("rank") or 999) for r in rankings if r.get("player_key")}
 
@@ -84,6 +93,12 @@ def main() -> None:
         aid = str(r.get("espn_athlete_id", "")).strip()
         if aid and aid in by_id:
             pranks.append(by_id[aid])
+        elif is_doubles_pair(str(r.get("player", ""))):
+            best = 999.0
+            for part in split_pair(str(r.get("player", ""))):
+                pk = norm_key(part)
+                best = min(best, by_pk.get(pk, 999.0))
+            pranks.append(best)
         else:
             pk = norm_key(str(r.get("player", "")))
             pranks.append(by_pk.get(pk, 999.0))
@@ -92,12 +107,13 @@ def main() -> None:
     opp_col = "opp_team" if "opp_team" in df.columns else "opp"
     oranks = []
     for i in range(len(df)):
-        v = resolve_opp_rank(str(df.iloc[i].get(opp_col, "")), rankings)
+        v = resolve_opp_rank_pair(str(df.iloc[i].get(opp_col, "")), rankings)
         oranks.append(np.nan if v is None else v)
     df["opponent_rank"] = oranks
-    df = fill_opponent_rank_from_slate_players(df)
+    # opp_team is often blank until game pairing; backfill then map ATP/WTA rank.
+    df = ensure_opponent_atp_wta_rank(df)
     n_filled = int(pd.to_numeric(df["opponent_rank"], errors="coerce").notna().sum())
-    print(f"[Tennis step6] opponent_rank filled {n_filled}/{len(df)}")
+    print(f"[Tennis step6] opponent_rank (ATP/WTA) filled {n_filled}/{len(df)}")
     df["ranking_diff"] = pd.to_numeric(df["player_atp_rank"], errors="coerce") - pd.to_numeric(
         df["opponent_rank"], errors="coerce"
     )

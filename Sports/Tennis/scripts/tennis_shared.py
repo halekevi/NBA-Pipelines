@@ -10,6 +10,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -23,6 +24,10 @@ URL_ATP_RANK = "https://site.api.espn.com/apis/site/v2/sports/tennis/atp/ranking
 URL_WTA_RANK = "https://site.api.espn.com/apis/site/v2/sports/tennis/wta/rankings"
 URL_ATP_BOARD = "https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard"
 URL_WTA_BOARD = "https://site.api.espn.com/apis/site/v2/sports/tennis/wta/scoreboard"
+URL_ESPN_SEARCH = "https://site.web.api.espn.com/apis/common/v3/search"
+
+# ESPN only publishes top ~150; confirmed athletes outside that band map to Weak for D gates.
+UNRANKED_OUTSIDE_TOP150 = 250
 
 
 def athlete_statistics_url(tour: str, athlete_id: str) -> str:
@@ -105,11 +110,324 @@ def norm_key_candidates(s: str) -> list[str]:
     return out
 
 
+def is_doubles_pair(name: str) -> bool:
+    """PrizePicks combined prop: 'Bolelli S / Vavassori A'."""
+    return " / " in str(name or "")
+
+
+def split_pair(name: str) -> tuple[str, str]:
+    parts = [p.strip() for p in str(name or "").split(" / ", 1)]
+    return (parts[0], parts[1]) if len(parts) == 2 else ("", "")
+
+
+def norm_pair_key(name: str) -> str:
+    """Stable key for a doubles pair regardless of name order."""
+    if not is_doubles_pair(name):
+        return norm_key(name)
+    a, b = split_pair(name)
+    keys = sorted(k for k in (norm_key(a), norm_key(b)) if k)
+    return " / ".join(keys)
+
+
+def infer_doubles_opponent(player_name: str, description: str) -> str:
+    """
+    PrizePicks doubles combines store the opposing pair in projection ``description``
+    (e.g. player 'Bolelli S / Vavassori A', description 'Pavlasek A / Rikl P').
+    """
+    if not is_doubles_pair(player_name):
+        return ""
+    desc = str(description or "").strip()
+    if not desc or norm_key(desc) == norm_key(player_name):
+        return ""
+    return desc
+
+
+def resolve_tour_for_player_or_pair(name: str, rankings: list[dict[str, Any]]) -> str:
+    if is_doubles_pair(name):
+        for part in split_pair(name):
+            _eid, tour = resolve_athlete_id(part, rankings)
+            if tour:
+                return tour
+        return "ATP"
+    _eid, tour = resolve_athlete_id(name, rankings)
+    return tour or "ATP"
+
+
+def resolve_opp_rank_pair(opp_name: str, rankings: list[dict[str, Any]]) -> float | None:
+    """Best singles rank among players in an opponent pair (strongest opponent)."""
+    if not str(opp_name or "").strip() or str(opp_name).upper() in ("UNKNOWN_OPP", "UNK"):
+        return None
+    if is_doubles_pair(opp_name):
+        ranks: list[float] = []
+        for part in split_pair(opp_name):
+            r = resolve_opp_rank(part, rankings)
+            if r is not None:
+                ranks.append(r)
+        return min(ranks) if ranks else None
+    return resolve_opp_rank(opp_name, rankings)
+
+
+def load_opp_rank_cache(cache_path: Path | None = None) -> dict[str, dict[str, Any]]:
+    path = cache_path or _OPP_RANK_CACHE
+    if not path.is_file():
+        return {}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def save_opp_rank_cache(cache: dict[str, dict[str, Any]], cache_path: Path | None = None) -> None:
+    path = cache_path or _OPP_RANK_CACHE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _rank_by_espn_id(espn_id: str, rankings: list[dict[str, Any]]) -> float | None:
+    aid = str(espn_id or "").strip()
+    if not aid:
+        return None
+    for r in rankings:
+        if str(r.get("espn_athlete_id") or "") == aid:
+            try:
+                return float(r.get("rank"))
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+def search_espn_tennis_athlete(name: str) -> dict[str, Any] | None:
+    """Resolve a PP-style or full name to ESPN athlete id + tour via search API."""
+    query = str(name or "").strip()
+    if not query:
+        return None
+    last, initial = _pp_abbrev_tokens(query)
+    search_q = query.replace("/", " ").strip()
+    if last and len(last) >= 3 and last != norm_key(query):
+        search_q = last.title()
+    url = f"{URL_ESPN_SEARCH}?query={urllib.parse.quote(search_q)}&limit=8&type=player&sport=tennis"
+    try:
+        data = fetch_json(url)
+    except Exception:
+        return None
+    items = data.get("items") or []
+    if not items:
+        return None
+    best: dict[str, Any] | None = None
+    best_score = -1
+    for item in items:
+        if str(item.get("sport") or "").lower() != "tennis":
+            continue
+        display = str(item.get("displayName") or "").strip()
+        if not display:
+            continue
+        pk = norm_key(display)
+        score = 0
+        if norm_key(query) == pk:
+            score += 10
+        if last and last in pk.split():
+            score += 4
+        elif last and last in pk:
+            score += 2
+        if initial and pk.split() and pk.split()[0][:1] == initial:
+            score += 2
+        if score > best_score:
+            best_score = score
+            tour = str(item.get("league") or item.get("defaultLeagueSlug") or "ATP").upper()
+            if tour not in ("ATP", "WTA"):
+                tour = "ATP"
+            best = {
+                "espn_athlete_id": str(item.get("id") or ""),
+                "player": display,
+                "tour": tour,
+                "player_key": pk,
+            }
+    return best if best_score >= 2 else None
+
+
+def hydrate_rankings_for_names(
+    names: list[str],
+    rankings: list[dict[str, Any]],
+    *,
+    cache_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    """
+    Ensure every named opponent has a rank entry (top-150 cache, opp cache, or ESPN search).
+    Athletes confirmed on ESPN but outside the published top 150 get UNRANKED_OUTSIDE_TOP150 (Weak).
+    """
+    out = list(rankings)
+    by_id = {str(r.get("espn_athlete_id") or ""): r for r in out if r.get("espn_athlete_id")}
+    by_pk = {str(r.get("player_key") or ""): r for r in out if r.get("player_key")}
+    cache = load_opp_rank_cache(cache_path)
+    added = 0
+    searched = 0
+
+    def _append_entry(entry: dict[str, Any]) -> None:
+        nonlocal added
+        aid = str(entry.get("espn_athlete_id") or "")
+        pk = str(entry.get("player_key") or "")
+        if aid and aid in by_id:
+            return
+        if pk and pk in by_pk:
+            return
+        out.append(entry)
+        if aid:
+            by_id[aid] = entry
+        if pk:
+            by_pk[pk] = entry
+        added += 1
+
+    todo: list[str] = []
+    for raw in names:
+        s = str(raw or "").strip()
+        if not s or s.upper() in ("UNKNOWN_OPP", "UNK", "NAN"):
+            continue
+        if is_doubles_pair(s):
+            todo.extend(split_pair(s))
+        else:
+            todo.append(s)
+
+    seen: set[str] = set()
+    for name in todo:
+        pk = norm_key(name)
+        if not pk or pk in seen:
+            continue
+        seen.add(pk)
+        if resolve_opp_rank(name, out) is not None:
+            continue
+        cached = cache.get(pk) or cache.get(name)
+        if isinstance(cached, dict) and cached.get("espn_athlete_id"):
+            rank = cached.get("rank")
+            try:
+                rank_f = float(rank) if rank is not None else UNRANKED_OUTSIDE_TOP150
+            except (TypeError, ValueError):
+                rank_f = UNRANKED_OUTSIDE_TOP150
+            _append_entry(
+                {
+                    "espn_athlete_id": str(cached.get("espn_athlete_id")),
+                    "player": str(cached.get("player") or name),
+                    "tour": str(cached.get("tour") or "ATP").upper(),
+                    "rank": rank_f,
+                    "points": 0.0,
+                    "player_key": str(cached.get("player_key") or pk),
+                    "rank_source": str(cached.get("rank_source") or "cache"),
+                }
+            )
+            continue
+
+        searched += 1
+        hit = search_espn_tennis_athlete(name)
+        if not hit:
+            continue
+        aid = str(hit.get("espn_athlete_id") or "")
+        existing = _rank_by_espn_id(aid, out)
+        rank_f = existing if existing is not None else float(UNRANKED_OUTSIDE_TOP150)
+        source = "espn_top150" if existing is not None else "espn_search_unranked"
+        entry = {
+            "espn_athlete_id": aid,
+            "player": str(hit.get("player") or name),
+            "tour": str(hit.get("tour") or "ATP").upper(),
+            "rank": rank_f,
+            "points": 0.0,
+            "player_key": str(hit.get("player_key") or pk),
+            "rank_source": source,
+        }
+        _append_entry(entry)
+        cache[pk] = entry
+        time.sleep(0.15)
+
+    if added:
+        save_opp_rank_cache(cache, cache_path)
+        print(f"  [Tennis] hydrated opponent ranks: +{added} (searched {searched})")
+    return out
+
+
+def collect_slate_opponent_names(df: pd.DataFrame) -> list[str]:
+    names: list[str] = []
+    for col in ("opp_team", "opp", "player"):
+        if col not in df.columns:
+            continue
+        for v in df[col].astype(str).tolist():
+            s = str(v or "").strip()
+            if s and s.upper() not in ("UNKNOWN_OPP", "UNK", "NAN", "NONE"):
+                names.append(s)
+    return names
+
+
+def hydrate_rankings_from_slate(
+    df: pd.DataFrame,
+    rankings: list[dict[str, Any]],
+    *,
+    cache_path: Path | None = None,
+) -> list[dict[str, Any]]:
+    if df is None or getattr(df, "empty", True):
+        return rankings
+    return hydrate_rankings_for_names(collect_slate_opponent_names(df), rankings, cache_path=cache_path)
+
+
+def fill_doubles_opponents_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Backfill ``opp_team`` for doubles rows from pp_description/description or
+    sibling pair on the same ``pp_game_id``.
+    """
+    if df is None or getattr(df, "empty", True):
+        return df
+    out = df.copy()
+    if "opp_team" not in out.columns:
+        out["opp_team"] = ""
+
+    player_col = "player" if "player" in out.columns else "player_name"
+    desc_col = "pp_description" if "pp_description" in out.columns else "description"
+
+    def _blank(v) -> bool:
+        s = str(v or "").strip()
+        return s.lower() in ("", "nan", "none", "null")
+
+    for idx, row in out.iterrows():
+        if not _blank(row.get("opp_team")):
+            continue
+        player = str(row.get(player_col) or "")
+        if not is_doubles_pair(player):
+            continue
+        desc = str(row.get(desc_col) or "")
+        opp = infer_doubles_opponent(player, desc)
+        if opp:
+            out.at[idx, "opp_team"] = opp
+
+    if "pp_game_id" in out.columns and "team" in out.columns:
+        blank = out["opp_team"].map(_blank)
+        if blank.any():
+            game_team_map = (
+                out.loc[:, ["pp_game_id", "team"]]
+                .astype(str)
+                .assign(team=lambda x: x["team"].str.strip(), pp_game_id=lambda x: x["pp_game_id"].str.strip())
+                .groupby("pp_game_id")["team"]
+                .apply(
+                    lambda s: sorted({t for t in s.tolist() if t and t.lower() not in ("nan", "none", "null")})
+                )
+                .to_dict()
+            )
+            for idx, row in out.loc[blank].iterrows():
+                player = str(row.get(player_col) or "")
+                if not is_doubles_pair(player):
+                    continue
+                gid = str(row.get("pp_game_id", "")).strip()
+                team = str(row.get("team", "")).strip()
+                teams = game_team_map.get(gid, [])
+                if len(teams) == 2 and team in teams:
+                    out.at[idx, "opp_team"] = teams[0] if teams[1] == team else teams[1]
+
+    return out
+
+
 # Alias for Sackmann / step4 history (same normalization as ESPN rankings).
 _norm_key = norm_key
 
 _TENNIS_ROOT = Path(__file__).resolve().parent.parent
 _SACKMANN_DIR = _TENNIS_ROOT / "data" / "sackmann"
+_DOUBLES_OPP_CACHE = _TENNIS_ROOT / "cache" / "tennis_doubles_opp_cache.json"
+_OPP_RANK_CACHE = _TENNIS_ROOT / "cache" / "tennis_opp_rank_cache.json"
 _SACKMANN_MAX_AGE_DAYS = 1.0
 # Player L5 is stale if newest Sackmann match is older than this vs the slate date.
 SACKMANN_PLAYER_STALE_DAYS = 14
@@ -432,6 +750,53 @@ def resolve_athlete_id(player_name: str, rankings: list[dict[str, Any]]) -> tupl
                 best_len = ln
                 best = str(r["espn_athlete_id"])
                 best_tour = str(r.get("tour") or "")
+    if best:
+        return best, best_tour
+    return _resolve_pp_abbrev_athlete_id(player_name, rankings)
+
+
+def _pp_abbrev_tokens(name: str) -> tuple[str, str]:
+    """PrizePicks 'Last F' / 'Last Fi' -> (last_name_key, first_initial)."""
+    parts = [p for p in re.split(r"\s+", str(name or "").strip()) if p]
+    if len(parts) >= 2 and len(parts[-1]) <= 2:
+        return norm_key(" ".join(parts[:-1])), parts[-1][0].lower()
+    return norm_key(name), ""
+
+
+def _resolve_pp_abbrev_athlete_id(player_name: str, rankings: list[dict[str, Any]]) -> tuple[str, str]:
+    """Match PP abbreviated labels ('Ram R') to ESPN full names ('Rajeev Ram')."""
+    last, initial = _pp_abbrev_tokens(player_name)
+    if not last:
+        return "", ""
+    best = ""
+    best_tour = ""
+    best_score = -1
+    for r in rankings:
+        rk = str(r.get("player_key") or "")
+        display = str(r.get("player") or "")
+        for key in (rk, norm_key(display)):
+            if not key:
+                continue
+            words = key.split()
+            if not words:
+                continue
+            rk_last = words[-1]
+            rk_init = words[0][0] if words[0] else ""
+            score = 0
+            if last == rk_last:
+                score += 3
+            elif last in key or rk_last in last:
+                score += 1
+            else:
+                continue
+            if initial and initial == rk_init:
+                score += 2
+            elif initial:
+                continue
+            if score > best_score:
+                best_score = score
+                best = str(r["espn_athlete_id"])
+                best_tour = str(r.get("tour") or "")
     return best, best_tour
 
 
@@ -455,11 +820,297 @@ def resolve_opp_rank(opp_name: str, rankings: list[dict[str, Any]]) -> float | N
             except (TypeError, ValueError):
                 continue
             best = v if best is None else min(best, v)
-    return best
+    if best is not None:
+        return best
+    _eid, _t = _resolve_pp_abbrev_athlete_id(opp_name, rankings)
+    if _eid:
+        for r in rankings:
+            if str(r.get("espn_athlete_id")) == _eid:
+                try:
+                    return float(r.get("rank"))
+                except (TypeError, ValueError):
+                    return None
+    return None
+
+
+def load_doubles_opp_cache(cache_path: Path | None = None) -> dict[str, dict[str, str]]:
+    """Load projection_id / pair_key -> {pp_description, opp_team} for doubles combines."""
+    path = cache_path or _DOUBLES_OPP_CACHE
+    if not path.is_file():
+        return {}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    for k, v in raw.items():
+        if not isinstance(v, dict):
+            continue
+        desc = str(v.get("pp_description") or v.get("description") or "").strip()
+        opp = str(v.get("opp_team") or "").strip()
+        if desc or opp:
+            out[str(k)] = {"pp_description": desc, "opp_team": opp}
+    return out
+
+
+def save_doubles_opp_cache(cache: dict[str, dict[str, str]], cache_path: Path | None = None) -> None:
+    path = cache_path or _DOUBLES_OPP_CACHE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def update_doubles_opp_cache_from_df(
+    df: pd.DataFrame,
+    cache: dict[str, dict[str, str]] | None = None,
+    *,
+    cache_path: Path | None = None,
+) -> dict[str, dict[str, str]]:
+    """Merge doubles rows with filled opp_team into the persistent cache."""
+    store = dict(cache or load_doubles_opp_cache(cache_path))
+    if df is None or getattr(df, "empty", True):
+        return store
+    player_col = "player" if "player" in df.columns else "player_name"
+    pid_col = "projection_id" if "projection_id" in df.columns else "pp_projection_id"
+
+    def _blank(v) -> bool:
+        s = str(v or "").strip()
+        return s.lower() in ("", "nan", "none", "null")
+
+    for _, row in df.iterrows():
+        player = str(row.get(player_col) or "")
+        if not is_doubles_pair(player):
+            continue
+        opp = str(row.get("opp_team") or "").strip()
+        desc = str(row.get("pp_description") or row.get("description") or "").strip()
+        if _blank(opp) and _blank(desc):
+            continue
+        rec = {"pp_description": desc or opp, "opp_team": opp or desc}
+        pid = str(row.get(pid_col) or "").strip()
+        if pid:
+            store[pid] = rec
+        pk = norm_pair_key(player)
+        if pk:
+            store[f"pair:{pk}"] = rec
+    save_doubles_opp_cache(store, cache_path)
+    return store
+
+
+def apply_doubles_opp_cache(df: pd.DataFrame, cache: dict[str, dict[str, str]] | None = None) -> tuple[pd.DataFrame, int]:
+    """Apply cached PP descriptions / opponents to doubles rows missing opp_team."""
+    if df is None or getattr(df, "empty", True):
+        return df, 0
+    store = cache if cache is not None else load_doubles_opp_cache()
+    if not store:
+        return df, 0
+    out = df.copy()
+    if "pp_description" not in out.columns:
+        out["pp_description"] = ""
+    if "opp_team" not in out.columns:
+        out["opp_team"] = ""
+    player_col = "player" if "player" in out.columns else "player_name"
+    pid_col = "projection_id" if "projection_id" in out.columns else "pp_projection_id"
+    patched = 0
+
+    def _blank(v) -> bool:
+        s = str(v or "").strip()
+        return s.lower() in ("", "nan", "none", "null")
+
+    for idx, row in out.iterrows():
+        if not _blank(row.get("opp_team")):
+            continue
+        player = str(row.get(player_col) or "")
+        if not is_doubles_pair(player):
+            continue
+        pid = str(row.get(pid_col) or "").strip()
+        rec = store.get(pid) or store.get(f"pair:{norm_pair_key(player)}") or {}
+        desc = str(rec.get("pp_description") or "").strip()
+        opp = str(rec.get("opp_team") or "").strip()
+        if not desc and not opp:
+            continue
+        if desc:
+            out.at[idx, "pp_description"] = desc
+        if opp:
+            out.at[idx, "opp_team"] = opp
+        elif desc:
+            out.at[idx, "opp_team"] = infer_doubles_opponent(player, desc)
+        patched += 1
+    return out, patched
+
+
+def merge_doubles_fields_into_step1(step1_path: Path, df: pd.DataFrame) -> int:
+    """Write pp_description / opp_team from processed doubles rows back into step1 CSV."""
+    if not step1_path.is_file() or df is None or df.empty:
+        return 0
+    player_col = "player" if "player" in df.columns else "player_name"
+    pid_col = "projection_id" if "projection_id" in df.columns else "pp_projection_id"
+    patch: dict[str, dict[str, str]] = {}
+    for _, row in df.iterrows():
+        if not is_doubles_pair(str(row.get(player_col) or "")):
+            continue
+        pid = str(row.get(pid_col) or "").strip()
+        opp = str(row.get("opp_team") or "").strip()
+        desc = str(row.get("pp_description") or "").strip()
+        if pid and (opp or desc):
+            patch[pid] = {
+                "opp_team": opp,
+                "pp_description": desc or opp,
+                "is_doubles": "1",
+            }
+    if not patch:
+        return 0
+    s1 = pd.read_csv(step1_path, dtype=str, encoding="utf-8-sig").fillna("")
+    if "pp_description" not in s1.columns:
+        s1["pp_description"] = ""
+    if "is_doubles" not in s1.columns:
+        s1["is_doubles"] = s1.get("player", s1.get("player_name", "")).astype(str).map(
+            lambda s: "1" if is_doubles_pair(s) else "0"
+        )
+    pid_s1 = "projection_id" if "projection_id" in s1.columns else "pp_projection_id"
+    updated = 0
+    for idx, row in s1.iterrows():
+        pid = str(row.get(pid_s1) or "").strip()
+        if pid not in patch:
+            continue
+        rec = patch[pid]
+        s1.at[idx, "opp_team"] = rec["opp_team"]
+        s1.at[idx, "pp_description"] = rec["pp_description"]
+        s1.at[idx, "is_doubles"] = rec["is_doubles"]
+        updated += 1
+    if updated:
+        s1.to_csv(step1_path, index=False, encoding="utf-8-sig")
+    return updated
+
+
+def backfill_pp_descriptions_from_api(
+    df: pd.DataFrame,
+    *,
+    league_id: str = "5",
+    skip_api: bool = False,
+    cache_path: Path | None = None,
+) -> pd.DataFrame:
+    """Patch doubles rows missing ``pp_description`` / ``opp_team`` from cache then live PP."""
+    if df is None or getattr(df, "empty", True):
+        return df
+    player_col = "player" if "player" in df.columns else "player_name"
+
+    def _blank_series(col: str) -> pd.Series:
+        return df.get(col, pd.Series([""] * len(df))).astype(str).str.strip().str.lower().isin(
+            ["", "nan", "none", "null"]
+        )
+
+    need_mask = df[player_col].astype(str).map(is_doubles_pair) & _blank_series("opp_team")
+    if not need_mask.any():
+        return df
+    out = df.copy()
+    if "pp_description" not in out.columns:
+        out["pp_description"] = ""
+
+    cache = load_doubles_opp_cache(cache_path)
+    out, from_cache = apply_doubles_opp_cache(out, cache)
+    if from_cache:
+        print(f"  [Tennis step2] doubles opp cache hit: {from_cache}/{int(need_mask.sum())}")
+
+    still_need = out[player_col].astype(str).map(is_doubles_pair) & out["opp_team"].astype(str).str.strip().isin(
+        ["", "nan", "none"]
+    )
+    if skip_api or not still_need.any():
+        update_doubles_opp_cache_from_df(out, cache, cache_path=cache_path)
+        return out
+
+    try:
+        repo = Path(__file__).resolve().parents[3]
+        nba_scripts = repo / "Sports" / "NBA" / "scripts"
+        if str(nba_scripts) not in sys.path:
+            sys.path.insert(0, str(nba_scripts))
+        import step1_fetch_prizepicks_api as nba  # noqa: WPS433
+
+        data, _included = nba.fetch_projections(
+            league_id=str(league_id),
+            per_page=250,
+            max_pages=2,
+            fail_fast=True,
+        )
+        desc_by_pid: dict[str, str] = {}
+        for d in data:
+            pid = str(d.get("id") or "").strip()
+            attrs = d.get("attributes") or {}
+            desc = str(attrs.get("description") or "").strip()
+            if pid and desc:
+                desc_by_pid[pid] = desc
+        pid_col = "projection_id" if "projection_id" in out.columns else "pp_projection_id"
+        patched = 0
+        for idx, row in out.loc[still_need].iterrows():
+            pid = str(row.get(pid_col) or "").strip()
+            desc = desc_by_pid.get(pid, "")
+            if not desc:
+                continue
+            out.at[idx, "pp_description"] = desc
+            opp = infer_doubles_opponent(str(row.get(player_col) or ""), desc)
+            if opp:
+                out.at[idx, "opp_team"] = opp
+                patched += 1
+        if patched:
+            print(f"  [Tennis step2] PP API patched doubles opp_team: {patched}/{int(still_need.sum())}")
+    except Exception as e:
+        print(f"  [Tennis step2] WARN: could not backfill PP descriptions ({type(e).__name__}: {e})")
+
+    update_doubles_opp_cache_from_df(out, cache, cache_path=cache_path)
+    return out
+
+
+def backfill_opp_team_from_game_players(df: pd.DataFrame) -> pd.DataFrame:
+    """Infer blank opp_team from the other singles player sharing pp_game_id.
+
+    PrizePicks tennis rows often omit opp_team until late; team/player usually
+    carries the athlete name, so a 2-player game map recovers the matchup.
+    """
+    if df is None or getattr(df, "empty", True):
+        return df
+    if "opp_team" not in df.columns or "pp_game_id" not in df.columns:
+        return df
+    out = df.copy()
+    opp_blank = out["opp_team"].astype(str).str.strip().isin(["", "nan", "None", "null"])
+    if not bool(opp_blank.any()):
+        return out
+
+    label_col = "player" if "player" in out.columns else ("team" if "team" in out.columns else None)
+    if not label_col:
+        return out
+
+    def _label(v: object) -> str:
+        s = str(v or "").strip()
+        return "" if s.lower() in ("", "nan", "none", "null") else s
+
+    game_map: dict[str, list[str]] = (
+        out.loc[:, ["pp_game_id", label_col]]
+        .assign(
+            pp_game_id=lambda x: x["pp_game_id"].astype(str).str.strip(),
+            _lab=lambda x: x[label_col].map(_label),
+        )
+        .groupby("pp_game_id")["_lab"]
+        .apply(lambda s: sorted({t.upper() for t in s.tolist() if t}))
+        .to_dict()
+    )
+
+    inferred: list[str] = []
+    for _, r in out.loc[opp_blank, ["pp_game_id", label_col]].iterrows():
+        gid = str(r.get("pp_game_id", "")).strip()
+        mine = _label(r.get(label_col)).upper()
+        others = game_map.get(gid, [])
+        if len(others) == 2 and mine in others:
+            inferred.append(others[0] if others[1] == mine else others[1])
+        else:
+            inferred.append("")
+    out.loc[opp_blank, "opp_team"] = inferred
+    still_blank = out["opp_team"].astype(str).str.strip().isin(["", "nan", "None", "null"])
+    out.loc[still_blank, "opp_team"] = "UNKNOWN_OPP"
+    return out
 
 
 def fill_opponent_rank_from_slate_players(df: pd.DataFrame) -> pd.DataFrame:
-    """Fill opponent_rank from the opponent's player_atp_rank on this slate.
+    """Fill opponent_rank from the opponent's player_atp_rank on this slate (ATP/WTA).
 
     Pipeline placeholder 75 is treated as missing. Named UNKNOWN_OPP stays empty.
     """
@@ -490,21 +1141,45 @@ def fill_opponent_rank_from_slate_players(df: pd.DataFrame) -> pd.DataFrame:
             if n and rk:
                 name_rank[n] = rk
     ocol = "opp_team" if "opp_team" in out.columns else ("opp" if "opp" in out.columns else None)
+
+    def _lookup_opp_rank(opp: str) -> int | None:
+        if not opp:
+            return None
+        rk = name_rank.get(opp)
+        if rk is not None:
+            return rk
+        for n, v in name_rank.items():
+            if opp in n or n in opp:
+                return v
+        if is_doubles_pair(opp):
+            parts = [_name(p) for p in split_pair(opp)]
+            part_ranks = [name_rank.get(p) for p in parts if p]
+            part_ranks = [r for r in part_ranks if r is not None]
+            if part_ranks:
+                return min(part_ranks)
+            for n, v in name_rank.items():
+                if any(p and (p in n or n in p) for p in parts):
+                    return v
+        return None
+
     filled = []
     for _, r in out.iterrows():
         opp = _name(r.get(ocol) if ocol else "")
-        rk = name_rank.get(opp)
-        if rk is None and opp:
-            for n, v in name_rank.items():
-                if opp in n or n in opp:
-                    rk = v
-                    break
+        rk = _lookup_opp_rank(opp)
         existing = _rk(r.get("opponent_rank"))
         if existing == 75:
             existing = None
         filled.append(rk if rk is not None else existing)
     out["opponent_rank"] = filled
     return out
+
+
+def ensure_opponent_atp_wta_rank(df: pd.DataFrame) -> pd.DataFrame:
+    """Backfill opp_team from the match, then set opponent_rank to ATP/WTA rank."""
+    if df is None or getattr(df, "empty", True):
+        return df
+    out = backfill_opp_team_from_game_players(df)
+    return fill_opponent_rank_from_slate_players(out)
 
 
 PROP_NORM_MAP = {

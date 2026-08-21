@@ -36,7 +36,7 @@ else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
 from scripts.l10_streak_utils import finalize_l10_ui_columns
-from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
+from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns, fill_l5_from_stat_games
 from utils.slate_context_fill import fill_cv_pct_if_missing
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 from openpyxl import Workbook
@@ -255,16 +255,24 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
 
     l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
     l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
-    # Prefer explicit hit counts from step5/6 before approximating from hit-rate.
     l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
     l5_under = l5_under.combine_first(pd.to_numeric(df2.get("line_hits_under_5", np.nan), errors="coerce"))
     l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
     l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
-    # Approximate L5 split from hr5 when explicit counts are absent.
-    l5_over_fallback = (hr5.fillna(0.5) * 5.0).round().clip(0, 5)
-    l5_under_fallback = (5 - l5_over_fallback).clip(0, 5)
-    df2["last5_over"] = l5_over.fillna(l5_over_fallback)
-    df2["last5_under"] = l5_under.fillna(l5_under_fallback)
+    df2 = fill_l5_from_stat_games(df2, line_col="line", min_games=1)
+    from_g = pd.to_numeric(df2.get("l5_over"), errors="coerce")
+    l5_over = from_g.combine_first(l5_over)
+    l5_under = pd.to_numeric(df2.get("l5_under"), errors="coerce").combine_first(l5_under)
+    gcols = [c for c in (f"stat_g{i}" for i in range(1, 6)) if c in df2.columns]
+    has_g = (
+        df2[gcols].apply(pd.to_numeric, errors="coerce").notna().any(axis=1)
+        if gcols
+        else pd.Series(False, index=df2.index)
+    )
+    # Never invent L5 from a hit-rate fallback when there are no real last-game
+    # values — stale Sackmann was producing fake 5/0 and 0/5 tennis marks.
+    df2["last5_over"] = l5_over.where(has_g, np.nan)
+    df2["last5_under"] = l5_under.where(has_g, np.nan)
     df2["l5_over"] = df2["last5_over"]
     df2["l5_under"] = df2["last5_under"]
 
@@ -516,33 +524,18 @@ def main() -> None:
 
     out = df.copy()
 
-    # Backfill opponent labels from game context when opp_team is missing.
-    # Many tennis rows share pp_game_id; if each match has exactly two players,
-    # infer each row's opponent as the "other" team in that game.
-    if "opp_team" in out.columns and "pp_game_id" in out.columns and "team" in out.columns:
-        opp_blank = out["opp_team"].astype(str).str.strip().isin(["", "nan", "None", "null"])
-        if opp_blank.any():
-            game_team_map = (
-                out.loc[:, ["pp_game_id", "team"]]
-                .astype(str)
-                .assign(team=lambda x: x["team"].str.strip(), pp_game_id=lambda x: x["pp_game_id"].str.strip())
-                .groupby("pp_game_id")["team"]
-                .apply(lambda s: sorted({t for t in s.tolist() if t and t.lower() not in ("nan", "none", "null")}))
-                .to_dict()
-            )
-            inferred = []
-            for _, r in out.loc[opp_blank, ["pp_game_id", "team"]].iterrows():
-                gid = str(r.get("pp_game_id", "")).strip()
-                team = str(r.get("team", "")).strip()
-                teams = game_team_map.get(gid, [])
-                if len(teams) == 2 and team in teams:
-                    inferred.append(teams[0] if teams[1] == team else teams[1])
-                else:
-                    inferred.append("")
-            out.loc[opp_blank, "opp_team"] = inferred
-            # Keep non-empty placeholder for unresolved rows so downstream views are explicit.
-            still_blank = out["opp_team"].astype(str).str.strip().isin(["", "nan", "None", "null"])
-            out.loc[still_blank, "opp_team"] = "UNKNOWN_OPP"
+    # Doubles/combined props: ensure opp_team from pp_description before game pairing.
+    _tennis_scripts = Path(__file__).resolve().parent
+    if str(_tennis_scripts) not in sys.path:
+        sys.path.insert(0, str(_tennis_scripts))
+    from tennis_shared import ensure_opponent_atp_wta_rank, fill_doubles_opponents_df
+
+    out = fill_doubles_opponents_df(out)
+    # Backfill blank opp_team from the other singles player on pp_game_id, then
+    # set opponent_rank to that opponent's ATP/WTA rank (player_atp_rank on slate).
+    out = ensure_opponent_atp_wta_rank(out)
+    n_opp_rk = int(pd.to_numeric(out.get("opponent_rank"), errors="coerce").notna().sum())
+    print(f"[Tennis step8] opponent_rank (ATP/WTA) filled {n_opp_rk}/{len(out)}")
 
     reconcile_signed_edge_abs_dataframe(out)
 

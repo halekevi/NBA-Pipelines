@@ -159,6 +159,17 @@ if ($healthExit -ne 0) {
     exit $healthExit
 }
 
+$AssertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+if (Test-Path -LiteralPath $AssertFresh) {
+    Write-Host "[5AM DAILY] Asserting active sports FRESH..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File $AssertFresh -RepoRoot $Root -Today $Today -JsonOut (Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json")
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[5AM DAILY] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+        try { Stop-Transcript | Out-Null } catch { }
+        exit $LASTEXITCODE
+    }
+}
+
 Write-Host "[5AM DAILY] Complete" -ForegroundColor Green
 try { Stop-Transcript | Out-Null } catch { }
 exit 0

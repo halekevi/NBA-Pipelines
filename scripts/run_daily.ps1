@@ -133,6 +133,8 @@ if ($cFree -lt 5) {
 
 $script:DailyStart = Get-Date
 $script:PipelineFailed = $false
+$script:ActiveSportsFreshFailed = $false
+$script:ActiveSportsFreshChecked = $false
 $script:WeeklyAnalysisReport = ""
 function Get-TimeStamp { return Get-Date -Format "HH:mm:ss" }
 
@@ -2186,6 +2188,33 @@ else {
                 Remove-Item -LiteralPath $stepELiveSnap -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
+
+        # Hard gate after publish: every active sport for today must be FRESH on
+        # slate_latest (catches stash/partial Soccer-only publishes). Non-zero →
+        # Task Scheduler failure — do not soft-succeed.
+        $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+        if (-not (Test-Path -LiteralPath $assertFresh)) {
+            $assertFresh = Join-Path $PSScriptRoot "Assert-ActiveSportsFresh.ps1"
+        }
+        if (Test-Path -LiteralPath $assertFresh) {
+            $freshRoot = if ($MainRoot) { $MainRoot } else { $Root }
+            $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+            Write-Log "STEP E-fresh - Assert active sports FRESH: START ($freshRoot)"
+            & pwsh -NoProfile -File $assertFresh -RepoRoot $freshRoot -Today $Today -JsonOut $freshJson
+            $freshExit = $LASTEXITCODE
+            if ($freshExit -ne 0) {
+                Write-Log "STEP E-fresh - Assert active sports FRESH: FAILED (exit $freshExit)"
+                Write-Warning "Active-sports freshness gate failed (exit $freshExit) — see logs\LAST_ACTIVE_SPORTS_FRESH.json"
+                $script:ActiveSportsFreshFailed = $true
+            }
+            else {
+                Write-Log "STEP E-fresh - Assert active sports FRESH: OK"
+            }
+            $script:ActiveSportsFreshChecked = $true
+        }
+        else {
+            Write-Log "STEP E-fresh - Assert-ActiveSportsFresh.ps1 missing (skip)"
+        }
     }
 }
 
@@ -2684,6 +2713,27 @@ else {
     Write-Log "STEP G - Mobile data push: SKIP (script missing)"
 }
 
+# When STEP E was skipped (-SkipPush) or had no main worktree, still gate local
+# templates so refresh/manual runs cannot declare success with a partial board.
+if (-not $script:ActiveSportsFreshChecked) {
+    $assertFreshEnd = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+    if (-not (Test-Path -LiteralPath $assertFreshEnd)) {
+        $assertFreshEnd = Join-Path $PSScriptRoot "Assert-ActiveSportsFresh.ps1"
+    }
+    if (Test-Path -LiteralPath $assertFreshEnd) {
+        $freshJsonEnd = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+        Write-Log "STEP E-fresh - final assert (local templates): START"
+        & pwsh -NoProfile -File $assertFreshEnd -RepoRoot $Root -Today $Today -JsonOut $freshJsonEnd
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "STEP E-fresh - final assert: FAILED (exit $LASTEXITCODE)"
+            $script:ActiveSportsFreshFailed = $true
+        }
+        else {
+            Write-Log "STEP E-fresh - final assert: OK"
+        }
+    }
+}
+
 $dur = (Get-Date) - $script:DailyStart
 Write-Log "Daily run complete. Duration: $([int]$dur.TotalMinutes)m $([int]$dur.Seconds)s"
 if ($WeeklyAnalysis -and $script:WeeklyAnalysisReport) {
@@ -2692,6 +2742,10 @@ if ($WeeklyAnalysis -and $script:WeeklyAnalysisReport) {
 }
 Write-Log "======== Daily run end ========"
 
+if ($script:ActiveSportsFreshFailed) {
+    Write-Host "ACTIVE SPORTS FRESHNESS GATE FAILED — see logs\LAST_ACTIVE_SPORTS_FRESH.json" -ForegroundColor Red
+    exit 2
+}
 if ($script:PipelineFailed -and -not $SkipPipeline) {
     exit 1
 }

@@ -67,6 +67,8 @@ if ($IncludePublishHelpers) {
         "scripts/push_live_to_main.ps1",
         "scripts/combined_slate_tickets.py",
         "scripts/assert_live_board_sync.py",
+        "scripts/assert_active_sports_fresh.py",
+        "scripts/Assert-ActiveSportsFresh.ps1",
         "scripts/generate_mobile_bundle.py",
         "scripts/run_refresh_with_log.ps1",
         "utils/ticket_ev_tiers.py"
@@ -165,6 +167,23 @@ try {
         Write-Host "OK - pushed to origin/main" -ForegroundColor Green
     } else {
         Write-Host "(no changes vs main)" -ForegroundColor DarkGray
+    }
+
+    $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+    if (-not (Test-Path -LiteralPath $assertFresh)) {
+        $assertFresh = Join-Path $MainRoot "scripts\Assert-ActiveSportsFresh.ps1"
+    }
+    if (Test-Path -LiteralPath $assertFresh) {
+        $todayEt = (Get-Date).ToString("yyyy-MM-dd")
+        try {
+            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+            $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+        } catch { }
+        Write-Host "Asserting active sports FRESH ($todayEt)..." -ForegroundColor Cyan
+        & pwsh -NoProfile -File $assertFresh -RepoRoot $MainRoot -Today $todayEt
+        if ($LASTEXITCODE -ne 0) {
+            throw "Active sports freshness gate failed (exit $LASTEXITCODE)"
+        }
     }
 }
 finally {

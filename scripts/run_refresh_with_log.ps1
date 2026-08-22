@@ -97,23 +97,34 @@ try {
     }
     else {
         Write-Host "[REFRESH $RunLabel] Complete" -ForegroundColor Green
+        $todayEt = (Get-Date).ToString("yyyy-MM-dd")
+        try {
+            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+            $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+        } catch { }
         $assertScript = Join-Path $Root "scripts\assert_live_board_sync.py"
         $pushScript = Join-Path $Root "scripts\push_live_to_main.ps1"
         if ((Test-Path -LiteralPath $assertScript) -and (Test-Path -LiteralPath $pushScript)) {
-            $todayEt = (Get-Date).ToString("yyyy-MM-dd")
-            try {
-                $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
-                $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
-            } catch { }
             Write-Host "[REFRESH $RunLabel] Publishing live tickets/slate if dates match ($todayEt)..." -ForegroundColor Cyan
             & py -3.14 -X utf8 $assertScript --today $todayEt --templates-dir (Join-Path $Root "ui_runner\templates")
             if ($LASTEXITCODE -eq 0) {
                 & pwsh -NoProfile -File $pushScript -CommitMessage "chore: $RunLabel live tickets/slate $todayEt [auto]"
                 if ($LASTEXITCODE -ne 0) {
                     Write-Host "[REFRESH $RunLabel] WARN: push_live_to_main exit $LASTEXITCODE (Railway may stay on prior board)" -ForegroundColor Yellow
+                    $scriptExit = $LASTEXITCODE
                 }
             } else {
                 Write-Host "[REFRESH $RunLabel] SKIP push — tickets_latest lags slate_latest. Combined --write-web must finish first." -ForegroundColor Yellow
+            }
+        }
+        $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+        if (Test-Path -LiteralPath $assertFresh) {
+            $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+            Write-Host "[REFRESH $RunLabel] Asserting active sports FRESH..." -ForegroundColor Cyan
+            & pwsh -NoProfile -File $assertFresh -RepoRoot $Root -Today $todayEt -JsonOut $freshJson
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "[REFRESH $RunLabel] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+                $scriptExit = $LASTEXITCODE
             }
         }
     }

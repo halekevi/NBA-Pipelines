@@ -15,6 +15,18 @@ $ErrorActionPreference = "Continue"
 try { $Host.UI.RawUI.WindowTitle = "PropOracle - Daily 8AM" } catch { }
 $Root = Split-Path $PSScriptRoot -Parent
 $Refresh = Join-Path $Root "scripts\run_refresh_with_log.ps1"
+$SkipFlagDir = Join-Path $Root "data\cache"
+$todayEt = (Get-Date).ToString("yyyy-MM-dd")
+try {
+    $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+    $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+} catch { }
+$SkipFlag = Join-Path $SkipFlagDir "skip_8am_$todayEt.flag"
+if (Test-Path -LiteralPath $SkipFlag) {
+    $why = (Get-Content -LiteralPath $SkipFlag -ErrorAction SilentlyContinue | Select-Object -First 1)
+    Write-Host "[8AM UPDATE] SKIP — manual refresh already ran today ($why)" -ForegroundColor Yellow
+    exit 0
+}
 
 if (-not (Test-Path $Refresh)) {
     Write-Error "Missing refresh script: $Refresh"

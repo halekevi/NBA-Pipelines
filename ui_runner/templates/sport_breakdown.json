@@ -24,31 +24,31 @@
     },
     {
       "sport": "WNBA",
-      "decided": 60862,
-      "paid": 29640,
-      "win_rate": 0.48700338470638493,
-      "net_dollars": -15820.0
+      "decided": 62422,
+      "paid": 30444,
+      "win_rate": 0.4877126654064272,
+      "net_dollars": -15340.0
     },
     {
       "sport": "MLB",
-      "decided": 625256,
-      "paid": 180979,
-      "win_rate": 0.28944784216384967,
-      "net_dollars": -2632980.0
+      "decided": 637905,
+      "paid": 184457,
+      "win_rate": 0.28916061168982843,
+      "net_dollars": -2689910.0
     },
     {
       "sport": "SOCCER",
-      "decided": 128887,
-      "paid": 21543,
-      "win_rate": 0.16714641507677266,
-      "net_dollars": -858010.0
+      "decided": 131099,
+      "paid": 21825,
+      "win_rate": 0.16647724238933936,
+      "net_dollars": -874490.0
     },
     {
       "sport": "TENNIS",
-      "decided": 27907,
-      "paid": 7486,
-      "win_rate": 0.2682481097932418,
-      "net_dollars": -129350.0
+      "decided": 28148,
+      "paid": 7554,
+      "win_rate": 0.26836720193264174,
+      "net_dollars": -130400.0
     },
     {
       "sport": "NHL",
@@ -133,10 +133,10 @@
     {
       "sport": "WNBA",
       "month": "2026-08",
-      "decided": 11143,
-      "paid": 6419,
-      "win_rate": 0.576056717221574,
-      "net_dollars": 16950.0
+      "decided": 12703,
+      "paid": 7223,
+      "win_rate": 0.5686058411398882,
+      "net_dollars": 17430.0
     },
     {
       "sport": "WNBA",
@@ -165,10 +165,10 @@
     {
       "sport": "MLB",
       "month": "2026-08",
-      "decided": 112780,
-      "paid": 30334,
-      "win_rate": 0.2689661287462316,
-      "net_dollars": -521120.0
+      "decided": 125429,
+      "paid": 33812,
+      "win_rate": 0.2695708329014821,
+      "net_dollars": -578050.0
     },
     {
       "sport": "MLB",
@@ -213,10 +213,10 @@
     {
       "sport": "SOCCER",
       "month": "2026-08",
-      "decided": 29129,
-      "paid": 4007,
-      "win_rate": 0.1375605067115246,
-      "net_dollars": -211150.0
+      "decided": 31341,
+      "paid": 4289,
+      "win_rate": 0.13684949427267795,
+      "net_dollars": -227630.0
     },
     {
       "sport": "SOCCER",
@@ -261,10 +261,10 @@
     {
       "sport": "TENNIS",
       "month": "2026-08",
-      "decided": 7580,
-      "paid": 2222,
-      "win_rate": 0.29313984168865437,
-      "net_dollars": -31360.0
+      "decided": 7821,
+      "paid": 2290,
+      "win_rate": 0.29280143204193837,
+      "net_dollars": -32410.0
     },
     {
       "sport": "TENNIS",
@@ -332,6 +332,6 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=175:mt=1787247353609242900",
-  "updated_at": "2026-08-20T17:52:10Z"
+  "signature": "n=177:mt=1787421130959405900",
+  "updated_at": "2026-08-22T18:10:19Z"
 }

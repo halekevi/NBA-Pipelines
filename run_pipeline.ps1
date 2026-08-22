@@ -15,6 +15,7 @@
 #    .\run_pipeline.ps1 -GolfOnly             # PGA Golf (step1-7-8) + Combined
 #    .\run_pipeline.ps1 -WNBAOnly              # WNBA only (delegates to scripts\run_wnba_pipeline.ps1)
 #    .\run_pipeline.ps1 -WNBAOnly -WNBACdp http://127.0.0.1:9222   # PrizePicks via Chrome CDP (DataDome)
+#    pwsh -File scripts\run_day_ahead_unders.ps1   # WNBA today+tomorrow ET step1 + Standard UNDER watchlist
 #  WNBA / combined contract: step1 HTTP API by default (curl_cffi); optional CDP/-UsePlaywright; step8 preserves game_date;
 #  scripts\run_wnba_pipeline.ps1 publishes step8 clean to outputs/<date>/ after step8 (before step9).
 #  WNBA CDP env (optional): PROPORACLE_PP_CDP or PRIZEPICKS_CDP — used when -WNBACdp omitted.
@@ -186,6 +187,17 @@ if (-not $TennisDate) {
     Write-Host "  [Tennis] Using specified TennisDate: $TennisDate" -ForegroundColor Cyan
 }
 
+function Get-PropOracleEasternTomorrowYmd {
+    $today = Get-PropOracleEasternTodayYmd
+    try {
+        return ([datetime]::ParseExact($today, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)).AddDays(1).ToString('yyyy-MM-dd')
+    } catch {
+        return (Get-Date).AddDays(1).ToString('yyyy-MM-dd')
+    }
+}
+$EasternTomorrow = Get-PropOracleEasternTomorrowYmd
+Write-Host "  [DayAhead] WNBA/MLB extra match day (Combined --wnba-date/--mlb-date): $EasternTomorrow" -ForegroundColor DarkGray
+
 if ($MLBVerify -and -not $MLBOnly) {
     Write-Host "  [MLBVerify] Enabling -MLBOnly automatically." -ForegroundColor DarkGray
     $MLBOnly = $true
@@ -199,6 +211,8 @@ try {
     $MLBSeasonYear = (Get-Date).Year
     $CFBSeasonYear = $MLBSeasonYear
 }
+# Week 0 / early Sept: keep 2025 unit ranks until 2026 games exist.
+if ($Date -lt "2026-09-15") { $CFBSeasonYear = 2025 }
 
 $StartTime = Get-Date
 
@@ -248,8 +262,8 @@ $NHLOffSeason = (Get-Date) -lt $NHLSeasonResume
 # Override: $env:PROPORACLE_NFL_RESUME / -ForceNFL / -ForceAll
 $NFL_SEASON_RESUME = "2026-08-13"
 if ($env:PROPORACLE_NFL_RESUME) { $NFL_SEASON_RESUME = $env:PROPORACLE_NFL_RESUME.Trim() }
-# CFB: skip until Week 0 (not Aug 1). Override: $env:PROPORACLE_CFB_RESUME / -ForceCFB / -ForceAll
-$CFB_SEASON_RESUME = "2026-08-29"
+# CFB: skip until Week 0 boards post (PP had 8/29 games live by 8/18). Override: $env:PROPORACLE_CFB_RESUME / -ForceCFB / -ForceAll
+$CFB_SEASON_RESUME = "2026-08-18"
 if ($env:PROPORACLE_CFB_RESUME) { $CFB_SEASON_RESUME = $env:PROPORACLE_CFB_RESUME.Trim() }
 function Test-FootballOffSeason {
     param([string]$PipelineDate, [string]$ResumeYmd, [switch]$Force)
@@ -521,6 +535,7 @@ function Get-MlbStep1HttpArgList {
     }
     if ($Append) { $list += "--append" }
     if ($AllowNearestFuture) { $list += "--allow-nearest-future" }
+    $list += "--include-tomorrow"
     return $list
 }
 
@@ -578,7 +593,7 @@ function Invoke-MLBStep1Fetch {
             Write-Host "        CMD: $cmd0Display" -ForegroundColor DarkGray
             $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
                 --cdp $cdpUrl --timeout 120 --retries 1 --retry_delay 5 `
-                --date $PipelineDate --output $OutputPath 2>&1
+                --date $PipelineDate --include-tomorrow --output $OutputPath 2>&1
             $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
             if ($exit -eq 0) {
@@ -600,7 +615,7 @@ function Invoke-MLBStep1Fetch {
             Write-Host "        CMD: $cmd2Display" -ForegroundColor DarkGray
             $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
                 --playwright --timeout 120 --retries 1 --retry_delay 5 `
-                --date $PipelineDate --output $OutputPath 2>&1
+                --date $PipelineDate --include-tomorrow --output $OutputPath 2>&1
             $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
         }
@@ -636,12 +651,25 @@ function Get-Step1DateHealth {
     if (-not $rows -or $rows.Count -eq 0) { return @{ ok = $false; rows = 0; reason = "empty_file" } }
 
     $match = @()
+    $nextDate = ""
+    try {
+        $nextDate = ([datetime]::ParseExact($TargetDate, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)).AddDays(1).ToString('yyyy-MM-dd')
+    } catch { $nextDate = "" }
     if ($rows[0].PSObject.Properties.Name -contains "game_date") {
-        $match = $rows | Where-Object { (($_.game_date | ForEach-Object { "$_".Trim() })) -eq $TargetDate }
+        $match = $rows | Where-Object {
+            $gd = ("$($_.game_date)").Trim()
+            $gd -eq $TargetDate -or ($nextDate -and $gd -eq $nextDate)
+        }
     } elseif ($rows[0].PSObject.Properties.Name -contains "start_time") {
-        $match = $rows | Where-Object { "$($_.start_time)".Length -ge 10 -and "$($_.start_time)".Substring(0, 10) -eq $TargetDate }
+        $match = $rows | Where-Object {
+            $st = "$($_.start_time)"
+            $st.Length -ge 10 -and ($st.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $st.Substring(0, 10) -eq $nextDate))
+        }
     } elseif ($rows[0].PSObject.Properties.Name -contains "game_start") {
-        $match = $rows | Where-Object { "$($_.game_start)".Length -ge 10 -and "$($_.game_start)".Substring(0, 10) -eq $TargetDate }
+        $match = $rows | Where-Object {
+            $gs = "$($_.game_start)"
+            $gs.Length -ge 10 -and ($gs.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $gs.Substring(0, 10) -eq $nextDate))
+        }
     } else {
         return @{ ok = $false; rows = $rows.Count; reason = "missing_date_columns" }
     }
@@ -668,6 +696,23 @@ function Test-Step1NoSlate {
         return $true
     }
     return (-not $rows -or $rows.Count -eq 0)
+}
+
+function Test-Step1NflSeasonOnly {
+    param([string]$CsvPath)
+    if (Test-Step1NoSlate -CsvPath $CsvPath) { return $true }
+    try {
+        $rows = Import-Csv -LiteralPath $CsvPath
+    } catch {
+        return $true
+    }
+    $seasonBoardIds = @("163")
+    $daily = @($rows | Where-Object {
+        $lg = if ($_.PSObject.Properties.Name -contains "league") { ("$($_.league)").Trim().ToUpper() } else { "" }
+        $lid = if ($_.PSObject.Properties.Name -contains "league_id") { ("$($_.league_id)").Trim() } else { "" }
+        -not ($lg -eq "NFLSZN" -or $lid -in $seasonBoardIds)
+    })
+    return ($daily.Count -eq 0)
 }
 
 function Clear-NHLGeneratedOutputs {
@@ -1193,6 +1238,8 @@ function Publish-LiveSiteJsonToMain {
         "ui_runner/docs/tickets_latest.json",
         "mobile/www/tickets_latest.json",
         "ui_runner/templates/slate_latest.json",
+        "ui_runner/templates/slate_display_date.json",
+        "mobile/www/slate_display_date.json",
         "ui_runner/templates/pipeline_status.json",
         "mobile/www/pipeline_status.json",
         "mobile/www/slate_latest.json",
@@ -1482,7 +1529,13 @@ function Run-Combined {
         $ticketStarts = [int]$env:PROPORACLE_TICKET_GEN_STARTS
     }
     Write-Host "  [combined] ticket-gen-starts=$ticketStarts" -ForegroundColor DarkGray
-    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts $ticketStarts --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --also-win-rate --max-legs 4 --min-leg-prob 0.62 --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
+    $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --wnba-date $EasternTomorrow --mlb-date $EasternTomorrow --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts $ticketStarts --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --max-legs 4 --min-leg-prob 0.62"
+    $skipWinRate = "$($env:SKIP_TICKET_SIDECARS)".Trim() -in @("1", "true", "yes")
+    if ($skipWinRate) {
+        Write-Host "  [combined] skipping --also-win-rate (SKIP_TICKET_SIDECARS)" -ForegroundColor DarkGray
+    } else {
+        $CombinedArgs += " --also-win-rate --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
+    }
     if (-not $WebEvOnly) {
         $CombinedArgs += " --no-web-ev-gate"
     }
@@ -2012,7 +2065,7 @@ if ($SoccerOnly) {
                 -ScriptRel ".\scripts\step1_fetch_prizepicks_soccer.py" `
                 -OutputPath "$SoccerRunOutDir\step1_soccer_props.csv" `
                 -PipelineDate $Date `
-                -HttpArgs @("--output", "$SoccerRunOutDir\step1_soccer_props.csv", "--date", $Date)
+                -HttpArgs @("--output", "$SoccerRunOutDir\step1_soccer_props.csv", "--date", $Date, "--include-tomorrow")
         }
     } else {
         Write-Host "  [Soccer] Skipping step1 fetch -- using existing $SoccerRunOutDir\step1_soccer_props.csv" -ForegroundColor DarkGray
@@ -2165,7 +2218,7 @@ if ($TennisOnly) {
     }
     if ($ok) { $ok = Run-Step "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" "--input `"$TennisRunOutDir\step1_tennis_props.csv`" --output `"$TennisRunOutDir\step2_tennis_picktypes.csv`"" }
     if ($ok) { $ok = Run-Step "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" "--input `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --output `"$TennisRunOutDir\step3_tennis_with_defense.csv`"" }
-    if ($ok) { $ok = Run-Step "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source sackmann --history-n 20" }
+    if ($ok) { $ok = Run-Step "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source both --history-n 20 --date $TennisDate" }
     if ($ok) {
         $ok = Run-Step "Tennis Step 4b - Surface context (Sackmann)" $TennisDir ".\scripts\step4b_attach_surface_context.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --date $TennisDate"
     }
@@ -2205,7 +2258,15 @@ if ($CFBOnly) {
     Write-Host "[ CFB PIPELINE ]" -ForegroundColor Magenta
     Write-Host ""
     $ok = $true
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step "CFB Step 1 - Fetch PrizePicks"      $CFBDir ".\scripts\pipeline\step1_pp_cfb_scraper.py"      "--out `"$CFBRunOutDir\step1_cfb.csv`"" } } else { Write-Host "  [CFB] Skipping step1 fetch -- using existing $CFBRunOutDir\step1_cfb.csv" -ForegroundColor DarkGray }
+    if (-not $SkipFetch) {
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -SportLabel "CFB" -WorkDir $CFBDir `
+                -ScriptRel ".\scripts\pipeline\step1_pp_cfb_scraper.py" `
+                -OutputPath "$CFBRunOutDir\step1_cfb.csv" -PipelineDate $Date `
+                -HttpArgs @("--out", "$CFBRunOutDir\step1_cfb.csv") `
+                -SkipDateHealth
+        }
+    } else { Write-Host "  [CFB] Skipping step1 fetch -- using existing $CFBRunOutDir\step1_cfb.csv" -ForegroundColor DarkGray }
     if ($ok) { $ok = Run-Step "CFB Step 2 - Normalize"               $CFBDir ".\scripts\pipeline\step2_normalize.py"                            "--input `"$CFBRunOutDir\step1_cfb.csv`" --output `"$CFBRunOutDir\step2_cfb.csv`"" }
     if ($ok) { $ok = Invoke-RankingsRefresh -Sport cfb -PipelineDate $Date -CfbSeason $CFBSeasonYear }
     if ($ok) { $ok = Run-Step "CFB Step 3b - Attach Pass/Run Ranks"    $CFBDir ".\scripts\pipeline\step3_attach_unit_rankings.py"               "--input `"$CFBRunOutDir\step2_cfb.csv`" --rankings data\reference\cfb_team_unit_rankings.csv --season $CFBSeasonYear --output `"$CFBRunOutDir\step3_with_unit_rankings_cfb.csv`"" }
@@ -2520,12 +2581,25 @@ $NBAJob = Start-Job -ScriptBlock {
         try { $rows = Import-Csv -Path $CsvPath } catch { return @{ ok = $false; reason = "read_error" } }
         if (-not $rows -or $rows.Count -eq 0) { return @{ ok = $false; reason = "empty_file" } }
         $match = @()
+        $nextDate = ""
+        try {
+            $nextDate = ([datetime]::ParseExact($TargetDate, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)).AddDays(1).ToString('yyyy-MM-dd')
+        } catch { $nextDate = "" }
         if ($rows[0].PSObject.Properties.Name -contains "game_date") {
-            $match = $rows | Where-Object { (($_.game_date | ForEach-Object { "$_".Trim() })) -eq $TargetDate }
+            $match = $rows | Where-Object {
+                $gd = ("$($_.game_date)").Trim()
+                $gd -eq $TargetDate -or ($nextDate -and $gd -eq $nextDate)
+            }
         } elseif ($rows[0].PSObject.Properties.Name -contains "start_time") {
-            $match = $rows | Where-Object { "$($_.start_time)".Length -ge 10 -and "$($_.start_time)".Substring(0, 10) -eq $TargetDate }
+            $match = $rows | Where-Object {
+                $st = "$($_.start_time)"
+                $st.Length -ge 10 -and ($st.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $st.Substring(0, 10) -eq $nextDate))
+            }
         } elseif ($rows[0].PSObject.Properties.Name -contains "game_start") {
-            $match = $rows | Where-Object { "$($_.game_start)".Length -ge 10 -and "$($_.game_start)".Substring(0, 10) -eq $TargetDate }
+            $match = $rows | Where-Object {
+                $gs = "$($_.game_start)"
+                $gs.Length -ge 10 -and ($gs.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $gs.Substring(0, 10) -eq $nextDate))
+            }
         } else {
             return @{ ok = $false; reason = "missing_date_columns" }
         }
@@ -2734,13 +2808,9 @@ $CFBJob = $null
 if ($CFB_PARALLEL_ACTIVE) {
 Wait-FetchStagger
 $CFBJob = Start-Job -ScriptBlock {
-    param($CFBDir, $Date, $SkipFetch, $RepoRoot, $CFBRunOutDir)
+    param($CFBDir, $Date, $SkipFetch, $RepoRoot, $CFBRunOutDir, $cfbSeason)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
-    try {
-        $cfbSeason = ([datetime]::ParseExact($Date, "yyyy-MM-dd", [System.Globalization.CultureInfo]::InvariantCulture)).Year
-    } catch {
-        $cfbSeason = (Get-Date).Year
-    }
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[CFB] --> $Label"
@@ -2780,7 +2850,15 @@ $CFBJob = Start-Job -ScriptBlock {
     }
     $ok = $true
     $cfbStep1 = Join-Path $CFBRunOutDir "step1_cfb.csv"
-    if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "CFB Step 1 - Fetch PrizePicks"      $CFBDir ".\scripts\pipeline\step1_pp_cfb_scraper.py"      "--out `"$cfbStep1`"" } } else { Write-Output "[CFB] Skipping step1 fetch" }
+    if (-not $SkipFetch) {
+        if ($ok) {
+            $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "CFB" -WorkDir $CFBDir `
+                -ScriptRel ".\scripts\pipeline\step1_pp_cfb_scraper.py" `
+                -OutputPath $cfbStep1 -PipelineDate $Date `
+                -HttpArgs @("--out", $cfbStep1) `
+                -SkipDateHealth
+        }
+    } else { Write-Output "[CFB] Skipping step1 fetch" }
     if ($ok -and (Test-Step1NoSlate-Job -CsvPath $cfbStep1)) {
         Write-Output "[CFB] No slate today — skipping remaining steps."
         return $true
@@ -2803,7 +2881,7 @@ $CFBJob = Start-Job -ScriptBlock {
     if ($ok) { Invoke-Step7b-Job "CFB" $RepoRoot "$CFBRunOutDir\step6_ranked_cfb.xlsx" }
     if ($ok) { $ok = Run-Step-Job "CFB Step 8 - Direction Context"       $CFBDir ".\scripts\pipeline\step8_add_direction_context_cfb.py"          "--input `"$CFBRunOutDir\step6_ranked_cfb.xlsx`" --output `"$CFBRunOutDir\step8_cfb_direction_clean.xlsx`" --date $Date" }
     return $ok
-} -ArgumentList $CFBDir, $Date, $SkipFetch, $Root, $CFBRunOutDir
+} -ArgumentList $CFBDir, $Date, $SkipFetch, $Root, $CFBRunOutDir, $CFBSeasonYear
 }
 
 # -- NHL Job ------------------------------------------------------------------
@@ -3040,7 +3118,7 @@ $SoccerJob = Start-Job -ScriptBlock {
             $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "Soccer" -WorkDir $SoccerDir `
                 -ScriptRel ".\scripts\step1_fetch_prizepicks_soccer.py" `
                 -OutputPath $soccerStep1 -PipelineDate $Date `
-                -HttpArgs @("--output", $soccerStep1, "--date", $Date)
+                -HttpArgs @("--output", $soccerStep1, "--date", $Date, "--include-tomorrow")
         }
     } else { Write-Output "[Soccer] Skipping step1 fetch" }
     if ($ok -and (Test-Step1NoSlate-Job -CsvPath $soccerStep1)) {
@@ -3136,7 +3214,7 @@ $TennisJob = Start-Job -ScriptBlock {
     } else { Write-Output "[Tennis] Skipping step1 fetch" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" "--input `"$TennisRunOutDir\step1_tennis_props.csv`" --output `"$TennisRunOutDir\step2_tennis_picktypes.csv`"" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" "--input `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --output `"$TennisRunOutDir\step3_tennis_with_defense.csv`"" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source sackmann --history-n 20" }
+    if ($ok) { $ok = Run-Step-Job "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source both --history-n 20 --date $TennisDate" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 4b - Surface context" $TennisDir ".\scripts\step4b_attach_surface_context.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --date $TennisDate" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 5 - Hit Rates" $TennisDir ".\scripts\step5_compute_hitrates_tennis.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --compute10" }
     if ($ok) { $ok = Run-Step-Job "Tennis Step 6 - Context" $TennisDir ".\scripts\step6_add_context_tennis.py" "--input `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --output `"$TennisRunOutDir\step6_tennis_role_context.csv`"" }
@@ -3264,10 +3342,20 @@ $MLBJob = Start-Job -ScriptBlock {
         try { $rows = Import-Csv -Path $CsvPath } catch { return @{ ok = $false; reason = "read_error" } }
         if (-not $rows -or $rows.Count -eq 0) { return @{ ok = $false; reason = "empty_file" } }
         $match = @()
+        $nextDate = ""
+        try {
+            $nextDate = ([datetime]::ParseExact($TargetDate, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)).AddDays(1).ToString('yyyy-MM-dd')
+        } catch { $nextDate = "" }
         if ($rows[0].PSObject.Properties.Name -contains "game_date") {
-            $match = $rows | Where-Object { (($_.game_date | ForEach-Object { "$_".Trim() })) -eq $TargetDate }
+            $match = $rows | Where-Object {
+                $gd = ("$($_.game_date)").Trim()
+                $gd -eq $TargetDate -or ($nextDate -and $gd -eq $nextDate)
+            }
         } elseif ($rows[0].PSObject.Properties.Name -contains "start_time") {
-            $match = $rows | Where-Object { "$($_.start_time)".Length -ge 10 -and "$($_.start_time)".Substring(0, 10) -eq $TargetDate }
+            $match = $rows | Where-Object {
+                $st = "$($_.start_time)"
+                $st.Length -ge 10 -and ($st.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $st.Substring(0, 10) -eq $nextDate))
+            }
         } else {
             return @{ ok = $false; reason = "missing_date_columns" }
         }
@@ -3311,6 +3399,7 @@ $MLBJob = Start-Job -ScriptBlock {
         }
         if ($Append) { $list += "--append" }
         if ($AllowNearestFuture) { $list += "--allow-nearest-future" }
+        $list += "--include-tomorrow"
         return $list
     }
     function Invoke-MLBStep1Fetch-Job {
@@ -3352,7 +3441,7 @@ $MLBJob = Start-Job -ScriptBlock {
                 Write-Output "        CMD: py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py --cdp $cdpUrl --date $PipelineDate --output $OutputPath"
                 $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
                     --cdp $cdpUrl --timeout 120 --retries 1 --retry_delay 5 `
-                    --date $PipelineDate --output $OutputPath 2>&1
+                    --date $PipelineDate --include-tomorrow --output $OutputPath 2>&1
                 $exit = $LASTEXITCODE
                 foreach ($line in $output) { Write-Output "        $line" }
                 if ($exit -eq 0) {
@@ -3373,7 +3462,7 @@ $MLBJob = Start-Job -ScriptBlock {
                 Write-Output "        CMD: py -3.14 -u .\scripts\step1_fetch_prizepicks_mlb.py --playwright --date $PipelineDate --output $OutputPath"
                 $output = & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
                     --playwright --timeout 120 --retries 1 --retry_delay 5 `
-                    --date $PipelineDate --output $OutputPath 2>&1
+                    --date $PipelineDate --include-tomorrow --output $OutputPath 2>&1
                 $exit = $LASTEXITCODE
                 foreach ($line in $output) { Write-Output "        $line" }
             }
@@ -3624,11 +3713,23 @@ $NFLJob = Start-Job -ScriptBlock {
         try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
         return (-not $rows -or $rows.Count -eq 0)
     }
+    function Test-Step1NflSeasonOnly-Job {
+        param([string]$CsvPath)
+        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
+        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
+        if (-not $rows -or $rows.Count -eq 0) { return $true }
+        $daily = @($rows | Where-Object {
+            $lg = if ($_.PSObject.Properties.Name -contains "league") { ("$($_.league)").Trim().ToUpper() } else { "" }
+            $lid = if ($_.PSObject.Properties.Name -contains "league_id") { ("$($_.league_id)").Trim() } else { "" }
+            -not ($lg -eq "NFLSZN" -or $lid -eq "163")
+        })
+        return ($daily.Count -eq 0)
+    }
     $ok = $true
     $nflStep1 = Join-Path $NFLRunOutDir "step1_pp_props_today.csv"
-    if (-not $SkipFetch) { if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "NFL" -WorkDir $NFLDir -ScriptRel ".\scripts\step1_fetch_prizepicks_nfl.py" -OutputPath $nflStep1 -PipelineDate $Date -HttpArgs @("--output", $nflStep1, "--date", $Date) } } else { Write-Output "[NFL] Skipping step1 fetch" }
-    if ($ok -and (Test-Step1NoSlate-Job -CsvPath $nflStep1)) {
-        Write-Output "[NFL] No slate today — skipping remaining steps."
+    if (-not $SkipFetch) { if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "NFL" -WorkDir $NFLDir -ScriptRel ".\scripts\step1_fetch_prizepicks_nfl.py" -OutputPath $nflStep1 -PipelineDate $Date -HttpArgs @("--output", $nflStep1, "--date", $Date, "--replace") -SkipDateHealth } } else { Write-Output "[NFL] Skipping step1 fetch" }
+    if ($ok -and ((Test-Step1NoSlate-Job -CsvPath $nflStep1) -or (Test-Step1NflSeasonOnly-Job -CsvPath $nflStep1))) {
+        Write-Output "[NFL] No daily slate (NFLSZN-only or empty) — skipping remaining steps."
         return $true
     }
     if ($ok) { $ok = Run-Step-Job "NFL Step 2 - Clean Props" $NFLDir ".\scripts\step2_clean_props.py" "" }
@@ -3649,7 +3750,7 @@ $NFLJob = Start-Job -ScriptBlock {
     if ($ok) { $ok = Run-Step-Job "NFL Step 6 - Hit Rates" $NFLDir ".\scripts\step6_historical_hit_rates.py" "--input data\outputs\step5_nfl_with_stats.csv --output data\outputs\step6_hit_rates.csv" }
     if ($ok) { $ok = Run-Step-Job "NFL Step 7 - Rank Props" $NFLDir ".\scripts\step7_rank_props_nfl.py" "--output `"$NFLRunOutDir\step7_nfl_ranked.xlsx`"" }
     if ($ok) { Invoke-Step7b-Job "NFL" $RepoRoot "$NFLRunOutDir\step7_nfl_ranked.xlsx" }
-    if ($ok) { $ok = Run-Step-Job "NFL Step 8 - Direction Context" $NFLDir ".\scripts\step8_add_direction_context_nfl.py" "--date $Date --output `"$NFLRunOutDir\step8_nfl_direction_clean.xlsx`"" }
+    if ($ok) { $ok = Run-Step-Job "NFL Step 8 - Direction Context" $NFLDir ".\scripts\step8_add_direction_context_nfl.py" "--input `"$NFLRunOutDir\step7_nfl_ranked.xlsx`" --date $Date --output `"$NFLRunOutDir\step8_nfl_direction_clean.xlsx`"" }
     return $ok
 } -ArgumentList $NFLDir, $Date, $SkipFetch, $Root, 2025, $NFLRunOutDir
 }
@@ -3751,8 +3852,9 @@ if (-not $MLBSuccess -and (Test-Step1NoSlate -CsvPath $mlbStep1Path)) {
 $TennisSuccess = Test-Path (Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx")
 $NFLSuccess    = if (-not $NFL_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $NFLRunOutDir "step8_nfl_direction_clean.xlsx") }
 $nflNoSlate = $false
-if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $NFLRunOutDir "step1_pp_props_today.csv"))) {
-    Write-Host "  [NFL] no slate for $Date — not a failure." -ForegroundColor DarkGray
+$nflStep1Path = Join-Path $NFLRunOutDir "step1_pp_props_today.csv"
+if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and ((Test-Step1NoSlate -CsvPath $nflStep1Path) -or (Test-Step1NflSeasonOnly -CsvPath $nflStep1Path))) {
+    Write-Host "  [NFL] no daily slate for $Date (NFLSZN-only or empty) — not a failure." -ForegroundColor DarkGray
     $NFLSuccess = $true
     $nflNoSlate = $true
 }

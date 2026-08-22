@@ -106,25 +106,51 @@ if (-not $MainRoot) {
 }
 Write-Host "Publishing into main worktree: $MainRoot" -ForegroundColor Cyan
 
+# When publishing from main_cp itself, never stash first — that hid fresh
+# slate_sport_*.json and left Railway on Soccer-only boards.
+$sameTree = ([System.IO.Path]::GetFullPath($Root) -eq [System.IO.Path]::GetFullPath($MainRoot))
+$liveSnap = $null
+if (-not $sameTree) {
+    $liveSnap = Join-Path $env:TEMP ("proporacle_push_live_" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $liveSnap -Force | Out-Null
+    foreach ($rel in $toPublish) {
+        $src = Join-Path $Root ($rel -replace "/", "\")
+        if (Test-Path -LiteralPath $src) {
+            $dst = Join-Path $liveSnap ($rel -replace "/", "\")
+            New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $src -Destination $dst -Force
+        }
+    }
+}
+
 $stashed = $false
 try {
     Push-Location $MainRoot
-    if (git status --porcelain) {
+    if (-not $sameTree -and (git status --porcelain)) {
         git stash push -m "proporacle-push-live-temp" 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $stashed = $true }
     }
     git pull --ff-only origin main
 
     foreach ($rel in $toPublish) {
-        $src = Join-Path $Root ($rel -replace "/", "\")
+        if ($sameTree) {
+            $src = Join-Path $Root ($rel -replace "/", "\")
+        } else {
+            $src = Join-Path $liveSnap ($rel -replace "/", "\")
+            if (-not (Test-Path -LiteralPath $src)) {
+                $src = Join-Path $Root ($rel -replace "/", "\")
+            }
+        }
         $dst = Join-Path $MainRoot ($rel -replace "/", "\")
         $srcFull = [System.IO.Path]::GetFullPath($src)
         $dstFull = [System.IO.Path]::GetFullPath($dst)
-        if ($srcFull -ne $dstFull) {
+        if ((Test-Path -LiteralPath $src) -and ($srcFull -ne $dstFull)) {
             New-Item -ItemType Directory -Path (Split-Path $dst -Parent) -Force | Out-Null
             Copy-Item -LiteralPath $src -Destination $dst -Force
         }
-        git add -f -- $rel
+        if (Test-Path -LiteralPath $dst) {
+            git add -f -- $rel
+        }
     }
 
     $msg = if ($CommitMessage) {
@@ -143,5 +169,8 @@ try {
 }
 finally {
     if ($stashed) { git stash pop 2>&1 | Out-Null }
+    if ($liveSnap -and (Test-Path -LiteralPath $liveSnap)) {
+        Remove-Item -LiteralPath $liveSnap -Recurse -Force -ErrorAction SilentlyContinue
+    }
     Pop-Location
 }

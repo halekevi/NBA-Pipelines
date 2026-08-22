@@ -1892,6 +1892,9 @@ else {
         if ($MainRoot -ne $Root) {
             Write-Log "STEP E - publishing via main worktree: $MainRoot"
         }
+        # Snapshot ALL Railway-facing board JSON before stash. Stashing a dirty
+        # main_cp worktree otherwise drops slate_sport_*.json updates, so STEP E
+        # commits Soccer-only (or empty MLB/WNBA) while good boards sit unstaged.
         $stepELiveRels = @(
             "ui_runner/templates/tickets_latest.json",
             "ui_runner/docs/tickets_latest.json",
@@ -1899,9 +1902,24 @@ else {
             "ui_runner/templates/slate_latest.json",
             "mobile/www/slate_latest.json",
             "ui_runner/templates/pipeline_status.json",
-            "mobile/www/pipeline_status.json"
+            "mobile/www/pipeline_status.json",
+            "ui_runner/templates/slate_display_date.json",
+            "mobile/www/slate_display_date.json",
+            "ui_runner/templates/sport_breakdown.json",
+            "mobile/www/sport_breakdown.json",
+            "ui_runner/templates/tickets_winrate_latest.json"
         )
-        # Snapshot live tickets from the daily run workspace before main-side staging.
+        foreach ($dirRel in @("ui_runner\templates", "mobile\www")) {
+            $dirFull = Join-Path $Root $dirRel
+            if (Test-Path -LiteralPath $dirFull) {
+                Get-ChildItem -LiteralPath $dirFull -Filter "slate_sport_*.json" -File -ErrorAction SilentlyContinue |
+                    ForEach-Object {
+                        $stepELiveRels += (($dirRel -replace "\\", "/") + "/" + $_.Name)
+                    }
+            }
+        }
+        $stepELiveRels = @($stepELiveRels | Where-Object { $_ } | Select-Object -Unique)
+        # Snapshot live board JSON from the daily run workspace before main-side staging.
         $stepELiveSnap = Join-Path $env:TEMP ("proporacle_step_e_live_" + [guid]::NewGuid().ToString("N"))
         New-Item -ItemType Directory -Path $stepELiveSnap -Force | Out-Null
         foreach ($rel in $stepELiveRels) {

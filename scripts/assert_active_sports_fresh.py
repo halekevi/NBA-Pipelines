@@ -364,6 +364,7 @@ def assert_active_sports_fresh(
     templates_dir: Path | None = None,
     *,
     require_game_day: bool = True,
+    require_sports: list[str] | None = None,
 ) -> dict[str, Any]:
     today = today or eastern_today_ymd()
     templates_dir = templates_dir or (repo / "ui_runner" / "templates")
@@ -371,7 +372,13 @@ def assert_active_sports_fresh(
     slate = _load_json(slate_path)
     status = load_pipeline_status(repo, today)
 
-    expected, skipped, failed_pipeline = resolve_expected(today, status, repo)
+    if require_sports:
+        # Explicit override: ignore off_season / no_slate skips; every listed sport must be FRESH.
+        expected = [s.strip().lower() for s in require_sports if str(s).strip()]
+        skipped: list[tuple[str, str]] = []
+        failed_pipeline = [s for s in expected if status.get(s) == "failed"]
+    else:
+        expected, skipped, failed_pipeline = resolve_expected(today, status, repo)
 
     results: dict[str, Any] = {}
     bad: list[str] = []
@@ -459,6 +466,16 @@ def main(argv: list[str] | None = None) -> int:
         help="Only require modified_et == today (skip strict game_day row check)",
     )
     p.add_argument(
+        "--require",
+        default="",
+        help=(
+            "Comma-separated sports that must be FRESH (overrides auto active set / "
+            "off_season+no_slate skips). Example: mlb,soccer,tennis,wnba. "
+            "Default auto: summer core WNBA+MLB+Soccer+Tennis; skip off_season or "
+            "intentional empty fetch (pipeline status no_slate with empty step1)."
+        ),
+    )
+    p.add_argument(
         "--dry-run",
         action="store_true",
         help="Always exit 0 after printing (for manual inspection)",
@@ -471,11 +488,13 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     try:
+        require = [s.strip().lower() for s in str(args.require or "").split(",") if s.strip()]
         report = assert_active_sports_fresh(
             repo,
             today=args.today,
             templates_dir=args.templates_dir.resolve() if args.templates_dir else None,
             require_game_day=not args.no_game_day,
+            require_sports=require or None,
         )
     except Exception as exc:
         print(f"[ACTIVE-SPORTS-FRESH] error: {exc}", file=sys.stderr)

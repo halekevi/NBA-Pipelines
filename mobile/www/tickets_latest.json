@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23 02:32:12 UTC",
+  "generated_at": "2026-08-23 11:55:14 UTC",
   "date": "2026-08-23",
   "tennis_date": "2026-08-23",
   "filters": {
@@ -16048,7 +16048,6 @@
   "main_exclude_sports": [
     "CBB",
     "GOLF",
-    "NFL",
     "WCBB"
   ],
   "main_exclude_sports_candidates": [
@@ -16075,7 +16074,7 @@
   "allow_standard": true,
   "strong_builder_count": 24,
   "core_build_count": 15,
-  "run_id": "20260823_023212_673910",
+  "run_id": "20260823_115514_582854",
   "preferred_min_payout_x": 1.5,
   "short_floor_hard_x": 1.5,
   "short_floor_high_p_win": 0.7

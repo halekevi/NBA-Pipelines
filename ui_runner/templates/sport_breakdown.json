@@ -31,24 +31,24 @@
     },
     {
       "sport": "MLB",
-      "decided": 645364,
-      "paid": 186560,
-      "win_rate": 0.2890771719525725,
-      "net_dollars": -2722440.0
+      "decided": 645691,
+      "paid": 186616,
+      "win_rate": 0.28901750217983524,
+      "net_dollars": -2724590.0
     },
     {
       "sport": "SOCCER",
-      "decided": 135866,
-      "paid": 22356,
-      "win_rate": 0.16454447764709346,
-      "net_dollars": -911540.0
+      "decided": 135855,
+      "paid": 22355,
+      "win_rate": 0.16455043980714731,
+      "net_dollars": -911450.0
     },
     {
       "sport": "TENNIS",
       "decided": 28373,
-      "paid": 7629,
-      "win_rate": 0.26888238818595145,
-      "net_dollars": -131150.0
+      "paid": 7631,
+      "win_rate": 0.2689528777358757,
+      "net_dollars": -131110.0
     },
     {
       "sport": "NHL",
@@ -165,10 +165,10 @@
     {
       "sport": "MLB",
       "month": "2026-08",
-      "decided": 132888,
-      "paid": 35915,
-      "win_rate": 0.27026518572030583,
-      "net_dollars": -610580.0
+      "decided": 133215,
+      "paid": 35971,
+      "win_rate": 0.27002214465337987,
+      "net_dollars": -612730.0
     },
     {
       "sport": "MLB",
@@ -213,10 +213,10 @@
     {
       "sport": "SOCCER",
       "month": "2026-08",
-      "decided": 36108,
-      "paid": 4820,
-      "win_rate": 0.13348842361803478,
-      "net_dollars": -264680.0
+      "decided": 36097,
+      "paid": 4819,
+      "win_rate": 0.13350139900822783,
+      "net_dollars": -264590.0
     },
     {
       "sport": "SOCCER",
@@ -262,9 +262,9 @@
       "sport": "TENNIS",
       "month": "2026-08",
       "decided": 8046,
-      "paid": 2365,
-      "win_rate": 0.29393487447178723,
-      "net_dollars": -33160.0
+      "paid": 2367,
+      "win_rate": 0.2941834451901566,
+      "net_dollars": -33120.0
     },
     {
       "sport": "TENNIS",
@@ -332,6 +332,6 @@
     }
   ],
   "source": "graded_props_json",
-  "signature": "n=178:mt=1787500111050187600",
-  "updated_at": "2026-08-23T16:10:41Z"
+  "signature": "n=178:mt=1787519407541970300",
+  "updated_at": "2026-08-23T21:28:57Z"
 }

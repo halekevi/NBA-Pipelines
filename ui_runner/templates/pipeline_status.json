@@ -56,7 +56,7 @@
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-23 01:48:56"
     }
   },
   "wnba": {
@@ -82,5 +82,9 @@
       "exists": true,
       "modified": "2026-08-22 21:25:13"
     }
+  },
+  "tennis_match_day": "2026-08-23",
+  "game_day": {
+    "tennis": true
   }
 }

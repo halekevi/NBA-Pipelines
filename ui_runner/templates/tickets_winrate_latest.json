@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23 21:58:59 UTC",
+  "generated_at": "2026-08-23 23:47:05 UTC",
   "date": "2026-08-24",
   "tennis_date": "2026-08-24",
   "filters": {
@@ -14,7 +14,7 @@
     "high_conviction": false,
     "prioritize_ticket_hit": true,
     "ticket_candidate_sort": "rule",
-    "ticket_gen_starts": 16,
+    "ticket_gen_starts": 64,
     "nba_structured_variants": 8,
     "min_leg_hit_rate": null,
     "structured_min_leg_hit_rate": null,

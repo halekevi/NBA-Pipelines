@@ -2,25 +2,25 @@
   "nba": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-23 19:11:40"
     }
   },
   "nba1h": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-23 19:11:40"
     }
   },
   "nba1q": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-23 19:11:40"
     }
   },
   "cbb": {
     "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-23 19:11:40"
     }
   },
   "cfb": {
@@ -31,60 +31,56 @@
   },
   "nhl": {
     "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-23 19:11:41"
     }
   },
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-24 03:27:09"
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-24 03:09:13"
     }
   },
   "nfl": {
     "slate": {
-      "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "exists": false,
+      "modified": ""
     }
   },
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-23 23:45:25"
+      "modified": "2026-08-24 03:02:02"
+    }
+  },
+  "golf": {
+    "slate": {
+      "exists": false,
+      "modified": ""
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-23 20:37:53"
     }
   },
-  "wnba1h": {
+  "wcbb": {
     "slate": {
-      "exists": false,
-      "modified": ""
-    }
-  },
-  "wnba1q": {
-    "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-23 19:11:40"
     }
   },
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-22 21:25:13"
+      "modified": "2026-08-24 03:27:09"
     }
-  },
-  "tennis_match_day": "2026-08-24",
-  "game_day": {
-    "tennis": true
   }
 }

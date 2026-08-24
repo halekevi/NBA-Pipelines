@@ -8,10 +8,14 @@
   exit 2 if any task is missing or pointed at a feature-branch checkout.
 #>
 param(
-    [string]$ExpectedRoot = "H:\halek\ProfileFromC\Desktop\PropORACLE_main_cp"
+    [string]$ExpectedRoot = "H:\PropORACLE_main_cp"
 )
 
 $ErrorActionPreference = "Continue"
+
+if ([string]::IsNullOrWhiteSpace($ExpectedRoot)) {
+    $ExpectedRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+}
 $ExpectedRoot = $ExpectedRoot.TrimEnd('\')
 $names = @(
     "PropOracle - Tennis Early 3AM",
@@ -20,7 +24,9 @@ $names = @(
     "PropOracle - Daily 8AM",
     "PropOracle - Refresh 9AM",
     "PropOracle - Refresh 1030AM",
-    "PropOracle - Refresh 1PM"
+    "PropOracle - Refresh 1PM",
+    "PropOracle - Refresh 945AM",
+    "PropOracle - Refresh 430PM"
 )
 
 $bad = @()

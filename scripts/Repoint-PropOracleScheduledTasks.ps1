@@ -12,7 +12,7 @@
 #>
 param(
     [string]$NewRepoRoot = "",
-    [string]$OldRepoRoot = "C:\Users\halek\OneDrive\Desktop\PropORACLE",
+    [string]$OldRepoRoot = "H:\halek\ProfileFromC\Desktop\PropORACLE_main_cp",  # legacy Desktop path; use -OldRepoRoot for feature tree
     [switch]$WhatIf
 )
 
@@ -52,10 +52,13 @@ $names = @(
     "PropOracle - Grader 11PM",
     "PropOracle - Grader 12AM",
     "PropOracle - Grader 1AM",
+    "PropOracle - Tennis Early 3AM",
     "PropOracle - Daily 5AM",
     "PropOracle - Daily 7AM",
     "PropOracle - Daily 8AM",
     "PropOracle - Refresh 9AM",
+    "PropOracle - Refresh 945AM",
+    "PropOracle - Refresh 430PM",
     "PropOracle - Refresh 1030AM",
     "PropOracle - Refresh 1PM",
     "PropORACLE Daily Pipeline",

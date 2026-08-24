@@ -27,7 +27,7 @@ Living operator overview for **who runs what**, **when**, and **how PrizePicks f
 | Health stamp | `PropORACLE_main_cp\logs\LAST_5AM_STATUS.txt` (also mirrored into sibling `PropORACLE*\logs\`) |
 | Fresh board date | `mobile\www\slate_display_date.json` under **main_cp** |
 
-If Cursor is open on `Desktop\PropORACLE` (feature branch), that tree can look “stale overnight” even when 5AM succeeded on `main_cp` and pushed to GitHub. Prefer ranking/ops from **main_cp**, or `git pull` / open that worktree.
+If Cursor is open on `H:\PropORACLE` (feature branch), that tree can look “stale overnight” even when 5AM succeeded on `main_cp` and pushed to GitHub. Prefer ranking/ops from **main_cp**, or `git pull` / open that worktree.
 
 ---
 

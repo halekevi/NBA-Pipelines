@@ -907,6 +907,11 @@ def main():
     ap.add_argument("--min_rows",       type=int, default=30)
     ap.add_argument("--min_teams",      type=int, default=2)
     ap.add_argument("--all_props",      action="store_true",   help="Keep all prop types unfiltered")
+    ap.add_argument(
+        "--include-tomorrow",
+        action="store_true",
+        help="Compat with run_pipeline: keep today+tomorrow ET game_dates when present (no-op if filter lacks support).",
+    )
     ap.add_argument("--date", default=_default_et_date_str(), help=f"Target game date in {DEFAULT_TZ} (YYYY-MM-DD).")
     ap.add_argument("--tz", default=DEFAULT_TZ, help="Timezone used to derive game_date from start_time.")
     ap.add_argument(

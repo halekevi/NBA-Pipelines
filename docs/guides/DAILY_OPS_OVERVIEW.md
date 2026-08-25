@@ -2,7 +2,7 @@
 
 Living operator overview for **who runs what**, **when**, and **how PrizePicks fetches stay unblocked**. For file contracts see [PROJECT_LAYOUT.md](../PROJECT_LAYOUT.md). For one-screen production knobs see [CURRENT_STATE.md](../CURRENT_STATE.md).
 
-**As of:** 2026-08-20
+**As of:** 2026-08-24
 
 ---
 
@@ -22,12 +22,12 @@ Living operator overview for **who runs what**, **when**, and **how PrizePicks f
 
 | Check | Command / path |
 |-------|----------------|
-| Task action path | `Get-ScheduledTask -TaskName 'PropOracle - Daily 5AM' \| Select -Expand Actions` → should be `...\PropORACLE_main_cp\scripts\run_daily_5am.ps1` |
-| Last run | `Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM'` |
-| Health stamp | `PropORACLE_main_cp\logs\LAST_5AM_STATUS.txt` (also mirrored into sibling `PropORACLE*\logs\`) |
+| Task action path | `Get-ScheduledTask -TaskName 'PropOracle - Daily 1AM' \| Select -Expand Actions` → should be `...\PropORACLE_main_cp\scripts\run_daily_1am.ps1` |
+| Last run | `Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 1AM'` |
+| Health stamp | `PropORACLE_main_cp\logs\LAST_5AM_STATUS.txt` (label **1AM**; also mirrored into sibling `PropORACLE*\logs\`) |
 | Fresh board date | `mobile\www\slate_display_date.json` under **main_cp** |
 
-If Cursor is open on `H:\PropORACLE` (feature branch), that tree can look “stale overnight” even when 5AM succeeded on `main_cp` and pushed to GitHub. Prefer ranking/ops from **main_cp**, or `git pull` / open that worktree.
+If Cursor is open on `H:\PropORACLE` (feature branch), that tree can look “stale overnight” even when 1AM succeeded on `main_cp` and pushed to GitHub. `scripts/rank_best_props_today.py` now prefers the worktree whose step1 was **fetched on the slate date**, so a Saturday board in the feature branch will not beat Sunday’s 8AM board on `main_cp`. Still prefer ranking/ops from **main_cp**, or `git pull` / open that worktree.
 
 ---
 
@@ -37,12 +37,33 @@ Registered by `scripts/Register_Daily_Task.ps1` (re-run **from** `PropORACLE_mai
 
 | Task | Typical time (local) | Role |
 |------|----------------------|------|
-| **Tennis Early 3AM** | 03:00 | Light tennis fetch only (no board publish) |
-| **Daily 5AM** | 05:00 | Full `run_daily.ps1` + publish; health check fails task if `slate_display_date` ≠ today |
-| **Refresh 8AM / 9AM / 1030AM / 1PM** | Line-move window | `run_refresh_with_log.ps1` → late fetch + Force CDP |
-| **Grader 1AM** | 01:00 | Overnight A1 historical + grader (yesterday) |
+| **Daily 1AM** | 01:00 | Complete **all-sport fetch** + live payout CDP + publish (skips grader/A1). Empty `no_slate` is OK; 8AM is the lock. |
+| **Grader 3AM** | 03:00 | A1 historical actuals + grader for yesterday (split from 1AM so fetch and grade do not share RAM/CPU) |
+| **Daily 5AM** | 05:00 | Second overnight **fetch + line snapshot + live payout CDP** (skips grader/A1 when 3AM finished). |
+| **Daily 8AM** | 08:00 | **Primary same-day lock.** Fetch + Force CDP + `Publish-LiveSite.ps1` to origin/main |
+| **Refresh 945AM** | 09:45 | Follow-up after 8AM (9:00 used to skip while 8AM still held `refresh.lock`) |
+| **Refresh 1030AM** | 10:30 | PrizePicks morning move window |
+| **Refresh 1PM** | 13:00 | Afternoon line-move |
+| **Refresh 430PM** | 16:30 | Evening lock for 7pm WNBA/MLB boards |
 
-`pipeline_slate_status.json` under `outputs/<date>/` records per-sport `complete` / `no_slate` / `off_season`. **Empty `no_slate` is normal** when PrizePicks has no same-day games (e.g. Soccer board only listing tomorrow). MLB/Soccer often fill at 8–10:30 refresh, not always at 5AM.
+Retired: Tennis Early 3AM, Grader 1AM (grader moved to 3AM).
+
+`pipeline_slate_status.json` under `outputs/<date>/` records per-sport `complete` / `no_slate` / `off_season`. **Empty `no_slate` is normal** when PrizePicks has no same-day games (e.g. Soccer board only listing tomorrow). MLB/Soccer often fill at 8–10:30 refresh, not always at 1AM.
+
+If 1AM finishes with tennis complete but WNBA/MLB/soccer still `no_slate`, that is expected. 8AM refresh remains the first reliable full same-day board.
+
+### When to lock lines
+
+| Window | What you get |
+|--------|----------------|
+| **Night before** | Watchlist only. Lines are up but they move (today: Cardoso PRA 26.5 → 28 overnight). |
+| **1AM** | Complete fetch of whatever PP has posted (often tennis; MLB/soccer/WNBA may still be `no_slate`). Do not lock from a prior-day file. |
+| **8AM–10:30AM** | Best lock window. Same-day board is posted; lines have taken the overnight move. |
+| **4:30PM** | Evening lock when 7pm WNBA/MLB boards post or lines move again. |
+
+Overs get worse when the line rises after you rank; wait for the 8AM board unless you are only scouting.
+
+Every 8AM / 9:45 / 10:30 / 1PM / 4:30 refresh ends with `scripts/Publish-LiveSite.ps1` so Railway and GitHub raw tickets match the fetch (pipeline push happens *before* CDP payout scrape).
 
 ---
 
@@ -67,7 +88,7 @@ PrizePicks DataDome blocks long HTTP retry stacks. Summer ops use **CDP-first wh
 
 **Refresh lock (`scripts/run_refresh_with_log.ps1`):**
 
-- PID-aware lock, **90-minute** soft TTL (was 4h).
+- PID-aware lock, **90-minute** soft TTL (was 4h). A **live PID is never stolen**, even past TTL — 8AM often runs past 90 minutes.
 - Soft-skip while another refresh is live exits **non-zero** if today’s slate is still incomplete (no false “success” when 10:30 skipped a hung 9AM).
 
 **Daily catchup (`scripts/run_daily.ps1` late-fetch block):**

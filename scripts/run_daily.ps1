@@ -11,7 +11,7 @@
          → (D-payout) live CDP FillMissing (AFTER publish so tickets go live first)
          → (F) optional night poll of historical actuals.
          Board floors require exact per-ticket live_cdp (peer SG-Δ rate cards off by default).
-         STEP D-payout: after STEP E; 1AM and 8AM+ run live CDP. 5AM passes -SkipLivePayout.
+         STEP D-payout: after STEP E; 1AM, 5AM, and 8AM+ run live CDP.
          Mid-day 8/9/10:30/1 refreshes Force re-scrape CDP after prop/line updates.
          A1 often runs at 1AM (run_grader_evening); 5AM passes -SkipHistoricalActuals when stamp present.
          11:00 / 15:00 Payout CDP tasks are catchup only.

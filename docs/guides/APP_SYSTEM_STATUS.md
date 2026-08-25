@@ -1,6 +1,8 @@
 # PropORACLE System Deep Dive and Status Tracker
 
-Last updated: 2026-03-27
+Last updated: 2026-07-20  
+Audience / daily cadence overview: [DAILY_OPS_OVERVIEW.md](DAILY_OPS_OVERVIEW.md) · Production knobs: [CURRENT_STATE.md](../CURRENT_STATE.md)
+
 Source of truth for this document: current scripts, run commands, and repository state.
 
 ## 1) What this app is
@@ -15,12 +17,17 @@ PropORACLE is a multi-sport prop pipeline platform that:
 
 The system is batch-first (PowerShell + Python), with the UI fed from generated files in `ui_runner/templates`.
 
+**Audiences:** bettor/analyst (web + mobile) · operator (scheduled refresh) · pipeline maintainer (fetch contracts). See DAILY_OPS_OVERVIEW.
+
 ## 2) Core architecture
 
 ### Orchestration layer
 - `run_pipeline.ps1`: master pipeline for daily slate generation, sport-specific runs, combined run, and template publishing.
 - `scripts/run_daily.ps1`: higher-level daily operator (historical fetch, grading, consistency, pipeline, combined build, optional push/retrain).
+- `scripts/run_refresh_with_log.ps1` + `scripts/run_nba_late_fetch.ps1`: line-move refresh (CDP-first, per-sport wall-clock kills, PID-aware lock).
+- `scripts/run_live_payout_capture.ps1`: scheduled Payout CDP @ 11:00.
 - `scripts/run_grader.ps1`: grades yesterday (or specific date), builds eval outputs, and updates HTML artifacts.
+- `utils/prizepicks_cdp.py` + `utils/prizepicks_http.py`: shared PrizePicks fetch helpers.
 
 ### Sport pipelines
 - NBA: deepest pipeline (steps 1-8 plus sub-steps 6a-6e context/intel layers).
@@ -42,12 +49,13 @@ The system is batch-first (PowerShell + Python), with the UI fed from generated 
 
 ## 3) End-to-end daily flow (current behavior)
 
-1. Optional pre-refresh of historical/actual data.
-2. Grade yesterday's outputs and refresh consistency data.
-3. Run today's pipelines (parallel full run, or sport-specific).
-4. Build combined tickets from available sport outputs.
-5. Write dated output artifacts + latest UI template files.
-6. Optionally commit/push and optionally retrain models.
+1. **1AM** — `run_daily.ps1`: fetch **all** sports, combine, live payout CDP, publish (no grader).
+2. **3AM** — A1 historical actuals + grader for yesterday (separate process so 1AM fetch stays lighter).
+3. **5AM** — second overnight fetch + line snapshot + live payout CDP (skips grader/A1 when 3AM finished).
+4. **8AM / 9:45AM / 10:30AM / 1PM / 4:30PM** — refresh → late_fetch (CDP-first when `:9222` up) + pipeline `-SkipFetch` + `Publish-LiveSite.ps1`.
+5. Live payout CDP also rides with 1AM / 5AM and each refresh (standalone 11:00 CDP task is retired).
+6. Build combined tickets from available sport outputs; write dated + latest UI artifacts.
+7. Optionally commit/push and optionally retrain models (gated).
 
 ## 4) System flow diagram
 
@@ -134,9 +142,12 @@ Scale: 1 (low) to 5 (high), based on current script depth and integration.
 ## 9) Incident playbook (quick response)
 
 ### A) Step1 fetch failing / no props
-- Confirm API availability and network.
-- Retry sport-only run first (example: `.\run_pipeline.ps1 -NBAOnly`).
-- If urgent, run with `-SkipFetch` and annotate that prior slate source is reused.
+- Confirm CDP Chrome is warm: `http://127.0.0.1:9222/json/version`.
+- Check `data/cache/refresh.lock` (dead PID or age ≥ 90 min → clear) and `outputs/<today>/pipeline_slate_status.json`.
+- Manual catchup: `pwsh -NoProfile -File scripts\run_refresh_with_log.ps1 -RunLabel MANUAL_CDP_CATCHUP`.
+- Sport CDP examples: see [PROPORACLE_RUN_COMMANDS.md](../runbooks/PROPORACLE_RUN_COMMANDS.md) and [BROWSER_FETCH_SETUP.md](BROWSER_FETCH_SETUP.md).
+- `no_slate` after a good fetch often means **no same-day games** (Soccer), not a hang.
+- If urgent and prior step1 exists: `.\run_pipeline.ps1 -SkipFetch -SkipLivePayoutCapture`.
 
 ### B) Combined output missing
 - Verify required upstream artifacts exist (NBA + CBB are mandatory in current combine logic).
@@ -226,13 +237,15 @@ Use this section to track progress from now forward.
 
 ## 16) Quick orientation for contributors
 
-- For daily operations: start with `scripts/run_daily.ps1`.
+- For **who / when / hang recovery**: [DAILY_OPS_OVERVIEW.md](DAILY_OPS_OVERVIEW.md).
+- For daily operations: start with `scripts/run_daily.ps1` and scheduled refresh tasks.
 - For direct pipeline control: use `run_pipeline.ps1`.
 - For post-game scoring and reports: use `scripts/run_grader.ps1`.
 - For UI outputs: inspect `ui_runner/templates` and dated files under `outputs/<date>/`.
 
 ## 17) Change log
 
+- 2026-07-20: Linked DAILY_OPS_OVERVIEW; documented CDP-first late fetch, refresh lock TTL, scheduled 1030AM/1PM/Payout CDP; updated step1 hang playbook.
 - 2026-03-27: Initial system deep-dive and status tracker created.
 - 2026-03-27: Added diagram, dependencies, maturity matrix, SLO targets, incident playbook, risk register, verification checklist, retention guidance, and glossary.
 - 2026-03-27: Clarified NBA1Q/NBA1H architecture as shared-script period pipelines (command-config driven), not separate dedicated script trees yet.

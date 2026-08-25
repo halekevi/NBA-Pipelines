@@ -1,16 +1,13 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Scheduled 5:00 AM full daily: git pull main, run_daily.ps1 (today's pipeline + publish), prop snapshot.
+  Unscheduled or scheduled full daily: git pull main, run_daily.ps1 (today's pipeline + publish), prop snapshot.
 
 .NOTES
-  First big multi-sport run of the day. Publishes fresh slate_latest / tickets for the home page.
-  Overnight (1AM) owns: historical actuals (A1) + grader. This wrapper passes -SkipGrader /
-  -SkipHistoricalActuals when those outputs/stamps exist, and always -SkipLivePayout
-  (mid-day refresh + 11AM Payout CDP own live floors).
-  Refresh cadence: 8 / 9 / 10:30 / 1 (PP line moves often hit ~10:30–11).
-  3:00 AM remains light TennisOnly.
-  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 5AM".
+  Scheduled 5:00 AM fetch + line snapshot + live payout CDP. Grader/A1 stay at 3AM
+  when overnight stamps exist. 1AM already fetched overnight; this recaptures the
+  pre-lock board (lines + payout_patch / rate cards) before 8AM.
+  Refresh cadence after this: 8 / 9:45 / 10:30 / 1 / 4:30.
 #>
 param()
 
@@ -110,7 +107,7 @@ $gradedProbe = @(
 )
 $missingOvernight = @($gradedProbe | Where-Object { -not (Test-Path -LiteralPath $_) })
 $a1Stamp = Join-Path $Root "data\cache\historical_actuals_ok_$Today.flag"
-$dailyArgs = @("-SkipLivePayout")
+$dailyArgs = @()
 if ($missingOvernight.Count -eq 0) {
     $dailyArgs += "-SkipGrader"
 }

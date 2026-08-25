@@ -1,8 +1,8 @@
 {
   "created_at_utc": "2026-04-30T02:39:08.057287+00:00",
   "input_csv": "data\\ml\\ticket_training_dataset.csv",
-  "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model.pkl",
-  "features_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_features.json",
+  "model_path": "H:\\PropORACLE\\models\\ticket_model.pkl",
+  "features_path": "H:\\PropORACLE\\models\\ticket_model_features.json",
   "bucketed_models_enabled": true,
   "bucket_model_status": {
     "2leg": "loaded:rows=413",

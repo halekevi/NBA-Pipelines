@@ -4,6 +4,9 @@ Fetch NFL or CFB player stat actuals from ESPN box scores for slate grading.
 
   py -3.14 scripts/fetch_football_actuals.py --league nfl --date 2025-09-07
   py -3.14 scripts/fetch_football_actuals.py --league cfb --date 2025-11-15
+
+ESPN often 403s bare site.api calls; we send a browser Referer and fall back to
+site.web.api (same pattern as CFB boxscore engine / fetch_actuals soccer).
 """
 
 from __future__ import annotations
@@ -27,7 +30,9 @@ HEADERS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json",
+    "Accept": "application/json, text/plain, */*",
+    "Referer": "https://www.espn.com/",
+    "Origin": "https://www.espn.com",
 }
 
 LEAGUE_PATH = {
@@ -40,6 +45,7 @@ _STAT_ROWS: list[tuple[str, str, str]] = [
     ("passing", "YDS", "passing_yards"),
     ("passing", "TD", "passing_tds"),
     ("passing", "C", "completions"),
+    ("passing", "CMP", "completions"),
     ("passing", "INT", "interceptions"),
     ("rushing", "YDS", "rushing_yards"),
     ("rushing", "TD", "rushing_tds"),
@@ -50,9 +56,17 @@ _STAT_ROWS: list[tuple[str, str, str]] = [
     ("receiving", "TGTS", "targets"),
     ("defensive", "TOT", "tackles_assists"),
     ("defensive", "SACK", "sacks"),
+    ("defensive", "SACKS", "sacks"),
     ("defensive", "INT", "defensive_interceptions"),
     ("kicking", "PTS", "kicking_points"),
+    ("kicking", "FG", "fg_made"),
+    ("kicking", "XP", "pat_made"),
 ]
+
+# Categories whose TD count toward anytime / player_touchdowns (not passing TDs).
+_SCORING_TD_CATS = frozenset(
+    {"rushing", "receiving", "kickreturns", "puntreturns", "defensive", "interceptions"}
+)
 
 
 def _num(x) -> float | None:
@@ -61,6 +75,13 @@ def _num(x) -> float | None:
     s = str(x).strip()
     if not s or s in ("-", "--"):
         return None
+    # FG / XP often arrive as "1/2" (made/att) — take the made half.
+    if "/" in s:
+        left = s.split("/", 1)[0].strip()
+        try:
+            return float(left)
+        except ValueError:
+            pass
     try:
         return float(s)
     except ValueError:
@@ -68,17 +89,51 @@ def _num(x) -> float | None:
         return float(m.group(0)) if m else None
 
 
-def _scoreboard_url(league_path: str, date_str: str) -> str:
+def _scoreboard_urls(league_path: str, date_str: str) -> list[str]:
     d = date_str.replace("-", "")
-    return f"https://site.api.espn.com/apis/site/v2/sports/{league_path}/scoreboard?dates={d}"
+    q = f"{league_path}/scoreboard?dates={d}"
+    return [
+        f"https://site.api.espn.com/apis/site/v2/sports/{q}",
+        f"https://site.web.api.espn.com/apis/site/v2/sports/{q}",
+    ]
 
 
-def _summary_url(league_path: str, event_id: str) -> str:
-    return f"https://site.api.espn.com/apis/site/v2/sports/{league_path}/summary?event={event_id}"
+def _summary_urls(league_path: str, event_id: str) -> list[str]:
+    q = f"{league_path}/summary?event={event_id}"
+    return [
+        f"https://site.web.api.espn.com/apis/site/v2/sports/{q}",
+        f"https://site.api.espn.com/apis/site/v2/sports/{q}",
+    ]
 
 
-def _parse_box(summary: dict, team_abbr: str) -> list[dict]:
+def _espn_get_json(urls: list[str]) -> dict | None:
+    last_err: Exception | str | None = None
+    for url in urls:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=25)
+            if r.status_code == 403:
+                last_err = f"403 from {url.split('//', 1)[-1].split('/', 1)[0]}"
+                continue
+            r.raise_for_status()
+            payload = r.json()
+            if isinstance(payload, dict):
+                return payload
+            last_err = "non-dict JSON"
+        except Exception as exc:
+            last_err = exc
+            continue
+    print(f"  ERROR ESPN GET: {last_err}")
+    return None
+
+
+def _parse_box(summary: dict) -> list[dict]:
     rows: list[dict] = []
+    # Scoring TDs (rush/rec/return/def) for player_touchdowns / anytime_td.
+    # Every athlete who appears in the box gets a TD total (0 if none) so OVER 0.5
+    # props grade as MISS instead of NO_ACTUAL when the player played but did not score.
+    td_totals: dict[tuple[str, str], float] = {}
+    seen_athletes: set[tuple[str, str]] = set()
+
     box = summary.get("boxscore") or {}
     for team_block in box.get("players") or []:
         team = str((team_block.get("team") or {}).get("abbreviation") or "").strip().upper()
@@ -92,8 +147,23 @@ def _parse_box(summary: dict, team_abbr: str) -> list[dict]:
                 name = str(ath.get("displayName") or ath.get("shortName") or "").strip()
                 if not name:
                     continue
+                seen_athletes.add((name, team))
                 stats = athlete.get("stats") or []
                 stat_map = {labels[i]: stats[i] for i in range(min(len(labels), len(stats)))}
+
+                # Completions may only appear inside C/ATT.
+                if "C" not in stat_map and "CMP" not in stat_map and "C/ATT" in stat_map:
+                    made = _num(stat_map.get("C/ATT"))
+                    if made is not None:
+                        rows.append(
+                            {
+                                "player": name,
+                                "team": team,
+                                "prop_type": "completions",
+                                "actual": made,
+                            }
+                        )
+
                 for gcat, label, prop_type in _STAT_ROWS:
                     if gcat not in cat:
                         continue
@@ -108,6 +178,31 @@ def _parse_box(summary: dict, team_abbr: str) -> list[dict]:
                             "actual": val,
                         }
                     )
+
+                if any(c in cat for c in _SCORING_TD_CATS):
+                    td_val = _num(stat_map.get("TD"))
+                    if td_val is not None:
+                        key = (name, team)
+                        td_totals[key] = td_totals.get(key, 0.0) + float(td_val)
+
+    for name, team in seen_athletes:
+        td = float(td_totals.get((name, team), 0.0))
+        rows.append(
+            {
+                "player": name,
+                "team": team,
+                "prop_type": "player_touchdowns",
+                "actual": td,
+            }
+        )
+        rows.append(
+            {
+                "player": name,
+                "team": team,
+                "prop_type": "anytime_td",
+                "actual": 1.0 if td >= 1 else 0.0,
+            }
+        )
     return rows
 
 
@@ -117,15 +212,12 @@ def fetch_football_actuals(league: str, date_str: str) -> pd.DataFrame:
         raise ValueError(f"Unknown league: {league}")
     path = LEAGUE_PATH[league]
     print(f"\n=== {league.upper()} actuals for {date_str} ===\n")
-    url = _scoreboard_url(path, date_str)
-    print(f"  Scoreboard: {url}")
-    try:
-        r = requests.get(url, headers=HEADERS, timeout=25)
-        r.raise_for_status()
-        events = (r.json() or {}).get("events") or []
-    except Exception as exc:
-        print(f"  ERROR scoreboard: {exc}")
+    urls = _scoreboard_urls(path, date_str)
+    print(f"  Scoreboard: {urls[0]}")
+    payload = _espn_get_json(urls)
+    if not payload:
         return pd.DataFrame(columns=["player", "team", "prop_type", "actual"])
+    events = payload.get("events") or []
 
     print(f"  Events: {len(events)}")
     all_rows: list[dict] = []
@@ -139,13 +231,14 @@ def fetch_football_actuals(league: str, date_str: str) -> pd.DataFrame:
         if not eid:
             continue
         print(f"  Grading: {event.get('shortName', eid)}")
-        try:
-            sr = requests.get(_summary_url(path, eid), headers=HEADERS, timeout=25)
-            sr.raise_for_status()
-            all_rows.extend(_parse_box(sr.json(), ""))
-            time.sleep(0.2)
-        except Exception as exc:
-            print(f"    ERROR: {exc}")
+        summary = _espn_get_json(_summary_urls(path, eid))
+        if not summary:
+            print("    ERROR: summary fetch failed")
+            continue
+        parsed = _parse_box(summary)
+        print(f"    -> {len(parsed)} stat rows")
+        all_rows.extend(parsed)
+        time.sleep(0.2)
 
     if not all_rows:
         return pd.DataFrame(columns=["player", "team", "prop_type", "actual"])

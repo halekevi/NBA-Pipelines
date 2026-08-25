@@ -50,7 +50,7 @@ console.log('Exported', data.length, 'rows');
 
 ## Step 2 — Import into cache
 ```powershell
-cd H:\halek\ProfileFromC\Desktop\PropORACLE
+cd H:\PropORACLE
 Move-Item "H:\halek\ProfileFromC\Downloads\nst_vgk_5v5_players.csv" `
   "Sports\NHL\data\nst_vgk_5v5_import.csv" -Force
 

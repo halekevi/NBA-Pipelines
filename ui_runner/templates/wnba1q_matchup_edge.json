@@ -2,7 +2,7 @@
   "sport": "wnba1q",
   "display_name": "WNBA 1Q",
   "matchup_mode": "team",
-  "generated_at": "2026-08-18T15:05:40.004584+00:00",
+  "generated_at": "2026-08-25T17:33:04.784925+00:00",
   "slate_note": "No slate rows \u2014 run sport pipeline or publish slate_sport JSON.",
   "n_teams": 15,
   "elite_rank_cut": 4,

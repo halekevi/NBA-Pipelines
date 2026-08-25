@@ -318,6 +318,14 @@ PROP_NORM_MAP={
     'sacks': 'sacks',
     'tackles_assists': 'tackles assists',
     'kicking_points': 'kicking points',
+    'fg_made': 'fg made',
+    'field_goals_made': 'fg made',
+    'field goals made': 'fg made',
+    'pat_made': 'pat made',
+    'extra_points_made': 'pat made',
+    'xp_made': 'pat made',
+    'player_touchdowns': 'player touchdowns',
+    'player touchdowns': 'player touchdowns',
     'fantasy_score': 'fantasy score',
     'anytime_td': 'anytime td',
     'first_touchdown': 'first touchdown',
@@ -359,6 +367,20 @@ def _prop_key_variants(canon: str) -> set[str]:
     return keys
 
 
+def _player_key_aliases(player_key: str) -> list[str]:
+    """Exact fold plus first-initial+lastname (Cam Ward ↔ Cameron Ward)."""
+    p0 = str(player_key or "").strip()
+    if not p0:
+        return []
+    out = [p0]
+    parts = p0.split()
+    if len(parts) >= 2 and parts[0]:
+        initial = f"{parts[0][0]} {' '.join(parts[1:])}"
+        if initial not in out:
+            out.append(initial)
+    return out
+
+
 def _expand_lookup_keys(
     player: str,
     prop: str,
@@ -375,14 +397,15 @@ def _expand_lookup_keys(
     d0 = _norm_game_date(game_date)
     team_keys: list[str] = []
     player_keys: list[str] = []
-    for pv in sorted(_prop_key_variants(canon)):
-        if t0:
+    for pname in _player_key_aliases(p0):
+        for pv in sorted(_prop_key_variants(canon)):
+            if t0:
+                if d0:
+                    team_keys.append(f"{pname}|{t0}|{pv}|{d0}")
+                team_keys.append(f"{pname}|{t0}|{pv}")
             if d0:
-                team_keys.append(f"{p0}|{t0}|{pv}|{d0}")
-            team_keys.append(f"{p0}|{t0}|{pv}")
-        if d0:
-            player_keys.append(f"{p0}|{pv}|{d0}")
-        player_keys.append(f"{p0}|{pv}")
+                player_keys.append(f"{pname}|{pv}|{d0}")
+            player_keys.append(f"{pname}|{pv}")
     return team_keys, player_keys
 
 
@@ -1034,7 +1057,7 @@ def apply_actuals(df, actuals_path):
             canon_matched.add(prop_label)
     unmatched_props = canon_seen - canon_matched
     if unmatched_props:
-        print(f"  ⚠️  Prop types in slate with NO actuals matches: {sorted(unmatched_props)}")
+        print(f"  WARN: Prop types in slate with NO actuals matches: {sorted(unmatched_props)}")
 
     # Upstream void_reason marks eligibility filters (BLOCKED_STD_OVER_LOW_HR,
     # NO_PROJECTION_OR_LINE, …). FORCED_OVER_NEG_EDGE rows are unplayable Goblin/Demon

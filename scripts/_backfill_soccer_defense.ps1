@@ -1,6 +1,6 @@
 # Backfill Soccer defense context: step3-8 for dated soccer/ folders, enrich legacy parent step8 xlsx.
 $ErrorActionPreference = "Continue"
-$Root = "H:\halek\ProfileFromC\Desktop\PropORACLE"
+$Root = Split-Path $PSScriptRoot -Parent
 $SoccerDir = Join-Path $Root "Sports\Soccer"
 $SoccerScripts = Join-Path $SoccerDir "scripts"
 $CacheDir = Join-Path $SoccerDir "cache"

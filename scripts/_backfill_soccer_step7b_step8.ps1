@@ -5,7 +5,7 @@ exit $LASTEXITCODE
 
 # --- legacy inline backfill (kept for reference) ---
 $ErrorActionPreference = "Continue"
-$Root = "H:\halek\ProfileFromC\Desktop\PropORACLE"
+$Root = Split-Path $PSScriptRoot -Parent
 $SoccerDir = Join-Path $Root "Sports\Soccer"
 $Step7b = Join-Path $Root "scripts\step7b_edge_score.py"
 $Step8 = Join-Path $SoccerDir "scripts\step8_add_direction_context_soccer.py"

@@ -1,6 +1,6 @@
 {
   "updated_at_utc": "2026-06-10T02:05:43.417776+00:00",
-  "master_csv": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\data\\ml\\ticket_training_dataset.csv",
+  "master_csv": "H:\\PropORACLE\\data\\ml\\ticket_training_dataset.csv",
   "target": "label_cash",
   "sports": {
     "combined": {
@@ -17,12 +17,12 @@
       "feature_count": 50,
       "auc_test": 0.6205673758865249,
       "brier_test": 0.10112827935713228,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_2leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_2leg.pkl",
           "n_rows": 1487,
           "n_train": 1189,
           "n_test": 298,
@@ -31,7 +31,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_3leg.pkl",
           "n_rows": 1924,
           "n_train": 1539,
           "n_test": 385,
@@ -40,7 +40,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_4plus.pkl",
           "n_rows": 6822,
           "n_train": 5457,
           "n_test": 1365,
@@ -63,12 +63,12 @@
       "feature_count": 44,
       "auc_test": 0.6674615792262851,
       "brier_test": 0.10474720748131276,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nba.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nba_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_nba.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_nba_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nba_2leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_nba_2leg.pkl",
           "n_rows": 366,
           "n_train": 292,
           "n_test": 74,
@@ -77,7 +77,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nba_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_nba_3leg.pkl",
           "n_rows": 490,
           "n_train": 392,
           "n_test": 98,
@@ -86,7 +86,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nba_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_nba_4plus.pkl",
           "n_rows": 1246,
           "n_train": 996,
           "n_test": 250,
@@ -109,12 +109,12 @@
       "feature_count": 40,
       "auc_test": 0.6907932011331445,
       "brier_test": 0.11453534427709251,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_wnba.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_wnba_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_wnba.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_wnba_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_wnba_2leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_wnba_2leg.pkl",
           "n_rows": 602,
           "n_train": 481,
           "n_test": 121,
@@ -123,7 +123,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_wnba_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_wnba_3leg.pkl",
           "n_rows": 402,
           "n_train": 321,
           "n_test": 81,
@@ -132,7 +132,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_wnba_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_wnba_4plus.pkl",
           "n_rows": 1008,
           "n_train": 806,
           "n_test": 202,
@@ -155,12 +155,12 @@
       "feature_count": 41,
       "auc_test": 0.6692951713395638,
       "brier_test": 0.21289707260765853,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nhl.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nhl_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_nhl.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_nhl_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nhl_2leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_nhl_2leg.pkl",
           "n_rows": 109,
           "n_train": 87,
           "n_test": 22,
@@ -169,7 +169,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nhl_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_nhl_3leg.pkl",
           "n_rows": 401,
           "n_train": 320,
           "n_test": 81,
@@ -178,7 +178,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_nhl_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_nhl_4plus.pkl",
           "n_rows": 796,
           "n_train": 636,
           "n_test": 160,
@@ -201,12 +201,12 @@
       "feature_count": 42,
       "auc_test": 0.6200392990593996,
       "brier_test": 0.12428995347369982,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mlb.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mlb_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_mlb.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_mlb_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mlb_2leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_mlb_2leg.pkl",
           "n_rows": 368,
           "n_train": 294,
           "n_test": 74,
@@ -215,7 +215,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mlb_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_mlb_3leg.pkl",
           "n_rows": 215,
           "n_train": 172,
           "n_test": 43,
@@ -224,7 +224,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mlb_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_mlb_4plus.pkl",
           "n_rows": 2918,
           "n_train": 2334,
           "n_test": 584,
@@ -255,8 +255,8 @@
       "feature_count": 42,
       "auc_test": 0.9191176470588236,
       "brier_test": 0.37108713577023766,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_soccer.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_soccer_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_soccer.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_soccer_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": false,
@@ -264,7 +264,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_soccer_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_soccer_3leg.pkl",
           "n_rows": 148,
           "n_train": 118,
           "n_test": 30,
@@ -273,7 +273,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_soccer_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_soccer_4plus.pkl",
           "n_rows": 198,
           "n_train": 158,
           "n_test": 40,
@@ -296,8 +296,8 @@
       "feature_count": 42,
       "auc_test": 0.8856068743286789,
       "brier_test": 0.12380869954145984,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_cbb.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_cbb_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_cbb.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_cbb_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": false,
@@ -305,7 +305,7 @@
         },
         "3leg": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_cbb_3leg.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_cbb_3leg.pkl",
           "n_rows": 204,
           "n_train": 163,
           "n_test": 41,
@@ -314,7 +314,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_cbb_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_cbb_4plus.pkl",
           "n_rows": 500,
           "n_train": 400,
           "n_test": 100,
@@ -337,8 +337,8 @@
       "feature_count": 42,
       "auc_test": 0.8636363636363636,
       "brier_test": 0.13417381629740532,
-      "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mixed.pkl",
-      "metadata_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mixed_metadata.json",
+      "model_path": "H:\\PropORACLE\\models\\ticket_model_mixed.pkl",
+      "metadata_path": "H:\\PropORACLE\\models\\ticket_model_mixed_metadata.json",
       "bucket_models": {
         "2leg": {
           "trained": false,
@@ -350,7 +350,7 @@
         },
         "4plus": {
           "trained": true,
-          "model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\ticket_model_mixed_4plus.pkl",
+          "model_path": "H:\\PropORACLE\\models\\ticket_model_mixed_4plus.pkl",
           "n_rows": 132,
           "n_train": 105,
           "n_test": 27,

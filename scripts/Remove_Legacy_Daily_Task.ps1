@@ -11,7 +11,7 @@
 
 .EXAMPLE
   # Right-click PowerShell → Run as administrator, then:
-  cd H:\halek\ProfileFromC\Desktop\PropORACLE\scripts
+  cd H:\PropORACLE\scripts
   .\Remove_Legacy_Daily_Task.ps1
 #>
 $ErrorActionPreference = "Stop"

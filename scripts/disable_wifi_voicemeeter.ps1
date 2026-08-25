@@ -1,5 +1,5 @@
 # Run as Administrator: right-click PowerShell -> Run as administrator, then:
-#   pwsh -NoProfile -File "H:\halek\ProfileFromC\Desktop\PropORACLE\scripts\disable_wifi_voicemeeter.ps1"
+#   pwsh -NoProfile -File "H:\PropORACLE\scripts\disable_wifi_voicemeeter.ps1"
 #Requires -RunAsAdministrator
 
 $ErrorActionPreference = 'Stop'

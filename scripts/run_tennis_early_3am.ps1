@@ -8,10 +8,8 @@
   - Runs run_pipeline.ps1 -TennisOnly -SkipCombined -SkipPush for Eastern today.
   - Does NOT rebuild/publish tickets_latest — that used to stomp the overnight board
     before Daily 5AM owned the full multi-sport publish.
-  - First full multi-sport daily is at 5:00 AM (run_daily_5am.ps1).
-  - Overnight grader: 1AM only (plus grade inside Daily 5AM).
-
-  Register via scripts\Register_Daily_Task.ps1 (task: PropOracle - Tennis Early 3AM).
+  Unscheduled. Tennis is part of the 1AM complete daily (`run_daily_1am.ps1`).
+  Kept for a one-off tennis-only fetch. Task "PropOracle - Tennis Early 3AM" is retired.
 #>
 param()
 

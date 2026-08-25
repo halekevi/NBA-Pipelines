@@ -1,6 +1,6 @@
 # Backfill NHL pipeline context: step3-8 (+ step4b) for dated outputs/<date>/nhl/ folders.
 $ErrorActionPreference = "Continue"
-$Root = "H:\halek\ProfileFromC\Desktop\PropORACLE"
+$Root = Split-Path $PSScriptRoot -Parent
 $NHLDir = Join-Path $Root "Sports\NHL"
 $NHLScripts = Join-Path $NHLDir "scripts"
 $CacheDir = Join-Path $NHLDir "cache"

@@ -2,7 +2,7 @@
 
 > Generated from live browser audit of `web-production-f280f.up.railway.app` on 2026-05-15.
 > Covers NBA, NHL, MLB, WNBA data pipelines, `/api/slate` endpoint, and `ui_runner/templates/index.html`.
-> Canonical repo root: `H:\halek\ProfileFromC\Desktop\PropORACLE`
+> Canonical repo root: `H:\PropORACLE`
 
 ---
 
@@ -385,7 +385,7 @@ After implementing the above, verify:
 ## KEY FILES TO TOUCH
 
 ```
-H:\halek\ProfileFromC\Desktop\PropORACLE\
+H:\PropORACLE\
 ├── ui_runner\
 │   ├── app.py                          # Task 1, Task 2 (API endpoint)
 │   └── templates\

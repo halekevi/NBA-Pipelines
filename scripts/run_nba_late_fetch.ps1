@@ -4,8 +4,8 @@
   Mid-day slate refresh: re-fetch props/lines (step1 --append), rebuild tickets, then re-scrape
   PrizePicks CDP payout floors for the new board.
 .NOTES
-  Cadence: Daily 8AM / Refresh 9AM / 1030AM / 1PM (run_refresh_with_log.ps1).
-  5AM is the initial full daily; these runs only update props/lines + redo ticket CDP rates.
+  Cadence: Daily 8AM / Refresh 945AM / 1030AM / 1PM / 430PM (run_refresh_with_log.ps1).
+  1AM is the initial full daily; these runs only update props/lines + redo ticket CDP rates.
   Pipeline uses -SkipLivePayoutCapture so rebuild stays fast; CDP runs immediately after.
   Separate PropOracle - Payout CDP @ 11:00 / Update @ 15:00 are retired —
   CDP runs only after this fetch/rebuild (or manual run_payout_cdp.ps1).
@@ -138,7 +138,7 @@ function Resolve-LateFetchMaxRetries {
     # (and blocking MLB) for 30–120+ minutes during morning refresh.
     if ($lbl -match '^(MANUAL_FULL|MANUAL_RECOVERY)') { return 5 }
     if ($lbl -match '^(MANUAL_1800|MANUAL_1[3-9]|1PM|2PM|3PM)') { return 2 }
-    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM|1030AM|8AM|MANUAL_CDP)') { return 2 }
+    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM|945AM|1030AM|8AM|430PM|MANUAL_CDP)') { return 2 }
     return 2
 }
 
@@ -369,6 +369,39 @@ if ($tennisFailed) {
 }
 elseif ((Get-CsvDataRowCount -CsvPath $tennisStep1) -gt 0) {
     Copy-Step1Mirror -Source $tennisStep1 -MirrorPath (Join-Path $TennisDir "outputs\step1_tennis_props.csv")
+}
+
+# NFL — NFL (9) and NFLP (44) together. After preseason, NFLP is empty and that is fine.
+$NFL_SEASON_RESUME = "2026-08-13"
+$NFLOffSeason = ($PipeDate -lt $NFL_SEASON_RESUME)
+if ($NFLOffSeason) {
+    Write-Host "[LATE_FETCH] Skipping NFL fetch (off-season until $NFL_SEASON_RESUME)" -ForegroundColor DarkGray
+}
+else {
+    Write-Host "[LATE_FETCH] Fetching NFL + NFLP props..."
+    $NFLDir = Join-Path $SportsRoot "NFL"
+    $nflRunOut = Ensure-RunOutDir -SportTag "nfl"
+    $nflStep1 = Join-Path $nflRunOut "step1_pp_props_today.csv"
+    $nflArgs = @(
+        "-3.14", ".\scripts\step1_fetch_prizepicks_nfl.py",
+        "--output", $nflStep1,
+        "--date", "$PipeDate",
+        "--replace",
+        "--fail-fast"
+    )
+    if ($CdpReachable) {
+        $nflArgs += @("--cdp", $CdpUrl)
+        Write-Host "[LATE_FETCH] NFL: CDP reachable — in-page fetch (NFL+NFLP)" -ForegroundColor DarkGray
+    }
+    $nflTimeout = if ($CdpReachable) { 240 } else { 150 }
+    $nflExit = Invoke-TimedCommand -Label "NFL step1" -FilePath "py" -ArgumentList $nflArgs -WorkingDirectory $NFLDir -TimeoutSec $nflTimeout
+    $nflFailed = ($nflExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nflStep1) -eq 0)
+    if ($nflFailed) {
+        [void](Resolve-Step1MorningFallback -Sport "NFL" -Step1Path $nflStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    }
+    elseif ((Get-CsvDataRowCount -CsvPath $nflStep1) -gt 0) {
+        Copy-Step1Mirror -Source $nflStep1 -MirrorPath (Join-Path $NFLDir "outputs\step1_pp_props_today.csv")
+    }
 }
 
 # MLB — CDP-first when Chrome is listening (same DataDome pattern as WNBA).

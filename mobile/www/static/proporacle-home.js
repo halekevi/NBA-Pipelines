@@ -580,7 +580,8 @@ function empiricalHitPctForPick(p, n = 5) {
   const lineVal = coercePropLine(p);
   if (!Number.isFinite(lineVal)) return null;
   let hits = 0;
-  // Match MLB/NHL pipeline: strict > / < vs line; pushes (== line) are not over or under hits.
+  // Historical line_series when present (how often they beat that market historically);
+  // otherwise fall back to this card's current book line.
   for (let i = 0; i < hist.actual.length; i++) {
     const cap =
       hist.lineSeries && Number.isFinite(hist.lineSeries[i])
@@ -1885,14 +1886,25 @@ function buildEdgeCard(p, idx) {
       </div>
       <div class="expand-chart" id="chart-${idx}"></div>
       <div class="expand-proj">
-        <div class="expand-proj-lbl"><span>PROJECTION VS LINE</span><span id="plbl-${idx}"></span></div>
-        <div class="expand-proj-bar">
-          <div class="expand-proj-fill" id="pfill-${idx}" style="width:0%"></div>
-          <div class="expand-proj-marker" id="pmkr-${idx}"></div>
+        <div class="expand-proj-title">Tonight vs the book line</div>
+        <div class="expand-proj-grid">
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Recent L5</div>
+            <div class="expand-proj-cell-val" id="pavg-${idx}">—</div>
+          </div>
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Book line</div>
+            <div class="expand-proj-cell-val is-line" id="pline-${idx}">—</div>
+          </div>
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Model proj</div>
+            <div class="expand-proj-cell-val is-proj" id="pproj-${idx}">—</div>
+          </div>
         </div>
+        <div class="expand-proj-note" id="pnote-${idx}"></div>
       </div>
       <div class="expand-stats">
-        <div class="expand-stat"><div class="expand-stat-lbl">HIT RATE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
+        <div class="expand-stat" title="Share of recent games that cleared the historical/Standard market line (not always today's Goblin/Demon line)"><div class="expand-stat-lbl">VS HIST LINE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">EDGE</div><div class="expand-stat-val" style="color:var(--accent)">${edgeDisp}</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">PICK TYPE</div><div class="expand-stat-val" style="color:var(--cyan);font-size:clamp(11px,1.3vw,15px);">${p.pick}</div></div>
       </div>
@@ -1902,19 +1914,21 @@ function buildEdgeCard(p, idx) {
 
 function renderExpandChart(idx, p, tab) {
   const chartEl = document.getElementById(`chart-${idx}`);
-  const pfillEl = document.getElementById(`pfill-${idx}`);
-  const pmkrEl = document.getElementById(`pmkr-${idx}`);
-  const plblEl = document.getElementById(`plbl-${idx}`);
-  if (!chartEl || !pfillEl || !pmkrEl || !plblEl) return;
+  const pavgEl = document.getElementById(`pavg-${idx}`);
+  const plineEl = document.getElementById(`pline-${idx}`);
+  const pprojEl = document.getElementById(`pproj-${idx}`);
+  const pnoteEl = document.getElementById(`pnote-${idx}`);
+  if (!chartEl) return;
   const isOver = p.dir === "OVER";
   const n = tab === "l5" || tab === "h2h" ? 5 : 10;
   const hist = expandHistForEdgeChart(p, n);
   if (!hist || !hist.actual.length) {
     chartEl.innerHTML =
       `<div style="height:100px;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:11px;border:1px dashed rgba(255,255,255,.12);border-radius:10px;">No chart series for this leg.</div>`;
-    pfillEl.style.width = "0%";
-    pmkrEl.style.left = "0%";
-    plblEl.textContent = "No data";
+    if (pavgEl) pavgEl.textContent = "—";
+    if (plineEl) plineEl.textContent = "—";
+    if (pprojEl) pprojEl.textContent = "—";
+    if (pnoteEl) pnoteEl.textContent = "No projection data for this leg.";
     return;
   }
   const show = hist.actual;
@@ -1942,22 +1956,34 @@ function renderExpandChart(idx, p, tab) {
     scaleExtras,
   );
   const avg = show.reduce((a, b) => a + b, 0) / show.length;
-  const refN = Number.isFinite(proj)
-    ? proj
-    : Number.isFinite(displayBook)
-      ? displayBook
-      : avg;
-  const maxV = Math.max(
-    refN * 1.5,
-    (Number.isFinite(displayBook) ? displayBook : 0) * 1.5,
-    avg * 1.3,
-    1
-  );
-  pfillEl.style.width =
-    Math.min(100, Math.round((avg / maxV) * 100)) + "%";
-  pmkrEl.style.left =
-    Math.min(100, Math.round((refN / maxV) * 100)) + "%";
-  plblEl.textContent = `${avg.toFixed(1)} L5 · Line ${Number.isFinite(displayBook) ? displayBook.toFixed(1) : "—"} · Proj ${Number.isFinite(proj) ? proj.toFixed(1) : "—"}`;
+  if (pavgEl) pavgEl.textContent = Number.isFinite(avg) ? avg.toFixed(1) : "—";
+  if (plineEl) plineEl.textContent = Number.isFinite(displayBook) ? displayBook.toFixed(1) : "—";
+  if (pprojEl) pprojEl.textContent = Number.isFinite(proj) ? proj.toFixed(1) : "—";
+  if (pnoteEl) {
+    if (Number.isFinite(proj) && Number.isFinite(displayBook)) {
+      const delta = proj - displayBook;
+      const abs = Math.abs(delta).toFixed(1);
+      const cls = delta >= 0 ? "proj-delta" : "proj-delta is-under";
+      const side = isOver
+        ? (delta >= 0
+            ? `Model expects <span class="${cls}">+${abs}</span> over the book line.`
+            : `Model expects <span class="${cls}">${abs}</span> under the book line.`)
+        : (delta <= 0
+            ? `Model expects <span class="${cls}">${abs}</span> under the book line.`
+            : `Model expects <span class="${cls}">+${abs}</span> over the book line.`);
+      const recentBit = Number.isFinite(avg)
+        ? ` Recent form averaged ${avg.toFixed(1)}.`
+        : "";
+      pnoteEl.innerHTML = side + recentBit;
+    } else if (Number.isFinite(avg) && Number.isFinite(displayBook)) {
+      const delta = avg - displayBook;
+      const abs = Math.abs(delta).toFixed(1);
+      const cls = delta >= 0 ? "proj-delta" : "proj-delta is-under";
+      pnoteEl.innerHTML = `Recent L5 averaged <span class="${cls}">${delta >= 0 ? "+" : "−"}${abs}</span> vs the book line.`;
+    } else {
+      pnoteEl.textContent = "Compare recent form and model projection to the book line.";
+    }
+  }
 }
 
 function switchExpandTab(idx, tab, btn) {

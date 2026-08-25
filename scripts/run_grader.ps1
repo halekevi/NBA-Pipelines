@@ -8,7 +8,7 @@ $Root = Split-Path $PSScriptRoot -Parent
 $SportsRoot = Join-Path $Root "Sports"
 $DateDir = Join-Path $Root "outputs\$Date"
 $CanonicalDateDir = Join-Path $DateDir "canonical"
-# Tennis: same calendar day as -Date via Daily 5AM full pipeline (+ later refreshes).
+# Tennis: same calendar day as -Date via Daily 1AM full pipeline (+ later refreshes).
 # -Date is the main sports grade day; tennis match day = payload tennis_date or -Date (same day).
 # Step8 may live under outputs/<match_day>/ or outputs/<match_day-1>/ (see Get-TennisStep8Candidates).
 $TennisSlateDate = $Date
@@ -1029,14 +1029,36 @@ else {
 }
 
 $NFLStep8Dated = Join-Path $DateDir "nfl\step8_nfl_direction_clean.xlsx"
+$NFLStep8DatedLeaf = Join-Path $DateDir "nfl\step8_nfl_direction_clean_$Date.xlsx"
 $NFLStep8Bundle = Join-Path $DateDir "step8_nfl_direction_clean_$Date.xlsx"
 $NFLStep8Static = Join-Path $SportsRoot "NFL\outputs\step8_nfl_direction_clean.xlsx"
-$NFLSlateFile = Resolve-FirstExisting @($NFLStep8Dated, $NFLStep8Bundle, $NFLStep8Static)
+$NFLStep8StaticDated = Join-Path $SportsRoot "NFL\outputs\$Date\step8_nfl_direction_clean_$Date.xlsx"
+$NFLSlateFile = Resolve-FirstExisting @(
+    $NFLStep8Dated,
+    $NFLStep8DatedLeaf,
+    $NFLStep8Bundle,
+    $NFLStep8StaticDated,
+    $NFLStep8Static
+)
 if ($NFLSlateFile) {
     Write-Host "[GRADER] NFL slate: $(Split-Path $NFLSlateFile -Leaf)" -ForegroundColor Cyan
     Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $NFLSlateFile -GradeDate $Date -SportLabel "NFL"
 }
-if (-not (Test-Path $NFLActuals) -and (Test-Path $FetchFootballActualsScript)) {
+# Re-fetch when missing OR empty stub (header-only). Empty stubs from mid-game / ESPN 403
+# previously blocked later grader runs from pulling final box scores.
+$NFLActualsNeedFetch = $true
+if (Test-Path -LiteralPath $NFLActuals) {
+    try {
+        $nflActRows = @(Import-Csv -LiteralPath $NFLActuals -ErrorAction Stop)
+        if ($nflActRows.Count -gt 0) { $NFLActualsNeedFetch = $false }
+        else {
+            Write-Host "[GRADER] NFL actuals stub empty — re-fetching" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "[GRADER] NFL actuals unreadable — re-fetching" -ForegroundColor Yellow
+    }
+}
+if ($NFLActualsNeedFetch -and (Test-Path $FetchFootballActualsScript)) {
     Run-Py "Fetch NFL Actuals" $Root $FetchFootballActualsScript @("--league", "nfl", "--date", $Date, "--output", $NFLActuals)
 }
 if ((Test-Path $NFLActuals) -and $NFLSlateFile -and (Test-Path $NFLSlateFile) -and (Test-Path $SlateGraderScript)) {
@@ -1060,7 +1082,19 @@ $CFBSlateFile = Resolve-FirstExisting @($CFBStep8Dated, $CFBStep8Bundle, $CFBSte
 if ($CFBSlateFile) {
     Write-Host "[GRADER] CFB slate: $(Split-Path $CFBSlateFile -Leaf)" -ForegroundColor Cyan
 }
-if (-not (Test-Path $CFBActuals) -and (Test-Path $FetchFootballActualsScript)) {
+$CFBActualsNeedFetch = $true
+if (Test-Path -LiteralPath $CFBActuals) {
+    try {
+        $cfbActRows = @(Import-Csv -LiteralPath $CFBActuals -ErrorAction Stop)
+        if ($cfbActRows.Count -gt 0) { $CFBActualsNeedFetch = $false }
+        else {
+            Write-Host "[GRADER] CFB actuals stub empty — re-fetching" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "[GRADER] CFB actuals unreadable — re-fetching" -ForegroundColor Yellow
+    }
+}
+if ($CFBActualsNeedFetch -and (Test-Path $FetchFootballActualsScript)) {
     Run-Py "Fetch CFB Actuals" $Root $FetchFootballActualsScript @("--league", "cfb", "--date", $Date, "--output", $CFBActuals)
 }
 if ((Test-Path $CFBActuals) -and $CFBSlateFile -and (Test-Path $CFBSlateFile) -and (Test-Path $SlateGraderScript)) {

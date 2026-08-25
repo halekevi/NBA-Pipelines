@@ -1,24 +1,28 @@
 #requires -Version 5.1
 <#
-  Mid-day line-move refresh (scheduled 9 AM, 10:30 AM, 1 PM ET).
+  Line-move refresh (8 AM primary lock, 9:45, 10:30, 1 PM, 4:30 PM).
   - log_prop_snapshot PRE/POST captures added/removed props vs prior state
   - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
     combined slate / ticket_eval before rerun so line movement is visible
-  - After rebuild: incremental payout UPDATE only (slips missing live_cdp);
-    MAIN full scrape stays on 5AM STEP D-payout
-  First full multi-sport fetch of the day is PropOracle - Daily 5AM (run_daily_5am.ps1).
+  - After rebuild: Force CDP payout scrape, then Publish-LiveSite.ps1 so Railway
+    / GitHub raw tickets are not left on the 5AM (or pre-CDP) board.
+  First full multi-sport fetch of the day is PropOracle - Daily 1AM (run_daily_1am.ps1).
+  Refresh cadence: 8 / 9:45 / 10:30 / 1 / 4:30.
 #>
 param(
-    [string]$RunLabel = "9AM"
+    [string]$RunLabel = "945AM"
 )
 
 $ErrorActionPreference = "Continue"
+try { $Host.UI.RawUI.WindowTitle = "PropOracle - Refresh $RunLabel" } catch { }
 $Root = Split-Path $PSScriptRoot -Parent
 $LateFetch = Join-Path $Root "scripts\run_nba_late_fetch.ps1"
 $Snapshot = Join-Path $Root "scripts\log_prop_snapshot.ps1"
 $LockDir = Join-Path $Root "data\cache"
 $LockFile = Join-Path $LockDir "refresh.lock"
-$LockTTLHours = 4
+# Soft TTL: dead/hung holders must not block the rest of the day's cadence.
+# Previously a 4h TTL + exit 0 on skip made 10:30 look "successful" while 9AM was hung.
+$LockTTLMinutes = 90
 
 if (-not (Test-Path $LateFetch)) {
     Write-Error "Missing late fetch script: $LateFetch"
@@ -33,17 +37,76 @@ if (-not (Test-Path -LiteralPath $LockDir)) {
     New-Item -ItemType Directory -Path $LockDir -Force | Out-Null
 }
 
+function Test-TodaySlateNeedsCatchup {
+    $today = (Get-Date).ToString("yyyy-MM-dd")
+    try {
+        $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+        $etNow = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
+        if ($etNow.Hour -ge 20) {
+            $today = $etNow.Date.AddDays(1).ToString("yyyy-MM-dd")
+        }
+        else {
+            $today = $etNow.ToString("yyyy-MM-dd")
+        }
+    } catch { }
+    $combined = Join-Path $Root "outputs\$today\combined_slate_tickets_$today.xlsx"
+    if (-not (Test-Path -LiteralPath $combined)) { return $true }
+    $statusPath = Join-Path $Root "outputs\$today\pipeline_slate_status.json"
+    if (-not (Test-Path -LiteralPath $statusPath)) { return $true }
+    try {
+        $ss = Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json
+        $complete = 0
+        $active = @("mlb", "soccer", "tennis")
+        $wnbaResume = "2026-07-28"
+        if ($env:WNBA_RESUME_DATE) { $wnbaResume = $env:WNBA_RESUME_DATE.Trim() }
+        $wnbaPause = "2026-07-19"
+        if ($env:WNBA_PAUSE_START) { $wnbaPause = $env:WNBA_PAUSE_START.Trim() }
+        if (-not (($today -ge $wnbaPause) -and ($today -lt $wnbaResume))) {
+            $active = @("mlb", "wnba", "soccer", "tennis")
+        }
+        foreach ($sk in $active) {
+            $st = if ($ss.sports) { "$($ss.sports.$sk)" } else { "" }
+            if ($st -eq "complete" -or $st -eq "off_season") { $complete++ }
+        }
+        # Any in-season sport still empty/pending (incl. no_slate) means 8AM should keep going.
+        return ($complete -lt $active.Count)
+    } catch {
+        return $true
+    }
+}
+
 if (Test-Path -LiteralPath $LockFile) {
     $lockAge = (Get-Date) - (Get-Item -LiteralPath $LockFile).LastWriteTime
-    if ($lockAge.TotalHours -lt $LockTTLHours) {
-        $lockContent = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
-        if (-not $lockContent) { $lockContent = "<unknown owner>" }
+    $lockContent = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if (-not $lockContent) { $lockContent = "<unknown owner>" }
+    $lockPid = $null
+    if ("$lockContent" -match 'PID\s+(\d+)') { $lockPid = [int]$Matches[1] }
+    $lockPidAlive = $false
+    if ($lockPid) {
+        $lockPidAlive = $null -ne (Get-Process -Id $lockPid -ErrorAction SilentlyContinue)
+    }
+
+    $staleByAge = ($lockAge.TotalMinutes -ge $LockTTLMinutes)
+    $staleByDeadPid = ($lockPid -and -not $lockPidAlive)
+    # Never steal a live owner — 8AM often runs past 90 min. TTL only applies when PID is dead/unknown.
+    if ($lockPidAlive) {
+        $needsCatchup = Test-TodaySlateNeedsCatchup
         Write-Host "[REFRESH $RunLabel] SKIP — another refresh is running ($lockContent)" -ForegroundColor Yellow
-        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $($LockTTLHours * 60) min)" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $LockTTLMinutes min, live PID kept)" -ForegroundColor Yellow
+        if ($needsCatchup) {
+            # Non-zero so Task Scheduler LastResult is not a false success when the day is still empty.
+            Write-Host "[REFRESH $RunLabel] Today's slate still incomplete — exit 2 (not a soft success)" -ForegroundColor Yellow
+            exit 2
+        }
         exit 0
     }
+    elseif ($staleByAge -or $staleByDeadPid) {
+        $why = if ($staleByDeadPid) { "owner PID $lockPid not running" } else { "$([int]$lockAge.TotalMinutes) min old (TTL $LockTTLMinutes)" }
+        Write-Host "[REFRESH $RunLabel] Stale lock detected ($why) — clearing" -ForegroundColor Yellow
+        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
+    }
     else {
-        Write-Host "[REFRESH $RunLabel] Stale lock detected ($([int]$lockAge.TotalHours)h old) — clearing" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Orphan lock without live PID — clearing" -ForegroundColor Yellow
         Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
     }
 }
@@ -65,27 +128,6 @@ try {
     & pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
     $refreshExit = $LASTEXITCODE
 
-    # Slim Standard-line archive + website timing card (keeps history without relying on bak xlsx).
-    $LineSnap = Join-Path $Root "scripts\snapshot_pp_standard_lines.py"
-    $LinePublish = Join-Path $Root "scripts\publish_line_move_timing.py"
-    if ((Test-Path -LiteralPath $LineSnap) -and $refreshExit -eq 0) {
-        $snapDate = (Get-Date).ToString("yyyy-MM-dd")
-        try {
-            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
-            $etNow = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
-            if ($etNow.Hour -ge 20) {
-                $snapDate = $etNow.Date.AddDays(1).ToString("yyyy-MM-dd")
-            } else {
-                $snapDate = $etNow.ToString("yyyy-MM-dd")
-            }
-        } catch { }
-        Write-Host "[REFRESH $RunLabel] Snapshot Standard lines ($snapDate / $RunLabel)..." -ForegroundColor DarkGray
-        & py -3.14 -X utf8 $LineSnap --date $snapDate --label $RunLabel
-        if (Test-Path -LiteralPath $LinePublish) {
-            & py -3.14 -X utf8 $LinePublish
-        }
-    }
-
     & pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[REFRESH $RunLabel] POST snapshot logging failed" -ForegroundColor Yellow
@@ -102,21 +144,6 @@ try {
             $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
             $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
         } catch { }
-        $assertScript = Join-Path $Root "scripts\assert_live_board_sync.py"
-        $pushScript = Join-Path $Root "scripts\push_live_to_main.ps1"
-        if ((Test-Path -LiteralPath $assertScript) -and (Test-Path -LiteralPath $pushScript)) {
-            Write-Host "[REFRESH $RunLabel] Publishing live tickets/slate if dates match ($todayEt)..." -ForegroundColor Cyan
-            & py -3.14 -X utf8 $assertScript --today $todayEt --templates-dir (Join-Path $Root "ui_runner\templates")
-            if ($LASTEXITCODE -eq 0) {
-                & pwsh -NoProfile -File $pushScript -CommitMessage "chore: $RunLabel live tickets/slate $todayEt [auto]"
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Host "[REFRESH $RunLabel] WARN: push_live_to_main exit $LASTEXITCODE (Railway may stay on prior board)" -ForegroundColor Yellow
-                    $scriptExit = $LASTEXITCODE
-                }
-            } else {
-                Write-Host "[REFRESH $RunLabel] SKIP push — tickets_latest lags slate_latest. Combined --write-web must finish first." -ForegroundColor Yellow
-            }
-        }
         $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
         if (Test-Path -LiteralPath $assertFresh) {
             $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
@@ -126,6 +153,24 @@ try {
                 Write-Host "[REFRESH $RunLabel] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
                 $scriptExit = $LASTEXITCODE
             }
+        }
+        # Pipeline push happens before CDP payout scrape. Always publish after
+        # late_fetch so Railway / GitHub raw tickets match this refresh.
+        $publish = Join-Path $Root "scripts\Publish-LiveSite.ps1"
+        if (-not (Test-Path -LiteralPath $publish)) {
+            $hit = Get-ChildItem -LiteralPath (Join-Path $Root "scripts") -Filter "Publish*Live*.ps1" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($hit) { $publish = $hit.FullName }
+        }
+        if (Test-Path -LiteralPath $publish) {
+            Write-Host "[REFRESH $RunLabel] Publishing live site JSON to origin/main..." -ForegroundColor Cyan
+            & pwsh -NoProfile -File $publish -RepoRoot $Root -CommitMessage "chore: live tickets/slate $todayEt $RunLabel"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "[REFRESH $RunLabel] LIVE SITE PUBLISH FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+                if ($scriptExit -eq 0) { $scriptExit = $LASTEXITCODE }
+            }
+        }
+        else {
+            Write-Host "[REFRESH $RunLabel] WARN: Publish-LiveSite.ps1 missing — site may stay on prior board" -ForegroundColor Yellow
         }
     }
 }

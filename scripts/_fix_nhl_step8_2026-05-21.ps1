@@ -1,6 +1,6 @@
 # Regenerate corrupt outputs/2026-05-21/nhl/step7+step8 from step6.
 $ErrorActionPreference = "Continue"
-$Root = "H:\halek\ProfileFromC\Desktop\PropORACLE"
+$Root = Split-Path $PSScriptRoot -Parent
 $d = "2026-05-21"
 $nhlDir = Join-Path $Root "outputs\$d\nhl"
 $step6 = Join-Path $nhlDir "step6_nhl_role_context.csv"

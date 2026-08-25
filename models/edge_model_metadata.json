@@ -293,6 +293,6 @@
     "('SOCCER', 'goblin', 'UNDER'):n=10",
     "('SOCCER', 'demon', 'UNDER'):n=5"
   ],
-  "output_model_path": "H:\\halek\\ProfileFromC\\Desktop\\PropORACLE\\models\\edge_model_no_tennis_2026-06-14.pkl",
+  "output_model_path": "H:\\PropORACLE\\models\\edge_model_no_tennis_2026-06-14.pkl",
   "tennis_excluded": true
 }

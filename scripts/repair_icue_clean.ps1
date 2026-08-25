@@ -1,7 +1,7 @@
 # Clean repair for corrupted / conflicting Corsair iCUE install.
 # Run as Administrator: right-click PowerShell -> Run as administrator
 #   Set-ExecutionPolicy Bypass -Scope Process -Force
-#   & "H:\halek\ProfileFromC\Desktop\PropORACLE\scripts\repair_icue_clean.ps1"
+#   & "H:\PropORACLE\scripts\repair_icue_clean.ps1"
 
 $ErrorActionPreference = 'Stop'
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)

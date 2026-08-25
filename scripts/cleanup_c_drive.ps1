@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Continue"
 $UserHome = $env:USERPROFILE
-$ActiveCursorProject = "h-halek-ProfileFromC-Desktop-PropORACLE"
+$ActiveCursorProject = "h-PropORACLE"
 $freedMb = 0.0
 
 function Add-Freed([double]$Mb) {

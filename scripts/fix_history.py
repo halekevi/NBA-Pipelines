@@ -1,4 +1,5 @@
-﻿path = r'H:\halek\ProfileFromC\Desktop\PropORACLE\ui_runner\templates\index.html'
+from pathlib import Path
+path = str(Path(__file__).resolve().parents[1] / 'ui_runner' / 'templates' / 'index.html')
 with open(path, encoding='utf-8') as f:
     content = f.read()
 

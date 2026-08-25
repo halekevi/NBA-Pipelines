@@ -8,7 +8,7 @@
   and prints a summary. Use -RunRebuild after a clean pass to rebuild retrain CSV.
 
 .EXAMPLE
-  cd H:\halek\ProfileFromC\Desktop\PropORACLE
+  cd H:\PropORACLE
   .\scripts\regrade_retrain_window.ps1
 
 .EXAMPLE

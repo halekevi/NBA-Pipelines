@@ -486652,7 +486652,7 @@
       "tier": "B",
       "edge": "4.9",
       "ml_prob": "0.58",
-      "actual_value": "18.0",
+      "actual_value": "28.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -486694,12 +486694,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -518210,7 +518210,7 @@
       "tier": "C",
       "edge": "5.9",
       "ml_prob": "0.58",
-      "actual_value": "18.0",
+      "actual_value": "28.0",
       "margin": "",
       "def_tier": "",
       "consistency_grade": "",
@@ -518252,12 +518252,12 @@
       "actual_source_conflict": "",
       "over_under": "OVER",
       "void_reason": "",
-      "result": "MISS",
+      "result": "HIT",
       "pp_projection_id": "",
       "ticket_id": null,
       "on_ticket": false,
       "on_shadow_ticket": false,
-      "hit": 0,
+      "hit": 1,
       "graded_at": ""
     },
     {
@@ -547806,7 +547806,7 @@
       "tier": "C",
       "def": "avg",
       "decided": 38,
-      "hits": 22
+      "hits": 23
     },
     {
       "prop": "Total Games Won",
@@ -548102,7 +548102,7 @@
       "tier": "B",
       "def": "avg",
       "decided": 53,
-      "hits": 29
+      "hits": 30
     },
     {
       "prop": "Total Games Won",

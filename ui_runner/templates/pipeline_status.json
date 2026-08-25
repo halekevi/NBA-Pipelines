@@ -2,25 +2,25 @@
   "nba": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-23 19:11:40"
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "nba1h": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-23 19:11:40"
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "nba1q": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-23 19:11:40"
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "cbb": {
     "slate": {
-      "exists": true,
-      "modified": "2026-08-23 19:11:40"
+      "exists": false,
+      "modified": ""
     }
   },
   "cfb": {
@@ -31,56 +31,56 @@
   },
   "nhl": {
     "slate": {
-      "exists": true,
-      "modified": "2026-08-23 19:11:41"
+      "exists": false,
+      "modified": ""
     }
   },
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-24 03:27:09"
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-24 03:09:13"
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "nfl": {
     "slate": {
-      "exists": false,
-      "modified": ""
+      "exists": true,
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-25 17:24:14"
-    }
-  },
-  "golf": {
-    "slate": {
-      "exists": false,
-      "modified": ""
+      "modified": "2026-08-25 18:34:11"
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-23 20:37:53"
+      "modified": "2026-08-22 21:25:13"
     }
   },
-  "wcbb": {
+  "wnba1h": {
     "slate": {
-      "exists": true,
-      "modified": "2026-08-23 19:11:40"
+      "exists": false,
+      "modified": ""
+    }
+  },
+  "wnba1q": {
+    "slate": {
+      "exists": false,
+      "modified": ""
     }
   },
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-08-24 03:27:09"
+      "modified": "2026-08-22 21:25:13"
     }
   },
   "tennis_match_day": "2026-08-25",

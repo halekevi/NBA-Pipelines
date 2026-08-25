@@ -2,7 +2,7 @@
   "sport": "wnba1h",
   "display_name": "WNBA 1H",
   "matchup_mode": "team",
-  "generated_at": "2026-08-25T17:33:04.772385+00:00",
+  "generated_at": "2026-08-25T21:15:47.882368+00:00",
   "slate_note": "No slate rows \u2014 run sport pipeline or publish slate_sport JSON.",
   "n_teams": 15,
   "elite_rank_cut": 4,

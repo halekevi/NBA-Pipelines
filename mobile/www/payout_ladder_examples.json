@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T17:32:28.135721+00:00",
+  "generated_at": "2026-08-25T21:15:13.212053+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
@@ -158,6 +158,32 @@
       ]
     },
     {
+      "composition": "1S+0G+1D",
+      "goblin_delta": null,
+      "legs": [
+        {
+          "player": "George Kirby",
+          "prop_type": "Hits Allowed",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7984800000000001
+        },
+        {
+          "player": "Maya Joint",
+          "prop_type": "Total Games",
+          "line": 16.5,
+          "standard_line": 20.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
+        }
+      ]
+    },
+    {
       "composition": "1S+2G+0D",
       "goblin_delta": 2.0,
       "legs": [
@@ -190,6 +216,42 @@
           "delta": 2.0,
           "direction": "OVER",
           "hit_rate": 0.8841290322580646
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+1D",
+      "goblin_delta": 1.5,
+      "legs": [
+        {
+          "player": "George Kirby",
+          "prop_type": "Hits Allowed",
+          "line": 3.5,
+          "standard_line": 5.5,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.7984800000000001
+        },
+        {
+          "player": "Will Warren",
+          "prop_type": "Hits Allowed",
+          "line": 2.5,
+          "standard_line": 4.5,
+          "pick_type": "Goblin",
+          "delta": 1.5,
+          "direction": "OVER",
+          "hit_rate": 0.7984800000000001
+        },
+        {
+          "player": "Maya Joint",
+          "prop_type": "Total Games",
+          "line": 16.5,
+          "standard_line": 20.5,
+          "pick_type": "Demon",
+          "delta": 4.0,
+          "direction": "OVER",
+          "hit_rate": 1.0
         }
       ]
     }

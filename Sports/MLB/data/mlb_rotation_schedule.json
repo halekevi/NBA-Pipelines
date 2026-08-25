@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-25T12:11:29.137122+00:00",
+  "fetched_at": "2026-08-25T20:47:40.741674+00:00",
   "season": 2026,
   "start_date": "2026-08-25",
   "end_date": "2026-09-07",
@@ -129,8 +129,8 @@
         "game_pk": 824233,
         "is_home": false,
         "opponent": "DET",
-        "starter_id": 693855,
-        "starter_name": "Ian Seymour",
+        "starter_id": 668984,
+        "starter_name": "Casey Legumina",
         "starter_hand": ""
       },
       {
@@ -239,8 +239,8 @@
         "game_pk": 823826,
         "is_home": true,
         "opponent": "BOS",
-        "starter_id": null,
-        "starter_name": "",
+        "starter_id": 663969,
+        "starter_name": "Tyler Phillips",
         "starter_hand": ""
       },
       {
@@ -605,8 +605,8 @@
         "game_pk": 822693,
         "is_home": false,
         "opponent": "WSH",
-        "starter_id": null,
-        "starter_name": "",
+        "starter_id": 690279,
+        "starter_name": "Mason Adams",
         "starter_hand": ""
       },
       {
@@ -962,8 +962,8 @@
         "game_pk": 822772,
         "is_home": true,
         "opponent": "KC",
-        "starter_id": 669456,
-        "starter_name": "Shane Bieber",
+        "starter_id": null,
+        "starter_name": "",
         "starter_hand": ""
       },
       {
@@ -1896,8 +1896,8 @@
         "game_pk": 823016,
         "is_home": true,
         "opponent": "BAL",
-        "starter_id": null,
-        "starter_name": "",
+        "starter_id": 669461,
+        "starter_name": "Matthew Liberatore",
         "starter_hand": ""
       },
       {
@@ -3425,8 +3425,8 @@
         "game_pk": 824637,
         "is_home": false,
         "opponent": "CHC",
-        "starter_id": null,
-        "starter_name": "",
+        "starter_id": 671096,
+        "starter_name": "Andrew Abbott",
         "starter_hand": ""
       },
       {
@@ -3519,8 +3519,17 @@
         "game_pk": 824233,
         "is_home": false,
         "opponent": "DET",
-        "starter_id": 693855,
-        "starter_name": "Ian Seymour",
+        "starter_id": 668984,
+        "starter_name": "Casey Legumina",
+        "starter_hand": ""
+      },
+      "MIA": {
+        "date": "2026-08-25",
+        "game_pk": 823826,
+        "is_home": true,
+        "opponent": "BOS",
+        "starter_id": 663969,
+        "starter_name": "Tyler Phillips",
         "starter_hand": ""
       },
       "BOS": {
@@ -3539,6 +3548,15 @@
         "opponent": "COL",
         "starter_id": 674841,
         "starter_name": "Andrew Alvarez",
+        "starter_hand": ""
+      },
+      "COL": {
+        "date": "2026-08-25",
+        "game_pk": 822693,
+        "is_home": false,
+        "opponent": "WSH",
+        "starter_id": 690279,
+        "starter_name": "Mason Adams",
         "starter_hand": ""
       },
       "NYY": {
@@ -3629,6 +3647,15 @@
         "opponent": "CWS",
         "starter_id": 594798,
         "starter_name": "Jacob deGrom",
+        "starter_hand": ""
+      },
+      "STL": {
+        "date": "2026-08-25",
+        "game_pk": 823016,
+        "is_home": true,
+        "opponent": "BAL",
+        "starter_id": 669461,
+        "starter_name": "Matthew Liberatore",
         "starter_hand": ""
       },
       "BAL": {
@@ -3885,15 +3912,6 @@
         "starter_name": "Peter Lambert",
         "starter_hand": ""
       },
-      "TOR": {
-        "date": "2026-08-26",
-        "game_pk": 822772,
-        "is_home": true,
-        "opponent": "KC",
-        "starter_id": 669456,
-        "starter_name": "Shane Bieber",
-        "starter_hand": ""
-      },
       "KC": {
         "date": "2026-08-26",
         "game_pk": 822772,
@@ -4106,7 +4124,17 @@
         "starter_hand": ""
       }
     },
-    "2026-08-29": {},
+    "2026-08-29": {
+      "CIN": {
+        "date": "2026-08-29",
+        "game_pk": 824637,
+        "is_home": false,
+        "opponent": "CHC",
+        "starter_id": 671096,
+        "starter_name": "Andrew Abbott",
+        "starter_hand": ""
+      }
+    },
     "2026-08-30": {},
     "2026-08-31": {},
     "2026-09-01": {},

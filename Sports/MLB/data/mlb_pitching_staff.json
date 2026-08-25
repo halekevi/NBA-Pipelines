@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-08-25T12:11:28.610937+00:00",
+  "fetched_at": "2026-08-25T20:47:40.245088+00:00",
   "season": 2026,
   "teams": {
     "ATH": {
@@ -770,8 +770,8 @@
           "id": 675512,
           "name": "Troy Melton",
           "hand": "R",
-          "era": 1.6,
-          "whip": 1.0,
+          "era": 1.7,
+          "whip": 1.01,
           "games_started": 15,
           "saves": 0,
           "innings_pitched": 90.0,
@@ -1067,6 +1067,17 @@
           "strikeouts": 114
         },
         {
+          "id": 607192,
+          "name": "Tyler Glasnow",
+          "hand": "R",
+          "era": 2.72,
+          "whip": 0.83,
+          "games_started": 7,
+          "saves": 0,
+          "innings_pitched": 39.2,
+          "strikeouts": 49
+        },
+        {
           "id": 641778,
           "name": "Eric Lauer",
           "hand": "L",
@@ -1087,20 +1098,9 @@
           "saves": 0,
           "innings_pitched": 21.0,
           "strikeouts": 26
-        },
-        {
-          "id": 669373,
-          "name": "Tarik Skubal",
-          "hand": "L",
-          "era": 3.38,
-          "whip": 1.13,
-          "games_started": 4,
-          "saves": 0,
-          "innings_pitched": 24.0,
-          "strikeouts": 30
         }
       ],
-      "reliever_count": 5,
+      "reliever_count": 4,
       "staff_lhp": 6,
       "staff_rhp": 7,
       "staff_total": 13
@@ -1108,15 +1108,15 @@
     "MIA": {
       "api_abbrev": "MIA",
       "closer": {
-        "id": 664126,
-        "name": "Pete Fairbanks",
+        "id": 676534,
+        "name": "Calvin Faucher",
         "hand": "R",
-        "era": 6.02,
-        "whip": 1.31,
-        "games_started": 1,
-        "saves": 18,
-        "innings_pitched": 40.1,
-        "strikeouts": 57
+        "era": 4.07,
+        "whip": 1.39,
+        "games_started": 0,
+        "saves": 2,
+        "innings_pitched": 55.1,
+        "strikeouts": 62
       },
       "rotation": [
         {
@@ -1175,9 +1175,9 @@
           "strikeouts": 51
         }
       ],
-      "reliever_count": 6,
-      "staff_lhp": 1,
-      "staff_rhp": 12,
+      "reliever_count": 7,
+      "staff_lhp": 2,
+      "staff_rhp": 11,
       "staff_total": 13
     },
     "MIL": {
@@ -1475,10 +1475,10 @@
           "strikeouts": 58
         }
       ],
-      "reliever_count": 6,
+      "reliever_count": 7,
       "staff_lhp": 4,
-      "staff_rhp": 8,
-      "staff_total": 12
+      "staff_rhp": 9,
+      "staff_total": 13
     },
     "PHI": {
       "api_abbrev": "PHI",
@@ -1509,7 +1509,7 @@
           "id": 666200,
           "name": "Jes\u00fas Luzardo",
           "hand": "L",
-          "era": 3.35,
+          "era": 3.23,
           "whip": 1.15,
           "games_started": 26,
           "saves": 0,
@@ -2095,17 +2095,6 @@
           "strikeouts": 209
         },
         {
-          "id": 669456,
-          "name": "Shane Bieber",
-          "hand": "R",
-          "era": 4.53,
-          "whip": 1.44,
-          "games_started": 11,
-          "saves": 0,
-          "innings_pitched": 55.2,
-          "strikeouts": 44
-        },
-        {
           "id": 453286,
           "name": "Max Scherzer",
           "hand": "R",
@@ -2137,9 +2126,20 @@
           "saves": 1,
           "innings_pitched": 65.2,
           "strikeouts": 61
+        },
+        {
+          "id": 693686,
+          "name": "Spencer Miles",
+          "hand": "R",
+          "era": 3.02,
+          "whip": 1.1,
+          "games_started": 4,
+          "saves": 1,
+          "innings_pitched": 80.1,
+          "strikeouts": 73
         }
       ],
-      "reliever_count": 5,
+      "reliever_count": 6,
       "staff_lhp": 2,
       "staff_rhp": 11,
       "staff_total": 13

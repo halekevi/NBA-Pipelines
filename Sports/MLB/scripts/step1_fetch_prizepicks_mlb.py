@@ -42,6 +42,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from scripts.db_utils import log_pipeline_health
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
 from utils.step1_slate_date_filter import (
     apply_game_date_filter,
     no_props_log_line,
@@ -109,14 +110,13 @@ EMPTY_COLS = [
     "projection_id", "pp_projection_id", "player_id", "pp_game_id", "start_time",
     "player", "player_name", "image_url", "pos", "team", "opp_team", "pp_home_team", "pp_away_team",
     "prop_type", "line", "line_score", "standard_line", "pick_type", "sport", "fetched_at",
+    "pp_updated_at",
 ]
 
 
 def _stamp_fetched_at(df: pd.DataFrame) -> pd.DataFrame:
-    """UTC fetch timestamp for data-freshness passthrough (step5→step8)."""
-    out = df.copy()
-    out["fetched_at"] = datetime.now(ZoneInfo(DEFAULT_TZ)).isoformat()
-    return out
+    """ET fetch timestamp on every row for line-history and step8 freshness."""
+    return stamp_fetched_at(df, when=now_et_iso(), overwrite=True)
 
 PROFILE_DIR = Path.home() / ".pp_browser_profile"
 SNAPSHOT_DIR = Path(__file__).resolve().parents[1] / "outputs" / "step1_snapshots"
@@ -313,6 +313,7 @@ def parse_rows(data: List[dict], included: List[dict]) -> List[dict]:
             "standard_line":    standard_line,
             "pick_type":        pick_type,
             "sport":            "MLB",
+            "pp_updated_at":    extract_pp_updated_at(attrs),
         })
 
     return rows
@@ -1221,8 +1222,9 @@ def main():
     try:
         if str(_PROPORACLE_ROOT) not in sys.path:
             sys.path.insert(0, str(_PROPORACLE_ROOT))
-        from scripts.line_history_archive import archive_lines
-        archive_lines(df, sport="MLB")
+        from scripts.line_history_archive import try_archive_lines
+        pull_ts = str(df["fetched_at"].iloc[0]) if len(df) else ""
+        try_archive_lines(df, sport="MLB", only_fetched_at=pull_ts)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
     _write_snapshot(df, target_date=str(args.date).strip())

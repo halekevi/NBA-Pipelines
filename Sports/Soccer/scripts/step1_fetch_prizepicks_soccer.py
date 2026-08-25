@@ -28,6 +28,8 @@ _PROPORACLE_ROOT = Path(__file__).resolve().parents[3]
 if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from scripts.line_history_archive import try_archive_lines
 from utils.prizepicks_http import fetch_pp_projections, make_pp_session, ensure_chrome131
 from utils.prizepicks_cdp import (
     align_cdp_context_for_datadome,
@@ -38,6 +40,7 @@ from utils.prizepicks_cdp import (
 )
 from utils.step1_slate_date_filter import (
     apply_game_date_filter,
+    eastern_today_ymd,
     no_props_log_line,
     should_preserve_append_output,
 )
@@ -158,6 +161,7 @@ def fetch_board(
         }
         if fail_fast:
             kw.update(
+                fail_fast=True,
                 first_page_waves=1,
                 forbid_cooldown_threshold=99,
                 forbid_max_cooldown_windows=0,
@@ -355,6 +359,7 @@ def build_rows(data: list, included: list, league_name: str) -> list:
             "line":             line,
             "standard_line":    standard_line,
             "pick_type":        pick_type,
+            "pp_updated_at":    extract_pp_updated_at(attrs),
         })
 
     return rows
@@ -390,6 +395,16 @@ def main():
         "--allow-nearest-future",
         action="store_true",
         help="Skip same-day date filter (keep full API board; explicit opt-in only).",
+    )
+    ap.add_argument(
+        "--include-tomorrow",
+        action="store_true",
+        help="Also keep Eastern tomorrow's games (day-ahead Standard unders).",
+    )
+    ap.add_argument(
+        "--board-date",
+        default="",
+        help="Fetch calendar YYYY-MM-DD for board_date/line_asof (default: Eastern today).",
     )
     ap.add_argument(
         "--max-retries",
@@ -516,6 +531,9 @@ def main():
     _mstd = df["pick_type"].astype(str).str.lower().eq("standard")
     df.loc[_mstd, "standard_line"] = df.loc[_mstd, "standard_line"].fillna(df.loc[_mstd, "line"])
     df = df.drop_duplicates(subset=["projection_id"], keep="first").reset_index(drop=True)
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
+    try_archive_lines(df, sport="SOCCER", only_fetched_at=pull_ts)
 
     if args.append and out_path.is_file():
         try:
@@ -565,6 +583,8 @@ def main():
         target_date=str(args.date).strip(),
         tz_name=str(args.tz).strip() or DEFAULT_TZ,
         allow_nearest_future=bool(args.allow_nearest_future),
+        include_tomorrow=bool(getattr(args, "include_tomorrow", False)),
+        board_date=str(getattr(args, "board_date", None) or "").strip()[:10] or eastern_today_ymd(),
     )
     print(
         f"[INFO] Soccer step1 fetched={fetched_rows} rows; "
@@ -591,12 +611,6 @@ def main():
         sys.exit(0)
 
     df.to_csv(args.output, index=False, encoding="utf-8-sig")
-    try:
-        from scripts.line_history_archive import archive_lines
-
-        archive_lines(df, sport="SOCCER")
-    except Exception as _arch_exc:
-        print(f"  [WARN] line_history archive skipped: {_arch_exc}")
     print(f"\n✅ Saved {len(df)} rows -> {args.output}")
     league_counts = df["league"].value_counts().to_dict()
     print(f"   Leagues: {league_counts}")

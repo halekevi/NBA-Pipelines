@@ -38,6 +38,9 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from scripts.line_history_archive import try_archive_lines
+
 LEAGUES_URL = "https://api.prizepicks.com/leagues"
 
 
@@ -303,6 +306,7 @@ def build_tennis_rows(data: list[dict], included: list[dict], nba_mod: Any) -> l
                 "pp_away_team": away,
                 "image_url": image_url,
                 "tournament": tournament,
+                "pp_updated_at": extract_pp_updated_at(attrs),
             }
         )
 
@@ -614,6 +618,9 @@ def main() -> None:
     ]
     extra = [c for c in df.columns if c not in preferred]
     df = df[preferred + extra]
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
+    try_archive_lines(df, sport="TENNIS", only_fetched_at=pull_ts)
 
     n_rows = len(df)
     n_teams = df["team"].astype(str).replace("", pd.NA).dropna().nunique()

@@ -54,6 +54,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
 
 from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.allstar_filter import drop_allstar_props
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
 
 # PrizePicks sits behind Cloudflare; stdlib TLS (requests) is often JA3-flagged.
@@ -795,6 +796,7 @@ def build_rows(data: List[dict], included: List[dict]) -> List[dict]:
             "pp_home_team":     home,
             "pp_away_team":     away,
             "image_url":        image_url,
+            "pp_updated_at":    extract_pp_updated_at(attrs),
         })
 
     return rows
@@ -856,6 +858,7 @@ def main() -> None:
         "projection_id", "pp_projection_id", "player_id", "pp_game_id",
         "start_time", "player", "pos", "team", "opp_team", "prop_type",
         "line", "standard_line", "pick_type", "pp_home_team", "pp_away_team", "image_url",
+        "fetched_at", "pp_updated_at",
     ]
 
     print(f"📡 PrizePicks fetch | league_id={args.league_id} | direct API (no browser)")
@@ -925,7 +928,11 @@ def main() -> None:
     if before != len(df):
         print(f"  Deduped: {before} → {len(df)} rows")
 
-    # Enforce column order
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
+    for c in EMPTY_COLS:
+        if c not in df.columns:
+            df[c] = ""
     df = df[EMPTY_COLS].copy()
 
     # ── Validation ────────────────────────────────────────────────────────────
@@ -1061,9 +1068,9 @@ def main() -> None:
         _root = Path(__file__).resolve().parents[3]
         if str(_root) not in sys.path:
             sys.path.insert(0, str(_root))
-        from scripts.line_history_archive import archive_lines
+        from scripts.line_history_archive import try_archive_lines
 
-        archive_lines(df, sport="NBA")
+        try_archive_lines(df, sport="NBA", only_fetched_at=pull_ts)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
     print(f"\n✅ Saved → {args.output}")

@@ -30,6 +30,10 @@ except Exception:
     pass
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from scripts.line_history_archive import try_archive_lines
 LEAGUES_URL = "https://api.prizepicks.com/leagues"
 
 # Verified via GET /leagues (2026-06): PGA=1, EUROGOLF=131, LPGA=256, LIVGOLF=228 (CFB=15).
@@ -270,6 +274,7 @@ def build_golf_rows(data: list[dict], included: list[dict], nba_mod: Any) -> lis
                 "pos": pos,
                 "opp_team": course,
                 "image_url": image_url,
+                "pp_updated_at": extract_pp_updated_at(attrs),
             }
         )
 
@@ -416,7 +421,10 @@ def main() -> None:
         sys.exit(1)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
+    try_archive_lines(df, sport="GOLF", only_fetched_at=pull_ts)
     print(f"[Golf step1] Saved → {out_path}")
     print("[Golf step1] BOARD_OK")
 

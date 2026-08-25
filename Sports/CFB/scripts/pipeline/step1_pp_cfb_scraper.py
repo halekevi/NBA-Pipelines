@@ -38,6 +38,8 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from scripts.db_utils import log_pipeline_health
+from scripts.line_history_archive import try_archive_lines
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
 
 PP_URL = "https://api.prizepicks.com/projections"
 
@@ -299,6 +301,7 @@ def fetch_cfb_projections(
                         "start_time":   start_time,
                         "league_id":    league_id,
                         "duration":     duration,
+                        "pp_updated_at": extract_pp_updated_at(attr),
                     })
                     added += 1
 
@@ -416,7 +419,10 @@ def main():
             start=Path(__file__),
         )
 
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
     df.to_csv(args.out, index=False, encoding="utf-8")
+    try_archive_lines(df, sport="CFB", only_fetched_at=pull_ts)
     print(f"✅ Saved CSV → {args.out} | rows={len(df)} | unique proj_id={df['proj_id'].nunique()}")
 
     if "pp_opp_team" in df.columns:

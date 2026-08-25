@@ -49,6 +49,8 @@ if str(_NFL_ROOT) not in sys.path:
     sys.path.insert(0, str(_NFL_ROOT))
 
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from scripts.line_history_archive import try_archive_lines
 from prizepicks_league_ids import (
     DEFAULT_NFL_BOARDS,
     NFL as NFL_LEAGUE_ID,
@@ -74,6 +76,8 @@ OUTPUT_COLS = [
     "league",
     "league_id",
     "fetch_date",
+    "fetched_at",
+    "pp_updated_at",
 ]
 
 # Explicit PP display names → snake_case (unmapped → lowercased + underscored)
@@ -494,6 +498,7 @@ def build_nfl_rows(
                 "league": league,
                 "league_id": str(league_id),
                 "fetch_date": fetch_date,
+                "pp_updated_at": extract_pp_updated_at(attrs),
             }
         )
     return rows
@@ -634,6 +639,9 @@ def main() -> int:
     df = pd.DataFrame(all_rows).fillna("")
     if "projection_id" in df.columns:
         df = df.drop_duplicates(subset=["projection_id"], keep="first").reset_index(drop=True)
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
+    try_archive_lines(df, sport="NFL", only_fetched_at=pull_ts)
 
     fetched_rows = len(df)
     szn_mask = df.get("league_id", pd.Series("", index=df.index)).astype(str).isin(SEASON_BOARD_IDS)

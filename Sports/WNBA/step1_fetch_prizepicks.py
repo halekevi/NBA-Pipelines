@@ -42,6 +42,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
 from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
 from utils.allstar_filter import drop_allstar_props
 
@@ -908,10 +909,8 @@ def _wnba_start_time_to_et_date_str(ser: pd.Series) -> pd.Series:
 
 
 def _stamp_fetched_at(df: pd.DataFrame) -> pd.DataFrame:
-    """ET fetch timestamp for data-freshness passthrough (step5→step8)."""
-    out = df.copy()
-    out["fetched_at"] = datetime.now(_ET).isoformat()
-    return out
+    """ET fetch timestamp on every row for line-history and step8 freshness."""
+    return stamp_fetched_at(df, when=now_et_iso(), overwrite=True)
 
 
 def _apply_wnba_slate_date(df: pd.DataFrame, args: Any) -> pd.DataFrame:
@@ -1174,6 +1173,7 @@ def main():
             "line":             line,
             "pick_type":        pick_type,
             "standard_line":    std_hint if std_hint is not None else "",
+            "pp_updated_at":    extract_pp_updated_at(attrs),
         })
 
     df = pd.DataFrame(rows).fillna("")
@@ -1197,7 +1197,7 @@ def main():
         empty_cols = [
             "projection_id", "pp_projection_id", "player_id", "pp_game_id", "start_time",
             "player", "pos", "team", "opp_team", "prop_type", "line", "pick_type", "game_date",
-            "fetched_at", "sport",
+            "fetched_at", "pp_updated_at", "sport",
         ]
         pd.DataFrame(columns=empty_cols).to_csv(out_path, index=False, encoding="utf-8-sig")
         sys.exit(0)
@@ -1219,8 +1219,9 @@ def main():
         _root = Path(__file__).resolve().parents[2]
         if str(_root) not in sys.path:
             sys.path.insert(0, str(_root))
-        from scripts.line_history_archive import archive_lines
-        archive_lines(df, sport=sport_tag)
+        from scripts.line_history_archive import try_archive_lines
+        pull_ts = str(df["fetched_at"].iloc[0]) if len(df) else ""
+        try_archive_lines(df, sport=sport_tag, only_fetched_at=pull_ts)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
     # Snapshots are full-game WNBA only (period boards skip dated snapshot clutter).

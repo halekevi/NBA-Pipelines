@@ -28,6 +28,8 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from utils.prizepicks_http import fetch_pp_projections
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from scripts.line_history_archive import try_archive_lines
 from utils.step1_slate_date_filter import (
     apply_game_date_filter,
     no_props_log_line,
@@ -78,6 +80,7 @@ NHL_CSV_FIELDNAMES = [
     "game_start",
     "game_id",
     "fetched_at",
+    "pp_updated_at",
 ]
 
 
@@ -224,7 +227,8 @@ def parse_rows(data: list, included: list) -> list:
                 "home_team": game_info.get("home_team", ""),
                 "game_start": game_info.get("game_start", ""),
                 "game_id": game_id,
-                "fetched_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "fetched_at": now_et_iso(),
+                "pp_updated_at": extract_pp_updated_at(attrs),
             })
     return rows
 
@@ -464,14 +468,10 @@ def _write_empty_nhl(path: Path) -> None:
 
 
 def _archive_nhl_lines(df: pd.DataFrame) -> None:
-    try:
-        root = Path(__file__).resolve().parents[3]
-        if str(root) not in sys.path:
-            sys.path.insert(0, str(root))
-        from scripts.line_history_archive import archive_lines
-        archive_lines(df, sport="NHL")
-    except Exception as exc:
-        print(f"  [WARN] line_history archive skipped: {exc}")
+    if df is None or df.empty:
+        return
+    stamped = stamp_fetched_at(df, overwrite=False)
+    try_archive_lines(stamped, sport="NHL")
 
 
 def _write_nhl_output(rows: list, out_path: Path, append: bool) -> None:

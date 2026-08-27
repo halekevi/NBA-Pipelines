@@ -16,18 +16,19 @@ Person(operator,  "Operator",         "Runs pipeline, retrains model")
 
 System_Boundary(sys, "PropORACLE") {
 
-  Container(webapp,    "Web App",         "Jinja2 + JS\nRailway / Gunicorn",   "Tickets, grades, income,\npayout tools, slate browser")
+  Container(webapp,    "Web App",         "Jinja2 + JS\nRailway / Gunicorn",   "Goblin-70 + mixer /tickets,\ngrades, income, payout, slate")
   Container(mobile,    "Mobile App",      "Capacitor · server.url mode",        "Top edges, sparklines,\ntier badges, OTA updates")
   Container(flaskapi,  "Flask API",       "Python · Gunicorn · Railway",        "/api/props  /api/grades\n/api/tickets  /api/run")
   Container(pipeline,  "Pipeline",        "Python · run_daily.ps1",             "Steps 1–8 per sport\nDaily PS1 orchestration")
-  Container(mlmodel,   "ML Model",        "XGBoost · edge_model_unified.pkl",   "AUC 0.7743 overall\nPlatt + isotonic calibration")
-  ContainerDb(cache,   "JSON Cache",      "Flat-file store · Railway",          "Per-sport step8 output\nDaily snapshot archives")
-  Container(ps1,       "run_daily.ps1",   "PowerShell · local",                 "Orchestrates full daily run\nand step8 snapshot archival")
+  Container(g70,       "Goblin-70 builder","Python · build_goblin70_tickets.py","Goblin-70 groups first;\nmerges graded-main mixer under")
+  Container(mlmodel,   "ML Model",        "XGBoost · edge_model_unified.pkl",   "AUC 0.7567 (2026-06-13)\nPlatt + isotonic calibration")
+  ContainerDb(cache,   "JSON Cache",      "Flat-file store · GitHub / Railway", "step8 + tickets_latest.json\n(origin/main is live source)")
+  Container(ps1,       "run_daily.ps1",   "PowerShell · local",                 "Orchestrates full daily run\nand Publish-LiveSite.ps1")
 }
 
 System_Ext(sbApis,    "Sportsbook APIs", "Odds + lines")
 System_Ext(statsApis, "Stats APIs",      "Player + game stats")
-System_Ext(wt,        "WNBA/Tennis CDP", "Playwright stealth scrape")
+System_Ext(wt,        "Chrome CDP :9222", "Soccer / Tennis / WNBA / MLB")
 
 Rel(bettor,    webapp,   "Views picks, grades,\nincome, payout tools",  "HTTPS")
 Rel(bettor,    mobile,   "Views top edges\non mobile",                  "HTTPS · server.url")
@@ -40,8 +41,10 @@ Rel(flaskapi,  cache,    "Reads cached output",                         "File I/
 Rel(ps1,       pipeline, "Triggers sport pipelines",                    "subprocess")
 Rel(pipeline,  mlmodel,  "Scores props via step7",                      "pkl · predict_proba")
 Rel(pipeline,  cache,    "Writes step8 JSON output",                    "File I/O")
+Rel(ps1,       g70,      "Rebuilds Goblin-70 +\npatches mixer lines",    "--write-web")
+Rel(g70,       cache,    "Writes dual tickets_latest.json",             "File I/O")
 Rel(pipeline,  sbApis,   "Fetches odds + lines",                        "HTTPS")
 Rel(pipeline,  statsApis,"Fetches player + game stats",                 "HTTPS")
-Rel(pipeline,  wt,       "Scrapes WNBA / Tennis slate",                 "Playwright CDP")
+Rel(pipeline,  wt,       "CDP step1 when Chrome is warm",               "Chrome DevTools")
 
 @enduml

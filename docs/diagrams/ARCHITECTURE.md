@@ -29,8 +29,9 @@ C4Context
   System(prop,       "PropORACLE",        "Multi-sport prop-betting analytics platform")
 
   System_Ext(sb,     "Sportsbook APIs",   "Odds and lines feed")
-  System_Ext(stats,  "Stats APIs",        "NBA / NHL / MLB / Soccer stats")
+  System_Ext(stats,  "Stats APIs",        "ESPN / boxscores / match logs")
   System_Ext(wt,     "Chrome CDP :9222",  "In-page PrizePicks fetch (Soccer/Tennis/WNBA/MLB)")
+  System_Ext(gh,     "GitHub origin/main","tickets_latest.json (Goblin-70 + mixer)")
   System_Ext(rail,   "Railway",           "Cloud hosting")
   System_Ext(pp,     "PrizePicks",        "Real-money entries (outside system)")
 
@@ -39,7 +40,9 @@ C4Context
   Rel(prop,      sb,    "Fetches odds + lines")
   Rel(prop,      stats, "Fetches player + game stats")
   Rel(prop,      wt,    "CDP-first step1 when debug Chrome is warm")
-  Rel(prop,      rail,  "Deployed on")
+  Rel(prop,      gh,    "Publishes tickets_latest.json")
+  Rel(rail,      gh,    "Reads live tickets JSON")
+  Rel(prop,      rail,  "Web + API deployed on")
   Rel(bettor,    pp,    "Places entries (external)")
 ```
 
@@ -57,13 +60,14 @@ C4Container
   Person(operator, "Operator")
 
   System_Boundary(sys, "PropORACLE") {
-    Container(web,      "Web App",       "Jinja2 + JS · Railway",         "Tickets, grades, income, payout, slate")
+    Container(web,      "Web App",       "Jinja2 + JS · Railway",         "Goblin-70 + mixer /tickets, grades, income, payout")
     Container(mob,      "Mobile App",    "Capacitor · server.url",        "Top edges, sparklines, OTA updates")
     Container(api,      "Flask API",     "Python · Gunicorn · Railway",   "/api/props /api/grades /api/tickets")
     Container(pipeline, "Pipeline",      "Python · run_daily.ps1",        "Steps 1–8 per sport, daily PS1 orch.")
-    Container(ml,       "ML Model",      "XGBoost · edge_model_unified",  "AUC 0.7743 · Platt + isotonic cal.")
-    ContainerDb(cache,  "JSON Cache",    "Flat-file · Railway",           "Step8 output + snapshot archives")
-    Container(ps1,      "run_daily.ps1", "PowerShell · local",            "Orchestrates full daily run")
+    Container(g70,      "Goblin-70",     "build_goblin70_tickets.py",     "Goblin-70 first; merges mixer from grade pool")
+    Container(ml,       "ML Model",      "XGBoost · edge_model_unified",  "AUC 0.7567 (2026-06-13)")
+    ContainerDb(cache,  "JSON Cache",    "Flat-file · GitHub / Railway",  "step8 + tickets_latest.json (origin/main is live)")
+    Container(ps1,      "run_daily.ps1", "PowerShell · local",            "Daily run + Publish-LiveSite.ps1")
   }
 
   System_Ext(sb,    "Sportsbook APIs")
@@ -80,6 +84,8 @@ C4Container
   Rel(ps1,       pipeline, "Triggers sport pipelines",      "subprocess")
   Rel(pipeline,  ml,       "Scores props via step7",        "pkl · predict_proba")
   Rel(pipeline,  cache,    "Writes step8 JSON output",      "File I/O")
+  Rel(ps1,       g70,      "Rebuilds Goblin-70, patches mixer", "--write-web")
+  Rel(g70,       cache,    "Writes dual tickets_latest.json", "File I/O")
   Rel(pipeline,  sb,       "Fetches odds + lines")
   Rel(pipeline,  stats,    "Fetches player + game stats")
   Rel(pipeline,  wt,       "CDP step1 for Soccer/Tennis/WNBA/MLB")
@@ -97,27 +103,24 @@ C4Component
 
   Container_Boundary(api, "Flask API · Python / Gunicorn") {
     Component(home,    "Home route",          "/  /api/run",          "Slate UI, pipeline trigger")
-    Component(tickets, "Tickets route",       "/tickets /api/tickets","EV sort, HIDE SKIP, Today's Best")
+    Component(tickets, "Tickets route",       "/tickets /api/tickets","Goblin-70 first, graded-main mixer under")
     Component(grades,  "Grades route",        "/grades /api/grades",  "Hub iframe, graded props feed")
     Component(income,  "Income route",        "/income",              "P&L dashboard")
     Component(payout,  "Payout route",        "/payout",              "Multiplier, rate cards, log")
 
-    Component(edge,    "step8_edge_direction","utils/",               "edge = projection − line")
-    Component(tier,    "tier_assignment",     "utils/",               "A–D tier, 5-label defense")
-    Component(teval,   "build_ticket_eval",   "utils/",               "Pool exhaustion, outcome split")
-    Component(train,   "train_edge_model",    "utils/",               "XGBoost retrain, temporal split")
+    Component(train,   "train_edge_model",    "scripts/",             "XGBoost retrain, temporal split")
   }
 
-  ContainerDb(cache, "JSON Cache", "Flat-file")
-  Container(ml,      "ML Model",   "XGBoost pkl")
+  Container(g70,     "Goblin-70 builder", "build_goblin70_tickets.py")
+  Container(teval,   "Ticket eval",       "build_ticket_eval.py")
+  ContainerDb(cache, "JSON Cache", "tickets_latest.json + eval HTML")
+  Container(ml,      "ML Model",   "XGBoost pkl · AUC 0.7567")
 
-  Rel(tickets, edge,  "reads edge direction")
-  Rel(tickets, tier,  "reads tier labels")
-  Rel(tickets, teval, "builds ticket pool")
+  Rel(tickets, cache, "reads prebuilt dual card")
+  Rel(grades,  cache, "reads graded props / eval HTML")
+  Rel(g70,     cache, "writes Goblin-70 + mixer")
+  Rel(teval,   cache, "writes ticket_eval HTML")
   Rel(home,    train, "triggers retrain")
-  Rel(edge,    cache, "reads step8 JSON")
-  Rel(tier,    cache, "reads step8 JSON")
-  Rel(teval,   cache, "reads step8 JSON")
   Rel(train,   ml,    "writes new pkl")
 ```
 
@@ -139,12 +142,12 @@ C4Component
 | Package | Use cases |
 |---|---|
 | **Slate & research** | View home slate, browse by sport, hot players / consistency, model performance, export Excel |
-| **Tickets** | Latest tickets, by date, EV & win-rate summaries, ticket backtest |
+| **Tickets** | Goblin-70 + mixer (latest), by date, EV & win-rate summaries, ticket backtest |
 | **Grades & evaluation** | Grades hub, browse graded props, slate eval report, ticket eval report |
 | **Income & tracking** | Income / P&L dashboard, grade history & sport breakdown |
 | **Payout tools** | Estimate multiplier, rate cards & combo table, log observation, payout ladder, export logs |
 | **Mobile app** | Bundled offline UI, remote web UI in app shell, OTA bundle update |
-| **Pipeline & ops** | Run step from UI, monitor job, pipeline status, daily pipeline, sport pipeline, grade slate, publish artifacts |
+| **Pipeline & ops** | Run step from UI, monitor job, daily / sport pipeline, grade slate, Goblin-70 --write-web, publish artifacts |
 
 ### Key `<<include>>` relationships
 
@@ -153,6 +156,8 @@ Run daily pipeline  ──includes──►  Run sport pipeline
 Run sport pipeline  ──includes──►  Fetch PrizePicks slate
 Run sport pipeline  ──includes──►  Enrich & rank props
 Run sport pipeline  ──includes──►  Build combined tickets
+Build combined tickets ─includes─►  Goblin-70 --write-web
+Goblin-70 --write-web ──includes──►  Publish UI artifacts
 Run daily pipeline  ──includes──►  Publish UI artifacts
 Grade completed slate ─includes──► Publish UI artifacts
 Run pipeline step (UI) ─includes─► Monitor pipeline job
@@ -191,7 +196,9 @@ OTA bundle update   ──extends───►  Verify deploy / health
 | `docs/PROJECT_LAYOUT.md` | Folder contracts |
 | `docs/guides/DAILY_OPS_OVERVIEW.md` | Audiences + scheduled program structure |
 | `utils/prizepicks_cdp.py` | Shared CDP attach + in-page projections fetch |
-| `utils/step8_edge_direction.py` | Canonical edge computation |
-| `utils/train_edge_model.py` | ML model retraining (`--temporal-split`) |
-| `scripts/build_ticket_eval.py` | Ticket eval + void-aware settlement |
+| `utils/step8_edge_direction.py` | Canonical edge computation (pipeline, not `/tickets` request path) |
+| `scripts/train_edge_model.py` | ML model retraining (`--temporal-split`) |
+| `scripts/build_ticket_eval.py` | Ticket eval + void-aware settlement (Grades) |
+| `scripts/build_goblin70_tickets.py` | Live `/tickets` dual card (`--write-web`) |
+| `scripts/Publish-LiveSite.ps1` | Push `tickets_latest.json` to origin/main |
 | `scripts/run_daily.ps1` | Full daily pipeline orchestration |

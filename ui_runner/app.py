@@ -1701,7 +1701,9 @@ def api_uniform_tickets_for_date(date_str: str):
 @app.get("/tickets")
 def page_tickets():
     """
-    Today's built ticket slips from tickets_latest.json (combined_slate_tickets --write-web).
+    Today's built ticket slips from tickets_latest.json (Goblin-70 groups first,
+    graded-main mixer under). Writer: build_goblin70_tickets.py --write-web after
+    combined_slate_tickets.py. Live site reads origin/main, not this checkout.
 
     Graded legs, actuals, and hit/miss summaries live under Grades (/grades hub, or
     /grades/YYYY-MM-DD for ticket_eval_*.html from build_ticket_eval.py), not on this route.

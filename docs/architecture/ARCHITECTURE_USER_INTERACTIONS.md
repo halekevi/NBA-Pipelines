@@ -194,14 +194,14 @@ sequenceDiagram
             Browser->>Flask: GET /api/job/{id}
             Flask-->>Browser: status, log lines
         end
-        Batch->>Artifacts: Write step outputs, combined tickets
+        Batch->>Artifacts: Write step outputs, combined mixer, Goblin-70 --write-web
     else Scheduled / desktop
         Operator->>Batch: run_daily.ps1 (5AM) / run_refresh_with_log.ps1 (8–13) / payout CDP (11:00)
         Note over Batch: Late fetch uses CDP-first when :9222 is up;<br/>per-sport wall-clock kills prevent hang cascades
-        Batch->>Artifacts: Publish templates + outputs/
+        Batch->>Artifacts: Publish templates + outputs/; Publish-LiveSite to origin/main
     end
 
-    Batch->>Artifacts: slate_latest.json, tickets_latest.json, eval HTML
+    Batch->>Artifacts: slate_latest.json, tickets_latest.json (Goblin-70 + mixer), eval HTML
     Note over Bettor: Next page load sees updated artifacts
 ```
 

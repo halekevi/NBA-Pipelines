@@ -34,7 +34,7 @@ rectangle "PropORACLE" as System {
   }
 
   package "Tickets" as P_Tickets {
-    usecase "View built tickets\n(latest)" as UC_TixLatest
+    usecase "View built tickets\n(Goblin-70 + mixer)" as UC_TixLatest
     usecase "Browse tickets by date" as UC_TixDate
     usecase "View ticket EV &\nwin-rate summaries" as UC_TixEV
     usecase "View ticket backtest" as UC_TixBacktest
@@ -77,6 +77,7 @@ rectangle "PropORACLE" as System {
     usecase "Fetch PrizePicks slate" as UC_FetchPP
     usecase "Enrich & rank props" as UC_Enrich
     usecase "Build combined tickets" as UC_Combine
+    usecase "Build Goblin-70 card\n(--write-web)" as UC_G70
   }
 
   package "General UI" as P_UI {
@@ -136,6 +137,8 @@ UC_SportRun ..> UC_FetchPP : <<include>>
 UC_SportRun ..> UC_Enrich : <<include>>
 UC_SportRun ..> UC_Combine : <<include>>
 UC_DailyRun ..> UC_Combine : <<include>>
+UC_Combine ..> UC_G70 : <<include>>
+UC_G70 ..> UC_Publish : <<include>>
 UC_DailyRun ..> UC_Publish : <<include>>
 UC_Grade ..> UC_Publish : <<include>>
 UC_RunUI ..> UC_MonitorJob : <<include>>
@@ -150,8 +153,10 @@ end note
 
 note bottom of System
   Web: Flask ui_runner (/, /tickets, /grades, /income, /payout)
+  /tickets: Goblin-70 groups first, graded-main mixer under
+  Live JSON: origin/main ui_runner/templates/tickets_latest.json
   Mobile: Capacitor — bundled www/ or remote Railway URL
-  Batch: run_pipeline.ps1, run_daily.ps1, run_grader.ps1
+  Batch: run_pipeline.ps1, run_daily.ps1, run_grader.ps1, Publish-LiveSite.ps1
 end note
 
 @enduml

@@ -45,7 +45,7 @@ flowchart LR
   end
 
   subgraph tickets["Tickets"]
-    UC5[View built tickets]
+    UC5[View Goblin-70 + mixer tickets]
     UC6[Tickets by date / EV]
   end
 
@@ -73,14 +73,15 @@ flowchart LR
     UC15[Run step from UI]
     UC16[Daily / sport pipeline]
     UC17[Grade slate]
+    UC19[Goblin-70 --write-web]
     UC18[Publish UI artifacts]
   end
 
   Bettor --> UC1 & UC2 & UC3 & UC4 & UC5 & UC6 & UC7 & UC8 & UC9 & UC10 & UC11 & UC12 & UC13 & UC14
   Bettor -.->|places bets| PP
-  Operator --> UC15 & UC16 & UC17 & UC18 & UC1 & UC5 & UC7 & UC9
+  Operator --> UC15 & UC16 & UC17 & UC18 & UC19 & UC1 & UC5 & UC7 & UC9
   Sched --> UC16 & UC17
-  UC16 --> UC18
+  UC16 --> UC19 --> UC18
   UC17 --> UC18
 ```
 
@@ -113,7 +114,7 @@ flowchart LR
 
 | ID | Use case | Actor | UI / API |
 |----|----------|-------|----------|
-| UC-TIX-L | View built tickets (latest) | Bettor | `/tickets`, `/api/uniform-tickets/latest` |
+| UC-TIX-L | View built tickets (Goblin-70 + mixer) | Bettor | `/tickets`, `/api/uniform-tickets/latest` |
 | UC-TIX-D | Browse tickets by date | Bettor | `/api/uniform-tickets/<date>` |
 | UC-TIX-EV | View ticket EV & win-rate | Bettor | `/api/ticket-ev-summary`, `/api/tickets/winrate` |
 | UC-TIX-BT | View ticket backtest | Bettor | `/api/uniform-tickets/backtest` |
@@ -161,10 +162,11 @@ flowchart LR
 | UC-DAILY | Run daily pipeline | Operator, Scheduler | `scripts/run_daily.ps1` |
 | UC-SPORT | Run sport pipeline | Operator, Scheduler | `run_pipeline.ps1` |
 | UC-GRADE | Grade completed slate | Operator, Scheduler | `scripts/run_grader.ps1` |
-| UC-PUB | Publish UI artifacts | Operator | Writes `ui_runner/templates/*` |
+| UC-PUB | Publish UI artifacts | Operator | `Publish-LiveSite.ps1` → origin/main `tickets_latest.json` |
 | UC-FETCH | Fetch PrizePicks slate | System (included) | Pipeline step 1 |
 | UC-ENRICH | Enrich & rank props | System (included) | Sport steps |
-| UC-COMB | Build combined tickets | System (included) | `combined_slate_tickets.py` |
+| UC-COMB | Build combined tickets | System (included) | `combined_slate_tickets.py` (mixer / grade pool) |
+| UC-G70 | Build Goblin-70 card | System (included) | `build_goblin70_tickets.py --write-web` |
 
 ### General UI
 
@@ -182,6 +184,8 @@ flowchart LR
 | **Association** | Actor | Use case | Actor performs the use case |
 | **Include** | Run daily pipeline | Run sport pipeline | Daily run always runs sport pipelines |
 | **Include** | Run sport pipeline | Fetch / Enrich / Combine | Standard pipeline chain |
+| **Include** | Build combined tickets | Goblin-70 --write-web | Mixer writes first; Goblin-70 patches lines and merges the grade pool |
+| **Include** | Goblin-70 --write-web | Publish artifacts | Dual card lands on origin/main via `Publish-LiveSite.ps1` |
 | **Include** | Run step from UI | Monitor job | UI run returns `job_id` to poll |
 | **Include** | Grade slate | Publish artifacts | Grader writes eval HTML/JSON |
 | **Extend** | OTA update | Verify deploy | Optional check before downloading bundle |

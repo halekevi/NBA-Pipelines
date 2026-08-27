@@ -100,8 +100,8 @@ def load_today_board(date: str) -> list[dict]:
             rows.extend(R.recs(extra))
     return rows
 
-# PAY lives in utils.n_correct_payout. Resolve order: slip pin → same-day
-# CDP with matching Goblin-Δ → mix_by_delta → this fallback.
+# PAY lives in utils.n_correct_payout. Resolve order: CDP scrape (matching
+# Goblin-Δ) → mix_by_delta from those scrapes → slip pin → fallback.
 
 SKIP_PLAYERS = frozenset({"jacob fearnley"})
 
@@ -842,6 +842,14 @@ def write_web(payload: dict, board: list[dict] | None = None) -> list[Path]:
         f"web merge goblin70_groups={len(g70.get('groups') or [])} "
         f"graded_main_groups={len(main_groups)}"
     )
+    try:
+        from combined_slate_tickets import apply_payout_patch_to_payload
+
+        n_scrape = apply_payout_patch_to_payload(web)
+        if n_scrape:
+            print(f"scrape patch: {n_scrape} tickets -> live_cdp")
+    except Exception as exc:
+        print(f"WARN: scrape patch skipped ({exc})")
     if not main_groups:
         print(
             "WARN: mixer groups empty — /tickets would be Goblin-70 only. "
@@ -1083,7 +1091,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
         "step8_root": str(root) if root else None,
         "payout_note": (
             "N-correct / To Win only. Ignore 1st place. "
-            "Rates: slip pin → same-day CDP (matching Goblin-Δ) → mix_by_delta → fallback."
+            "Rates from PrizePicks CDP scrapes (Goblin-Δ), then mix_by_delta."
         ),
         "pool": {
             "goblin_70": len(gob),

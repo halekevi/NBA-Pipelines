@@ -1,13 +1,13 @@
-"""Resolve PrizePicks N-correct / To Win multipliers for Goblin-70.
+"""Resolve PrizePicks N-correct / To Win multipliers from live scrapes.
 
 Never use 1st-place. Goblin distance moves the rate, so a composition-only
 median (the old 2.9x) is not a live quote.
 
 Lookup order:
-  1. Dated slip pin in data/reports/payout_overrides_*.json
-  2. Same-day live CDP row with matching composition + Goblin-Δ
-  3. mix_by_delta cell for this ticket's Δ signature
-  4. Hardcoded PAY fallback (last known live pins / canonical Standard)
+  1. Live CDP scrape with matching composition + Goblin-Δ (prefer slate date)
+  2. mix_by_delta cell built from those scrapes
+  3. Dated slip pin (emergency only)
+  4. Hardcoded last-known fallback
 """
 from __future__ import annotations
 
@@ -227,7 +227,7 @@ def lookup_override(
     return None
 
 
-def lookup_live_cdp_today(
+def lookup_live_cdp_scrape(
     date: str,
     n_s: int,
     n_g: int,
@@ -237,15 +237,15 @@ def lookup_live_cdp_today(
     *,
     repo: Path | None = None,
 ) -> dict[str, Any] | None:
-    if not date or not delta_sig:
+    """N-correct from PrizePicks CDP scrapes (payout_ladder_live_cdp.json)."""
+    if not delta_sig:
         return None
     root = repo or ROOT
     payload = _load_json(root / "ui_runner" / "data" / "payout_ladder_live_cdp.json")
     hits: list[dict[str, Any]] = []
+    want = f"{n_s}S+{n_g}G"
     for rec in payload.get("rows") or []:
         if not isinstance(rec, dict):
-            continue
-        if str(rec.get("date") or "")[:10] != date:
             continue
         src = str(rec.get("source") or "").strip().lower()
         if src and src not in {"live_cdp", "cdp", "live", "ok"}:
@@ -257,7 +257,6 @@ def lookup_live_cdp_today(
         if rec_n != n_legs:
             continue
         comp = str(rec.get("leg_composition") or rec.get("composition") or "").upper().replace(" ", "")
-        want = f"{n_s}S+{n_g}G"
         if want not in comp:
             continue
         rec_sig = _norm_delta_sig(rec.get("goblin_deltas") or rec.get("goblin_delta_sig"))
@@ -266,15 +265,23 @@ def lookup_live_cdp_today(
         hits.append(rec)
     if not hits:
         return None
-    hits.sort(key=lambda r: str(r.get("ticket_id") or ""))
+    date_s = str(date or "")[:10]
+    hits.sort(
+        key=lambda r: (
+            1 if str(r.get("date") or "")[:10] == date_s else 0,
+            str(r.get("date") or ""),
+            str(r.get("ticket_id") or ""),
+        )
+    )
     rec = hits[-1]
+    rec_date = str(rec.get("date") or "")[:10]
     if product.lower() == "flex":
         table = _int_ladder(rec.get("flex_n_correct"))
         if not table:
             return None
         return _result(
             table,
-            note=f"same-day live CDP Flex {delta_sig}",
+            note=f"CDP scrape Flex {want} Δ={delta_sig} ({rec_date})",
             source="n_correct_live",
         )
     power = _f(rec.get("power_payout_x") or rec.get("power_min_x"))
@@ -282,9 +289,12 @@ def lookup_live_cdp_today(
         return None
     return _result(
         {n_legs: power},
-        note=f"same-day live CDP Power {delta_sig}",
+        note=f"CDP scrape Power {want} Δ={delta_sig} ({rec_date})",
         source="n_correct_live",
     )
+
+
+lookup_live_cdp_today = lookup_live_cdp_scrape
 
 
 def lookup_mix_by_delta(
@@ -342,15 +352,15 @@ def resolve_n_correct(
     if n_legs <= 0:
         n_legs = len(legs)
     delta_sig = goblin_delta_sig(legs)
-    found = lookup_override(date, n_s, n_g, n_legs, product, repo=repo)
-    if found:
-        return found
-    found = lookup_live_cdp_today(
+    found = lookup_live_cdp_scrape(
         date, n_s, n_g, n_legs, product, delta_sig, repo=repo
     )
     if found:
         return found
     found = lookup_mix_by_delta(n_s, n_g, n_legs, product, delta_sig, repo=repo)
+    if found:
+        return found
+    found = lookup_override(date, n_s, n_g, n_legs, product, repo=repo)
     if found:
         return found
     return fallback_pay(family, n_legs, product)

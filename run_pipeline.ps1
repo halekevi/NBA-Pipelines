@@ -1772,15 +1772,18 @@ function Run-Combined {
         Write-Host "  Saved -> $toGradeTomorrowPath" -ForegroundColor Green
         Write-Host "  Saved -> $canonicalCombinedPath" -ForegroundColor Green
         Write-Host "  Saved -> $canonicalFrozenPath" -ForegroundColor Green
-        # Post-ticket: scrape live PP payout floors onto MAIN/STRONG slips (display_min_x / live_cdp).
+        Invoke-Goblin70DualCard -SlateDate $Date
+        # Scrape the dual card (Goblin-70 + mixer) so N-correct floors come from PrizePicks.
         $skipLivePay = $SkipLivePayoutCapture -or ($env:PROPORACLE_SKIP_LIVE_PAYOUT -eq "1")
         if ($skipLivePay) {
             Write-Host "  [PAYOUT] Skipping live CDP capture (-SkipLivePayoutCapture / PROPORACLE_SKIP_LIVE_PAYOUT=1)" -ForegroundColor DarkGray
         } else {
             $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
+            $TicketsLatestJson = Join-Path $WebOutDir "tickets_latest.json"
+            $cdpTickets = if (Test-Path -LiteralPath $TicketsLatestJson) { $TicketsLatestJson } else { $DatedTicketsJson }
             if (Test-Path -LiteralPath $livePayScript) {
                 try {
-                    & $livePayScript -Date $Date -Root $Root -TicketsPath $DatedTicketsJson
+                    & $livePayScript -Date $Date -Root $Root -TicketsPath $cdpTickets
                 } catch {
                     Write-Host "  [PAYOUT] WARN: live payout capture error (non-blocking): $_" -ForegroundColor Yellow
                 }
@@ -1804,7 +1807,6 @@ function Run-Combined {
                 Pop-Location
             }
         }
-        Invoke-Goblin70DualCard -SlateDate $Date
         if ($SkipPush) {
             Write-Host "  [git] Skipping push (-SkipPush)" -ForegroundColor DarkGray
         } else {

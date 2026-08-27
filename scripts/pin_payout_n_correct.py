@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Pin tonight's PrizePicks N-correct / To Win rates from a live slip.
 
+Emergency only. Normal path is CDP scrape after Goblin-70 merge.
 Never pin 1st-place. Example:
 
   py -3.14 scripts/pin_payout_n_correct.py --date 2026-08-27 --legs 3 --goblins 3 --product Power --pays 3=2.0

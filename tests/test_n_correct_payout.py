@@ -10,7 +10,7 @@ from utils.n_correct_payout import (
 )
 
 
-def test_override_beats_fallback(tmp_path: Path):
+def test_override_used_when_no_scrape(tmp_path: Path):
     reports = tmp_path / "data" / "reports"
     reports.mkdir(parents=True)
     payload = {
@@ -40,6 +40,56 @@ def test_override_beats_fallback(tmp_path: Path):
     other = resolve_n_correct(legs, "Power", "goblin", date="2026-08-26", repo=tmp_path)
     assert other["payout_source"] == "n_correct_median"
     assert other["n_correct"][3] == 2.0
+
+
+def test_scrape_beats_slip_pin(tmp_path: Path):
+    reports = tmp_path / "data" / "reports"
+    reports.mkdir(parents=True)
+    (reports / "payout_overrides_2026-08-27.json").write_text(
+        json.dumps(
+            {
+                "date": "2026-08-27",
+                "entries": [
+                    {
+                        "n_legs": 3,
+                        "n_s": 0,
+                        "n_g": 3,
+                        "product": "Power",
+                        "n_correct": {"3": 9.9},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    live = tmp_path / "ui_runner" / "data"
+    live.mkdir(parents=True)
+    (live / "payout_ladder_live_cdp.json").write_text(
+        json.dumps(
+            {
+                "rows": [
+                    {
+                        "date": "2026-08-27",
+                        "n_legs": "3",
+                        "leg_composition": "0S+3G+0D",
+                        "goblin_deltas": ["2", "2.5", "2"],
+                        "power_payout_x": "2.0",
+                        "source": "live_cdp",
+                        "ticket_id": "scrape",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    legs = [
+        {"pick_type": "Goblin", "line": 3.5, "standard_line": 5.5, "p": 0.76},
+        {"pick_type": "Goblin", "line": 2.5, "standard_line": 5.0, "p": 0.76},
+        {"pick_type": "Goblin", "line": 1.5, "standard_line": 3.5, "p": 0.76},
+    ]
+    got = resolve_n_correct(legs, "Power", "goblin", date="2026-08-27", repo=tmp_path)
+    assert got["n_correct"][3] == 2.0
+    assert got["payout_source"] == "n_correct_live"
 
 
 def test_same_day_cdp_matches_delta(tmp_path: Path):

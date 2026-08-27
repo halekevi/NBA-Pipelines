@@ -5,8 +5,8 @@
   PrizePicks CDP payout floors for the new board.
 .NOTES
   Cadence: Daily 8AM / Refresh 9AM / 945AM / 1030AM / 1PM / 430PM (run_refresh_with_log.ps1).
-  1AM is the initial full daily; these runs re-fetch props/lines, rebuild tickets, then
-  patch live mixer legs from the new board and re-merge Goblin-70.
+  1AM is the initial full daily; these runs re-fetch props/lines, rebuild tickets
+  (Goblin-70 dual card first), then scrape PrizePicks N-correct onto that card.
   Pipeline uses -SkipLivePayoutCapture so rebuild stays fast; CDP runs immediately after.
   Separate PropOracle - Payout CDP @ 11:00 / Update @ 15:00 are retired —
   CDP runs only after this fetch/rebuild (or manual run_payout_cdp.ps1).
@@ -525,18 +525,31 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Rebuild Goblin-70 from this fetch first, then scrape PrizePicks N-correct
+# onto the dual card so 9AM / 9:45 / 10:30 / 1PM / 4:30 publish live floors.
+$goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
+if (Test-Path -LiteralPath $goblin70) {
+    Write-Host "[LATE_FETCH] Rebuilding Goblin-70 + patching mixer from this fetch..." -ForegroundColor Cyan
+    try {
+        & py -3.14 $goblin70 --date $PipeDate --write-web
+        Write-Host "[LATE_FETCH] Goblin-70 dual card exit $LASTEXITCODE" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "[LATE_FETCH] WARN: Goblin-70 rebuild failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
 if (Test-Path -LiteralPath $livePayScript) {
     # New tickets after a line-move rebuild need fresh live_cdp (≥1.5x) or the web
-    # filter ships an empty board. Re-scrape all MAIN/STRONG slips (Force) so moved
-    # lines get new floors — UpdateOnly/missing-only is not enough.
+    # filter ships an empty board. Re-scrape all slips on the dual card (Force) so
+    # Goblin-70 + mixer get N-correct floors — UpdateOnly/missing-only is not enough.
     $cdpReady = $false
     try {
         $null = Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/version" -TimeoutSec 2 -ErrorAction Stop
         $cdpReady = $true
     } catch { }
     if ($cdpReady) {
-        Write-Host "[LATE_FETCH] CDP payout re-scrape (Force + FillMissing) after prop/line refresh..." -ForegroundColor Cyan
+        Write-Host "[LATE_FETCH] CDP payout re-scrape (Force + FillMissing) after Goblin-70 merge..." -ForegroundColor Cyan
         try {
             & pwsh -NoProfile -File $livePayScript -Date $PipeDate -Root $Root -Force -FillMissingTickets -RebuildRateCard
             Write-Host "[LATE_FETCH] Payout re-scrape exit $LASTEXITCODE" -ForegroundColor DarkGray
@@ -554,19 +567,6 @@ if (Test-Path -LiteralPath $livePayScript) {
     }
 } else {
     Write-Host "[LATE_FETCH] WARN: run_live_payout_capture.ps1 missing — skip payout re-scrape" -ForegroundColor Yellow
-}
-
-# Rebuild Goblin-70 from this fetch and patch mixer legs (line moves / off-board drops)
-# so 9AM / 9:45 / 10:30 / 1PM / 4:30 publish current tickets, not the 1AM lines.
-$goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
-if (Test-Path -LiteralPath $goblin70) {
-    Write-Host "[LATE_FETCH] Rebuilding Goblin-70 + patching mixer from this fetch..." -ForegroundColor Cyan
-    try {
-        & py -3.14 $goblin70 --date $PipeDate --write-web
-        Write-Host "[LATE_FETCH] Goblin-70 dual card exit $LASTEXITCODE" -ForegroundColor DarkGray
-    } catch {
-        Write-Host "[LATE_FETCH] WARN: Goblin-70 rebuild failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
-    }
 }
 
 Write-Host "[LATE_FETCH] Done $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green

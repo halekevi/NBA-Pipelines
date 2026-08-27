@@ -99,21 +99,30 @@ def load_today_board(date: str) -> list[dict]:
             rows.extend(R.recs(extra))
     return rows
 
-# Observed N-correct medians from predicted_payout_tables_latest.json.
-# Verify on the slip; goblin distance moves these.
+# N-correct / To Win only. Never 1st-place.
+# 2026-08-27 live slips (deep Goblins): Power 3 = 2x, Flex 3 = 1.7x / 0.5x,
+# Power 4 = 2.4x, Flex 4 = 1.9x / 0.5x. Older scrape medians (~2.9x) do not
+# match this board — goblin distance moves the multiplier.
 PAY = {
-    ("goblin", 3, "Power"): {"n_correct": {3: 2.9}, "note": "0S+3G Power median 2.9x"},
+    ("goblin", 3, "Power"): {
+        "n_correct": {3: 2.0},
+        "note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+    },
     ("goblin", 2, "Power"): {
         "n_correct": {2: 2.2},
         "note": "0S+2G Power median 2.2x — confirm on the slip",
     },
     ("goblin", 3, "Flex"): {
-        "n_correct": {3: 2.125, 2: 0.5},
-        "note": "0S+3G Flex 3=2.125x / 2=0.5x",
+        "n_correct": {3: 1.7, 2: 0.5},
+        "note": "0S+3G Flex 3=1.7x / 2=0.5x (live slip; N-correct / To Win)",
+    },
+    ("goblin", 4, "Power"): {
+        "n_correct": {4: 2.4},
+        "note": "0S+4G Power 4-correct 2.4x (live slip; N-correct / To Win)",
     },
     ("goblin", 4, "Flex"): {
-        "n_correct": {4: 3.0, 3: 0.75},
-        "note": "0S+4G Flex 4=3x / 3=0.75x",
+        "n_correct": {4: 1.9, 3: 0.5},
+        "note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
     },
     ("mix", 4, "Flex"): {
         "n_correct": {4: 3.0, 3: 0.75},
@@ -123,7 +132,10 @@ PAY = {
         "n_correct": {3: 2.25, 2: 1.25},
         "note": "3S Flex 3=2.25x / 2=1.25x",
     },
-    ("nflp", 3, "Power"): {"n_correct": {3: 2.9}, "note": "0S+3G Power median 2.9x"},
+    ("nflp", 3, "Power"): {
+        "n_correct": {3: 2.0},
+        "note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+    },
     ("nflp", 2, "Power"): {
         "n_correct": {2: 2.2},
         "note": "0S+2G Power median 2.2x — confirm on the slip",

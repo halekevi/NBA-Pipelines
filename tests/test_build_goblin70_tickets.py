@@ -125,9 +125,9 @@ def test_web_payload_drops_standard_and_uses_n_correct():
                 "mean_leg_p": 0.763,
                 "sweep_pct": 44.4,
                 "cash_pct": 44.4,
-                "ev_n_correct": 1.288,
-                "n_correct": {3: 2.9},
-                "payout_note": "0S+3G Power median 2.9x",
+                "ev_n_correct": 0.887,
+                "n_correct": {3: 2.0},
+                "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
                 "legs": [
                     {
                         "sport": "MLB",
@@ -208,10 +208,10 @@ def test_web_payload_drops_standard_and_uses_n_correct():
     assert all(leg["pick_type"] == "Goblin" for leg in legs)
     assert all(leg["direction"] == "OVER" for leg in legs)
     pay = slip["payout"]
-    assert pay["min_guarantee"] == 2.9
-    assert pay["sweep_payout_x"] == 2.9
-    assert pay["audit_all_hit_x"] == 2.9
-    assert pay["n_correct"][3] == 2.9
+    assert pay["min_guarantee"] == 2.0
+    assert pay["sweep_payout_x"] == 2.0
+    assert pay["audit_all_hit_x"] == 2.0
+    assert pay["n_correct"][3] == 2.0
     assert "1st" not in str(pay.get("payout_note") or "").lower()
 
 
@@ -301,6 +301,19 @@ def test_named_wnba_and_nfl_groups_are_playable():
     }
     assert "WNBA" in sports
     assert "NFL" in sports
+
+
+def test_goblin_power3_n_correct_is_live_2x():
+    from build_goblin70_tickets import PAY, ticket_math
+
+    assert PAY[("goblin", 3, "Power")]["n_correct"][3] == 2.0
+    math = ticket_math(
+        [{"p": 0.763}, {"p": 0.763}, {"p": 0.763}],
+        "Power",
+        "goblin",
+    )
+    assert math["n_correct"][3] == 2.0
+    assert abs(math["ev_n_correct"] - (0.763 ** 3) * 2.0) < 0.001
 
 
 def test_goblin70_web_leg_splits_hr_and_ml():

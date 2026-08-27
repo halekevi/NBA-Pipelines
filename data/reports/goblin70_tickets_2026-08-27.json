@@ -1,6 +1,6 @@
 {
   "date": "2026-08-27",
-  "built_at": "2026-08-27T17:29:53-04:00",
+  "built_at": "2026-08-27T18:45:19-04:00",
   "step8_root": "H:\\PropORACLE_main_cp",
   "payout_note": "N-correct / To Win only. Ignore 1st place. All-Goblin medians from predicted_payout_tables_latest; confirm on the slip.",
   "pool": {
@@ -25,8 +25,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
-      "p": 0.763
+      "team": "WAS",
+      "p": 0.763,
+      "ml_prob": 0.6737411015637056,
+      "hit_rate": 1.0,
+      "standard_line": 26.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -41,8 +49,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.763
+      "team": "NYY",
+      "p": 0.763,
+      "ml_prob": 0.9387871353432428,
+      "hit_rate": 1.0,
+      "standard_line": 5.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -57,8 +73,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "BAL vs STL",
-      "team": "",
-      "p": 0.763
+      "team": "BAL",
+      "p": 0.763,
+      "ml_prob": 0.9419591047691098,
+      "hit_rate": 1.0,
+      "standard_line": 5.0,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -73,8 +97,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "COL vs WSH",
-      "team": "",
-      "p": 0.763
+      "team": "COL",
+      "p": 0.763,
+      "ml_prob": 0.9305474493276352,
+      "hit_rate": 1.0,
+      "standard_line": 15.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -89,8 +121,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
-      "p": 0.763
+      "team": "WAS",
+      "p": 0.763,
+      "ml_prob": 0.6605660313282253,
+      "hit_rate": 1.0,
+      "standard_line": 5.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -105,8 +145,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "COL vs WSH",
-      "team": "",
-      "p": 0.763
+      "team": "COL",
+      "p": 0.763,
+      "ml_prob": 0.9711609070146268,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -121,8 +169,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "STL vs BAL",
-      "team": "",
-      "p": 0.763
+      "team": "STL",
+      "p": 0.763,
+      "ml_prob": 0.9711609070146268,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -137,8 +193,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.763
+      "team": "NYY",
+      "p": 0.763,
+      "ml_prob": 0.9676720387588478,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -153,8 +217,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "WSH vs COL",
-      "team": "",
-      "p": 0.763
+      "team": "WSH",
+      "p": 0.763,
+      "ml_prob": 0.9709028591157074,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -169,8 +241,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "COL vs WSH",
-      "team": "",
-      "p": 0.763
+      "team": "COL",
+      "p": 0.763,
+      "ml_prob": 0.9676720387588478,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -185,8 +265,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.763
+      "team": "NYY",
+      "p": 0.763,
+      "ml_prob": 0.9761813507953372,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -201,8 +289,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "COL vs WSH",
-      "team": "",
-      "p": 0.763
+      "team": "COL",
+      "p": 0.763,
+      "ml_prob": 0.9790577803856544,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -217,8 +313,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "GSV vs NYL",
-      "team": "",
-      "p": 0.763
+      "team": "GSV",
+      "p": 0.763,
+      "ml_prob": 0.6788649233164149,
+      "hit_rate": 1.0,
+      "standard_line": 8.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -233,8 +337,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "GSV vs NYL",
-      "team": "",
-      "p": 0.763
+      "team": "GSV",
+      "p": 0.763,
+      "ml_prob": 0.6839661367043887,
+      "hit_rate": 1.0,
+      "standard_line": 12.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -249,8 +361,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "KC vs TOR",
-      "team": "",
-      "p": 0.763
+      "team": "KC",
+      "p": 0.763,
+      "ml_prob": 0.951725596600874,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -265,8 +385,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "GSV vs NYL",
-      "team": "",
-      "p": 0.763
+      "team": "GSV",
+      "p": 0.763,
+      "ml_prob": 0.6618363072036697,
+      "hit_rate": 1.0,
+      "standard_line": 13.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -281,8 +409,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "GSV vs NYL",
-      "team": "",
-      "p": 0.763
+      "team": "GSV",
+      "p": 0.763,
+      "ml_prob": 0.6638629898878033,
+      "hit_rate": 1.0,
+      "standard_line": 5.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -297,8 +433,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "KC vs TOR",
-      "team": "",
-      "p": 0.763
+      "team": "KC",
+      "p": 0.763,
+      "ml_prob": 0.9845474743721572,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -313,8 +457,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.763
+      "team": "TOR",
+      "p": 0.763,
+      "ml_prob": 0.9852933643324456,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -329,8 +481,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.763
+      "team": "TOR",
+      "p": 0.763,
+      "ml_prob": 0.9727209916673396,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -345,8 +505,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "PHX vs WAS",
-      "team": "",
-      "p": 0.763
+      "team": "PHX",
+      "p": 0.763,
+      "ml_prob": 0.6691011108428714,
+      "hit_rate": 1.0,
+      "standard_line": 22.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -361,8 +529,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "PHX vs WAS",
-      "team": "",
-      "p": 0.763
+      "team": "PHX",
+      "p": 0.763,
+      "ml_prob": 0.6833894265134826,
+      "hit_rate": 1.0,
+      "standard_line": 31.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -377,8 +553,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.763
+      "team": "HOU",
+      "p": 0.763,
+      "ml_prob": 0.9514091132487608,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -393,8 +577,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYM vs MIL",
-      "team": "",
-      "p": 0.763
+      "team": "NYM",
+      "p": 0.763,
+      "ml_prob": 0.9546454057714812,
+      "hit_rate": 1.0,
+      "standard_line": 17.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -409,8 +601,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "MIL vs NYM",
-      "team": "",
-      "p": 0.763
+      "team": "MIL",
+      "p": 0.763,
+      "ml_prob": 0.9572808512084064,
+      "hit_rate": 1.0,
+      "standard_line": 8.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -425,8 +625,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.763
+      "team": "ATL",
+      "p": 0.763,
+      "ml_prob": 0.964867420233928,
+      "hit_rate": 1.0,
+      "standard_line": 7.0,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -441,8 +649,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
-      "p": 0.763
+      "team": "NYL",
+      "p": 0.763,
+      "ml_prob": 0.70579311444284,
+      "hit_rate": 1.0,
+      "standard_line": 2.0,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -457,8 +673,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYM vs MIL",
-      "team": "",
-      "p": 0.763
+      "team": "NYM",
+      "p": 0.763,
+      "ml_prob": 0.975511025640006,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -473,8 +697,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "MIL vs NYM",
-      "team": "",
-      "p": 0.763
+      "team": "MIL",
+      "p": 0.763,
+      "ml_prob": 0.9657814292279778,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -489,8 +721,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYM vs MIL",
-      "team": "",
-      "p": 0.763
+      "team": "NYM",
+      "p": 0.763,
+      "ml_prob": 0.56,
+      "hit_rate": 1.0,
+      "standard_line": 0.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -505,8 +745,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.763
+      "team": "HOU",
+      "p": 0.763,
+      "ml_prob": 0.9640935785094,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -521,8 +769,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "LAD vs ATL",
-      "team": "",
-      "p": 0.763
+      "team": "LAD",
+      "p": 0.763,
+      "ml_prob": 0.9594500842063924,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -537,8 +793,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "MIL vs NYM",
-      "team": "",
-      "p": 0.763
+      "team": "MIL",
+      "p": 0.763,
+      "ml_prob": 0.9657814292279778,
+      "hit_rate": 1.0,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -553,8 +817,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.763
+      "team": "ATL",
+      "p": 0.763,
+      "ml_prob": 0.963502147911376,
+      "hit_rate": 1.0,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "TENNIS",
@@ -569,8 +841,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "QINWEN ZHENG vs ELENA PRIDANKINA",
-      "team": "",
-      "p": 0.734
+      "team": "QINWEN ZHENG",
+      "p": 0.734,
+      "ml_prob": 0.58,
+      "hit_rate": 0.8,
+      "standard_line": 20.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -585,8 +865,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "BAL vs STL",
-      "team": "",
-      "p": 0.734
+      "team": "BAL",
+      "p": 0.734,
+      "ml_prob": 0.9793507204818944,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -601,8 +889,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
-      "p": 0.734
+      "team": "WAS",
+      "p": 0.734,
+      "ml_prob": 0.6591729238558958,
+      "hit_rate": 0.8,
+      "standard_line": 12.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -617,8 +913,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "SF vs AZ",
-      "team": "",
-      "p": 0.734
+      "team": "SF",
+      "p": 0.734,
+      "ml_prob": 0.9610292762833604,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -633,8 +937,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.734
+      "team": "NYY",
+      "p": 0.734,
+      "ml_prob": 0.968715511022928,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -649,8 +961,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.734
+      "team": "NYY",
+      "p": 0.734,
+      "ml_prob": 0.9662608059668693,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -665,8 +985,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "WSH vs COL",
-      "team": "",
-      "p": 0.734
+      "team": "WSH",
+      "p": 0.734,
+      "ml_prob": 0.9668013786649648,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -681,8 +1009,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "BAL vs STL",
-      "team": "",
-      "p": 0.734
+      "team": "BAL",
+      "p": 0.734,
+      "ml_prob": 0.967461912676687,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -697,8 +1033,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "SF vs AZ",
-      "team": "",
-      "p": 0.734
+      "team": "SF",
+      "p": 0.734,
+      "ml_prob": 0.9468624771874592,
+      "hit_rate": 0.8,
+      "standard_line": 4.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -713,8 +1057,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.734
+      "team": "NYY",
+      "p": 0.734,
+      "ml_prob": 0.9662608059668693,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -729,8 +1081,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "WSH vs COL",
-      "team": "",
-      "p": 0.734
+      "team": "WSH",
+      "p": 0.734,
+      "ml_prob": 0.9778547638759566,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -745,8 +1105,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "BAL vs STL",
-      "team": "",
-      "p": 0.734
+      "team": "BAL",
+      "p": 0.734,
+      "ml_prob": 0.982288164715058,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -761,8 +1129,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "COL vs WSH",
-      "team": "",
-      "p": 0.734
+      "team": "COL",
+      "p": 0.734,
+      "ml_prob": 0.955938556787122,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -777,8 +1153,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "STL vs BAL",
-      "team": "",
-      "p": 0.734
+      "team": "STL",
+      "p": 0.734,
+      "ml_prob": 0.9567449011654706,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -793,8 +1177,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "BAL vs STL",
-      "team": "",
-      "p": 0.734
+      "team": "BAL",
+      "p": 0.734,
+      "ml_prob": 0.967461912676687,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -809,8 +1201,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "SF vs AZ",
-      "team": "",
-      "p": 0.734
+      "team": "SF",
+      "p": 0.734,
+      "ml_prob": 0.9610292762833604,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -825,8 +1225,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "NYY vs HOU",
-      "team": "",
-      "p": 0.734
+      "team": "NYY",
+      "p": 0.734,
+      "ml_prob": 0.9567449011654706,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -841,8 +1249,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "STL vs BAL",
-      "team": "",
-      "p": 0.734
+      "team": "STL",
+      "p": 0.734,
+      "ml_prob": 0.9567449011654706,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -857,8 +1273,16 @@
       "badge": "Gold",
       "tier": null,
       "matchup": "STL vs BAL",
-      "team": "",
-      "p": 0.734
+      "team": "STL",
+      "p": 0.734,
+      "ml_prob": 0.9567449011654706,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -873,8 +1297,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
-      "p": 0.734
+      "team": "WAS",
+      "p": 0.734,
+      "ml_prob": 0.6602042412055911,
+      "hit_rate": 0.8,
+      "standard_line": 17.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -889,8 +1321,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "KC vs TOR",
-      "team": "",
-      "p": 0.734
+      "team": "KC",
+      "p": 0.734,
+      "ml_prob": 0.9724598284378628,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -905,8 +1345,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "KC vs TOR",
-      "team": "",
-      "p": 0.734
+      "team": "KC",
+      "p": 0.734,
+      "ml_prob": 0.9639794022593928,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -921,8 +1369,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.734
+      "team": "TOR",
+      "p": 0.734,
+      "ml_prob": 0.9724598284378628,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -937,8 +1393,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.734
+      "team": "TOR",
+      "p": 0.734,
+      "ml_prob": 0.9724598284378628,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -953,8 +1417,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "KC vs TOR",
-      "team": "",
-      "p": 0.734
+      "team": "KC",
+      "p": 0.734,
+      "ml_prob": 0.9844441052476942,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -969,8 +1441,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.734
+      "team": "TOR",
+      "p": 0.734,
+      "ml_prob": 0.9809264761261928,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -985,8 +1465,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.734
+      "team": "TOR",
+      "p": 0.734,
+      "ml_prob": 0.9831292141007968,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1001,8 +1489,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "KC vs TOR",
-      "team": "",
-      "p": 0.734
+      "team": "KC",
+      "p": 0.734,
+      "ml_prob": 0.9837028844643666,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1017,8 +1513,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "TOR vs KC",
-      "team": "",
-      "p": 0.734
+      "team": "TOR",
+      "p": 0.734,
+      "ml_prob": 0.973904167505684,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -1033,8 +1537,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
-      "p": 0.734
+      "team": "NYL",
+      "p": 0.734,
+      "ml_prob": 0.6777889250735813,
+      "hit_rate": 0.8,
+      "standard_line": 26.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -1049,8 +1561,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "PHX vs WAS",
-      "team": "",
-      "p": 0.734
+      "team": "PHX",
+      "p": 0.734,
+      "ml_prob": 0.647672513645197,
+      "hit_rate": 0.8,
+      "standard_line": 7.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -1065,8 +1585,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
-      "p": 0.734
+      "team": "NYL",
+      "p": 0.734,
+      "ml_prob": 0.6657481354208539,
+      "hit_rate": 0.8,
+      "standard_line": 21.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -1081,8 +1609,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "PHX vs WAS",
-      "team": "",
-      "p": 0.734
+      "team": "PHX",
+      "p": 0.734,
+      "ml_prob": 0.6431381905605281,
+      "hit_rate": 0.8,
+      "standard_line": 9.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -1097,8 +1633,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
-      "p": 0.734
+      "team": "NYL",
+      "p": 0.734,
+      "ml_prob": 0.67961023422309,
+      "hit_rate": 0.8,
+      "standard_line": 11.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1113,8 +1657,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "AZ vs SF",
-      "team": "",
-      "p": 0.734
+      "team": "AZ",
+      "p": 0.734,
+      "ml_prob": 0.9638460554858194,
+      "hit_rate": 1.0,
+      "standard_line": 4.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1129,8 +1681,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "MIL vs NYM",
-      "team": "",
-      "p": 0.734
+      "team": "MIL",
+      "p": 0.734,
+      "ml_prob": 0.9533048598469028,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1145,8 +1705,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "AZ vs SF",
-      "team": "",
-      "p": 0.734
+      "team": "AZ",
+      "p": 0.734,
+      "ml_prob": 0.9831292141007968,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "WNBA",
@@ -1161,8 +1729,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
-      "p": 0.734
+      "team": "NYL",
+      "p": 0.734,
+      "ml_prob": 0.6631698197449396,
+      "hit_rate": 0.8,
+      "standard_line": 6.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1177,8 +1753,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "LAD vs ATL",
-      "team": "",
-      "p": 0.734
+      "team": "LAD",
+      "p": 0.734,
+      "ml_prob": 0.94949740763972,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1193,8 +1777,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "LAD vs ATL",
-      "team": "",
-      "p": 0.734
+      "team": "LAD",
+      "p": 0.734,
+      "ml_prob": 0.9576415651164112,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1209,8 +1801,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "LAD vs ATL",
-      "team": "",
-      "p": 0.734
+      "team": "LAD",
+      "p": 0.734,
+      "ml_prob": 0.9576415651164112,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1225,8 +1825,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.734
+      "team": "HOU",
+      "p": 0.734,
+      "ml_prob": 0.9605214131129748,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1241,8 +1849,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.734
+      "team": "ATL",
+      "p": 0.734,
+      "ml_prob": 0.9460457166761796,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1257,8 +1873,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.734
+      "team": "HOU",
+      "p": 0.734,
+      "ml_prob": 0.94949740763972,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1273,8 +1897,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.734
+      "team": "ATL",
+      "p": 0.734,
+      "ml_prob": 0.9731318095288318,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1289,8 +1921,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "MIL vs NYM",
-      "team": "",
-      "p": 0.734
+      "team": "MIL",
+      "p": 0.734,
+      "ml_prob": 0.9640441698356936,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1305,8 +1945,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYM vs MIL",
-      "team": "",
-      "p": 0.734
+      "team": "NYM",
+      "p": 0.734,
+      "ml_prob": 0.9767679440492676,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1321,8 +1969,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "NYM vs MIL",
-      "team": "",
-      "p": 0.734
+      "team": "NYM",
+      "p": 0.734,
+      "ml_prob": 0.9640441698356936,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1337,8 +1993,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.734
+      "team": "HOU",
+      "p": 0.734,
+      "ml_prob": 0.94949740763972,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1353,8 +2017,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.734
+      "team": "ATL",
+      "p": 0.734,
+      "ml_prob": 0.9576415651164112,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1369,8 +2041,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.734
+      "team": "ATL",
+      "p": 0.734,
+      "ml_prob": 0.9726432759777992,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1385,8 +2065,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "AZ vs SF",
-      "team": "",
-      "p": 0.734
+      "team": "AZ",
+      "p": 0.734,
+      "ml_prob": 0.961278965327399,
+      "hit_rate": 0.8,
+      "standard_line": 1.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1401,8 +2089,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.734
+      "team": "ATL",
+      "p": 0.734,
+      "ml_prob": 0.9605214131129748,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1417,8 +2113,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "ATL vs LAD",
-      "team": "",
-      "p": 0.734
+      "team": "ATL",
+      "p": 0.734,
+      "ml_prob": 0.9605259171825862,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1433,8 +2137,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.734
+      "team": "HOU",
+      "p": 0.734,
+      "ml_prob": 0.9736909615914048,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     },
     {
       "sport": "MLB",
@@ -1449,8 +2161,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "HOU vs NYY",
-      "team": "",
-      "p": 0.734
+      "team": "HOU",
+      "p": 0.734,
+      "ml_prob": 0.9736909615914048,
+      "hit_rate": 0.8,
+      "standard_line": null,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null
     }
   ],
   "standard_pool": [
@@ -1467,8 +2187,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
+      "team": "WAS",
       "p": 0.644,
+      "ml_prob": 0.4507762404327908,
+      "hit_rate": 1.0,
+      "standard_line": 26.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null,
       "std_kind": "wnba_combo_over"
     },
     {
@@ -1484,8 +2212,16 @@
       "badge": "",
       "tier": null,
       "matchup": "PHX vs WAS",
-      "team": "",
+      "team": "PHX",
       "p": 0.644,
+      "ml_prob": 0.452668704419451,
+      "hit_rate": 0.8,
+      "standard_line": 31.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null,
       "std_kind": "wnba_combo_over"
     },
     {
@@ -1501,8 +2237,16 @@
       "badge": "Bronze",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
+      "team": "WAS",
       "p": 0.644,
+      "ml_prob": 0.4447005467902076,
+      "hit_rate": 0.8,
+      "standard_line": 11.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null,
       "std_kind": "wnba_combo_over"
     },
     {
@@ -1518,8 +2262,16 @@
       "badge": "",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
+      "team": "NYL",
       "p": 0.644,
+      "ml_prob": 0.4528151403498412,
+      "hit_rate": 0.8,
+      "standard_line": 11.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null,
       "std_kind": "wnba_combo_over"
     },
     {
@@ -1535,8 +2287,16 @@
       "badge": "Silver",
       "tier": null,
       "matchup": "NYL vs GSV",
-      "team": "",
+      "team": "NYL",
       "p": 0.631,
+      "ml_prob": 0.4377390406776672,
+      "hit_rate": 0.2,
+      "standard_line": 2.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null,
       "std_kind": "wnba_assists_under"
     },
     {
@@ -1552,8 +2312,16 @@
       "badge": "",
       "tier": null,
       "matchup": "WAS vs PHX",
-      "team": "",
+      "team": "WAS",
       "p": 0.631,
+      "ml_prob": 0.3476575997798825,
+      "hit_rate": 0.2,
+      "standard_line": 2.5,
+      "line_underdog": null,
+      "line_draftkings": null,
+      "best_cross_book": "",
+      "best_cross_line": null,
+      "cross_edge_vs_pp": null,
       "std_kind": "wnba_assists_under"
     }
   ],
@@ -1571,11 +2339,11 @@
       "mean_leg_p": 0.7533,
       "sweep_pct": 42.8,
       "cash_pct": 42.8,
-      "ev_n_correct": 1.24,
+      "ev_n_correct": 0.855,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "TENNIS",
@@ -1595,8 +2363,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WAS vs PHX",
-          "team": "",
-          "p": 0.763
+          "team": "WAS",
+          "p": 0.763,
+          "ml_prob": 0.6737411015637056,
+          "hit_rate": 1.0,
+          "standard_line": 26.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -1611,8 +2387,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "NYY vs HOU",
-          "team": "",
-          "p": 0.763
+          "team": "NYY",
+          "p": 0.763,
+          "ml_prob": 0.9387871353432428,
+          "hit_rate": 1.0,
+          "standard_line": 5.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "TENNIS",
@@ -1627,8 +2411,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "QINWEN ZHENG vs ELENA PRIDANKINA",
-          "team": "",
-          "p": 0.734
+          "team": "QINWEN ZHENG",
+          "p": 0.734,
+          "ml_prob": 0.58,
+          "hit_rate": 0.8,
+          "standard_line": 20.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -1644,11 +2436,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -1667,8 +2459,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "BAL vs STL",
-          "team": "",
-          "p": 0.763
+          "team": "BAL",
+          "p": 0.763,
+          "ml_prob": 0.9419591047691098,
+          "hit_rate": 1.0,
+          "standard_line": 5.0,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -1683,8 +2483,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WAS vs PHX",
-          "team": "",
-          "p": 0.763
+          "team": "WAS",
+          "p": 0.763,
+          "ml_prob": 0.6605660313282253,
+          "hit_rate": 1.0,
+          "standard_line": 5.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -1699,8 +2507,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "COL vs WSH",
-          "team": "",
-          "p": 0.763
+          "team": "COL",
+          "p": 0.763,
+          "ml_prob": 0.9305474493276352,
+          "hit_rate": 1.0,
+          "standard_line": 15.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -1716,11 +2532,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -1739,8 +2555,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "COL vs WSH",
-          "team": "",
-          "p": 0.763
+          "team": "COL",
+          "p": 0.763,
+          "ml_prob": 0.9711609070146268,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -1755,8 +2579,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6788649233164149,
+          "hit_rate": 1.0,
+          "standard_line": 8.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -1771,8 +2603,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "STL vs BAL",
-          "team": "",
-          "p": 0.763
+          "team": "STL",
+          "p": 0.763,
+          "ml_prob": 0.9711609070146268,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -1788,11 +2628,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -1811,8 +2651,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "NYY vs HOU",
-          "team": "",
-          "p": 0.763
+          "team": "NYY",
+          "p": 0.763,
+          "ml_prob": 0.9676720387588478,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -1827,8 +2675,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6839661367043887,
+          "hit_rate": 1.0,
+          "standard_line": 12.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -1843,8 +2699,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WSH vs COL",
-          "team": "",
-          "p": 0.763
+          "team": "WSH",
+          "p": 0.763,
+          "ml_prob": 0.9709028591157074,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -1860,11 +2724,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -1883,8 +2747,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "COL vs WSH",
-          "team": "",
-          "p": 0.763
+          "team": "COL",
+          "p": 0.763,
+          "ml_prob": 0.9676720387588478,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -1899,8 +2771,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6618363072036697,
+          "hit_rate": 1.0,
+          "standard_line": 13.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -1915,8 +2795,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "NYY vs HOU",
-          "team": "",
-          "p": 0.763
+          "team": "NYY",
+          "p": 0.763,
+          "ml_prob": 0.9761813507953372,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -1932,12 +2820,12 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 33.9,
       "cash_pct": 76.0,
-      "ev_n_correct": 1.333,
+      "ev_n_correct": 0.854,
       "n_correct": {
-        "4": 3.0,
-        "3": 0.75
+        "4": 1.9,
+        "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=3x / 3=0.75x",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -1956,8 +2844,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "COL vs WSH",
-          "team": "",
-          "p": 0.763
+          "team": "COL",
+          "p": 0.763,
+          "ml_prob": 0.9790577803856544,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -1972,8 +2868,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6638629898878033,
+          "hit_rate": 1.0,
+          "standard_line": 5.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -1988,8 +2892,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "KC vs TOR",
-          "team": "",
-          "p": 0.763
+          "team": "KC",
+          "p": 0.763,
+          "ml_prob": 0.951725596600874,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2004,8 +2916,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "TOR vs KC",
-          "team": "",
-          "p": 0.763
+          "team": "TOR",
+          "p": 0.763,
+          "ml_prob": 0.9852933643324456,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -2021,12 +2941,12 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 33.9,
       "cash_pct": 76.0,
-      "ev_n_correct": 1.333,
+      "ev_n_correct": 0.854,
       "n_correct": {
-        "4": 3.0,
-        "3": 0.75
+        "4": 1.9,
+        "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=3x / 3=0.75x",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -2045,8 +2965,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "KC vs TOR",
-          "team": "",
-          "p": 0.763
+          "team": "KC",
+          "p": 0.763,
+          "ml_prob": 0.9845474743721572,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2061,8 +2989,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "PHX vs WAS",
-          "team": "",
-          "p": 0.763
+          "team": "PHX",
+          "p": 0.763,
+          "ml_prob": 0.6691011108428714,
+          "hit_rate": 1.0,
+          "standard_line": 22.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2077,8 +3013,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "TOR vs KC",
-          "team": "",
-          "p": 0.763
+          "team": "TOR",
+          "p": 0.763,
+          "ml_prob": 0.9727209916673396,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2093,8 +3037,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "HOU vs NYY",
-          "team": "",
-          "p": 0.763
+          "team": "HOU",
+          "p": 0.763,
+          "ml_prob": 0.9514091132487608,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -2110,12 +3062,12 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 33.9,
       "cash_pct": 76.0,
-      "ev_n_correct": 1.333,
+      "ev_n_correct": 0.854,
       "n_correct": {
-        "4": 3.0,
-        "3": 0.75
+        "4": 1.9,
+        "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=3x / 3=0.75x",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -2134,8 +3086,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "PHX vs WAS",
-          "team": "",
-          "p": 0.763
+          "team": "PHX",
+          "p": 0.763,
+          "ml_prob": 0.6833894265134826,
+          "hit_rate": 1.0,
+          "standard_line": 31.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2150,8 +3110,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "NYM vs MIL",
-          "team": "",
-          "p": 0.763
+          "team": "NYM",
+          "p": 0.763,
+          "ml_prob": 0.9546454057714812,
+          "hit_rate": 1.0,
+          "standard_line": 17.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2166,8 +3134,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "MIL vs NYM",
-          "team": "",
-          "p": 0.763
+          "team": "MIL",
+          "p": 0.763,
+          "ml_prob": 0.9572808512084064,
+          "hit_rate": 1.0,
+          "standard_line": 8.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2182,8 +3158,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "ATL vs LAD",
-          "team": "",
-          "p": 0.763
+          "team": "ATL",
+          "p": 0.763,
+          "ml_prob": 0.964867420233928,
+          "hit_rate": 1.0,
+          "standard_line": 7.0,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -2199,12 +3183,12 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 33.9,
       "cash_pct": 76.0,
-      "ev_n_correct": 1.333,
+      "ev_n_correct": 0.854,
       "n_correct": {
-        "4": 3.0,
-        "3": 0.75
+        "4": 1.9,
+        "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=3x / 3=0.75x",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
       "sports": [
         "MLB",
         "WNBA"
@@ -2223,8 +3207,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "NYL vs GSV",
-          "team": "",
-          "p": 0.763
+          "team": "NYL",
+          "p": 0.763,
+          "ml_prob": 0.70579311444284,
+          "hit_rate": 1.0,
+          "standard_line": 2.0,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2239,8 +3231,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "NYM vs MIL",
-          "team": "",
-          "p": 0.763
+          "team": "NYM",
+          "p": 0.763,
+          "ml_prob": 0.975511025640006,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2255,8 +3255,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "MIL vs NYM",
-          "team": "",
-          "p": 0.763
+          "team": "MIL",
+          "p": 0.763,
+          "ml_prob": 0.9657814292279778,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2271,8 +3279,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "NYM vs MIL",
-          "team": "",
-          "p": 0.763
+          "team": "NYM",
+          "p": 0.763,
+          "ml_prob": 0.56,
+          "hit_rate": 1.0,
+          "standard_line": 0.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ]
     },
@@ -2288,11 +3304,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "WNBA"
       ],
@@ -2310,8 +3326,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WAS vs PHX",
-          "team": "",
-          "p": 0.763
+          "team": "WAS",
+          "p": 0.763,
+          "ml_prob": 0.6737411015637056,
+          "hit_rate": 1.0,
+          "standard_line": 26.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2326,8 +3350,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WAS vs PHX",
-          "team": "",
-          "p": 0.763
+          "team": "WAS",
+          "p": 0.763,
+          "ml_prob": 0.6605660313282253,
+          "hit_rate": 1.0,
+          "standard_line": 5.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2342,8 +3374,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6788649233164149,
+          "hit_rate": 1.0,
+          "standard_line": 8.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ],
       "web_group": "WNBA Goblin-70 Power 3"
@@ -2360,11 +3400,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "WNBA"
       ],
@@ -2382,8 +3422,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6839661367043887,
+          "hit_rate": 1.0,
+          "standard_line": 12.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2398,8 +3446,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6618363072036697,
+          "hit_rate": 1.0,
+          "standard_line": 13.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2414,8 +3470,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "PHX vs WAS",
-          "team": "",
-          "p": 0.763
+          "team": "PHX",
+          "p": 0.763,
+          "ml_prob": 0.6691011108428714,
+          "hit_rate": 1.0,
+          "standard_line": 22.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ],
       "web_group": "WNBA Goblin-70 Power 3"
@@ -2432,11 +3496,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "WNBA"
       ],
@@ -2454,8 +3518,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "GSV vs NYL",
-          "team": "",
-          "p": 0.763
+          "team": "GSV",
+          "p": 0.763,
+          "ml_prob": 0.6638629898878033,
+          "hit_rate": 1.0,
+          "standard_line": 5.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2470,8 +3542,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "PHX vs WAS",
-          "team": "",
-          "p": 0.763
+          "team": "PHX",
+          "p": 0.763,
+          "ml_prob": 0.6833894265134826,
+          "hit_rate": 1.0,
+          "standard_line": 31.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2486,8 +3566,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "NYL vs GSV",
-          "team": "",
-          "p": 0.763
+          "team": "NYL",
+          "p": 0.763,
+          "ml_prob": 0.70579311444284,
+          "hit_rate": 1.0,
+          "standard_line": 2.0,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ],
       "web_group": "WNBA Goblin-70 Power 3"
@@ -2504,11 +3592,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB"
       ],
@@ -2526,8 +3614,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "NYY vs HOU",
-          "team": "",
-          "p": 0.763
+          "team": "NYY",
+          "p": 0.763,
+          "ml_prob": 0.9387871353432428,
+          "hit_rate": 1.0,
+          "standard_line": 5.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2542,8 +3638,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "BAL vs STL",
-          "team": "",
-          "p": 0.763
+          "team": "BAL",
+          "p": 0.763,
+          "ml_prob": 0.9419591047691098,
+          "hit_rate": 1.0,
+          "standard_line": 5.0,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2558,8 +3662,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "COL vs WSH",
-          "team": "",
-          "p": 0.763
+          "team": "COL",
+          "p": 0.763,
+          "ml_prob": 0.9305474493276352,
+          "hit_rate": 1.0,
+          "standard_line": 15.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ],
       "web_group": "MLB Goblin-70 Power 3"
@@ -2576,11 +3688,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB"
       ],
@@ -2598,8 +3710,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "COL vs WSH",
-          "team": "",
-          "p": 0.763
+          "team": "COL",
+          "p": 0.763,
+          "ml_prob": 0.9711609070146268,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2614,8 +3734,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "STL vs BAL",
-          "team": "",
-          "p": 0.763
+          "team": "STL",
+          "p": 0.763,
+          "ml_prob": 0.9711609070146268,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2630,8 +3758,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "NYY vs HOU",
-          "team": "",
-          "p": 0.763
+          "team": "NYY",
+          "p": 0.763,
+          "ml_prob": 0.9676720387588478,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ],
       "web_group": "MLB Goblin-70 Power 3"
@@ -2648,11 +3784,11 @@
       "mean_leg_p": 0.763,
       "sweep_pct": 44.4,
       "cash_pct": 44.4,
-      "ev_n_correct": 1.288,
+      "ev_n_correct": 0.888,
       "n_correct": {
-        "3": 2.9
+        "3": 2.0
       },
-      "payout_note": "0S+3G Power median 2.9x",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
       "sports": [
         "MLB"
       ],
@@ -2670,8 +3806,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WSH vs COL",
-          "team": "",
-          "p": 0.763
+          "team": "WSH",
+          "p": 0.763,
+          "ml_prob": 0.9709028591157074,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2686,8 +3830,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "NYY vs HOU",
-          "team": "",
-          "p": 0.763
+          "team": "NYY",
+          "p": 0.763,
+          "ml_prob": 0.9761813507953372,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2702,8 +3854,16 @@
           "badge": "Silver",
           "tier": null,
           "matchup": "KC vs TOR",
-          "team": "",
-          "p": 0.763
+          "team": "KC",
+          "p": 0.763,
+          "ml_prob": 0.951725596600874,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         }
       ],
       "web_group": "MLB Goblin-70 Power 3"
@@ -2744,8 +3904,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "HOU vs NYY",
-          "team": "",
-          "p": 0.763
+          "team": "HOU",
+          "p": 0.763,
+          "ml_prob": 0.9640935785094,
+          "hit_rate": 1.0,
+          "standard_line": null,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2760,8 +3928,16 @@
           "badge": "Gold",
           "tier": null,
           "matchup": "WAS vs PHX",
-          "team": "",
-          "p": 0.734
+          "team": "WAS",
+          "p": 0.734,
+          "ml_prob": 0.6591729238558958,
+          "hit_rate": 0.8,
+          "standard_line": 12.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "MLB",
@@ -2776,8 +3952,16 @@
           "badge": "Bronze",
           "tier": null,
           "matchup": "LAD vs ATL",
-          "team": "",
-          "p": 0.763
+          "team": "LAD",
+          "p": 0.763,
+          "ml_prob": 0.9594500842063924,
+          "hit_rate": 1.0,
+          "standard_line": 1.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null
         },
         {
           "sport": "WNBA",
@@ -2792,8 +3976,16 @@
           "badge": "",
           "tier": null,
           "matchup": "NYL vs GSV",
-          "team": "",
+          "team": "NYL",
           "p": 0.644,
+          "ml_prob": 0.4528151403498412,
+          "hit_rate": 0.8,
+          "standard_line": 11.5,
+          "line_underdog": null,
+          "line_draftkings": null,
+          "best_cross_book": "",
+          "best_cross_line": null,
+          "cross_edge_vs_pp": null,
           "std_kind": "wnba_combo_over"
         }
       ]

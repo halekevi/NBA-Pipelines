@@ -102,6 +102,61 @@ def skip_era_half(r: dict[str, Any]) -> bool:
         return False
 
 
+def nflp_ticket_eligible(r: dict[str, Any]) -> bool:
+    """NFLP week-3 Goblin OVER for a separate /tickets group (not the 70% book).
+
+    Kickers: L5 >= 4. Backup skill: D pass. Sit/cameo skill overs stay off.
+    """
+    if _pick(r) != "Goblin" or _side(r) != "OVER":
+        return False
+    if _sport(r) != "NFL":
+        return False
+    from utils.nflp_playing_time import is_nflp, nflp_list_eligible, policy_from_row
+
+    if not is_nflp(r.get("league")):
+        return False
+    d_ok = bool((r.get("checks") or {}).get("D") is True)
+    policy = str(r.get("starter_policy") or "") or policy_from_row(r)
+    return nflp_list_eligible(
+        policy=policy,
+        side="OVER",
+        pick_type="Goblin",
+        d_ok=d_ok,
+        l5_over=r.get("l5_over"),
+        l5_under=r.get("l5_under"),
+    )
+
+
+def nflp_std_over_eligible(r: dict[str, Any]) -> bool:
+    """NFLP Standard OVER for a separate /tickets group when Goblins are absent."""
+    if _pick(r) != "Standard" or _side(r) != "OVER":
+        return False
+    if _sport(r) != "NFL":
+        return False
+    from utils.nflp_playing_time import is_nflp, nflp_list_eligible, policy_from_row
+
+    if not is_nflp(r.get("league")):
+        return False
+    d_ok = bool((r.get("checks") or {}).get("D") is True)
+    policy = str(r.get("starter_policy") or "") or policy_from_row(r)
+    return nflp_list_eligible(
+        policy=policy,
+        side="OVER",
+        pick_type="Standard",
+        d_ok=d_ok,
+        l5_over=r.get("l5_over"),
+        l5_under=r.get("l5_under"),
+    )
+
+
+def nflp_ticket_p(r: dict[str, Any]) -> float:
+    from utils.nflp_playing_time import POLICY_PLAYS
+
+    if str(r.get("starter_policy") or "") == POLICY_PLAYS:
+        return 0.70
+    return 0.62
+
+
 def goblin_70_eligible(r: dict[str, Any]) -> bool:
     """Hard ticket gate for the 70% Goblin book."""
     if _pick(r) != "Goblin" or _side(r) != "OVER":

@@ -3092,11 +3092,19 @@ def sync_tickets_json_mirrors(
         if not path.parent.is_dir():
             continue
         # Only overwrite same-date live files (or empty/missing).
+        # Never replace the Goblin-70 playable card with graded_main CDP write-back.
         try:
             if path.is_file():
                 existing = json.loads(path.read_text(encoding="utf-8"))
                 ex_date = str(existing.get("date") or "")[:10]
                 if date_str and ex_date and ex_date != date_str:
+                    continue
+                ex_track = str(
+                    existing.get("ticket_track") or existing.get("mode") or ""
+                ).lower()
+                in_track = str(data.get("ticket_track") or data.get("mode") or "").lower()
+                if ex_track == "goblin70" and in_track != "goblin70":
+                    print(f"[PAYOUT] skip mirror {path.name} (live card is goblin70)")
                     continue
             path.write_text(body, encoding="utf-8")
             print(f"[PAYOUT] mirrored -> {path}")

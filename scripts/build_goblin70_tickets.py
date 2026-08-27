@@ -38,6 +38,9 @@ from utils.ticket_70_pool import (  # noqa: E402
     goblin_sort_key,
     goblin_ticket_p,
     is_pitcher_prop,
+    nflp_std_over_eligible,
+    nflp_ticket_eligible,
+    nflp_ticket_p,
     standard_flex_kind,
     standard_sort_key,
     standard_ticket_p,
@@ -100,6 +103,10 @@ def load_today_board(date: str) -> list[dict]:
 # Verify on the slip; goblin distance moves these.
 PAY = {
     ("goblin", 3, "Power"): {"n_correct": {3: 2.9}, "note": "0S+3G Power median 2.9x"},
+    ("goblin", 2, "Power"): {
+        "n_correct": {2: 2.2},
+        "note": "0S+2G Power median 2.2x — confirm on the slip",
+    },
     ("goblin", 3, "Flex"): {
         "n_correct": {3: 2.125, 2: 0.5},
         "note": "0S+3G Flex 3=2.125x / 2=0.5x",
@@ -116,7 +123,29 @@ PAY = {
         "n_correct": {3: 2.25, 2: 1.25},
         "note": "3S Flex 3=2.25x / 2=1.25x",
     },
+    ("nflp", 3, "Power"): {"n_correct": {3: 2.9}, "note": "0S+3G Power median 2.9x"},
+    ("nflp", 2, "Power"): {
+        "n_correct": {2: 2.2},
+        "note": "0S+2G Power median 2.2x — confirm on the slip",
+    },
+    ("nflp_std", 3, "Power"): {
+        "n_correct": {3: 6.0},
+        "note": "3S Power ~6x — confirm on the slip",
+    },
+    ("nflp_std", 2, "Power"): {
+        "n_correct": {2: 3.0},
+        "note": "2S Power ~3x — confirm on the slip",
+    },
 }
+
+SKIP_PLAYERS = frozenset({"jacob fearnley"})
+
+SPORT_PURE = (
+    ("WNBA", 3, "Power", 3),
+    ("MLB", 3, "Power", 3),
+    ("Tennis", 3, "Power", 2),
+    ("Soccer", 3, "Power", 2),
+)
 
 MAIN_CARD = (
     ("P3-1", 3, "Power", "goblin"),
@@ -187,6 +216,10 @@ def can_add(combo: list[dict], r: dict, *, wnba_cap: int) -> bool:
     if sport == "WNBA" and mu:
         same = sum(1 for x in combo if x.get("sport") == "WNBA" and matchup_key(x) == mu)
         if same >= wnba_cap:
+            return False
+    if sport == "NFL" and mu:
+        same = sum(1 for x in combo if x.get("sport") == "NFL" and matchup_key(x) == mu)
+        if same >= 2:
             return False
     if sport == "TENNIS":
         tk = tennis_match_key(mu)
@@ -280,8 +313,12 @@ def compact(r: dict, *, std: bool = False) -> dict:
 
 
 def playable_tickets(payload: dict) -> list[dict]:
-    """App card: Goblin-70 only. Standard fill stays off /tickets."""
-    return [t for t in (payload.get("tickets") or []) if t.get("family") == "goblin"]
+    """App card: Goblin-70 plus NFLP week-3 groups. Standard fill stays off."""
+    return [
+        t
+        for t in (payload.get("tickets") or [])
+        if t.get("family") in {"goblin", "nflp", "nflp_std"}
+    ]
 
 
 def web_sport(sport: object) -> str:
@@ -451,7 +488,9 @@ def to_web_payload(payload: dict) -> dict:
     for t in goblin:
         n = int(t.get("n_legs") or 0)
         product = str(t.get("product") or "Power")
-        gname = f"X-Sport Goblin-70 {product} {n}"
+        gname = str(t.get("web_group") or "").strip() or (
+            f"X-Sport Goblin-70 {product} {n}"
+        )
         by_group.setdefault(gname, []).append(t)
     for gname, slips in by_group.items():
         web_slips = [
@@ -549,9 +588,11 @@ def make_ticket(
     product: str,
     family: str,
     note: str,
+    *,
+    web_group: str = "",
 ) -> dict:
     n = len(legs)
-    return {
+    out = {
         "id": tid,
         "name": f"{product} {n} · {family}",
         "note": note,
@@ -565,11 +606,18 @@ def make_ticket(
         "sports": sorted({str(x.get("sport")) for x in legs}),
         "legs": legs,
     }
+    if web_group:
+        out["web_group"] = web_group
+    return out
 
 
 def build(date: str, *, l5_eq_5: bool = False) -> dict:
     board = load_today_board(date)
-    gob_raw = [r for r in board if goblin_70_eligible(r)]
+    gob_raw = [
+        r
+        for r in board
+        if goblin_70_eligible(r) and fold_name(r.get("player")) not in SKIP_PLAYERS
+    ]
     if l5_eq_5:
         gob_raw = [r for r in gob_raw if int(directional_l5(r) or 0) == 5]
     std_raw = []
@@ -611,6 +659,69 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
                 product,
                 family,
                 note,
+            )
+            )
+
+    # Named sport groups so /tickets WNBA and NFL pills are not empty.
+    # Mixed X-Sport slips tag as CROSS; these groups use the sport in the title.
+    for sport, n, product, n_tickets in SPORT_PURE:
+        pool = [r for r in gob if str(r.get("sport")) == sport]
+        local_taken: set[str] = set()
+        cap = 2 if sport == "WNBA" else 1
+        for i in range(1, n_tickets + 1):
+            combo = pack(pool, n, local_taken, mix_sports=False, wnba_cap=cap)
+            n_use = n
+            prod = product
+            if len(combo) != n:
+                combo = pack(pool, 2, local_taken, mix_sports=False, wnba_cap=cap)
+                n_use, prod = 2, "Power"
+            if len(combo) < 2:
+                break
+            for r in combo:
+                local_taken.add(fold_name(r.get("player")))
+            tickets.append(
+                make_ticket(
+                    f"{sport[:3].upper()}{n_use}-{i}",
+                    [compact(x) for x in combo],
+                    prod,
+                    "goblin",
+                    f"{sport} Goblin-70 (L5>=4 + sport cover floor). Power OK.",
+                    web_group=f"{sport} Goblin-70 {prod} {n_use}",
+                )
+            )
+
+    nfl_raw = [r for r in board if nflp_ticket_eligible(r)]
+    nfl_family = "nflp"
+    if not nfl_raw:
+        nfl_raw = [r for r in board if nflp_std_over_eligible(r)]
+        nfl_family = "nflp_std"
+    for r in nfl_raw:
+        r["p"] = nflp_ticket_p(r)
+    nfl = unique_by_player(nfl_raw, goblin_sort_key)
+    nfl_taken: set[str] = set()
+    for i in range(1, 4):
+        combo = pack(nfl, 3, nfl_taken, mix_sports=False, wnba_cap=2)
+        n_use = 3
+        if len(combo) != 3:
+            combo = pack(nfl, 2, nfl_taken, mix_sports=False, wnba_cap=2)
+            n_use = 2
+        if len(combo) < 2:
+            break
+        for r in combo:
+            nfl_taken.add(fold_name(r.get("player")))
+        note = (
+            "NFLP week-3 Goblin OVER. Kickers L5>=4; backup skill needs D. Not the 70% book."
+            if nfl_family == "nflp"
+            else "NFLP week-3 Standard OVER. Backup skill with D; kickers L5>=4. Not mixed onto Goblin-70."
+        )
+        tickets.append(
+            make_ticket(
+                f"NFL{n_use}-{i}",
+                [compact(x) for x in combo],
+                "Power",
+                nfl_family,
+                note,
+                web_group=f"NFL Power {n_use}",
             )
         )
 
@@ -665,9 +776,12 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
             "goblin_70_raw": len(gob_raw),
             "standard_allowlist": len(std),
             "standard_allowlist_raw": len(std_raw),
+            "nflp_goblin": len(nfl),
+            "nflp_goblin_raw": len(nfl_raw),
         },
         "goblin_pool": [compact(r) for r in gob],
         "standard_pool": [compact(r, std=True) for r in std],
+        "nflp_pool": [compact(r) for r in nfl],
         "tickets": tickets,
     }
 
@@ -678,7 +792,9 @@ def print_card(payload: dict) -> None:
     print(
         f"Goblin-70 unique {pool['goblin_70']} (raw {pool['goblin_70_raw']})  "
         f"Standard allowlist unique {pool['standard_allowlist']} "
-        f"(raw {pool['standard_allowlist_raw']})"
+        f"(raw {pool['standard_allowlist_raw']})  "
+        f"NFLP Goblin unique {pool.get('nflp_goblin', 0)} "
+        f"(raw {pool.get('nflp_goblin_raw', 0)})"
     )
     print("\nGOBLIN-70 TOP SEEDS")
     for r in payload["goblin_pool"][:12]:

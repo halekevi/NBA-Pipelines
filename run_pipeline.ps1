@@ -1777,6 +1777,23 @@ function Run-Combined {
                 Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
             }
         }
+        # Goblin-70 must land AFTER CDP write-back/prune. Capture reads the
+        # graded_main grade pool and used to mirror that onto tickets_latest.
+        $goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
+        if (Test-Path -LiteralPath $goblin70) {
+            $okG70 = Run-Step "Goblin-70 playable /tickets" $Root ".\scripts\build_goblin70_tickets.py" "--date $Date --write-web"
+            if (-not $okG70) {
+                Write-Host "  [goblin70] WARN: builder failed — /tickets may still be graded_main" -ForegroundColor Yellow
+            } else {
+                $TicketsLatestJson = Join-Path $WebOutDir "tickets_latest.json"
+                $uiDst = Join-Path $CanonicalPlatformUiDir "tickets_latest.json"
+                if ((Test-Path -LiteralPath $TicketsLatestJson) -and (Test-Path -LiteralPath (Split-Path $uiDst -Parent))) {
+                    Copy-Item $TicketsLatestJson $uiDst -Force -ErrorAction SilentlyContinue
+                }
+            }
+        } else {
+            Write-Host "  [goblin70] WARN: scripts\build_goblin70_tickets.py missing — /tickets stays graded_main" -ForegroundColor Yellow
+        }
         if ($RunPayoutEngine) {
             Write-Host "[PAYOUT ENGINE] Fetching exact multipliers from PrizePicks..." -ForegroundColor Magenta
             try {

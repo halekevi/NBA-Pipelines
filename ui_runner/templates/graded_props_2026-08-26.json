@@ -33476,8 +33476,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": null,
-      "on_ticket": false,
+      "ticket_id": "2026-08-27|MLB 2-Leg Goblin OVER|1",
+      "on_ticket": true,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""
@@ -39366,8 +39366,8 @@
       "void_reason": "NO_ACTUAL",
       "result": "VOID",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-27|MLB Core Power 2 #2|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": null,
       "graded_at": ""
@@ -146254,8 +146254,8 @@
       "void_reason": "",
       "result": "HIT",
       "pp_projection_id": "",
-      "ticket_id": "2026-08-27|MLB 2-Leg Goblin OVER|1",
-      "on_ticket": true,
+      "ticket_id": null,
+      "on_ticket": false,
       "on_shadow_ticket": false,
       "hit": 1,
       "graded_at": ""

@@ -574,18 +574,7 @@ def grade_pool_paths(date: str) -> list[Path]:
     return out
 
 
-def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
-    """Mixer / STRONG / MLB-core groups for the same slate date (not Goblin-70)."""
-    candidates = list(grade_pool_paths(date))
-    candidates.extend(WEB_JSON_PATHS)
-    sibling = _REPO.parent / "PropORACLE_main_cp"
-    if sibling.is_dir():
-        candidates.extend(
-            [
-                sibling / "ui_runner" / "templates" / "tickets_latest.json",
-                sibling / "ui_runner" / "data" / "tickets_latest.json",
-            ]
-        )
+def _first_mixer_payload(date: str, candidates: list[Path]) -> tuple[dict | None, list[dict]]:
     seen: set[str] = set()
     for path in candidates:
         key = str(path.resolve()) if path.exists() else str(path)
@@ -601,6 +590,192 @@ def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
         if groups:
             return data, groups
     return None, []
+
+
+def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
+    """Mixer groups for the live card: prefer tickets_latest (this fetch), then grade pool."""
+    live: list[Path] = list(WEB_JSON_PATHS)
+    sibling = _REPO.parent / "PropORACLE_main_cp"
+    if sibling.is_dir() and sibling.resolve() != _REPO.resolve():
+        live.extend(
+            [
+                sibling / "ui_runner" / "templates" / "tickets_latest.json",
+                sibling / "ui_runner" / "data" / "tickets_latest.json",
+            ]
+        )
+    return _first_mixer_payload(date, live + grade_pool_paths(date))
+
+
+def _sport_token(raw: object) -> str:
+    mapped = web_sport(raw).strip().upper()
+    if mapped.startswith("NFLP"):
+        return "NFL"
+    return mapped.split()[0] if mapped else ""
+
+
+def _board_leg_key(
+    player: object,
+    sport: object,
+    prop: object,
+    pick_type: object,
+    side: object,
+) -> tuple[str, str, str, str, str]:
+    d = str(side or "").strip().upper()
+    if "UNDER" in d:
+        d = "UNDER"
+    else:
+        d = "OVER"
+    pt = str(pick_type or "Standard").strip().title()
+    if pt not in {"Goblin", "Demon", "Standard"}:
+        pt = "Standard"
+    return (
+        fold_name(player),
+        _sport_token(sport),
+        str(prop or "").strip().lower(),
+        pt,
+        d,
+    )
+
+
+def index_board_legs(board: list[dict]) -> dict[tuple[str, str, str, str, str], list[dict]]:
+    idx: dict[tuple[str, str, str, str, str], list[dict]] = {}
+    for r in board or []:
+        if not isinstance(r, dict):
+            continue
+        k = _board_leg_key(
+            r.get("player"),
+            r.get("sport"),
+            r.get("prop") or r.get("prop_type"),
+            r.get("pick_type"),
+            r.get("side") or r.get("direction"),
+        )
+        if not k[0] or not k[2]:
+            continue
+        idx.setdefault(k, []).append(r)
+    return idx
+
+
+def _pick_board_row(rows: list[dict], old_line: float | None) -> dict | None:
+    if not rows:
+        return None
+    if old_line is not None:
+        for r in rows:
+            try:
+                if abs(float(r.get("line")) - old_line) < 1e-9:
+                    return r
+            except (TypeError, ValueError):
+                continue
+    return rows[0]
+
+
+def _apply_board_row_to_leg(leg: dict, row: dict) -> bool:
+    """Copy fetch fields onto a live ticket leg. True if the line moved."""
+    changed = False
+    try:
+        new_line = float(row.get("line"))
+    except (TypeError, ValueError):
+        new_line = None
+    try:
+        old_line = float(leg.get("line"))
+    except (TypeError, ValueError):
+        old_line = None
+    if new_line is not None and (old_line is None or abs(new_line - old_line) > 1e-9):
+        leg["line"] = new_line
+        changed = True
+    side = str(row.get("side") or leg.get("direction") or "OVER").upper()
+    cover = row.get("cover")
+    if cover is not None:
+        try:
+            cover_f = float(cover)
+            leg["edge"] = cover_f
+            leg["abs_edge"] = abs(cover_f)
+            leg["cover"] = cover_f
+        except (TypeError, ValueError):
+            pass
+    l5 = row.get("l5_over") if side == "OVER" else row.get("l5_under")
+    if l5 is not None:
+        try:
+            l5_f = float(l5)
+            if side == "OVER":
+                leg["l5_over"] = l5_f
+            else:
+                leg["l5_under"] = l5_f
+            leg["l5_side_hit_rate"] = l5_f / 5.0
+        except (TypeError, ValueError):
+            pass
+    if row.get("def") is not None:
+        leg["def_tier"] = str(row.get("def") or "")
+    if row.get("matchup"):
+        leg["matchup"] = str(row.get("matchup"))
+    return changed
+
+
+def patch_mixer_groups(
+    groups: list[dict],
+    board: list[dict],
+) -> tuple[list[dict], dict[str, int]]:
+    """Update live mixer legs from the latest fetch. Drop slips whose props left the board."""
+    idx = index_board_legs(board)
+    sports_on_board = {k[1] for k in idx}
+    stats = {"updated": 0, "dropped": 0, "unchanged": 0}
+    out: list[dict] = []
+    for group in groups or []:
+        if not isinstance(group, dict):
+            continue
+        kept: list[dict] = []
+        for ticket in group.get("tickets") or []:
+            if not isinstance(ticket, dict):
+                continue
+            legs = ticket.get("legs") or []
+            if not isinstance(legs, list) or not legs:
+                kept.append(ticket)
+                stats["unchanged"] += 1
+                continue
+            new_legs: list[dict] = []
+            drop = False
+            changed = False
+            for leg in legs:
+                if not isinstance(leg, dict):
+                    drop = True
+                    break
+                k = _board_leg_key(
+                    leg.get("player"),
+                    leg.get("sport"),
+                    leg.get("prop_type") or leg.get("prop"),
+                    leg.get("pick_type"),
+                    leg.get("direction") or leg.get("side"),
+                )
+                rows = idx.get(k) or []
+                try:
+                    old_line = float(leg.get("line"))
+                except (TypeError, ValueError):
+                    old_line = None
+                row = _pick_board_row(rows, old_line)
+                if row is None:
+                    if k[1] and k[1] in sports_on_board:
+                        drop = True
+                        break
+                    new_legs.append(leg)
+                    continue
+                patched = dict(leg)
+                if _apply_board_row_to_leg(patched, row):
+                    changed = True
+                new_legs.append(patched)
+            if drop:
+                stats["dropped"] += 1
+                continue
+            nxt = dict(ticket)
+            nxt["legs"] = new_legs
+            kept.append(nxt)
+            if changed:
+                stats["updated"] += 1
+            else:
+                stats["unchanged"] += 1
+        if kept:
+            nxt_g = dict(group)
+            nxt_g["tickets"] = kept
+            out.append(nxt_g)
+    return out, stats
 
 
 def merge_web_payload(
@@ -620,10 +795,18 @@ def merge_web_payload(
     return out
 
 
-def write_web(payload: dict) -> list[Path]:
+def write_web(payload: dict, board: list[dict] | None = None) -> list[Path]:
     g70 = to_web_payload(payload)
     date = str(g70.get("date") or "")[:10]
     main_payload, main_groups = load_graded_main(date)
+    rows = board if board is not None else load_today_board(date)
+    if rows:
+        main_groups, patch_stats = patch_mixer_groups(main_groups, rows)
+        print(
+            "mixer patch from fetch: "
+            f"updated={patch_stats['updated']} dropped={patch_stats['dropped']} "
+            f"unchanged={patch_stats['unchanged']}"
+        )
     web = merge_web_payload(g70, main_payload, main_groups)
     print(
         f"web merge goblin70_groups={len(g70.get('groups') or [])} "
@@ -878,6 +1061,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
         "standard_pool": [compact(r, std=True) for r in std],
         "nflp_pool": [compact(r) for r in nfl],
         "tickets": tickets,
+        "_board": board,
     }
 
 
@@ -941,6 +1125,7 @@ def main() -> int:
     )
     args = ap.parse_args()
     payload = build(args.date, l5_eq_5=args.l5_eq_5)
+    board = payload.pop("_board", None)
     suffix = "_l5eq5" if args.l5_eq_5 else ""
     out = OUT_DIR / f"goblin70_tickets_{args.date}{suffix}.json"
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -951,7 +1136,7 @@ def main() -> int:
     print_card(payload)
     print("\nwrote", out)
     if args.write_web and not args.l5_eq_5:
-        write_web(payload)
+        write_web(payload, board=board)
         if args.publish_live:
             rc = publish_live(args.date)
             if rc != 0:

@@ -9,12 +9,14 @@ The Railway site reads `ui_runner/templates/tickets_latest.json` from **origin/m
 
 **Always both sets.** `/tickets` is Goblin-70 groups first, then the graded-main mixer under them. Never publish Goblin-70-only or mixer-only after combined.
 
-Order on every slate (1AM / 8AM / refresh):
+Order on every slate (1AM / 8AM / 9AM / 9:45 / 10:30 / 1PM / 4:30):
 
 1. Combined writes the mixer
 2. CDP / payout engine may patch mixer floors
-3. `scripts/build_goblin70_tickets.py --write-web` merges (last writer of `tickets_latest.json`)
+3. `scripts/build_goblin70_tickets.py --write-web` rebuilds Goblin-70, patches mixer legs from this fetch (line moves / off-board drops), then merges
 4. `Publish-LiveSite.ps1`
+
+A 9:00 or 10:30 refetch must update live tickets when the board changed. Do not leave 1AM lines on `/tickets` after those jobs.
 
 ```powershell
 py -3.14 scripts\build_goblin70_tickets.py --date YYYY-MM-DD --write-web --publish-live

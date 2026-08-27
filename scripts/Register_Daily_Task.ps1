@@ -5,8 +5,9 @@
 #   - 3:00 AM  grader + A1 historical actuals (yesterday) — split from 1AM for RAM/CPU
 #   - 5:00 AM  second overnight fetch + line snapshot + live payout CDP (NO grader when 3AM done)
 #   - 8:00 AM  PRIMARY same-day lock (board posted; overnight line move in)
-#   - 9:45 AM  follow-up after 8AM (9:00 used to skip while 8AM still held refresh.lock)
-#   - 10:30 AM PrizePicks morning move window
+#   - 9:00 AM  first morning refetch — patches live tickets if lines/props moved
+#   - 9:45 AM  follow-up if 8AM still held refresh.lock at 9:00
+#   - 10:30 AM PrizePicks morning move window (rebuild + patch tickets)
 #   - 1:00 PM  afternoon line-move
 #   - 4:30 PM  evening lock for 7pm WNBA/MLB boards
 #   Retired: Tennis Early 3AM, Grader 1AM (grader moved to 3AM).
@@ -60,7 +61,6 @@ $LegacyTasksToRemove = @(
     "PropOracle - Grader 5AM",
     "PropOracle - Daily 7AM",
     "PropOracle - Refresh 11AM",
-    "PropOracle - Refresh 9AM",  # superseded by 9:45 so 8AM can finish
     # Overnight cluster: tennis-only 3AM and 5AM daily retired; grader moved 1AM → 3AM
     "PropOracle - Tennis Early 3AM",
     "PropOracle - Grader 1AM",
@@ -164,6 +164,13 @@ Register-PropTask `
     -At "08:00"
 
 Register-PropTask `
+    -TaskName "PropOracle - Refresh 9AM" `
+    -Description "Morning refetch. Updates live tickets when the fetch moves lines or drops props. Skips if 8AM still holds refresh.lock." `
+    -ScriptPath $ScriptRefresh `
+    -At "09:00" `
+    -ExtraArgs "-RunLabel 9AM"
+
+Register-PropTask `
     -TaskName "PropOracle - Refresh 945AM" `
     -Description "Follow-up lock after 8AM (lets long 8AM finish). Fetch/refresh + Force CDP + live site publish." `
     -ScriptPath $ScriptRefresh `
@@ -197,13 +204,14 @@ Write-Host "  - PropOracle - Daily 1AM (all-sport fetch + live payout CDP + publ
 Write-Host "  - PropOracle - Grader 3AM (A1 + yesterday grades; split from 1AM for RAM/CPU)"
 Write-Host "  - PropOracle - Daily 5AM (fetch + line snapshot + live payout CDP + publish)"
 Write-Host "  - PropOracle - Daily 8AM (PRIMARY same-day lock + publish)"
+Write-Host "  - PropOracle - Refresh 9AM (morning refetch + ticket patch + publish)"
 Write-Host "  - PropOracle - Refresh 945AM (follow-up lock + publish)"
-Write-Host "  - PropOracle - Refresh 1030AM (PP morning move + publish)"
+Write-Host "  - PropOracle - Refresh 1030AM (PP morning move + ticket patch + publish)"
 Write-Host "  - PropOracle - Refresh 1PM (afternoon + publish)"
 Write-Host "  - PropOracle - Refresh 430PM (evening 7pm slate + publish)"
 Write-Host ""
 Write-Host "CDP payout scrape: 1AM + 5AM daily and after each refresh fetch (no standalone 11AM/3PM tasks)." -ForegroundColor Yellow
-Write-Host "Removed: Tennis Early 3AM, Grader 1AM (now Grader 3AM), Refresh 9AM, Payout CDP 11AM/3PM, extra graders 7PM–12AM" -ForegroundColor Yellow
+Write-Host "Removed: Tennis Early 3AM, Grader 1AM (now Grader 3AM), Payout CDP 11AM/3PM, extra graders 7PM–12AM" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Quick checks:"
 Write-Host "  Get-ScheduledTask | Where-Object TaskName -like 'PropOracle -*' | Select-Object TaskName, State"

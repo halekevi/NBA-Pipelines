@@ -345,3 +345,118 @@ def test_merge_keeps_goblin70_and_graded_main():
     assert names.count("X-Sport Goblin-70 Power 3") == 1
     assert merged["mode"] == "goblin70+graded_main"
     assert merged["tracks"] == ["goblin70", "graded_main"]
+
+
+def test_patch_mixer_updates_line_and_drops_off_board():
+    from build_goblin70_tickets import patch_mixer_groups
+
+    groups = [
+        {
+            "group_name": "STRONG 3-Leg",
+            "tickets": [
+                {
+                    "ticket_id": "keep-line-move",
+                    "legs": [
+                        {
+                            "sport": "WNBA",
+                            "player": "Kiki Iriafen",
+                            "prop_type": "Pts+Rebs",
+                            "pick_type": "Goblin",
+                            "direction": "OVER",
+                            "line": 19.5,
+                        },
+                        {
+                            "sport": "MLB",
+                            "player": "Gerrit Cole",
+                            "prop_type": "Pitcher Strikeouts",
+                            "pick_type": "Goblin",
+                            "direction": "OVER",
+                            "line": 3.5,
+                        },
+                    ],
+                },
+                {
+                    "ticket_id": "drop-missing-prop",
+                    "legs": [
+                        {
+                            "sport": "WNBA",
+                            "player": "Gone Player",
+                            "prop_type": "Points",
+                            "pick_type": "Goblin",
+                            "direction": "OVER",
+                            "line": 10.5,
+                        }
+                    ],
+                },
+            ],
+        }
+    ]
+    board = [
+        {
+            "sport": "WNBA",
+            "player": "Kiki Iriafen",
+            "prop": "Pts+Rebs",
+            "pick_type": "Goblin",
+            "side": "OVER",
+            "line": 18.5,
+            "cover": 7.8,
+            "l5_over": 5,
+        },
+        {
+            "sport": "MLB",
+            "player": "Gerrit Cole",
+            "prop": "Pitcher Strikeouts",
+            "pick_type": "Goblin",
+            "side": "OVER",
+            "line": 3.5,
+            "cover": 3.6,
+            "l5_over": 5,
+        },
+    ]
+    out, stats = patch_mixer_groups(groups, board)
+    assert stats["updated"] == 1
+    assert stats["dropped"] == 1
+    assert len(out) == 1
+    legs = out[0]["tickets"][0]["legs"]
+    assert legs[0]["line"] == 18.5
+    assert legs[1]["line"] == 3.5
+    assert out[0]["tickets"][0]["ticket_id"] == "keep-line-move"
+
+
+def test_patch_mixer_keeps_leg_when_sport_not_fetched():
+    from build_goblin70_tickets import patch_mixer_groups
+
+    groups = [
+        {
+            "group_name": "TENNIS 2-Leg Goblin OVER",
+            "tickets": [
+                {
+                    "ticket_id": "tennis-1",
+                    "legs": [
+                        {
+                            "sport": "TENNIS",
+                            "player": "Qinwen Zheng",
+                            "prop_type": "Total Games",
+                            "pick_type": "Goblin",
+                            "direction": "OVER",
+                            "line": 18.5,
+                        }
+                    ],
+                }
+            ],
+        }
+    ]
+    board = [
+        {
+            "sport": "MLB",
+            "player": "Gerrit Cole",
+            "prop": "Pitcher Strikeouts",
+            "pick_type": "Goblin",
+            "side": "OVER",
+            "line": 3.5,
+        }
+    ]
+    out, stats = patch_mixer_groups(groups, board)
+    assert stats["dropped"] == 0
+    assert stats["unchanged"] == 1
+    assert out[0]["tickets"][0]["legs"][0]["line"] == 18.5

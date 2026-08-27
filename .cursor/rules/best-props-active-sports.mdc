@@ -23,7 +23,7 @@ When ranking or locking **Standard Over / Standard Under / Goblin** plays for a 
 
 # Pipeline tickets (all sports)
 
-**Live `/tickets` is always both:** Goblin-70 groups first, graded-main mixer under. Builder `scripts/build_goblin70_tickets.py --write-web` merges; do not replace one set with the other.
+**Live `/tickets` is always both:** Goblin-70 groups first, graded-main mixer under. Builder `scripts/build_goblin70_tickets.py --write-web` merges; do not replace one set with the other. 9AM / 9:45 / 10:30 / 1PM / 4:30 refetches rebuild Goblin-70 and patch mixer legs from that fetch (line moves and off-board drops).
 
 **70% ticket engine (top of the card):** Goblin OVER only. Hard gates: directional L5 >= 4 **and** sport cover floor (WNBA/Tennis gap >= 2, MLB/Soccer >= 1). No Demons. No shadow cells as ticket legs. Rank S → A → B, then L5 = 5, then cover. D is a badge, not a ticket filter. Power is OK on this book. Extra groups: sport-pure WNBA/MLB; NFLP Standard backup overs with D when Goblins are empty.
 

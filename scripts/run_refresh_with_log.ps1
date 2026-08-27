@@ -1,13 +1,14 @@
 #requires -Version 5.1
 <#
-  Line-move refresh (8 AM primary lock, 9:45, 10:30, 1 PM, 4:30 PM).
+  Line-move refresh (8 AM primary lock, 9:00, 9:45, 10:30, 1 PM, 4:30 PM).
   - log_prop_snapshot PRE/POST captures added/removed props vs prior state
   - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
     combined slate / ticket_eval before rerun so line movement is visible
-  - After rebuild: Force CDP payout scrape, then Publish-LiveSite.ps1 so Railway
-    / GitHub raw tickets are not left on the 5AM (or pre-CDP) board.
+  - After rebuild: Force CDP payout scrape, rebuild Goblin-70 + patch mixer legs
+    from this fetch, then Publish-LiveSite.ps1 so Railway / GitHub raw tickets
+    match the new lines (not the 1AM board).
   First full multi-sport fetch of the day is PropOracle - Daily 1AM (run_daily_1am.ps1).
-  Refresh cadence: 8 / 9:45 / 10:30 / 1 / 4:30.
+  Refresh cadence: 8 / 9 / 9:45 / 10:30 / 1 / 4:30.
 #>
 param(
     [string]$RunLabel = "945AM"

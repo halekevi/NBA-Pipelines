@@ -4,8 +4,9 @@
   Mid-day slate refresh: re-fetch props/lines (step1 --append), rebuild tickets, then re-scrape
   PrizePicks CDP payout floors for the new board.
 .NOTES
-  Cadence: Daily 8AM / Refresh 945AM / 1030AM / 1PM / 430PM (run_refresh_with_log.ps1).
-  1AM is the initial full daily; these runs only update props/lines + redo ticket CDP rates.
+  Cadence: Daily 8AM / Refresh 9AM / 945AM / 1030AM / 1PM / 430PM (run_refresh_with_log.ps1).
+  1AM is the initial full daily; these runs re-fetch props/lines, rebuild tickets, then
+  patch live mixer legs from the new board and re-merge Goblin-70.
   Pipeline uses -SkipLivePayoutCapture so rebuild stays fast; CDP runs immediately after.
   Separate PropOracle - Payout CDP @ 11:00 / Update @ 15:00 are retired —
   CDP runs only after this fetch/rebuild (or manual run_payout_cdp.ps1).
@@ -553,6 +554,19 @@ if (Test-Path -LiteralPath $livePayScript) {
     }
 } else {
     Write-Host "[LATE_FETCH] WARN: run_live_payout_capture.ps1 missing — skip payout re-scrape" -ForegroundColor Yellow
+}
+
+# Rebuild Goblin-70 from this fetch and patch mixer legs (line moves / off-board drops)
+# so 9AM / 9:45 / 10:30 / 1PM / 4:30 publish current tickets, not the 1AM lines.
+$goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
+if (Test-Path -LiteralPath $goblin70) {
+    Write-Host "[LATE_FETCH] Rebuilding Goblin-70 + patching mixer from this fetch..." -ForegroundColor Cyan
+    try {
+        & py -3.14 $goblin70 --date $PipeDate --write-web
+        Write-Host "[LATE_FETCH] Goblin-70 dual card exit $LASTEXITCODE" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "[LATE_FETCH] WARN: Goblin-70 rebuild failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
+    }
 }
 
 Write-Host "[LATE_FETCH] Done $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green

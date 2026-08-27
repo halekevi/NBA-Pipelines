@@ -1,0 +1,29 @@
+---
+description: Push /tickets JSON to origin/main after rebuilding the dual playable card
+alwaysApply: true
+---
+
+# Live /tickets publish
+
+The Railway site reads `ui_runner/templates/tickets_latest.json` from **origin/main** (GitHub raw). Writing the file in this Cursor checkout does **not** update the live site.
+
+**Always both sets.** `/tickets` is Goblin-70 groups first, then the graded-main mixer under them. Never publish Goblin-70-only or mixer-only after combined.
+
+Order on every slate (1AM / 8AM / refresh):
+
+1. Combined writes the mixer
+2. CDP / payout engine may patch mixer floors
+3. `scripts/build_goblin70_tickets.py --write-web` merges (last writer of `tickets_latest.json`)
+4. `Publish-LiveSite.ps1`
+
+```powershell
+py -3.14 scripts\build_goblin70_tickets.py --date YYYY-MM-DD --write-web --publish-live
+```
+
+Or, if the JSON is already the dual card:
+
+```powershell
+.\scripts\Publish-LiveSite.ps1 -CommitMessage "chore: Goblin-70 + mixer tickets YYYY-MM-DD"
+```
+
+Do not leave `tickets_latest.json` as graded-main-only or goblin70-only on main.

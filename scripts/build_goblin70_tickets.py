@@ -629,6 +629,12 @@ def write_web(payload: dict) -> list[Path]:
         f"web merge goblin70_groups={len(g70.get('groups') or [])} "
         f"graded_main_groups={len(main_groups)}"
     )
+    if not main_groups:
+        print(
+            "WARN: mixer groups empty — /tickets would be Goblin-70 only. "
+            "Need ui_runner/data/combined_slate_tickets_{date}.json (or same-date "
+            "tickets_latest) with graded_main groups."
+        )
     text = json.dumps(web, ensure_ascii=False, indent=2, allow_nan=False)
     written: list[Path] = []
     paths = list(WEB_JSON_PATHS)
@@ -850,9 +856,8 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
                 )
             )
 
-    root = R._choose_step8_root(
-        [_REPO, _REPO.parent / "PropORACLE_main_cp"], date
-    )
+    choose = getattr(R, "_choose_step8_root", None)
+    root = choose([_REPO, _REPO.parent / "PropORACLE_main_cp"], date) if callable(choose) else _REPO
     return {
         "date": date,
         "built_at": datetime.now(ET).isoformat(timespec="seconds"),
@@ -922,7 +927,7 @@ def main() -> int:
         "--write-web",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Replace /tickets JSON with the Goblin-70 card (default: on).",
+        help="Merge Goblin-70 onto /tickets (Goblin-70 first, mixer under). Default: on.",
     )
     ap.add_argument(
         "--l5-eq-5",

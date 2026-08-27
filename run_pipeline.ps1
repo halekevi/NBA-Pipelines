@@ -1406,6 +1406,28 @@ function Run-GitPush {
     Publish-LiveSiteJsonToMain
 }
 
+function Invoke-Goblin70DualCard {
+    param([string]$SlateDate = $Date)
+    # Last writer of tickets_latest.json before live publish.
+    # Goblin-70 groups first, graded-main mixer under. Do not skip this step.
+    $goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
+    if (-not (Test-Path -LiteralPath $goblin70)) {
+        Write-Host "  [goblin70] WARN: scripts\build_goblin70_tickets.py missing — /tickets stays mixer-only" -ForegroundColor Yellow
+        return $false
+    }
+    $okG70 = Run-Step "Goblin-70 + mixer /tickets" $Root ".\scripts\build_goblin70_tickets.py" "--date $SlateDate --write-web"
+    if (-not $okG70) {
+        Write-Host "  [goblin70] WARN: builder failed — /tickets may be mixer-only" -ForegroundColor Yellow
+        return $false
+    }
+    $TicketsLatestJson = Join-Path $WebOutDir "tickets_latest.json"
+    $uiDst = Join-Path $CanonicalPlatformUiDir "tickets_latest.json"
+    if ((Test-Path -LiteralPath $TicketsLatestJson) -and (Test-Path -LiteralPath (Split-Path $uiDst -Parent))) {
+        Copy-Item $TicketsLatestJson $uiDst -Force -ErrorAction SilentlyContinue
+    }
+    return $true
+}
+
 function Run-GitPushGradeArtifacts {
     param(
         [string]$GradeDate,
@@ -1702,16 +1724,6 @@ function Run-Combined {
         } else {
             Write-Host "  [warn] Missing tickets_latest.json; skipped ticket-run archive." -ForegroundColor Yellow
         }
-        # Goblin-70 prepends onto graded_main so /tickets keeps both sets.
-        $goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
-        if (Test-Path -LiteralPath $goblin70) {
-            $okG70 = Run-Step "Goblin-70 playable /tickets" $Root ".\scripts\build_goblin70_tickets.py" "--date $Date --write-web"
-            if (-not $okG70) {
-                Write-Host "  [goblin70] WARN: builder failed — /tickets may still be graded_main" -ForegroundColor Yellow
-            }
-        } else {
-            Write-Host "  [goblin70] WARN: scripts\build_goblin70_tickets.py missing — /tickets stays graded_main" -ForegroundColor Yellow
-        }
         # Canonical platform UI snapshots (templates consumed by web app).
         foreach ($uiName in @(
             "tickets_latest.html",
@@ -1776,22 +1788,6 @@ function Run-Combined {
                 Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
             }
         }
-        # Goblin-70 prepends onto graded_main after CDP so both sets stay on /tickets.
-        $goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
-        if (Test-Path -LiteralPath $goblin70) {
-            $okG70 = Run-Step "Goblin-70 playable /tickets" $Root ".\scripts\build_goblin70_tickets.py" "--date $Date --write-web"
-            if (-not $okG70) {
-                Write-Host "  [goblin70] WARN: builder failed — /tickets may still be graded_main" -ForegroundColor Yellow
-            } else {
-                $TicketsLatestJson = Join-Path $WebOutDir "tickets_latest.json"
-                $uiDst = Join-Path $CanonicalPlatformUiDir "tickets_latest.json"
-                if ((Test-Path -LiteralPath $TicketsLatestJson) -and (Test-Path -LiteralPath (Split-Path $uiDst -Parent))) {
-                    Copy-Item $TicketsLatestJson $uiDst -Force -ErrorAction SilentlyContinue
-                }
-            }
-        } else {
-            Write-Host "  [goblin70] WARN: scripts\build_goblin70_tickets.py missing — /tickets stays graded_main" -ForegroundColor Yellow
-        }
         if ($RunPayoutEngine) {
             Write-Host "[PAYOUT ENGINE] Fetching exact multipliers from PrizePicks..." -ForegroundColor Magenta
             try {
@@ -1808,6 +1804,7 @@ function Run-Combined {
                 Pop-Location
             }
         }
+        Invoke-Goblin70DualCard -SlateDate $Date
         if ($SkipPush) {
             Write-Host "  [git] Skipping push (-SkipPush)" -ForegroundColor DarkGray
         } else {

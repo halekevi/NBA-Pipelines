@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26 23:11:06 UTC",
+  "generated_at": "2026-08-27 06:39:10 UTC",
   "date": "2026-08-27",
   "tennis_date": "2026-08-27",
   "filters": {
@@ -50,7 +50,7 @@
           "ticket_track": "graded_main",
           "mode": "win_rate",
           "avg_hit_rate": 0.9,
-          "avg_rank_score": 8.403848,
+          "avg_rank_score": 8.544751999999999,
           "est_win_prob": 0.3364,
           "ticket_objective_score": null,
           "ticket_live_score": 0.47546,
@@ -121,7 +121,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.58,
-              "rank_score": 9.333019,
+              "rank_score": 9.479655999999999,
               "tier": "B",
               "opponent_def_rank": null,
               "game_time": "08/27 11:00 AM",
@@ -240,7 +240,7 @@
               "over_hit_rate": null,
               "under_hit_rate": null,
               "ml_prob": 0.58,
-              "rank_score": 7.474677,
+              "rank_score": 7.6098479999999995,
               "tier": "B",
               "opponent_def_rank": null,
               "game_time": "08/27 11:00 AM",
@@ -421,7 +421,6 @@
   "main_exclude_sports": [
     "CBB",
     "GOLF",
-    "NFL",
     "WCBB"
   ],
   "main_exclude_sports_candidates": [

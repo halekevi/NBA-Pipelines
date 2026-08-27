@@ -537,8 +537,98 @@ def to_web_payload(payload: dict) -> dict:
     }
 
 
+def is_g70_group(group: dict) -> bool:
+    name = str(group.get("group_name") or "")
+    if "Goblin-70" in name:
+        return True
+    if name.startswith("NFL Power"):
+        return True
+    tickets = group.get("tickets") or []
+    if tickets and isinstance(tickets[0], dict):
+        return str(tickets[0].get("ticket_track") or "").lower() == "goblin70"
+    return False
+
+
+def _read_json(path: Path) -> dict | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def grade_pool_paths(date: str) -> list[Path]:
+    name = f"combined_slate_tickets_{date}.json"
+    out = [
+        _REPO / "ui_runner" / "data" / name,
+        _REPO / "ui_runner" / "templates" / name,
+    ]
+    sibling = _REPO.parent / "PropORACLE_main_cp"
+    if sibling.is_dir() and sibling.resolve() != _REPO.resolve():
+        out.extend(
+            [
+                sibling / "ui_runner" / "data" / name,
+                sibling / "ui_runner" / "templates" / name,
+            ]
+        )
+    return out
+
+
+def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
+    """Mixer / STRONG / MLB-core groups for the same slate date (not Goblin-70)."""
+    candidates = list(grade_pool_paths(date))
+    candidates.extend(WEB_JSON_PATHS)
+    sibling = _REPO.parent / "PropORACLE_main_cp"
+    if sibling.is_dir():
+        candidates.extend(
+            [
+                sibling / "ui_runner" / "templates" / "tickets_latest.json",
+                sibling / "ui_runner" / "data" / "tickets_latest.json",
+            ]
+        )
+    seen: set[str] = set()
+    for path in candidates:
+        key = str(path.resolve()) if path.exists() else str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        data = _read_json(path)
+        if not data:
+            continue
+        if str(data.get("date") or "")[:10] != date:
+            continue
+        groups = [g for g in (data.get("groups") or []) if isinstance(g, dict) and not is_g70_group(g)]
+        if groups:
+            return data, groups
+    return None, []
+
+
+def merge_web_payload(
+    g70: dict,
+    main_payload: dict | None = None,
+    main_groups: list[dict] | None = None,
+) -> dict:
+    """Goblin-70 groups first, then the graded-main mixer. Both stay on /tickets."""
+    g70_groups = list(g70.get("groups") or [])
+    mixer = list(main_groups or [])
+    out = dict(main_payload) if main_payload else {}
+    out.update({k: v for k, v in g70.items() if k != "groups"})
+    out["groups"] = g70_groups + mixer
+    out["ticket_track"] = "goblin70"
+    out["mode"] = "goblin70+graded_main" if mixer else "goblin70"
+    out["tracks"] = ["goblin70", "graded_main"] if mixer else ["goblin70"]
+    return out
+
+
 def write_web(payload: dict) -> list[Path]:
-    web = to_web_payload(payload)
+    g70 = to_web_payload(payload)
+    date = str(g70.get("date") or "")[:10]
+    main_payload, main_groups = load_graded_main(date)
+    web = merge_web_payload(g70, main_payload, main_groups)
+    print(
+        f"web merge goblin70_groups={len(g70.get('groups') or [])} "
+        f"graded_main_groups={len(main_groups)}"
+    )
     text = json.dumps(web, ensure_ascii=False, indent=2, allow_nan=False)
     written: list[Path] = []
     paths = list(WEB_JSON_PATHS)

@@ -1702,8 +1702,7 @@ function Run-Combined {
         } else {
             Write-Host "  [warn] Missing tickets_latest.json; skipped ticket-run archive." -ForegroundColor Yellow
         }
-        # Playable /tickets is Goblin-70, not graded_main. Combined still wrote
-        # tickets_latest first so the archive above captured the grade pool.
+        # Goblin-70 prepends onto graded_main so /tickets keeps both sets.
         $goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
         if (Test-Path -LiteralPath $goblin70) {
             $okG70 = Run-Step "Goblin-70 playable /tickets" $Root ".\scripts\build_goblin70_tickets.py" "--date $Date --write-web"
@@ -1777,8 +1776,7 @@ function Run-Combined {
                 Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
             }
         }
-        # Goblin-70 must land AFTER CDP write-back/prune. Capture reads the
-        # graded_main grade pool and used to mirror that onto tickets_latest.
+        # Goblin-70 prepends onto graded_main after CDP so both sets stay on /tickets.
         $goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
         if (Test-Path -LiteralPath $goblin70) {
             $okG70 = Run-Step "Goblin-70 playable /tickets" $Root ".\scripts\build_goblin70_tickets.py" "--date $Date --write-web"

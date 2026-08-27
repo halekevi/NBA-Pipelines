@@ -385,10 +385,6 @@ def prune_live_tickets_from_capture(
             pass
 
     payload = json.loads(latest.read_text(encoding="utf-8"))
-    track = str(payload.get("ticket_track") or payload.get("mode") or "").lower()
-    if track == "goblin70":
-        print("  [ticket-run] live prune skipped (playable card is goblin70)")
-        return {"ok": True, "skipped": "goblin70", "path": str(latest)}
     before = sum(len(g.get("tickets") or []) for g in payload.get("groups") or [])
     pruned, counts = filter_payload_playable(payload, unplayable_ticket_ids=unplayable)
     after = counts["kept"]

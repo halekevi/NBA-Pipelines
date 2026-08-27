@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27 22:45:19 UTC",
+  "generated_at": "2026-08-27 22:57:09 UTC",
   "date": "2026-08-27",
   "tennis_date": "2026-08-27",
   "filters": {
@@ -164,8 +164,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -315,8 +315,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -466,8 +466,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -617,8 +617,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -768,8 +768,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -962,8 +962,8 @@
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
@@ -1149,8 +1149,8 @@
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
@@ -1336,8 +1336,8 @@
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
@@ -1523,8 +1523,8 @@
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
@@ -1683,8 +1683,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -1834,8 +1834,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -1985,8 +1985,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -2144,8 +2144,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -2295,8 +2295,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -2446,8 +2446,8 @@
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
-            "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+            "payout_source": "n_correct_live",
+            "payout_note": "0S+3G Power 3-correct 2x (live slip)",
             "n_correct": {
               "3": 2.0
             },
@@ -12730,7 +12730,7 @@
     "20260827_204407_379044"
   ],
   "latest_run_id": "20260827_204407_379044",
-  "payout_note": "N-correct / To Win only. Ignore 1st place. All-Goblin medians from predicted_payout_tables_latest; confirm on the slip.",
+  "payout_note": "N-correct / To Win only. Ignore 1st place. Rates: slip pin → same-day CDP (matching Goblin-Δ) → mix_by_delta → fallback.",
   "step8_root": "H:\\PropORACLE_main_cp",
   "pool": {
     "goblin_70": 90,

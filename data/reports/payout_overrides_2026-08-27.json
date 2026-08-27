@@ -1,0 +1,39 @@
+{
+  "date": "2026-08-27",
+  "source": "prizepicks_slip",
+  "note": "N-correct / To Win from live slips. Never 1st place.",
+  "entries": [
+    {
+      "n_legs": 3,
+      "n_s": 0,
+      "n_g": 3,
+      "product": "Power",
+      "n_correct": { "3": 2.0 },
+      "note": "0S+3G Power 3-correct 2x (live slip)"
+    },
+    {
+      "n_legs": 3,
+      "n_s": 0,
+      "n_g": 3,
+      "product": "Flex",
+      "n_correct": { "3": 1.7, "2": 0.5 },
+      "note": "0S+3G Flex 3=1.7x / 2=0.5x (live slip)"
+    },
+    {
+      "n_legs": 4,
+      "n_s": 0,
+      "n_g": 4,
+      "product": "Power",
+      "n_correct": { "4": 2.4 },
+      "note": "0S+4G Power 4-correct 2.4x (live slip)"
+    },
+    {
+      "n_legs": 4,
+      "n_s": 0,
+      "n_g": 4,
+      "product": "Flex",
+      "n_correct": { "4": 1.9, "3": 0.5 },
+      "note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)"
+    }
+  ]
+}

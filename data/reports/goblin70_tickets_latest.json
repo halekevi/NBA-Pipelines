@@ -1,8 +1,8 @@
 {
   "date": "2026-08-27",
-  "built_at": "2026-08-27T18:45:19-04:00",
+  "built_at": "2026-08-27T18:57:09-04:00",
   "step8_root": "H:\\PropORACLE_main_cp",
-  "payout_note": "N-correct / To Win only. Ignore 1st place. All-Goblin medians from predicted_payout_tables_latest; confirm on the slip.",
+  "payout_note": "N-correct / To Win only. Ignore 1st place. Rates: slip pin → same-day CDP (matching Goblin-Δ) → mix_by_delta → fallback.",
   "pool": {
     "goblin_70": 90,
     "goblin_70_raw": 215,
@@ -2343,7 +2343,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "TENNIS",
@@ -2440,7 +2441,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -2536,7 +2538,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -2632,7 +2635,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -2728,7 +2732,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -2825,7 +2830,8 @@
         "4": 1.9,
         "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -2946,7 +2952,8 @@
         "4": 1.9,
         "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -3067,7 +3074,8 @@
         "4": 1.9,
         "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -3188,7 +3196,8 @@
         "4": 1.9,
         "3": 0.5
       },
-      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
+      "payout_note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB",
         "WNBA"
@@ -3308,7 +3317,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "WNBA"
       ],
@@ -3404,7 +3414,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "WNBA"
       ],
@@ -3500,7 +3511,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "WNBA"
       ],
@@ -3596,7 +3608,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB"
       ],
@@ -3692,7 +3705,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB"
       ],
@@ -3788,7 +3802,8 @@
       "n_correct": {
         "3": 2.0
       },
-      "payout_note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
+      "payout_note": "0S+3G Power 3-correct 2x (live slip)",
+      "payout_source": "n_correct_live",
       "sports": [
         "MLB"
       ],
@@ -3885,7 +3900,8 @@
         "4": 3.0,
         "3": 0.75
       },
-      "payout_note": "1S+3G Flex 4=3x / 3=0.75x",
+      "payout_note": "1S+3G Flex fallback 3x / 0.75x",
+      "payout_source": "n_correct_median",
       "sports": [
         "MLB",
         "WNBA"

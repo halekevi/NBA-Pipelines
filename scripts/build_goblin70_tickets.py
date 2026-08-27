@@ -32,6 +32,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 import rank_best_props_today as R  # noqa: E402
+from utils.n_correct_payout import PAY_FALLBACK as PAY, resolve_n_correct  # noqa: E402
 from utils.ticket_70_pool import (  # noqa: E402
     directional_l5,
     goblin_70_eligible,
@@ -99,56 +100,8 @@ def load_today_board(date: str) -> list[dict]:
             rows.extend(R.recs(extra))
     return rows
 
-# N-correct / To Win only. Never 1st-place.
-# 2026-08-27 live slips (deep Goblins): Power 3 = 2x, Flex 3 = 1.7x / 0.5x,
-# Power 4 = 2.4x, Flex 4 = 1.9x / 0.5x. Older scrape medians (~2.9x) do not
-# match this board — goblin distance moves the multiplier.
-PAY = {
-    ("goblin", 3, "Power"): {
-        "n_correct": {3: 2.0},
-        "note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
-    },
-    ("goblin", 2, "Power"): {
-        "n_correct": {2: 2.2},
-        "note": "0S+2G Power median 2.2x — confirm on the slip",
-    },
-    ("goblin", 3, "Flex"): {
-        "n_correct": {3: 1.7, 2: 0.5},
-        "note": "0S+3G Flex 3=1.7x / 2=0.5x (live slip; N-correct / To Win)",
-    },
-    ("goblin", 4, "Power"): {
-        "n_correct": {4: 2.4},
-        "note": "0S+4G Power 4-correct 2.4x (live slip; N-correct / To Win)",
-    },
-    ("goblin", 4, "Flex"): {
-        "n_correct": {4: 1.9, 3: 0.5},
-        "note": "0S+4G Flex 4=1.9x / 3=0.5x (live slip; N-correct / To Win)",
-    },
-    ("mix", 4, "Flex"): {
-        "n_correct": {4: 3.0, 3: 0.75},
-        "note": "1S+3G Flex 4=3x / 3=0.75x",
-    },
-    ("standard", 3, "Flex"): {
-        "n_correct": {3: 2.25, 2: 1.25},
-        "note": "3S Flex 3=2.25x / 2=1.25x",
-    },
-    ("nflp", 3, "Power"): {
-        "n_correct": {3: 2.0},
-        "note": "0S+3G Power 3-correct 2x (live slip; N-correct / To Win)",
-    },
-    ("nflp", 2, "Power"): {
-        "n_correct": {2: 2.2},
-        "note": "0S+2G Power median 2.2x — confirm on the slip",
-    },
-    ("nflp_std", 3, "Power"): {
-        "n_correct": {3: 6.0},
-        "note": "3S Power ~6x — confirm on the slip",
-    },
-    ("nflp_std", 2, "Power"): {
-        "n_correct": {2: 3.0},
-        "note": "2S Power ~3x — confirm on the slip",
-    },
-}
+# PAY lives in utils.n_correct_payout. Resolve order: slip pin → same-day
+# CDP with matching Goblin-Δ → mix_by_delta → this fallback.
 
 SKIP_PLAYERS = frozenset({"jacob fearnley"})
 
@@ -283,9 +236,9 @@ def binomial(n: int, k: int, p: float) -> float:
     return math.comb(n, k) * (p**k) * ((1 - p) ** (n - k))
 
 
-def ticket_math(legs: list[dict], product: str, family: str) -> dict:
+def ticket_math(legs: list[dict], product: str, family: str, *, date: str = "") -> dict:
     n = len(legs)
-    pay = PAY[(family, n, product)]
+    pay = resolve_n_correct(legs, product, family, date=date)
     table = pay["n_correct"]
     ps = [float(x["p"]) for x in legs]
     p = sum(ps) / n
@@ -298,6 +251,7 @@ def ticket_math(legs: list[dict], product: str, family: str) -> dict:
         "ev_n_correct": round(ev, 3),
         "n_correct": table,
         "payout_note": pay["note"],
+        "payout_source": pay.get("payout_source") or "n_correct_median",
     }
 
 
@@ -543,7 +497,7 @@ def _ticket_to_web(ticket: dict, *, date: str, ticket_no: int, group_name: str) 
             "sweep_payout": sweep,
             "sweep_payout_x": sweep,
             "audit_all_hit_x": sweep,
-            "payout_source": "n_correct_median",
+            "payout_source": ticket.get("payout_source") or "n_correct_median",
             "payout_note": ticket.get("payout_note") or "",
             "n_correct": n_correct,
             "ev_formula": "E[N-correct] - 1",
@@ -945,6 +899,7 @@ def make_ticket(
     note: str,
     *,
     web_group: str = "",
+    date: str = "",
 ) -> dict:
     n = len(legs)
     out = {
@@ -957,7 +912,7 @@ def make_ticket(
         "play": product,
         "mix": f"{sum(1 for x in legs if x.get('pick_type')=='Goblin')} Goblin / "
         f"{sum(1 for x in legs if x.get('pick_type')=='Standard')} Standard",
-        **ticket_math(legs, product, family),
+        **ticket_math(legs, product, family, date=date),
         "sports": sorted({str(x.get("sport")) for x in legs}),
         "legs": legs,
     }
@@ -992,6 +947,11 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
 
     taken: set[str] = set()
     tickets: list[dict] = []
+
+    def _ticket(*args, **kwargs):
+        kwargs.setdefault("date", date)
+        return make_ticket(*args, **kwargs)
+
     for tid, n, product, family in MAIN_CARD:
         combo = pack(gob, n, taken, mix_sports=True, wnba_cap=1)
         note = (
@@ -1008,7 +968,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
         for r in combo:
             taken.add(fold_name(r.get("player")))
         tickets.append(
-            make_ticket(
+            _ticket(
                 tid,
                 [compact(x) for x in combo],
                 product,
@@ -1035,7 +995,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
             for r in combo:
                 local_taken.add(fold_name(r.get("player")))
             tickets.append(
-                make_ticket(
+                _ticket(
                     f"{sport[:3].upper()}{n_use}-{i}",
                     [compact(x) for x in combo],
                     prod,
@@ -1070,7 +1030,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
             else "NFLP week-3 Standard OVER. Backup skill with D; kickers L5>=4. Not mixed onto Goblin-70."
         )
         tickets.append(
-            make_ticket(
+            _ticket(
                 f"NFL{n_use}-{i}",
                 [compact(x) for x in combo],
                 "Power",
@@ -1090,7 +1050,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
             for r in mix:
                 taken.add(fold_name(r.get("player")))
             tickets.append(
-                make_ticket(
+                _ticket(
                     "SF4-1",
                     [compact(x, std=x.get("pick_type") == "Standard") for x in mix],
                     "Flex",
@@ -1106,7 +1066,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
             for r in s3:
                 taken.add(fold_name(r.get("player")))
             tickets.append(
-                make_ticket(
+                _ticket(
                     "SF3-1",
                     [compact(x, std=True) for x in s3],
                     "Flex",
@@ -1123,7 +1083,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
         "step8_root": str(root) if root else None,
         "payout_note": (
             "N-correct / To Win only. Ignore 1st place. "
-            "All-Goblin medians from predicted_payout_tables_latest; confirm on the slip."
+            "Rates: slip pin → same-day CDP (matching Goblin-Δ) → mix_by_delta → fallback."
         ),
         "pool": {
             "goblin_70": len(gob),

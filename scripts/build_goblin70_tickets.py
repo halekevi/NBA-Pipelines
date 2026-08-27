@@ -593,7 +593,12 @@ def _first_mixer_payload(date: str, candidates: list[Path]) -> tuple[dict | None
 
 
 def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
-    """Mixer groups for the live card: prefer tickets_latest (this fetch), then grade pool."""
+    """Mixer groups for the live card.
+
+    Prefer the grade-pool JSON (full graded-main) over tickets_latest. After a
+    refresh, tickets_latest is often Goblin-70-only or a pruned live file; using
+    it first would wipe STRONG / MLB Goblin OVER / tennis mixer groups.
+    """
     live: list[Path] = list(WEB_JSON_PATHS)
     sibling = _REPO.parent / "PropORACLE_main_cp"
     if sibling.is_dir() and sibling.resolve() != _REPO.resolve():
@@ -603,7 +608,11 @@ def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
                 sibling / "ui_runner" / "data" / "tickets_latest.json",
             ]
         )
-    return _first_mixer_payload(date, live + grade_pool_paths(date))
+    pool = _first_mixer_payload(date, grade_pool_paths(date))
+    live_payload = _first_mixer_payload(date, live)
+    if pool[1] and (not live_payload[1] or len(pool[1]) >= len(live_payload[1])):
+        return pool
+    return live_payload
 
 
 def _sport_token(raw: object) -> str:
@@ -714,9 +723,12 @@ def patch_mixer_groups(
     groups: list[dict],
     board: list[dict],
 ) -> tuple[list[dict], dict[str, int]]:
-    """Update live mixer legs from the latest fetch. Drop slips whose props left the board."""
+    """Update mixer legs when the fetch moved a line. Keep the slip if it is off-board.
+
+    Live /tickets must keep Goblin-70 and graded-main together. Dropping unmatched
+    legs emptied the mixer after afternoon games left the PP board.
+    """
     idx = index_board_legs(board)
-    sports_on_board = {k[1] for k in idx}
     stats = {"updated": 0, "dropped": 0, "unchanged": 0}
     out: list[dict] = []
     for group in groups or []:
@@ -732,12 +744,11 @@ def patch_mixer_groups(
                 stats["unchanged"] += 1
                 continue
             new_legs: list[dict] = []
-            drop = False
             changed = False
             for leg in legs:
                 if not isinstance(leg, dict):
-                    drop = True
-                    break
+                    new_legs.append(leg)
+                    continue
                 k = _board_leg_key(
                     leg.get("player"),
                     leg.get("sport"),
@@ -752,18 +763,12 @@ def patch_mixer_groups(
                     old_line = None
                 row = _pick_board_row(rows, old_line)
                 if row is None:
-                    if k[1] and k[1] in sports_on_board:
-                        drop = True
-                        break
                     new_legs.append(leg)
                     continue
                 patched = dict(leg)
                 if _apply_board_row_to_leg(patched, row):
                     changed = True
                 new_legs.append(patched)
-            if drop:
-                stats["dropped"] += 1
-                continue
             nxt = dict(ticket)
             nxt["legs"] = new_legs
             kept.append(nxt)

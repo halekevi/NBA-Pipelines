@@ -347,7 +347,7 @@ def test_merge_keeps_goblin70_and_graded_main():
     assert merged["tracks"] == ["goblin70", "graded_main"]
 
 
-def test_patch_mixer_updates_line_and_drops_off_board():
+def test_patch_mixer_updates_line_and_keeps_unmatched():
     from build_goblin70_tickets import patch_mixer_groups
 
     groups = [
@@ -376,7 +376,7 @@ def test_patch_mixer_updates_line_and_drops_off_board():
                     ],
                 },
                 {
-                    "ticket_id": "drop-missing-prop",
+                    "ticket_id": "keep-missing-prop",
                     "legs": [
                         {
                             "sport": "WNBA",
@@ -415,12 +415,12 @@ def test_patch_mixer_updates_line_and_drops_off_board():
     ]
     out, stats = patch_mixer_groups(groups, board)
     assert stats["updated"] == 1
-    assert stats["dropped"] == 1
-    assert len(out) == 1
+    assert stats["dropped"] == 0
+    ids = [t["ticket_id"] for t in out[0]["tickets"]]
+    assert ids == ["keep-line-move", "keep-missing-prop"]
     legs = out[0]["tickets"][0]["legs"]
     assert legs[0]["line"] == 18.5
     assert legs[1]["line"] == 3.5
-    assert out[0]["tickets"][0]["ticket_id"] == "keep-line-move"
 
 
 def test_patch_mixer_keeps_leg_when_sport_not_fetched():

@@ -23969,6 +23969,8 @@ def _normalize_payout_source(source: str | None) -> str:
         return "fallback_estimate"
     if src == "exact":
         return "exact"
+    if src == "n_correct_median":
+        return "n_correct_median"
     return src or "calibrated"
 
 
@@ -23981,6 +23983,17 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
     pay = payout if isinstance(payout, dict) else {}
     ticket = ticket if isinstance(ticket, dict) else {}
     src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if src == "n_correct_median":
+        for raw in (
+            pay.get("display_min_x"),
+            ticket.get("display_min_x"),
+            ticket.get("power_payout"),
+            ticket.get("flex_payout"),
+        ):
+            v = _safe_positive_float(raw)
+            if v is not None:
+                return v
+        return None
     if require_live_payout_display():
         if src == "pending_live":
             return None
@@ -24042,6 +24055,12 @@ def _board_payout_label(display_x: float | None, source: str | None) -> tuple[st
         return f"~{mult}x", "model est", f"Model estimate ~{mult}x"
     if src == "exact":
         return f"{mult}x", "exact", f"Exact payout {mult}x"
+    if src == "n_correct_median":
+        return (
+            f"{mult}x",
+            "N-correct",
+            f"PrizePicks N-correct / To Win {mult}x (not 1st place)",
+        )
     return f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
 
 
@@ -24064,6 +24083,8 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
             badge_label = "model est"
         elif src == "exact":
             badge_label = "exact"
+        elif src == "n_correct_median":
+            badge_label = "N-correct"
         else:
             badge_label = "est"
     return (

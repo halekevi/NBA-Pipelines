@@ -362,7 +362,30 @@ def recs(df: pd.DataFrame) -> list[dict]:
             "def": _def(r),
             "def_rank": _def_rank(r),
             "matchup": f"{team} vs {opp}".strip(" vs"),
+            "team": team,
         }
+        rec["ml_prob"] = _flt(r.get("ml_prob") or r.get("ML Prob") or r.get("MLProb"))
+        if rec["ml_prob"] is not None and rec["ml_prob"] > 1.5:
+            rec["ml_prob"] = rec["ml_prob"] / 100.0
+        sample_hr = _flt(r.get("last5_hit_rate") or r.get("hit_rate_L5"))
+        if sample_hr is None:
+            if side == "OVER":
+                sample_hr = _flt(r.get("line_hit_rate_over_ou_5") or r.get("line_hit_rate_over_5"))
+            else:
+                sample_hr = _flt(r.get("line_hit_rate_under_ou_5") or r.get("line_hit_rate_under_5"))
+        if sample_hr is None:
+            l5n = rec["l5_over"] if side == "OVER" else rec["l5_under"]
+            if isinstance(l5n, (int, float)):
+                sample_hr = float(l5n) / 5.0
+        if sample_hr is not None and sample_hr > 1.5:
+            sample_hr = sample_hr / 100.0
+        rec["hit_rate"] = sample_hr
+        rec["standard_line"] = _flt(r.get("standard_line") or r.get("Standard Line"))
+        rec["line_underdog"] = _flt(r.get("line_underdog"))
+        rec["line_draftkings"] = _flt(r.get("line_draftkings"))
+        rec["best_cross_book"] = str(r.get("best_cross_book") or "").strip()
+        rec["best_cross_line"] = _flt(r.get("best_cross_line"))
+        rec["cross_edge_vs_pp"] = _flt(r.get("cross_edge_vs_pp"))
         rec.update(_badge(rec, n_teams))
         out.append(rec)
     return out

@@ -303,6 +303,35 @@ def test_named_wnba_and_nfl_groups_are_playable():
     assert "NFL" in sports
 
 
+def test_goblin70_web_leg_splits_hr_and_ml():
+    from build_goblin70_tickets import _leg_to_web
+
+    web = _leg_to_web(
+        {
+            "player": "Gerrit Cole",
+            "sport": "MLB",
+            "prop": "Pitcher Strikeouts",
+            "side": "OVER",
+            "line": 3.5,
+            "p": 0.763,
+            "l5": 5,
+            "cover": 3.6,
+            "ml_prob": 0.92,
+            "hit_rate": 1.0,
+            "standard_line": 5.5,
+        },
+        ticket_id="t1",
+        date="2026-08-27",
+    )
+    assert web["hit_rate"] == 1.0
+    assert web["ml_prob"] == 0.92
+    assert web["hit_rate"] != web["ml_prob"]
+    assert web["best_cross_book"] == "PP"
+    assert web["best_cross_line"] == 3.5
+    assert web["cross_edge_vs_pp"] == 0.0
+    assert web["standard_line"] == 5.5
+
+
 def test_merge_keeps_goblin70_and_graded_main():
     from build_goblin70_tickets import merge_web_payload, is_g70_group
 

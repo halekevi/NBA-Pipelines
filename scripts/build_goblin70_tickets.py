@@ -306,6 +306,14 @@ def compact(r: dict, *, std: bool = False) -> dict:
         "matchup": r.get("matchup") or "",
         "team": r.get("team") or "",
         "p": r.get("p"),
+        "ml_prob": r.get("ml_prob"),
+        "hit_rate": r.get("hit_rate"),
+        "standard_line": r.get("standard_line"),
+        "line_underdog": r.get("line_underdog"),
+        "line_draftkings": r.get("line_draftkings"),
+        "best_cross_book": r.get("best_cross_book"),
+        "best_cross_line": r.get("best_cross_line"),
+        "cross_edge_vs_pp": r.get("cross_edge_vs_pp"),
     }
     if std:
         out["std_kind"] = r.get("std_kind")
@@ -378,6 +386,42 @@ def _leg_to_web(leg: dict, *, ticket_id: str, date: str) -> dict:
         cover_f = float(cover) if cover is not None else None
     except (TypeError, ValueError):
         cover_f = None
+    try:
+        hr = float(leg.get("hit_rate")) if leg.get("hit_rate") is not None else None
+    except (TypeError, ValueError):
+        hr = None
+    if hr is None and l5_f is not None:
+        hr = l5_f / 5.0
+    try:
+        ml = float(leg.get("ml_prob")) if leg.get("ml_prob") is not None else None
+    except (TypeError, ValueError):
+        ml = None
+    try:
+        std_line = float(leg.get("standard_line")) if leg.get("standard_line") is not None else None
+    except (TypeError, ValueError):
+        std_line = None
+    try:
+        ud_line = float(leg.get("line_underdog")) if leg.get("line_underdog") is not None else None
+    except (TypeError, ValueError):
+        ud_line = None
+    try:
+        dk_line = float(leg.get("line_draftkings")) if leg.get("line_draftkings") is not None else None
+    except (TypeError, ValueError):
+        dk_line = None
+    best_book = str(leg.get("best_cross_book") or "").strip()
+    try:
+        best_line = float(leg.get("best_cross_line")) if leg.get("best_cross_line") is not None else None
+    except (TypeError, ValueError):
+        best_line = None
+    try:
+        cross_edge = float(leg.get("cross_edge_vs_pp")) if leg.get("cross_edge_vs_pp") is not None else None
+    except (TypeError, ValueError):
+        cross_edge = None
+    if not best_book and line_f is not None:
+        best_book = "PP"
+        best_line = line_f if best_line is None else best_line
+        if cross_edge is None:
+            cross_edge = 0.0
     material = "|".join(
         [
             sport.lower(),
@@ -404,8 +448,14 @@ def _leg_to_web(leg: dict, *, ticket_id: str, date: str) -> dict:
         "edge": cover_f,
         "abs_edge": None if cover_f is None else abs(cover_f),
         "pick_platform": "prizepicks",
-        "hit_rate": p,
-        "ml_prob": p,
+        "hit_rate": hr,
+        "ml_prob": ml,
+        "standard_line": std_line,
+        "line_underdog": ud_line,
+        "line_draftkings": dk_line,
+        "best_cross_book": best_book,
+        "best_cross_line": best_line,
+        "cross_edge_vs_pp": cross_edge,
         "tier": str(leg.get("tier") or ""),
         "def_tier": str(leg.get("d") or ""),
         "l5_over": l5_f if side == "OVER" else None,
@@ -435,14 +485,23 @@ def _ticket_to_web(ticket: dict, *, date: str, ticket_no: int, group_name: str) 
     ticket_id = f"{date}|{gn}|{ticket_no}"
     n_correct = {int(k): float(v) for k, v in (ticket.get("n_correct") or {}).items()}
     legs = [_leg_to_web(leg, ticket_id=ticket_id, date=date) for leg in ticket.get("legs") or []]
+    hrs = [float(x["hit_rate"]) for x in legs if x.get("hit_rate") is not None]
+    mls = [float(x["ml_prob"]) for x in legs if x.get("ml_prob") is not None]
+    avg_hr = (sum(hrs) / len(hrs)) if hrs else mean_p
+    if legs and len(mls) == len(legs):
+        ml_win = 1.0
+        for m in mls:
+            ml_win *= m
+    else:
+        ml_win = sweep_pct
     return {
         "web_group_name": group_name,
         "ticket_id": ticket_id,
         "ticket_no": ticket_no,
         "ticket_track": "goblin70",
         "mode": "goblin70",
-        "avg_hit_rate": mean_p,
-        "est_win_prob": round(sweep_pct, 4),
+        "avg_hit_rate": round(avg_hr, 4),
+        "est_win_prob": round(ml_win, 4),
         "est_flex_cash_prob": round(cash_pct, 4) if tt == "flex" else None,
         "power_payout": sweep if tt == "power" else None,
         "flex_payout": sweep if tt == "flex" else None,

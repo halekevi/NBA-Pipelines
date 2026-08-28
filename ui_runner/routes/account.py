@@ -79,6 +79,31 @@ def _load_user():
         return None
 
 
+def _pnl_mod():
+    try:
+        from ui_runner import placed_pnl as pnl
+    except ImportError:
+        import placed_pnl as pnl  # type: ignore
+    return pnl
+
+
+def _pnl_for_user(user: dict | None):
+    if not user:
+        return None
+    pnl = _pnl_mod()
+    raw_rows = _store().list_placed_rows(int(user["id"]))
+    settled = [
+        pnl.settle_snapshot(
+            r.get("snapshot"),
+            fingerprint=str(r.get("fingerprint") or ""),
+            slate_date=str(r.get("slate_date") or ""),
+            stake=r.get("stake") if r.get("stake") is not None else user.get("default_stake"),
+        )
+        for r in raw_rows
+    ]
+    return pnl.summarize(settled)
+
+
 def _account_page(*, error: str = "", message: str = "", status: int = 200):
     user = _load_user() if accounts_enabled() else None
     chosen = list((user or {}).get("preferred_groups") or [])
@@ -95,6 +120,7 @@ def _account_page(*, error: str = "", message: str = "", status: int = 200):
         signup_open=bool(signup_code_required()),
         ui_build_id=current_app.config.get("UI_BUILD_ID", ""),
         accounts_enabled=accounts_enabled(),
+        pnl=_pnl_for_user(user),
     )
     return html, status
 
@@ -211,6 +237,16 @@ def api_me():
     )
 
 
+@account_bp.get("/api/account/pnl")
+def api_pnl():
+    if not accounts_enabled():
+        return jsonify({"error": "accounts_disabled"}), 503
+    user = _load_user()
+    if not user:
+        return jsonify({"error": "login_required"}), 401
+    return jsonify(_pnl_for_user(user) or {})
+
+
 @account_bp.post("/api/account/placed")
 def api_placed():
     if not accounts_enabled():
@@ -223,12 +259,29 @@ def api_placed():
     placed = bool(payload.get("placed"))
     fps = payload.get("fingerprints")
     store = _store()
+    try:
+        stake = float(user.get("default_stake")) if user.get("default_stake") is not None else 20.0
+    except (TypeError, ValueError):
+        stake = 20.0
+    pnl = _pnl_mod()
+
+    def _snap(fp: str):
+        found = pnl.find_ticket(fp)
+        if not found:
+            return None
+        ticket, gname = found
+        return pnl.snapshot_from_ticket(ticket, group_name=gname, stake=stake)
+
     if isinstance(fps, list) and fps:
-        store.set_placed_many(int(user["id"]), slate, [str(x) for x in fps], placed)
+        tokens = [str(x).strip() for x in fps if str(x).strip()]
+        snaps = {fp: s for fp in tokens if (s := _snap(fp))}
+        store.set_placed_many(
+            int(user["id"]), slate, tokens, placed, stake=stake, snapshots=snaps
+        )
         return jsonify({"ok": True, "placed": store.list_placed(int(user["id"]), slate)})
     fp = str(payload.get("fingerprint") or "").strip()
     try:
-        store.set_placed(int(user["id"]), slate, fp, placed)
+        store.set_placed(int(user["id"]), slate, fp, placed, stake=stake, snapshot=_snap(fp) if placed else None)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify({"ok": True, "placed": store.list_placed(int(user["id"]), slate)})

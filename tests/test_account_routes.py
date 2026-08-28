@@ -66,3 +66,14 @@ def test_account_http_flow(tmp_path, monkeypatch):
     )
     assert placed.status_code == 200
     assert "p|pts|10.5|OVER" in placed.get_json()["placed"]
+
+    pnl = client.get("/api/account/pnl")
+    assert pnl.status_code == 200
+    body = pnl.get_json()
+    assert body["placed"] >= 1
+    assert "roi_pct" in body
+
+    page = client.get("/account")
+    assert page.status_code == 200
+    assert b"Your tickets" in page.data
+    assert b"ROI" in page.data

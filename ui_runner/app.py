@@ -54,6 +54,7 @@ from flask import (
     request,
     send_file,
     send_from_directory,
+    session,
 )
 from markupsafe import Markup
 
@@ -219,6 +220,62 @@ app = Flask(
     static_folder=str(STATIC_DIR),
 )
 
+
+def _on_railway() -> bool:
+    return bool((os.environ.get("RAILWAY_ENVIRONMENT") or "").strip())
+
+
+def _configure_app_sessions() -> None:
+    """Cookie sessions for /account. Production needs SECRET_KEY / PROPORACLE_SECRET_KEY."""
+    key = (os.environ.get("SECRET_KEY") or os.environ.get("PROPORACLE_SECRET_KEY") or "").strip()
+    on_prod = _on_railway()
+    if key:
+        app.secret_key = key
+        app.config["PROPORACLE_ACCOUNTS_ENABLED"] = True
+    elif on_prod:
+        app.secret_key = "accounts-disabled-set-SECRET_KEY"
+        app.config["PROPORACLE_ACCOUNTS_ENABLED"] = False
+        logging.getLogger(__name__).error(
+            "SECRET_KEY / PROPORACLE_SECRET_KEY missing; /account is disabled"
+        )
+    else:
+        app.secret_key = "proporacle-dev-only-not-for-production"
+        app.config["PROPORACLE_ACCOUNTS_ENABLED"] = True
+    app.config["SESSION_COOKIE_NAME"] = "proporacle_session"
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = on_prod or (
+        (os.environ.get("PROPORACLE_SESSION_SECURE") or "").strip() == "1"
+    )
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
+    app.config["UI_BUILD_ID"] = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "local")[:12]
+
+
+_configure_app_sessions()
+
+
+@app.context_processor
+def _account_nav_ctx() -> dict[str, Any]:
+    email = None
+    if app.config.get("PROPORACLE_ACCOUNTS_ENABLED") and app.secret_key:
+        try:
+            uid = session.get("user_id")
+        except Exception:
+            uid = None
+        if uid:
+            try:
+                from ui_runner.account_store import get_user as _get_user
+            except ImportError:
+                from account_store import get_user as _get_user  # type: ignore
+            try:
+                user = _get_user(int(uid))
+            except Exception:
+                user = None
+            if user:
+                email = user.get("email")
+    return {"account_email": email, "account_logged_in": bool(email)}
+
+
 def _register_consistency_blueprint() -> None:
     """Register /api/hot-players and /api/player-consistency (repo-root vs ui_runner cwd)."""
     log = logging.getLogger(__name__)
@@ -240,6 +297,25 @@ def _register_consistency_blueprint() -> None:
 
 
 _register_consistency_blueprint()
+
+
+def _register_account_blueprint() -> None:
+    log = logging.getLogger(__name__)
+    last_err: Exception | None = None
+    for import_path in ("ui_runner.routes.account", "routes.account"):
+        try:
+            import importlib
+
+            mod = importlib.import_module(import_path)
+            app.register_blueprint(mod.account_bp)
+            log.info("Account routes loaded from %s", import_path)
+            return
+        except Exception as exc:
+            last_err = exc
+    log.warning("Account routes not loaded: %s", last_err)
+
+
+_register_account_blueprint()
 
 try:
     DATA_ROOT.mkdir(parents=True, exist_ok=True)

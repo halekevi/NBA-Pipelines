@@ -23243,6 +23243,23 @@ _TICKETS_BUILT_PAYOUT_CSS = """<style>
 .tickets-built .ticket-copy-btn--group {
   margin-left: auto;
 }
+.tickets-built .ticket-placed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, rgba(255,255,255,.75));
+  cursor: pointer;
+  user-select: none;
+}
+.tickets-built .ticket-placed input {
+  accent-color: #c8ff00;
+}
+.tickets-built .ticket.is-placed {
+  outline: 1px solid rgba(57,255,110,.28);
+}
 .tickets-built .payout-rec-badge {
   font-family: "Inter", sans-serif;
   font-size: clamp(11px, 1.1vw, 13px);
@@ -24049,6 +24066,25 @@ def _tickets_fmt_line_plain(x) -> str:
         return str(x) if x is not None else "—"
 
 
+def _ticket_fingerprint(legs) -> str:
+    """Stable id for Placed checkboxes: sorted player|prop|line|dir."""
+    parts: list[str] = []
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        player = str(leg.get("player") or "").strip().lower()
+        if not player:
+            continue
+        prop = str(leg.get("prop_type") or "").strip().lower()
+        line = _tickets_fmt_line_plain(leg.get("line"))
+        direction = str(leg.get("direction") or "").strip().upper()
+        if direction == "LOWER":
+            direction = "UNDER"
+        parts.append(f"{player}|{prop}|{line}|{direction}")
+    parts.sort()
+    return ";".join(parts)
+
+
 def _tickets_leg_parse_float(val: Any) -> float | None:
     if val is None:
         return None
@@ -24485,7 +24521,7 @@ def render_tickets_body_html(
     page_title = f"PropOracle Tickets — {date_str}"
 
     parts: list[str] = []
-    parts.append('<div class="tickets-built shell">')
+    parts.append(f'<div class="tickets-built shell" data-slate-date="{_h(date_declared or date_str)}">')
     parts.append(_TICKETS_BUILT_PAYOUT_CSS)
 
     # ── Hero ──────────────────────────────────────────────────────────────────
@@ -24667,12 +24703,13 @@ def render_tickets_body_html(
         d_n_legs = int(n_legs) if n_legs else _ticket_group_leg_count(group_name)
 
         parts.append(f'''
-<div class="ticket-group-section collapsed group-rec-{_h(rec_cls)}" data-sport="{_h(d_sport)}" data-type="{_h(d_type)}" data-pick="{_h(d_pick)}" data-ev="{_h(d_ev)}" data-ev-score="{_fmt(d_ev_score, 4)}" data-p-win="{_fmt(d_p_win_score, 6)}" data-hit-score="{_fmt(d_hit_score, 4)}" data-payout-confidence="{_fmt(d_pc, 2)}" data-n-legs="{d_n_legs}" data-original-index="{d_oi}" data-platforms="{_h(d_plat)}">
+<div class="ticket-group-section collapsed group-rec-{_h(rec_cls)}" data-sport="{_h(d_sport)}" data-type="{_h(d_type)}" data-pick="{_h(d_pick)}" data-ev="{_h(d_ev)}" data-ev-score="{_fmt(d_ev_score, 4)}" data-p-win="{_fmt(d_p_win_score, 6)}" data-hit-score="{_fmt(d_hit_score, 4)}" data-payout-confidence="{_fmt(d_pc, 2)}" data-n-legs="{d_n_legs}" data-original-index="{d_oi}" data-platforms="{_h(d_plat)}" data-group-name="{_h(group_name)}">
   <div class="ticket-group-header collapsible-header" role="button" tabindex="0" aria-expanded="false">
     <span class="group-title" style="color:{accent};">{_h(group_name)}</span>
     <span class="group-meta">{group_meta_html}</span>
     {ev_badge_html}
     <button type="button" class="ticket-copy-btn ticket-copy-btn--group" data-copy="group" title="Copy every slip in this group to paste while building on PrizePicks">Copy group</button>
+    <button type="button" class="ticket-copy-btn ticket-placed-all" data-placed="group" title="Mark every slip in this group as placed on PrizePicks">Mark placed</button>
     <span class="collapse-icon" aria-hidden="true">▼</span>
   </div>
   <div class="ticket-group-body">
@@ -24776,15 +24813,20 @@ def render_tickets_body_html(
                          if has_warn else "")
 
             l10_kpi_html = _ticket_l10_kpi_html(ticket, legs)
+            fp = _ticket_fingerprint(legs)
 
             parts.append(f'''
-<div class="ticket" style="border-left:4px solid {accent};" data-group-name="{_h(group_name)}" data-ticket-no="{_h(ticket_no)}">
+<div class="ticket" style="border-left:4px solid {accent};" data-group-name="{_h(group_name)}" data-ticket-no="{_h(ticket_no)}" data-fp="{_h(fp)}">
   <div class="ticket-body">
       <div class="ticket-hdr">
         <span class="ticket-no">#{_h(ticket_no)}</span>
         {hdr_brackets}
         <span class="ticket-hdr-actions">
           {warn_html}
+          <label class="ticket-placed">
+            <input type="checkbox" class="ticket-placed-cb" data-fp="{_h(fp)}" />
+            <span>Placed</span>
+          </label>
           <button type="button" class="ticket-copy-btn" data-copy="ticket" title="Copy legs to paste while building this slip on PrizePicks">Copy slip</button>
         </span>
       </div>
@@ -25057,6 +25099,16 @@ def render_tickets_body_html(
   function matchesFilter(group, filter){
     if(filter === 'all') return true;
     if(filter === 'top-payout') return true;
+    if(filter === 'mine'){
+      var prefs = (window.__ACCOUNT_PREFERRED_GROUPS || []);
+      if(!prefs.length) return true;
+      var name = (group.getAttribute('data-group-name') || '').toLowerCase();
+      for(var i=0;i<prefs.length;i++){
+        var tok = String(prefs[i] || '').toLowerCase();
+        if(tok && name.indexOf(tok) >= 0) return true;
+      }
+      return false;
+    }
     if(filter === 'pp' || filter === 'ud' || filter === 'dk'){
       var raw = (group.getAttribute('data-platforms') || '').toLowerCase().trim();
       if(!raw) return filter === 'pp';
@@ -25109,14 +25161,17 @@ def render_tickets_body_html(
     }
   }
 
-  document.querySelectorAll('.ticket-filter-pill').forEach(function(pill){
-    pill.addEventListener('click', function(){
-      document.querySelectorAll('.ticket-filter-pill').forEach(function(p){ p.classList.remove('active'); });
+  var filterBar = document.querySelector('.ticket-filter-bar');
+  if(filterBar){
+    filterBar.addEventListener('click', function(ev){
+      var pill = ev.target.closest('.ticket-filter-pill');
+      if(!pill || !filterBar.contains(pill)) return;
+      filterBar.querySelectorAll('.ticket-filter-pill').forEach(function(p){ p.classList.remove('active'); });
       pill.classList.add('active');
       activeFilter = (pill.getAttribute('data-filter') || '').toLowerCase();
       applyGroupView();
     });
-  });
+  }
 
   var sortSel = document.getElementById('ticket-sort-select');
   if(sortSel){
@@ -25146,12 +25201,12 @@ def render_tickets_body_html(
 
   document.querySelectorAll('.tickets-built .collapsible-header').forEach(function(header){
     header.addEventListener('click', function(ev){
-      if(ev.target.closest('button, a, input, select, textarea')) return;
+      if(ev.target.closest('button, a, input, select, textarea, label')) return;
       ev.preventDefault();
       toggleSectionCollapsed(header.closest('.ticket-group-section'));
     });
     header.addEventListener('keydown', function(ev){
-      if(ev.target.closest('button, a, input, select, textarea')) return;
+      if(ev.target.closest('button, a, input, select, textarea, label')) return;
       if(ev.key === 'Enter' || ev.key === ' '){
         ev.preventDefault();
         toggleSectionCollapsed(header.closest('.ticket-group-section'));
@@ -25190,6 +25245,17 @@ def render_tickets_body_html(
     collapseAllGroups();
     applyGroupView();
   })();
+  window.__ticketsApplyGroupView = applyGroupView;
+  window.__ticketsSetFilter = function(filter){
+    activeFilter = String(filter || 'all').toLowerCase();
+    var bar = document.querySelector('.ticket-filter-bar');
+    if(bar){
+      bar.querySelectorAll('.ticket-filter-pill').forEach(function(p){
+        p.classList.toggle('active', (p.getAttribute('data-filter') || '').toLowerCase() === activeFilter);
+      });
+    }
+    applyGroupView();
+  };
 })();
 </script>''')
 

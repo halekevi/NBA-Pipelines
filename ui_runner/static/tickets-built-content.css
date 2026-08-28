@@ -486,6 +486,58 @@
   margin-bottom: 10px;
   flex-wrap: wrap;
 }
+.tickets-built .ticket-hdr-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.tickets-built .ticket-data-warn {
+  font-size: 10px;
+  color: var(--amber);
+}
+.tickets-built .ticket-copy-btn {
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 255, 0, 0.35);
+  background: rgba(200, 255, 0, 0.08);
+  color: var(--accent, #c8ff00);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tickets-built .ticket-copy-btn:hover {
+  background: rgba(200, 255, 0, 0.16);
+}
+.tickets-built .ticket-copy-btn.is-copied {
+  border-color: rgba(57, 255, 110, 0.45);
+  color: #39ff6e;
+  background: rgba(57, 255, 110, 0.1);
+}
+.tickets-built .ticket-copy-btn--group {
+  margin-left: auto;
+}
+.tickets-built .ticket-placed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted, rgba(255, 255, 255, 0.75));
+  cursor: pointer;
+  user-select: none;
+}
+.tickets-built .ticket-placed input {
+  accent-color: #c8ff00;
+}
+.tickets-built .ticket.is-placed {
+  outline: 1px solid rgba(57, 255, 110, 0.28);
+}
 .tickets-built .ticket-no {
   font-family: "Bebas Neue", sans-serif;
   font-size: 18px;
@@ -725,6 +777,11 @@
   color: #1a2a3a !important;
   border-color: rgba(0, 0, 0, 0.14) !important;
   background: rgba(255, 255, 255, 0.5) !important;
+}
+[data-theme="light"] .tickets-built .ticket-copy-btn {
+  color: #3d5a00 !important;
+  border-color: rgba(80, 110, 0, 0.35) !important;
+  background: rgba(200, 255, 0, 0.28) !important;
 }
 [data-theme="light"] .tickets-built .ticket-filter-pill {
   color: #1a2a3a !important;

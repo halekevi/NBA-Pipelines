@@ -378,6 +378,26 @@ def _has_payout_ladder(snap: dict[str, Any]) -> bool:
     return False
 
 
+def payout_text(table: dict[int, float], product: str, n_legs: int) -> str:
+    """Human N-correct / To Win quote. Empty if we never stored a ladder."""
+    if not table:
+        return ""
+    if str(product).lower() == "flex":
+        parts = [f"{k} correct {table[k]:g}x" for k in sorted(table, reverse=True)]
+        return " / ".join(parts)
+    n = n_legs if n_legs in table else max(table)
+    return f"{n} correct {table[n]:g}x"
+
+
+def _leg_caption(leg: dict[str, Any]) -> str:
+    player = str(leg.get("player") or "").strip()
+    direction = _dir(leg.get("direction") or leg.get("dir"))
+    line = fmt_line(leg.get("line"))
+    prop = str(leg.get("prop_type") or leg.get("prop") or "").strip()
+    bits = [b for b in (player, direction, line, prop) if b]
+    return " ".join(bits)
+
+
 def settle_snapshot(
     snapshot: dict[str, Any] | None,
     *,
@@ -435,17 +455,23 @@ def settle_snapshot(
             marks.append(g)
 
     group = str(snap.get("group_name") or "")
-    players = [
-        str(leg.get("player") or "").strip()
+    captions = [
+        _leg_caption(leg)
         for leg in legs
         if isinstance(leg, dict) and str(leg.get("player") or "").strip()
     ]
     label = group or "Placed slip"
-    if players:
-        label = f"{label} — {', '.join(players[:3])}"
-        if len(players) > 3:
-            label += f" +{len(players) - 3}"
+    if captions:
+        label = f"{label} — {'; '.join(captions[:3])}"
+        if len(captions) > 3:
+            label += f" +{len(captions) - 3}"
 
+    n_legs_n = len(marks) or int(snap.get("n_legs") or 0) or len(captions)
+    quoted = None
+    if n_legs_n in table:
+        quoted = float(table[n_legs_n])
+    elif fallback is not None and math.isfinite(fallback) and fallback > 0:
+        quoted = float(fallback)
     base = {
         "slate_date": slate_date,
         "fingerprint": fingerprint,
@@ -453,8 +479,11 @@ def settle_snapshot(
         "label": label,
         "product": product,
         "stake": round(stake_f, 2),
-        "n_legs": len(marks) or int(snap.get("n_legs") or 0),
+        "n_legs": n_legs_n,
         "legs": marks,
+        "n_correct": {str(k): v for k, v in sorted(table.items())},
+        "payout_text": payout_text(table, product, n_legs_n),
+        "quoted_x": quoted,
     }
     if not marks:
         return {**base, "status": "pending", "result": "PENDING", "multiplier": None, "returned": None, "net": None}
@@ -527,6 +556,7 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     risk = [r for r in rows if r.get("status") in ("win", "loss", "even")]
     voids = [r for r in rows if r.get("status") == "void"]
     at_risk = sum(float(r.get("stake") or 0) for r in risk)
+    pending_stake = sum(float(r.get("stake") or 0) for r in pending)
     returned = sum(float(r.get("returned") or 0) for r in risk)
     net = sum(float(r.get("net") or 0) for r in risk)
     wins = sum(1 for r in risk if r.get("result") == "WIN")
@@ -541,7 +571,8 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "cash": cash,
         "losses": losses,
         "refunds": len(voids),
-        "staked": round(at_risk, 2),
+        "staked": round(at_risk + pending_stake, 2),
+        "staked_pending": round(pending_stake, 2),
         "returned": round(returned, 2),
         "net": round(net, 2),
         "roi_pct": round(roi, 1) if roi is not None else None,

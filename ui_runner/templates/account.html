@@ -79,7 +79,7 @@
   </div>
   <div class="acct-card">
     <h2>Your tickets</h2>
-    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets, or build with <strong>+</strong> on Home cards / slate. Stake is your default below. Pays N-correct / To Win only — not 1st place. Pending until the slate grades.</p>
+    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets, or build with <strong>+</strong> on Home cards / slate. Stake is your default below. Pending rows show the N-correct / To Win quote from the slip; net fills after grades. Not 1st place.</p>
     {% set pnl = pnl or {} %}
     <div class="acct-pnl-grid">
       <div class="acct-stat {% if (pnl.net or 0) > 0 %}pos{% elif (pnl.net or 0) < 0 %}neg{% endif %}">
@@ -92,7 +92,7 @@
       </div>
       <div class="acct-stat">
         <div class="n">${{ '%.0f'|format(pnl.staked or 0) }}</div>
-        <div class="l">Staked</div>
+        <div class="l">Staked{% if pnl.staked_pending %} · pend{% endif %}</div>
       </div>
       <div class="acct-stat">
         <div class="n">{{ pnl.wins or 0 }}–{{ pnl.losses or 0 }}{% if pnl.pending %} · {{ pnl.pending }} pend{% endif %}</div>
@@ -109,7 +109,7 @@
           <td>{{ r.label }}{% if r.product %} · {{ r.product }}{% endif %} · ${{ '%.0f'|format(r.stake or 0) }}</td>
           <td>
             {% set st = r.status or 'pending' %}
-            <span class="acct-pill {{ st }}{% if r.result == 'CASH' %} cash{% endif %}">{{ r.result or 'PENDING' }}{% if r.multiplier %} {{ '%.2f'|format(r.multiplier) }}x{% endif %}</span>
+            <span class="acct-pill {{ st }}{% if r.result == 'CASH' %} cash{% endif %}">{% if st == 'pending' %}PENDING{% if r.payout_text %} · {{ r.payout_text }}{% else %} · add To Win{% endif %}{% else %}{{ r.result or 'PENDING' }}{% if r.multiplier %} {{ '%.2f'|format(r.multiplier) }}x{% endif %}{% endif %}</span>
           </td>
           <td class="money">{% if r.net is not none %}{{ '%+.2f'|format(r.net) }}{% else %}—{% endif %}</td>
         </tr>

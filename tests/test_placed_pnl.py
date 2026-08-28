@@ -76,6 +76,8 @@ def test_pending_and_summary():
     snap = snapshot_from_ticket(_power_ticket(), group_name="Power 3", stake=20)
     pending = settle_snapshot(snap, fingerprint="x", slate_date="2026-08-28", stake=20, grades={})
     assert pending["status"] == "pending"
+    assert pending["payout_text"] == "3 correct 2x"
+    assert pending["quoted_x"] == 2.0
     win_grades = {
         ("a", "points", "10.50", "OVER"): "HIT",
         ("b", "points", "8.50", "OVER"): "HIT",
@@ -85,6 +87,8 @@ def test_pending_and_summary():
     s = summarize([pending, win])
     assert s["pending"] == 1
     assert s["wins"] == 1
+    assert s["staked"] == 40.0
+    assert s["staked_pending"] == 20.0
     assert s["roi_pct"] == 100.0
 
 

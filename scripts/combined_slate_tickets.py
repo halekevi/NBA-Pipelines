@@ -24221,8 +24221,25 @@ _TICKET_GROUP_SPORT_SORT_ORDER: dict[str, int] = {
 }
 
 
+def _group_is_goblin70(group: dict | None, group_name: str = "") -> bool:
+    """True for the 70% Goblin card (plus NFL Power fill from that builder)."""
+    name = str(group_name or (group or {}).get("group_name") or "")
+    if "Goblin-70" in name or "GOBLIN-70" in name.upper():
+        return True
+    if name.upper().startswith("NFL POWER"):
+        return True
+    for t in (group or {}).get("tickets") or []:
+        if isinstance(t, dict) and str(t.get("ticket_track") or "").lower() == "goblin70":
+            return True
+    return False
+
+
 def _ticket_group_sort_rank(group_name: str) -> int:
     name = (group_name or "").upper()
+    if "GOBLIN-70" in name:
+        return -300
+    if name.startswith("NFL POWER"):
+        return -250
     if " CORE " in f" {name} " or name.startswith("CORE ") or " CORE" in name:
         return -200
     if "PROBABILITY LADDER" in name:
@@ -25165,9 +25182,10 @@ def render_tickets_body_html(
         rec_cls = d_ev if d_ev in ("strong", "ok", "marginal", "low", "skip") else "skip"
         d_plat = _ticket_group_platforms_attr(group)
         d_n_legs = int(n_legs) if n_legs else _ticket_group_leg_count(group_name)
+        d_track = "goblin70" if _group_is_goblin70(group, group_name) else ""
 
         parts.append(f'''
-<div class="ticket-group-section collapsed group-rec-{_h(rec_cls)}" data-sport="{_h(d_sport)}" data-type="{_h(d_type)}" data-pick="{_h(d_pick)}" data-ev="{_h(d_ev)}" data-ev-score="{_fmt(d_ev_score, 4)}" data-p-win="{_fmt(d_p_win_score, 6)}" data-hit-score="{_fmt(d_hit_score, 4)}" data-payout-confidence="{_fmt(d_pc, 2)}" data-n-legs="{d_n_legs}" data-original-index="{d_oi}" data-platforms="{_h(d_plat)}" data-group-name="{_h(group_name)}">
+<div class="ticket-group-section collapsed group-rec-{_h(rec_cls)}" data-sport="{_h(d_sport)}" data-type="{_h(d_type)}" data-pick="{_h(d_pick)}" data-ev="{_h(d_ev)}" data-ev-score="{_fmt(d_ev_score, 4)}" data-p-win="{_fmt(d_p_win_score, 6)}" data-hit-score="{_fmt(d_hit_score, 4)}" data-payout-confidence="{_fmt(d_pc, 2)}" data-n-legs="{d_n_legs}" data-original-index="{d_oi}" data-platforms="{_h(d_plat)}" data-group-name="{_h(group_name)}" data-track="{_h(d_track)}">
   <div class="ticket-group-header collapsible-header" role="button" tabindex="0" aria-expanded="false">
     <span class="group-title" style="color:{accent};">{_h(group_name)}</span>
     <span class="group-meta">{group_meta_html}</span>
@@ -25444,7 +25462,7 @@ def render_tickets_body_html(
             if payout_ok and isinstance(payout, dict):
                 try:
                     p_all = float(payout["p_all_win"])
-                except (TypeError, ValueError):
+                except (TypeError, ValueError, KeyError):
                     p_all = 0.0
                 rec_s2 = str(payout.get("recommendation") or "")
                 ev_cls_row = _payout_ev_class(rec_s2)
@@ -25516,6 +25534,13 @@ def render_tickets_body_html(
   var sortMode = 'ev_desc';
   var hideSkip = true;
 
+  function isGoblin70(group){
+    var track = (group.getAttribute('data-track') || '').toLowerCase();
+    if(track === 'goblin70') return true;
+    var name = (group.getAttribute('data-group-name') || '').toLowerCase();
+    return name.indexOf('goblin-70') >= 0 || name.indexOf('nfl power') === 0;
+  }
+
   function parseNum(el, attr){
     var raw = (el.getAttribute(attr) || '').trim();
     var n = parseFloat(raw);
@@ -25523,43 +25548,58 @@ def render_tickets_body_html(
   }
 
   function sortGroups(groups){
-    if(sortMode === 'group'){
-      groups.sort(function(a,b){
-        return parseNum(a, 'data-original-index') - parseNum(b, 'data-original-index');
-      });
-      return;
+    var g70 = [];
+    var rest = [];
+    groups.forEach(function(g){
+      if(isGoblin70(g)) g70.push(g);
+      else rest.push(g);
+    });
+    g70.sort(function(a,b){
+      return parseNum(a, 'data-original-index') - parseNum(b, 'data-original-index');
+    });
+    function sortRest(mode){
+      if(mode === 'group'){
+        rest.sort(function(a,b){
+          return parseNum(a, 'data-original-index') - parseNum(b, 'data-original-index');
+        });
+        return;
+      }
+      if(mode === 'ev_asc'){
+        rest.sort(function(a,b){ return parseNum(a, 'data-ev-score') - parseNum(b, 'data-ev-score'); });
+        return;
+      }
+      if(mode === 'hit_rate'){
+        rest.sort(function(a,b){ return parseNum(b, 'data-hit-score') - parseNum(a, 'data-hit-score'); });
+        return;
+      }
+      if(mode === 'pwin_desc'){
+        rest.sort(function(a,b){ return parseNum(b, 'data-p-win') - parseNum(a, 'data-p-win'); });
+        return;
+      }
+      if(mode === 'pwin_asc'){
+        rest.sort(function(a,b){ return parseNum(a, 'data-p-win') - parseNum(b, 'data-p-win'); });
+        return;
+      }
+      if(mode === 'legs_desc'){
+        rest.sort(function(a,b){
+          var dl = parseNum(b, 'data-n-legs') - parseNum(a, 'data-n-legs');
+          if(dl !== 0) return dl;
+          return parseNum(b, 'data-ev-score') - parseNum(a, 'data-ev-score');
+        });
+        return;
+      }
+      rest.sort(function(a,b){ return parseNum(b, 'data-ev-score') - parseNum(a, 'data-ev-score'); });
     }
-    if(sortMode === 'ev_asc'){
-      groups.sort(function(a,b){ return parseNum(a, 'data-ev-score') - parseNum(b, 'data-ev-score'); });
-      return;
-    }
-    if(sortMode === 'hit_rate'){
-      groups.sort(function(a,b){ return parseNum(b, 'data-hit-score') - parseNum(a, 'data-hit-score'); });
-      return;
-    }
-    if(sortMode === 'pwin_desc'){
-      groups.sort(function(a,b){ return parseNum(b, 'data-p-win') - parseNum(a, 'data-p-win'); });
-      return;
-    }
-    if(sortMode === 'pwin_asc'){
-      groups.sort(function(a,b){ return parseNum(a, 'data-p-win') - parseNum(b, 'data-p-win'); });
-      return;
-    }
-    if(sortMode === 'legs_desc'){
-      groups.sort(function(a,b){
-        var dl = parseNum(b, 'data-n-legs') - parseNum(a, 'data-n-legs');
-        if(dl !== 0) return dl;
-        return parseNum(b, 'data-ev-score') - parseNum(a, 'data-ev-score');
-      });
-      return;
-    }
-    groups.sort(function(a,b){ return parseNum(b, 'data-ev-score') - parseNum(a, 'data-ev-score'); });
+    sortRest(sortMode);
+    groups.length = 0;
+    g70.concat(rest).forEach(function(g){ groups.push(g); });
   }
 
   function matchesFilter(group, filter){
     if(filter === 'all') return true;
     if(filter === 'top-payout') return true;
     if(filter === 'mine'){
+      if(isGoblin70(group)) return true;
       var prefs = (window.__ACCOUNT_PREFERRED_GROUPS || []);
       if(!prefs.length) return true;
       var name = (group.getAttribute('data-group-name') || '').toLowerCase();
@@ -25589,7 +25629,7 @@ def render_tickets_body_html(
     var allGroups = Array.from(shell.querySelectorAll('.ticket-group-section'));
     var visible = allGroups.filter(function(g){
       if(!matchesFilter(g, activeFilter)) return false;
-      if(hideSkip){
+      if(hideSkip && !isGoblin70(g)){
         var rec = (g.getAttribute('data-ev') || '').toLowerCase();
         if(rec === 'skip' || rec === 'low') return false;
       }

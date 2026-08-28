@@ -385,3 +385,72 @@ def api_custom_slip():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify({"ok": True, "fingerprint": fp, "placed": _store().list_placed(int(user["id"]), slate)})
+
+
+@account_bp.post("/api/account/placed-fix")
+def api_placed_fix():
+    """Correct To Win / directions on a saved slip. Never stores 1st place."""
+    if not accounts_enabled():
+        return jsonify({"error": "accounts_disabled"}), 503
+    user = _load_user()
+    if not user:
+        return jsonify({"error": "login_required"}), 401
+    payload = request.get_json(silent=True) or {}
+    slate = str(payload.get("slate_date") or payload.get("slate") or "").strip()[:10]
+    fp = str(payload.get("fingerprint") or "").strip()
+    store = _store()
+    if payload.get("remove"):
+        try:
+            store.set_placed(int(user["id"]), slate, fp, False)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"ok": True, "removed": True})
+    if not slate or not fp:
+        return jsonify({"error": "Missing slate date or fingerprint."}), 400
+    rows = store.list_placed_rows(int(user["id"]), limit=200)
+    row = next((r for r in rows if r.get("fingerprint") == fp and r.get("slate_date") == slate), None)
+    if not row:
+        return jsonify({"error": "Slip not found."}), 404
+    pnl = _pnl_mod()
+    snap = dict(row.get("snapshot") or {})
+    legs = _parse_legs(payload.get("picks") or payload.get("legs") or snap.get("legs") or [])
+    if not (2 <= len(legs) <= 6):
+        return jsonify({"error": "Need 2 to 6 legs."}), 400
+    product = str(payload.get("product") or snap.get("product") or "Power")
+    table = pnl.parse_n_correct(payload.get("n_correct") or snap.get("n_correct"))
+    to_win = payload.get("to_win")
+    if to_win is not None and str(to_win).strip() != "":
+        try:
+            xf = float(to_win)
+        except (TypeError, ValueError):
+            return jsonify({"error": "To Win must be a number (N-correct, not 1st place)."}), 400
+        if xf <= 0 or xf > 100:
+            return jsonify({"error": "To Win multiplier looks wrong."}), 400
+        table[len(legs)] = xf
+    if not table:
+        return jsonify({"error": "Enter N-correct / To Win from PrizePicks — not 1st place."}), 400
+    try:
+        stake = float(payload.get("stake") if payload.get("stake") is not None else row.get("stake") or 20)
+    except (TypeError, ValueError):
+        stake = 20.0
+    new_snap = pnl.snapshot_from_custom(
+        legs,
+        product=product,
+        n_correct=table,
+        stake=stake,
+        group_name=str(snap.get("group_name") or "My slip").replace(" Power", "").replace(" Flex", ""),
+    )
+    new_fp = str(new_snap.get("fingerprint") or "")
+    try:
+        store.replace_placed(
+            int(user["id"]),
+            slate,
+            fp,
+            slate_date=slate,
+            fingerprint=new_fp,
+            stake=stake,
+            snapshot=new_snap,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"ok": True, "fingerprint": new_fp})

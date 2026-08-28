@@ -37,6 +37,21 @@
   .acct-pill.loss { color: #ff7f7f; border-color: rgba(255,127,127,.35); }
   .acct-pill.pending { color: #d4af37; border-color: rgba(212,175,55,.35); }
   .acct-pill.cash { color: #c8ff00; border-color: rgba(200,255,0,.3); }
+  .acct-fix { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+  .acct-fix input[type="number"] {
+    width: 72px; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.14);
+    border-radius: 8px; color: inherit; font: inherit; padding: 6px 8px;
+  }
+  .acct-dir {
+    font: inherit; font-size: 11px; padding: 4px 8px; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.14); background: transparent; color: inherit;
+  }
+  .acct-dir.is-under { border-color: rgba(255,192,107,.4); }
+  .acct-dir.is-over { border-color: rgba(57,255,110,.35); }
+  .acct-mini { font: inherit; font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    padding: 5px 9px; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(200,255,0,.3); background: rgba(200,255,0,.1); color: var(--accent, #c8ff00); }
+  .acct-mini-ghost { border-color: rgba(255,255,255,.18); background: transparent; color: inherit; }
   .acct-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .acct-field label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.65)); }
   .acct-field input[type="email"],
@@ -79,7 +94,7 @@
   </div>
   <div class="acct-card">
     <h2>Your tickets</h2>
-    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets, or build with <strong>+</strong> on Home cards / slate. Stake is your default below. Pending rows show the N-correct / To Win quote from the slip; net fills after grades. Not 1st place.</p>
+    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets, or build with <strong>+</strong> on Home cards / slate. Pending: type PrizePicks <strong>N-correct / To Win</strong> (ignore 1st place) and tap a name to flip Over/Under. Net fills after grades.</p>
     {% set pnl = pnl or {} %}
     <div class="acct-pnl-grid">
       <div class="acct-stat {% if (pnl.net or 0) > 0 %}pos{% elif (pnl.net or 0) < 0 %}neg{% endif %}">
@@ -104,9 +119,22 @@
       <thead><tr><th>Date</th><th>Slip</th><th>Result</th><th>Net</th></tr></thead>
       <tbody>
       {% for r in pnl.rows[:40] %}
-        <tr>
+        <tr class="acct-slip-row" data-fp="{{ r.fingerprint }}" data-slate="{{ r.slate_date }}" data-product="{{ r.product or 'Power' }}">
           <td>{{ r.slate_date }}</td>
-          <td>{{ r.label }}{% if r.product %} · {{ r.product }}{% endif %} · ${{ '%.0f'|format(r.stake or 0) }}</td>
+          <td>
+            {{ r.label }}{% if r.product %} · {{ r.product }}{% endif %} · ${{ '%.0f'|format(r.stake or 0) }}
+            {% if (r.status or 'pending') == 'pending' %}
+            <div class="acct-fix">
+              {% for p in r.picks or [] %}
+              <button type="button" class="acct-dir {% if p.direction == 'UNDER' %}is-under{% else %}is-over{% endif %}" data-i="{{ loop.index0 }}">{{ p.player }} {{ p.direction }}</button>
+              {% endfor %}
+              <script type="application/json" class="acct-picks-json">{{ r.picks|tojson }}</script>
+              <label>To Win x <input type="number" min="0.01" max="100" step="0.01" class="acct-towin" value="{{ r.quoted_x if r.quoted_x is not none else '' }}"/></label>
+              <button type="button" class="acct-mini acct-save-fix">Save</button>
+              <button type="button" class="acct-mini acct-mini-ghost acct-remove">Remove</button>
+            </div>
+            {% endif %}
+          </td>
           <td>
             {% set st = r.status or 'pending' %}
             <span class="acct-pill {{ st }}{% if r.result == 'CASH' %} cash{% endif %}">{% if st == 'pending' %}PENDING{% if r.payout_text %} · {{ r.payout_text }}{% else %} · add To Win{% endif %}{% else %}{{ r.result or 'PENDING' }}{% if r.multiplier %} {{ '%.2f'|format(r.multiplier) }}x{% endif %}{% endif %}</span>
@@ -189,5 +217,62 @@
   {% endif %}
 </div>
 <script src="/static/site-nav-chrome.js?v=20260412" defer></script>
+<script>
+(function () {
+  function picksFrom(row) {
+    var el = row.querySelector(".acct-picks-json");
+    if (!el) return [];
+    try { return JSON.parse(el.textContent || "[]"); } catch (e) { return []; }
+  }
+  function postFix(body) {
+    return fetch("/api/account/placed-fix", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    }).then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); });
+  }
+  document.querySelectorAll(".acct-slip-row").forEach(function (row) {
+    row.addEventListener("click", function (ev) {
+      var dirBtn = ev.target.closest(".acct-dir");
+      if (dirBtn) {
+        var picks = picksFrom(row);
+        var i = Number(dirBtn.getAttribute("data-i"));
+        if (!picks[i]) return;
+        picks[i].direction = picks[i].direction === "UNDER" ? "OVER" : "UNDER";
+        var jsonEl = row.querySelector(".acct-picks-json");
+        if (jsonEl) jsonEl.textContent = JSON.stringify(picks);
+        dirBtn.textContent = picks[i].player + " " + picks[i].direction;
+        dirBtn.classList.toggle("is-under", picks[i].direction === "UNDER");
+        dirBtn.classList.toggle("is-over", picks[i].direction === "OVER");
+        return;
+      }
+      var save = ev.target.closest(".acct-save-fix");
+      var remove = ev.target.closest(".acct-remove");
+      if (!save && !remove) return;
+      var slate = row.getAttribute("data-slate") || "";
+      var fp = row.getAttribute("data-fp") || "";
+      if (remove) {
+        postFix({ slate_date: slate, fingerprint: fp, remove: true }).then(function (pack) {
+          if (pack.ok) window.location.reload();
+          else alert((pack.data && pack.data.error) || "Could not remove.");
+        });
+        return;
+      }
+      var toWin = row.querySelector(".acct-towin");
+      postFix({
+        slate_date: slate,
+        fingerprint: fp,
+        product: row.getAttribute("data-product") || "Power",
+        picks: picksFrom(row),
+        to_win: toWin ? toWin.value : ""
+      }).then(function (pack) {
+        if (pack.ok) window.location.reload();
+        else alert((pack.data && pack.data.error) || "Could not save. Use N-correct / To Win, not 1st place.");
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>

@@ -79,7 +79,7 @@
   </div>
   <div class="acct-card">
     <h2>Your tickets</h2>
-    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets. Stake is your default below. Pays N-correct / To Win only — not 1st place. Pending until the slate grades.</p>
+    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets, or build with <strong>+</strong> on Home cards / slate. Stake is your default below. Pays N-correct / To Win only — not 1st place. Pending until the slate grades.</p>
     {% set pnl = pnl or {} %}
     <div class="acct-pnl-grid">
       <div class="acct-stat {% if (pnl.net or 0) > 0 %}pos{% elif (pnl.net or 0) < 0 %}neg{% endif %}">

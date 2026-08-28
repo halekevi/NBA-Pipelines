@@ -1,7 +1,9 @@
 """Personal P&L for placed slips (N-correct only)."""
 
 from ui_runner.placed_pnl import (
+    parse_n_correct,
     settle_snapshot,
+    snapshot_from_custom,
     snapshot_from_ticket,
     summarize,
     ticket_fingerprint,
@@ -97,3 +99,16 @@ def test_no_snapshot_stays_pending():
     assert row["status"] == "pending"
     assert row["result"] == "PENDING"
     assert row["net"] is None
+
+
+def test_custom_snapshot_drops_first_place():
+    legs = _power_ticket()["legs"]
+    snap = snapshot_from_custom(
+        legs,
+        product="Power",
+        n_correct={"3": 2.0, "first_place": 99.0, "sweep_payout": 50},
+        stake=20,
+    )
+    assert snap["product"] == "Power"
+    assert snap["n_correct"] == {"3": 2.0}
+    assert parse_n_correct({"first_place": 37.5}) == {}

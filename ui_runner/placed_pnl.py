@@ -139,6 +139,72 @@ def snapshot_from_ticket(
     }
 
 
+_PAYOUT_SKIP = {"first_place", "sweep_payout", "sweep", "1st", "first", "firstplace"}
+
+
+def parse_n_correct(raw: Any) -> dict[int, float]:
+    """N-correct / To Win only. Drops 1st-place and sweep keys."""
+    if isinstance(raw, dict) and isinstance(raw.get("n_correct"), dict):
+        raw = raw.get("n_correct")
+    out: dict[int, float] = {}
+    if not isinstance(raw, dict):
+        return out
+    for k, v in raw.items():
+        key = str(k).strip().lower().replace(" ", "_")
+        if key in _PAYOUT_SKIP or "first" in key or "sweep" in key or "place" in key:
+            continue
+        try:
+            n = int(k)
+            xf = float(v)
+        except (TypeError, ValueError):
+            continue
+        if n > 0 and math.isfinite(xf) and xf > 0:
+            out[n] = xf
+    return out
+
+
+def snapshot_from_custom(
+    legs: list[dict[str, Any]],
+    *,
+    product: str = "Power",
+    n_correct: Any = None,
+    stake: float = 20.0,
+    group_name: str = "My slip",
+) -> dict[str, Any]:
+    prod = "Flex" if "flex" in str(product or "").lower() else "Power"
+    table = parse_n_correct(n_correct)
+    n_legs = sum(1 for x in legs if isinstance(x, dict) and str(x.get("player") or "").strip())
+    ticket = {
+        "web_group_name": f"{group_name} {prod}",
+        "payout": {"n_correct": {str(k): v for k, v in sorted(table.items())}},
+        "legs": legs,
+        "display_min_x": table.get(n_legs),
+        "flex_payout": table.get(n_legs) if prod == "Flex" else None,
+        "power_payout": table.get(n_legs) if prod == "Power" else None,
+    }
+    snap = snapshot_from_ticket(ticket, group_name=f"{group_name} {prod}", stake=stake)
+    snap["product"] = prod
+    return snap
+
+
+def family_from_legs(legs: list[dict[str, Any]]) -> str:
+    n_g = 0
+    n_s = 0
+    for leg in legs or []:
+        if not isinstance(leg, dict):
+            continue
+        pick = str(leg.get("pick_type") or leg.get("pick") or "").strip().lower()
+        if "gob" in pick:
+            n_g += 1
+        else:
+            n_s += 1
+    if n_g and n_s:
+        return "mix"
+    if n_g:
+        return "goblin"
+    return "standard"
+
+
 def legs_from_fingerprint(fp: str) -> list[dict[str, Any]]:
     legs: list[dict[str, Any]] = []
     for part in str(fp or "").split(";"):

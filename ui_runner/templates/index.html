@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="/static/global-scrollbar.css?v=20260531scroll"/>
 <link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
 <link rel="stylesheet" href="/static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
+<link rel="stylesheet" href="/static/my-slip.css?v=20260828myslip1"/>
 <style>
 :root{
   /* Hybrid liquid-glass palette */
@@ -198,6 +199,19 @@ body::after{content:'';position:fixed;inset:0;
 .edge-source-note{font-size:11px;color:var(--muted2);line-height:1.45;max-width:70ch;margin:-6px 0 16px;letter-spacing:.02em;}
 .edge-bucket-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;}
 .edges-see-all{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:1px solid rgba(212,175,55,.28);padding:8px 16px;border-radius:999px;transition:background .15s,border-color .15s;white-space:nowrap;flex-shrink:0;}
+.te-tight-match,.me-tight-banner{
+  margin:6px 0 0;padding:7px 10px;background:rgba(255,90,90,.16);color:#ffb3b3;
+  border:1px solid rgba(255,90,90,.5);border-radius:8px;font-size:11px;font-weight:800;
+  letter-spacing:.02em;line-height:1.35;
+}
+.tight-match-chip{
+  display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;font-size:9px;font-weight:800;
+  letter-spacing:.08em;vertical-align:middle;background:rgba(255,90,90,.18);color:#ff9a9a;
+  border:1px solid rgba(255,90,90,.5);
+}
+[data-theme="light"] .te-tight-match,[data-theme="light"] .tight-match-chip,[data-theme="light"] .me-tight-banner{
+  background:rgba(180,20,20,.12);color:#9a1212;border-color:rgba(180,20,20,.4);
+}
 .edges-see-all:hover{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.45);}
 [data-theme="light"] .edges-see-all{border-color:rgba(75,111,150,.35);color:var(--accent);}
 .sec-header{flex-wrap:wrap;gap:10px 14px;}
@@ -375,10 +389,18 @@ body::after{content:'';position:fixed;inset:0;
 .expand-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .expand-chart{margin-bottom:12px;}
 .expand-proj{margin-top:10px;}
-.expand-proj-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:6px;}
-.expand-proj-bar{height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;position:relative;}
-.expand-proj-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#2ecc71,#c8ff00);transition:width .6s ease;}
-.expand-proj-marker{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.3);}
+.expand-proj-title{font-size:10px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
+.expand-proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.expand-proj-cell{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:10px 8px;text-align:center;min-width:0;}
+.expand-proj-cell-lbl{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;line-height:1.25;}
+.expand-proj-cell-val{font-family:'Bebas Neue',sans-serif;font-size:clamp(16px,2vw,22px);color:var(--text);line-height:1.1;}
+.expand-proj-cell-val.is-line{color:#f39c12;}
+.expand-proj-cell-val.is-proj{color:var(--cyan,#7fc7d9);}
+.expand-proj-note{margin-top:8px;font-size:11px;font-family:"Inter",sans-serif;font-weight:500;color:rgba(232,236,244,.88);line-height:1.35;}
+.expand-proj-note .proj-delta{color:var(--green,#2ecc71);font-weight:700;}
+.expand-proj-note .proj-delta.is-under{color:var(--amber,#f0b429);}
+.expand-proj-bar{display:none;}
+.expand-proj-lbl{display:none;}
 .expand-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
 .expand-stat{background:rgba(255,255,255,0.04);backdrop-filter:blur(10px) saturate(180%);-webkit-backdrop-filter:blur(10px) saturate(180%);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:10px;text-align:center;overflow:hidden;min-width:0;}
 .expand-stat-lbl{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:1.5px;margin-bottom:4px;}
@@ -1070,7 +1092,7 @@ body > nav.snav.glass-card {
 </style>
 <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
 <link rel="stylesheet" href="/static/mobile-content-width.css?v=20260716slatecards3"/>
-<link rel="stylesheet" href="/static/matchup-edge.css?v=20260729findu1"/>
+<link rel="stylesheet" href="/static/matchup-edge.css?v=20260821tight1"/>
 <link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
 <link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
 </head>
@@ -2287,12 +2309,39 @@ body > nav.snav.glass-card {
     </div>
     <div id="prop-detail-chart" style="margin:8px 0 12px;"></div>
     <div id="prop-detail-meta" class="prop-detail-meta"></div>
+    <button type="button" class="my-slip-add prop-detail-add" id="prop-detail-add">Add to my slip</button>
+  </div>
+</div>
+
+<div id="my-slip-dock" class="my-slip-dock" aria-live="polite">
+  <div class="my-slip-dock-hd" id="my-slip-hd">
+    <h2>My slip</h2>
+    <span class="my-slip-count" id="my-slip-count">0 / 6</span>
+  </div>
+  <div class="my-slip-body">
+    <p class="my-slip-note">Tap + on a Top Edges card or a slate row. Copy into PrizePicks yourself — this only tracks P&amp;L. Use N-correct / To Win, never 1st place.</p>
+    <ul class="my-slip-legs" id="my-slip-legs"></ul>
+    <div class="my-slip-row">
+      <label>Product
+        <select id="my-slip-product">
+          <option value="Power">Power</option>
+          <option value="Flex">Flex</option>
+        </select>
+      </label>
+      <label>Stake $
+        <input id="my-slip-stake" type="number" min="0" max="10000" step="1" placeholder="20"/>
+      </label>
+      <div class="my-slip-row" id="my-slip-ncorrect"></div>
+    </div>
+    <p class="my-slip-note" id="my-slip-hint">N-correct from PrizePicks. A lookup may prefill — confirm on the slip.</p>
+    <p class="my-slip-msg" id="my-slip-msg"></p>
+    <button type="button" class="my-slip-save" id="my-slip-save">I placed this</button>
   </div>
 </div>
 
 <script src="/static/site-nav-chrome.js?v=20260412" defer></script>
-<script src="/static/matchup-edge.js?v=20260812opp2" defer></script>
-<script src="/static/top_edges_badge_board.js?v=20260818te1" defer></script>
+<script src="/static/matchup-edge.js?v=20260821tight1" defer></script>
+<script src="/static/top_edges_badge_board.js?v=20260821tight1" defer></script>
 <script>
 // ── Real PLAYER_DATA (last 10 games) ──────────────────────
 let ALL_SLATE = [];
@@ -2771,7 +2820,8 @@ function empiricalHitPctForPick(p, n = 5) {
   const lineVal = coercePropLine(p);
   if (!Number.isFinite(lineVal)) return null;
   let hits = 0;
-  // Match MLB/NHL pipeline: strict > / < vs line; pushes (== line) are not over or under hits.
+  // Historical line_series when present (how often they beat that market historically);
+  // otherwise fall back to this card's current book line.
   for (let i = 0; i < hist.actual.length; i++) {
     const cap =
       hist.lineSeries && Number.isFinite(hist.lineSeries[i])
@@ -3063,6 +3113,36 @@ function isStandardPick(p) {
 
 function isTopEdgesBoardPick(p) {
   return !isDemonPick(p) && (isStandardPick(p) || isGoblinPick(p));
+}
+
+/** Same player/prop/direction on PP — prefer Standard board line over Goblin alt. */
+function boardLineKey(p) {
+  return [
+    String(p.sport || "").trim().toUpperCase(),
+    String(p.player || "").trim().toLowerCase(),
+    String(p.prop || "").trim().toLowerCase(),
+    String(p.dir || "").trim().toUpperCase(),
+  ].join("|");
+}
+
+function preferStandardBoardLine(rows) {
+  const byKey = new Map();
+  for (const p of rows) {
+    const k = boardLineKey(p);
+    const cur = byKey.get(k);
+    if (!cur) {
+      byKey.set(k, p);
+      continue;
+    }
+    if (isStandardPick(p) && isGoblinPick(cur)) {
+      byKey.set(k, p);
+    } else if (isGoblinPick(p) && isStandardPick(cur)) {
+      continue;
+    } else if (Number(p.edge) > Number(cur.edge)) {
+      byKey.set(k, p);
+    }
+  }
+  return Array.from(byKey.values());
 }
 
 function sportKeyOfPick(p) {
@@ -4086,6 +4166,23 @@ function makeSparkSVG(data, line, isOver, W=150, H=48, projRef=null) {
 /** Legacy: charts are always rendered; accordion state removed */
 let EDGE_DISPLAY_PICK = {};
 
+function mySlipLegAttr(p) {
+  if (window.MySlip && typeof MySlip.encodeLeg === "function") return MySlip.encodeLeg(p);
+  try {
+    const direction = String(p.dir || p.direction || "").trim().toUpperCase();
+    return encodeURIComponent(JSON.stringify({
+      sport: String(p.sport || ""),
+      player: String(p.player || "").trim(),
+      prop_type: String(p.prop || p.prop_type || "").trim(),
+      direction: direction,
+      line: p.line,
+      pick_type: String(p.pick || p.pick_type || "Standard").trim(),
+    }));
+  } catch (_e) {
+    return "";
+  }
+}
+
 function buildEdgeCard(p, idx, rec) {
   const isOver=p.dir==="OVER", dc=isOver?"over":"under";
   const sc=`sp-${safeSportKey(p)}`;
@@ -4114,8 +4211,13 @@ function buildEdgeCard(p, idx, rec) {
   if (dS) metaBits.push(dS);
   if (matchup) metaBits.push(matchup);
   const l5l10 = rec ? `L5 ${l5o}/${l5u}` : edgeHitCountsLabel(p);
+  const tightNote = (rec && rec.matchup_note) || (window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchNote ? TopEdgesBadgeBoard.tightMatchNote(p, rec) : "");
+  const tightHtml = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchBannerHtml
+    ? TopEdgesBadgeBoard.tightMatchBannerHtml(tightNote)
+    : (tightNote ? `<div class="te-tight-match">${tightNote}</div>` : "");
   const div=document.createElement("div");
   div.className=`edge-card insight-card ${dc}`;
+  div.setAttribute("data-my-slip-leg", mySlipLegAttr(p));
   const hitBar=Math.min(100,hitPct);
   const hitColor=hitPct>=90?'var(--green)':hitPct>=75?'var(--amber)':'var(--red)';
   div.innerHTML=`
@@ -4130,6 +4232,7 @@ function buildEdgeCard(p, idx, rec) {
       <div class="edge-row edge-row-main">
         <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
         <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
+        ${tightHtml}
       </div>
       <div class="edge-row edge-row-tags">
         <div class="edge-tags">
@@ -4138,6 +4241,7 @@ function buildEdgeCard(p, idx, rec) {
           ${p.tier ? `<span class="tier-badge tier-${p.tier}">${p.tier}</span>` : ''}${confDotHtml(p)}
         </div>
         <div class="edge-line-badge">${rec && rec.badge ? rec.badge : `${hitPct}% hit`}</div>
+        <button type="button" class="my-slip-add" title="Add to my slip">+</button>
       </div>
       ${rec ? `<div class="edge-meta">${metaBits.join(" · ")}</div>` : ""}
     </div>
@@ -4155,18 +4259,29 @@ function buildEdgeCard(p, idx, rec) {
       </div>
       <div class="expand-chart" id="chart-${idx}"></div>
       <div class="expand-proj">
-        <div class="expand-proj-lbl"><span>PROJECTION VS LINE</span><span id="plbl-${idx}"></span></div>
-        <div class="expand-proj-bar">
-          <div class="expand-proj-fill" id="pfill-${idx}" style="width:0%"></div>
-          <div class="expand-proj-marker" id="pmkr-${idx}"></div>
+        <div class="expand-proj-title">Tonight vs the book line</div>
+        <div class="expand-proj-grid">
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Recent L5</div>
+            <div class="expand-proj-cell-val" id="pavg-${idx}">—</div>
+          </div>
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Book line</div>
+            <div class="expand-proj-cell-val is-line" id="pline-${idx}">—</div>
+          </div>
+          <div class="expand-proj-cell">
+            <div class="expand-proj-cell-lbl">Model proj</div>
+            <div class="expand-proj-cell-val is-proj" id="pproj-${idx}">—</div>
+          </div>
         </div>
+        <div class="expand-proj-note" id="pnote-${idx}"></div>
       </div>
       <div class="expand-stats">
-        <div class="expand-stat"><div class="expand-stat-lbl">HIT RATE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
+        <div class="expand-stat" title="Share of recent games that cleared the historical/Standard market line (not always today's Goblin/Demon line)"><div class="expand-stat-lbl">VS HIST LINE</div><div class="expand-stat-val" style="color:${hitColor}">${hitPct}%</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">EDGE</div><div class="expand-stat-val" style="color:var(--accent)">${edgeDisp}</div></div>
         <div class="expand-stat"><div class="expand-stat-lbl">PICK TYPE</div><div class="expand-stat-val" style="color:var(--cyan);font-size:clamp(11px,1.3vw,15px);">${p.pick}</div></div>
-        <div class="expand-stat"><div class="expand-stat-lbl">L5 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 5) ?? "—"} / ${resolvedUnderHits(p, 5) ?? "—"}</div></div>
-        <div class="expand-stat"><div class="expand-stat-lbl">L10 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 10) ?? "—"} / ${resolvedUnderHits(p, 10) ?? "—"}</div></div>
+        <div class="expand-stat" title="Hits vs today's book line on this card"><div class="expand-stat-lbl">L5 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 5) ?? "—"} / ${resolvedUnderHits(p, 5) ?? "—"}</div></div>
+        <div class="expand-stat" title="Hits vs today's book line on this card"><div class="expand-stat-lbl">L10 O / U</div><div class="expand-stat-val">${resolvedOverHits(p, 10) ?? "—"} / ${resolvedUnderHits(p, 10) ?? "—"}</div></div>
       </div>
     </div>`;
   return div;
@@ -4174,19 +4289,21 @@ function buildEdgeCard(p, idx, rec) {
 
 function renderExpandChart(idx, p, tab) {
   const chartEl = document.getElementById(`chart-${idx}`);
-  const pfillEl = document.getElementById(`pfill-${idx}`);
-  const pmkrEl = document.getElementById(`pmkr-${idx}`);
-  const plblEl = document.getElementById(`plbl-${idx}`);
-  if (!chartEl || !pfillEl || !pmkrEl || !plblEl) return;
+  const pavgEl = document.getElementById(`pavg-${idx}`);
+  const plineEl = document.getElementById(`pline-${idx}`);
+  const pprojEl = document.getElementById(`pproj-${idx}`);
+  const pnoteEl = document.getElementById(`pnote-${idx}`);
+  if (!chartEl) return;
   const isOver = p.dir === "OVER";
   const n = tab === "l5" || tab === "h2h" ? 5 : 10;
   const hist = expandHistForEdgeChart(p, n);
   if (!hist || !hist.actual.length) {
     chartEl.innerHTML =
       `<div style="height:100px;display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:11px;border:1px dashed rgba(255,255,255,.12);border-radius:10px;">No chart series for this leg.</div>`;
-    pfillEl.style.width = "0%";
-    pmkrEl.style.left = "0%";
-    plblEl.textContent = "No data";
+    if (pavgEl) pavgEl.textContent = "—";
+    if (plineEl) plineEl.textContent = "—";
+    if (pprojEl) pprojEl.textContent = "—";
+    if (pnoteEl) pnoteEl.textContent = "No projection data for this leg.";
     return;
   }
   const show = hist.actual;
@@ -4214,22 +4331,34 @@ function renderExpandChart(idx, p, tab) {
     scaleExtras,
   );
   const avg = show.reduce((a, b) => a + b, 0) / show.length;
-  const refN = Number.isFinite(proj)
-    ? proj
-    : Number.isFinite(displayBook)
-      ? displayBook
-      : avg;
-  const maxV = Math.max(
-    refN * 1.5,
-    (Number.isFinite(displayBook) ? displayBook : 0) * 1.5,
-    avg * 1.3,
-    1
-  );
-  pfillEl.style.width =
-    Math.min(100, Math.round((avg / maxV) * 100)) + "%";
-  pmkrEl.style.left =
-    Math.min(100, Math.round((refN / maxV) * 100)) + "%";
-  plblEl.textContent = `${avg.toFixed(1)} L5 · Line ${Number.isFinite(displayBook) ? displayBook.toFixed(1) : "—"} · Proj ${Number.isFinite(proj) ? proj.toFixed(1) : "—"}`;
+  if (pavgEl) pavgEl.textContent = Number.isFinite(avg) ? avg.toFixed(1) : "—";
+  if (plineEl) plineEl.textContent = Number.isFinite(displayBook) ? displayBook.toFixed(1) : "—";
+  if (pprojEl) pprojEl.textContent = Number.isFinite(proj) ? proj.toFixed(1) : "—";
+  if (pnoteEl) {
+    if (Number.isFinite(proj) && Number.isFinite(displayBook)) {
+      const delta = proj - displayBook;
+      const abs = Math.abs(delta).toFixed(1);
+      const cls = delta >= 0 ? "proj-delta" : "proj-delta is-under";
+      const side = isOver
+        ? (delta >= 0
+            ? `Model expects <span class="${cls}">+${abs}</span> over the book line.`
+            : `Model expects <span class="${cls}">${abs}</span> under the book line.`)
+        : (delta <= 0
+            ? `Model expects <span class="${cls}">${abs}</span> under the book line.`
+            : `Model expects <span class="${cls}">+${abs}</span> over the book line.`);
+      const recentBit = Number.isFinite(avg)
+        ? ` Recent form averaged ${avg.toFixed(1)}.`
+        : "";
+      pnoteEl.innerHTML = side + recentBit;
+    } else if (Number.isFinite(avg) && Number.isFinite(displayBook)) {
+      const delta = avg - displayBook;
+      const abs = Math.abs(delta).toFixed(1);
+      const cls = delta >= 0 ? "proj-delta" : "proj-delta is-under";
+      pnoteEl.innerHTML = `Recent L5 averaged <span class="${cls}">${delta >= 0 ? "+" : "−"}${abs}</span> vs the book line.`;
+    } else {
+      pnoteEl.textContent = "Compare recent form and model projection to the book line.";
+    }
+  }
 }
 
 function switchExpandTab(idx, tab, btn) {
@@ -4432,6 +4561,7 @@ function renderBadgeTopEdges(board) {
     board.appendChild(wrap);
   }
   wireEdgeCardExpandHandlers();
+  if (window.MySlip) MySlip.render();
   const emptyHost = document.getElementById("top-edges-empty");
   if (emptyHost) {
     emptyHost.hidden = true;
@@ -4485,6 +4615,7 @@ function renderEdges() {
         return num(b.edge) - num(a.edge);
       });
   }
+  overPrimary = preferStandardBoardLine(overPrimary);
   const EDGE_CARD_LIMIT = 10;
   const byEdgeDesc = (a, b) => num(b.edge) - num(a.edge);
   const stdO = diversifyBySport(
@@ -4570,6 +4701,7 @@ function renderEdges() {
   appendAll(gobO, og);
   if (us) appendUnderRows(underRows, us);
   wireEdgeCardExpandHandlers();
+  if (window.MySlip) MySlip.render();
   /* Hide empty bucket chrome so Top Edges doesn't look blank under full grids. */
   const toggleBucket = (gridEl, hasCards) => {
     if (!gridEl) return;
@@ -4620,7 +4752,7 @@ function wireEdgeCardExpandHandlers() {
     if (!el || el.dataset.expandWired === "1") return;
     el.dataset.expandWired = "1";
     el.addEventListener("click", (e) => {
-      if (e.target.closest(".expand-tab")) return;
+      if (e.target.closest(".expand-tab, .my-slip-add")) return;
       const card = e.target.closest(".edge-card");
       if (!card) return;
       const wasOpen = card.classList.contains("expanded");
@@ -4670,9 +4802,16 @@ function openPropDetailPanel(p) {
     meta.innerHTML = rows.map(([lbl, val]) =>
       `<div class="expand-stat"><div class="expand-stat-lbl">${lbl}</div><div class="expand-stat-val">${val}</div></div>`
     ).join("");
+    const tightNote = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchNote ? TopEdgesBadgeBoard.tightMatchNote(p) : "";
+    if (tightNote) {
+      meta.insertAdjacentHTML("beforebegin", `<div class="te-tight-match">${tightNote.replace(/</g,"&lt;")}</div>`);
+    }
   }
+  const addBtn = document.getElementById("prop-detail-add");
+  if (addBtn) addBtn.setAttribute("data-my-slip-leg", mySlipLegAttr(p));
   overlay.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+  if (window.MySlip) MySlip.render();
 }
 
 function closePropDetailPanel() {
@@ -4781,7 +4920,7 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 4)
     .sort((a, b) => b.h - a.h);
 
-  let l5O = l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l5O = preferStandardBoardLine(l5all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
   let l5U = underStreakRows(5, 4);
   if (!l5O.length && !l5U.length) {
     const soft = [...ALL_SLATE]
@@ -4789,7 +4928,7 @@ function renderStreaks() {
       .map(p => ({...p, h: streakHits(realHits(p, 5), 5)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
-    l5O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l5O = preferStandardBoardLine(soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
     l5U = underStreakRows(5, 1);
   }
 
@@ -4799,7 +4938,7 @@ function renderStreaks() {
     .filter(p => p.h !== null && p.h >= 8)
     .sort((a, b) => b.h - a.h);
 
-  let l10O = l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+  let l10O = preferStandardBoardLine(l10all.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
   let l10U = underStreakRows(10, 8);
   if (!l10O.length && !l10U.length) {
     const soft = [...ALL_SLATE]
@@ -4807,7 +4946,7 @@ function renderStreaks() {
       .map(p => ({...p, h: streakHits(realHits(p, 10), 10)}))
       .filter(p => p.h !== null && p.h >= 1)
       .sort((a, b) => b.h - a.h);
-    l10O = soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER");
+    l10O = preferStandardBoardLine(soft.filter(p => String(p.dir || "").trim().toUpperCase() === "OVER"));
     l10U = underStreakRows(10, 1);
   }
 
@@ -5471,12 +5610,15 @@ function renderSlateTable(sport) {
     const l5u = l5fmt.under;
     const rankStr = r.rank_score != null ? r.rank_score.toFixed(2) : '—';
     const timeStr = formatGameTimeDisplay(r.game_time);
+    const tightNote = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchNote ? TopEdgesBadgeBoard.tightMatchNote(r) : "";
+    const tightChip = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchChipHtml ? TopEdgesBadgeBoard.tightMatchChipHtml(tightNote) : "";
+    const oppTitle = tightNote ? tightNote : (r.opp || "");
     return `<tr class="slate-row-clickable" data-slate-idx="${rowIdx}">
       <td class="scol-tier"><span class="tier-badge ${tierCls}">${r.tier || '?'}</span>${confDotHtml(r)}</td>
       <td class="scol-rank slate-rank-cell">${rankStr}</td>
-      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}${consLineBadgeHtml(r)}</td>
+      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;" data-my-slip-leg="${mySlipLegAttr(r)}"><button type="button" class="my-slip-add" title="Add to my slip">+</button>${r.player || '—'}${l10StreakBadgeHtml(r)}${consLineBadgeHtml(r)}</td>
       <td class="scol-team" style="color:var(--muted);" title="${r.team || ''}">${r.team || '—'}</td>
-      <td class="scol-opp" style="color:var(--muted);" title="${r.opp || ''}">${r.opp || '—'}</td>
+      <td class="scol-opp" style="color:var(--muted);" title="${oppTitle}">${r.opp || '—'}${tightChip}</td>
       <td class="scol-prop" style="color:var(--text);">${r.prop || '—'}</td>
       <td class="scol-type slate-pick-type-cell ${pickCls}">${r.pick_type || '—'}</td>
       <td class="scol-line" style="font-family:'Inter',sans-serif;">${r.line != null ? r.line : '—'}</td>
@@ -5493,6 +5635,7 @@ function renderSlateTable(sport) {
   if (filtered.length <= chunkSize) {
     tbody.innerHTML = filtered.map((r, i) => rowHtml(r, i)).join("");
     wireSlateRowClicks(tbody, filtered);
+    if (window.MySlip) MySlip.render();
     return;
   }
 
@@ -5504,7 +5647,10 @@ function renderSlateTable(sport) {
     tbody.insertAdjacentHTML('beforeend', chunk);
     idx += chunkSize;
     if (idx < filtered.length) requestAnimationFrame(renderChunk);
-    else wireSlateRowClicks(tbody, filtered);
+    else {
+      wireSlateRowClicks(tbody, filtered);
+      if (window.MySlip) MySlip.render();
+    }
   };
   requestAnimationFrame(renderChunk);
 }
@@ -5512,6 +5658,7 @@ function renderSlateTable(sport) {
 function wireSlateRowClicks(tbody, filteredRows) {
   if (!tbody) return;
   tbody.onclick = (e) => {
+    if (e.target.closest(".my-slip-add")) return;
     const tr = e.target.closest("tr[data-slate-idx]");
     if (!tr || !tbody.contains(tr)) return;
     const i = Number(tr.dataset.slateIdx);
@@ -6077,6 +6224,8 @@ function sortSlateDynamic(sport, key) {
   else run();
 })();
 </script>
+
+<script src="/static/my-slip.js?v=20260828myslip1"></script>
 
 </body>
 </html>

@@ -26,7 +26,7 @@ from utils.group_rank_tier import (  # noqa: E402
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 
 
 def main() -> None:
@@ -116,8 +116,7 @@ def main() -> None:
     df["OVERALL_DEF_RANK"] = df.get("OVERALL_DEF_RANK", "")
 
     out.parent.mkdir(parents=True, exist_ok=True)
-    with pd.ExcelWriter(out, engine="openpyxl") as w:
-        df.to_excel(w, sheet_name="ALL", index=False)
+    write_excel_sheets(out, {"ALL": df})
     write_parquet_sidecar(df, out)
     print(f"OK [Tennis step7] -> {out}  rows={len(df)}")
 

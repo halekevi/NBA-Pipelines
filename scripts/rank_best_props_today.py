@@ -47,7 +47,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
-from proporacle.data.table_io import read_table, table_exists
+from proporacle.data.table_io import read_table, table_exists, write_excel_sheets
 from utils.slate_context_fill import is_hitter_strikeout_prop
 from utils.defense_tiers import normalize_def_tier_label  # noqa: E402
 from utils.ticket_tier_defense_gates import tennis_tight_match_note  # noqa: E402
@@ -925,22 +925,17 @@ def write_best_props_xlsx(path: Path, by_sport: dict[str, list[dict]]) -> None:
         if (r.get("Prop_tier") or "") in ("S", "A")
     ]
     sa_df = pd.DataFrame(sorted(sa_rows, key=sort_key))
-    with pd.ExcelWriter(path, engine="openpyxl") as xl:
-        (sa_df if not sa_df.empty else pd.DataFrame({"note": ["none"]})).to_excel(
-            xl, sheet_name="S+A hot", index=False
-        )
-        (play_df if not play_df.empty else pd.DataFrame({"note": ["none"]})).to_excel(
-            xl, sheet_name="Play list (Gold+Silver)", index=False
-        )
-        (all_df if not all_df.empty else pd.DataFrame({"note": ["none"]})).to_excel(
-            xl, sheet_name="All L5 4+", index=False
-        )
-        for sport, rows in by_sport.items():
-            sdf = pd.DataFrame(sorted(rows, key=sort_key))
-            if sdf.empty:
-                sdf = pd.DataFrame({"note": [f"{sport}: none that clear L5 4+"]})
-            xl_name = sport[:31]
-            sdf.to_excel(xl, sheet_name=xl_name, index=False)
+    sheets = {
+        "S+A hot": sa_df if not sa_df.empty else pd.DataFrame({"note": ["none"]}),
+        "Play list (Gold+Silver)": play_df if not play_df.empty else pd.DataFrame({"note": ["none"]}),
+        "All L5 4+": all_df if not all_df.empty else pd.DataFrame({"note": ["none"]}),
+    }
+    for sport, rows in by_sport.items():
+        sdf = pd.DataFrame(sorted(rows, key=sort_key))
+        if sdf.empty:
+            sdf = pd.DataFrame({"note": [f"{sport}: none that clear L5 4+"]})
+        sheets[sport[:31]] = sdf
+    write_excel_sheets(path, sheets)
 
 
 def print_sport(sport: str, std_o, std_u, gob, n_o=8, n_u=8, n_g=12) -> None:

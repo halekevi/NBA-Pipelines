@@ -44,7 +44,7 @@ from utils.group_rank_tier import (  # noqa: E402
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 
 # ── step_archive lazy import ──────────────────────────────────────────────────
 _sa_scripts_dir = str(Path(__file__).resolve().parents[3] / "scripts")
@@ -1109,10 +1109,10 @@ def main() -> None:
     out = apply_ticket_eligibility_voids(out, "MLB")
     elig_mask = out["eligible"].astype(int).eq(1)
 
-    with pd.ExcelWriter(args.output, engine="openpyxl") as w:
-        out.to_excel(w, sheet_name="ALL",      index=False)
-        out.loc[elig_mask].to_excel(w, sheet_name="ELIGIBLE", index=False)
-
+    write_excel_sheets(
+        args.output,
+        {"ALL": out, "ELIGIBLE": out.loc[elig_mask]},
+    )
     write_parquet_sidecar(out, args.output)
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows: {len(out)}")

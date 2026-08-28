@@ -32,7 +32,7 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
-from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str, write_excel_sheets
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns, fill_l5_from_stat_games
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
@@ -401,16 +401,11 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     else:
         clean_eligible = clean.copy()
 
-    wb = Workbook()
-    wb.remove(wb.active)
-    write_sheet(wb, "ALL", clean)
+    sheets = {"ALL": clean}
     for tier in ["A", "B", "C", "D"]:
         subset = clean_eligible[clean_eligible["Tier"] == tier].copy()
-        # Always write every Tier sheet (even if empty) so step9 never crashes
-        # on a missing sheet_name
-        write_sheet(wb, f"Tier {tier}", subset if len(subset) else clean_eligible.head(0))
-
-    wb.save(xlsx_path)
+        sheets[f"Tier {tier}"] = subset if len(subset) else clean_eligible.head(0)
+    write_excel_sheets(xlsx_path, sheets)
     print(f"Clean XLSX saved -> {xlsx_path}")
 
 
@@ -608,13 +603,7 @@ def main() -> None:
         print(f"WARN build_clean_xlsx failed: {e}")
         print("   Writing raw fallback xlsx so combined pipeline can proceed...")
         try:
-            with pd.ExcelWriter(xlsx_path, engine="openpyxl") as w:
-                out.to_excel(w, sheet_name="ALL", index=False)
-                for _tier in ["A", "B", "C", "D"]:
-                    _mask = out.get("tier", pd.Series(dtype=str)) == _tier
-                    _void = out.get("void_reason", pd.Series("", index=out.index)).fillna("")
-                    _elig = out[_mask & (_void == "")].copy() if _mask.any() else out.head(0)
-                    _elig.to_excel(w, sheet_name=f"Tier {_tier}", index=False)
+            write_excel_sheets(xlsx_path, {"ALL": out})
             print(f"Fallback xlsx saved -> {xlsx_path}")
         except Exception as e2:
             print(f"ERROR Fallback xlsx also failed: {e2}")

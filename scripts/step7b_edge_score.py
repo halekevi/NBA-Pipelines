@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Apply unified edge model scores to step7 ranked workbook (daily, post-step7).
 
-Writes ml_prob, edge_score, blended_score into the step7 xlsx (primary sheet). Run this
-before step8 / slate grading so Box Raw exports can include those columns (slate_grader
-and nhl_soccer_grader pass them through when present).
+Writes ml_prob, edge_score, blended_score into the step7 xlsx and its parquet sidecar.
+Reads the parquet hop when present (no Excel parse). Run this before step8 / slate
+grading so Box Raw exports can include those columns (slate_grader and nhl_soccer_grader
+pass them through when present).
 """
 
 from __future__ import annotations
@@ -166,10 +167,65 @@ def resolve_step7_path(root: Path, sport: str, pipeline_date: str = "") -> Path 
     return None
 
 
-def _first_sheet(path: Path) -> str:
-    # Pandas 2.2+ / Py3.14: engine must be explicit for .xlsx (otherwise ValueError).
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    return xl.sheet_names[0]
+def _companion_sheets(df: pd.DataFrame, primary: str) -> dict[str, pd.DataFrame]:
+    """Rebuild human sheets from the scored primary frame (xlsxwriter cannot append)."""
+    sheets: dict[str, pd.DataFrame] = {primary: df}
+    elig = None
+    if "eligible" in df.columns:
+        elig = pd.to_numeric(df["eligible"], errors="coerce").fillna(0).eq(1)
+        sheets["ELIGIBLE"] = df.loc[elig]
+    if "pick_type" in df.columns:
+        std = df["pick_type"].astype(str).str.strip().str.lower().str.contains("standard", na=False)
+        if bool(std.any()) and bool((~std).any()):
+            sheets["STANDARD"] = df.loc[std]
+            sheets["GOB_DEM"] = df.loc[~std]
+    if "player_role" in df.columns:
+        role = df["player_role"].astype(str).str.strip().str.upper()
+        if bool(role.eq("SKATER").any()):
+            sheets["Skaters"] = df.loc[role.eq("SKATER")]
+        if bool(role.eq("GOALIE").any()):
+            sheets["Goalies"] = df.loc[role.eq("GOALIE")]
+    if "tier" in df.columns:
+        src = df.loc[elig] if elig is not None else df
+        for letter in ("A", "B", "C", "D"):
+            sub = src.loc[src["tier"].astype(str).eq(letter)]
+            if len(sub):
+                sheets[f"Tier {letter}"] = sub
+        a_best = df.loc[df["tier"].astype(str).eq("A")]
+        if len(a_best) and (primary == "All Props" or "player_role" in df.columns):
+            sheets["A-Tier Best"] = a_best
+    if "void_reason" in df.columns:
+        vr = df["void_reason"].astype(str)
+        dropped = vr.str.contains("FORCED_OVER_NEG_EDGE", case=False, na=False)
+        if bool(dropped.any()):
+            sheets["DROPPED"] = df.loc[dropped]
+    return sheets
+
+
+def _load_step7_frame(xlsx: Path) -> tuple[str, pd.DataFrame]:
+    """Prefer the parquet sidecar so step7b does not re-parse Excel."""
+    from proporacle.data.table_io import parquet_sidecar_path, read_table, table_exists
+
+    if not table_exists(xlsx):
+        raise FileNotFoundError(xlsx)
+    sidecar = parquet_sidecar_path(xlsx)
+    if sidecar.is_file():
+        return "ALL", read_table(xlsx)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        loaded = pd.read_excel(xlsx, sheet_name=None, engine="openpyxl")
+    if not loaded:
+        return "ALL", pd.DataFrame()
+    sheet = next(iter(loaded))
+    return sheet, loaded[sheet]
+
+
+def _write_scored_workbook(xlsx: Path, df: pd.DataFrame, primary: str) -> None:
+    """Full rewrite via xlsxwriter + refresh parquet so step8 does not read stale scores."""
+    from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
+
+    write_excel_sheets(xlsx, _companion_sheets(df, primary))
+    write_parquet_sidecar(df, xlsx)
 
 
 def score_step7_workbook(
@@ -207,10 +263,11 @@ def score_step7_workbook(
         print(f"[WARN] No step7 workbook found for sport={sp} — skip.")
         return False
 
-    sheet = _first_sheet(xlsx)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", UserWarning)
-        df = pd.read_excel(xlsx, sheet_name=sheet, engine="openpyxl")
+    try:
+        sheet, df = _load_step7_frame(xlsx)
+    except Exception as exc:
+        print(f"[WARN] Could not load step7 workbook {xlsx}: {exc} — skip.")
+        return False
     if df.empty:
         print(f"[WARN] Empty sheet {sheet!r} in {xlsx} — skip.")
         return False
@@ -338,25 +395,7 @@ def score_step7_workbook(
     if sp.upper() != "NHL":
         df = df.sort_values("blended_score", ascending=False, na_position="last", kind="mergesort")
 
-    try:
-        with pd.ExcelWriter(
-            xlsx,
-            engine="openpyxl",
-            mode="a",
-            if_sheet_exists="replace",
-        ) as w:
-            df.to_excel(w, sheet_name=sheet, index=False)
-    except Exception:
-        xl_obj = pd.ExcelFile(xlsx, engine="openpyxl")
-        all_sheets: dict[str, pd.DataFrame] = {}
-        for sn in xl_obj.sheet_names:
-            if sn == sheet:
-                all_sheets[sn] = df
-            else:
-                all_sheets[sn] = pd.read_excel(xlsx, sheet_name=sn, engine="openpyxl")
-        with pd.ExcelWriter(xlsx, engine="openpyxl") as w:
-            for sn, frame in all_sheets.items():
-                frame.to_excel(w, sheet_name=sn, index=False)
+    _write_scored_workbook(xlsx, df, sheet)
 
     print(f"  Scored {n_eligible} eligible / {n_total} rows for {sp} -> {xlsx} (sheet={sheet!r})")
     top = df.head(5)

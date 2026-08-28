@@ -23,7 +23,7 @@ _REPO = Path(__file__).resolve().parents[4]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 from utils.hit_tracking_columns import attach_hit_tracking_columns  # noqa: E402
-from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table, table_exists
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table, table_exists, write_excel_sheets
 
 
 def _col(df: pd.DataFrame, *names: str) -> pd.Series:
@@ -68,7 +68,7 @@ def main() -> None:
         if not out.is_absolute():
             out = root / out
         out.parent.mkdir(parents=True, exist_ok=True)
-        pd.DataFrame().to_excel(out, sheet_name="ALL", index=False)
+        write_excel_sheets(out, {"ALL": pd.DataFrame()})
         write_parquet_sidecar(pd.DataFrame(), out)
         print(f"[CFB step8] Wrote empty {out}")
         return
@@ -156,12 +156,12 @@ def main() -> None:
     if not out_path.is_absolute():
         out_path = root / out_path
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with pd.ExcelWriter(out_path, engine="openpyxl") as w:
-        clean.to_excel(w, sheet_name="ALL", index=False)
-        for t in ("A", "B", "C", "D"):
-            sub = clean[clean["Tier"] == t]
-            if len(sub):
-                sub.to_excel(w, sheet_name=f"Tier {t}", index=False)
+    sheets = {"ALL": clean}
+    for t in ("A", "B", "C", "D"):
+        sub = clean[clean["Tier"] == t]
+        if len(sub):
+            sheets[f"Tier {t}"] = sub
+    write_excel_sheets(out_path, sheets)
     print(f"[CFB step8] Wrote {out_path} rows={len(clean)}")
     write_parquet_sidecar(clean, out_path)
     _copy_dated(out_path, str(args.date or "").strip())

@@ -50,7 +50,7 @@ from utils.group_rank_tier import (  # noqa: E402
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 
 _sa_scripts_dir = str(Path(__file__).resolve().parents[3] / "scripts")
 try:
@@ -1278,14 +1278,12 @@ def main() -> None:
         out = _attach_h2h(out, args.cache, "soccer", player_col, opp_col, prop_col, "line")
         print(f"  H2H: {(out['h2h_games'] > 0).sum()}/{len(out)} rows matched")
 
-    with pd.ExcelWriter(args.output, engine="openpyxl") as w:
-        out.to_excel(w, sheet_name="ALL",      index=False)
-        out.loc[elig_mask].to_excel(w, sheet_name="ELIGIBLE", index=False)
-        for _tier in ["A", "B", "C", "D"]:
-            _mask = out["tier"] == _tier
-            if _mask.any():
-                out.loc[_mask].to_excel(w, sheet_name=f"Tier {_tier}", index=False)
-
+    sheets = {"ALL": out, "ELIGIBLE": out.loc[elig_mask]}
+    for _tier in ["A", "B", "C", "D"]:
+        _mask = out["tier"] == _tier
+        if _mask.any():
+            sheets[f"Tier {_tier}"] = out.loc[_mask]
+    write_excel_sheets(args.output, sheets)
     write_parquet_sidecar(out, args.output)
     if elig_mask.sum() == 0:
         print("❌ [PropOracle-Soccer-S7] No eligible props after scoring — aborting.")

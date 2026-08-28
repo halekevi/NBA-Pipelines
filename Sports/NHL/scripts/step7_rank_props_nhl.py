@@ -39,7 +39,7 @@ from utils.group_rank_tier import (
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 
 try:
     if hasattr(sys.stdout, "reconfigure"):
@@ -1026,95 +1026,19 @@ def main():
     for i, row in enumerate(active):
         row["rank"] = i + 1
 
-    # Write XLSX with multiple tabs
-    wb = openpyxl.Workbook()
-
-    # ── All Props tab ──────────────────────────────────────────────────────────
-    ws_all = wb.active
-    ws_all.title = "All Props"
-
-    headers = list(active[0].keys()) if active else (list(dropped[0].keys()) if dropped else [])
-    for col, h in enumerate(headers, 1):
-        cell = ws_all.cell(row=1, column=col, value=h)
-        cell.fill = openpyxl.styles.PatternFill("solid", fgColor="1F4E79")
-        cell.font = openpyxl.styles.Font(bold=True, color="FFFFFF")
-
-    TIER_COLORS = {"A": "C6EFCE", "B": "FFEB9C", "C": "FFCCCC", "D": "E0E0E0"}
-    for row in _tqdm(active, desc="  Writing All Props sheet", unit="row"):
-        ws_all.append([row.get(h, "") for h in headers])
-        last_row = ws_all.max_row
-        tier_color = TIER_COLORS.get(row.get("tier", "D"), "FFFFFF")
-        for col in range(1, len(headers) + 1):
-            ws_all.cell(last_row, col).fill = openpyxl.styles.PatternFill("solid", fgColor=tier_color)
-
-    # ── Skaters tab ────────────────────────────────────────────────────────────
-    ws_sk = wb.create_sheet("Skaters")
+    sheets = {"All Props": pd.DataFrame(active)}
     skaters = [r for r in active if r.get("player_role") == "SKATER"]
     if skaters:
-        sk_headers = list(skaters[0].keys())
-        for col, h in enumerate(sk_headers, 1):
-            cell = ws_sk.cell(row=1, column=col, value=h)
-            cell.fill = openpyxl.styles.PatternFill("solid", fgColor="1F4E79")
-            cell.font = openpyxl.styles.Font(bold=True, color="FFFFFF")
-        for row in skaters:
-            ws_sk.append([row.get(h, "") for h in sk_headers])
-            last_row = ws_sk.max_row
-            tier_color = TIER_COLORS.get(row.get("tier", "D"), "FFFFFF")
-            for col in range(1, len(sk_headers) + 1):
-                ws_sk.cell(last_row, col).fill = openpyxl.styles.PatternFill("solid", fgColor=tier_color)
-
-    # ── Goalies tab ────────────────────────────────────────────────────────────
-    ws_g = wb.create_sheet("Goalies")
+        sheets["Skaters"] = pd.DataFrame(skaters)
     goalies = [r for r in active if r.get("player_role") == "GOALIE"]
     if goalies:
-        g_headers = list(goalies[0].keys())
-        for col, h in enumerate(g_headers, 1):
-            cell = ws_g.cell(row=1, column=col, value=h)
-            cell.fill = openpyxl.styles.PatternFill("solid", fgColor="1F4E79")
-            cell.font = openpyxl.styles.Font(bold=True, color="FFFFFF")
-        for row in goalies:
-            ws_g.append([row.get(h, "") for h in g_headers])
-            last_row = ws_g.max_row
-            tier_color = TIER_COLORS.get(row.get("tier", "D"), "FFFFFF")
-            for col in range(1, len(g_headers) + 1):
-                ws_g.cell(last_row, col).fill = openpyxl.styles.PatternFill("solid", fgColor=tier_color)
-
-    # ── A-Tier only ────────────────────────────────────────────────────────────
-    ws_a = wb.create_sheet("A-Tier Best")
+        sheets["Goalies"] = pd.DataFrame(goalies)
     a_props = [r for r in active if r.get("tier") == "A"]
     if a_props:
-        a_headers = list(a_props[0].keys())
-        for col, h in enumerate(a_headers, 1):
-            cell = ws_a.cell(row=1, column=col, value=h)
-            cell.fill = openpyxl.styles.PatternFill("solid", fgColor="375623")
-            cell.font = openpyxl.styles.Font(bold=True, color="FFFFFF")
-        for row in a_props:
-            ws_a.append([row.get(h, "") for h in a_headers])
-            last_row = ws_a.max_row
-            for col in range(1, len(a_headers) + 1):
-                ws_a.cell(last_row, col).fill = openpyxl.styles.PatternFill("solid", fgColor="C6EFCE")
-
-    # ── DROPPED tab (neg-edge Goblin audit) ───────────────────────────────────
-    ws_drop = wb.create_sheet("DROPPED")
+        sheets["A-Tier Best"] = pd.DataFrame(a_props)
     if dropped:
-        d_headers = list(dropped[0].keys())
-        for col, h in enumerate(d_headers, 1):
-            cell = ws_drop.cell(row=1, column=col, value=h)
-            cell.fill = openpyxl.styles.PatternFill("solid", fgColor="7B241C")
-            cell.font = openpyxl.styles.Font(bold=True, color="FFFFFF")
-        for row in dropped:
-            ws_drop.append([row.get(h, "") for h in d_headers])
-            last_row = ws_drop.max_row
-            for col in range(1, len(d_headers) + 1):
-                ws_drop.cell(last_row, col).fill = openpyxl.styles.PatternFill("solid", fgColor="FADBD8")
-
-    # Autofit columns (approximate)
-    for ws in [ws_all, ws_sk, ws_g, ws_a, ws_drop]:
-        for col in ws.columns:
-            max_len = max((len(str(c.value or "")) for c in col), default=10)
-            ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 35)
-
-    wb.save(args.output)
+        sheets["DROPPED"] = pd.DataFrame(dropped)
+    write_excel_sheets(args.output, sheets)
     write_parquet_sidecar(pd.DataFrame(active), args.output)
     print(f"Saved ranked props -> {args.output}")
 

@@ -28,7 +28,7 @@ if str(_REPO_ROOT) not in sys.path:
 from utils.consistency_grade_scores import apply_consistency_grade_scores
 from utils.group_rank_tier import assign_tier_column, report_goblin_demon_standard_line_fill
 from utils.nfl_prop_defense import assign_prop_aware_def_tier, snap_pct_to_minutes_tier
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 from utils.nflp_playing_time import (
     POLICY_BACKUP,
     apply_nflp_playing_time,
@@ -58,7 +58,7 @@ def main() -> None:
     if df.empty:
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
-        pd.DataFrame().to_excel(out, sheet_name="ALL", index=False)
+        write_excel_sheets(out, {"ALL": pd.DataFrame()})
         write_parquet_sidecar(pd.DataFrame(), out)
         print(f"[NFL step7] Wrote empty {out}")
         return
@@ -180,9 +180,7 @@ def main() -> None:
     elig = df[df["tier"].isin(["A", "B", "C"])].copy()
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with pd.ExcelWriter(out_path, engine="openpyxl") as w:
-        df.to_excel(w, sheet_name="ALL", index=False)
-        elig.to_excel(w, sheet_name="ELIGIBLE", index=False)
+    write_excel_sheets(out_path, {"ALL": df, "ELIGIBLE": elig})
     write_parquet_sidecar(df, out_path)
     tier_counts = df["def_tier"].astype(str).value_counts().to_dict()
     print(f"[NFL step7] Wrote {out_path} rows={len(df)} (ALL), eligible={len(elig)}")

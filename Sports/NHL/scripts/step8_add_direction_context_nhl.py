@@ -44,7 +44,7 @@ from zoneinfo import ZoneInfo
 _REPO = Path(__file__).resolve().parents[3]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
-from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table, write_excel_sheets
 try:
     from tqdm import tqdm as _tqdm
 except ImportError:
@@ -611,32 +611,21 @@ def _write_sheet(ws, rows: list[dict], headers: list[str]):
 
 def write_xlsx(rows: list[dict], path: str):
     if not rows:
-        openpyxl.Workbook().save(path)
+        write_excel_sheets(path, {"All Props": pd.DataFrame()})
         return
 
-    # Human + machine calendar columns; grader maps only "Game Date" -> slate_game_date
-    # so lowercase `game_date` can coexist in the XLSX (dated copy included).
     rows_xlsx = list(rows)
-    headers = list(rows_xlsx[0].keys())
-    wb = openpyxl.Workbook()
-
-    ws_all = wb.active
-    ws_all.title = "All Props"
-    _write_sheet(ws_all, rows_xlsx, headers)
-
+    sheets = {"All Props": pd.DataFrame(rows_xlsx)}
     skaters = [r for r in rows_xlsx if str(r.get("player_role", "")).upper() == "SKATER"]
     if skaters:
-        _write_sheet(wb.create_sheet("Skaters"), skaters, headers)
-
+        sheets["Skaters"] = pd.DataFrame(skaters)
     goalies = [r for r in rows_xlsx if str(r.get("player_role", "")).upper() == "GOALIE"]
     if goalies:
-        _write_sheet(wb.create_sheet("Goalies"), goalies, headers)
-
+        sheets["Goalies"] = pd.DataFrame(goalies)
     a_rows = [r for r in rows_xlsx if str(r.get("tier", "")).upper() == "A"]
     if a_rows:
-        _write_sheet(wb.create_sheet("A-Tier Best"), a_rows, headers)
-
-    wb.save(path)
+        sheets["A-Tier Best"] = pd.DataFrame(a_rows)
+    write_excel_sheets(path, sheets)
     print(f"XLSX saved -> {path}")
 
 

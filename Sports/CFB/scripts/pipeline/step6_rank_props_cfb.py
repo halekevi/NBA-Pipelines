@@ -41,7 +41,7 @@ from utils.group_rank_tier import (
 )
 from utils.hit_tracking_columns import attach_hit_tracking_columns, resolve_sport_code
 from utils.optional_ml_context import optional_context_features
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 from utils.cfb_playoff_metadata import (
     CFB_AP_TOP25_2026,
     CFB_PLAYOFF_CHAMP_EXTRA_MULT,
@@ -799,9 +799,7 @@ def main():
             print("⚠️ Date filter returned no rows; writing empty outputs.")
             # Graceful no-slate day: produce empty artifacts and exit 0 so
             # parallel orchestrators can continue other sports.
-            with pd.ExcelWriter(args.output, engine="openpyxl") as xw:
-                df.to_excel(xw, index=False, sheet_name="ALL")
-                df.to_excel(xw, index=False, sheet_name="ELIGIBLE")
+            write_excel_sheets(args.output, {"ALL": df, "ELIGIBLE": df})
             write_parquet_sidecar(df, args.output)
             if args.output_csv:
                 df.to_csv(args.output_csv, index=False)
@@ -1248,15 +1246,14 @@ def main():
     out_sorted = out.loc[out_sorted.index].sort_values("final_score", ascending=False, na_position="last")
 
     # ── Write Excel ───────────────────────────────────────────────────────────
-    with pd.ExcelWriter(args.output, engine="openpyxl") as xw:
-        out_sorted.to_excel(xw, index=False, sheet_name="ALL")
-        out_sorted[elig_sorted].to_excel(xw, index=False, sheet_name="ELIGIBLE")
-        for t in ["A","B","C","D"]:
-            sub = out_sorted[out_sorted["tier"] == t]
-            if len(sub): sub.to_excel(xw, index=False, sheet_name=f"TIER_{t}")
-        if not dropped_df.empty:
-            dropped_df.to_excel(xw, index=False, sheet_name="DROPPED")
-
+    sheets = {"ALL": out_sorted, "ELIGIBLE": out_sorted[elig_sorted]}
+    for t in ["A", "B", "C", "D"]:
+        sub = out_sorted[out_sorted["tier"] == t]
+        if len(sub):
+            sheets[f"TIER_{t}"] = sub
+    if not dropped_df.empty:
+        sheets["DROPPED"] = dropped_df
+    write_excel_sheets(args.output, sheets)
     write_parquet_sidecar(out_sorted, args.output)
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows (active) : {len(out_sorted)}")

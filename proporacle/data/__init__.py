@@ -5,6 +5,7 @@ from proporacle.data.table_io import (
     read_table,
     read_table_str,
     table_exists,
+    write_excel_sheets,
     write_parquet_sidecar,
     write_parquet_sidecars,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "read_table",
     "read_table_str",
     "table_exists",
+    "write_excel_sheets",
     "write_parquet_sidecar",
     "write_parquet_sidecars",
     "write_props_parquet",

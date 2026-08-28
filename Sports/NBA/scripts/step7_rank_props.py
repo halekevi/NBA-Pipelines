@@ -67,7 +67,7 @@ from utils.group_rank_tier import (  # noqa: E402
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 
 try:
     _playoff_sd = str(Path(__file__).resolve().parents[3] / "scripts")
@@ -76,13 +76,6 @@ try:
     from playoff_config import NBA_PLAYOFF_TEAMS  # noqa: E402
 except Exception:
     NBA_PLAYOFF_TEAMS = set()
-
-# UTF-8 safe Excel export
-try:
-    import xlsxwriter
-    HAS_XLSXWRITER = True
-except ImportError:
-    HAS_XLSXWRITER = False
 
 # -------------------- player consistency (data/cache/player_consistency.db) --------------------
 
@@ -1008,33 +1001,6 @@ def _apply_ml_blend(out: pd.DataFrame, existing_score: pd.Series, source_hint: s
         print(f"✅ NBA ML blend applied (model={model_key_used}, weight={blend_w:.2f})")
     return ml_prob, ml_edge, final_score
 
-def _write_xlsx_openpyxl(output_path: str, out: pd.DataFrame, elig_mask: pd.Series) -> None:
-    """Write XLSX with explicit UTF-8 encoding using openpyxl."""
-    from openpyxl import Workbook
-    from openpyxl.utils.dataframe import dataframe_to_rows
-    
-    wb = Workbook()
-    wb.remove(wb.active)
-    
-    # Create both sheets with UTF-8 safe values
-    for sheet_name, df_sheet in [("ALL", out), ("ELIGIBLE", out.loc[elig_mask])]:
-        ws = wb.create_sheet(sheet_name)
-        for r_idx, row in enumerate(dataframe_to_rows(df_sheet, index=False, header=True), 1):
-            for c_idx, value in enumerate(row, 1):
-                # Ensure value is properly UTF-8 encoded (especially for player names)
-                if isinstance(value, str):
-                    # Force string through UTF-8 encode/decode to ensure proper handling
-                    value = value.encode('utf-8').decode('utf-8')
-                elif pd.isna(value):
-                    value = None
-                ws.cell(row=r_idx, column=c_idx, value=value)
-    
-    # Set encoding in workbook properties
-    wb.properties.encoding = 'UTF-8'
-    wb.save(output_path)
-    print(f"✅ Saved → {output_path} (openpyxl, UTF-8 encoded)")
-
-
 def _attach_nba_tier2_strat_columns(out: pd.DataFrame) -> pd.DataFrame:
     """Graded / stratification: string ``home_away`` + team-based ``rest_bucket`` (``b2b``/``1``/``2``/``3p``)."""
     o = out.copy()
@@ -1824,28 +1790,16 @@ def main() -> None:
     gobdem_mask      = ~std_mask_active
     elig_mask_active = out_active["eligible"].eq(1)
 
-    def _safe_excel_write(writer, df, sheet_name):
-        if df.empty:
-            pd.DataFrame(columns=df.columns).to_excel(writer, sheet_name=sheet_name, index=False)
-        else:
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-
-    if HAS_XLSXWRITER:
-        try:
-            with pd.ExcelWriter(args.output, engine="xlsxwriter",
-                               engine_kwargs={'options': {'strings_to_urls': False}}) as w:
-                _safe_excel_write(w, out_active,                        "ALL")
-                _safe_excel_write(w, out_active.loc[std_mask_active],   "STANDARD")
-                _safe_excel_write(w, out_active.loc[gobdem_mask],       "GOB_DEM")
-                _safe_excel_write(w, out_active.loc[elig_mask_active],  "ELIGIBLE")
-                _safe_excel_write(w, dropped_df,                        "DROPPED")
-            print(f"✅ Saved → {args.output} (xlsxwriter, UTF-8 encoded)")
-        except Exception as e:
-            print(f"⚠️  xlsxwriter failed: {e}, falling back to openpyxl")
-            _write_xlsx_openpyxl(args.output, out_active, elig_mask_active)
-    else:
-        _write_xlsx_openpyxl(args.output, out_active, elig_mask_active)
-
+    write_excel_sheets(
+        args.output,
+        {
+            "ALL": out_active,
+            "STANDARD": out_active.loc[std_mask_active],
+            "GOB_DEM": out_active.loc[gobdem_mask],
+            "ELIGIBLE": out_active.loc[elig_mask_active],
+            "DROPPED": dropped_df,
+        },
+    )
     write_parquet_sidecar(out_active, args.output)
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows (active) : {len(out_active)}")

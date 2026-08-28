@@ -236,3 +236,140 @@ def read_props_parquet(path: str | Path) -> pd.DataFrame:
 
 def iter_engine_names() -> Iterable[str]:
     return _PARQUET_ENGINES
+
+
+def xlsxwriter_available() -> bool:
+    try:
+        import xlsxwriter  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+def _xl_col_name(idx: int) -> str:
+    try:
+        from xlsxwriter.utility import xl_col_to_name
+
+        return xl_col_to_name(idx)
+    except Exception:
+        n = idx + 1
+        letters = ""
+        while n:
+            n, rem = divmod(n - 1, 26)
+            letters = chr(65 + rem) + letters
+        return letters
+
+
+def _sanitize_excel_df(df: pd.DataFrame) -> pd.DataFrame:
+    out = _dedupe_columns(df if df is not None else pd.DataFrame())
+    out.columns = [str(c) for c in out.columns]
+    try:
+        import numpy as np
+
+        return out.replace([np.inf, -np.inf], np.nan)
+    except Exception:
+        return out
+
+
+_TIER_FILL = {
+    "A": ("1E8449", "FFFFFF"),
+    "B": ("2874A6", "FFFFFF"),
+    "C": ("D4AC0D", "000000"),
+    "D": ("717D7E", "FFFFFF"),
+}
+
+
+def _style_xlsxwriter_sheet(writer, sheet_name: str, df: pd.DataFrame, header_color: str, header_font: str) -> None:
+    wb = writer.book
+    ws = writer.sheets[sheet_name]
+    hdr = wb.add_format(
+        {
+            "bold": True,
+            "font_color": header_font,
+            "bg_color": header_color,
+            "align": "center",
+            "valign": "vcenter",
+            "text_wrap": True,
+        }
+    )
+    cols = [str(c) for c in df.columns]
+    for i, col in enumerate(cols):
+        ws.write(0, i, col, hdr)
+        ws.set_column(i, i, min(36, max(10, len(col) + 2)))
+    ws.freeze_panes(1, 0)
+    nrows = len(df)
+    ncols = max(len(cols), 1)
+    ws.autofilter(0, 0, max(nrows, 1), ncols - 1)
+    if nrows == 0 or not cols:
+        return
+    last_r, last_c = nrows, ncols - 1
+    for cand in ("Tier", "tier"):
+        if cand not in cols:
+            continue
+        letter = _xl_col_name(cols.index(cand))
+        for grade, (bg, fg) in _TIER_FILL.items():
+            fmt = wb.add_format({"bg_color": bg, "font_color": fg})
+            ws.conditional_format(
+                1,
+                0,
+                last_r,
+                last_c,
+                {
+                    "type": "formula",
+                    "criteria": f'=${letter}2="{grade}"',
+                    "format": fmt,
+                },
+            )
+        break
+    for cand in ("Direction", "direction"):
+        if cand not in cols:
+            continue
+        cidx = cols.index(cand)
+        letter = _xl_col_name(cidx)
+        over = wb.add_format({"bg_color": "C8F7C5", "bold": True})
+        under = wb.add_format({"bg_color": "F7C5C5", "bold": True})
+        ws.conditional_format(
+            1, cidx, last_r, cidx,
+            {"type": "formula", "criteria": f'=${letter}2="OVER"', "format": over},
+        )
+        ws.conditional_format(
+            1, cidx, last_r, cidx,
+            {"type": "formula", "criteria": f'=${letter}2="UNDER"', "format": under},
+        )
+        break
+
+
+def write_excel_sheets(
+    path: str | Path,
+    sheets: dict[str, pd.DataFrame],
+    *,
+    header_color: str = "1C1C1C",
+    header_font: str = "FFFFFF",
+    style: bool = True,
+) -> Path:
+    """Bulk-write an .xlsx. Prefers xlsxwriter (~5x vs openpyxl cell loops)."""
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    cleaned: dict[str, pd.DataFrame] = {}
+    for name, df in sheets.items():
+        key = str(name or "Sheet")[:31]
+        if key in cleaned:
+            key = f"{key[:28]}_{len(cleaned)}"
+        cleaned[key] = _sanitize_excel_df(df)
+
+    engine = "xlsxwriter" if xlsxwriter_available() else "openpyxl"
+    kwargs: dict[str, Any] = {}
+    if engine == "xlsxwriter":
+        kwargs["engine_kwargs"] = {"options": {"strings_to_urls": False}}
+    with pd.ExcelWriter(p, engine=engine, **kwargs) as writer:
+        for name, df in cleaned.items():
+            body = df if not df.empty else pd.DataFrame(columns=df.columns)
+            body.to_excel(writer, sheet_name=name, index=False)
+            if style and engine == "xlsxwriter":
+                try:
+                    _style_xlsxwriter_sheet(writer, name, body, header_color, header_font)
+                except Exception as exc:
+                    print(f"[table_io] WARN xlsx style skipped ({name}): {exc}")
+    print(f"[table_io] excel -> {p.name} engine={engine} sheets={list(cleaned)}")
+    return p

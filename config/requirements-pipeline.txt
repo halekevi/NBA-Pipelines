@@ -16,6 +16,8 @@ curl-cffi>=0.6.0
 
 openpyxl
 
+xlsxwriter>=3.1
+
 pyarrow>=14
 
 joblib

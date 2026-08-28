@@ -38,7 +38,7 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
-from proporacle.data.table_io import write_parquet_sidecars, read_table_str
+from proporacle.data.table_io import write_parquet_sidecars, read_table_str, write_excel_sheets
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
 from utils.slate_context_fill import fill_cv_pct_if_missing, fill_min_tier_labels
@@ -420,15 +420,12 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
     rename = {k: v for k, v in rename.items() if k not in _lm_cols}
     clean = clean.rename(columns=rename)
 
-    wb = Workbook()
-    wb.remove(wb.active)
-    write_sheet(wb, 'ALL', clean)
-    for tier in ['A', 'B', 'C', 'D']:
-        subset = clean[clean['Tier'] == tier].copy()
+    sheets = {"ALL": clean}
+    for tier in ["A", "B", "C", "D"]:
+        subset = clean[clean["Tier"] == tier].copy()
         if len(subset):
-            write_sheet(wb, f'Tier {tier}', subset)
-
-    wb.save(xlsx_path)
+            sheets[f"Tier {tier}"] = subset
+    write_excel_sheets(xlsx_path, sheets)
     print(f"📊 Clean XLSX saved → {xlsx_path}")
 
 def main() -> None:

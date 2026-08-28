@@ -49,7 +49,7 @@ from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
-from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str, write_excel_sheets
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
 from utils.stack_context_cols import STACK_CONTEXT_COLS, STACK_CONTEXT_RENAME
@@ -550,15 +550,12 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str, source_hint: str = ""):
     }
     clean = clean.rename(columns=rename)
 
-    wb = Workbook()
-    wb.remove(wb.active)
-    write_sheet(wb, 'ALL', clean)
-    for tier in ['A', 'B', 'C', 'D']:
-        subset = clean[clean['Tier'] == tier].copy()
+    sheets = {"ALL": clean}
+    for tier in ["A", "B", "C", "D"]:
+        subset = clean[clean["Tier"] == tier].copy()
         if len(subset):
-            write_sheet(wb, f'Tier {tier}', subset)
-
-    wb.save(xlsx_path)
+            sheets[f"Tier {tier}"] = subset
+    write_excel_sheets(xlsx_path, sheets)
     print(f"📊 Clean XLSX saved → {xlsx_path}")
 
 def main() -> None:

@@ -36,7 +36,7 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
-from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str, write_excel_sheets
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
 from utils.slate_context_fill import fill_cv_pct_if_missing
@@ -479,25 +479,20 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     clean = clean.rename(columns=rename)
     clean = clean.where(pd.notna(clean), None)
 
-    wb = Workbook()
-    wb.remove(wb.active)
-    write_sheet(wb, "ALL", clean, HEADER_COLOR)
-
+    sheets = {"ALL": clean}
     for tier in ["A", "B", "C", "D"]:
         subset = clean[clean["Tier"] == tier].copy()
         if len(subset):
-            tier_bg = TIER_COLORS.get(tier, ("333333",))[0]
-            write_sheet(wb, f"Tier {tier}", subset, tier_bg)
-
-    # Pitcher / Hitter split tabs
+            sheets[f"Tier {tier}"] = subset
     if "Player Type" in clean.columns:
         pitchers = clean[clean["Player Type"].astype(str).str.lower() == "pitcher"].copy()
-        hitters  = clean[clean["Player Type"].astype(str).str.lower() == "hitter"].copy()
-        if len(pitchers): write_sheet(wb, "Pitchers", pitchers, PITCHER_TAB_COLOR)
-        if len(hitters):  write_sheet(wb, "Hitters",  hitters,  HITTER_TAB_COLOR)
-
+        hitters = clean[clean["Player Type"].astype(str).str.lower() == "hitter"].copy()
+        if len(pitchers):
+            sheets["Pitchers"] = pitchers
+        if len(hitters):
+            sheets["Hitters"] = hitters
     tmp_path = str(Path(xlsx_path).with_suffix(".tmp.xlsx"))
-    wb.save(tmp_path)
+    write_excel_sheets(tmp_path, sheets)
     os.replace(tmp_path, xlsx_path)
     print(f"Clean XLSX saved -> {xlsx_path}")
 

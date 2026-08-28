@@ -14,6 +14,7 @@ from proporacle.data.table_io import (
     read_table,
     read_table_str,
     table_exists,
+    write_excel_sheets,
     write_parquet_sidecar,
 )
 
@@ -65,3 +66,32 @@ def test_read_table_str_stringifies_parquet(tmp_path: Path):
     assert list(df["player"]) == ["A"]
     assert df["line"].iloc[0] == "12.5"
     assert df["n"].iloc[0] == ""
+
+
+def test_write_excel_sheets_roundtrip(tmp_path: Path):
+    path = tmp_path / "step7_ranked.xlsx"
+    write_excel_sheets(
+        path,
+        {
+            "ALL": pd.DataFrame({"Tier": ["A"], "player": ["X"]}),
+            "ELIGIBLE": pd.DataFrame({"Tier": ["A"], "player": ["X"]}),
+        },
+    )
+    assert path.is_file()
+    df = pd.read_excel(path, sheet_name="ALL")
+    assert list(df["player"]) == ["X"]
+    assert list(df["Tier"]) == ["A"]
+
+
+def test_step7b_refresh_keeps_parquet_in_sync(tmp_path: Path):
+    """step8 prefers parquet; scoring the xlsx must rewrite the sidecar too."""
+    xlsx = tmp_path / "step7_ranked.xlsx"
+    df = pd.DataFrame({"player": ["A"], "eligible": [1], "ml_prob": [0.4]})
+    write_excel_sheets(xlsx, {"ALL": df, "ELIGIBLE": df})
+    write_parquet_sidecar(df, xlsx)
+    scored = df.copy()
+    scored["ml_prob"] = 0.81
+    write_excel_sheets(xlsx, {"ALL": scored, "ELIGIBLE": scored})
+    write_parquet_sidecar(scored, xlsx)
+    hop = read_table(xlsx)
+    assert float(hop["ml_prob"].iloc[0]) == pytest.approx(0.81)

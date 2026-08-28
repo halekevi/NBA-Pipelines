@@ -38,7 +38,7 @@ if str(_WNBA_REPO) not in sys.path:
     sys.path.insert(0, str(_WNBA_REPO))
 from utils.consistency_grade_scores import apply_consistency_grade_scores  # noqa: E402
 from utils.prop_signal_score import apply_ml_rank_blend  # noqa: E402
-from proporacle.data.table_io import write_parquet_sidecar
+from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 from utils.group_rank_tier import (  # noqa: E402
     assign_tier_column,
     print_tier_distribution_by_pick_direction_group,
@@ -401,7 +401,20 @@ def main():
     )
 
     line_num = _to_num(out["line"])
-    proj     = out.apply(_projection_from_row, axis=1)
+    l5 = _to_num(out["stat_last5_avg"]) if "stat_last5_avg" in out.columns else pd.Series(np.nan, index=out.index)
+    l10 = _to_num(out["stat_last10_avg"]) if "stat_last10_avg" in out.columns else pd.Series(np.nan, index=out.index)
+    sea = _to_num(out["stat_season_avg"]) if "stat_season_avg" in out.columns else pd.Series(np.nan, index=out.index)
+    w5 = l5.notna().astype(float) * 0.50
+    w10 = l10.notna().astype(float) * 0.30
+    wsea = sea.notna().astype(float) * 0.20
+    tw = w5 + w10 + wsea
+    tv = l5.fillna(0.0) * 0.50 + l10.fillna(0.0) * 0.30 + sea.fillna(0.0) * 0.20
+    proj = tv / tw.replace(0.0, np.nan)
+    combo = out["prop_norm"].astype(str).str.lower().str.strip().map(lambda x: _COMBO_CORRECTIONS.get(x, 1.0))
+    proj = proj * combo
+    need = tw < 0.1
+    if bool(need.any()):
+        proj.loc[need] = out.loc[need].apply(_projection_from_row, axis=1)
     out["projection"] = proj
     if "usage_boost_proj" in out.columns:
         out["projection"] = _to_num(out["projection"]).fillna(0.0) + _to_num(out["usage_boost_proj"]).fillna(0.0)
@@ -599,14 +612,12 @@ def main():
     report_goblin_demon_standard_line_fill(out, "[WNBA step7]")
     print_tier_distribution_by_pick_direction_group(out, label="[WNBA step7]")
 
-    with pd.ExcelWriter(args.output, engine="openpyxl") as w:
-        out.to_excel(w, sheet_name="ALL", index=False)
-        out.loc[elig_mask].to_excel(w, sheet_name="ELIGIBLE", index=False)
-        for tier in ["A","B","C","D"]:
-            sub = out.loc[elig_mask & (out["tier"] == tier)]
-            if len(sub):
-                sub.to_excel(w, sheet_name=f"Tier {tier}", index=False)
-
+    sheets = {"ALL": out, "ELIGIBLE": out.loc[elig_mask]}
+    for tier in ["A", "B", "C", "D"]:
+        sub = out.loc[elig_mask & (out["tier"] == tier)]
+        if len(sub):
+            sheets[f"Tier {tier}"] = sub
+    write_excel_sheets(args.output, sheets)
     write_parquet_sidecar(out, args.output)
     print(f"✅ Saved → {args.output}  ALL={len(out)}  ELIGIBLE={int(elig_mask.sum())}")
     print("Tier counts:", out["tier"].value_counts().to_dict())

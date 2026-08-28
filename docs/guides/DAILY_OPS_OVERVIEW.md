@@ -10,7 +10,7 @@ Living operator overview for **who runs what**, **when**, and **how PrizePicks f
 
 | Audience | Needs | Primary surfaces |
 |----------|--------|------------------|
-| **Bettor / analyst** | Today’s slate, tickets, grades, income | Web (`ui_runner`), mobile (`mobile/www`) |
+| **Bettor / analyst** | Today’s slate, tickets, grades, income | Web (Railway) and Android WebView (same Railway URL); bundled `mobile/www` is offline fallback |
 | **Operator** | Fresh boards by mid-morning, recover when CDP/HTTP fails | Scheduled tasks + `run_daily.ps1` / `run_refresh_with_log.ps1` |
 | **Pipeline maintainer** | Path contracts, fetch modes, hang prevention | This doc + [CANONICAL_PIPELINES.md](../runbooks/CANONICAL_PIPELINES.md) + [BROWSER_FETCH_SETUP.md](BROWSER_FETCH_SETUP.md) |
 
@@ -25,7 +25,7 @@ Living operator overview for **who runs what**, **when**, and **how PrizePicks f
 | Task action path | `Get-ScheduledTask -TaskName 'PropOracle - Daily 5AM' \| Select -Expand Actions` → should be `...\PropORACLE_main_cp\scripts\run_daily_5am.ps1` |
 | Last run | `Get-ScheduledTaskInfo -TaskName 'PropOracle - Daily 5AM'` |
 | Health stamp | `PropORACLE_main_cp\logs\LAST_5AM_STATUS.txt` (also mirrored into sibling `PropORACLE*\logs\`) |
-| Fresh board date | `mobile\www\slate_display_date.json` under **main_cp** |
+| Fresh board date | `ui_runner\runtime\slate_display_date.json` (then `ui_runner\templates\`) under **main_cp** |
 
 If Cursor is open on `H:\PropORACLE` (feature branch), that tree can look “stale overnight” even when 5AM succeeded on `main_cp` and pushed to GitHub. `scripts/rank_best_props_today.py` now prefers the worktree whose step1 was **fetched on the slate date**, so a Saturday board in the feature branch will not beat Sunday’s 8AM board on `main_cp`. Still prefer ranking/ops from **main_cp**, or `git pull` / open that worktree.
 

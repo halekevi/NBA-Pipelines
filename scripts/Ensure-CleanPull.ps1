@@ -64,6 +64,8 @@ $script:GeneratedPublishPaths = @(
     "ui_runner/runtime/slate_latest.json"
     "ui_runner/templates/slate_latest.json"
     "mobile/www/slate_latest.json"
+    "ui_runner/runtime/slate_display_date.json"
+    "ui_runner/templates/slate_display_date.json"
     "ui_runner/runtime/pipeline_status.json"
     "ui_runner/templates/pipeline_status.json"
     "mobile/www/pipeline_status.json"
@@ -76,6 +78,7 @@ $script:GeneratedPublishPaths = @(
     "mobile/www/hot_cold_latest.json"
     "ui_runner/templates/prop_snapshot_latest.json"
     "mobile/www/prop_snapshot_latest.json"
+    "ui_runner/runtime/ticket_eval_slate_latest.json"
     "ui_runner/templates/ticket_eval_slate_latest.json"
     "mobile/www/ticket_eval_slate_latest.json"
 )
@@ -86,6 +89,7 @@ $script:GeneratedPublishNamePatterns = @(
     '^tickets_latest'
     '^shadow_tickets'
     '^slate_latest'
+    '^slate_display_date'
     '^slate_sport_'
     '^slate_eval_'
     '^ticket_eval_'

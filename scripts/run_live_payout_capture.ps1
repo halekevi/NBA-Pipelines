@@ -68,7 +68,6 @@ $mixGridOut = Join-Path $Root "data\reports\payout_mix_grid_$Date.json"
 $rateCardOut = Join-Path $Root "data\reports\payout_rate_card.json"
 $ticketsLatest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
 $runtimeTickets = Join-Path $Root "ui_runner\runtime\tickets_latest.json"
-$mobileTickets = Join-Path $Root "mobile\www\tickets_latest.json"
 $verifyScript = Join-Path $Root "scripts\verify_ticket_payout_rates.py"
 $lockDir = Join-Path $Root "data\cache"
 $lockFile = Join-Path $lockDir "payout_capture.lock"
@@ -192,11 +191,14 @@ $env:PROPORACLE_PAYOUT_LOCK_HELD = "1"
 Write-Host "  [PAYOUT] Lock acquired" -ForegroundColor DarkGray
 
 if (-not $TicketsPath) {
+    $latestRuntime = Join-Path $Root "ui_runner\runtime\tickets_latest.json"
     $latest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
     $latestData = Join-Path $Root "ui_runner\data\tickets_latest.json"
     $combined = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
     $combinedOut = Join-Path $Root "outputs\$Date\combined_slate_tickets_$Date.json"
-    if (Test-Path -LiteralPath $latest) {
+    if (Test-Path -LiteralPath $latestRuntime) {
+        $TicketsPath = $latestRuntime
+    } elseif (Test-Path -LiteralPath $latest) {
         $TicketsPath = $latest
     } elseif (Test-Path -LiteralPath $latestData) {
         $TicketsPath = $latestData
@@ -453,15 +455,17 @@ try {
         }
 
         if ($capExit -eq 0 -and $nOk -gt 0) {
-            if (Test-Path -LiteralPath $ticketsLatest) {
+            $mirrorSrc = $null
+            if (Test-Path -LiteralPath $ticketsLatest) { $mirrorSrc = $ticketsLatest }
+            elseif (Test-Path -LiteralPath $runtimeTickets) { $mirrorSrc = $runtimeTickets }
+            if ($mirrorSrc) {
                 $rtDir = Split-Path $runtimeTickets -Parent
                 if (-not (Test-Path -LiteralPath $rtDir)) {
                     New-Item -ItemType Directory -Path $rtDir -Force | Out-Null
                 }
-                Copy-Item $ticketsLatest $runtimeTickets -Force -ErrorAction SilentlyContinue
-                Write-Host "  [PAYOUT] mirrored -> ui_runner/runtime/tickets_latest.json" -ForegroundColor Green
-                if (Test-Path (Split-Path $mobileTickets -Parent)) {
-                    Copy-Item $ticketsLatest $mobileTickets -Force -ErrorAction SilentlyContinue
+                if ($mirrorSrc -ne $runtimeTickets) {
+                    Copy-Item $mirrorSrc $runtimeTickets -Force -ErrorAction SilentlyContinue
+                    Write-Host "  [PAYOUT] mirrored -> ui_runner/runtime/tickets_latest.json" -ForegroundColor Green
                 }
             }
             Write-Host "  [PAYOUT] Live floors applied (payout_source=live_cdp on patched slips)" -ForegroundColor Green

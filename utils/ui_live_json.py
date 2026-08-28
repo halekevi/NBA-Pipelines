@@ -60,6 +60,19 @@ def disk_path(name: str, root: Path | None = None) -> Path:
     return github_mirror_dir(root) / n
 
 
+def existing_path(name: str, root: Path | None = None) -> Path | None:
+    """First existing copy: runtime, templates, then data snapshot."""
+    n = Path(str(name or "")).name
+    for p in (
+        runtime_dir(root) / n,
+        github_mirror_dir(root) / n,
+        data_snapshot_dir(root) / n,
+    ):
+        if p.is_file():
+            return p
+    return None
+
+
 def write_paths(
     name: str,
     root: Path | None = None,

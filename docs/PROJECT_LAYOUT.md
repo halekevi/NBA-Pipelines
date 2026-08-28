@@ -79,7 +79,8 @@ Each sport keeps its own steps, caches, and docs. **Paths are not uniform** — 
 | Path | Role |
 |------|------|
 | `ui_runner\app.py` | Flask application |
-| `ui_runner\templates\` | Jinja/HTML; pipeline writes `slate_latest.json`, ticket eval artifacts here when configured |
+| `ui_runner\runtime\` | Canonical *disk* copy of generated live JSON (`tickets_latest.json`, `slate_latest.json`, …). Local Flask prefers this. |
+| `ui_runner\templates\` | Jinja/HTML; GitHub-raw publish mirror of the same live JSON (Railway polls this). |
 | `ui_runner\static\` | CSS/JS served as static files |
 
 ## Single-line mental model

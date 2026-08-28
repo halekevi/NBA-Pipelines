@@ -82,6 +82,7 @@ foreach ($c in $ticketCandidates) {
     }
 }
 
+$runtimeTicketsMissing = -not (Test-Path -LiteralPath (Join-Path $RepoRoot "ui_runner\runtime\tickets_latest.json"))
 $mobileTicketsMissing = -not (Test-Path -LiteralPath (Join-Path $RepoRoot "mobile\www\tickets_latest.json"))
 $completeSports = @($sports.GetEnumerator() | Where-Object { $_.Value -eq "complete" } | ForEach-Object { $_.Name })
 $failedSports = @($sports.GetEnumerator() | Where-Object { $_.Value -eq "failed" } | ForEach-Object { $_.Name })
@@ -106,6 +107,7 @@ $status = [ordered]@{
     tickets_path           = $ticketPath
     tickets_bytes          = $ticketBytes
     tickets_mtime          = $ticketMtime
+    runtime_tickets_missing = $runtimeTicketsMissing
     mobile_tickets_missing = $mobileTicketsMissing
     sports                 = $sports
     complete_sports        = $completeSports
@@ -115,7 +117,7 @@ $status = [ordered]@{
         "OK: board date $slateDate; tickets=$ticketBytes bytes; complete=[$($completeSports -join ',')]"
     }
     else {
-        "BAD: expect $ExpectDate got slate_display='$slateDate'; tickets_bytes=$ticketBytes; mobile_tickets_missing=$mobileTicketsMissing"
+        "BAD: expect $ExpectDate got slate_display='$slateDate'; tickets_bytes=$ticketBytes; runtime_tickets_missing=$runtimeTicketsMissing"
     }
 }
 

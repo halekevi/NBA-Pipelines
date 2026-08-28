@@ -130,7 +130,7 @@ C4Component
 
     Rel(slate_api, artifacts, "Reads slate_latest.json, sport JSON")
     Rel(pipeline_api, batch, "spawn py/ps steps")
-    Rel(mobile_api, artifacts, "Zip mobile/www for OTA")
+    Rel(mobile_api, artifacts, "Optional bundled zip (OTA off)")
     Rel(consistency_api, artifacts, "player_consistency.json")
 ```
 

@@ -389,6 +389,27 @@ def test_merge_keeps_goblin70_and_graded_main():
     assert merged["tracks"] == ["goblin70", "graded_main"]
 
 
+def test_union_mixer_keeps_live_core_and_pool_tennis():
+    from build_goblin70_tickets import union_mixer_groups
+
+    live = [
+        {"group_name": "STRONG 3-Leg", "tickets": [{"ticket_id": "s1"}]},
+        {"group_name": "MLB Core Power 2 #3", "tickets": [{"ticket_id": "m1"}]},
+    ]
+    pool = [
+        {"group_name": "TENNIS Core Power 2 #1", "tickets": [{"ticket_id": "t1"}]},
+        {"group_name": "STRONG 3-Leg", "tickets": [{"ticket_id": "stale"}]},
+    ]
+    names = [g["group_name"] for g in union_mixer_groups(live, pool)]
+    assert names == [
+        "STRONG 3-Leg",
+        "MLB Core Power 2 #3",
+        "TENNIS Core Power 2 #1",
+    ]
+    by_name = {g["group_name"]: g for g in union_mixer_groups(live, pool)}
+    assert by_name["STRONG 3-Leg"]["tickets"][0]["ticket_id"] == "s1"
+
+
 def test_patch_mixer_updates_line_and_keeps_unmatched():
     from build_goblin70_tickets import patch_mixer_groups
 

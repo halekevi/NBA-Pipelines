@@ -617,12 +617,28 @@ def _first_mixer_payload(date: str, candidates: list[Path]) -> tuple[dict | None
     return None, []
 
 
+def union_mixer_groups(*group_lists: list[dict]) -> list[dict]:
+    """Keep every unique mixer group_name. Live card first, then grade-pool extras."""
+    out: list[dict] = []
+    seen: set[str] = set()
+    for groups in group_lists:
+        for g in groups or []:
+            if not isinstance(g, dict):
+                continue
+            name = str(g.get("group_name") or "").strip()
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            out.append(g)
+    return out
+
+
 def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
     """Mixer groups for the live card.
 
-    Prefer the grade-pool JSON (full graded-main) over tickets_latest. After a
-    refresh, tickets_latest is often Goblin-70-only or a pruned live file; using
-    it first would wipe STRONG / MLB Goblin OVER / tennis mixer groups.
+    Union the live /tickets mixer with the grade-pool JSON. A tennis-only pool
+    must not replace CORE / STRONG / MLB groups already on the card, and a
+    Goblin-70-only tickets_latest must not wipe the mixer.
     """
     live: list[Path] = list(WEB_JSON_PATHS)
     sibling = _REPO.parent / "PropORACLE_main_cp"
@@ -635,9 +651,9 @@ def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
         )
     pool = _first_mixer_payload(date, grade_pool_paths(date))
     live_payload = _first_mixer_payload(date, live)
-    if pool[1] and (not live_payload[1] or len(pool[1]) >= len(live_payload[1])):
-        return pool
-    return live_payload
+    groups = union_mixer_groups(live_payload[1], pool[1])
+    meta = live_payload[0] or pool[0]
+    return meta, groups
 
 
 def _sport_token(raw: object) -> str:

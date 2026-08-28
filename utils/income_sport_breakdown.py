@@ -164,7 +164,10 @@ def build_monthly_from_graded_props(
 
 
 def cache_paths(repo_root: Path, templates_dir: Path) -> list[Path]:
+    from utils.ui_live_json import runtime_dir
+
     return [
+        runtime_dir(repo_root) / "sport_breakdown.json",
         persistent_data_dir(repo_root) / "sport_breakdown.json",
         templates_dir / "sport_breakdown.json",
     ]

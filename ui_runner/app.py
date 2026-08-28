@@ -75,6 +75,8 @@ from utils.proporacle_data_root import (
     load_best_grade_history_runs,
     persistent_data_dir,
 )
+from utils.ui_live_json import disk_path as live_json_disk_path
+from utils.ui_live_json import is_live_json_name
 from scripts.payout_leg_resolver import PayoutLegResolver
 
 UI_DIR        = Path(__file__).resolve().parent         # all UI assets live here (ui_runner/)
@@ -85,6 +87,7 @@ if _cfg_json_env:
 else:
     CONFIG_PATH = UI_DIR / "commands.json"
 TEMPLATES_DIR = UI_DIR / "templates"
+RUNTIME_DIR   = UI_DIR / "runtime"  # canonical disk copy of live JSON; GitHub raw still templates/
 ARCHIVE_DIR   = TEMPLATES_DIR / "archive"
 STATIC_DIR    = UI_DIR / "static"
 # Bundled graded-prop exports for deploy hosts without data/cache/*_props_history.db (see scripts/export_grades_props_bundle.py).
@@ -582,8 +585,22 @@ def _grades_report_dates_payload() -> dict[str, list[str]]:
     }
 
 
+def _resolve_template_json_path(path: Path) -> Path:
+    """Live latest JSON: prefer ui_runner/runtime/, else templates/ (GitHub-raw mirror)."""
+    if is_live_json_name(path.name):
+        rt = RUNTIME_DIR / path.name
+        if rt.is_file():
+            return rt
+        return TEMPLATES_DIR / path.name
+    return path
+
+
 def _template_json_available(filename: str) -> bool:
     """True if JSON can be loaded from disk or from a configured remote URL (Railway)."""
+    if is_live_json_name(filename):
+        return live_json_disk_path(filename, BASE_DIR).is_file() or bool(
+            _DATA_FILE_URL_MAP.get(filename)
+        )
     return (TEMPLATES_DIR / filename).exists() or bool(_DATA_FILE_URL_MAP.get(filename))
 
 
@@ -605,8 +622,8 @@ def _github_raw_fetch_url(url: str) -> str:
 
 
 def _template_json_disk_mtime(name: str) -> float | None:
-    """Return st_mtime for templates/<name>, or None if missing/unreadable."""
-    p = TEMPLATES_DIR / name
+    """Return st_mtime for runtime/<name> (else templates/<name>), or None if missing."""
+    p = live_json_disk_path(name, BASE_DIR) if is_live_json_name(name) else TEMPLATES_DIR / name
     try:
         return p.stat().st_mtime
     except OSError:
@@ -624,6 +641,7 @@ def _explorer_json_gz_bust_token() -> str:
 
 def read_json_cached(path: Path, ttl: float | None = None) -> Any:
     """Load JSON from disk (or remote URL) with an in-process TTL."""
+    path = _resolve_template_json_path(path)
     if ttl is None:
         ttl = _PIPELINE_JSON_TTL
     key = str(path.resolve())
@@ -1570,7 +1588,7 @@ a{color:#00e5ff;} code{background:#1a1a2e;padding:2px 7px;border-radius:4px;font
 <h1>Built slips not available</h1>
 <p>This page shows <strong>today&rsquo;s generated slips</strong> from <code>tickets_latest.json</code>. The file was not found on disk and no remote JSON URL is configured (on Railway, <code>TICKETS_JSON_URL</code> defaults to raw GitHub when <code>RAILWAY_*</code> env is set).</p>
 <p><strong>Graded</strong> results (actuals, hits/misses, ticket KPI bar) are under <a href="/grades">Grades</a> &rarr; Ticket evaluation — not here.</p>
-<p>Run the combined slate script with <code>--write-web</code>, commit <code>ui_runner/templates/tickets_latest.json</code>, and redeploy.</p>
+<p>Run the combined slate script with <code>--write-web</code>, then <code>Publish-LiveSite.ps1</code> so GitHub <code>ui_runner/templates/tickets_latest.json</code> (Railway raw) is current.</p>
 <p><a href="/">Home</a></p>
 </body></html>"""
     r = make_response(body, 404)

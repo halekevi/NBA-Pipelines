@@ -19,10 +19,11 @@ from utils.proporacle_data_root import (  # noqa: E402
     grade_history_read_paths,
     load_best_grade_history_runs,
 )
+from utils.ui_live_json import maybe_mirror_to_runtime  # noqa: E402
 
 
 def _write_ota_config(mobile_www: Path) -> None:
-    """Enable Capacitor DIY OTA when PROPORACLE_OTA_BASE_URL is set (Railway public URL, no trailing slash)."""
+    """OTA is bundled-fallback only. Canonical app is remote Railway — keep OTA off unless explicitly enabled."""
     raw_base = (os.environ.get("PROPORACLE_OTA_BASE_URL") or "").strip().rstrip("/")
     flag = (os.environ.get("PROPORACLE_OTA_ENABLED") or "").strip().lower()
     if flag in ("0", "false", "no", "off"):
@@ -1422,10 +1423,10 @@ async function fetch_smart(localPath) {
                 )
                 print(f"  [pipeline_status] {s}: modified={mod_str!r} source={source}")
             status_payload[s] = {"slate": {"exists": exists, "modified": mod_str}}
-        (MOBILE_WWW_DIR / "pipeline_status.json").write_text(
-            json.dumps(status_payload, ensure_ascii=True, indent=2),
-            encoding="utf-8"
-        )
+        status_text = json.dumps(status_payload, ensure_ascii=True, indent=2)
+        (MOBILE_WWW_DIR / "pipeline_status.json").write_text(status_text, encoding="utf-8")
+        (TEMPLATES_DIR / "pipeline_status.json").write_text(status_text, encoding="utf-8")
+        maybe_mirror_to_runtime(TEMPLATES_DIR / "pipeline_status.json", status_text)
 
         # Static replacement for /api/slate-excel used by Combined slate table.
         combined_columns = [
@@ -1465,8 +1466,8 @@ async function fetch_smart(localPath) {
     _ymd = _read_template_json_date(TEMPLATES_DIR)
     _display_payload = json.dumps({"date": _ymd}, ensure_ascii=True)
     (MOBILE_WWW_DIR / "slate_display_date.json").write_text(_display_payload, encoding="utf-8")
-    # Keep templates mirror current too (stale May-era files blocked some freshness checks).
     (TEMPLATES_DIR / "slate_display_date.json").write_text(_display_payload, encoding="utf-8")
+    maybe_mirror_to_runtime(TEMPLATES_DIR / "slate_display_date.json", _display_payload)
 
     # Copy grade history for offline/mobile P&L (same resolution as Flask /income).
     mobile_data_dir = MOBILE_WWW_DIR / "data"

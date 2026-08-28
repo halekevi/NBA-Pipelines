@@ -61,7 +61,7 @@ C4Container
 
   System_Boundary(sys, "PropORACLE") {
     Container(web,      "Web App",       "Jinja2 + JS · Railway",         "Goblin-70 + mixer /tickets, grades, income, payout")
-    Container(mob,      "Mobile App",    "Capacitor · server.url",        "Top edges, sparklines, OTA updates")
+    Container(mob,      "Mobile App",    "Capacitor · Railway server.url", "Same live site as browser; OTA off")
     Container(api,      "Flask API",     "Python · Gunicorn · Railway",   "/api/props /api/grades /api/tickets")
     Container(pipeline, "Pipeline",      "Python · run_daily.ps1",        "Steps 1–8 per sport, daily PS1 orch.")
     Container(g70,      "Goblin-70",     "build_goblin70_tickets.py",     "Goblin-70 first; merges mixer from grade pool")
@@ -146,7 +146,7 @@ C4Component
 | **Grades & evaluation** | Grades hub, browse graded props, slate eval report, ticket eval report |
 | **Income & tracking** | Income / P&L dashboard, grade history & sport breakdown |
 | **Payout tools** | Estimate multiplier, rate cards & combo table, log observation, payout ladder, export logs |
-| **Mobile app** | Bundled offline UI, remote web UI in app shell, OTA bundle update |
+| **Mobile app** | Remote Railway in Capacitor shell (canonical). Bundled `www/` + OTA are offline fallback only. |
 | **Pipeline & ops** | Run step from UI, monitor job, daily / sport pipeline, grade slate, Goblin-70 --write-web, publish artifacts |
 
 ### Key `<<include>>` relationships
@@ -161,7 +161,7 @@ Goblin-70 --write-web ──includes──►  Publish UI artifacts
 Run daily pipeline  ──includes──►  Publish UI artifacts
 Grade completed slate ─includes──► Publish UI artifacts
 Run pipeline step (UI) ─includes─► Monitor pipeline job
-OTA bundle update   ──extends───►  Verify deploy / health
+OTA bundle update   ──extends───►  Verify deploy / health   (bundled fallback only; remote app skips OTA)
 ```
 
 ---

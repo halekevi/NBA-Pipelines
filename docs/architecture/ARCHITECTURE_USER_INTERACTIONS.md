@@ -49,7 +49,7 @@ C4Container
 
     Container_Boundary(client, "Client devices") {
         Container(browser, "Web browser", "Chrome, Safari, etc.", "Loads Flask pages and calls JSON APIs")
-        Container(mobile, "PropORACLE Android app", "Capacitor WebView", "Bundled static www/ OR remote Railway URL; optional OTA bundle")
+        Container(mobile, "PropORACLE Android app", "Capacitor WebView", "Canonical: remote Railway URL; bundled www/ is offline fallback")
     }
 
     Container_Boundary(host, "Application host") {
@@ -205,21 +205,20 @@ sequenceDiagram
     Note over Bettor: Next page load sees updated artifacts
 ```
 
-### Mobile — bundled vs remote
+### Mobile — remote Railway (canonical) vs bundled fallback
 
 ```mermaid
 flowchart LR
-    subgraph bundled["Bundled APK (default)"]
-        M1[Capacitor WebView] --> W1[mobile/www static HTML]
-        W1 -.optional.-> API1[LAN/Railway Flask APIs]
-    end
-
-    subgraph remote["Remote mode (sync:url)"]
+    subgraph remote["Remote mode (canonical)"]
         M2[Capacitor WebView] --> F2[Railway Flask]
         F2 --> W2[Same pages as browser]
     end
 
-    subgraph ota["OTA update (remote host)"]
+    subgraph bundled["Bundled APK (offline fallback)"]
+        M1[Capacitor WebView] --> W1[mobile/www static HTML]
+    end
+
+    subgraph ota["OTA (bundled fallback only; off by default)"]
         M3[proporacle-ota.js] --> V[/api/mobile/bundle-version]
         V --> Z[/api/mobile/bundle.zip]
         Z --> W3[Refresh mobile/www in WebView storage]
@@ -240,7 +239,7 @@ Quick reference for the main nav tabs (see `ui_runner/templates/_site_nav.html`)
 | Track P&L | `/income` | `/api/grade-history` |
 | Payout math & logging | `/payout` | `/api/payout/estimate-mult`, `/api/payout/rate-cards`, POST log endpoints |
 | Run pipeline (operator) | Home controls | `POST /api/run`, `GET /api/job/<id>`, `GET /api/jobs` |
-| Mobile offline UI | Capacitor `www/` | Static HTML; OTA: `/api/mobile/bundle-version`, `bundle.zip` |
+| Mobile live UI | Capacitor `server.url` → Railway | Same Flask pages as the website; OTA off |
 
 ---
 

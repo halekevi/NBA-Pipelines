@@ -65,8 +65,8 @@ flowchart LR
   end
 
   subgraph mobile["Mobile"]
-    UC13[Bundled or remote UI]
-    UC14[OTA bundle update]
+    UC13[Remote Railway UI]
+    UC14[Bundled fallback / OTA]
   end
 
   subgraph ops["Pipeline (operator)"]
@@ -148,9 +148,9 @@ flowchart LR
 
 | ID | Use case | Actor | Notes |
 |----|----------|-------|-------|
-| UC-MOB-B | Use bundled offline UI | Bettor | `mobile/www/` in APK |
-| UC-MOB-R | Use remote web in shell | Bettor | Capacitor → Railway Flask |
-| UC-MOB-O | Check & apply OTA update | Bettor | `/api/mobile/bundle-version`, `bundle.zip` |
+| UC-MOB-R | Use remote web in shell | Bettor | Canonical — Capacitor → Railway Flask |
+| UC-MOB-B | Use bundled offline UI | Bettor | Fallback — `mobile/www/` in APK (`sync:bundle`) |
+| UC-MOB-O | Check & apply OTA update | Bettor | Bundled fallback only; `ota-config.json` off by default |
 
 ### Pipeline & operations
 

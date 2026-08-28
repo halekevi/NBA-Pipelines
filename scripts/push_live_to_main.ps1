@@ -42,27 +42,31 @@ function Get-MainWorktreeRoot {
 }
 
 $liveRel = @(
+    "ui_runner/runtime/tickets_latest.json",
     "ui_runner/templates/tickets_latest.json",
-    "ui_runner/docs/tickets_latest.json",
-    "mobile/www/tickets_latest.json",
+    "ui_runner/runtime/slate_latest.json",
     "ui_runner/templates/slate_latest.json",
-    "mobile/www/slate_latest.json",
+    "ui_runner/runtime/pipeline_status.json",
     "ui_runner/templates/pipeline_status.json",
-    "mobile/www/pipeline_status.json",
+    "ui_runner/runtime/tickets_winrate_latest.json",
     "ui_runner/templates/tickets_winrate_latest.json",
+    "ui_runner/runtime/sport_breakdown.json",
     "ui_runner/templates/sport_breakdown.json"
 )
+Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\runtime") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
+    ForEach-Object { $liveRel += ("ui_runner/runtime/" + $_.Name) }
 Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\templates") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
     ForEach-Object { $liveRel += ("ui_runner/templates/" + $_.Name) }
-Get-ChildItem -LiteralPath (Join-Path $Root "mobile\www") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
-    ForEach-Object { $liveRel += ("mobile/www/" + $_.Name) }
 
 if ($IncludePublishHelpers) {
     $AlsoPaths += @(
         "run_pipeline.ps1",
         "scripts/run_daily.ps1",
+        "scripts/run_daily_1am.ps1",
         "scripts/run_daily_5am.ps1",
         "scripts/run_daily_8am.ps1",
+        "scripts/run_refresh_with_log.ps1",
+        "scripts/Publish-LiveSite.ps1",
         "scripts/Ensure-CleanPull.ps1",
         "scripts/push_live_to_main.ps1",
         "scripts/combined_slate_tickets.py",
@@ -116,6 +120,23 @@ try {
         Write-Host "OK - pushed to origin/main" -ForegroundColor Green
     } else {
         Write-Host "(no changes vs main)" -ForegroundColor DarkGray
+    }
+
+    $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+    if (-not (Test-Path -LiteralPath $assertFresh)) {
+        $assertFresh = Join-Path $MainRoot "scripts\Assert-ActiveSportsFresh.ps1"
+    }
+    if (Test-Path -LiteralPath $assertFresh) {
+        $todayEt = (Get-Date).ToString("yyyy-MM-dd")
+        try {
+            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+            $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+        } catch { }
+        Write-Host "Asserting active sports FRESH ($todayEt)..." -ForegroundColor Cyan
+        & pwsh -NoProfile -File $assertFresh -RepoRoot $MainRoot -Today $todayEt
+        if ($LASTEXITCODE -ne 0) {
+            throw "Active sports freshness gate failed (exit $LASTEXITCODE)"
+        }
     }
 }
 finally {

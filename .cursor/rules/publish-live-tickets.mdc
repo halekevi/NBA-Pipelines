@@ -1,0 +1,33 @@
+---
+description: Push /tickets JSON to origin/main after rebuilding the dual playable card
+alwaysApply: true
+---
+
+# Live /tickets publish
+
+The Railway site reads `ui_runner/templates/tickets_latest.json` from **origin/main** (GitHub raw). The canonical *disk* copy is `ui_runner/runtime/tickets_latest.json` (Flask prefers it locally). Writing either file in this Cursor checkout does **not** update the site until `Publish-LiveSite.ps1` (or equivalent) lands on `main`.
+
+The Android app is **remote Railway** (`capacitor.config.js` `server.url`). Do not treat `mobile/www/` as the live board.
+
+**Always both sets.** `/tickets` is Goblin-70 groups first, then the graded-main mixer under them. Never publish Goblin-70-only or mixer-only after combined.
+
+Order on every slate (1AM / 8AM / 9AM / 9:45 / 10:30 / 1PM / 4:30):
+
+1. Combined writes the mixer
+2. CDP / payout engine may patch mixer floors
+3. `scripts/build_goblin70_tickets.py --write-web` rebuilds Goblin-70, patches mixer **lines** from this fetch, then merges the **full** graded-main grade pool underneath. Do not drop mixer groups because a game already started or a prop left the live board.
+4. `Publish-LiveSite.ps1`
+
+A 9:00 or 10:30 refetch must update live tickets when the board changed. Do not leave 1AM lines on `/tickets` after those jobs.
+
+```powershell
+py -3.14 scripts\build_goblin70_tickets.py --date YYYY-MM-DD --write-web --publish-live
+```
+
+Or, if the JSON is already the dual card:
+
+```powershell
+.\scripts\Publish-LiveSite.ps1 -CommitMessage "chore: Goblin-70 + mixer tickets YYYY-MM-DD"
+```
+
+Do not leave `tickets_latest.json` as graded-main-only or goblin70-only on main.

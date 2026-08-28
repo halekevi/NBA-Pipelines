@@ -48,10 +48,12 @@ $ContinueOnPullFail = -not $AbortOnPullFail.IsPresent
 # Aug 4 2026: tickets_winrate_latest was missing here → Ensure-CleanPull treated it as a
 # "source" conflict and aborted 1AM grader + 5AM daily (exit 128) before STEP A/C ran.
 $script:GeneratedPublishPaths = @(
+    "ui_runner/runtime/tickets_latest.json"
     "ui_runner/templates/tickets_latest.json"
     "ui_runner/docs/tickets_latest.json"
     "ui_runner/data/tickets_latest.json"
     "mobile/www/tickets_latest.json"
+    "ui_runner/runtime/tickets_winrate_latest.json"
     "ui_runner/templates/tickets_winrate_latest.json"
     "ui_runner/docs/tickets_winrate_latest.json"
     "ui_runner/data/tickets_winrate_latest.json"
@@ -59,10 +61,13 @@ $script:GeneratedPublishPaths = @(
     "ui_runner/templates/shadow_tickets_latest.json"
     "ui_runner/data/shadow_tickets_latest.json"
     "mobile/www/shadow_tickets_latest.json"
+    "ui_runner/runtime/slate_latest.json"
     "ui_runner/templates/slate_latest.json"
     "mobile/www/slate_latest.json"
+    "ui_runner/runtime/pipeline_status.json"
     "ui_runner/templates/pipeline_status.json"
     "mobile/www/pipeline_status.json"
+    "ui_runner/runtime/sport_breakdown.json"
     "ui_runner/templates/sport_breakdown.json"
     "ui_runner/docs/sport_breakdown.json"
     "mobile/www/sport_breakdown.json"

@@ -20,5 +20,5 @@ RUN chmod +x /app/scripts/railway_gunicorn.sh
 # Railway injects PORT at runtime
 EXPOSE 8080
 
-# Keep in sync with railway.toml / Procfile (scripts/railway_gunicorn.sh).
+# Keep in sync with railway.toml / ui_runner/Procfile (scripts/railway_gunicorn.sh, workers=1).
 CMD ["/app/scripts/railway_gunicorn.sh"]

@@ -31,10 +31,16 @@ def test_create_login_prefs_placed(tmp_path, monkeypatch):
     assert updated["preferred_groups"] == ["Goblin-70", "WNBA"]
 
     fp = "aja wilson|points|22.5|OVER;jackie young|assists|5.5|OVER"
-    store.set_placed(user["id"], "2026-08-27", fp, True)
+    snap = {"group_name": "Goblin-70 Power 3", "n_correct": {"3": 2.0}, "stake": 25.0}
+    store.set_placed(user["id"], "2026-08-27", fp, True, stake=25.0, snapshot=snap)
     assert store.list_placed(user["id"], "2026-08-27") == [fp]
+    placed_rows = store.list_placed_rows(user["id"])
+    assert placed_rows[0]["stake"] == 25.0
+    assert placed_rows[0]["snapshot"]["n_correct"] == {"3": 2.0}
     store.set_placed(user["id"], "2026-08-27", fp, False)
     assert store.list_placed(user["id"], "2026-08-27") == []
     store.set_placed_many(user["id"], "2026-08-27", [fp, "x|y|1|OVER"], True)
     assert len(store.list_placed(user["id"], "2026-08-27")) == 2
+    rows = store.list_placed_rows(user["id"])
+    assert any(r["fingerprint"] == fp for r in rows)
     assert Path(db).is_file()

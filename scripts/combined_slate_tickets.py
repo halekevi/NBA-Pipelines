@@ -147,13 +147,18 @@ def extra_match_dates_for_sport(sport: str, args) -> list[str]:
     """Optional extra ET match days kept in addition to Combined --date."""
     su = str(sport or "").strip().upper()
     attr = {"WNBA": "wnba_date", "MLB": "mlb_date"}.get(su)
-    if not attr:
-        return []
-    extra = str(getattr(args, attr, None) or "").strip()[:10]
     target = str(getattr(args, "date", "") or "").strip()[:10]
-    if extra and extra != target:
-        return [extra]
-    return []
+    extras: list[str] = []
+    if attr:
+        extra = str(getattr(args, attr, None) or "").strip()[:10]
+        if extra and extra != target:
+            extras.append(extra)
+    # NFL + NFLP post the night before kickoff. Keep tomorrow on today's board.
+    if su == "NFL" and target:
+        nxt = default_day_ahead_match_date(target)
+        if nxt and nxt != target and nxt not in extras:
+            extras.append(nxt)
+    return extras
 
 
 import numpy as np
@@ -168,6 +173,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file_
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 from utils.defense_tiers import normalize_def_tier_label
+from utils.ui_live_json import maybe_mirror_to_runtime
 from utils.fantasy_prop_filter import fantasy_prop_mask as _fantasy_prop_mask
 from utils.fantasy_prop_filter import is_fantasy_prop_label as _is_fantasy_prop_label
 from utils.category_hit_rate import (
@@ -236,6 +242,11 @@ from utils.l5_recency_policy import (
     l5_clears_standard_prop_gate as _l5_clears_standard_prop_gate,
     l5_perfect_gate_clear_sport as _l5_perfect_gate_clear_sport,
     mlb_standard_over_perfect_l5 as _mlb_standard_over_perfect_l5,
+)
+from proporacle.data.table_io import (
+    parquet_sidecar_path,
+    read_table as _read_pipeline_table,
+    table_exists as _pipeline_table_exists,
 )
 from utils.ticket_ev_tiers import (
     STRONG_ALLOW_CROSS_SPORT,
@@ -404,12 +415,70 @@ def _main_season_resume_date(sport: str):
     return _parse_iso_date(raw) if raw else None
 
 
+_COMBINED_SLATE_DATE = ""
+
+
+def _nfl_dated_game_board_exists(slate_date: str) -> bool:
+    """True when outputs/<date>/nfl has NFL or NFLP game-board rows (not NFLSZN-only)."""
+    d = str(slate_date or "").strip()[:10]
+    if not d:
+        return False
+    path = os.path.join(REPO_ROOT, "outputs", d, "nfl", "step1_pp_props_today.csv")
+    if not os.path.isfile(path):
+        return False
+    try:
+        df = pd.read_csv(path, usecols=lambda c: str(c).lower() in {"league", "league_id", "league_name"})
+    except Exception:
+        try:
+            df = pd.read_csv(path, nrows=80)
+        except Exception:
+            return False
+    if df is None or df.empty:
+        return False
+    lid = df["league_id"].astype(str) if "league_id" in df.columns else pd.Series("", index=df.index)
+    lg = pd.Series("", index=df.index)
+    for col in ("league", "League", "league_name"):
+        if col in df.columns:
+            lg = df[col].astype(str).str.upper()
+            break
+    game = (~lid.eq("163")) & (~lg.eq("NFLSZN"))
+    return bool(game.any())
+
+
+def _nflp_slate_exists(slate_date: str) -> bool:
+    """True when this calendar day has PrizePicks NFLP (preseason) rows on disk."""
+    d = str(slate_date or "").strip()[:10]
+    if not d:
+        return False
+    out = os.path.join(REPO_ROOT, "outputs", d, "nfl")
+    candidates = (
+        os.path.join(out, "step1_pp_props_today.csv"),
+        os.path.join(out, "step1_nfl_props.csv"),
+        os.path.join(out, "step8_nfl_direction.csv"),
+        os.path.join(out, "step8_nfl_direction_clean.xlsx"),
+    )
+    for path in candidates:
+        if not _pipeline_table_exists(path):
+            continue
+        try:
+            df = _read_pipeline_table(path).head(40)
+        except Exception:
+            continue
+        for col in ("league", "League", "league_name"):
+            if col in df.columns and df[col].astype(str).str.upper().str.contains("NFLP", na=False).any():
+                return True
+    return False
+
+
 def _sport_in_season_for_main(sport: str, slate_date: str) -> bool:
     """
     True when sport should not be filtered for being off-season on slate_date.
     Sports without a resume calendar are treated as always in-season.
     Lead days pull reactivation forward so tickets can build before tipoff.
+    NFLP preseason boards are live before Week 1 kickoff.
     """
+    if str(sport or "").strip().upper() == "NFL" and _nflp_slate_exists(slate_date):
+        return True
     resume = _main_season_resume_date(sport)
     if resume is None:
         return True
@@ -511,6 +580,8 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
 
     if not str(args.wcbb).strip():
         args.wcbb = _first_existing_path(
+            os.path.join(out, "wcbb", "step6_ranked_wcbb.xlsx"),
+            os.path.join(out, "cbb", "step6_ranked_wcbb.xlsx"),
             os.path.join(REPO_ROOT, "Sports", "CBB", "step6_ranked_wcbb.xlsx"),
             os.path.join(REPO_ROOT, "CBB", "step6_ranked_wcbb.xlsx"),
         )
@@ -594,14 +665,21 @@ def apply_default_sport_inputs(args: argparse.Namespace) -> None:
         )
 
     if not str(args.nfl).strip():
-        args.nfl = _first_existing_path(
-            os.path.join(out, "nfl", "step8_nfl_direction_clean.xlsx"),
-            os.path.join(out, f"step8_nfl_direction_clean_{d}.xlsx"),
-            os.path.join(REPO_ROOT, "Sports", "NFL", "outputs", "step8_nfl_direction_clean.xlsx"),
-            os.path.join(REPO_ROOT, "Sports", "NFL", "data", "outputs", "step8_nfl_direction_clean.xlsx"),
-            os.path.join(REPO_ROOT, "NFL", "outputs", "step8_nfl_direction_clean.xlsx"),
-            os.path.join(REPO_ROOT, "NFL", "data", "outputs", "step8_nfl_direction_clean.xlsx"),
-        )
+        dated_nfl_s8 = os.path.join(out, "nfl", "step8_nfl_direction_clean.xlsx")
+        if os.path.isfile(dated_nfl_s8):
+            args.nfl = dated_nfl_s8
+        elif _nfl_dated_game_board_exists(d):
+            # Dated NFL/NFLP fetch exists; do not load last week's sport-root step8.
+            args.nfl = ""
+        else:
+            args.nfl = _first_existing_path(
+                dated_nfl_s8,
+                os.path.join(out, f"step8_nfl_direction_clean_{d}.xlsx"),
+                os.path.join(REPO_ROOT, "Sports", "NFL", "outputs", "step8_nfl_direction_clean.xlsx"),
+                os.path.join(REPO_ROOT, "Sports", "NFL", "data", "outputs", "step8_nfl_direction_clean.xlsx"),
+                os.path.join(REPO_ROOT, "NFL", "outputs", "step8_nfl_direction_clean.xlsx"),
+                os.path.join(REPO_ROOT, "NFL", "data", "outputs", "step8_nfl_direction_clean.xlsx"),
+            )
 
     if not str(getattr(args, "cfb", "") or "").strip():
         args.cfb = _first_existing_path(
@@ -715,6 +793,10 @@ def _write_json_file(path: str, payload: Any) -> None:
             with open(tmp, "w", encoding="utf-8", newline="\n") as wf:
                 wf.write(data)
             os.replace(tmp, path)
+            try:
+                maybe_mirror_to_runtime(path, data)
+            except OSError as mirror_exc:
+                print(f"[WARN] runtime JSON mirror skipped ({path}: {mirror_exc})")
             return
         except OSError as exc:
             last_err = exc
@@ -1844,6 +1926,8 @@ def harvest_live_cdp_entries(payload: dict) -> tuple[dict, dict]:
             }
             if pay.get("power_first_x") is not None:
                 entry["power_first_x"] = pay.get("power_first_x")
+            if pay.get("captured_at"):
+                entry["captured_at"] = pay.get("captured_at")
             tid = str(t.get("ticket_id") or "").strip()
             if tid:
                 by_id[tid] = entry
@@ -1888,6 +1972,8 @@ def preserve_live_cdp_onto_payload(payload: dict, source_payload: dict) -> int:
             pay["payout_source"] = "live_cdp"
             if entry.get("power_first_x") is not None:
                 pay["power_first_x"] = entry.get("power_first_x")
+            if entry.get("captured_at"):
+                pay["captured_at"] = entry.get("captured_at")
             refresh_ticket_ev_from_min_guarantee(pay, min_x, update_recommendation=False)
             t["payout"] = pay
             t["display_min_x"] = pay["display_min_x"]
@@ -1986,6 +2072,8 @@ def apply_payout_patch_to_payload(payload: dict) -> int:
             pay["payout_source"] = "live_cdp"
             if entry.get("power_first_x") is not None:
                 pay["power_first_x"] = entry.get("power_first_x")
+            if entry.get("captured_at"):
+                pay["captured_at"] = entry.get("captured_at")
             refresh_ticket_ev_from_min_guarantee(pay, min_x, update_recommendation=False)
             t["payout"] = pay
             t["display_min_x"] = pay["display_min_x"]
@@ -4420,8 +4508,11 @@ def _sport_ticket_gated(sport: str) -> tuple[bool, str]:
     if not su or su in ALWAYS_ALLOW_SPORTS:
         return False, ""
     if su == "NFL" and NFL_TICKET_GATE:
-        # Scaffold kill-switch only while MAIN season calendar still parks NFL.
-        if not _sport_in_season_for_main("NFL", date.today().isoformat()):
+        # NFLP preseason is live. Regular NFL stays parked until MAIN resume.
+        sd = str(_COMBINED_SLATE_DATE or date.today().isoformat())[:10]
+        if _nflp_slate_exists(sd):
+            return False, ""
+        if not _sport_in_season_for_main("NFL", sd):
             return True, NFL_TICKET_GATE_REASON
     global _MODEL_GATE_CACHE
     if _MODEL_GATE_CACHE is None:
@@ -4796,11 +4887,12 @@ ACTIVE_SPORTS = ("NBA", "NHL", "SOCCER", "TENNIS", "WNBA", "MLB", "NBA1H", "NBA1
 # NFL — Phase 1 scaffold only; keep off slate until step8 + historical hit rates exist (Sept 2026).
 # Reference: {"NFL": False}  # activate September 2026 — do not add "NFL" to ACTIVE_SPORTS yet.
 # NFL — scaffold gate stays on until season resume (MAIN calendar also excludes until Kickoff).
-# Flip NFL_TICKET_GATE off after Week 1 boards are validated, or override via model gates.
+# Regular-season NFL stays gated until MAIN resume. NFLP preseason is live
+# whenever outputs/<date>/nfl has league=NFLP rows.
 NFL_TICKET_GATE = True
 NFL_TICKET_GATE_REASON = (
     f"NFL scaffold — MAIN resume {_MAIN_SEASON_RESUME_DEFAULTS.get('NFL', '2026-09-09')} "
-    f"(lead {MAIN_SEASON_LEAD_DAYS}d); unset NFL_TICKET_GATE when live step8 is ready"
+    f"(lead {MAIN_SEASON_LEAD_DAYS}d); NFLP preseason bypasses this gate"
 )
 
 # When --high-conviction: per-leg hit_rate floors (merged with LEG_MIN_HIT_RATE via max())
@@ -7925,18 +8017,18 @@ def resolve_input_path(path: str, fallback_filename: Optional[str] = None) -> st
 
     raw = path.strip().strip('"').strip("'")
     p = _norm_path(raw)
-    if os.path.exists(p):
+    if os.path.exists(p) or _pipeline_table_exists(p):
         return p
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     repo_root = os.path.abspath(os.path.join(script_dir, ".."))
 
     p_repo = os.path.abspath(os.path.join(repo_root, raw))
-    if os.path.exists(p_repo):
+    if os.path.exists(p_repo) or _pipeline_table_exists(p_repo):
         return p_repo
 
     p2 = os.path.abspath(os.path.join(script_dir, raw))
-    if os.path.exists(p2):
+    if os.path.exists(p2) or _pipeline_table_exists(p2):
         return p2
 
     if not _is_plain_filename(raw):
@@ -7949,7 +8041,7 @@ def resolve_input_path(path: str, fallback_filename: Optional[str] = None) -> st
     filename = fallback_filename or os.path.basename(raw)
     for root in (repo_root, script_dir):
         found = _find_most_recent_by_filename(root, filename)
-        if found and os.path.exists(found):
+        if found and (os.path.exists(found) or _pipeline_table_exists(found)):
             print(f"  [resolve] Fallback found (most recent under {root}): {found}")
             return os.path.abspath(found)
 
@@ -11216,10 +11308,11 @@ def publish_wnba_slate_merge_into_web(
     wnba_df = _overlay_wnba_defense_ranks(wnba_df)
     rows = dataframe_to_slate_sport_rows(wnba_df)
     if web_outdirs is None:
-        web_outdirs = [os.path.join(REPO_ROOT, "ui_runner", "templates")]
-        _mob = os.path.join(REPO_ROOT, "mobile", "www")
-        if os.path.isdir(_mob):
-            web_outdirs.append(_mob)
+        # templates = GitHub raw / Railway; runtime = canonical disk. App is remote Railway (not www/).
+        web_outdirs = [
+            os.path.join(REPO_ROOT, "ui_runner", "templates"),
+            os.path.join(REPO_ROOT, "ui_runner", "runtime"),
+        ]
     elif isinstance(web_outdirs, str):
         web_outdirs = [web_outdirs]
 
@@ -12157,21 +12250,17 @@ def _preserve_live_cdp_from_existing_web_json(payload: dict, json_path: str) -> 
 
 
 def _sync_tickets_latest_mirrors(payload: dict, outdir: str, *, json_filename: str = "tickets_latest.json") -> None:
-    """Keep docs + mobile + ui_runner/data tickets_latest.json aligned with templates (MAIN only)."""
+    """Mirror tickets_latest.json to runtime (disk) + data (snapshot). Not docs/ or mobile/www."""
     # Never overwrite live MAIN mirrors when writing win-rate / high-leg / shadow JSON.
     if Path(str(json_filename or "tickets_latest.json")).name != "tickets_latest.json":
         return
     try:
-        outdir_p = Path(outdir).resolve()
-        for docs_json in (
-            outdir_p.parent / "docs" / "tickets_latest.json",
-            Path(REPO_ROOT) / "ui_runner" / "data" / "tickets_latest.json",
-            Path(REPO_ROOT) / "mobile" / "www" / "tickets_latest.json",
-        ):
-            docs_json.parent.mkdir(parents=True, exist_ok=True)
-            with open(docs_json, "w", encoding="utf-8") as f:
-                json.dump(payload, f, indent=2, ensure_ascii=False, allow_nan=False)
-            print(f"[OK] Tickets mirror -> {docs_json}")
+        text = json.dumps(payload, indent=2, ensure_ascii=False, allow_nan=False)
+        maybe_mirror_to_runtime(os.path.join(outdir, json_filename), text)
+        snap = Path(REPO_ROOT) / "ui_runner" / "data" / "tickets_latest.json"
+        snap.parent.mkdir(parents=True, exist_ok=True)
+        snap.write_text(text, encoding="utf-8")
+        print(f"[OK] Tickets snapshot -> {snap}")
     except Exception as exc:
         print(f"[WARN] Tickets mirror sync skipped: {exc}")
 
@@ -12648,14 +12737,7 @@ def _board_history_enrichment(df: pd.DataFrame, sport_label: str) -> pd.DataFram
 # ── Load & normalize NBA ───────────────────────────────────────────────────────
 def load_nba(path: str) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename="step8_all_direction_clean.xlsx")
-
-    if str(path).lower().endswith(".csv"):
-        df = pd.read_csv(path, low_memory=False)
-        df = df.loc[:, ~df.columns.duplicated()].copy()
-    else:
-        xl = pd.ExcelFile(path, engine="openpyxl")
-        sheet = "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0]
-        df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("ALL",))
 
     df = df.rename(
         columns={
@@ -12793,14 +12875,7 @@ def load_nba(path: str) -> pd.DataFrame:
 # ── Load & normalize CBB ───────────────────────────────────────────────────────
 def load_cbb(path: str) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename="step6_ranked_cbb.xlsx")
-
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = (
-        "ELIGIBLE"
-        if "ELIGIBLE" in xl.sheet_names
-        else ("ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
-    )
-    df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("ELIGIBLE", "ALL"))
 
     df = df.rename(
         columns={
@@ -13011,9 +13086,7 @@ def load_nhl(path: str) -> pd.DataFrame:
         print("  [load_nhl] NHL file not found — skipping NHL")
         return pd.DataFrame()
 
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = "NHL" if "NHL" in xl.sheet_names else ("ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
-    df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("NHL", "ALL"))
 
     df = df.rename(columns={
         "Game Script Mult": "game_script_mult",
@@ -13273,25 +13346,19 @@ def _load_step8_board_like(
 ) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename=fallback_filename)
     df: pd.DataFrame
-    if str(path).lower().endswith(".csv"):
-        df = pd.read_csv(path, low_memory=False)
-        df = df.loc[:, ~df.columns.duplicated()].copy()
-    else:
-        try:
-            xl = pd.ExcelFile(path, engine="openpyxl")
-            sheet = next((s for s in sheet_order if s in xl.sheet_names), xl.sheet_names[0])
-            df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
-        except PermissionError:
-            base, _ext = os.path.splitext(path)
-            csv_candidates = [
-                f"{base}.csv",
-                f"{base.replace('_clean', '')}.csv",
-            ]
-            csv_path = next((p for p in csv_candidates if os.path.exists(p)), "")
-            if not csv_path:
-                raise
-            print(f"  [{log_prefix}] XLSX locked; using CSV fallback: {csv_path}")
-            df = pd.read_csv(csv_path)
+    try:
+        df = _read_pipeline_table(path, sheet_order=sheet_order)
+    except PermissionError:
+        base, _ext = os.path.splitext(path)
+        csv_candidates = [
+            f"{base}.csv",
+            f"{base.replace('_clean', '')}.csv",
+        ]
+        csv_path = next((p for p in csv_candidates if os.path.exists(p) or _pipeline_table_exists(p)), "")
+        if not csv_path:
+            raise
+        print(f"  [{log_prefix}] XLSX locked; using CSV fallback: {csv_path}")
+        df = _read_pipeline_table(csv_path)
 
     df = _coalesce_board_col(
         df, "l5_over", ("l5_over", "L5 Over", "last5_over", "line_hits_over_5"), numeric=True
@@ -14083,11 +14150,7 @@ def load_nfl(path: str) -> pd.DataFrame:
 def load_wcbb(path: str) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename="step8_wcbb_direction_clean.xlsx")
 
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = "WCBB" if "WCBB" in xl.sheet_names else (
-        "CBB" if "CBB" in xl.sheet_names else (
-            "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0]))
-    df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("WCBB", "CBB", "ALL"))
 
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
@@ -14295,7 +14358,7 @@ def _resolve_readable_mlb_step8(path: str) -> str:
         if c in seen or not os.path.isfile(c):
             continue
         seen.add(c)
-        if _is_valid_xlsx(c):
+        if _is_valid_xlsx(c) or parquet_sidecar_path(c).is_file():
             if c != primary:
                 print(f"  [load_mlb] using fallback step8: {c}")
             return c
@@ -14304,11 +14367,7 @@ def _resolve_readable_mlb_step8(path: str) -> str:
 
 def load_mlb(path: str) -> pd.DataFrame:
     path = _resolve_readable_mlb_step8(path)
-
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = "MLB" if "MLB" in xl.sheet_names else (
-        "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
-    df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("MLB", "ALL"))
 
     df = _coalesce_board_col(
         df, "l5_over", ("l5_over", "L5 Over", "last5_over", "line_hits_over_5"), numeric=True
@@ -14608,11 +14667,7 @@ def load_mlb(path: str) -> pd.DataFrame:
 
 def load_nba1q(path: str) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename="step8_nba1q_direction_clean.xlsx")
-
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = "NBA1Q" if "NBA1Q" in xl.sheet_names else (
-        "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
-    df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("NBA1Q", "ALL"))
 
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
@@ -14785,11 +14840,7 @@ def load_nba1q(path: str) -> pd.DataFrame:
 
 def load_nba1h(path: str) -> pd.DataFrame:
     path = resolve_input_path(path, fallback_filename="step8_nba1h_direction_clean.xlsx")
-
-    xl = pd.ExcelFile(path, engine="openpyxl")
-    sheet = "NBA1H" if "NBA1H" in xl.sheet_names else (
-        "ALL" if "ALL" in xl.sheet_names else xl.sheet_names[0])
-    df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
+    df = _read_pipeline_table(path, sheet_order=("NBA1H", "ALL"))
 
     df = df.rename(columns={
         # title-case (from step8 clean xlsx)
@@ -20342,6 +20393,8 @@ def main():
     ds = str(args.date).strip().lower()
     if not ds or ds in ("today", "now"):
         args.date = slate_calendar_date_ymd()
+    global _COMBINED_SLATE_DATE
+    _COMBINED_SLATE_DATE = str(args.date).strip()[:10]
 
     tennis_ds = str(getattr(args, "tennis_date", None) or "").strip()[:10]
     if tennis_ds:
@@ -20679,7 +20732,11 @@ def main():
         try:
             nfl = load_nfl(nfl_path)
             nfl = enforce_target_date(
-                nfl, "NFL", args.date, allow_cross_date_fallback=args.allow_cross_date_fallback
+                nfl,
+                "NFL",
+                args.date,
+                allow_cross_date_fallback=args.allow_cross_date_fallback,
+                extra_dates=extra_match_dates_for_sport("NFL", args),
             )
             nfl = attach_standard_refs(nfl)
             print(f"  {len(nfl)} NFL props loaded")
@@ -20737,6 +20794,9 @@ def main():
         keep_extra.discard("")
         # WNBA / MLB day-ahead: keep --date plus --wnba-date / --mlb-date (typically Eastern tomorrow).
         if sport_label in ("WNBA", "MLB") and keep_extra:
+            keep = {td} | keep_extra
+            stale = dated & ~gd_str.isin(keep)
+        elif sport_label == "NFL" and keep_extra:
             keep = {td} | keep_extra
             stale = dated & ~gd_str.isin(keep)
         # NBA boards (full + period) can be posted ahead of the run date.
@@ -20839,7 +20899,11 @@ def main():
     )
     nba1q = drop_stale_rows(nba1q, args.date, "NBA1Q", allow_cross_date_fallback=_date_fb)
     nba1h = drop_stale_rows(nba1h, args.date, "NBA1H", allow_cross_date_fallback=_date_fb)
-    nfl = drop_stale_rows(nfl, args.date, "NFL", allow_cross_date_fallback=_date_fb)
+    nfl = drop_stale_rows(
+        nfl, args.date, "NFL",
+        allow_cross_date_fallback=_date_fb,
+        extra_dates=extra_match_dates_for_sport("NFL", args),
+    )
     cfb = drop_stale_rows(cfb, args.date, "CFB", allow_cross_date_fallback=_date_fb)
 
     # Apply teammate-absence usage redistribution before ticket eligibility filtering.
@@ -23144,6 +23208,41 @@ _TICKETS_BUILT_PAYOUT_CSS = """<style>
   padding: 2px 8px;
   background: rgba(0,0,0,0.2);
 }
+.tickets-built .ticket-hdr-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.tickets-built .ticket-data-warn {
+  font-size: 10px;
+  color: var(--amber);
+}
+.tickets-built .ticket-copy-btn {
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(200,255,0,0.35);
+  background: rgba(200,255,0,0.08);
+  color: var(--accent, #c8ff00);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tickets-built .ticket-copy-btn:hover {
+  background: rgba(200,255,0,0.16);
+}
+.tickets-built .ticket-copy-btn.is-copied {
+  border-color: rgba(57,255,110,0.45);
+  color: #39ff6e;
+  background: rgba(57,255,110,0.1);
+}
+.tickets-built .ticket-copy-btn--group {
+  margin-left: auto;
+}
 .tickets-built .payout-rec-badge {
   font-family: "Inter", sans-serif;
   font-size: clamp(11px, 1.1vw, 13px);
@@ -23361,6 +23460,8 @@ def _normalize_payout_source(source: str | None) -> str:
         return "fallback_estimate"
     if src == "exact":
         return "exact"
+    if src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
+        return src
     return src or "calibrated"
 
 
@@ -23373,6 +23474,17 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
     pay = payout if isinstance(payout, dict) else {}
     ticket = ticket if isinstance(ticket, dict) else {}
     src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
+    if src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
+        for raw in (
+            pay.get("display_min_x"),
+            ticket.get("display_min_x"),
+            ticket.get("power_payout"),
+            ticket.get("flex_payout"),
+        ):
+            v = _safe_positive_float(raw)
+            if v is not None:
+                return v
+        return None
     if require_live_payout_display():
         if src == "pending_live":
             return None
@@ -23400,7 +23512,32 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
     return None
 
 
-def _board_payout_label(display_x: float | None, source: str | None) -> tuple[str, str, str]:
+def _fmt_payout_scrape_clock(raw: object) -> str:
+    """Human clock for payout.captured_at (ET). Empty if missing/unparseable."""
+    text = str(raw or "").strip()
+    if not text:
+        return ""
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        t = text[:-1] + "+00:00" if text.endswith("Z") else text
+        dt = datetime.fromisoformat(t)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("America/New_York"))
+        dt = dt.astimezone(ZoneInfo("America/New_York"))
+        hour = dt.hour % 12 or 12
+        ampm = "AM" if dt.hour < 12 else "PM"
+        return f"{hour}:{dt.minute:02d} {ampm} ET"
+    except Exception:
+        return text[:22]
+
+
+def _board_payout_label(
+    display_x: float | None,
+    source: str | None,
+    captured_at: object = None,
+) -> tuple[str, str, str]:
     """
     Option A board payout copy: (mult_text, source_badge, title).
     live_cdp → "2.2x" + "✓ live"; sg_delta_verified → "2.2x" + "✓ lines";
@@ -23408,33 +23545,49 @@ def _board_payout_label(display_x: float | None, source: str | None) -> tuple[st
     """
     src = _normalize_payout_source(source)
     if src == "pending_live":
-        return (
+        mult_text, badge, title = (
             "—",
             "pending",
             "Waiting for verified lines (live CDP or same-line SG-Δ evidence)",
         )
-    if display_x is None:
-        return "—", "pending" if require_live_payout_display() else "est", "Board payout unavailable"
-    mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
-    if src == "live_cdp":
-        return f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
-    if src == "sg_delta_live":
-        return f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
-    if src == "sg_delta_verified":
-        return (
-            f"{mult}x",
-            "✓ lines",
-            f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
+    elif display_x is None:
+        mult_text, badge, title = (
+            "—",
+            "pending" if require_live_payout_display() else "est",
+            "Board payout unavailable",
         )
-    if src == "rate_card":
-        return f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
-    if src == "mix_grid_average":
-        return f"~{mult}x", "board avg", f"Mix-grid board average ~{mult}x"
-    if src == "fallback_estimate":
-        return f"~{mult}x", "model est", f"Model estimate ~{mult}x"
-    if src == "exact":
-        return f"{mult}x", "exact", f"Exact payout {mult}x"
-    return f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
+    else:
+        mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
+        if src == "live_cdp":
+            mult_text, badge, title = f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
+        elif src == "sg_delta_live":
+            mult_text, badge, title = f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
+        elif src == "sg_delta_verified":
+            mult_text, badge, title = (
+                f"{mult}x",
+                "✓ lines",
+                f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
+            )
+        elif src == "rate_card":
+            mult_text, badge, title = f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
+        elif src == "mix_grid_average":
+            mult_text, badge, title = f"~{mult}x", "board avg", f"Mix-grid board average ~{mult}x"
+        elif src == "fallback_estimate":
+            mult_text, badge, title = f"~{mult}x", "model est", f"Model estimate ~{mult}x"
+        elif src == "exact":
+            mult_text, badge, title = f"{mult}x", "exact", f"Exact payout {mult}x"
+        elif src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
+            mult_text, badge, title = (
+                f"{mult}x",
+                "N-correct",
+                f"PrizePicks N-correct / To Win {mult}x (not 1st place)",
+            )
+        else:
+            mult_text, badge, title = f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
+    clock = _fmt_payout_scrape_clock(captured_at)
+    if clock:
+        title = f"{title} · scraped {clock}"
+    return mult_text, badge, title
 
 
 def _payout_source_badge_html(source: str, *, badge_label: str | None = None) -> str:
@@ -23456,6 +23609,8 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
             badge_label = "model est"
         elif src == "exact":
             badge_label = "exact"
+        elif src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
+            badge_label = "N-correct"
         else:
             badge_label = "est"
     return (
@@ -23464,9 +23619,15 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
     )
 
 
-def _board_payout_badge_html(display_x: float | None, source: str | None) -> str:
+def _board_payout_badge_html(
+    display_x: float | None,
+    source: str | None,
+    captured_at: object = None,
+) -> str:
     """Single header/footer payout chip: ~2.2x + board-avg/live badge."""
-    mult_text, badge_label, title = _board_payout_label(display_x, source)
+    mult_text, badge_label, title = _board_payout_label(
+        display_x, source, captured_at=captured_at
+    )
     src = _normalize_payout_source(source)
     return (
         f'<span class="payout-x-badge" title="{_h(title)}">[{_h(mult_text)}]</span>'
@@ -23511,7 +23672,21 @@ def _group_sport(group_name: str, tickets: list | None = None) -> str:
         return "CROSS"
     if name.startswith("X-SPORT") or "X-SPORT" in name:
         return "CROSS"
-    for sp in ("NBA1Q", "NBA1H", "WNBA", "WCBB", "TENNIS", "SOCCER", "NHL", "MLB", "CBB", "NBA"):
+    for sp in (
+        "NBA1Q",
+        "NBA1H",
+        "WNBA",
+        "WCBB",
+        "TENNIS",
+        "SOCCER",
+        "NHL",
+        "MLB",
+        "CBB",
+        "NFLP",
+        "NFL",
+        "CFB",
+        "NBA",
+    ):
         if sp in name:
             return sp
     dom = _dominant_leg_sport(tickets)
@@ -23542,6 +23717,10 @@ _TICKET_GROUP_SPORT_SORT_ORDER: dict[str, int] = {
 
 def _ticket_group_sort_rank(group_name: str) -> int:
     name = (group_name or "").upper()
+    if "GOBLIN-70" in name:
+        return -300
+    if name.startswith("NFL POWER"):
+        return -250
     if " CORE " in f" {name} " or name.startswith("CORE ") or " CORE" in name:
         return -200
     if "PROBABILITY LADDER" in name:
@@ -23655,7 +23834,24 @@ def _ticket_group_filter_slugs(
     """(data_sport, data_type, data_pick) lowercase slugs for /tickets filter pills."""
     name_u = (group_name or "").upper().replace("\u00a0", " ")
     sport_key = _group_sport(group_name, tickets)
-    sport_sl = sport_key.lower()
+    sports: list[str] = []
+    seen: set[str] = set()
+    for token in (sport_key or "").replace("/", " ").split():
+        sl = token.strip().lower()
+        if sl and sl not in seen:
+            seen.add(sl)
+            sports.append(sl)
+    for t in tickets or []:
+        if not isinstance(t, dict):
+            continue
+        for leg in t.get("legs") or []:
+            if not isinstance(leg, dict):
+                continue
+            sl = str(leg.get("sport") or "").strip().lower()
+            if sl and sl not in seen:
+                seen.add(sl)
+                sports.append(sl)
+    sport_sl = " ".join(sports) if sports else sport_key.lower()
 
     if " FLEX" in name_u or name_u.startswith("FLEX ") or " FLEX " in name_u:
         type_sl = "flex"
@@ -23739,13 +23935,13 @@ def _tickets_filter_pills_html(attr_rows: list[dict], *, slate_date: str = "") -
     has_power = has_flex = has_goblin = has_demon = has_strong = False
     for row in attr_rows:
         sp = str(row.get("sport") or "").strip().lower()
-        if sp in ("mix", "cross"):
-            continue
-        if sp and _sport_slug_off_season(sp, slate_date):
-            continue
-        if sp and sp not in seen_sp:
-            seen_sp.add(sp)
-            sports_seen.append(sp)
+        for token in sp.split():
+            tok = token.strip().lower()
+            if tok in ("mix", "cross", "strong"):
+                continue
+            if tok and tok not in seen_sp:
+                seen_sp.add(tok)
+                sports_seen.append(tok)
         if row.get("type") == "power":
             has_power = True
         if row.get("type") == "flex":
@@ -23764,6 +23960,8 @@ def _tickets_filter_pills_html(attr_rows: list[dict], *, slate_date: str = "") -
         "wnba",
         "cbb",
         "wcbb",
+        "nfl",
+        "cfb",
         "nhl",
         "mlb",
         "soccer",
@@ -24303,11 +24501,13 @@ def render_tickets_body_html(
         counts_line = f"{n_groups} groups &nbsp;·&nbsp; {n_slips} slips"
     counts_line += _ui_cap_note
     _track = str(payload.get("ticket_track") or payload.get("mode") or "").lower()
-    _hero_eyebrow = (
-        "Graded Main Slate"
-        if _track in ("graded_main", "main")
-        else "Today&rsquo;s Picks"
-    )
+    _hero_eyebrow = "Today&rsquo;s Picks"
+    if "goblin70" in _track and "graded_main" in _track:
+        _hero_eyebrow = "Goblin-70 + Graded Main"
+    elif _track in ("graded_main", "main"):
+        _hero_eyebrow = "Graded Main Slate"
+    elif "goblin70" in _track:
+        _hero_eyebrow = "Goblin-70 + Graded Main" if payload.get("tracks") else "Goblin-70"
     parts.append(f'''
 <div class="hero tickets-hero" style="margin-bottom:24px;">
   <div class="hero-copy">
@@ -24472,6 +24672,7 @@ def render_tickets_body_html(
     <span class="group-title" style="color:{accent};">{_h(group_name)}</span>
     <span class="group-meta">{group_meta_html}</span>
     {ev_badge_html}
+    <button type="button" class="ticket-copy-btn ticket-copy-btn--group" data-copy="group" title="Copy every slip in this group to paste while building on PrizePicks">Copy group</button>
     <span class="collapse-icon" aria-hidden="true">▼</span>
   </div>
   <div class="ticket-group-body">
@@ -24532,10 +24733,12 @@ def render_tickets_body_html(
                 payout if isinstance(payout, dict) else None, ticket
             )
             board_pay_src = "calibrated"
+            board_captured_at = None
             if isinstance(payout, dict):
                 board_pay_src = str(payout.get("payout_source") or "calibrated")
+                board_captured_at = payout.get("captured_at")
             board_mult_text, board_badge_label, board_title = _board_payout_label(
-                board_pay_x, board_pay_src
+                board_pay_x, board_pay_src, captured_at=board_captured_at
             )
             if payout_ok:
                 rec_s = str(payout.get("recommendation") or "")
@@ -24544,7 +24747,7 @@ def render_tickets_body_html(
                 hdr_brackets = f'''
         <span class="ticket-hdr-bracket">[{_h(group_name)}]</span>
         <span class="payout-rec-badge {ev_cls}">[{_h(pre)} {_h(rec_s)} — EV {_fmt(ev_emp_f, 2)}]</span>
-        {_board_payout_badge_html(board_pay_x, board_pay_src)}
+        {_board_payout_badge_html(board_pay_x, board_pay_src, captured_at=board_captured_at)}
         <span class="{sig_cls}" title="Empirical EV tier (fallback to modeled EV when payout block is missing)">{sig_lbl}</span>'''
             if not hdr_brackets:
                 hdr_brackets = (
@@ -24562,25 +24765,28 @@ def render_tickets_body_html(
             ):
                 kpi_payout = t_power_pay
                 board_mult_text, board_badge_label, board_title = _board_payout_label(
-                    _safe_positive_float(kpi_payout), kpi_source
+                    _safe_positive_float(kpi_payout), kpi_source, captured_at=board_captured_at
                 )
             elif kpi_payout is None:
                 board_mult_text, board_badge_label, board_title = _board_payout_label(
-                    None, kpi_source
+                    None, kpi_source, captured_at=board_captured_at
                 )
 
-            warn_html = ('<span style="font-size:10px;color:var(--amber);margin-left:auto;">⚠ data warning</span>'
+            warn_html = ('<span class="ticket-data-warn">⚠ data warning</span>'
                          if has_warn else "")
 
             l10_kpi_html = _ticket_l10_kpi_html(ticket, legs)
 
             parts.append(f'''
-<div class="ticket" style="border-left:4px solid {accent};">
+<div class="ticket" style="border-left:4px solid {accent};" data-group-name="{_h(group_name)}" data-ticket-no="{_h(ticket_no)}">
   <div class="ticket-body">
       <div class="ticket-hdr">
         <span class="ticket-no">#{_h(ticket_no)}</span>
         {hdr_brackets}
-        {warn_html}
+        <span class="ticket-hdr-actions">
+          {warn_html}
+          <button type="button" class="ticket-copy-btn" data-copy="ticket" title="Copy legs to paste while building this slip on PrizePicks">Copy slip</button>
+        </span>
       </div>
       <div class="kpi-row">
         <div class="kpi">
@@ -24704,7 +24910,7 @@ def render_tickets_body_html(
                 )
 
                 parts.append(f'''
-          <tr class="leg-row" data-hr-display="{_h(hr_disp)}" data-platform="{_h(leg_plat_slug)}">
+          <tr class="leg-row" data-hr-display="{_h(hr_disp)}" data-platform="{_h(leg_plat_slug)}" data-player="{_h(player)}" data-sport="{_h(sport)}" data-prop="{_h(prop_type)}" data-line="{_h(_tickets_fmt_line_plain(line))}" data-dir="{_h(direction)}" data-pick="{_h(pick_type)}">
             <td class="leg-col leg-col-player">
               <div class="pwrap">
                 {av_html}
@@ -24746,7 +24952,9 @@ def render_tickets_body_html(
                 board_x = _resolve_ticket_display_min_x(payout, ticket)
                 if board_x is None:
                     board_x = _safe_positive_float(kpi_payout)
-                mult_text, badge_label, title = _board_payout_label(board_x, psrc2)
+                mult_text, badge_label, title = _board_payout_label(
+                    board_x, psrc2, captured_at=payout.get("captured_at") or board_captured_at
+                )
                 try:
                     e10 = round(10.0 * float(board_x), 2) if board_x is not None else None
                 except (TypeError, ValueError):
@@ -24859,7 +25067,8 @@ def render_tickets_body_html(
     var dt = (group.getAttribute('data-type') || '').toLowerCase();
     var dp = (group.getAttribute('data-pick') || '').toLowerCase();
     var de = (group.getAttribute('data-ev') || '').toLowerCase();
-    return ds === filter || dt === filter || dp === filter || de === filter;
+    var dsParts = ds.split(/\\s+/).filter(Boolean);
+    return dsParts.indexOf(filter) >= 0 || dt === filter || dp === filter || de === filter;
   }
 
   function applyGroupView(){
@@ -24937,10 +25146,12 @@ def render_tickets_body_html(
 
   document.querySelectorAll('.tickets-built .collapsible-header').forEach(function(header){
     header.addEventListener('click', function(ev){
+      if(ev.target.closest('button, a, input, select, textarea')) return;
       ev.preventDefault();
       toggleSectionCollapsed(header.closest('.ticket-group-section'));
     });
     header.addEventListener('keydown', function(ev){
+      if(ev.target.closest('button, a, input, select, textarea')) return;
       if(ev.key === 'Enter' || ev.key === ' '){
         ev.preventDefault();
         toggleSectionCollapsed(header.closest('.ticket-group-section'));

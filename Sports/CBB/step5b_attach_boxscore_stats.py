@@ -28,9 +28,16 @@ import re
 import time
 import unicodedata
 from typing import Dict, List, Tuple, Optional
+from pathlib import Path
+import sys
 
 import pandas as pd
 import requests
+
+_PROPORACLE_ROOT = Path(__file__).resolve().parents[2]
+if str(_PROPORACLE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROPORACLE_ROOT))
+from scripts.espn_boxscore_cache import load_boxscore_cache, save_boxscore_cache
 
 HEADERS = {"User-Agent": "Mozilla/5.0", "Accept": "application/json, text/plain, */*"}
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard"
@@ -257,10 +264,10 @@ def build_player_histories(
     # Phase 0: load cache
     cached_rows: List[dict] = []
     cached_eids: set = set()
-    if cache_path and os.path.exists(cache_path):
+    cache_source = "empty"
+    if cache_path:
         try:
-            cache_df = pd.read_csv(cache_path, dtype=str).fillna("")
-            cached_rows = cache_df.to_dict("records")
+            cached_rows, cache_source = load_boxscore_cache("cbb", cache_path)
             stale_eids: set = set()
             for rr in cached_rows:
                 has_3pm = "3PM" in rr and str(rr["3PM"]).strip() not in ("", "nan", "0", "0.0")
@@ -292,6 +299,7 @@ def build_player_histories(
         except Exception as e:
             print(f"  [CACHE] Load failed ({e}) — full refresh")
             cached_rows, cached_eids = [], set()
+            cache_source = "empty"
     # Phase 1: scoreboards
     all_events: List[Tuple[str, str, str, str]] = []
     seen_eids: set = set()
@@ -346,10 +354,9 @@ def build_player_histories(
             if not rr.get("opp_team_abbr"):
                 opp_id = str(rr.get("opp_team_id", "")).strip()
                 rr["opp_team_abbr"] = tid_to_abbr.get(opp_id, opp_id)
-    if cache_path and new_rows:
+    if cache_path and all_rows:
         try:
-            pd.DataFrame(all_rows).to_csv(cache_path, index=False)
-            print(f"  [CACHE] Saved {len(all_rows)} rows -> {cache_path}")
+            save_boxscore_cache("cbb", all_rows, cache_path, cache_source)
         except Exception as e:
             print(f"  [CACHE] Save failed: {e}")
 
@@ -519,6 +526,17 @@ def main():
         min5 = min_vals[:5]
         o["min_last5_avg"]   = round(sum(min5)    / len(min5),    1) if min5    else ""
         o["min_season_avg"]  = round(sum(min_vals) / len(min_vals), 1) if min_vals else ""
+        try:
+            import sys
+            from pathlib import Path
+            _root = Path(__file__).resolve().parents[2]
+            if str(_root) not in sys.path:
+                sys.path.insert(0, str(_root))
+            from utils.basketball_minutes_tier import tier_minutes_from_mpg
+            mpg = o["min_last5_avg"] if o["min_last5_avg"] != "" else o["min_season_avg"]
+            o["minutes_tier"] = tier_minutes_from_mpg(mpg if mpg != "" else float("nan"))
+        except Exception:
+            o["minutes_tier"] = "UNKNOWN"
 
         # hit rates vs line
         if pd.notna(line):

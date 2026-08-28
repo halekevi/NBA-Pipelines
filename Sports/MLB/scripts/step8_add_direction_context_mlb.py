@@ -36,8 +36,10 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
+from utils.slate_context_fill import fill_cv_pct_if_missing
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -59,6 +61,7 @@ def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
         dated_dir.mkdir(parents=True, exist_ok=True)
         dated_path = dated_dir / dated_name
         shutil.copy2(src, dated_path)
+        copy_parquet_sidecar(src, dated_path)
         print(f"[MLB step8] Dated copy -> {dated_path}")
     except Exception as e:
         print(f"[MLB step8] WARN: dated copy failed ({dated_dir}): {e}")
@@ -86,7 +89,9 @@ DIR_UNDER         = "F7C5C5"
 PITCHER_PROPS = {
     "strikeouts", "pitching_outs", "innings_pitched",
     "hits_allowed", "earned_runs", "walks_allowed", "batters_faced",
-    "pitches_thrown",
+    "pitches_thrown", "balls_thrown", "strikes_thrown", "pitches_thrown_95",
+    "strikeouts_combo", "first_inning_runs_allowed", "first_inning_walks_allowed",
+    "strikeouts_total_bases",
 }
 
 
@@ -261,6 +266,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         _mt_valid = _mt_num.notna()
         if _mt_valid.any():
             df2.loc[_mt_valid, "minutes_tier"] = _mt_num[_mt_valid].round().astype(int).map(_MIN_TIER_NUM_MAP).fillna(df2.loc[_mt_valid, "minutes_tier"])
+    df2 = fill_cv_pct_if_missing(df2)
     df2["game_time"] = pd.to_datetime(df2.get("start_time", ""), errors="coerce").dt.strftime("%-I:%M %p")
     # Calendar date for same-day MLB grading (avoids grading full multi-day slate vs one day's games).
     _gd = _row_game_datetimes(df2)
@@ -294,15 +300,19 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "HITS_ALLOWED_RANK", "RUNS_ALLOWED_RANK", "HR_ALLOWED_RANK",
         "HITS_PER_GAME", "RUNS_PER_GAME",
         "minutes_tier", "batting_order_tier", "pitcher_role",
+        "cv_pct",
         "lineup_confirmed", "batting_order_pos",
         "opp_starter_name", "opp_starter_hand",
-        "opp_starter_era", "opp_starter_whip",
+        "opp_starter_era", "opp_starter_whip", "opp_starter_k9",
         "opp_closer_name", "opp_closer_hand", "opp_closer_era", "opp_closer_saves",
         "opp_sp1_name", "opp_sp1_hand", "opp_sp2_name", "opp_sp2_hand",
         "opp_sp3_name", "opp_sp3_hand",
         "opp_staff_lhp", "opp_staff_rhp",
         "opp_pitcher_era_vs_batter_hand", "opp_pitcher_whip_vs_batter_hand",
+        "opp_pitcher_k9_vs_batter_hand",
         "park_factor_hr", "park_hr_rank", "park_hr_tier", "park_tier",
+        "park_factor_overall",
+        "wind_speed_mph", "wind_out_to_cf", "weather_flag",
         "top_of_order", "bottom_of_order", "line_moved_up", "line_moved_down",
         "player_on_il", "injury_status", "injury_type", "days_since_injury_report",
         "pitcher_scratched", "opp_starter_on_il",
@@ -414,6 +424,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "RUNS_ALLOWED_RANK": "Opp Runs Allowed Rank",
         "HR_ALLOWED_RANK": "Opp HR Allowed Rank",
         "minutes_tier": "Min Tier", "batting_order_tier": "Bat Order",
+        "cv_pct": "CV%",
         "pitcher_role": "Pitcher Role",
         "lineup_confirmed": "Lineup Confirmed",
         "batting_order_pos": "Batting Order Pos",
@@ -421,6 +432,8 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "opp_starter_hand": "Opp Starter Hand",
         "opp_starter_era": "Opp Starter ERA (Season)",
         "opp_starter_whip": "Opp Starter WHIP (Season)",
+        "opp_starter_k9": "Opp Starter K/9 (Season)",
+        "opp_pitcher_k9_vs_batter_hand": "Opp Starter K/9 vs Hand",
         "opp_closer_name": "Opp Closer Name",
         "opp_closer_hand": "Opp Closer Hand",
         "opp_closer_era": "Opp Closer ERA",
@@ -509,7 +522,7 @@ def main() -> None:
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading: {args.input} (sheet={args.sheet})")
-    df  = pd.read_excel(args.input, sheet_name=args.sheet, dtype=str).fillna("")
+    df  = read_table_str(args.input, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
     if df.empty:
         raise SystemExit("ERROR [PropOracle-MLB-S8] Empty input from step7; aborting.")
     out = df.copy()
@@ -565,6 +578,7 @@ def main() -> None:
     xlsx_path = args.xlsx if args.xlsx else args.output.replace(".csv", "_clean.xlsx")
     Path(xlsx_path).parent.mkdir(parents=True, exist_ok=True)
     build_clean_xlsx(out, xlsx_path)
+    write_parquet_sidecars(out, args.output, xlsx_path)
     _copy_dated_step8_mlb(xlsx_path, (args.date or "").strip())
 
 

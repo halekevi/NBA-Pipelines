@@ -29,6 +29,7 @@ from utils.group_rank_tier import (  # noqa: E402
     assign_tier_column,
     report_goblin_demon_standard_line_fill,
 )
+from proporacle.data.table_io import write_parquet_sidecar
 
 
 def _norm_pick_type(x: str) -> str:
@@ -155,6 +156,7 @@ def main() -> None:
     with pd.ExcelWriter(out_path, engine="openpyxl") as w:
         out.to_excel(w, sheet_name="ALL", index=False)
 
+    write_parquet_sidecar(out, out_path)
     print(f"[Golf step7] Saved → {out_path}  rows={len(out)}")
 
 

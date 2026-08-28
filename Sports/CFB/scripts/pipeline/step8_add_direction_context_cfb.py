@@ -23,6 +23,7 @@ _REPO = Path(__file__).resolve().parents[4]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 from utils.hit_tracking_columns import attach_hit_tracking_columns  # noqa: E402
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table, table_exists
 
 
 def _col(df: pd.DataFrame, *names: str) -> pd.Series:
@@ -40,6 +41,7 @@ def _copy_dated(out_xlsx: Path, slate_date: str) -> None:
     try:
         dated.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(out_xlsx, dated)
+        copy_parquet_sidecar(out_xlsx, dated)
         print(f"[CFB step8] Dated copy -> {dated}")
     except Exception as exc:
         print(f"[CFB step8] WARN dated copy: {exc}")
@@ -57,16 +59,17 @@ def main() -> None:
     inp = Path(args.input)
     if not inp.is_absolute():
         inp = root / inp
-    if not inp.is_file():
+    if not table_exists(inp):
         raise SystemExit(f"Missing input: {inp}")
 
-    df = pd.read_excel(inp, sheet_name=args.sheet, engine="openpyxl")
+    df = read_table(inp, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
     if df.empty:
         out = Path(args.output)
         if not out.is_absolute():
             out = root / out
         out.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame().to_excel(out, sheet_name="ALL", index=False)
+        write_parquet_sidecar(pd.DataFrame(), out)
         print(f"[CFB step8] Wrote empty {out}")
         return
 
@@ -119,6 +122,16 @@ def main() -> None:
             "Confidence Score": pd.to_numeric(work.get("confidence_score"), errors="coerce"),
             "Confidence Note": work.get("confidence_note", ""),
             "Def Tier": _col(work, "def_tier", "opp_def_tier"),
+            "Def Rank": pd.to_numeric(
+                _col(work, "opp_def_rank", "OVERALL_DEF_RANK", "OPP_OVERALL_DEF_RANK", "def_rank"),
+                errors="coerce",
+            ),
+            "Season Avg": pd.to_numeric(
+                _col(work, "stat_season_avg", "season_avg"), errors="coerce"
+            ),
+            "Last 5 Avg": pd.to_numeric(
+                _col(work, "stat_last5_avg", "last5_avg"), errors="coerce"
+            ),
         }
     )
 
@@ -150,6 +163,7 @@ def main() -> None:
             if len(sub):
                 sub.to_excel(w, sheet_name=f"Tier {t}", index=False)
     print(f"[CFB step8] Wrote {out_path} rows={len(clean)}")
+    write_parquet_sidecar(clean, out_path)
     _copy_dated(out_path, str(args.date or "").strip())
 
 

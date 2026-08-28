@@ -25,6 +25,8 @@ Output adds (per row):
 
 Rolling windows can include the previous WNBA season (e.g. 2025 rows when --season is 2026)
 so early-season L5/ L10 are not starved. Use --no-include-prior-season-stats to disable.
+Blank SEASON on cache/SQLite rows still counts as a played game when the box-score date
+is inside the lookback (July 2026 games were previously dropped, capping L5 at 1–3).
 
 Run:
   py -3.14 step4_fetch_player_stats.py \
@@ -56,11 +58,12 @@ _PROPORACLE_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
-from scripts.db_utils import ensure_wnba_schema, log_pipeline_health, open_db, upsert_rows
-from utils.allstar_filter import (
-    drop_allstar_game_rows,
-    is_allstar_date,
-    is_espn_summary_allstar,
+from scripts.db_utils import (
+    ensure_wnba_schema,
+    log_pipeline_health,
+    open_db,
+    upsert_rows,
+    wnba_rowcount,
 )
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
@@ -76,12 +79,12 @@ ESPN_HEADERS = {
 
 SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard?dates={yyyymmdd}"
 SUMMARY_URL    = "https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/summary?event={event_id}"
+_ESPN_API_FALLBACK_HOST = "https://site.web.api.espn.com"
 
-# Date windows for fetch skip (game days only — not the full ticket pause).
-# Team/gameNote detection in utils.allstar_filter is the primary guard.
-ALLSTAR_BREAKS: List[Tuple[str, str]] = [
-    ("2025-07-19", "2025-07-20"),  # Team Clark vs Team Collier
-    ("2026-07-25", "2026-07-25"),  # Team Coop vs Team Spoon
+ALLSTAR_BREAKS: List[Tuple[str,str]] = [
+    # Game days only (not the full ticket pause). Used for fetch skip + L5/L10 purge.
+    ("2025-07-19", "2025-07-20"),
+    ("2026-07-25", "2026-07-25"),
 ]
 
 WNBA_TEAM_KEY_MAP = {
@@ -223,10 +226,19 @@ def _sleep(base: float, jitter: float = 0.8) -> None:
 
 
 def _norm_name(name: str) -> str:
-    s = (name or "").lower().strip()
-    s = re.sub(r"[^a-z0-9\s]", " ", s)
+    """Accent-safe name key so Azurá→azura, Salaün→salaun matches ESPN cache."""
+    try:
+        from utils.player_name_utils import normalize_player_name
+
+        base = normalize_player_name(name).lower()
+    except Exception:
+        import unicodedata
+
+        base = unicodedata.normalize("NFKD", str(name or ""))
+        base = "".join(c for c in base if not unicodedata.combining(c)).lower()
+    s = re.sub(r"[^a-z0-9\s]", " ", base)
     s = re.sub(r"\s+", " ", s).strip()
-    return " ".join(p for p in s.split() if p not in {"jr","sr","ii","iii","iv","v"})
+    return " ".join(p for p in s.split() if p not in {"jr", "sr", "ii", "iii", "iv", "v"})
 
 
 def _to_float(s) -> pd.Series:
@@ -296,9 +308,6 @@ def _first_stat(stat_map: Dict[str, str], aliases: List[str]) -> str:
 
 
 def _is_allstar(dt: datetime) -> bool:
-    """True on configured All-Star game days (also see is_espn_summary_allstar)."""
-    if is_allstar_date(dt, sport="WNBA"):
-        return True
     d = dt.strftime("%Y-%m-%d")
     for start, end in ALLSTAR_BREAKS:
         if start <= d <= end:
@@ -306,20 +315,100 @@ def _is_allstar(dt: datetime) -> bool:
     return False
 
 
+def normalize_season_label(value: object) -> str:
+    """Coerce cache SEASON cells (2026, 2026.0, blank) to a comparable label."""
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return ""
+    txt = str(value).strip()
+    if txt.lower() in {"", "nan", "none", "<na>", "nat"}:
+        return ""
+    if txt.endswith(".0") and txt[:-2].isdigit():
+        txt = txt[:-2]
+    return txt
+
+
+def filter_wnba_cache_for_rolling(
+    cache: pd.DataFrame,
+    *,
+    season_labels: set[str],
+    cutoff_stat,
+    stat_target,
+    allstar_breaks: List[Tuple[str, str]] | None = None,
+) -> pd.DataFrame:
+    """Keep last-played box scores for L5/L10.
+
+    Historical ``wnba_espn_cache`` / SQLite rows often have blank SEASON; only
+    recently fetched events are tagged (e.g. 2026). Requiring an exact season
+    label dropped July games and capped L5 at 1–3 after All-Star resume.
+    Blank season is included when ``game_date`` is inside the lookback window.
+    Explicit labels outside ``season_labels`` are still excluded.
+    """
+    if cache is None or cache.empty:
+        return cache.copy() if cache is not None else pd.DataFrame()
+    cache_dates = pd.to_datetime(cache["game_date"], errors="coerce")
+    date_ok = (cache_dates >= pd.Timestamp(cutoff_stat)) & (
+        cache_dates <= pd.Timestamp(stat_target)
+    )
+    allowed = {normalize_season_label(x) for x in season_labels if normalize_season_label(x)}
+    if "SEASON" not in cache.columns:
+        season_ok = pd.Series(True, index=cache.index)
+    else:
+        labels = cache["SEASON"].map(normalize_season_label)
+        season_ok = labels.eq("") | labels.isin(allowed)
+    cache_filt = cache.loc[date_ok & season_ok].copy()
+    breaks = allstar_breaks if allstar_breaks is not None else ALLSTAR_BREAKS
+    if not cache_filt.empty and breaks:
+        gd = pd.to_datetime(cache_filt["game_date"], errors="coerce")
+        as_mask = pd.Series(False, index=cache_filt.index)
+        for start, end in breaks:
+            as_mask |= (gd >= pd.Timestamp(start)) & (gd <= pd.Timestamp(end))
+        n_as = int(as_mask.sum())
+        if n_as:
+            cache_filt = cache_filt.loc[~as_mask].copy()
+            print(f"→ Excluded {n_as} All-Star row(s) from rolling L5/L10 window")
+    if "SEASON" in cache.columns and not cache.empty:
+        n_blank = int((cache.loc[date_ok, "SEASON"].map(normalize_season_label).eq("")).sum())
+        n_kept_blank = int(
+            (cache_filt["SEASON"].map(normalize_season_label).eq("")).sum()
+        ) if not cache_filt.empty and "SEASON" in cache_filt.columns else 0
+        if n_blank:
+            print(
+                f"→ Rolling window includes {n_kept_blank} unlabeled-SEASON box score(s) "
+                f"({n_blank} unlabeled in date window; blank SEASON counts as played games)"
+            )
+    return cache_filt.sort_values("game_date", ascending=False)
+
+
 # ── ESPN API ──────────────────────────────────────────────────────────────────
 
+def _espn_fallback_url(url: str) -> str:
+    if "site.api.espn.com" in url:
+        return url.replace("https://site.api.espn.com", _ESPN_API_FALLBACK_HOST, 1).replace(
+            "http://site.api.espn.com", _ESPN_API_FALLBACK_HOST, 1
+        )
+    return url
+
+
 def espn_get(url: str, timeout: float, retries: int, sleep_s: float) -> dict:
+    last_err: Exception | None = None
+    urls = [url]
+    fb = _espn_fallback_url(url)
+    if fb != url:
+        urls.append(fb)
     for attempt in range(1, retries + 1):
-        try:
-            _sleep(sleep_s, 0.5)
-            r = requests.get(url, headers=ESPN_HEADERS, timeout=timeout)
-            r.raise_for_status()
-            return r.json()
-        except Exception as e:
-            backoff = min(30.0, (2 ** (attempt - 1)) * 2.0) + random.uniform(0.5, 2.0)
-            print(f"  [WARN] ESPN attempt {attempt}/{retries}: {type(e).__name__} — retry in {backoff:.1f}s")
-            time.sleep(backoff)
-    raise RuntimeError(f"ESPN GET failed: {url}")
+        for u in urls:
+            try:
+                _sleep(sleep_s, 0.5)
+                r = requests.get(u, headers=ESPN_HEADERS, timeout=timeout)
+                r.raise_for_status()
+                return r.json()
+            except Exception as e:
+                last_err = e
+                print(f"  [WARN] ESPN attempt {attempt}/{retries} ({u.split('/')[2]}): {type(e).__name__}")
+        backoff = min(30.0, (2 ** (attempt - 1)) * 2.0) + random.uniform(0.5, 2.0)
+        print(f"  [WARN] ESPN retry in {backoff:.1f}s")
+        time.sleep(backoff)
+    raise RuntimeError(f"ESPN GET failed: {url} ({last_err})")
 
 
 def fetch_event_ids(date_yyyymmdd: str, timeout: float, retries: int, sleep_s: float) -> List[str]:
@@ -401,7 +490,15 @@ def parse_boxscore(summary: dict, scoreboard_date: str = "") -> pd.DataFrame:
                 "TEAM":             team_abbr,
                 "MIN":              _parse_minutes(_first_stat(stat_map, ["MIN", "minutes"])),
                 "PTS":              pd.to_numeric(_first_stat(stat_map, ["PTS", "points"]), errors="coerce"),
-                "REB":              pd.to_numeric(_first_stat(stat_map, ["REB", "rebounds", "DREB", "defensiveRebounds"]), errors="coerce"),
+                "REB":              pd.to_numeric(_first_stat(stat_map, ["REB", "rebounds"]), errors="coerce"),
+                "OREB":             pd.to_numeric(
+                    _first_stat(stat_map, ["OREB", "offensiveRebounds", "offensiverebounds"]),
+                    errors="coerce",
+                ),
+                "DREB":             pd.to_numeric(
+                    _first_stat(stat_map, ["DREB", "defensiveRebounds", "defensiverebounds"]),
+                    errors="coerce",
+                ),
                 "AST":              pd.to_numeric(_first_stat(stat_map, ["AST", "assists"]), errors="coerce"),
                 "STL":              pd.to_numeric(_first_stat(stat_map, ["STL", "steals"]), errors="coerce"),
                 "BLK":              pd.to_numeric(_first_stat(stat_map, ["BLK", "blocks"]), errors="coerce"),
@@ -485,8 +582,14 @@ def resolve_prop_slug(row: pd.Series) -> str:
         "3pointersattempted": "fg3a", "2ptfgmade": "fg2m", "2ptfgattempted": "fg2a",
         "2ptmade": "fg2m", "2ptattempted": "fg2a", "twopointersmade": "fg2m",
         "twopointersattempted": "fg2a", "ftm": "ftm", "ftmade": "ftm",
-        "fta": "fta", "ftattempted": "fta", "freethrowsmade": "ftm",
+        "fta": "fta", "ftattempted": "fta",         "freethrowsmade": "ftm",
         "freethrowsattempted": "fta",
+        "defensiverebounds": "dreb",
+        "defensiverebound": "dreb",
+        "dreb": "dreb",
+        "offensiverebounds": "oreb",
+        "offensiverebound": "oreb",
+        "oreb": "oreb",
     }
     return alias.get(clean, clean)
 
@@ -496,6 +599,8 @@ def derive_stat(df: pd.DataFrame, prop_norm: str) -> pd.Series:
 
     pts  = _to_float(df.get("PTS",  pd.Series([np.nan]*len(df), index=df.index)))
     reb  = _to_float(df.get("REB",  pd.Series([np.nan]*len(df), index=df.index)))
+    dreb = _to_float(df.get("DREB", pd.Series([np.nan]*len(df), index=df.index)))
+    oreb = _to_float(df.get("OREB", pd.Series([np.nan]*len(df), index=df.index)))
     ast  = _to_float(df.get("AST",  pd.Series([np.nan]*len(df), index=df.index)))
     stl  = _to_float(df.get("STL",  pd.Series([np.nan]*len(df), index=df.index)))
     blk  = _to_float(df.get("BLK",  pd.Series([np.nan]*len(df), index=df.index)))
@@ -511,6 +616,10 @@ def derive_stat(df: pd.DataFrame, prop_norm: str) -> pd.Series:
 
     if p in ("pts","points"):           return pts
     if p in ("reb","rebounds"):         return reb
+    if p in ("dreb", "defensiverebounds", "defensiverebound"):
+        return dreb
+    if p in ("oreb", "offensiverebounds", "offensiverebound"):
+        return oreb
     if p in ("ast","assists"):          return ast
     if p == "pra":                      return pts + reb + ast
     if p == "pr":                       return pts + reb
@@ -628,6 +737,19 @@ def _append_empty_stat_row(new_cols: Dict[str, List], *, reason: str = "") -> No
     new_cols["espn_athlete_id"][-1] = ""
 
 
+def _minutes_avgs_from_games(player_games: pd.DataFrame) -> Tuple[float, float]:
+    """Real ESPN MIN averages (newest-first games). Returns (last5, season)."""
+    if player_games is None or player_games.empty:
+        return (np.nan, np.nan)
+    mins = _minutes_series(player_games)
+    vals = [float(v) for v in mins.tolist() if pd.notna(v)]
+    if not vals:
+        return (np.nan, np.nan)
+    last5 = float(np.mean(vals[:5])) if vals[:5] else np.nan
+    season = float(np.mean(vals))
+    return (round(last5, 1) if pd.notna(last5) else np.nan, round(season, 1))
+
+
 def _append_stat_row(
     new_cols: Dict[str, List],
     vals_mr: List[float],
@@ -648,6 +770,10 @@ def _append_stat_row(
         new_cols["stat_season_avg"].append(float(sv.mean()) if len(sv) else np.nan)
     else:
         new_cols["stat_season_avg"].append(float(np.mean(valid_vals)) if valid_vals else np.nan)
+
+    min_l5, min_szn = _minutes_avgs_from_games(player_games)
+    new_cols["min_last5_avg"].append(min_l5)
+    new_cols["min_season_avg"].append(min_szn)
 
     if not np.isnan(line_val):
         o5, u5, p5, hr5, hr5_ou, ur5_ou = calc_hit_context(vals_mr, line_val, 5)
@@ -682,6 +808,140 @@ def _is_combo_row(row: pd.Series) -> bool:
 def split_combo_name(player: str) -> Tuple[str, str]:
     parts = [p.strip() for p in str(player or "").split("+")]
     return (parts[0], parts[1]) if len(parts) >= 2 else (str(player).strip(), "")
+
+
+_CSV_STAT_TO_DB = {
+    "MIN": "minutes",
+    "PTS": "pts",
+    "REB": "reb",
+    "AST": "ast",
+    "STL": "stl",
+    "BLK": "blk",
+    "TO": "tov",
+    "FGM": "fgm",
+    "FGA": "fga",
+    "FG3M": "fg3m",
+    "FG3A": "fg3a",
+    "FG2M": "fg2m",
+    "FG2A": "fg2a",
+    "FTM": "ftm",
+    "FTA": "fta",
+    "OREB": "oreb",
+    "DREB": "dreb",
+}
+
+
+def _num_or_none(v):
+    x = pd.to_numeric(v, errors="coerce")
+    if pd.isna(x):
+        return None
+    return float(x)
+
+
+def upsert_wnba_cache_to_db(con, cache: pd.DataFrame) -> int:
+    if con is None or cache is None or cache.empty:
+        return 0
+    rows: list[dict] = []
+    for rec in cache.fillna("").to_dict("records"):
+        player = str(rec.get("PLAYER_NAME", "")).strip()
+        eid = str(rec.get("event_id", "")).strip()
+        if not player or not eid:
+            continue
+        row = {
+            "game_date": str(rec.get("game_date", "")).strip()[:10],
+            "event_id": eid,
+            "league": "WNBA",
+            "home_team": None,
+            "away_team": None,
+            "player": player,
+            "team": str(rec.get("TEAM", "")).strip().upper() or None,
+            "position": None,
+            "espn_athlete_id": str(rec.get("ESPN_ATHLETE_ID", "")).strip() or None,
+            "season": str(rec.get("SEASON", "")).strip() or None,
+        }
+        for csv_col, db_col in _CSV_STAT_TO_DB.items():
+            row[db_col] = _num_or_none(rec.get(csv_col, ""))
+        rows.append(row)
+    n = 0
+    chunk = 2000
+    for i in range(0, len(rows), chunk):
+        n += upsert_rows(con, "wnba", rows[i : i + chunk])
+    return n
+
+
+_WNBA_CACHE_SOURCE = "csv"
+_WNBA_CACHE_SQL = """
+    SELECT game_date, event_id,
+           COALESCE(espn_athlete_id,'') AS ESPN_ATHLETE_ID,
+           player AS PLAYER_NAME,
+           COALESCE(team,'') AS TEAM,
+           minutes AS MIN, pts AS PTS, reb AS REB, ast AS AST,
+           stl AS STL, blk AS BLK, tov AS "TO",
+           fgm AS FGM, fga AS FGA, fg3m AS FG3M, fg3a AS FG3A,
+           fg2m AS FG2M, fg2a AS FG2A, ftm AS FTM, fta AS FTA,
+           oreb AS OREB, dreb AS DREB,
+           COALESCE(season,'') AS SEASON
+    FROM wnba
+"""
+
+
+def _cache_from_wnba_db(con, since_date: str | None = None) -> pd.DataFrame:
+    q = _WNBA_CACHE_SQL
+    params: list[str] = []
+    if since_date:
+        q = _WNBA_CACHE_SQL + " WHERE game_date >= ?"
+        params = [str(since_date).strip()[:10]]
+    df = pd.read_sql_query(q, con, params=params)
+    if df.empty and since_date:
+        df = pd.read_sql_query(_WNBA_CACHE_SQL, con)
+    if df.empty:
+        return df
+    df["PLAYER_NORM"] = df["PLAYER_NAME"].map(_norm_name)
+    print(f"  Loaded cache: {len(df)} rows from proporacle_ref.db wnba")
+    return df.fillna("")
+
+
+def load_wnba_cache(
+    path: Path,
+    con=None,
+    *,
+    since_date: str | None = None,
+    min_db_rows: int = 500,
+) -> pd.DataFrame:
+    """Prefer SQLite wnba table; only parse CSV when the DB is empty/thin."""
+    global _WNBA_CACHE_SOURCE
+    _WNBA_CACHE_SOURCE = "csv"
+    if con is not None:
+        ensure_wnba_schema(con)
+        db_n = wnba_rowcount(con)
+        if db_n >= min_db_rows:
+            db_df = _cache_from_wnba_db(con, since_date=since_date)
+            if not db_df.empty:
+                _WNBA_CACHE_SOURCE = "db"
+                return db_df
+
+    csv_df = pd.DataFrame()
+    if path.exists():
+        print(f"→ Loading cache: {path}")
+        csv_df = pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
+        print(f"  CSV rows={len(csv_df)}")
+    if con is None:
+        return csv_df
+
+    ensure_wnba_schema(con)
+    db_n = wnba_rowcount(con)
+    if not csv_df.empty and db_n < max(int(len(csv_df) * 0.8), 1):
+        print(f"  Backfilling wnba table from CSV (db_rows={db_n}, csv_rows={len(csv_df)})...")
+        n = upsert_wnba_cache_to_db(con, csv_df)
+        print(f"  Upserted {n} CSV rows → wnba")
+        db_n = wnba_rowcount(con)
+
+    if db_n >= min_db_rows and (csv_df.empty or db_n >= int(len(csv_df) * 0.8)):
+        db_df = _cache_from_wnba_db(con, since_date=since_date)
+        if not db_df.empty:
+            _WNBA_CACHE_SOURCE = "db"
+            return db_df
+    return csv_df
 
 
 def find_incomplete_wnba_events(cache: pd.DataFrame, *, min_team_minutes_sum: float = 300.0) -> set[str]:
@@ -801,17 +1061,12 @@ def main():
     con = open_db(db_path)
     ensure_wnba_schema(con)
 
-    # ── Load / update ESPN cache ──────────────────────────────────────────────
+    # ── Load / update ESPN cache (SQLite first, CSV dump) ─────────────────────
     cache_path = Path(args.cache)
-    if cache_path.exists():
-        print(f"→ Loading cache: {cache_path}")
-        cache = pd.read_csv(cache_path, dtype=str, encoding="utf-8-sig").fillna("")
-        cache, n_as = drop_allstar_game_rows(cache, sport="WNBA")
-        if n_as:
-            print(f"→ Purged {n_as} All-Star game row(s) from ESPN cache")
-            cache.to_csv(cache_path, index=False, encoding="utf-8-sig")
-    else:
-        cache = pd.DataFrame()
+    since = (
+        pd.Timestamp(stat_target).normalize() - pd.Timedelta(days=int(effective_stat_days) + 14)
+    ).strftime("%Y-%m-%d")
+    cache = load_wnba_cache(cache_path, con, since_date=since)
 
     # Determine date range to fetch
     fetch_dates: List[datetime] = []
@@ -851,16 +1106,8 @@ def main():
             try:
                 url     = SUMMARY_URL.format(event_id=eid)
                 summary = espn_get(url, args.timeout, args.retries, args.sleep)
-                if is_espn_summary_allstar(summary, sport="WNBA"):
-                    print(f"  [SKIP] All-Star event {eid} on {yyyymmdd}")
-                    events_skipped += 1
-                    continue
                 df_box  = parse_boxscore(summary, scoreboard_date=d.strftime("%Y-%m-%d"))
                 if df_box.empty:
-                    events_skipped += 1
-                    continue
-                df_box, n_as_box = drop_allstar_game_rows(df_box, sport="WNBA")
-                if n_as_box or df_box.empty:
                     events_skipped += 1
                     continue
                 df_box["event_id"] = eid
@@ -880,6 +1127,7 @@ def main():
                         "team": str(r.get("TEAM", "")).strip().upper() or None,
                         "position": None,
                         "espn_athlete_id": str(r.get("ESPN_ATHLETE_ID", "")).strip() or None,
+                        "season": str(r.get("SEASON", "") or args.season).strip() or None,
                         "minutes": _parse_minutes(r.get("MIN")) if isinstance(r.get("MIN"), str) else (r.get("MIN") if r.get("MIN") is not None else None),
                         "pts": float(r["PTS"]) if r.get("PTS") not in (None, "") and not (isinstance(r.get("PTS"), float) and np.isnan(r.get("PTS"))) else None,
                         "reb": float(r["REB"]) if r.get("REB") not in (None, "") and not (isinstance(r.get("REB"), float) and np.isnan(r.get("REB"))) else None,
@@ -895,8 +1143,8 @@ def main():
                         "fg2a": float(r["FG2A"]) if r.get("FG2A") not in (None, "") and not (isinstance(r.get("FG2A"), float) and np.isnan(r.get("FG2A"))) else None,
                         "ftm": float(r["FTM"]) if r.get("FTM") not in (None, "") and not (isinstance(r.get("FTM"), float) and np.isnan(r.get("FTM"))) else None,
                         "fta": float(r["FTA"]) if r.get("FTA") not in (None, "") and not (isinstance(r.get("FTA"), float) and np.isnan(r.get("FTA"))) else None,
-                        "oreb": None,
-                        "dreb": None,
+                        "oreb": float(r["OREB"]) if r.get("OREB") not in (None, "") and not (isinstance(r.get("OREB"), float) and np.isnan(r.get("OREB"))) else None,
+                        "dreb": float(r["DREB"]) if r.get("DREB") not in (None, "") and not (isinstance(r.get("DREB"), float) and np.isnan(r.get("DREB"))) else None,
                         "pf": None,
                         "pra": None,
                         "pr": None,
@@ -926,8 +1174,44 @@ def main():
         if refreshed_eids and not cache.empty:
             cache = cache[~cache["event_id"].astype(str).isin(refreshed_eids)].copy()
         cache  = pd.concat([cache, new_df], ignore_index=True) if not cache.empty else new_df
-        cache.to_csv(cache_path, index=False, encoding="utf-8-sig")
-        print(f"Cache updated → {cache_path}  ({len(cache)} rows)")
+        if _WNBA_CACHE_SOURCE != "db":
+            cache.to_csv(cache_path, index=False, encoding="utf-8-sig")
+            print(f"Cache updated → {cache_path}  ({len(cache)} rows)")
+        else:
+            print(f"Cache DB updated ({len(new_df)} new rows); skipped full CSV rewrite")
+
+    # Hard guard: do not silently publish L5 from a multi-day-stale ESPN cache.
+    if not cache.empty and "game_date" in cache.columns:
+        cache_max = pd.to_datetime(cache["game_date"], errors="coerce").max()
+        if pd.notna(cache_max):
+            lag_days = (pd.Timestamp(stat_target).normalize() - pd.Timestamp(cache_max).normalize()).days
+            print(
+                f"→ ESPN cache max game_date={pd.Timestamp(cache_max).date()} "
+                f"(lag {lag_days}d vs slate {pd.Timestamp(stat_target).date()})"
+            )
+            if lag_days >= 3:
+                msg = (
+                    f"WNBA ESPN cache is {lag_days} day(s) behind slate date "
+                    f"(cache max {pd.Timestamp(cache_max).date()}, slate {pd.Timestamp(stat_target).date()}). "
+                    f"L5/L10 would be stale. Re-run with network access or "
+                    f"scripts/backfill_wnba_espn_range.py --from <gap> --to <yesterday> --season {args.season}."
+                )
+                print(f"⚠️  {msg}")
+                log_pipeline_health(
+                    "wnba.step4_fetch_player_stats",
+                    "stale_espn_cache",
+                    extra={
+                        "cache_max": str(pd.Timestamp(cache_max).date()),
+                        "slate_date": str(pd.Timestamp(stat_target).date()),
+                        "lag_days": lag_days,
+                        "events_fetched": events_fetched,
+                    },
+                    start=Path(__file__),
+                )
+                # Hard-fail only on severe drift with zero new fetches (avoids publishing
+                # multi-week-stale L5 like post-All-Star gaps). Mild lag still warns.
+                if events_fetched == 0 and lag_days >= 7:
+                    raise RuntimeError(msg)
 
     if cache.empty:
         print("⚠️ Cache empty — writing slate with no stats attached")
@@ -940,27 +1224,21 @@ def main():
         )
         return
 
-    # Filter cache to season + date range (for props / stat_g*), independent of fetch window when attach-* is set
-    cache_dates = pd.to_datetime(cache["game_date"], errors="coerce")
+    # Filter cache to date range for stat_g*/L5/L10. Blank SEASON is kept (see
+    # filter_wnba_cache_for_rolling); do not require a filled season tag.
     cutoff_stat = stat_target - timedelta(days=int(effective_stat_days))
-    if "SEASON" not in cache.columns:
-        if attach_through:
-            raise RuntimeError(
-                "wnba_espn_cache.csv has no SEASON column. Run scripts/backfill_wnba_espn_range.py "
-                "for 2025 (or re-fetch with step4) before using --attach-stats-through."
-            )
-        season_mask = pd.Series(True, index=cache.index)
-    else:
-        season_mask = cache["SEASON"].fillna("").astype(str).isin(merged_season_labels)
-    cache_filt = cache[
-        season_mask
-        & (cache_dates >= pd.Timestamp(cutoff_stat))
-        & (cache_dates <= pd.Timestamp(stat_target))
-    ].copy()
-    cache_filt, n_as_filt = drop_allstar_game_rows(cache_filt, sport="WNBA")
-    if n_as_filt:
-        print(f"→ Excluded {n_as_filt} All-Star row(s) from rolling L5/L10 window")
-    cache_filt = cache_filt.sort_values("game_date", ascending=False)
+    if "SEASON" not in cache.columns and attach_through:
+        raise RuntimeError(
+            "wnba_espn_cache.csv has no SEASON column. Run scripts/backfill_wnba_espn_range.py "
+            "for 2025 (or re-fetch with step4) before using --attach-stats-through."
+        )
+    cache_filt = filter_wnba_cache_for_rolling(
+        cache,
+        season_labels=merged_season_labels,
+        cutoff_stat=cutoff_stat,
+        stat_target=stat_target,
+        allstar_breaks=ALLSTAR_BREAKS,
+    )
 
     # Build name→id map
     if not cache_filt.empty and "PLAYER_NORM" in cache_filt.columns:
@@ -976,6 +1254,7 @@ def main():
     new_cols: Dict[str, List] = {
         **{f"stat_g{i}": [] for i in range(1, N+1)},
         "stat_last5_avg": [], "stat_last10_avg": [], "stat_season_avg": [],
+        "min_last5_avg": [], "min_season_avg": [],
         "last5_over": [], "last5_under": [], "last5_push": [], "last5_hit_rate": [],
         "line_hit_rate_over_ou_5":  [], "line_hit_rate_under_ou_5":  [],
         "line_hit_rate_over_ou_10": [], "line_hit_rate_under_ou_10": [],
@@ -1031,17 +1310,34 @@ def main():
             _append_empty_stat_row(new_cols)
             continue
 
+        # Known split-reb props need OREB/DREB columns; older caches only have REB.
+        if prop_n in {"dreb", "oreb"} and prop_n.upper() not in cache_filt.columns:
+            misses.append({"player": player, "reason": f"UNSUPPORTED_PROP:{prop_n}"})
+            for k in new_cols:
+                new_cols[k].append(np.nan)
+            new_cols["unsupported_prop"][-1] = 1
+            new_cols["unsupported_reason"][-1] = f"UNSUPPORTED_PROP:{prop_n}"
+            new_cols["espn_athlete_id"][-1] = ath_id
+            continue
+
         vals_mr, player_games = _stat_values_for_athlete(
             cache_filt, ath_id, prop_n, N, float(args.min_minutes_rolling)
         )
 
         if not vals_mr:
-            misses.append({"player": player, "reason": "NO_CACHE_GAMES"})
+            # Empty after athlete match: either no games, or mapped prop with all-NaN
+            # (e.g. DREB column present but blank). Treat unmapped / all-NaN as unsupported.
+            reason = (
+                f"UNSUPPORTED_PROP:{prop_n}"
+                if prop_n in {"dreb", "oreb"} or not player_games.empty
+                else "NO_CACHE_GAMES"
+            )
+            misses.append({"player": player, "reason": reason})
             for k in new_cols:
                 new_cols[k].append(np.nan)
-            new_cols["unsupported_prop"][-1]   = 0
-            new_cols["unsupported_reason"][-1] = ""
-            new_cols["espn_athlete_id"][-1]    = ath_id
+            new_cols["unsupported_prop"][-1] = 1 if reason.startswith("UNSUPPORTED") else 0
+            new_cols["unsupported_reason"][-1] = reason if reason.startswith("UNSUPPORTED") else ""
+            new_cols["espn_athlete_id"][-1] = ath_id
             continue
 
         if all(isinstance(v, float) and np.isnan(v) for v in vals_mr):

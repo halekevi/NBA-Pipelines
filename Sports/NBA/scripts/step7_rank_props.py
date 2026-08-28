@@ -67,6 +67,7 @@ from utils.group_rank_tier import (  # noqa: E402
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
+from proporacle.data.table_io import write_parquet_sidecar
 
 try:
     _playoff_sd = str(Path(__file__).resolve().parents[3] / "scripts")
@@ -1494,6 +1495,14 @@ def main() -> None:
     # ── VECTORIZED DEF ADJUSTMENT ─────────────────────────────────────────────
     def_rank = _to_num(out.get("OVERALL_DEF_RANK", ""))
     def_adj  = ((def_rank - 15.0) / 15.0 * 0.06).fillna(0.0)
+    # Prop-by-stat defense (Elite→Weak), same scheme as WNBA
+    try:
+        from utils.nba_prop_defense import attach_stat_defense_columns
+
+        out = attach_stat_defense_columns(out)
+    except Exception as exc:
+        print(f"  [WARN] NBA category D attach skipped: {exc}")
+
     out["def_adj"] = def_adj
 
     # ── GAME CONTEXT ADJUSTMENT (Step 6b: Vegas lines) ────────────────────────
@@ -1837,6 +1846,7 @@ def main() -> None:
     else:
         _write_xlsx_openpyxl(args.output, out_active, elig_mask_active)
 
+    write_parquet_sidecar(out_active, args.output)
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows (active) : {len(out_active)}")
     print(f"STANDARD rows     : {int(std_mask_active.sum())}")

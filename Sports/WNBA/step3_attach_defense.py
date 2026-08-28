@@ -120,9 +120,37 @@ def _backfill_missing_opp_team(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def _wnba_boxscore_days(dates: set[str], cache_path: Path) -> pd.DataFrame | None:
+    """Keyed SQLite read for slate dates; CSV only if the DB has nothing."""
+    days = sorted(d for d in dates if d)
+    if not days:
+        return None
+    try:
+        from scripts.db_utils import ensure_wnba_schema, open_db
+
+        con = open_db()
+        ensure_wnba_schema(con)
+        q = (
+            "SELECT game_date, event_id, COALESCE(team,'') AS TEAM "
+            "FROM wnba WHERE game_date IN (" + ",".join("?" * len(days)) + ")"
+        )
+        db_df = pd.read_sql_query(q, con, params=days)
+        if not db_df.empty:
+            return db_df.fillna("")
+    except Exception:
+        pass
+    if not cache_path.is_file():
+        return None
+    csv = pd.read_csv(cache_path, dtype=str, encoding="utf-8-sig").fillna("")
+    if "game_date" not in csv.columns:
+        return None
+    gd = pd.to_datetime(csv["game_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    return csv.loc[gd.isin(days)].copy()
+
+
 def _backfill_opp_from_espn_cache(df: pd.DataFrame, cache_path: Path) -> pd.DataFrame:
     """Use ESPN boxscore cache to infer opponent when PP omits home/away teams."""
-    if not cache_path.is_file() or "team" not in df.columns:
+    if "team" not in df.columns:
         return df
     if "start_time" not in df.columns:
         return df
@@ -132,7 +160,15 @@ def _backfill_opp_from_espn_cache(df: pd.DataFrame, cache_path: Path) -> pd.Data
     if not bool(missing.any()):
         return out
 
-    cache = pd.read_csv(cache_path, dtype=str, encoding="utf-8-sig").fillna("")
+    st = pd.to_datetime(out["start_time"], errors="coerce")
+    need_dates = {
+        gd.strftime("%Y-%m-%d")
+        for gd in st.loc[missing]
+        if pd.notna(gd)
+    }
+    cache = _wnba_boxscore_days(need_dates, cache_path)
+    if cache is None or cache.empty:
+        return out
     if "TEAM" not in cache.columns or "game_date" not in cache.columns:
         return out
 
@@ -149,7 +185,6 @@ def _backfill_opp_from_espn_cache(df: pd.DataFrame, cache_path: Path) -> pd.Data
         d = str(def_abbr or "").strip().upper()
         return slate_by_def.get(d, {"NY": "NYL", "LV": "LVA", "GS": "GSV"}.get(d, d))
 
-    st = pd.to_datetime(out["start_time"], errors="coerce")
     for idx, row in out.loc[missing].iterrows():
         if str(row.get("opp_team", "")).strip():
             continue

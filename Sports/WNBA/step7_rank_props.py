@@ -38,6 +38,7 @@ if str(_WNBA_REPO) not in sys.path:
     sys.path.insert(0, str(_WNBA_REPO))
 from utils.consistency_grade_scores import apply_consistency_grade_scores  # noqa: E402
 from utils.prop_signal_score import apply_ml_rank_blend  # noqa: E402
+from proporacle.data.table_io import write_parquet_sidecar
 from utils.group_rank_tier import (  # noqa: E402
     assign_tier_column,
     print_tier_distribution_by_pick_direction_group,
@@ -232,23 +233,36 @@ def _edge_transform(edge: float, cap: float = 3.0, power: float = 0.85) -> float
     return s * (min(abs(edge), cap) ** power)
 
 
-# ── WNBA defense rank signal (13-team scale) ──────────────────────────────────
+# ── WNBA defense rank signal (dynamic team count; category D then overall) ────
 
-_N_TEAMS_WNBA = 13
-
-def _def_adjustment(row: pd.Series) -> float:
-    rank = pd.to_numeric(pd.Series([row.get("OVERALL_DEF_RANK", np.nan)]), errors="coerce").iloc[0]
-    if pd.isna(rank): return 0.0
-    # Scale to 13 teams: midpoint = 7.0
-    return float((rank - 7.0) / 7.0 * 0.06)
+_N_TEAMS_WNBA = 15
 
 
-def _def_rank_signal(row: pd.Series) -> float:
-    rank      = pd.to_numeric(pd.Series([row.get("OVERALL_DEF_RANK", np.nan)]), errors="coerce").iloc[0]
-    direction = str(row.get("bet_direction","OVER")).upper()
-    if pd.isna(rank): return 0.0
-    # Normalize to [-1, 1] using 13-team scale
-    signal = (rank - 1.0) / (_N_TEAMS_WNBA - 1.0) * 2.0 - 1.0
+def _row_def_rank(row: pd.Series) -> float:
+    """Prop-specific allowed-stat rank when present, else overall DEF_EFF rank."""
+    for c in ("stat_def_rank", "STAT_DEF_RANK"):
+        v = pd.to_numeric(pd.Series([row.get(c, np.nan)]), errors="coerce").iloc[0]
+        if pd.notna(v):
+            return float(v)
+    return pd.to_numeric(pd.Series([row.get("OVERALL_DEF_RANK", np.nan)]), errors="coerce").iloc[0]
+
+
+def _def_adjustment(row: pd.Series, n_teams: int = _N_TEAMS_WNBA) -> float:
+    rank = _row_def_rank(row)
+    if pd.isna(rank):
+        return 0.0
+    n = max(int(n_teams), 2)
+    mid = (n + 1.0) / 2.0
+    return float((rank - mid) / mid * 0.06)
+
+
+def _def_rank_signal(row: pd.Series, n_teams: int = _N_TEAMS_WNBA) -> float:
+    rank = _row_def_rank(row)
+    direction = str(row.get("bet_direction", "OVER")).upper()
+    if pd.isna(rank):
+        return 0.0
+    n = max(int(n_teams), 2)
+    signal = (rank - 1.0) / (n - 1.0) * 2.0 - 1.0
     return float(signal if direction == "OVER" else -signal)
 
 
@@ -442,7 +456,17 @@ def main():
     out["line_hit_z"]  = zcol(out["line_hit_rate"], direction_aware=True)
     out["min_z"]       = zcol(out["minutes_certainty"])
 
-    def_adj = out.apply(_def_adjustment, axis=1)
+    try:
+        from utils.wnba_prop_defense import attach_stat_defense_columns
+
+        out = attach_stat_defense_columns(out)
+    except Exception as exc:
+        print(f"  [WARN] category D attach skipped: {exc}")
+
+    opp_rank_num = pd.to_numeric(out.get("OVERALL_DEF_RANK"), errors="coerce")
+    n_def = int(opp_rank_num.max()) if opp_rank_num.notna().any() else _N_TEAMS_WNBA
+
+    def_adj = out.apply(lambda r: _def_adjustment(r, n_def), axis=1)
     out["def_adj"] = def_adj
 
     proj_base = pd.to_numeric(out["projection"], errors="coerce")
@@ -458,15 +482,13 @@ def main():
 
     out["edge_adj_dr"] = pd.Series([_edge_adj_dr(i) for i in range(len(out))], index=out.index)
 
-    def_signal = out.apply(_def_rank_signal, axis=1)
+    def_signal = out.apply(lambda r: _def_rank_signal(r, n_def), axis=1)
     out["def_rank_signal"] = def_signal
     out["def_rank_z"]      = zcol(def_signal, direction_aware=True)
 
     out = _attach_top3_def_context(out, REPO_ROOT)
-    opp_rank_num = pd.to_numeric(out.get("OVERALL_DEF_RANK"), errors="coerce")
-    n_def = int(opp_rank_num.max()) if opp_rank_num.notna().any() else _N_TEAMS_WNBA
     weak_opp_tonight = opp_rank_num >= np.ceil(n_def * 0.65)
-    elite_opp_tonight = opp_rank_num <= 4
+    elite_opp_tonight = opp_rank_num <= max(1, int(np.ceil(n_def * 0.33)))
     top3_boost = (
         out["top3_weak_overperformer"].astype(int).eq(1)
         & out["bet_direction"].astype(str).str.upper().eq("OVER")
@@ -585,6 +607,7 @@ def main():
             if len(sub):
                 sub.to_excel(w, sheet_name=f"Tier {tier}", index=False)
 
+    write_parquet_sidecar(out, args.output)
     print(f"✅ Saved → {args.output}  ALL={len(out)}  ELIGIBLE={int(elig_mask.sum())}")
     print("Tier counts:", out["tier"].value_counts().to_dict())
     print("Void reasons:", out.loc[~elig_mask,"void_reason"].value_counts().to_dict())

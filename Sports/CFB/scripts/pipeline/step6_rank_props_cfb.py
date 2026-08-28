@@ -41,6 +41,7 @@ from utils.group_rank_tier import (
 )
 from utils.hit_tracking_columns import attach_hit_tracking_columns, resolve_sport_code
 from utils.optional_ml_context import optional_context_features
+from proporacle.data.table_io import write_parquet_sidecar
 from utils.cfb_playoff_metadata import (
     CFB_AP_TOP25_2026,
     CFB_PLAYOFF_CHAMP_EXTRA_MULT,
@@ -801,6 +802,7 @@ def main():
             with pd.ExcelWriter(args.output, engine="openpyxl") as xw:
                 df.to_excel(xw, index=False, sheet_name="ALL")
                 df.to_excel(xw, index=False, sheet_name="ELIGIBLE")
+            write_parquet_sidecar(df, args.output)
             if args.output_csv:
                 df.to_csv(args.output_csv, index=False)
                 print(f"✅ Saved CSV → {args.output_csv}")
@@ -1255,6 +1257,7 @@ def main():
         if not dropped_df.empty:
             dropped_df.to_excel(xw, index=False, sheet_name="DROPPED")
 
+    write_parquet_sidecar(out_sorted, args.output)
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows (active) : {len(out_sorted)}")
     print(f"DROPPED rows      : {len(dropped_df)}  (Demon + neg-edge Goblin, audit only)")

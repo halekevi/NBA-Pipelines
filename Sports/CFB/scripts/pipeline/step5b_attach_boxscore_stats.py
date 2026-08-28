@@ -38,6 +38,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from scripts.db_utils import log_pipeline_health
+from scripts.espn_boxscore_cache import load_boxscore_cache, save_boxscore_cache, sport_key_from_espn_league
 
 HEADERS = {"User-Agent": "Mozilla/5.0", "Accept": "application/json, text/plain, */*"}
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/football/{league}/scoreboard"
@@ -52,6 +53,121 @@ def norm(s: str) -> str:
     s = s.lower().strip()
     s = re.sub(r"[^a-z0-9 ]+", " ", s)
     return re.sub(r"\s+", " ", s).strip()
+
+
+# PrizePicks often uses the legal first name; ESPN boxscores use the nickname.
+_NFL_FIRST_ALIASES = {
+    "cameron": ("cam",),
+    "cam": ("cameron",),
+    "nicholas": ("nick",),
+    "nick": ("nicholas",),
+    "drew": ("andrew",),
+    "andrew": ("drew",),
+    "joshua": ("josh",),
+    "josh": ("joshua",),
+    "matthew": ("matt",),
+    "matt": ("matthew",),
+    "michael": ("mike",),
+    "mike": ("michael",),
+    "christopher": ("chris",),
+    "chris": ("christopher",),
+    "william": ("will",),
+    "will": ("william",),
+    "joseph": ("joe",),
+    "joe": ("joseph",),
+    "benjamin": ("ben",),
+    "ben": ("benjamin",),
+    "samuel": ("sam",),
+    "sam": ("samuel",),
+    "alexander": ("alex",),
+    "alex": ("alexander",),
+    "anthony": ("tony",),
+    "tony": ("anthony",),
+}
+
+
+def _parse_box_date(value) -> Optional[dt.date]:
+    """Parse cache game_date values stored as YYYY-MM-DD or YYYYMMDD."""
+    s = str(value or "").strip()
+    if not s or s.lower() in ("nan", "none"):
+        return None
+    if len(s) == 8 and s.isdigit():
+        try:
+            return dt.date(int(s[:4]), int(s[4:6]), int(s[6:8]))
+        except ValueError:
+            return None
+    try:
+        return dt.date.fromisoformat(s[:10])
+    except ValueError:
+        return None
+
+
+def _is_nfl_regular_season(d: dt.date) -> bool:
+    """NFL regular season + playoffs (Sep–Feb). August is preseason — never L5."""
+    return d.month >= 9 or d.month <= 2
+
+
+def _nfl_name_keys(pn: str) -> set[str]:
+    """Name keys for NFL matching: nickname aliases + collapsed apostrophe names."""
+    p = norm(pn)
+    if not p:
+        return set()
+    keys = {p, p.replace(" ", "")}
+    parts = p.split()
+    if not parts:
+        return keys
+    first, rest = parts[0], parts[1:]
+    for alt in _NFL_FIRST_ALIASES.get(first, ()):
+        keys.add(" ".join([alt, *rest]))
+        keys.add("".join([alt, *rest]))
+    if first == "wandale":
+        keys.add(" ".join(["wan", "dale", *rest]))
+    if first == "wan" and rest and rest[0] == "dale":
+        keys.add(" ".join(["wandale", *rest[1:]]))
+        keys.add("wandale" + "".join(rest[1:]))
+    return {k for k in keys if k}
+
+
+def _lookup_nfl_box_games(
+    pn: str,
+    aid: str,
+    hist_aid: Dict[Tuple[str, str], List[dict]],
+    hist_name: Dict[Tuple[str, str], List[dict]],
+) -> List[dict]:
+    """NFL/NFLP L5 is prior NFL boxscores for the player, regardless of current team."""
+    games: List[dict] = []
+    if aid:
+        for (_t, a), g in hist_aid.items():
+            if a == aid:
+                games.extend(g)
+        if games:
+            return games
+    keys = _nfl_name_keys(pn)
+    collapsed = {k.replace(" ", "") for k in keys}
+    for (_t, p), g in hist_name.items():
+        if p in keys or p.replace(" ", "") in collapsed:
+            games.extend(g)
+    return games
+
+
+def _nfl_regular_season_games(games: List[dict]) -> List[dict]:
+    """Newest-first NFL regular-season/playoff games; drops August preseason."""
+    out: List[dict] = []
+    seen: set[str] = set()
+    for g in games:
+        d = _parse_box_date(g.get("game_date"))
+        if d is None or not _is_nfl_regular_season(d):
+            continue
+        eid = str(g.get("event_id") or "").strip()
+        if eid and eid in seen:
+            continue
+        if eid:
+            seen.add(eid)
+        row = dict(g)
+        row["_dt"] = d
+        out.append(row)
+    out.sort(key=lambda r: r.get("_dt") or dt.date.min, reverse=True)
+    return out
 
 
 def request_json(url, params=None, max_tries=5, backoff=1.4, sleep=0.0):
@@ -76,13 +192,18 @@ def request_json(url, params=None, max_tries=5, backoff=1.4, sleep=0.0):
 
 
 def date_range(end_date: dt.date, days_back: int) -> List[str]:
-    return [(end_date - dt.timedelta(days=i)).strftime("%Y%m%d") for i in range(days_back + 1)]
+    dates = [(end_date - dt.timedelta(days=i)).strftime("%Y%m%d") for i in range(days_back + 1)]
+    if ESPN_LEAGUE == "nfl":
+        # NFLP and NFL share the same boxscores. Skip Mar–Aug so L5 cannot
+        # pick up last year's (or this year's) preseason games.
+        dates = [d for d in dates if d[4:6] not in ("03", "04", "05", "06", "07", "08")]
+    return dates
 
 
 def pull_scoreboard(d: str) -> dict:
     params = {"dates": d, "limit": "500"}
     if ESPN_LEAGUE == "college-football":
-        params["groups"] = "50"
+        params["groups"] = "80"  # FBS
     return request_json(ESPN_SCOREBOARD_URL.format(league=ESPN_LEAGUE), params=params, sleep=0.10) or {}
 
 
@@ -208,6 +329,9 @@ def parse_players(summary: dict, game_date: str = "", event_id: str = "") -> Lis
                     if cmp_i is None:
                         cmp_i = idx("CMP")
                     int_i = idx("INT")
+                    lng = idx("LONG")
+                    if lng is None:
+                        lng = idx("LNG")
                     if y is not None and y < len(st):
                         row["PASS_YDS"] = _f(st[y])
                     if td is not None and td < len(st):
@@ -216,49 +340,94 @@ def parse_players(summary: dict, game_date: str = "", event_id: str = "") -> Lis
                         row["PASS_CMP"] = _f(st[cmp_i])
                     if int_i is not None and int_i < len(st):
                         row["PASS_INT"] = _f(st[int_i])
+                    if lng is not None and lng < len(st):
+                        row["PASS_LONG"] = _f(st[lng])
                 elif cat == "rushing":
                     y = idx("YDS")
                     td = idx("TD")
+                    lng = idx("LONG")
+                    if lng is None:
+                        lng = idx("LNG")
                     if y is not None and y < len(st):
                         row["RUSH_YDS"] = _f(st[y])
                     if td is not None and td < len(st):
                         row["RUSH_TD"] = _f(st[td])
+                    if lng is not None and lng < len(st):
+                        row["RUSH_LONG"] = _f(st[lng])
                 elif cat == "receiving":
                     rec = idx("REC")
                     y = idx("YDS")
                     td = idx("TD")
+                    lng = idx("LONG")
+                    if lng is None:
+                        lng = idx("LNG")
+                    tgt = idx("TGTS")
+                    if tgt is None:
+                        tgt = idx("TGT")
+                    if tgt is None:
+                        tgt = idx("TARGETS")
                     if rec is not None and rec < len(st):
                         row["REC"] = _f(st[rec])
                     if y is not None and y < len(st):
                         row["REC_YDS"] = _f(st[y])
                     if td is not None and td < len(st):
                         row["REC_TD"] = _f(st[td])
+                    if lng is not None and lng < len(st):
+                        row["REC_LONG"] = _f(st[lng])
+                    if tgt is not None and tgt < len(st):
+                        row["REC_TGT"] = _f(st[tgt])
                 elif cat == "defensive":
                     tot = idx("TOT")
                     sack = idx("SACK")
+                    if sack is None:
+                        sack = idx("SACKS")
                     dint = idx("INT")
+                    tfl = idx("TFL")
                     if tot is not None and tot < len(st):
                         row["TACK_TOT"] = _f(st[tot])
                     if sack is not None and sack < len(st):
                         row["SACK"] = _f(st[sack])
                     if dint is not None and dint < len(st):
                         row["DEF_INT"] = _f(st[dint])
+                    if tfl is not None and tfl < len(st):
+                        row["TFL"] = _f(st[tfl])
                 elif cat == "kicking":
                     pts = idx("PTS")
+                    fg = idx("FG")
+                    if fg is None:
+                        fg = idx("FGM")
+                    xp = idx("XP")
+                    if xp is None:
+                        xp = idx("XPM")
                     if pts is not None and pts < len(st):
                         row["KICK_PTS"] = _f(st[pts])
+                    if fg is not None and fg < len(st):
+                        row["KICK_FG"] = _f(st[fg])
+                    if xp is not None and xp < len(st):
+                        row["KICK_XP"] = _f(st[xp])
 
     _stat_keys = (
         "PASS_YDS", "RUSH_YDS", "REC_YDS", "REC", "PASS_TD", "RUSH_TD", "REC_TD",
-        "PASS_CMP", "PASS_INT", "SACK", "TACK_TOT", "KICK_PTS", "DEF_INT",
+        "PASS_CMP", "PASS_INT", "SACK", "TACK_TOT", "KICK_PTS", "KICK_FG", "KICK_XP", "DEF_INT",
+        "PASS_LONG", "RUSH_LONG", "REC_LONG", "REC_TGT", "TFL",
     )
+    # Do not zero-fill LONG / TGTS: missing means ESPN did not publish the stat
+    # (passing has no LONG; receiving has no TGTS). Zero would fake L5 unders.
+    _zero_fill = tuple(k for k in _stat_keys if k not in ("PASS_LONG", "RUSH_LONG", "REC_LONG", "REC_TGT"))
     rows: List[dict] = []
     for row in by_ath.values():
         if not any(row.get(k) for k in _stat_keys):
             continue
-        for k in _stat_keys:
+        for k in _zero_fill:
             row.setdefault(k, 0.0)
         # CFB boxscores have no MIN column; mark participation for rolling-window filters.
+        # Volume soft (snap/play share) CANNOT-OBTAIN from ESPN CFB summary/boxscore:
+        # athlete groups expose C/ATT, CAR, REC, etc. only — zero snap/participation %.
+        # Passing boxscore has no LONG (longest completion CANNOT-OBTAIN here).
+        # Receiving has LONG but no TGTS (rec targets CANNOT-OBTAIN here).
+        # Optional: CFBD /player/usage → data/cache/cfb_usage_cache.json via
+        # build_cfb_usage_cache.py when CFBD_API_KEY is set (usage share → minutes_tier).
+        # Do not invent minutes_tier from MIN=1.
         row["MIN"] = 1.0
         rows.append(row)
     return rows
@@ -272,7 +441,8 @@ def game_played_for_prop(g: dict, prop: str) -> bool:
         float(g.get(k, 0) or 0) != 0
         for k in (
             "PASS_YDS", "RUSH_YDS", "REC_YDS", "REC", "PASS_TD", "RUSH_TD", "REC_TD",
-            "PASS_CMP", "PASS_INT", "SACK", "TACK_TOT", "KICK_PTS",
+            "PASS_CMP", "PASS_INT", "SACK", "TACK_TOT", "KICK_PTS", "KICK_FG", "KICK_XP",
+            "RUSH_LONG", "REC_LONG", "PASS_LONG", "REC_TGT", "TFL",
         )
     )
 
@@ -290,8 +460,19 @@ def fantasy(r: dict) -> float:
     )
 
 
+def _stat_num(r: dict, key: str) -> float:
+    try:
+        v = r.get(key)
+        if v is None or v == "":
+            return 0.0
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def prop_value(prop_norm: str, r: dict) -> Optional[float]:
     p = str(prop_norm or "").strip().lower()
+    p = re.sub(r"[^a-z0-9]+", "_", p).strip("_")
     m = {
         "pass_yds": r.get("PASS_YDS"),
         "rush_yds": r.get("RUSH_YDS"),
@@ -313,14 +494,43 @@ def prop_value(prop_norm: str, r: dict) -> Optional[float]:
         "interceptions_thrown": r.get("PASS_INT"),
         "interceptions": r.get("PASS_INT") or r.get("DEF_INT"),
         "sacks": r.get("SACK"),
+        "tackles": r.get("TACK_TOT"),
         "tackles_assists": r.get("TACK_TOT"),
+        "tfl": r.get("TFL"),
         "kicking_points": r.get("KICK_PTS"),
+        "kick_pts": r.get("KICK_PTS"),
+        "pat_made": r.get("KICK_XP"),
+        "fg_made": r.get("KICK_FG"),
+        "extra_points": r.get("KICK_XP"),
+        "field_goals": r.get("KICK_FG"),
+        "player_td": _stat_num(r, "PASS_TD") + _stat_num(r, "RUSH_TD") + _stat_num(r, "REC_TD"),
+        "pass_rush_yds": _stat_num(r, "PASS_YDS") + _stat_num(r, "RUSH_YDS"),
+        "rush_rec_yds": _stat_num(r, "RUSH_YDS") + _stat_num(r, "REC_YDS"),
+        "pass_rush_rec_td": _stat_num(r, "PASS_TD") + _stat_num(r, "RUSH_TD") + _stat_num(r, "REC_TD"),
+        "pass_long": r.get("PASS_LONG"),
+        "rush_long": r.get("RUSH_LONG"),
+        "rec_long": r.get("REC_LONG"),
+        "rec_tgt": r.get("REC_TGT"),
         "fantasy": fantasy(r),
     }
     if p in m and m[p] is not None:
         return m[p]
     if "fantasy" in p:
         return fantasy(r)
+    if "longest" in p and "completion" in p:
+        return r.get("PASS_LONG")
+    if "longest" in p and "rush" in p:
+        return r.get("RUSH_LONG")
+    if "longest" in p and ("rec" in p or "reception" in p):
+        return r.get("REC_LONG")
+    if "target" in p:
+        return r.get("REC_TGT")
+    if "pass" in p and "rush" in p and "rec" in p and "td" in p:
+        return m["pass_rush_rec_td"]
+    if "rush" in p and "rec" in p and "yd" in p:
+        return m["rush_rec_yds"]
+    if "pass" in p and "rush" in p and "yd" in p:
+        return m["pass_rush_yds"]
     if "pass" in p and "yard" in p:
         return r.get("PASS_YDS")
     if "rush" in p and "yard" in p:
@@ -335,8 +545,16 @@ def prop_value(prop_norm: str, r: dict) -> Optional[float]:
         return r.get("SACK")
     if "kick" in p and "point" in p:
         return r.get("KICK_PTS")
+    if p in ("pat_made", "extra_points") or ("pat" in p and "made" in p):
+        return r.get("KICK_XP")
+    if p in ("fg_made", "field_goals") or ("field" in p and "goal" in p):
+        return r.get("KICK_FG")
+    if "fg" in p and "made" in p:
+        return r.get("KICK_FG")
     if "tackle" in p:
         return r.get("TACK_TOT")
+    if "touchdown" in p:
+        return m["player_td"]
     return m.get(p)
 
 
@@ -386,6 +604,7 @@ def build_player_histories(
     cache_path: str = "",
     tid_to_abbr: dict = None,
     end_date: Optional[dt.date] = None,
+    force_refetch_keys: Optional[set] = None,
 ) -> Tuple[Dict, Dict]:
     """
     Parallelized boxscore fetch for CFB with persistent cache + deterministic ordering.
@@ -393,13 +612,14 @@ def build_player_histories(
     """
     import os
 
-    # Phase 0: load cache
+    # Phase 0: load cache (SQLite first; CSV is backfill only)
     cached_rows: List[dict] = []
     cached_eids: set = set()
-    if cache_path and os.path.exists(cache_path):
+    cache_source = "empty"
+    sport_key = sport_key_from_espn_league(ESPN_LEAGUE)
+    if cache_path:
         try:
-            cache_df = pd.read_csv(cache_path, dtype=str).fillna("")
-            cached_rows = cache_df.to_dict("records")
+            cached_rows, cache_source = load_boxscore_cache(sport_key, cache_path)
             stale_eids: set = set()
             for rr in cached_rows:
                 has_opp = (
@@ -408,27 +628,52 @@ def build_player_histories(
                 )
                 for col in (
                     "PASS_YDS", "RUSH_YDS", "REC_YDS", "REC", "PASS_TD", "RUSH_TD", "REC_TD",
-                    "PASS_CMP", "PASS_INT", "SACK", "TACK_TOT", "KICK_PTS", "DEF_INT",
+                    "PASS_CMP", "PASS_INT", "SACK", "TACK_TOT", "KICK_PTS", "KICK_FG", "KICK_XP", "DEF_INT",
+                    "PASS_LONG", "RUSH_LONG", "REC_LONG", "REC_TGT", "TFL",
                 ):
-                    if col in rr:
-                        try:
-                            rr[col] = float(rr[col])
-                        except Exception:
-                            rr[col] = 0.0
+                    if col not in rr:
+                        continue
+                    raw = str(rr[col]).strip()
+                    if raw in ("", "nan", "None"):
+                        # Missing LONG/TGTS stay absent so L5 is not invented as 0.
+                        rr[col] = None if col in (
+                            "PASS_LONG", "RUSH_LONG", "REC_LONG", "REC_TGT",
+                        ) else 0.0
+                        continue
+                    try:
+                        rr[col] = float(raw)
+                    except Exception:
+                        rr[col] = None if col in (
+                            "PASS_LONG", "RUSH_LONG", "REC_LONG", "REC_TGT",
+                        ) else 0.0
                 if not has_opp:
                     stale_eids.add(str(rr.get("event_id","")))
             if stale_eids:
                 cached_rows = [rr for rr in cached_rows if str(rr.get("event_id","")) not in stale_eids]
                 print(f"  [CACHE] Dropped {len(stale_eids)} stale events missing opponent — will refetch")
             cached_eids = {str(rr.get("event_id","")) for rr in cached_rows if rr.get("event_id")}
+            if force_refetch_keys:
+                drop_eids: set[str] = set()
+                for rr in cached_rows:
+                    pn = str(rr.get("player_norm") or "").strip()
+                    if not (_nfl_name_keys(pn) & set(force_refetch_keys)):
+                        continue
+                    if str(rr.get("KICK_FG", "")).strip() in ("", "nan"):
+                        drop_eids.add(str(rr.get("event_id", "")).strip())
+                drop_eids.discard("")
+                if drop_eids:
+                    cached_rows = [rr for rr in cached_rows if str(rr.get("event_id", "")).strip() not in drop_eids]
+                    cached_eids -= drop_eids
+                    print(f"  [CACHE] Refetch {len(drop_eids)} events to split FG/XP kicking stats")
             print(f"  [CACHE] Loaded {len(cached_rows)} rows ({len(cached_eids)} events)")
         except Exception as e:
             print(f"  [CACHE] Load failed ({e}) — full refresh")
             cached_rows, cached_eids = [], set()
+            cache_source = "empty"
     # Phase 1: scoreboards
     all_events: List[Tuple[str, str, str, str]] = []
     seen_eids: set = set()
-    print(f"-> Scanning {days + 1} days of CFB scoreboards...")
+    print(f"-> Scanning {days + 1} days of {ESPN_LEAGUE} scoreboards...")
     try:
         from tqdm import tqdm as _tqdm
     except ImportError:
@@ -449,6 +694,28 @@ def build_player_histories(
 
     pending = [(eid, t1, t2, ds) for eid, t1, t2, ds in all_events
                if eid not in cached_eids]
+
+    def _cached_has_rush_long(rr: dict) -> bool:
+        v = rr.get("RUSH_LONG")
+        if v is None:
+            return False
+        s = str(v).strip()
+        return s not in ("", "nan", "None")
+
+    if cached_rows:
+        scan_eids = {str(eid) for eid, _, _, _ in all_events}
+        scan_cached = [
+            rr for rr in cached_rows
+            if str(rr.get("event_id", "")).strip() in scan_eids
+        ]
+        if scan_cached and not any(_cached_has_rush_long(rr) for rr in scan_cached):
+            cached_rows = [
+                rr for rr in cached_rows
+                if str(rr.get("event_id", "")).strip() not in scan_eids
+            ]
+            cached_eids -= scan_eids
+            pending = [(eid, t1, t2, ds) for eid, t1, t2, ds in all_events]
+            print(f"  [CACHE] Refetch {len(pending)} events to add rush/rec LONG + SACKS")
 
     print(f"-> {len(all_events)} total | {len(cached_eids)} cached | "
           f"{len(pending)} new ({workers} workers)...")
@@ -480,10 +747,9 @@ def build_player_histories(
             if not rr.get("opp_team_abbr"):
                 opp_id = str(rr.get("opp_team_id", "")).strip()
                 rr["opp_team_abbr"] = tid_to_abbr.get(opp_id, opp_id)
-    if cache_path and new_rows:
+    if cache_path and all_rows:
         try:
-            pd.DataFrame(all_rows).to_csv(cache_path, index=False)
-            print(f"  [CACHE] Saved {len(all_rows)} rows -> {cache_path}")
+            save_boxscore_cache(sport_key, all_rows, cache_path, cache_source)
         except Exception as e:
             print(f"  [CACHE] Save failed: {e}")
 
@@ -498,7 +764,10 @@ def build_player_histories(
         if tid and pn:  raw_by_name.setdefault((tid, pn), []).append(rr)
 
     def dedup_sort(game_list):
-        sorted_games = sorted(game_list, key=lambda r: r.get("game_date",""), reverse=True)
+        def _key(r):
+            d = _parse_box_date(r.get("game_date"))
+            return d or dt.date.min
+        sorted_games = sorted(game_list, key=_key, reverse=True)
         seen, out = set(), []
         for g in sorted_games:
             eid = str(g.get("event_id",""))
@@ -510,7 +779,7 @@ def build_player_histories(
     hist_aid  = {k: dedup_sort(v) for k, v in raw_by_aid.items()}
     hist_name = {k: dedup_sort(v) for k, v in raw_by_name.items()}
 
-    print(f"-> CBB histories built | by_id={len(hist_aid)} | by_name={len(hist_name)}")
+    print(f"-> {ESPN_LEAGUE} histories built | by_id={len(hist_aid)} | by_name={len(hist_name)}")
     return hist_aid, hist_name
 
 
@@ -664,6 +933,13 @@ def main():
     if str(args.date or "").strip():
         end_d = dt.datetime.strptime(str(args.date).strip()[:10], "%Y-%m-%d").date()
 
+    kick_refetch_keys: set[str] = set()
+    if ESPN_LEAGUE == "nfl":
+        kick_props = {"fg_made", "pat_made", "field_goals", "extra_points"}
+        for _, r in df.iterrows():
+            if str(r.get(prop_col, "")).strip().lower() in kick_props:
+                kick_refetch_keys |= _nfl_name_keys(str(r.get("player_norm", "")))
+
     # ── Parallelized fetch ────────────────────────────────────────────────────
     hist_aid, hist_name = build_player_histories(
         args.days,
@@ -672,6 +948,7 @@ def main():
         cache_path=cache_path,
         tid_to_abbr=tid_to_abbr,
         end_date=end_d,
+        force_refetch_keys=kick_refetch_keys or None,
     )
     if not hist_aid and not hist_name:
         log_pipeline_health(
@@ -680,6 +957,32 @@ def main():
             extra={"days": args.days, "workers": args.workers},
             start=Path(__file__),
         )
+
+    if ESPN_LEAGUE == "nfl":
+        name_to_aid: dict[str, str] = {}
+        for (_t, a), glist in hist_aid.items():
+            if not a or not glist:
+                continue
+            pn0 = str(glist[0].get("player_norm") or "").strip()
+            for k in _nfl_name_keys(pn0):
+                name_to_aid.setdefault(k, a)
+        filled = 0
+        new_aids = []
+        for _, row in df.iterrows():
+            cur = str(row.get("espn_athlete_id") or "").strip()
+            if cur:
+                new_aids.append(cur)
+                continue
+            found = ""
+            for k in _nfl_name_keys(str(row.get("player_norm") or "")):
+                if k in name_to_aid:
+                    found = name_to_aid[k]
+                    filled += 1
+                    break
+            new_aids.append(found)
+        df["espn_athlete_id"] = new_aids
+        if filled:
+            print(f"  [NFL] Filled {filled} espn_athlete_id values from boxscore cache")
 
     out_rows, stat_status = [], []
 
@@ -690,11 +993,12 @@ def main():
         prop = str(row.get(prop_col,        "")).strip()
         line = row.get("line", None)
 
-        # When team_id is missing, fall through to ID-only then name-only matching.
-        # Handles CBB props where ESPN team_id was never resolved by step5a,
-        # and also covers slates processed by attach_cbb_athlete_ids (espn_id present
-        # but team_id blank).
-        if not tid:
+        # NFL / NFLP: last year's NFL regular-season boxscores, any team.
+        # Preseason (August) is excluded. Nickname aliases cover Cam/Cameron etc.
+        if ESPN_LEAGUE == "nfl":
+            games = _lookup_nfl_box_games(pn, aid, hist_aid, hist_name)
+            games = _nfl_regular_season_games(games)
+        elif not tid:
             games = []
             # Strategy A: espn_athlete_id across all teams (fastest, most accurate)
             if aid:
@@ -719,7 +1023,9 @@ def main():
 
         if not vals:
             stat_status.append("UNSUPPORTED_PROP"); out_rows.append({}); continue
-        if len(vals) < 5:
+        # NFL/NFLP L5 is prior regular-season boxes. Backup QBs often have
+        # 1–4 games — still attach those logs. Other leagues keep the 5-game floor.
+        if ESPN_LEAGUE != "nfl" and len(vals) < 5:
             stat_status.append("INSUFFICIENT_GAMES"); out_rows.append({"games_used": len(vals)}); continue
 
         # vals is now newest-first (already sorted from dedup_sort)
@@ -802,4 +1108,5 @@ if __name__ == "__main__":
             extra={"error": f"{type(e).__name__}: {e}"},
             start=Path(__file__),
         )
-        print(f"❌ CBB step5b failed (logged). {type(e).__name__}: {e}")
+        print(f"❌ CFB step5b failed (logged). {type(e).__name__}: {e}")
+        raise

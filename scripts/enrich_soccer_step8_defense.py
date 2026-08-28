@@ -16,6 +16,8 @@ _REPO = Path(__file__).resolve().parent.parent
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
+from proporacle.data.table_io import write_parquet_sidecar, read_table
+
 _STRIP_TOKENS = frozenset(
     {
         "fc",
@@ -244,7 +246,7 @@ def main() -> int:
 
     inp = Path(args.input).resolve()
     out = Path(args.output or inp).resolve()
-    df = pd.read_excel(inp, engine="openpyxl")
+    df = read_table(inp, sheet_order=("Soccer", "ALL"))
     if df.empty:
         print(f"[enrich] empty input: {inp}")
         return 1
@@ -277,6 +279,7 @@ def main() -> int:
 
     out.parent.mkdir(parents=True, exist_ok=True)
     merged.to_excel(out, index=False, engine="openpyxl")
+    write_parquet_sidecar(merged, out)
     print(f"[enrich] {inp.name} -> {out.name}  rows={len(merged):,}  Def Tier={tier_fill:,}  Opp Pace={pace_fill:,}")
     return 0
 

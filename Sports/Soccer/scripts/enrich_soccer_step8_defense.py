@@ -12,9 +12,13 @@ from pathlib import Path
 
 import pandas as pd
 
-_REPO = Path(__file__).resolve().parent.parent
-if str(_REPO) not in sys.path:
-    sys.path.insert(0, str(_REPO))
+_SOC = Path(__file__).resolve().parents[1]  # Sports/Soccer
+_REPO_ROOT = Path(__file__).resolve().parents[2]  # PropORACLE
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from utils.soccer_prop_defense import assign_prop_aware_def_tier  # noqa: E402
+from proporacle.data.table_io import write_parquet_sidecar, read_table
 
 _STRIP_TOKENS = frozenset(
     {
@@ -188,7 +192,7 @@ def _load_defense() -> pd.DataFrame:
     from defense_db import load_defense_from_db  # type: ignore
 
     d = load_defense_from_db("soccer")
-    cache = _REPO / "cache" / "soccer_defense_summary.csv"
+    cache = _SOC / "cache" / "soccer_defense_summary.csv"
     if cache.is_file():
         dc = pd.read_csv(cache, encoding="utf-8-sig", low_memory=False)
         if isinstance(d, pd.DataFrame) and not d.empty:
@@ -206,10 +210,15 @@ def _load_defense() -> pd.DataFrame:
         "DEF_TIER",
         "def_tier",
         "OVERALL_DEF_RANK",
+        "GOALS_DEF_RANK",
+        "GOALS_DEF_TIER",
+        "SHOTS_DEF_RANK",
+        "SHOTS_DEF_TIER",
+        "shots_conceded_pg",
+        "goals_conceded_pg",
         "opp_gf_per_game",
         "OPP_PPG",
         "opp_gaa",
-        "goals_conceded_pg",
         "league",
     ):
         if c in d.columns:
@@ -235,7 +244,13 @@ def _build_defense_lookup(def_df: pd.DataFrame) -> tuple[dict[str, dict], list[s
             "DEF_TIER": tier,
             "def_tier": tier,
             "OVERALL_DEF_RANK": row.get("OVERALL_DEF_RANK"),
+            "GOALS_DEF_RANK": row.get("GOALS_DEF_RANK", row.get("OVERALL_DEF_RANK")),
+            "GOALS_DEF_TIER": row.get("GOALS_DEF_TIER", tier),
+            "SHOTS_DEF_RANK": row.get("SHOTS_DEF_RANK"),
+            "SHOTS_DEF_TIER": row.get("SHOTS_DEF_TIER"),
+            "shots_conceded_pg": row.get("shots_conceded_pg"),
             "opp_pace": pace,
+            "league": row.get("league"),
         }
     return lookup, sorted(lookup.keys())
 
@@ -260,6 +275,26 @@ def _attach_defense_columns(df: pd.DataFrame, opp_col: str, lookup: dict[str, di
         out["opp_pace_zscore"] = pd.NA
     if "Def Rank" not in out.columns:
         out["Def Rank"] = pd.NA
+    for col in (
+        "OVERALL_DEF_RANK",
+        "DEF_TIER",
+        "GOALS_DEF_RANK",
+        "GOALS_DEF_TIER",
+        "SHOTS_DEF_RANK",
+        "SHOTS_DEF_TIER",
+        "def_tier",
+        "prop_norm",
+        "prop_type",
+        "Prop",
+        "league",
+    ):
+        if col not in out.columns:
+            out[col] = pd.NA
+
+    # Mirror display Prop → prop_norm for metric selection when only Prop exists.
+    if "Prop" in out.columns:
+        blank_pn = out["prop_norm"].isna() | (out["prop_norm"].astype(str).str.strip() == "")
+        out.loc[blank_pn, "prop_norm"] = out.loc[blank_pn, "Prop"]
 
     for idx, raw in out[opp_col].items():
         raw_s = str(raw or "").strip()
@@ -270,6 +305,21 @@ def _attach_defense_columns(df: pd.DataFrame, opp_col: str, lookup: dict[str, di
             if raw_s.lower() not in ("nan", "unknown_opp", "none"):
                 print(f"  [Soccer enrich] unmatched: {raw_s!r}")
             continue
+        for src, dest in (
+            ("OVERALL_DEF_RANK", "OVERALL_DEF_RANK"),
+            ("DEF_TIER", "DEF_TIER"),
+            ("GOALS_DEF_RANK", "GOALS_DEF_RANK"),
+            ("GOALS_DEF_TIER", "GOALS_DEF_TIER"),
+            ("SHOTS_DEF_RANK", "SHOTS_DEF_RANK"),
+            ("SHOTS_DEF_TIER", "SHOTS_DEF_TIER"),
+            ("league", "league"),
+        ):
+            val = rec.get(src)
+            if val is None or (isinstance(val, float) and pd.isna(val)):
+                continue
+            cur = out.at[idx, dest]
+            if pd.isna(cur) or str(cur).strip() in ("", "nan"):
+                out.at[idx, dest] = val
         tier = rec.get("DEF_TIER", "")
         if pd.isna(out.at[idx, "Def Tier"]) or str(out.at[idx, "Def Tier"]).strip() in ("", "nan"):
             out.at[idx, "Def Tier"] = tier
@@ -285,6 +335,13 @@ def _attach_defense_columns(df: pd.DataFrame, opp_col: str, lookup: dict[str, di
             ):
                 out.at[idx, "opp_pace_zscore"] = pace
 
+    # Prop-aware overwrite of DEF_TIER / OVERALL_DEF_RANK / Def Tier / Def Rank.
+    out = assign_prop_aware_def_tier(out)
+    if "DEF_TIER" in out.columns:
+        out["Def Tier"] = out["DEF_TIER"]
+    if "OVERALL_DEF_RANK" in out.columns:
+        out["Def Rank"] = out["OVERALL_DEF_RANK"]
+
     return out
 
 
@@ -296,7 +353,7 @@ def main() -> int:
 
     inp = Path(args.input).resolve()
     out = Path(args.output or inp).resolve()
-    df = pd.read_excel(inp, engine="openpyxl")
+    df = read_table(inp, sheet_order=("Soccer", "ALL"))
     if df.empty:
         print(f"[enrich] empty input: {inp}")
         return 1
@@ -329,6 +386,7 @@ def main() -> int:
 
     out.parent.mkdir(parents=True, exist_ok=True)
     merged.to_excel(out, index=False, engine="openpyxl")
+    write_parquet_sidecar(merged, out)
     print(f"[enrich] {inp.name} -> {out.name}  rows={len(merged):,}  Def Tier={tier_fill:,}  Opp Pace={pace_fill:,}")
     return 0
 

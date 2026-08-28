@@ -35,6 +35,7 @@ else:
     raise RuntimeError("Could not locate repo root")
 
 from scripts.l10_streak_utils import finalize_l10_ui_columns
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 
@@ -224,7 +225,7 @@ def main() -> None:
         inp = root / inp
 
     print("[Golf step8] Starting...")
-    df = pd.read_excel(inp, sheet_name=args.sheet, dtype=str).fillna("")
+    df = read_table_str(inp, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
     if df.empty:
         print("ERROR [Golf-S8] Empty input — aborting.")
         sys.exit(1)
@@ -297,6 +298,7 @@ def main() -> None:
     if not xlsx_path.is_absolute():
         xlsx_path = root / xlsx_path
     build_clean_xlsx(out, str(xlsx_path))
+    write_parquet_sidecars(out, str(csv_path), str(xlsx_path))
 
     try:
         repo_root = Path(__file__).resolve().parents[3]
@@ -305,6 +307,7 @@ def main() -> None:
         dated_xlsx = dated_dir / f"step8_golf_direction_clean_{target_str}.xlsx"
         if xlsx_path.is_file():
             shutil.copy2(xlsx_path, dated_xlsx)
+            copy_parquet_sidecar(xlsx_path, dated_xlsx)
             print(f"[Golf step8] Dated clean workbook → {dated_xlsx}")
     except Exception as e:
         print(f"[Golf step8] WARN dated copy skipped: {e}")

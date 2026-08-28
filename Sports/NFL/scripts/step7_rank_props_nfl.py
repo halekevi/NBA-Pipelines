@@ -26,8 +26,15 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 from utils.consistency_grade_scores import apply_consistency_grade_scores
-from utils.defense_tiers import def_tier_from_overall_rank
 from utils.group_rank_tier import assign_tier_column, report_goblin_demon_standard_line_fill
+from utils.nfl_prop_defense import assign_prop_aware_def_tier, snap_pct_to_minutes_tier
+from proporacle.data.table_io import write_parquet_sidecar
+from utils.nflp_playing_time import (
+    POLICY_BACKUP,
+    apply_nflp_playing_time,
+    d_aligned_side,
+    is_nflp,
+)
 
 
 def _num(s: pd.Series) -> pd.Series:
@@ -52,6 +59,7 @@ def main() -> None:
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame().to_excel(out, sheet_name="ALL", index=False)
+        write_parquet_sidecar(pd.DataFrame(), out)
         print(f"[NFL step7] Wrote empty {out}")
         return
 
@@ -87,33 +95,73 @@ def main() -> None:
     hr_adj = np.where(hr_adj > 1.5, hr_adj / 100.0, hr_adj)
     df["hit_rate"] = np.clip(hr_adj, 0.35, 0.92)
 
-    opp_rnk = _num(df["opp_pass_def_rank"]) if "opp_pass_def_rank" in df.columns else pd.Series(np.nan, index=df.index)
-    df["opp_pass_def_rank"] = opp_rnk
-    def _opp_def_lbl(r: object) -> str:
-        if pd.isna(r):
-            return "UNKNOWN"
-        try:
-            return def_tier_from_overall_rank(int(float(r)), 32)
-        except (TypeError, ValueError):
-            return "UNKNOWN"
-
-    df["def_tier"] = df["opp_pass_def_rank"].apply(_opp_def_lbl)
+    # Prop-aware D: pass→pass_def, rush→rush_def, receiving→pass (coverage).
+    df = assign_prop_aware_def_tier(df, prop_col=prop_col, n_teams=32)
+    opp_rnk = _num(df["opp_def_rank_prop"]) if "opp_def_rank_prop" in df.columns else pd.Series(np.nan, index=df.index)
+    df["opp_def_rank_prop"] = opp_rnk
+    # Keep pass column for backward compat; ranking uses prop-aware rank.
+    if "opp_pass_def_rank" not in df.columns:
+        df["opp_pass_def_rank"] = opp_rnk
 
     base = 4.0 + 6.0 * pd.Series(df["hit_rate"], dtype=float)
     edge_bonus = (df["abs_edge"].fillna(0) / 10.0).clip(0, 1.5)
     rank_pts = base + edge_bonus
-    if "opp_pass_def_rank" in df.columns:
-        rank_pts = rank_pts + (32.0 - df["opp_pass_def_rank"].clip(1, 32)) / 80.0
+    if opp_rnk.notna().any():
+        rank_pts = rank_pts + (32.0 - opp_rnk.clip(1, 32)) / 80.0
     df["prop_score"] = rank_pts
     df["rank_score"] = rank_pts
+
+    # Snap % → minutes_tier soft when step4c (or cache) populated; else UNKNOWN.
+    snap = _col_series("snap_pct_L3", "snap_pct_season", "snap_pct")
+    if "minutes_tier" not in df.columns or df["minutes_tier"].isna().all():
+        df["minutes_tier"] = snap.apply(snap_pct_to_minutes_tier)
+    else:
+        # Fill blanks only
+        blank = df["minutes_tier"].astype(str).str.strip().isin(["", "nan", "None", "UNKNOWN"])
+        df.loc[blank, "minutes_tier"] = snap.loc[blank].apply(snap_pct_to_minutes_tier)
+
+    df = apply_nflp_playing_time(df)
 
     ts = df.get("start_time", df.get("game_time", ""))
     df["start_time"] = ts
     df["game_time"] = ts
 
     dir_u = np.where(df["edge"].fillna(0) >= 0, "OVER", "UNDER")
-    df["recommended_side"] = dir_u
-    df["bet_direction"] = dir_u
+    # NFLP backups: 1–2 junk 2025 games (0 pass yards as an emergency) should
+    # not flip the side off D. Weak|Below → OVER, Elite|Above → UNDER.
+    games_used = _num(_col_series("games_used"))
+    league_s = _col_series("league", "League")
+    league_id_s = _col_series("league_id")
+    def_s = _col_series("def_tier", "Def Tier")
+    pol_s = df["starter_policy"] if "starter_policy" in df.columns else pd.Series("", index=df.index)
+    sides: list[str] = []
+    proj_out = df["projection"].tolist()
+    edge_out = df["edge"].tolist()
+    line_s = line
+    for idx, (i, base_side) in enumerate(zip(df.index, dir_u.tolist())):
+        side = str(base_side)
+        pol = str(pol_s.at[i] if i in pol_s.index else "")
+        lg = league_s.at[i] if i in league_s.index else ""
+        lid = league_id_s.at[i] if i in league_id_s.index else ""
+        if is_nflp(lg, lid) and pol == POLICY_BACKUP:
+            n_g = games_used.at[i] if i in games_used.index else float("nan")
+            thin = n_g != n_g or float(n_g) < 5
+            d_side = d_aligned_side(def_s.at[i] if i in def_s.index else "")
+            if thin and d_side:
+                side = d_side
+            # Don't let 1–2 emergency 2025 boxes (0 pass yards) become the
+            # projection. L5 columns still show the raw sample.
+            if thin:
+                ln_i = line_s.at[i] if i in line_s.index else float("nan")
+                if ln_i == ln_i:
+                    proj_out[idx] = ln_i
+                    edge_out[idx] = 0.0
+        sides.append(side)
+    df["projection"] = proj_out
+    df["edge"] = edge_out
+    df["abs_edge"] = pd.Series(edge_out, index=df.index).abs()
+    df["recommended_side"] = sides
+    df["bet_direction"] = sides
 
     df["ml_prob"] = pd.to_numeric(df["hit_rate"], errors="coerce").clip(0.35, 0.92)
     apply_consistency_grade_scores(df, "NFL")
@@ -135,7 +183,10 @@ def main() -> None:
     with pd.ExcelWriter(out_path, engine="openpyxl") as w:
         df.to_excel(w, sheet_name="ALL", index=False)
         elig.to_excel(w, sheet_name="ELIGIBLE", index=False)
+    write_parquet_sidecar(df, out_path)
+    tier_counts = df["def_tier"].astype(str).value_counts().to_dict()
     print(f"[NFL step7] Wrote {out_path} rows={len(df)} (ALL), eligible={len(elig)}")
+    print(f"[NFL step7] prop-aware def_tier: {tier_counts}")
 
 
 if __name__ == "__main__":

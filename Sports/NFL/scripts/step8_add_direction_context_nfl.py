@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-# NFL SCAFFOLD — inactive until September 2026
 """
 NFL step8 — formatted direction workbook for combined_slate_tickets / web UI.
 
-Reads step7_nfl_ranked.xlsx (ALL), writes step8_nfl_direction_clean.xlsx with display columns.
+NFL (PrizePicks 9) and NFLP preseason (44) share this sheet. Defense ranks
+are the last completed regular season until the new year has a full table.
+
+Reads step7_nfl_ranked.xlsx (ALL), writes step8_nfl_direction_clean.xlsx.
 
 Run from NFL/ with NFL_PIPELINE_ACTIVE=1.
 """
@@ -22,20 +24,28 @@ import pandas as pd
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
+_REPO = Path(__file__).resolve().parents[3]
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
 
 from _nfl_pipeline_active import require_nfl_pipeline_active_or_exit
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table, table_exists
 
 
 def _copy_dated(out_xlsx: Path, slate_date: str) -> None:
     if not out_xlsx.is_file():
         return
     d = (slate_date or "").strip() or date.today().isoformat()
-    repo_root = Path(__file__).resolve().parent.parent
-    for dated_dir in (repo_root / "outputs" / d, repo_root / "NFL" / "data" / "outputs" / d):
+    repo_root = Path(__file__).resolve().parents[3]
+    for dated_dir in (
+        repo_root / "outputs" / d / "nfl",
+        Path(__file__).resolve().parents[1] / "outputs" / d,
+    ):
         try:
             dated_dir.mkdir(parents=True, exist_ok=True)
             dst = dated_dir / f"step8_nfl_direction_clean_{d}.xlsx"
             shutil.copy2(out_xlsx, dst)
+            copy_parquet_sidecar(out_xlsx, dst)
             print(f"[NFL step8] Dated copy -> {dst}")
         except Exception as e:
             print(f"[NFL step8] WARN dated copy: {e}")
@@ -52,15 +62,16 @@ def main() -> None:
     args = ap.parse_args()
 
     src = Path(args.input)
-    if not src.is_file():
+    if not table_exists(src):
         print(f"[NFL step8] Missing input: {src}")
         sys.exit(1)
 
-    df = pd.read_excel(src, sheet_name=args.sheet, engine="openpyxl")
+    df = read_table(src, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
     _repo = Path(__file__).resolve().parents[3]
     if str(_repo) not in sys.path:
         sys.path.insert(0, str(_repo))
     from utils.hit_tracking_columns import attach_hit_tracking_columns
+    from utils.nfl_prop_defense import fill_opp_team_from_game, prop_def_axis
 
     if not df.empty:
         work = df.copy()
@@ -77,11 +88,13 @@ def main() -> None:
                     work["final_bet_direction"] = work[c]
                     break
         df = attach_hit_tracking_columns(work, "NFL")
+        df = fill_opp_team_from_game(df)
 
     if df.empty:
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame().to_excel(out, sheet_name="ALL", index=False)
+        write_parquet_sidecar(pd.DataFrame(), out)
         print(f"[NFL step8] Wrote empty {out}")
         return
 
@@ -96,7 +109,7 @@ def main() -> None:
     rs = pd.to_numeric(col("rank_score", "prop_score"), errors="coerce")
     pos = col("position_group", "pos")
     team = col("team")
-    opp = col("opp_team", "opponent")
+    opp = col("opp_team", "opponent", "opp")
     gt = col("start_time", "game_time")
     prop = col("stat_type", "prop_type", "prop_type_normalized")
     pt = col("pick_type")
@@ -107,7 +120,12 @@ def main() -> None:
     hr = pd.to_numeric(col("hit_rate", "composite_hit_rate"), errors="coerce")
     l5o = pd.to_numeric(col("l5_over", "last5_over"), errors="coerce")
     l5u = pd.to_numeric(col("l5_under", "last5_under"), errors="coerce")
-    dtr = col("def_tier")
+    dtr = col("def_tier", "DEF_TIER")
+    drk = pd.to_numeric(col("OVERALL_DEF_RANK", "opp_def_rank_prop", "def_rank"), errors="coerce")
+    opp_pass_rk = pd.to_numeric(col("opp_pass_def_rank"), errors="coerce")
+    opp_rush_rk = pd.to_numeric(col("opp_rush_def_rank"), errors="coerce")
+    opp_fg_rk = pd.to_numeric(col("opp_fg_def_rank"), errors="coerce")
+    axis = prop.map(prop_def_axis)
     tm_l5_rec = col("team_last5_record")
     tm_l5_pf = pd.to_numeric(col("team_last5_pf_pg"), errors="coerce")
     tm_l5_pa = pd.to_numeric(col("team_last5_pa_pg"), errors="coerce")
@@ -157,6 +175,16 @@ def main() -> None:
             "Opp L5 PA/G": op_l5_pa.round(1),
             "Opp L5 +/-": op_l5_pm.round(1),
             "Def Tier": dtr,
+            "Def Rank": drk,
+            "Def Axis": axis,
+            "Opp Pass Def Rank": opp_pass_rk,
+            "Opp Rush Def Rank": opp_rush_rk,
+            "Opp FG Def Rank": opp_fg_rk,
+            "League": col("league"),
+            "Snap L3": pd.to_numeric(col("snap_pct_L3", "snap_pct_season"), errors="coerce"),
+            "Starter Policy": col("starter_policy"),
+            "Expected Snaps": col("expected_snaps"),
+            "Minutes Tier": col("minutes_tier"),
         }
     )
 
@@ -173,10 +201,17 @@ def main() -> None:
     d_prev = clean["Direction"].astype(str).str.upper().str.strip().replace("", "OVER")
     e_num = pd.to_numeric(clean["Edge"], errors="coerce")
     from_side = np.where(e_num >= 0, "OVER", "UNDER")
+    # NFLP backups: keep step7 D-aligned side. Thin 2025 samples (0 yards in
+    # two emergency games) should not flip a Weak-D over into an under.
+    backup = clean.get("Starter Policy", pd.Series("", index=clean.index)).astype(str).str.lower().eq("backup")
     clean["Direction"] = np.where(
         forced_rows.to_numpy(),
         "OVER",
-        np.where(has_pl.to_numpy(), from_side, d_prev.to_numpy()),
+        np.where(
+            backup.to_numpy(),
+            d_prev.to_numpy(),
+            np.where(has_pl.to_numpy(), from_side, d_prev.to_numpy()),
+        ),
     )
 
     out_path = Path(args.output)
@@ -188,6 +223,7 @@ def main() -> None:
             if len(sub):
                 sub.to_excel(w, sheet_name=f"Tier {t}", index=False)
     print(f"[NFL step8] Wrote {out_path} rows={len(clean)}")
+    write_parquet_sidecar(clean, out_path)
     _copy_dated(out_path, str(args.date or "").strip())
 
 

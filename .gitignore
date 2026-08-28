@@ -65,6 +65,7 @@ Sports/*/logs/
 *.db
 *.sqlite
 *.sqlite3
+*.parquet
 
 # SQLite databases — local only, not synced to OneDrive
 data/cache/

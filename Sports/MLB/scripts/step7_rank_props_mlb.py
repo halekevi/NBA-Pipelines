@@ -34,12 +34,17 @@ _MLB_REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(_MLB_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_MLB_REPO_ROOT))
 from utils.consistency_grade_scores import apply_consistency_grade_scores  # noqa: E402
+from utils.mlb_starter_k9 import (  # noqa: E402
+    hitter_k_soft_bump,
+    resolve_hitter_k_soft_k9,
+)
 from utils.group_rank_tier import (  # noqa: E402
     _resolve_ml_prob_cuts,
     assign_tier_column,
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
+from proporacle.data.table_io import write_parquet_sidecar
 
 # ── step_archive lazy import ──────────────────────────────────────────────────
 _sa_scripts_dir = str(Path(__file__).resolve().parents[3] / "scripts")
@@ -120,6 +125,11 @@ _PROP_WEIGHTS = {
     "walks_allowed":   0.97,
     "earned_runs":     0.92,   # ER very noisy
     "pitches_thrown":  1.04,
+    "strikes_thrown":  1.03,
+    "balls_thrown":    1.02,
+    "pitches_thrown_95": 0.96,
+    "strikeouts_combo": 1.10,
+    "strikeouts_total_bases": 1.06,
 
     # Hitter
     "hits":            1.05,
@@ -135,6 +145,10 @@ _PROP_WEIGHTS = {
     "home_runs":       0.85,   # HR very high variance
     "fantasy_score":   1.00,
     "hitter_strikeouts": 0.96,
+    "pitches_seen":    1.03,
+    "balls_counted":   1.00,
+    "strikes_counted": 1.02,
+    "plate_appearances": 1.04,
 }
 
 def _prop_weight(prop_norm: str) -> float:
@@ -153,6 +167,11 @@ _PROP_HIT_RATE_PRIOR = {
     "walks_allowed":   0.520,
     "earned_runs":     0.490,
     "pitches_thrown":  0.565,
+    "strikes_thrown":  0.555,
+    "balls_thrown":    0.545,
+    "pitches_thrown_95": 0.520,
+    "strikeouts_combo": 0.630,
+    "strikeouts_total_bases": 0.560,
 
     # Hitter
     "hits":            0.570,
@@ -170,6 +189,10 @@ _PROP_HIT_RATE_PRIOR = {
     "triples":         0.450,
     "home_runs":       0.470,
     "hitter_strikeouts": 0.520,
+    "pitches_seen":    0.555,
+    "balls_counted":   0.540,
+    "strikes_counted": 0.545,
+    "plate_appearances": 0.560,
 }
 
 def _prop_hit_rate_prior(prop_norm: str, direction: str) -> float:
@@ -423,6 +446,8 @@ def _prop_def_rank(row: pd.Series) -> float:
         return _safe_float(row.get("RUNS_ALLOWED_RANK", np.nan))
     if prop in _PITCHER_ALLOW_PROPS:
         return _safe_float(row.get("HITS_ALLOWED_RANK", row.get("RUNS_ALLOWED_RANK", np.nan)))
+    if prop in {"strikeouts", "pitcher_strikeouts", "pitching_strikeouts", "ks"}:
+        return np.nan
     return _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
 
 
@@ -459,6 +484,12 @@ def _context_projection_bump(row: pd.Series, *, n_teams: int = 30) -> float:
         if not np.isnan(pf_so):
             k_bump = float(np.clip((pf_so - 100.0) / 10.0 * 0.03, -0.03, 0.03))
             bump += k_bump if direction == "OVER" else -k_bump
+        # Starter K/9 soft (vs-hand preferred); does not override staff-tier D invert.
+        k9 = resolve_hitter_k_soft_k9(
+            vs_hand_k9=row.get("opp_pitcher_k9_vs_batter_hand"),
+            season_k9=row.get("opp_starter_k9"),
+        )
+        bump += hitter_k_soft_bump(k9, direction, weight=0.025)
 
     starter_era = _safe_float(row.get("opp_starter_era"))
     if not np.isnan(starter_era) and not is_pitcher and prop in _OFFENSE_HIT_PROPS:
@@ -501,6 +532,14 @@ def _context_hit_rate_prior(row: pd.Series, *, n_teams: int = 30) -> float:
             base += 0.04 if direction == "OVER" else -0.04
         elif starter_era <= ELITE_STARTER_ERA_FADE_MAX:
             base += -0.04 if direction == "OVER" else 0.04
+
+    if prop == "hitter_strikeouts":
+        k9 = resolve_hitter_k_soft_k9(
+            vs_hand_k9=row.get("opp_pitcher_k9_vs_batter_hand"),
+            season_k9=row.get("opp_starter_k9"),
+        )
+        # Soft prior only — staff D invert untouched.
+        base += hitter_k_soft_bump(k9, direction, weight=0.04)
 
     return float(np.clip(base, 0.05, 0.95))
 
@@ -770,6 +809,23 @@ def main() -> None:
         "hitterstrikeouts":   "hitter_strikeouts",
         "pitches thrown":     "pitches_thrown",
         "pitchesthrown":      "pitches_thrown",
+        "pitches seen":       "pitches_seen",
+        "pitchesseen":        "pitches_seen",
+        "balls counted":      "balls_counted",
+        "ballscounted":       "balls_counted",
+        "strikes counted":    "strikes_counted",
+        "strikescounted":     "strikes_counted",
+        "balls thrown":       "balls_thrown",
+        "ballsthrown":        "balls_thrown",
+        "strikes thrown":     "strikes_thrown",
+        "strikesthrown":      "strikes_thrown",
+        "pitches thrown 95+ mph": "pitches_thrown_95",
+        "pitchesthrown95mph": "pitches_thrown_95",
+        "pitchesthrown95+mph": "pitches_thrown_95",
+        "pitcher strikeouts (combo)": "strikeouts_combo",
+        "pitcherstrikeouts(combo)": "strikeouts_combo",
+        "pitcher strikeouts + total bases": "strikeouts_total_bases",
+        "pitcherstrikeouts+totalbases": "strikeouts_total_bases",
     }
     out["prop_norm"] = out["prop_norm"].astype(str).str.lower().str.strip().map(
         lambda x: _PROP_NORM_MAP.get(x, x)
@@ -1057,6 +1113,7 @@ def main() -> None:
         out.to_excel(w, sheet_name="ALL",      index=False)
         out.loc[elig_mask].to_excel(w, sheet_name="ELIGIBLE", index=False)
 
+    write_parquet_sidecar(out, args.output)
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows: {len(out)}")
     print("\nTier counts:"); print(out["tier"].value_counts().to_string())

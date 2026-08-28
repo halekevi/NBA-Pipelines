@@ -11,6 +11,7 @@ Improvements over original:
 - line_hit_rate_over_ou_10 (last 10 vs line, excl push)  ← NEW
 - line_hit_rate_over_5 / line_hit_rate_under_5
 - MIN averages: min_last5_avg, min_season_avg
+- minutes_tier from real MPG (NBA bands: <=20 LOW, <=30 MEDIUM, else HIGH)
 - Matches by espn_athlete_id first, then player_norm fallback
 
 Input : step2_normalized_cbb.csv  (or step5_with_espn_ids.csv)
@@ -38,6 +39,7 @@ if str(_PROPORACLE_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROPORACLE_ROOT))
 
 from scripts.db_utils import log_pipeline_health
+from scripts.espn_boxscore_cache import load_boxscore_cache, save_boxscore_cache, sport_key_from_espn_league
 
 HEADERS = {"User-Agent": "Mozilla/5.0", "Accept": "application/json, text/plain, */*"}
 ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/{league}/scoreboard"
@@ -297,13 +299,14 @@ def build_player_histories(
     """
     import os
 
-    # Phase 0: load cache
+    # Phase 0: load cache (SQLite first; CSV is backfill only)
     cached_rows: List[dict] = []
     cached_eids: set = set()
-    if cache_path and os.path.exists(cache_path):
+    cache_source = "empty"
+    sport_key = sport_key_from_espn_league(ESPN_LEAGUE)
+    if cache_path:
         try:
-            cache_df = pd.read_csv(cache_path, dtype=str).fillna("")
-            cached_rows = cache_df.to_dict("records")
+            cached_rows, cache_source = load_boxscore_cache(sport_key, cache_path)
             stale_eids: set = set()
             for rr in cached_rows:
                 has_opp = (
@@ -324,6 +327,7 @@ def build_player_histories(
         except Exception as e:
             print(f"  [CACHE] Load failed ({e}) — full refresh")
             cached_rows, cached_eids = [], set()
+            cache_source = "empty"
     # Phase 1: scoreboards
     all_events: List[Tuple[str, str, str, str]] = []
     seen_eids: set = set()
@@ -378,10 +382,9 @@ def build_player_histories(
             if not rr.get("opp_team_abbr"):
                 opp_id = str(rr.get("opp_team_id", "")).strip()
                 rr["opp_team_abbr"] = tid_to_abbr.get(opp_id, opp_id)
-    if cache_path and new_rows:
+    if cache_path and all_rows:
         try:
-            pd.DataFrame(all_rows).to_csv(cache_path, index=False)
-            print(f"  [CACHE] Saved {len(all_rows)} rows -> {cache_path}")
+            save_boxscore_cache(sport_key, all_rows, cache_path, cache_source)
         except Exception as e:
             print(f"  [CACHE] Save failed: {e}")
 
@@ -604,6 +607,10 @@ def main():
         min5 = min_vals[:5]
         o["min_last5_avg"]   = round(sum(min5)    / len(min5),    1) if min5    else ""
         o["min_season_avg"]  = round(sum(min_vals) / len(min_vals), 1) if min_vals else ""
+        # NBA-band minutes_tier from real MPG (not prop averages)
+        from utils.basketball_minutes_tier import tier_minutes_from_mpg
+        mpg = o["min_last5_avg"] if o["min_last5_avg"] != "" else o["min_season_avg"]
+        o["minutes_tier"] = tier_minutes_from_mpg(mpg if mpg != "" else float("nan"))
 
         # hit rates vs line
         if pd.notna(line):

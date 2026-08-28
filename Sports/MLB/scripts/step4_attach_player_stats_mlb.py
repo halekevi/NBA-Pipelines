@@ -9,10 +9,15 @@ Pulls last-N game stats from the official MLB Stats API:
 Handles:
   - Hitter props: hits, total_bases, home_runs, rbi, runs, walks,
                   stolen_bases, fantasy_score, hits_runs_rbi, singles, doubles, triples,
-                  hitter_strikeouts (game log strikeOuts)
+                  hitter_strikeouts (game log strikeOuts), plate_appearances,
+                  pitches_seen (numberOfPitches), balls_counted / strikes_counted (PBP)
   - Pitcher props: strikeouts, pitching_outs, innings_pitched, hits_allowed,
                    earned_runs, walks_allowed, batters_faced, pitches_thrown (numberOfPitches),
+                   strikes_thrown / balls_thrown (game log), pitches_thrown_95 (PBP >= 95 mph),
                    first_inning_runs_allowed, first_inning_walks_allowed (PBP feed/live)
+  - Combo pitcher Ks: strikeouts_combo aliases to strikeouts and sums both arms
+  - Pitcher Strikeouts + Total Bases: same-game Ks+TB for one player; recency
+    sum of pitcher Ks + hitter TB for two-player combos
 
 Outputs:
   step4_mlb_with_stats.csv
@@ -31,7 +36,7 @@ import argparse
 import random
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from functools import lru_cache
@@ -47,8 +52,13 @@ for _p in (_PROPORACLE_ROOT, _SCRIPTS_ROOT):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from scripts.db_utils import ensure_mlb_schema, log_pipeline_health, open_db, upsert_rows
-from utils.allstar_filter import drop_allstar_game_rows, is_allstar_date, is_allstar_team
+from scripts.db_utils import (
+    ensure_mlb_schema,
+    log_pipeline_health,
+    mlb_gamelog_counts,
+    open_db,
+    upsert_rows,
+)
 from utils.pipeline_dated_outputs import copy_pipeline_output_to_dated_dirs
 
 COMBO_SEP = "|"
@@ -75,23 +85,31 @@ PITCHER_PROPS = {
     "hits_allowed", "earned_runs", "walks_allowed", "batters_faced",
     "pitches_thrown", "pitcher_fantasy_score",
     "first_inning_runs_allowed", "first_inning_walks_allowed",
+    "balls_thrown", "strikes_thrown", "pitches_thrown_95",
 }
 
 PROP_ALIASES = {
     # Safe aliases: preserve existing stat derivations/cache shape.
     "hitter_fantasy_score": "fantasy_score",
     "earned_runs_allowed": "earned_runs",
+    "strikeouts_combo": "strikeouts",
 }
 
-UNSUPPORTED_PROPS = {
-    "strikeouts_combo",
-    "strikeouts_total_bases",
-}
+# Pitch-level stats that need feed/live playEvents. Empty cache rows are skipped
+# so a failed fetch can retry on the next run.
+PBP_PROPS = frozenset({
+    "balls_counted",
+    "strikes_counted",
+    "pitches_thrown_95",
+})
+
+UNSUPPORTED_PROPS: set[str] = set()
 
 _WARNED_UNSUPPORTED_PROPS: set[str] = set()
 _WARNED_PITCHER_WIN_FALLBACK: set[tuple[str, str]] = set()
 _PITCHER_WIN_FIELD_AVAILABLE: dict[tuple[str, str], bool] = {}
 _FIRST_INNING_BY_GAME: Dict[str, Dict[str, Dict[str, float]]] = {}
+_LIVE_FEED_STATS_BY_GAME: Dict[str, dict] = {}
 
 # MLB Stats API teamId values (regular season). Common slate abbreviations included.
 MLB_TEAM_ID_MAP: Dict[str, int] = {
@@ -231,14 +249,14 @@ def attach_mlb_b2b_columns(df: pd.DataFrame, season: int, sport_label: str = "ML
     return out
 
 
-def _sleep(base: float = 0.4) -> None:
-    time.sleep(max(0.0, base + random.uniform(0, 0.3)))
+def _sleep(base: float = 0.2) -> None:
+    time.sleep(max(0.0, base + random.uniform(0, 0.15)))
 
 
 def _get(url: str, retries: int = 3) -> Optional[dict]:
     for attempt in range(1, retries + 1):
         try:
-            _sleep(0.4)
+            _sleep()
             r = requests.get(url, headers=MLB_HEADERS, timeout=20)
             if r.status_code == 404:
                 return None
@@ -345,6 +363,71 @@ def _parse_first_inning_pitcher_stats(feed: dict) -> Dict[str, Dict[str, float]]
     return out
 
 
+def _parse_pitch_level_from_feed(feed: dict) -> Dict[str, Dict[str, Dict[str, float]]]:
+    """Per-player balls/strikes/pitches-seen and 95+ mph counts from feed/live playEvents."""
+    pitcher: Dict[str, Dict[str, float]] = {}
+    hitter: Dict[str, Dict[str, float]] = {}
+    plays = (feed.get("liveData") or {}).get("plays", {}).get("allPlays") or []
+    for play in plays:
+        matchup = play.get("matchup") or {}
+        batter_id = str((matchup.get("batter") or {}).get("id") or "").strip()
+        pitcher_id = str((matchup.get("pitcher") or {}).get("id") or "").strip()
+        for ev in play.get("playEvents") or []:
+            if not ev.get("isPitch"):
+                continue
+            details = ev.get("details") or {}
+            is_ball = bool(details.get("isBall"))
+            is_strike = bool(details.get("isStrike")) or bool(details.get("isInPlay"))
+            speed_raw = (ev.get("pitchData") or {}).get("startSpeed")
+            try:
+                speed = float(speed_raw) if speed_raw is not None else None
+            except (TypeError, ValueError):
+                speed = None
+            if pitcher_id:
+                rec = pitcher.setdefault(
+                    pitcher_id,
+                    {"balls_thrown": 0.0, "strikes_thrown": 0.0, "pitches_thrown_95": 0.0},
+                )
+                if is_ball:
+                    rec["balls_thrown"] += 1.0
+                if is_strike:
+                    rec["strikes_thrown"] += 1.0
+                if speed is not None and speed >= 95.0:
+                    rec["pitches_thrown_95"] += 1.0
+            if batter_id:
+                rec = hitter.setdefault(
+                    batter_id,
+                    {"pitches_seen": 0.0, "balls_counted": 0.0, "strikes_counted": 0.0},
+                )
+                rec["pitches_seen"] += 1.0
+                if is_ball:
+                    rec["balls_counted"] += 1.0
+                if is_strike:
+                    rec["strikes_counted"] += 1.0
+    return {"pitcher": pitcher, "hitter": hitter}
+
+
+def fetch_live_feed_stats(game_pk: str) -> dict:
+    """Fetch and cache first-inning + pitch-level stats for a gamePk."""
+    key = str(game_pk or "").strip()
+    if not key:
+        return {"first_inning": {}, "pitcher": {}, "hitter": {}}
+    if key in _LIVE_FEED_STATS_BY_GAME:
+        return _LIVE_FEED_STATS_BY_GAME[key]
+    url = LIVE_FEED_URL.format(game_pk=key)
+    data = _get(url) or {}
+    pitch = _parse_pitch_level_from_feed(data)
+    parsed = {
+        "first_inning": _parse_first_inning_pitcher_stats(data),
+        "pitcher": pitch.get("pitcher") or {},
+        "hitter": pitch.get("hitter") or {},
+    }
+    _LIVE_FEED_STATS_BY_GAME[key] = parsed
+    _FIRST_INNING_BY_GAME[key] = parsed["first_inning"]
+    time.sleep(0.12)
+    return parsed
+
+
 def fetch_first_inning_pitcher_stats(game_pk: str) -> Dict[str, Dict[str, float]]:
     """Fetch and cache inning-1 pitcher stats for a gamePk."""
     key = str(game_pk or "").strip()
@@ -352,12 +435,20 @@ def fetch_first_inning_pitcher_stats(game_pk: str) -> Dict[str, Dict[str, float]
         return {}
     if key in _FIRST_INNING_BY_GAME:
         return _FIRST_INNING_BY_GAME[key]
-    url = LIVE_FEED_URL.format(game_pk=key)
-    data = _get(url)
-    parsed = _parse_first_inning_pitcher_stats(data or {})
-    _FIRST_INNING_BY_GAME[key] = parsed
-    time.sleep(0.12)
-    return parsed
+    return fetch_live_feed_stats(key).get("first_inning") or {}
+
+
+def _pitch_level_stat(game: dict, role: str, pid: str, key: str) -> float:
+    game_pk = str((game.get("game") or {}).get("gamePk", "")).strip()
+    if not game_pk or not pid:
+        return np.nan
+    rec = ((fetch_live_feed_stats(game_pk).get(role) or {}).get(pid) or {})
+    if key not in rec:
+        return np.nan
+    try:
+        return float(rec[key])
+    except (TypeError, ValueError):
+        return np.nan
 
 
 def _pitcher_id_from_split(split: dict) -> str:
@@ -415,8 +506,14 @@ def derive_hitter_stat(game: dict, prop_norm: str) -> float:
         "triples":             t3,
         "hitter_strikeouts":   h_so,
         "plate_appearances":   pa,
+        "pitches_seen":        g("numberOfPitches", 0),
     }
-    return mapping.get(prop_norm, np.nan)
+    if prop_norm in mapping:
+        return mapping[prop_norm]
+    if prop_norm in ("balls_counted", "strikes_counted"):
+        pid = str((game.get("player") or {}).get("id") or "").strip()
+        return _pitch_level_stat(game, "hitter", pid, prop_norm)
+    return np.nan
 
 
 def derive_pitcher_stat(game: dict, prop_norm: str) -> float:
@@ -459,6 +556,10 @@ def derive_pitcher_stat(game: dict, prop_norm: str) -> float:
         return 0.0
 
     pitches = _pitch_count()
+    strikes = g("strikes", np.nan)
+    if strikes != strikes:  # NaN
+        strikes = 0.0
+    balls_thrown = max(0.0, float(pitches) - float(strikes))
     ha        = g("hits",            0)
     er        = g("earnedRuns",      0)
     bb        = g("baseOnBalls",     0)
@@ -482,9 +583,16 @@ def derive_pitcher_stat(game: dict, prop_norm: str) -> float:
         "walks_allowed":   bb,
         "batters_faced":   bf,
         "pitches_thrown":  pitches,
+        "strikes_thrown":  float(strikes),
+        "balls_thrown":    balls_thrown,
         "pitcher_fantasy_score": pitcher_fantasy,
     }
-    return mapping.get(prop_norm, np.nan)
+    if prop_norm in mapping:
+        return mapping[prop_norm]
+    if prop_norm == "pitches_thrown_95":
+        pid = _pitcher_id_from_split(game)
+        return _pitch_level_stat(game, "pitcher", pid, "pitches_thrown_95")
+    return np.nan
 
 
 # ── Cache management ──────────────────────────────────────────────────────────
@@ -495,27 +603,263 @@ CACHE_COLS = [
     "TEAM_ID", "OPP_TEAM_ID",
 ]
 
-def load_cache(path: Path) -> pd.DataFrame:
-    if path.exists():
-        try:
-            df = pd.read_csv(path, dtype=str, low_memory=False).fillna("")
-            # Backward-compatible cache schema upgrades.
-            for c in CACHE_COLS:
-                if c not in df.columns:
-                    df[c] = ""
-            print(f"  Loaded cache: {len(df)} rows from {path.name}")
-            return df
-        except Exception as e:
-            print(f"  ⚠️ Could not load cache: {e}")
+def _load_cache_csv(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame(columns=CACHE_COLS)
+    try:
+        df = pd.read_csv(path, dtype=str, low_memory=False).fillna("")
+        for c in CACHE_COLS:
+            if c not in df.columns:
+                df[c] = ""
+        print(f"  Loaded cache: {len(df)} rows from {path.name}")
+        return df
+    except Exception as e:
+        print(f"  ⚠️ Could not load cache: {e}")
+        return pd.DataFrame(columns=CACHE_COLS)
+
+
+def _load_cache_db(
+    con,
+    *,
+    player_ids: list[str] | None = None,
+    seasons: list[str] | None = None,
+) -> pd.DataFrame:
+    q = """
+    SELECT mlb_player_id AS MLB_PLAYER_ID,
+           season AS SEASON,
+           game_date AS GAME_DATE,
+           game_id AS GAME_ID,
+           COALESCE(player_type,'') AS PLAYER_TYPE,
+           prop_norm AS PROP_NORM,
+           COALESCE(CAST(stat_value AS TEXT),'') AS STAT_VALUE,
+           COALESCE(team_id,'') AS TEAM_ID,
+           COALESCE(opp_team_id,'') AS OPP_TEAM_ID
+    FROM mlb_gamelog
+    """
+    clauses: list[str] = []
+    params: list[str] = []
+    ids = [str(p).strip() for p in (player_ids or []) if str(p).strip()]
+    seas = [str(s).strip()[:4] for s in (seasons or []) if str(s).strip()]
+    if ids:
+        # Chunked IN — sqlite variable limit. Merge frames.
+        frames: list[pd.DataFrame] = []
+        chunk = 400
+        extra = ""
+        extra_params: list[str] = []
+        if seas:
+            extra = " AND season IN (" + ",".join("?" * len(seas)) + ")"
+            extra_params = seas
+        for i in range(0, len(ids), chunk):
+            part = ids[i : i + chunk]
+            where = " WHERE mlb_player_id IN (" + ",".join("?" * len(part)) + ")" + extra
+            frames.append(pd.read_sql_query(q + where, con, params=part + extra_params, dtype=str).fillna(""))
+        df = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=CACHE_COLS)
+    else:
+        if seas:
+            clauses.append("season IN (" + ",".join("?" * len(seas)) + ")")
+            params.extend(seas)
+        if clauses:
+            q = q + " WHERE " + " AND ".join(clauses)
+        df = pd.read_sql_query(q, con, params=params, dtype=str).fillna("")
+    print(
+        f"  Loaded cache: {len(df)} rows from proporacle_ref.db mlb_gamelog"
+        + (f" (players={len(ids)})" if ids else "")
+        + (f" seasons={seas}" if seas else "")
+    )
+    return df
+
+
+def upsert_cache_to_db(con, cache: pd.DataFrame) -> int:
+    if con is None or cache is None or cache.empty:
+        return 0
+    ts = datetime.now(timezone.utc).isoformat()
+    rows: list[dict] = []
+    for rec in cache.fillna("").to_dict("records"):
+        pid = str(rec.get("MLB_PLAYER_ID", "")).strip()
+        prop = str(rec.get("PROP_NORM", "")).strip()
+        gid = str(rec.get("GAME_ID", "")).strip()
+        if not pid or not prop or not gid:
+            continue
+        stat = pd.to_numeric(rec.get("STAT_VALUE", ""), errors="coerce")
+        rows.append(
+            {
+                "mlb_player_id": pid,
+                "season": str(rec.get("SEASON", "")).strip(),
+                "game_date": str(rec.get("GAME_DATE", "")).strip()[:10],
+                "game_id": gid,
+                "player_type": str(rec.get("PLAYER_TYPE", "")).strip() or None,
+                "prop_norm": prop,
+                "stat_value": None if pd.isna(stat) else float(stat),
+                "team_id": str(rec.get("TEAM_ID", "")).strip() or None,
+                "opp_team_id": str(rec.get("OPP_TEAM_ID", "")).strip() or None,
+                "updated_at": ts,
+            }
+        )
+    n = 0
+    chunk = 5000
+    for i in range(0, len(rows), chunk):
+        n += upsert_rows(con, "mlb_gamelog", rows[i : i + chunk])
+    return n
+
+
+_MLB_CACHE_SOURCE = "csv"
+
+
+def load_cache(
+    path: Path,
+    con=None,
+    *,
+    player_ids: list[str] | None = None,
+    seasons: list[str] | None = None,
+    min_db_rows: int = 1000,
+) -> pd.DataFrame:
+    """Prefer SQLite mlb_gamelog; only parse CSV when the DB is empty/thin."""
+    global _MLB_CACHE_SOURCE
+    _MLB_CACHE_SOURCE = "csv"
+    if con is not None:
+        ensure_mlb_schema(con)
+        total, with_opp = mlb_gamelog_counts(con)
+        if total >= min_db_rows:
+            _MLB_CACHE_SOURCE = "db"
+            return _load_cache_db(con, player_ids=player_ids, seasons=seasons)
+
+    csv_df = _load_cache_csv(path)
+    if con is None:
+        return csv_df if not csv_df.empty else pd.DataFrame(columns=CACHE_COLS)
+
+    ensure_mlb_schema(con)
+    total, with_opp = mlb_gamelog_counts(con)
+    csv_has_opp = (
+        (not csv_df.empty)
+        and "OPP_TEAM_ID" in csv_df.columns
+        and (csv_df["OPP_TEAM_ID"].astype(str).str.strip() != "").any()
+    )
+    if csv_has_opp and (total == 0 or with_opp < max(int(total * 0.5), 1)):
+        print(
+            f"  Backfilling mlb_gamelog team/opp ids from CSV "
+            f"(db_rows={total} with_opp={with_opp})..."
+        )
+        n = upsert_cache_to_db(con, csv_df)
+        print(f"  Upserted {n} CSV rows → mlb_gamelog")
+        total, with_opp = mlb_gamelog_counts(con)
+
+    if total >= min_db_rows and (csv_df.empty or total >= int(len(csv_df) * 0.8)):
+        db_df = _load_cache_db(con, player_ids=player_ids, seasons=seasons)
+        if not db_df.empty:
+            _MLB_CACHE_SOURCE = "db"
+            return db_df
+    if not csv_df.empty:
+        if total == 0:
+            upsert_cache_to_db(con, csv_df)
+        return csv_df
+    if total > 0:
+        _MLB_CACHE_SOURCE = "db"
+        return _load_cache_db(con, player_ids=player_ids, seasons=seasons)
     return pd.DataFrame(columns=CACHE_COLS)
 
 
 def save_cache(cache: pd.DataFrame, path: Path) -> None:
+    if _MLB_CACHE_SOURCE == "db":
+        return
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f"{path.stem}.tmp{path.suffix}")
     cache.to_csv(tmp, index=False, encoding="utf-8-sig", lineterminator="\n")
     tmp.replace(path)
+
+
+_CACHE_SAVE_PENDING = 0
+_CACHE_INDEX: Optional["_MlbCacheIndex"] = None
+
+
+class _MlbCacheIndex:
+    """O(1) lookups over mlb_stats_cache.csv (464k+ rows). Rebuilt per player after a live refresh."""
+
+    __slots__ = ("vals", "opp_vals", "max_date")
+
+    def __init__(self, cache: pd.DataFrame):
+        self.vals: Dict[Tuple[str, str, str], List[float]] = {}
+        self.opp_vals: Dict[Tuple[str, str, str, str], List[float]] = {}
+        self.max_date: Dict[Tuple[str, str], pd.Timestamp] = {}
+        self.rebuild(cache)
+
+    def rebuild(self, cache: pd.DataFrame) -> None:
+        self.vals.clear()
+        self.opp_vals.clear()
+        self.max_date.clear()
+        if cache is None or cache.empty:
+            return
+        work = pd.DataFrame(
+            {
+                "pid": cache["MLB_PLAYER_ID"].astype(str),
+                "season": cache["SEASON"].astype(str),
+                "prop": cache["PROP_NORM"].astype(str),
+                "opp": cache["OPP_TEAM_ID"].astype(str) if "OPP_TEAM_ID" in cache.columns else "",
+                "gdate": pd.to_datetime(cache["GAME_DATE"], errors="coerce"),
+                "stat": pd.to_numeric(cache["STAT_VALUE"], errors="coerce"),
+            }
+        )
+        work = work[work["stat"].notna()]
+        if work.empty:
+            return
+        work = work.sort_values("gdate", ascending=False)
+        for (p, s, pr), grp in work.groupby(["pid", "season", "prop"], sort=False):
+            self.vals[(str(p), str(s), str(pr))] = [float(v) for v in grp["stat"].tolist()]
+        if "OPP_TEAM_ID" in cache.columns:
+            for (p, s, pr, o), grp in work.groupby(["pid", "season", "prop", "opp"], sort=False):
+                oid = str(o).strip()
+                if oid and oid.lower() != "nan":
+                    self.opp_vals[(str(p), str(s), str(pr), oid)] = [
+                        float(v) for v in grp["stat"].tolist()
+                    ]
+        mx = work.groupby(["pid", "season"], sort=False)["gdate"].max()
+        for (p, s), ts in mx.items():
+            if pd.notna(ts):
+                self.max_date[(str(p), str(s))] = pd.Timestamp(ts)
+
+    def refresh_player(self, cache: pd.DataFrame, player_id: str, season: str) -> None:
+        pid = str(player_id)
+        seas = str(season)
+        drop_keys = [k for k in self.vals if k[0] == pid and k[1] == seas]
+        for k in drop_keys:
+            del self.vals[k]
+        drop_opp = [k for k in self.opp_vals if k[0] == pid and k[1] == seas]
+        for k in drop_opp:
+            del self.opp_vals[k]
+        self.max_date.pop((pid, seas), None)
+        if cache is None or cache.empty:
+            return
+        mask = (cache["MLB_PLAYER_ID"].astype(str) == pid) & (cache["SEASON"].astype(str) == seas)
+        sub = cache.loc[mask]
+        if sub.empty:
+            return
+        gdate = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
+        stat = pd.to_numeric(sub["STAT_VALUE"], errors="coerce")
+        prop = sub["PROP_NORM"].astype(str)
+        opp = sub["OPP_TEAM_ID"].astype(str) if "OPP_TEAM_ID" in sub.columns else pd.Series("", index=sub.index)
+        work = pd.DataFrame({"prop": prop, "opp": opp, "gdate": gdate, "stat": stat})
+        work = work[work["stat"].notna()].sort_values("gdate", ascending=False)
+        if work.empty:
+            return
+        for pr, grp in work.groupby("prop", sort=False):
+            self.vals[(pid, seas, str(pr))] = [float(v) for v in grp["stat"].tolist()]
+        for (pr, o), grp in work.groupby(["prop", "opp"], sort=False):
+            oid = str(o).strip()
+            if oid and oid.lower() != "nan":
+                self.opp_vals[(pid, seas, str(pr), oid)] = [float(v) for v in grp["stat"].tolist()]
+        mx = work["gdate"].max()
+        if pd.notna(mx):
+            self.max_date[(pid, seas)] = pd.Timestamp(mx)
+
+
+def _maybe_save_cache(cache: pd.DataFrame, path: Path, *, force: bool = False) -> None:
+    """CSV is a backup dump. Durable writes go to SQLite; only flush CSV at end."""
+    global _CACHE_SAVE_PENDING
+    if not force:
+        _CACHE_SAVE_PENDING += 1
+        return
+    save_cache(cache, path)
+    _CACHE_SAVE_PENDING = 0
 
 
 def fetch_game_log(player_id: str, group: str, season: str) -> List[dict]:
@@ -623,11 +967,13 @@ def update_cache(
     prop_list = (
         ["strikeouts", "pitching_outs", "innings_pitched",
          "hits_allowed", "earned_runs", "walks_allowed", "batters_faced", "pitches_thrown",
+         "strikes_thrown", "balls_thrown", "pitches_thrown_95",
          "pitcher_fantasy_score", "first_inning_runs_allowed", "first_inning_walks_allowed"]
         if player_type == "pitcher" else
         ["hits", "total_bases", "home_runs", "rbi", "runs", "walks",
          "stolen_bases", "fantasy_score", "hits_runs_rbi", "singles", "doubles", "triples",
-         "hitter_strikeouts", "plate_appearances"]
+         "hitter_strikeouts", "plate_appearances",
+         "pitches_seen", "balls_counted", "strikes_counted"]
     )
     derive_fn = derive_pitcher_stat if player_type == "pitcher" else derive_hitter_stat
 
@@ -644,13 +990,6 @@ def update_cache(
         game_id  = str(split.get("game", {}).get("gamePk", "")).strip()
         date_str = str(split.get("date", "")).strip()
         if not game_id:
-            continue
-        # Skip All-Star break / AL-NL exhibition rows (not regular-season L5).
-        if is_allstar_date(date_str, sport="MLB"):
-            continue
-        team_abbr = str((split.get("team") or {}).get("abbreviation", "")).strip()
-        opp_abbr = str((split.get("opponent") or {}).get("abbreviation", "")).strip()
-        if is_allstar_team(team_abbr, "MLB") or is_allstar_team(opp_abbr, "MLB"):
             continue
         cached_props = cached_props_by_game.get(game_id, set())
         props_to_write = [p for p in prop_list if p not in cached_props]
@@ -688,6 +1027,15 @@ def update_cache(
                     continue
                 if prop_norm == "first_inning_walks_allowed" and v > 5:
                     continue
+                if prop_norm in ("pitches_seen", "balls_counted", "strikes_counted") and v > 80:
+                    continue
+                if prop_norm in ("balls_thrown", "strikes_thrown") and v > 200:
+                    continue
+                if prop_norm == "pitches_thrown_95" and v > 150:
+                    continue
+
+            if prop_norm in PBP_PROPS and (val is None or (isinstance(val, float) and np.isnan(val))):
+                continue
 
             new_rows.append({
                 "MLB_PLAYER_ID": str(player_id),
@@ -709,16 +1057,149 @@ def update_cache(
 
     if new_rows:
         cache = pd.concat([cache, pd.DataFrame(new_rows)], ignore_index=True)
+        if _CACHE_INDEX is not None:
+            _CACHE_INDEX.refresh_player(cache, player_id, season)
 
     return cache, added
 
 
-def _filter_mlb_cache_allstar(cache: pd.DataFrame) -> pd.DataFrame:
-    """Drop All-Star break / AL-NL exhibition rows from the stats cache frame."""
+def player_cache_max_date(
+    cache: pd.DataFrame,
+    player_id: str,
+    season: str,
+) -> Optional[pd.Timestamp]:
+    """Newest GAME_DATE in cache for this player+season (or None)."""
+    if _CACHE_INDEX is not None:
+        return _CACHE_INDEX.max_date.get((str(player_id), str(season)))
     if cache is None or cache.empty:
-        return cache
-    out, _n = drop_allstar_game_rows(cache, sport="MLB")
+        return None
+    mask = (
+        (cache["MLB_PLAYER_ID"].astype(str) == str(player_id))
+        & (cache["SEASON"].astype(str) == str(season))
+    )
+    if not bool(mask.any()):
+        return None
+    dt = pd.to_datetime(cache.loc[mask, "GAME_DATE"], errors="coerce").max()
+    if pd.isna(dt):
+        return None
+    return pd.Timestamp(dt)
+
+
+def player_cache_is_stale(
+    cache: pd.DataFrame,
+    player_id: str,
+    season: str,
+    *,
+    stale_before: Optional[pd.Timestamp] = None,
+) -> bool:
+    """
+    True when cache has no rows or newest game is older than stale_before.
+
+    Default stale_before = yesterday (UTC date) so daily runs pull the prior
+    night's box scores instead of freezing on an old 10-game window.
+    """
+    max_dt = player_cache_max_date(cache, player_id, season)
+    if max_dt is None:
+        return True
+    if stale_before is None:
+        stale_before = pd.Timestamp(datetime.utcnow().date()) - pd.Timedelta(days=1)
+    return pd.Timestamp(max_dt).normalize() < pd.Timestamp(stale_before).normalize()
+
+
+def ks_tb_arm_ids(row: pd.Series, ids: List[str]) -> Tuple[str, str]:
+    """Pitcher id, hitter id for strikeouts_total_bases (same id when two-way)."""
+    if not ids:
+        return "", ""
+    if len(ids) == 1:
+        return ids[0], ids[0]
+    try:
+        from step2_attach_picktypes_mlb import order_ks_tb_ids
+    except Exception:
+        from Sports.MLB.scripts.step2_attach_picktypes_mlb import order_ks_tb_ids  # type: ignore
+    return order_ks_tb_ids(ids[0], ids[1], str(row.get("pos", "") or ""))
+
+
+def strikeouts_plus_total_bases(pitch_split: Optional[dict], hit_split: Optional[dict]) -> float:
+    """Same-game pitcher Ks + hitter TB. Missing hitting log counts as 0 TB."""
+    if not pitch_split:
+        return np.nan
+    ks = derive_pitcher_stat(pitch_split, "strikeouts")
+    if ks is None or (isinstance(ks, float) and np.isnan(ks)):
+        return np.nan
+    tb = 0.0
+    if hit_split:
+        raw = derive_hitter_stat(hit_split, "total_bases")
+        if raw is not None and not (isinstance(raw, float) and np.isnan(raw)):
+            tb = float(raw)
+    return float(ks) + float(tb)
+
+
+def get_dated_vals_from_cache(
+    cache: pd.DataFrame,
+    player_id: str,
+    prop_norm: str,
+    season: str,
+) -> List[Tuple[str, str, float]]:
+    """(game_id, YYYY-MM-DD, value) newest first."""
+    if cache is None or cache.empty:
+        return []
+    mask = (
+        (cache["MLB_PLAYER_ID"].astype(str) == str(player_id))
+        & (cache["SEASON"].astype(str) == str(season))
+        & (cache["PROP_NORM"].astype(str) == str(prop_norm))
+        & (cache["STAT_VALUE"].astype(str).str.strip() != "")
+    )
+    sub = cache.loc[mask].copy()
+    if sub.empty:
+        return []
+    sub["GAME_DATE"] = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
+    sub = sub[sub["GAME_DATE"].notna()].sort_values("GAME_DATE", ascending=False)
+    out: List[Tuple[str, str, float]] = []
+    for _, r in sub.iterrows():
+        try:
+            val = float(r["STAT_VALUE"])
+        except (TypeError, ValueError):
+            continue
+        if val != val:
+            continue
+        gid = str(r.get("GAME_ID", "") or "").strip()
+        d = pd.Timestamp(r["GAME_DATE"]).strftime("%Y-%m-%d")
+        out.append((gid, d, val))
     return out
+
+
+def compose_strikeouts_total_bases(
+    cache: pd.DataFrame,
+    pitcher_id: str,
+    hitter_id: str,
+    season: str,
+    n: int = 10,
+) -> List[float]:
+    """L5/L10 values for Pitcher Strikeouts + Total Bases."""
+    pitcher_id = str(pitcher_id or "").strip()
+    hitter_id = str(hitter_id or "").strip()
+    if not pitcher_id or not hitter_id:
+        return []
+    if pitcher_id == hitter_id:
+        so = get_dated_vals_from_cache(cache, pitcher_id, "strikeouts", season)
+        tb_rows = get_dated_vals_from_cache(cache, hitter_id, "total_bases", season)
+        tb_by_gid = {gid: v for gid, _d, v in tb_rows if gid}
+        tb_by_date: Dict[str, float] = {}
+        for _gid, d, v in tb_rows:
+            tb_by_date.setdefault(d, v)
+        vals: List[float] = []
+        for gid, d, ks in so:
+            tb = tb_by_gid.get(gid)
+            if tb is None:
+                tb = tb_by_date.get(d, 0.0)
+            vals.append(float(ks) + float(tb))
+            if len(vals) >= n:
+                break
+        return vals
+    so_vals = get_vals_from_cache(cache, pitcher_id, "strikeouts", season, n=n)
+    tb_vals = get_vals_from_cache(cache, hitter_id, "total_bases", season, n=n)
+    min_g = min(len(so_vals), len(tb_vals))
+    return [float(so_vals[i]) + float(tb_vals[i]) for i in range(min_g)]
 
 
 def get_vals_from_cache(
@@ -729,6 +1210,9 @@ def get_vals_from_cache(
     n: int = 10,
 ) -> List[float]:
     """Return most-recent N stat values from cache for player+prop+season."""
+    if _CACHE_INDEX is not None:
+        vals = _CACHE_INDEX.vals.get((str(player_id), str(season), str(prop_norm)), [])
+        return vals[:n]
     mask = (
         (cache["MLB_PLAYER_ID"].astype(str) == str(player_id)) &
         (cache["SEASON"].astype(str)         == str(season))    &
@@ -740,11 +1224,6 @@ def get_vals_from_cache(
         return []
 
     sub["GAME_DATE"] = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
-    # Exclude All-Star break dates from L5 windows.
-    keep = ~sub["GAME_DATE"].map(lambda x: is_allstar_date(x, sport="MLB"))
-    sub = sub.loc[keep]
-    if sub.empty:
-        return []
     sub = sub.sort_values("GAME_DATE", ascending=False)
     vals = pd.to_numeric(sub["STAT_VALUE"], errors="coerce").dropna().tolist()
     return vals[:n]
@@ -760,6 +1239,11 @@ def get_vals_vs_opp_from_cache(
 ) -> List[float]:
     if not opp_team_id:
         return []
+    if _CACHE_INDEX is not None:
+        vals = _CACHE_INDEX.opp_vals.get(
+            (str(player_id), str(season), str(prop_norm), str(opp_team_id)), []
+        )
+        return vals[:n]
     mask = (
         (cache["MLB_PLAYER_ID"].astype(str) == str(player_id)) &
         (cache["SEASON"].astype(str) == str(season)) &
@@ -771,10 +1255,6 @@ def get_vals_vs_opp_from_cache(
     if sub.empty:
         return []
     sub["GAME_DATE"] = pd.to_datetime(sub["GAME_DATE"], errors="coerce")
-    keep = ~sub["GAME_DATE"].map(lambda x: is_allstar_date(x, sport="MLB"))
-    sub = sub.loc[keep]
-    if sub.empty:
-        return []
     sub = sub.sort_values("GAME_DATE", ascending=False)
     vals = pd.to_numeric(sub["STAT_VALUE"], errors="coerce").dropna().tolist()
     return vals[:n]
@@ -814,6 +1294,14 @@ def _row_stat_refresh_keys(row: pd.Series) -> set[tuple[str, str]]:
     is_combo = (len(ids) > 1) or (
         str(row.get("is_combo_player", "")).strip().lower() in ("1", "true", "yes")
     )
+    if prop == "strikeouts_total_bases":
+        pid_p, pid_h = ks_tb_arm_ids(row, ids)
+        out: set[tuple[str, str]] = set()
+        if pid_p:
+            out.add((pid_p, "pitcher"))
+        if pid_h:
+            out.add((pid_h, "hitter"))
+        return out
     if not is_combo:
         return {(ids[0], ptype)}
     return {(str(pid), ptype) for pid in ids}
@@ -849,6 +1337,8 @@ def _db_mirror_player_cache_rows(
                     "stat_value": float(r["STAT_VALUE_NUM"])
                     if not pd.isna(r.get("STAT_VALUE_NUM"))
                     else None,
+                    "team_id": str(r.get("TEAM_ID", "")).strip() or None,
+                    "opp_team_id": str(r.get("OPP_TEAM_ID", "")).strip() or None,
                     "updated_at": ts,
                 }
             )
@@ -926,22 +1416,50 @@ def _process_slate_row_for_stats(
     cache_updates = 0
     same_opp_vals: List[float] = []
 
-    if not is_combo:
+    if prop == "strikeouts_total_bases":
+        pitcher_id, hitter_id = ks_tb_arm_ids(row, ids)
+        if not pitcher_id or not hitter_id:
+            slate.at[idx, "stat_status"] = "NO_MLB_PLAYER_ID"
+            return cache, 0
+        for pid_arm, ptype_arm in ((pitcher_id, "pitcher"), (hitter_id, "hitter")):
+            if not allow_live_refresh:
+                continue
+            key = (pid_arm, ptype_arm)
+            attempts = attempted_refresh.get(key, 0)
+            arm_prop = "strikeouts" if ptype_arm == "pitcher" else "total_bases"
+            arm_vals = get_vals_from_cache(cache, pid_arm, arm_prop, season, n=n_games)
+            needs_refresh = (len(arm_vals) < 3) or player_cache_is_stale(cache, pid_arm, season)
+            if needs_refresh and attempts < max_refresh_attempts:
+                attempted_refresh[key] = attempts + 1
+                cache, added = update_cache(cache, pid_arm, ptype_arm, season, n_games=n_games)
+                if added > 0:
+                    cache_updates += added
+                    _maybe_save_cache(cache, cache_path)
+                    _db_mirror_player_cache_rows(cache, con, pid_arm, season)
+        vals = compose_strikeouts_total_bases(
+            cache, pitcher_id, hitter_id, season, n=n_games
+        )
+        if not vals:
+            slate.at[idx, "stat_status"] = "NO_CACHE_DATA"
+            return cache, cache_updates
+        same_opp_vals = []
+    elif not is_combo:
         pid = ids[0]
         cached_vals = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
         if allow_live_refresh:
-            if len(cached_vals) < 3:
-                key = (pid, ptype)
-                attempts = attempted_refresh.get(key, 0)
-            else:
-                attempts = max_refresh_attempts
-
-            if len(cached_vals) < 3 and attempts < max_refresh_attempts:
+            key = (pid, ptype)
+            attempts = attempted_refresh.get(key, 0)
+            # Refresh when thin OR when newest cached game is older than yesterday.
+            # Old logic only refreshed len<3, so hot players froze on July logs.
+            needs_refresh = (len(cached_vals) < 3) or player_cache_is_stale(
+                cache, pid, season
+            )
+            if needs_refresh and attempts < max_refresh_attempts:
                 attempted_refresh[key] = attempts + 1
                 cache, added = update_cache(cache, pid, ptype, season, n_games=n_games)
                 if added > 0:
                     cache_updates += added
-                    save_cache(cache, cache_path)
+                    _maybe_save_cache(cache, cache_path)
                     _db_mirror_player_cache_rows(cache, con, pid, season)
                 cached_vals = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
         else:
@@ -966,18 +1484,15 @@ def _process_slate_row_for_stats(
             sub_ptype = ptype
             cv = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
             if allow_live_refresh:
-                if len(cv) < 3:
-                    key = (pid, sub_ptype)
-                    attempts = attempted_refresh.get(key, 0)
-                else:
-                    attempts = max_refresh_attempts
-
-                if len(cv) < 3 and attempts < max_refresh_attempts:
+                key = (pid, sub_ptype)
+                attempts = attempted_refresh.get(key, 0)
+                needs_refresh = (len(cv) < 3) or player_cache_is_stale(cache, pid, season)
+                if needs_refresh and attempts < max_refresh_attempts:
                     attempted_refresh[key] = attempts + 1
                     cache, added = update_cache(cache, pid, sub_ptype, season, n_games=n_games)
                     if added > 0:
                         cache_updates += added
-                        save_cache(cache, cache_path)
+                        _maybe_save_cache(cache, cache_path)
                     cv = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
             else:
                 cv = get_vals_from_cache(cache, pid, prop_for_stats, season, n=n_games)
@@ -1053,13 +1568,26 @@ def main() -> None:
     con = open_db(db_path)
     ensure_mlb_schema(con)
 
+    global _CACHE_INDEX
     cache_path = Path(args.cache)
-    cache      = load_cache(cache_path)
-    cache_n0 = len(cache)
-    cache = _filter_mlb_cache_allstar(cache)
-    if len(cache) < cache_n0:
-        print(f"  Purged {cache_n0 - len(cache)} All-Star break row(s) from cache")
-        save_cache(cache, cache_path)
+    seasons = [str(args.season).strip()[:4]]
+    try:
+        seasons.append(str(int(seasons[0]) - 1))
+    except ValueError:
+        pass
+    pids: list[str] = []
+    if "mlb_player_id" in slate.columns:
+        for raw in slate["mlb_player_id"].astype(str):
+            pids.extend(_parse_ids(raw))
+    pids = sorted(set(pids))
+    cache      = load_cache(cache_path, con, player_ids=pids or None, seasons=seasons)
+    t_idx = time.perf_counter()
+    _CACHE_INDEX = _MlbCacheIndex(cache)
+    print(
+        f"  Cache index: {len(_CACHE_INDEX.vals)} prop-keys, "
+        f"{len(_CACHE_INDEX.max_date)} player-seasons "
+        f"({time.perf_counter() - t_idx:.1f}s)"
+    )
 
     N         = int(args.n)
     stat_cols = [f"stat_g{i}" for i in range(1, N + 1)]
@@ -1126,7 +1654,7 @@ def main() -> None:
         cache, added = update_cache(cache, pid, ptype, args.season, n_games=N)
         if added > 0:
             cache_updates += added
-            save_cache(cache, cache_path)
+            _maybe_save_cache(cache, cache_path)
             _db_mirror_player_cache_rows(cache, con, pid, args.season)
 
     for idx in no_cache_idx:
@@ -1163,6 +1691,7 @@ def main() -> None:
         print(f"Wrote misses → {args.debug_misses}")
 
     slate.drop(columns=["_line_num"], errors="ignore", inplace=True)
+    _maybe_save_cache(cache, cache_path, force=True)
 
     from role_stability import role_stability
 

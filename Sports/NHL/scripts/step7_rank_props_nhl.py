@@ -39,6 +39,7 @@ from utils.group_rank_tier import (
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
+from proporacle.data.table_io import write_parquet_sidecar
 
 try:
     if hasattr(sys.stdout, "reconfigure"):
@@ -1114,6 +1115,7 @@ def main():
             ws.column_dimensions[col[0].column_letter].width = min(max_len + 2, 35)
 
     wb.save(args.output)
+    write_parquet_sidecar(pd.DataFrame(active), args.output)
     print(f"Saved ranked props -> {args.output}")
 
     # Summary

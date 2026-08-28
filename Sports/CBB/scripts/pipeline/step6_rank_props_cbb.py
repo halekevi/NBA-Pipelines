@@ -42,6 +42,7 @@ from utils.group_rank_tier import (
 )
 from utils.hit_tracking_columns import attach_hit_tracking_columns, resolve_sport_code
 from utils.optional_ml_context import optional_context_features
+from proporacle.data.table_io import write_parquet_sidecar
 
 # CBB/WCBB ML is poorly calibrated at the top (frequent 0.99x on props that are not that certain).
 CBB_ML_PROB_MAX = 0.80
@@ -826,6 +827,7 @@ def main():
             with pd.ExcelWriter(args.output, engine="openpyxl") as xw:
                 df.to_excel(xw, index=False, sheet_name="ALL")
                 df.to_excel(xw, index=False, sheet_name="ELIGIBLE")
+            write_parquet_sidecar(df, args.output)
             if args.output_csv:
                 df.to_csv(args.output_csv, index=False)
                 print(f"✅ Saved CSV → {args.output_csv}")
@@ -1192,6 +1194,23 @@ def main():
     report_goblin_demon_standard_line_fill(out, f"[{_tier_sport.upper()} step6]")
     print_tier_distribution_by_pick_direction_group(out, label=f"[{_tier_sport.upper()} step6]")
 
+    # Ensure minutes_tier from real MPG before ML numeric overwrite / voids
+    from utils.basketball_minutes_tier import assign_minutes_tier, resolve_mpg_series
+    _mt_existing = (
+        out["minutes_tier"].astype(str).str.strip().str.upper()
+        if "minutes_tier" in out.columns
+        else pd.Series("", index=out.index)
+    )
+    _need_mt = ~_mt_existing.isin(["LOW", "MEDIUM", "HIGH"])
+    if "minutes_tier" not in out.columns or bool(_need_mt.any()):
+        _mpg = resolve_mpg_series(out)
+        if _mpg.notna().any():
+            out = assign_minutes_tier(out)
+            print(
+                f"[{_tier_sport.upper()} step6] minutes_tier from MPG:",
+                out["minutes_tier"].value_counts(dropna=False).to_dict(),
+            )
+
     for _efe_anc in Path(__file__).resolve().parents:
         if (_efe_anc / "scripts" / "edge_feature_engineering.py").is_file():
             _efe_sd = str(_efe_anc / "scripts")
@@ -1251,6 +1270,8 @@ def main():
             if len(sub): sub.to_excel(xw, index=False, sheet_name=f"TIER_{t}")
         if not dropped_df.empty:
             dropped_df.to_excel(xw, index=False, sheet_name="DROPPED")
+
+    write_parquet_sidecar(out_sorted.loc[elig_sorted], args.output)
 
     print(f"✅ Saved → {args.output}")
     print(f"ALL rows (active) : {len(out_sorted)}")

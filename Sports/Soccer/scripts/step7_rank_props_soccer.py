@@ -50,6 +50,7 @@ from utils.group_rank_tier import (  # noqa: E402
     print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
+from proporacle.data.table_io import write_parquet_sidecar
 
 _sa_scripts_dir = str(Path(__file__).resolve().parents[3] / "scripts")
 try:
@@ -1285,6 +1286,7 @@ def main() -> None:
             if _mask.any():
                 out.loc[_mask].to_excel(w, sheet_name=f"Tier {_tier}", index=False)
 
+    write_parquet_sidecar(out, args.output)
     if elig_mask.sum() == 0:
         print("❌ [PropOracle-Soccer-S7] No eligible props after scoring — aborting.")
         sys.exit(1)

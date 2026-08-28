@@ -16,6 +16,8 @@ curl-cffi>=0.6.0
 
 openpyxl
 
+pyarrow>=14
+
 joblib
 
 scikit-learn

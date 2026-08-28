@@ -38,8 +38,10 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
+from proporacle.data.table_io import write_parquet_sidecars, read_table_str
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
+from utils.slate_context_fill import fill_cv_pct_if_missing, fill_min_tier_labels
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 
 _ET = ZoneInfo("America/New_York")
@@ -187,7 +189,7 @@ def write_sheet(wb, name, data):
         'Hit Rate (5g)': 12, 'Last 5 Avg': 10, 'Season Avg': 10,
         'L5 Over': 8, 'L5 Under': 8,
         'Def Rank': 9, 'Def Tier': 10,
-        'Min Tier': 9, 'Shot Role': 10, 'Usage Role': 10,
+        'Min Tier': 9, 'Shot Role': 10, 'Usage Role': 10, 'CV%': 8,
         'Usage Pct': 9, 'Usage Tier': 9, 'Star Tier': 8, 'Franchise Star': 12,
         'Usage Boost': 10, 'Usage Boost Proj': 12, 'Usage Boost Reason': 18,
         'Usage Boost Source': 14,
@@ -209,6 +211,10 @@ def write_sheet(wb, name, data):
 
 def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
     df2 = df.copy()
+    df2 = fill_min_tier_labels(df2)
+    if "min_tier" in df2.columns:
+        df2["minutes_tier"] = df2["min_tier"]
+    df2 = fill_cv_pct_if_missing(df2)
     # Align L5 Over/Under and 5g hit rate with stat_g1..5 vs line (matches NBA step8; fixes sparse early-season rows).
     g5_cols = [c for c in ("stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5") if c in df2.columns]
     if g5_cols and "line" in df2.columns:
@@ -274,6 +280,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         'player', 'pos', 'team', 'opp_team', 'days_rest', 'is_back_to_back', 'opp_days_rest', 'opp_b2b',
         'h2h_avg', 'h2h_over_pct', 'h2h_games', 'h2h_last',
         'game_total', 'spread', 'game_date', 'game_time',
+        'board_date', 'line_asof',
         'prop_type', 'pick_type', 'line',
         'final_bet_direction',
         'edge', 'projection',
@@ -294,8 +301,13 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         'l10_over', 'l10_under', 'l10_over_pct', 'l10_streak', 'l10_games_played',
         'line_hits_over_10', 'line_hits_under_10',
         'OVERALL_DEF_RANK', 'DEF_TIER',
+        'stat_def_rank', 'stat_def_tier', 'stat_def_category',
         'minutes_tier', 'shot_role', 'usage_role',
+        'min_last5_avg', 'min_per_game', 'min_season_avg',
+        'cv_pct',
         'usage_pct', 'usage_tier', 'star_tier', 'is_franchise_star',
+        'team_pace', 'opp_pace', 'pace_delta', 'pace_context',
+        'b2b_flag', 'foul_trouble_risk',
         'usage_boost', 'usage_boost_proj', 'usage_boost_reason', 'usage_boost_source',
         'team_star_out', 'key_facilitator_out', 'injury_boost_candidate', 'usage_vacuum',
         'void_reason',
@@ -360,6 +372,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         'game_total': 'Game Total',
         'spread': 'Spread',
         'game_date': 'Game Date', 'game_time': 'Game Time',
+        'board_date': 'Board Date', 'line_asof': 'Line As Of',
         'prop_type': 'Prop', 'pick_type': 'Pick Type', 'line': 'Line',
         'final_bet_direction': 'Direction',
         'edge': 'Edge', 'abs_edge': 'Abs Edge', 'projection': 'Projection',
@@ -377,8 +390,13 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str):
         'last5_over': 'L5 Over', 'last5_under': 'L5 Under',
         'line_hits_over_10': 'L10 Over', 'line_hits_under_10': 'L10 Under',
         'OVERALL_DEF_RANK': 'Def Rank', 'DEF_TIER': 'Def Tier',
+        'stat_def_rank': 'Stat Def Rank', 'stat_def_tier': 'Stat Def Tier',
         'minutes_tier': 'Min Tier', 'shot_role': 'Shot Role', 'usage_role': 'Usage Role',
+        'min_last5_avg': 'Min L5', 'min_per_game': 'MPG', 'min_season_avg': 'Min Season',
+        'cv_pct': 'CV%',
         'usage_pct': 'Usage Pct', 'usage_tier': 'Usage Tier',
+        'team_pace': 'Team Pace', 'opp_pace': 'Opp Pace',
+        'b2b_flag': 'B2B',
         'star_tier': 'Star Tier', 'is_franchise_star': 'Franchise Star',
         'usage_boost': 'Usage Boost', 'usage_boost_proj': 'Usage Boost Proj',
         'usage_boost_reason': 'Usage Boost Reason', 'usage_boost_source': 'Usage Boost Source',
@@ -431,7 +449,7 @@ def main() -> None:
     print(f"→ Loading: {args.input} (sheet={args.sheet})")
     # Path hint drives WNBA1H/WNBA1Q sport tagging (mirrors NBA period step8).
     build_clean_xlsx._path_hint = f"{args.input} {args.output} {args.xlsx}"
-    df = pd.read_excel(args.input, sheet_name=args.sheet, dtype=str).fillna("")
+    df = read_table_str(args.input, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
 
     out = df.copy()
 
@@ -484,6 +502,7 @@ def main() -> None:
     xlsx_path = args.xlsx if args.xlsx else args.output.replace(".csv", "_clean.xlsx")
     Path(xlsx_path).parent.mkdir(parents=True, exist_ok=True)
     build_clean_xlsx(out, xlsx_path)
+    write_parquet_sidecars(out, args.output, xlsx_path)
     _copy_dated_step8_wnba(xlsx_path, (args.date or "").strip())
 
 if __name__ == "__main__":

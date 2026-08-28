@@ -35,6 +35,7 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str, table_exists
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns, fill_l5_from_stat_games
 from utils.slate_context_fill import fill_cv_pct_if_missing
@@ -312,6 +313,15 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     keep = [
         "tier", "rank_score",
         "surface",
+        "surface_encoded",
+        "aces_per_match_mean",
+        "first_serve_pct",
+        "win_rate_on_surface",
+        "games_won_per_match",
+        "surface_specialist",
+        "surface_struggle",
+        "n_matches_on_surface",
+        "h2h_win_rate_on_surface",
         "player", "pos", "position_group", "team", "opp_team", "league", "game_time",
         "espn_player_id",
         "prop_type", "pick_type", "line", "standard_line", "deviation_level",
@@ -331,6 +341,8 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "l10_over", "l10_under", "l10_over_pct", "l10_streak", "l10_games_played",
         "OVERALL_DEF_RANK", "DEF_TIER",
         "minutes_tier", "shot_role", "usage_role",
+        "last_match_minutes", "days_rest", "last_match_games", "last_match_sets",
+        "last_match_date",
         "cv_pct",
         "void_reason",
         # ── Game log ─────────────────────────────────────────────────────────
@@ -400,6 +412,11 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "OVERALL_DEF_RANK": "Def Rank", "DEF_TIER": "Def Tier",
         "player_atp_rank": "Player Rank", "opponent_rank": "Opponent Rank",
         "minutes_tier": "Min Tier", "shot_role": "Shot Role", "usage_role": "Usage Role",
+        "last_match_minutes": "Last Match Min",
+        "days_rest": "Days Rest",
+        "last_match_games": "Last Match Games",
+        "last_match_sets": "Last Match Sets",
+        "last_match_date": "Last Match Date",
         "cv_pct": "CV%",
         "void_reason": "Void Reason",
         # Game log
@@ -454,7 +471,7 @@ def main() -> None:
 
     print("[Tennis step8] Starting...")
     input_path = Path(args.input)
-    if not input_path.is_file():
+    if not table_exists(input_path):
         repo = Path(__file__).resolve().parents[3]
         fallbacks: list[Path] = []
         if input_path.parent.name == "tennis":
@@ -466,16 +483,16 @@ def main() -> None:
             repo / "Tennis" / "outputs" / "step7_tennis_ranked.xlsx",
         ])
         for fb in fallbacks:
-            if fb.is_file():
+            if table_exists(fb):
                 print(f"[Tennis step8] WARN: --input missing; using fallback {fb}")
                 input_path = fb
                 break
-        if not input_path.is_file():
+        if not table_exists(input_path):
             print(f"ERROR [Tennis-S8] Input not found: {args.input}")
             sys.exit(1)
 
     print(f"Loading: {input_path} (sheet={args.sheet})")
-    df  = pd.read_excel(input_path, sheet_name=args.sheet, dtype=str).fillna("")
+    df  = read_table_str(input_path, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
 
     if df.empty:
         print("ERROR [Tennis-S8] Empty input from S7 — aborting.")
@@ -524,33 +541,26 @@ def main() -> None:
 
     out = df.copy()
 
-    # Backfill opponent labels from game context when opp_team is missing.
-    # Many tennis rows share pp_game_id; if each match has exactly two players,
-    # infer each row's opponent as the "other" team in that game.
-    if "opp_team" in out.columns and "pp_game_id" in out.columns and "team" in out.columns:
-        opp_blank = out["opp_team"].astype(str).str.strip().isin(["", "nan", "None", "null"])
-        if opp_blank.any():
-            game_team_map = (
-                out.loc[:, ["pp_game_id", "team"]]
-                .astype(str)
-                .assign(team=lambda x: x["team"].str.strip(), pp_game_id=lambda x: x["pp_game_id"].str.strip())
-                .groupby("pp_game_id")["team"]
-                .apply(lambda s: sorted({t for t in s.tolist() if t and t.lower() not in ("nan", "none", "null")}))
-                .to_dict()
-            )
-            inferred = []
-            for _, r in out.loc[opp_blank, ["pp_game_id", "team"]].iterrows():
-                gid = str(r.get("pp_game_id", "")).strip()
-                team = str(r.get("team", "")).strip()
-                teams = game_team_map.get(gid, [])
-                if len(teams) == 2 and team in teams:
-                    inferred.append(teams[0] if teams[1] == team else teams[1])
-                else:
-                    inferred.append("")
-            out.loc[opp_blank, "opp_team"] = inferred
-            # Keep non-empty placeholder for unresolved rows so downstream views are explicit.
-            still_blank = out["opp_team"].astype(str).str.strip().isin(["", "nan", "None", "null"])
-            out.loc[still_blank, "opp_team"] = "UNKNOWN_OPP"
+    # Doubles/combined props: ensure opp_team from pp_description before game pairing.
+    _tennis_scripts = Path(__file__).resolve().parent
+    if str(_tennis_scripts) not in sys.path:
+        sys.path.insert(0, str(_tennis_scripts))
+    from tennis_shared import atp_wta_def_tier, ensure_opponent_atp_wta_rank, fill_doubles_opponents_df
+
+    out = fill_doubles_opponents_df(out)
+    # Backfill blank opp_team from the other singles player on pp_game_id, then
+    # set opponent_rank to that opponent's ATP/WTA rank (player_atp_rank on slate).
+    out = ensure_opponent_atp_wta_rank(out)
+    n_opp_rk = int(pd.to_numeric(out.get("opponent_rank"), errors="coerce").notna().sum())
+    print(f"[Tennis step8] opponent_rank (ATP/WTA) filled {n_opp_rk}/{len(out)}")
+    opp_rk = pd.to_numeric(out.get("opponent_rank"), errors="coerce")
+    out["DEF_TIER"] = [atp_wta_def_tier(v) or "N/A" for v in opp_rk]
+    out["opp_def_tier"] = out["DEF_TIER"]
+    out["OVERALL_DEF_RANK"] = [
+        int(v) if pd.notna(v) else "N/A" for v in opp_rk
+    ]
+    n_d = int((out["DEF_TIER"].astype(str) != "N/A").sum())
+    print(f"[Tennis step8] DEF_TIER from opponent ATP/WTA rank: {n_d}/{len(out)}")
 
     reconcile_signed_edge_abs_dataframe(out)
 
@@ -627,7 +637,6 @@ def main() -> None:
     out["final_dir_reason"]    = reason
     out["direction"] = out["final_bet_direction"]
     out["bet_direction"] = out["final_bet_direction"]
-    out["DEF_TIER"] = "N/A"
 
     repo_root = Path(__file__).resolve().parents[3]
     out = _attach_unified_ml_prob(out, repo_root)
@@ -680,7 +689,7 @@ def main() -> None:
         except Exception as e2:
             print(f"ERROR Fallback xlsx also failed: {e2}")
 
-    # Dated copy: <repo>/outputs/{date}/step8_tennis_direction_clean_{date}.xlsx
+    write_parquet_sidecars(out, args.output, xlsx_path)
     try:
         eastern = zoneinfo.ZoneInfo("America/New_York")
         slate_date = (
@@ -698,6 +707,7 @@ def main() -> None:
             xp = repo_root / "Sports" / "Tennis" / str(xlsx_path).replace("\\", "/").lstrip("./")
         if xp.is_file():
             shutil.copy2(xp, dated_xlsx)
+            copy_parquet_sidecar(xp, dated_xlsx)
             print(f"[Tennis step8] Dated clean workbook -> {dated_xlsx}")
         csv_src = Path(args.output)
         if not csv_src.is_file():
@@ -705,6 +715,7 @@ def main() -> None:
         if csv_src.is_file():
             dated_csv = dated_dir / "step8_tennis_direction.csv"
             shutil.copy2(csv_src, dated_csv)
+            copy_parquet_sidecar(csv_src, dated_csv)
             print(f"[Tennis step8] Dated direction CSV -> {dated_csv}")
     except Exception as e:
         print(f"[Tennis step8] WARN dated copy skipped: {e}")

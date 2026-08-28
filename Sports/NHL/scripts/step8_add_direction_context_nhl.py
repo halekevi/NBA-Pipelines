@@ -40,6 +40,11 @@ import pandas as pd
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+_REPO = Path(__file__).resolve().parents[3]
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar, read_table
 try:
     from tqdm import tqdm as _tqdm
 except ImportError:
@@ -65,6 +70,7 @@ def _copy_dated_step8_nhl(output_xlsx_path: str, slate_date: str | None = None) 
         dated_dir.mkdir(parents=True, exist_ok=True)
         dated_path = dated_dir / f"step8_nhl_direction_clean_{dated_key}.xlsx"
         shutil.copy2(src, dated_path)
+        copy_parquet_sidecar(src, dated_path)
         print(f"[NHL step8] Dated copy -> {dated_path}")
     except Exception as e:
         print(f"[NHL step8] WARN: dated copy failed: {e}")
@@ -647,26 +653,9 @@ def main():
     )
     args = ap.parse_args()
 
-    wb = openpyxl.load_workbook(args.input, read_only=True, data_only=True)
-    if "All Props" in wb.sheetnames:
-        ws = wb["All Props"]
-    else:
-        ws = wb.active
-        print(
-            f"WARNING: 'All Props' sheet not found, reading active sheet: {ws.title}"
-        )
-    raw_headers = []
-    raw_rows = []
-    for r_i, row in enumerate(ws.iter_rows(values_only=True), start=1):
-        if r_i == 1:
-            raw_headers = [str(x).strip() if x is not None else f"col_{i}"
-                           for i, x in enumerate(row)]
-            continue
-        r = {}
-        for j, h in enumerate(raw_headers):
-            r[h] = row[j] if j < len(row) else ""
-        raw_rows.append(r)
-    wb.close()
+    df_in = read_table(args.input, sheet="All Props", sheet_order=("All Props", "ALL"))
+    raw_headers = [str(c) for c in df_in.columns]
+    raw_rows = df_in.replace({pd.NA: None}).to_dict("records")
 
     available_cols = set(raw_headers)
     print(f"Loaded {len(raw_rows)} props from {args.input}")
@@ -835,6 +824,11 @@ def main():
         xlsx_out = args.output.replace(".csv", "_clean.xlsx")
         write_xlsx(display_rows, xlsx_out)
         xlsx_final = xlsx_out
+
+    if display_rows:
+        write_parquet_sidecar(pd.DataFrame(display_rows), xlsx_final)
+        csv_side = Path(xlsx_final).with_suffix(".csv")
+        write_parquet_sidecar(pd.DataFrame(display_rows), csv_side)
 
     _copy_dated_step8_nhl(xlsx_final, slate_date=target_str)
 

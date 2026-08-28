@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS wnba (
     pra              REAL, pr    REAL,
     pa               REAL, ra    REAL,
     bs               REAL, fantasy_score REAL,
+    season           TEXT,
     PRIMARY KEY (event_id, player, team)
 );
 """
@@ -72,25 +73,94 @@ CREATE TABLE IF NOT EXISTS mlb_gamelog (
     player_type    TEXT,
     prop_norm      TEXT NOT NULL,
     stat_value     REAL,
+    team_id        TEXT,
+    opp_team_id    TEXT,
     updated_at     TEXT,
     PRIMARY KEY (mlb_player_id, season, game_id, prop_norm)
 );
 """
 
 
+def _mlb_gamelog_columns(con: sqlite3.Connection) -> set[str]:
+    return {str(r[1]) for r in con.execute("PRAGMA table_info(mlb_gamelog)").fetchall()}
+
+
 def ensure_mlb_schema(con: sqlite3.Connection) -> None:
     con.execute(CREATE_MLB_GAMELOG)
+    cols = _mlb_gamelog_columns(con)
+    for col in ("team_id", "opp_team_id"):
+        if col not in cols:
+            con.execute(f"ALTER TABLE mlb_gamelog ADD COLUMN {col} TEXT")
     con.execute("CREATE INDEX IF NOT EXISTS idx_mlb_player_date ON mlb_gamelog (mlb_player_id, game_date);")
     con.execute("CREATE INDEX IF NOT EXISTS idx_mlb_prop ON mlb_gamelog (prop_norm, game_date);")
+    con.execute(
+        "CREATE INDEX IF NOT EXISTS idx_mlb_same_series "
+        "ON mlb_gamelog (mlb_player_id, season, prop_norm, opp_team_id, game_date)"
+    )
+    con.execute("CREATE INDEX IF NOT EXISTS idx_mlb_season ON mlb_gamelog (season, mlb_player_id)")
     con.commit()
+
+
+def mlb_gamelog_counts(con: sqlite3.Connection) -> tuple[int, int]:
+    """Return (total_rows, rows_with_opp_team_id)."""
+    try:
+        total = int(con.execute("SELECT COUNT(*) FROM mlb_gamelog").fetchone()[0])
+    except sqlite3.Error:
+        return 0, 0
+    try:
+        with_opp = int(
+            con.execute(
+                "SELECT COUNT(*) FROM mlb_gamelog WHERE TRIM(COALESCE(opp_team_id,'')) != ''"
+            ).fetchone()[0]
+        )
+    except sqlite3.Error:
+        with_opp = 0
+    return total, with_opp
+
+
+def fetch_mlb_gamelog_for_players(
+    con: sqlite3.Connection,
+    player_ids: list[str],
+    *,
+    require_opp: bool = True,
+) -> list[tuple]:
+    """Rows: mlb_player_id, prop_norm, season, opp_team_id, game_date, stat_value."""
+    ids = [str(p).strip() for p in player_ids if str(p).strip()]
+    if not ids:
+        return []
+    ensure_mlb_schema(con)
+    out: list[tuple] = []
+    opp_clause = " AND TRIM(COALESCE(opp_team_id,'')) != ''" if require_opp else ""
+    sql = (
+        "SELECT mlb_player_id, prop_norm, season, opp_team_id, game_date, stat_value "
+        "FROM mlb_gamelog WHERE mlb_player_id IN ({placeholders}) "
+        "AND stat_value IS NOT NULL"
+        f"{opp_clause}"
+    )
+    chunk = 400
+    for i in range(0, len(ids), chunk):
+        part = ids[i : i + chunk]
+        q = sql.format(placeholders=",".join("?" * len(part)))
+        out.extend(con.execute(q, part).fetchall())
+    return out
 
 
 def ensure_wnba_schema(con: sqlite3.Connection) -> None:
     con.execute(CREATE_WNBA)
+    cols = {str(r[1]) for r in con.execute("PRAGMA table_info(wnba)").fetchall()}
+    if "season" not in cols:
+        con.execute("ALTER TABLE wnba ADD COLUMN season TEXT")
     con.execute("CREATE INDEX IF NOT EXISTS idx_wnba_player ON wnba (player, game_date);")
     con.execute("CREATE INDEX IF NOT EXISTS idx_wnba_date   ON wnba (game_date);")
     con.execute("CREATE INDEX IF NOT EXISTS idx_wnba_espnid ON wnba (espn_athlete_id, game_date);")
     con.commit()
+
+
+def wnba_rowcount(con: sqlite3.Connection) -> int:
+    try:
+        return int(con.execute("SELECT COUNT(*) FROM wnba").fetchone()[0])
+    except sqlite3.Error:
+        return 0
 
 
 def upsert_rows(con: sqlite3.Connection, table: str, rows: list[dict[str, Any]]) -> int:

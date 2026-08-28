@@ -166,6 +166,10 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
+
+# Fast xlsx: bulk-write slate sheets (xlsxwriter) and skip per-cell ticket tabs.
+# Live --write-web uses JSON for slips; CombinedOut.xlsx still gets Full Slate for graders.
+_XLSX_FAST: dict = {"on": False, "sheets": {}}
 from usage_redistribution import apply_usage_redistribution
 
 # Repo root = parent of scripts/ (this file lives in scripts/)
@@ -10078,23 +10082,26 @@ def emit_standalone_win_rate_outputs(
             print(f"  [win-rate] WARN: high-leg dated copy skipped ({exc})")
 
     if workbook_path:
-        wb_wr = Workbook()
-        wb_wr.remove(wb_wr.active)
-        for gn, tix, _bg in wr_groups:
-            write_ticket_sheet(
-                wb_wr, tix, _excel_ticket_sheet_title(gn), "FFD54F", label="Win-Rate"
-            )
-        visible = [s for s in wb_wr.sheetnames if wb_wr[s].sheet_state == "visible"]
-        if not visible:
-            pool_mode = str(wr_payload.get("pool_mode") or "win_rate")
-            ws = wb_wr.create_sheet("Summary")
-            ws["A1"] = "No win-rate tickets built for this slate"
-            ws["A2"] = f"Date: {date_str}"
-            ws["A3"] = f"Pool mode: {pool_mode}"
-            print("[win-rate] 0 groups built -- saved empty workbook with summary sheet")
-        os.makedirs(os.path.dirname(os.path.abspath(workbook_path)) or ".", exist_ok=True)
-        wb_wr.save(workbook_path)
-        print(f"[OK] Win-rate workbook -> {workbook_path}")
+        if _XLSX_FAST.get("on"):
+            print("[win-rate] skip styled workbook (fast xlsx; JSON already written)")
+        else:
+            wb_wr = Workbook()
+            wb_wr.remove(wb_wr.active)
+            for gn, tix, _bg in wr_groups:
+                write_ticket_sheet(
+                    wb_wr, tix, _excel_ticket_sheet_title(gn), "FFD54F", label="Win-Rate"
+                )
+            visible = [s for s in wb_wr.sheetnames if wb_wr[s].sheet_state == "visible"]
+            if not visible:
+                pool_mode = str(wr_payload.get("pool_mode") or "win_rate")
+                ws = wb_wr.create_sheet("Summary")
+                ws["A1"] = "No win-rate tickets built for this slate"
+                ws["A2"] = f"Date: {date_str}"
+                ws["A3"] = f"Pool mode: {pool_mode}"
+                print("[win-rate] 0 groups built -- saved empty workbook with summary sheet")
+            os.makedirs(os.path.dirname(os.path.abspath(workbook_path)) or ".", exist_ok=True)
+            wb_wr.save(workbook_path)
+            print(f"[OK] Win-rate workbook -> {workbook_path}")
 
     print("[win-rate] Done.")
     return wr_payload
@@ -19317,6 +19324,15 @@ def write_slate_sheet(
     column_order: Optional[List[str]] = None,
     full_slate_visual: bool = False,
 ):
+    if _XLSX_FAST.get("on"):
+        if df is None:
+            return
+        if column_order is not None:
+            cols = [c for c in column_order if c in df.columns]
+        else:
+            cols = [c for c in SLATE_COLS if c in df.columns]
+        _XLSX_FAST["sheets"][sheet_name] = df.loc[:, cols].copy() if cols else df.copy()
+        return
     ws = wb.create_sheet(sheet_name)
     if column_order is not None:
         cols = [c for c in column_order if c in df.columns]
@@ -19578,6 +19594,8 @@ TICKET_W = [4, 20, 6, 6, 18, 10, 6, 6, 7, 9, 8, 9, 7, 8, 8, 9, 11, 8, 10, 8, 9, 
 
 
 def write_ticket_sheet(wb, tickets, sheet_name, bg_hdr, label=""):
+    if _XLSX_FAST.get("on"):
+        return
     if not tickets:
         return
     ws = wb.create_sheet(sheet_name)
@@ -19784,6 +19802,8 @@ def write_ticket_sheet(wb, tickets, sheet_name, bg_hdr, label=""):
 def write_summary(wb, nba, cbb, combined, all_ticket_groups, date_str, thresholds,
                   nhl=None, soccer=None, tennis=None, wcbb=None, mlb=None, nba1q=None, nba1h=None,
                   nfl=None):
+    if _XLSX_FAST.get("on"):
+        return
     ws = wb.create_sheet("SUMMARY", 0)
     sw(ws, [28, 14, 10, 10, 10, 10, 10, 12, 18])
 
@@ -20261,6 +20281,16 @@ def main():
         help="Write tickets_latest.json for web/Railway (graded HTML via build_ticket_eval.py)",
     )
     ap.add_argument(
+        "--pretty-xlsx",
+        action="store_true",
+        help="Force the slow styled openpyxl workbook (ticket tabs + cell colors). Default with --write-web is a fast Full Slate dump.",
+    )
+    ap.add_argument(
+        "--fast-xlsx",
+        action="store_true",
+        help="Bulk-write slate sheets even without --write-web (skip per-cell ticket Excel tabs).",
+    )
+    ap.add_argument(
         "--write-slate-web-only",
         action="store_true",
         dest="write_slate_web_only",
@@ -20488,6 +20518,12 @@ def main():
 
     if not args.output:
         args.output = f"combined_slate_tickets_{args.date}.xlsx"
+    _XLSX_FAST["on"] = bool(getattr(args, "fast_xlsx", False)) or (
+        bool(args.write_web) and not bool(getattr(args, "pretty_xlsx", False))
+    )
+    _XLSX_FAST["sheets"] = {}
+    if _XLSX_FAST["on"]:
+        print("[xlsx] fast mode: slate sheets via xlsxwriter; skip styled ticket tabs")
 
     _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     _auto_ud = os.path.join(_repo_root, "outputs", args.date, "underdog_props.csv")
@@ -22743,9 +22779,22 @@ def main():
         if sname in wb.sheetnames:
             wb.move_sheet(wb[sname], offset=-(len(wb.sheetnames) - 1))
 
-    wb.save(args.output)
-    print(f"\n[OK] Saved -> {args.output}")
-    print(f"   Sheets ({len(wb.sheetnames)}): {wb.sheetnames}")
+    if _XLSX_FAST.get("on"):
+        from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
+
+        sheets = dict(_XLSX_FAST.get("sheets") or {})
+        if not sheets:
+            sheets = {"Full Slate": pd.DataFrame()}
+        write_excel_sheets(args.output, sheets)
+        full = sheets.get("Full Slate")
+        if full is not None:
+            write_parquet_sidecar(full, args.output)
+        print(f"\n[OK] Saved (fast xlsx) -> {args.output}")
+        print(f"   Sheets ({len(sheets)}): {list(sheets)}")
+    else:
+        wb.save(args.output)
+        print(f"\n[OK] Saved -> {args.output}")
+        print(f"   Sheets ({len(wb.sheetnames)}): {wb.sheetnames}")
 
     if args.write_web:
         print("\nWriting web outputs...")

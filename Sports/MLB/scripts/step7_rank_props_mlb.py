@@ -45,6 +45,17 @@ from utils.group_rank_tier import (  # noqa: E402
     report_goblin_demon_standard_line_fill,
 )
 from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
+from utils.rank_vectorize import (  # noqa: E402
+    avg_vs_line_series,
+    def_adj_from_rank,
+    def_rank_signal_series,
+    directional_line_hit_rate,
+    edge_transform_series,
+    first_stat_projection,
+    minutes_certainty_from_tier,
+    over_only_line_hit_rate,
+    pick_first_numeric,
+)
 
 # ── step_archive lazy import ──────────────────────────────────────────────────
 _sa_scripts_dir = str(Path(__file__).resolve().parents[3] / "scripts")
@@ -834,7 +845,7 @@ def main() -> None:
     out = _merge_hitter_tier_ranks(out, REPO_ROOT)
 
     line_num = _to_num(out["line"])
-    proj     = out.apply(_projection_from_row, axis=1)
+    proj     = first_stat_projection(out)
     out["projection"] = proj
     if "usage_boost_proj" in out.columns:
         out["projection"] = _to_num(out["projection"]).fillna(0.0) + _to_num(out["usage_boost_proj"]).fillna(0.0)
@@ -844,7 +855,7 @@ def main() -> None:
     # ── Historical archive features ───────────────────────────────────────────
     _attach_archive_features(out, "MLB", line_num.replace(0, np.nan))
 
-    forced = out["pick_type"].apply(_forced_over_only).astype(int)
+    forced = out["pick_type"].map(_forced_over_only).astype(int)
     out["forced_over_only"] = forced
 
     fade = _bottom3_tough_fade_mask(out, n_teams=args.n_teams)
@@ -894,8 +905,8 @@ def main() -> None:
     out["eligible"]    = eligible.astype(int)
     out["void_reason"] = void_reason
 
-    out["edge_dr"]           = out["edge"].apply(_edge_transform)
-    out["line_hit_rate"]     = out.apply(_line_hit_rate_from_row, axis=1)
+    out["edge_dr"]           = edge_transform_series(out["edge"])
+    out["line_hit_rate"]     = directional_line_hit_rate(out, out["bet_direction"], under_from_counts=True)
     same_opp_over = pd.to_numeric(
         out.get("same_opp_over_rate_l5", pd.Series(np.nan, index=out.index)),
         errors="coerce",
@@ -903,39 +914,15 @@ def main() -> None:
     if "same_series_hit_rate" not in out.columns:
         out["same_series_hit_rate"] = np.nan
     series_existing = pd.to_numeric(out["same_series_hit_rate"], errors="coerce")
+    _bu_same = out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER")
     series_from_same_opp = pd.Series(
-        [
-            _same_opp_signal(out["bet_direction"].iloc[i], same_opp_over.iloc[i])
-            for i in range(len(out))
-        ],
+        np.where(_bu_same, 1.0 - same_opp_over, same_opp_over),
         index=out.index,
         dtype=float,
     )
     out["same_series_hit_rate"] = series_existing.where(series_existing.notna(), series_from_same_opp)
     out["l5_vs_same_opp_hit_rate"] = out["same_series_hit_rate"]
-    def _line_hit_over_only_row(row: pd.Series) -> float:
-        hr5 = hr10 = np.nan
-        for c in ("line_hit_rate_over_ou_5", "line_hit_rate_over_5", "last5_hit_rate"):
-            if c in row.index:
-                v = _safe_float(row.get(c))
-                if not np.isnan(v):
-                    hr5 = v
-                    break
-        for c in ("line_hit_rate_over_ou_10", "line_hit_rate_over_10"):
-            if c in row.index:
-                v = _safe_float(row.get(c))
-                if not np.isnan(v):
-                    hr10 = v
-                    break
-        if not np.isnan(hr5) and not np.isnan(hr10):
-            return hr5 * 0.50 + hr10 * 0.50
-        if not np.isnan(hr5):
-            return hr5
-        if not np.isnan(hr10):
-            return hr10
-        return np.nan
-
-    _lho = out.apply(_line_hit_over_only_row, axis=1)
+    _lho = over_only_line_hit_rate(out)
     _bu = out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER")
     out["context_hr_prior"] = out.apply(lambda r: _context_hit_rate_prior(r, n_teams=args.n_teams), axis=1)
     out["composite_hit_rate"] = np.where(
@@ -947,9 +934,9 @@ def main() -> None:
         (1.0 - CONTEXT_HR_BLEND) * pd.to_numeric(out["composite_hit_rate"], errors="coerce")
         + CONTEXT_HR_BLEND * pd.to_numeric(out["context_hr_prior"], errors="coerce")
     )
-    out["minutes_certainty"] = out.apply(_minutes_certainty, axis=1)
-    out["prop_weight"]       = out["prop_norm"].astype(str).apply(_prop_weight)
-    out["reliability_mult"]  = out["pick_type"].astype(str).apply(_reliability_mult)
+    out["minutes_certainty"] = minutes_certainty_from_tier(out.get("minutes_tier", pd.Series("", index=out.index)))
+    out["prop_weight"]       = out["prop_norm"].astype(str).str.lower().str.strip().map(_PROP_WEIGHTS).fillna(0.93)
+    out["reliability_mult"]  = out["pick_type"].map(_reliability_mult)
 
     elig_mask = out["eligible"].astype(int).eq(1)
 
@@ -973,41 +960,52 @@ def main() -> None:
     out["line_hit_z"]  = zcol(out["line_hit_rate"],  direction_aware=True)
     out["min_z"]       = zcol(out["minutes_certainty"])
 
-    def_adj = out.apply(lambda r: _def_adjustment(r, args.n_teams), axis=1)
+    _prop_rank = pick_first_numeric(out, "OVERALL_DEF_RANK")
+    _hr_rank = pick_first_numeric(out, "HR_ALLOWED_RANK")
+    _hits_rank = pick_first_numeric(out, "HITS_ALLOWED_RANK")
+    _runs_rank = pick_first_numeric(out, "RUNS_ALLOWED_RANK")
+    _p = out["prop_norm"].astype(str).str.lower().str.strip()
+    _used = _prop_rank.copy()
+    _used = _used.where(~_p.eq("home_runs"), _hr_rank)
+    _used = _used.where(~_p.isin({"hits", "total_bases", "singles", "doubles", "hits_runs_rbi"}), _hits_rank)
+    _used = _used.where(~_p.isin({"runs", "rbi"}), _runs_rank)
+    _used = _used.where(~_p.isin(_PITCHER_ALLOW_PROPS), _hits_rank.combine_first(_runs_rank))
+    _used = _used.where(~_p.isin({"strikeouts", "pitcher_strikeouts", "pitching_strikeouts", "ks"}), np.nan)
+    out["prop_def_rank_used"] = _used
+    def_adj = def_adj_from_rank(_used.combine_first(_prop_rank), args.n_teams)
     ctx_adj = out.apply(lambda r: _context_projection_bump(r, n_teams=args.n_teams), axis=1)
     out["def_adj"] = def_adj
     out["context_proj_adj"] = ctx_adj
-    out["prop_def_rank_used"] = out.apply(_prop_def_rank, axis=1)
     total_adj = def_adj.astype(float) + ctx_adj.astype(float)
     out["projection_adj"] = pd.to_numeric(out["projection"], errors="coerce") * (1.0 + total_adj)
     out["edge_adj"]       = out["projection_adj"] - line_num
 
-    def _edge_adj_dr(i):
-        x = out["edge_adj"].iloc[i]
-        if pd.isna(x): return np.nan
-        direction = str(out["bet_direction"].iloc[i]).upper()
-        signed = -float(x) if direction == "UNDER" else float(x)
-        return _edge_transform(signed)
+    _signed_edge = pd.Series(
+        np.where(
+            out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER"),
+            -out["edge_adj"],
+            out["edge_adj"],
+        ),
+        index=out.index,
+        dtype=float,
+    )
+    out["edge_adj_dr"] = edge_transform_series(_signed_edge)
 
-    out["edge_adj_dr"] = pd.Series([_edge_adj_dr(i) for i in range(len(out))], index=out.index)
-
-    def _def_rank_signal(row: pd.Series) -> float:
-        rank = _prop_def_rank(row)
-        if np.isnan(rank):
-            rank = _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
-        direction = str(row.get("bet_direction", "OVER")).upper()
-        if np.isnan(rank):
-            return 0.0
-        signal = (rank - 1.0) / (args.n_teams - 1.0) * 2.0 - 1.0
-        sig = float(signal if direction == "OVER" else -signal)
-        if str(row.get("prop_norm", "")).lower() == "home_runs":
-            pf_hr = _safe_float(row.get("park_factor_hr"))
-            if not np.isnan(pf_hr):
-                park_sig = float(np.clip((pf_hr - 100.0) / 14.0, -1.0, 1.0))
-                sig += (park_sig if direction == "OVER" else -park_sig) * 0.35
-        return float(np.clip(sig, -1.5, 1.5))
-
-    def_signal = out.apply(_def_rank_signal, axis=1)
+    def_signal = def_rank_signal_series(
+        out["prop_def_rank_used"].combine_first(pick_first_numeric(out, "OVERALL_DEF_RANK")),
+        out["bet_direction"],
+        args.n_teams,
+    )
+    _hr = out["prop_norm"].astype(str).str.lower().str.strip().eq("home_runs")
+    _pf = pick_first_numeric(out, "park_factor_hr")
+    _park = ((_pf - 100.0) / 14.0).clip(-1.0, 1.0)
+    _under = out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER")
+    _park_signed = pd.Series(np.where(_under, -_park, _park), index=out.index, dtype=float) * 0.35
+    def_signal = pd.Series(
+        np.where(_hr & _pf.notna(), def_signal + _park_signed, def_signal),
+        index=out.index,
+        dtype=float,
+    ).clip(-1.5, 1.5)
     out["def_rank_signal"] = def_signal
     out["def_rank_z"]      = zcol(def_signal, direction_aware=True)
 
@@ -1015,25 +1013,18 @@ def main() -> None:
     for col in ("stat_last5_avg", "stat_last10_avg", "stat_season_avg"):
         out[col + "_num"] = _to_num(out[col]) if col in out.columns else pd.Series([np.nan] * len(out), index=out.index)
 
-    def _avg_vs_line(i):
-        l = line_num_filled.iloc[i]
-        if l == 0 or np.isnan(l): return 0.0
-        direction = str(out["bet_direction"].iloc[i]).upper()
-        score = total_w = 0.0
-        for col, w in [("stat_last5_avg_num", 0.50), ("stat_last10_avg_num", 0.30), ("stat_season_avg_num", 0.20)]:
-            v = out[col].iloc[i]
-            if not np.isnan(v):
-                raw = np.clip((v - l) / l, -1.0, 1.0)
-                if direction == "UNDER": raw = -raw
-                score += raw * w; total_w += w
-        return float(score / total_w) if total_w > 0.1 else 0.0
-
-    avg_vs_line = pd.Series([_avg_vs_line(i) for i in range(len(out))], index=out.index)
+    avg_vs_line = avg_vs_line_series(out, line_num_filled, out["bet_direction"])
     out["avg_vs_line"]   = avg_vs_line
     out["avg_vs_line_z"] = zcol(avg_vs_line, direction_aware=True)
 
-    prop_hr_prior = out.apply(
-        lambda r: _prop_hit_rate_prior(r.get("prop_norm", ""), str(r.get("bet_direction", "OVER")).upper()), axis=1
+    _prior_fn = np.vectorize(_prop_hit_rate_prior, otypes=[float])
+    prop_hr_prior = pd.Series(
+        _prior_fn(
+            out["prop_norm"].astype(str).to_numpy(),
+            out["bet_direction"].astype(str).str.upper().to_numpy(),
+        ),
+        index=out.index,
+        dtype=float,
     )
     out["prop_hr_prior"] = prop_hr_prior
     out["prop_hr_z"]     = zcol(prop_hr_prior, direction_aware=True)

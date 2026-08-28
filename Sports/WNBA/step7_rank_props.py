@@ -38,6 +38,15 @@ if str(_WNBA_REPO) not in sys.path:
     sys.path.insert(0, str(_WNBA_REPO))
 from utils.consistency_grade_scores import apply_consistency_grade_scores  # noqa: E402
 from utils.prop_signal_score import apply_ml_rank_blend  # noqa: E402
+from utils.rank_vectorize import (  # noqa: E402
+    avg_vs_line_series,
+    def_adj_from_rank,
+    def_rank_signal_series,
+    directional_line_hit_rate,
+    edge_transform_series,
+    minutes_certainty_from_tier,
+    pick_first_numeric,
+)
 from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 from utils.group_rank_tier import (  # noqa: E402
     assign_tier_column,
@@ -421,7 +430,7 @@ def main():
     out["edge"]       = _to_num(out["projection"]) - line_num
     out["abs_edge"]   = out["edge"].abs()
 
-    forced = out["pick_type"].apply(_forced_over_only).astype(int)
+    forced = out["pick_type"].map(lambda x: _forced_over_only(x)).astype(int)
     out["forced_over_only"] = forced
 
     bet_dir = np.where(forced.eq(1), "OVER", np.where(out["edge"] >= 0, "OVER", "UNDER"))
@@ -441,11 +450,11 @@ def main():
     out["eligible"]    = eligible.astype(int)
     out["void_reason"] = void_reason
 
-    out["edge_dr"]          = out["edge"].apply(_edge_transform)
-    out["line_hit_rate"]    = out.apply(_line_hit_rate_from_row, axis=1)
-    out["minutes_certainty"]= out.apply(_minutes_certainty, axis=1)
-    out["prop_weight"]      = out["prop_norm"].astype(str).apply(_prop_weight)
-    out["reliability_mult"] = out["pick_type"].astype(str).apply(_reliability_mult)
+    out["edge_dr"]          = edge_transform_series(out["edge"])
+    out["line_hit_rate"]    = directional_line_hit_rate(out, out["bet_direction"], under_from_counts=False)
+    out["minutes_certainty"]= minutes_certainty_from_tier(out.get("minutes_tier", pd.Series("", index=out.index)))
+    out["prop_weight"]      = out["prop_norm"].astype(str).str.lower().str.strip().map(_PROP_WEIGHTS).fillna(0.93)
+    out["reliability_mult"] = out["pick_type"].map(_reliability_mult)
 
     elig_mask = out["eligible"].astype(int).eq(1)
 
@@ -479,23 +488,26 @@ def main():
     opp_rank_num = pd.to_numeric(out.get("OVERALL_DEF_RANK"), errors="coerce")
     n_def = int(opp_rank_num.max()) if opp_rank_num.notna().any() else _N_TEAMS_WNBA
 
-    def_adj = out.apply(lambda r: _def_adjustment(r, n_def), axis=1)
+    def_rank = pick_first_numeric(out, "stat_def_rank", "STAT_DEF_RANK", "OVERALL_DEF_RANK")
+    def_adj = def_adj_from_rank(def_rank, n_def)
     out["def_adj"] = def_adj
 
     proj_base = pd.to_numeric(out["projection"], errors="coerce")
     out["projection_adj"] = proj_base * (1.0 + def_adj.astype(float))
     out["edge_adj"]       = out["projection_adj"] - line_num
 
-    def _edge_adj_dr(row_idx):
-        x         = out["edge_adj"].iloc[row_idx]
-        if pd.isna(x): return np.nan
-        direction = str(out["bet_direction"].iloc[row_idx]).upper()
-        signed    = -float(x) if direction == "UNDER" else float(x)
-        return _edge_transform(signed)
+    signed_edge = pd.Series(
+        np.where(
+            out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER"),
+            -out["edge_adj"],
+            out["edge_adj"],
+        ),
+        index=out.index,
+        dtype=float,
+    )
+    out["edge_adj_dr"] = edge_transform_series(signed_edge)
 
-    out["edge_adj_dr"] = pd.Series([_edge_adj_dr(i) for i in range(len(out))], index=out.index)
-
-    def_signal = out.apply(lambda r: _def_rank_signal(r, n_def), axis=1)
+    def_signal = def_rank_signal_series(def_rank, out["bet_direction"], n_def)
     out["def_rank_signal"] = def_signal
     out["def_rank_z"]      = zcol(def_signal, direction_aware=True)
 
@@ -526,26 +538,18 @@ def main():
     for col in ("stat_last5_avg","stat_last10_avg","stat_season_avg"):
         out[col+"_num"] = _to_num(out[col]) if col in out.columns else _to_num(pd.Series([""] * len(out)))
 
-    def _avg_vs_line(row_idx):
-        line      = line_num_filled.iloc[row_idx]
-        if line == 0 or np.isnan(line): return 0.0
-        direction = str(out["bet_direction"].iloc[row_idx]).upper()
-        score = total_w = 0.0
-        for col, w in [("stat_last5_avg_num",0.50),("stat_last10_avg_num",0.30),("stat_season_avg_num",0.20)]:
-            v = out[col].iloc[row_idx]
-            if not np.isnan(v):
-                raw = np.clip((v - line) / line, -1.0, 1.0)
-                if direction == "UNDER": raw = -raw
-                score += raw * w; total_w += w
-        return float(score / total_w) if total_w > 0.1 else 0.0
-
-    avg_vs_line = pd.Series([_avg_vs_line(i) for i in range(len(out))], index=out.index)
+    avg_vs_line = avg_vs_line_series(out, line_num_filled, out["bet_direction"])
     out["avg_vs_line"]   = avg_vs_line
     out["avg_vs_line_z"] = zcol(avg_vs_line, direction_aware=True)
 
-    prop_hr_prior = out.apply(
-        lambda r: _prop_hit_rate_prior(r.get("prop_norm",""), str(r.get("bet_direction","OVER")).upper()),
-        axis=1
+    _prior_fn = np.vectorize(_prop_hit_rate_prior, otypes=[float])
+    prop_hr_prior = pd.Series(
+        _prior_fn(
+            out["prop_norm"].astype(str).to_numpy(),
+            out["bet_direction"].astype(str).str.upper().to_numpy(),
+        ),
+        index=out.index,
+        dtype=float,
     )
     out["prop_hr_prior"] = prop_hr_prior
     out["prop_hr_z"]     = zcol(prop_hr_prior, direction_aware=True)

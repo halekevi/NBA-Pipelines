@@ -51,6 +51,17 @@ from utils.group_rank_tier import (  # noqa: E402
     report_goblin_demon_standard_line_fill,
 )
 from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
+from utils.rank_vectorize import (  # noqa: E402
+    avg_vs_line_series,
+    def_adj_from_rank,
+    def_rank_signal_series,
+    directional_line_hit_rate,
+    edge_transform_series,
+    first_stat_projection,
+    minutes_certainty_from_tier,
+    over_only_line_hit_rate,
+    pick_first_numeric,
+)
 
 _sa_scripts_dir = str(Path(__file__).resolve().parents[3] / "scripts")
 try:
@@ -971,7 +982,10 @@ def main() -> None:
     )
 
     line_num = _to_num(out["line"])
-    proj     = out.apply(_projection_from_row, axis=1)
+    proj     = first_stat_projection(out).combine_first(pick_first_numeric(out, "standard_line"))
+    _need_proj = proj.isna()
+    if bool(_need_proj.any()):
+        proj.loc[_need_proj] = out.loc[_need_proj].apply(_projection_from_row, axis=1)
     out["projection"] = proj
     if "usage_boost_proj" in out.columns:
         out["projection"] = _to_num(out["projection"]).fillna(0.0) + _to_num(out["usage_boost_proj"]).fillna(0.0)
@@ -981,7 +995,7 @@ def main() -> None:
     # ── Historical archive features ───────────────────────────────────────────
     _attach_archive_features(out, "Soccer", line_num.replace(0, np.nan))
 
-    forced = out["pick_type"].apply(_forced_over_only).astype(int)
+    forced = out["pick_type"].map(_forced_over_only).astype(int)
     out["forced_over_only"] = forced
 
     bet_dir = np.where(forced.eq(1), "OVER", np.where(out["edge"] >= 0, "OVER", "UNDER"))
@@ -1007,8 +1021,8 @@ def main() -> None:
     out["eligible"]    = eligible.astype(int)
     out["void_reason"] = void_reason
 
-    out["edge_dr"]          = out["edge"].apply(_edge_transform)
-    out["line_hit_rate"]    = out.apply(_line_hit_rate_from_row, axis=1)
+    out["edge_dr"]          = edge_transform_series(out["edge"])
+    out["line_hit_rate"]    = directional_line_hit_rate(out, out["bet_direction"], under_from_counts=True)
     # When step4/step5 can't attach enough game logs, keep downstream flows alive by
     # seeding hit-rate columns from calibrated prop priors (instead of leaving all NaN).
     missing_hr = pd.to_numeric(out["line_hit_rate"], errors="coerce").isna()
@@ -1036,12 +1050,17 @@ def main() -> None:
     out["line_hit_rate_over_ou_10"] = pd.to_numeric(
         out["line_hit_rate_over_ou_10"], errors="coerce"
     ).fillna(pd.to_numeric(out["line_hit_rate"], errors="coerce"))
-    _lho_soc = out.apply(_line_hit_over_only_soccer_row, axis=1)
+    _lho_soc = over_only_line_hit_rate(out)
     _bu_soc = out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER")
     out["composite_hit_rate"] = np.where(_bu_soc, 1.0 - _lho_soc, _lho_soc)
-    out["minutes_certainty"] = out.apply(_minutes_certainty, axis=1)
-    out["prop_weight"]      = out["prop_norm"].astype(str).apply(_prop_weight)
-    out["reliability_mult"] = out["pick_type"].astype(str).apply(_reliability_mult)
+    out["minutes_certainty"] = minutes_certainty_from_tier(
+        out.get("minutes_tier", pd.Series("", index=out.index)), default=np.nan
+    )
+    _mc_need = out["minutes_certainty"].isna()
+    if bool(_mc_need.any()):
+        out.loc[_mc_need, "minutes_certainty"] = out.loc[_mc_need].apply(_minutes_certainty, axis=1)
+    out["prop_weight"]      = out["prop_norm"].astype(str).str.lower().str.strip().map(_PROP_WEIGHTS).fillna(0.93)
+    out["reliability_mult"] = out["pick_type"].map(_reliability_mult)
 
     elig_mask = out["eligible"].astype(int).eq(1)
 
@@ -1068,28 +1087,24 @@ def main() -> None:
     out["line_hit_z"]  = zcol(out["line_hit_rate"],  direction_aware=True)
     out["min_z"]       = zcol(out["minutes_certainty"])
 
-    def_adj = out.apply(lambda r: _def_adjustment(r, args.n_teams), axis=1)
+    def_adj = def_adj_from_rank(pick_first_numeric(out, "OVERALL_DEF_RANK"), args.n_teams)
     out["def_adj"]         = def_adj
     out["projection_adj"]  = pd.to_numeric(out["projection"], errors="coerce") * (1.0 + def_adj.astype(float))
     out["edge_adj"]        = out["projection_adj"] - line_num
 
-    def _edge_adj_dr(row_idx):
-        x = out["edge_adj"].iloc[row_idx]
-        if pd.isna(x): return np.nan
-        direction = str(out["bet_direction"].iloc[row_idx]).upper()
-        signed = -float(x) if direction == "UNDER" else float(x)
-        return _edge_transform(signed)
-
-    out["edge_adj_dr"] = pd.Series([_edge_adj_dr(i) for i in range(len(out))], index=out.index)
-
-    def _def_rank_signal(row: pd.Series) -> float:
-        rank      = _safe_float(row.get("OVERALL_DEF_RANK", np.nan))
-        direction = str(row.get("bet_direction", "OVER")).upper()
-        if np.isnan(rank): return 0.0
-        signal = (rank - 1.0) / (args.n_teams - 1.0) * 2.0 - 1.0
-        return float(signal if direction == "OVER" else -signal)
-
-    def_signal = out.apply(_def_rank_signal, axis=1)
+    _signed_edge = pd.Series(
+        np.where(
+            out["bet_direction"].astype(str).str.upper().str.strip().eq("UNDER"),
+            -out["edge_adj"],
+            out["edge_adj"],
+        ),
+        index=out.index,
+        dtype=float,
+    )
+    out["edge_adj_dr"] = edge_transform_series(_signed_edge)
+    def_signal = def_rank_signal_series(
+        pick_first_numeric(out, "OVERALL_DEF_RANK"), out["bet_direction"], args.n_teams
+    )
     out["def_rank_signal"] = def_signal
     out["def_rank_z"]      = zcol(def_signal, direction_aware=True)
 
@@ -1137,18 +1152,21 @@ def main() -> None:
                 total_w += w
         return float(score / total_w) if total_w > 0.1 else 0.0
 
-    avg_vs_line = pd.Series([_avg_vs_line(i) for i in range(len(out))], index=out.index)
+    avg_vs_line = avg_vs_line_series(out, line_num_filled, out["bet_direction"])
     out["avg_vs_line"]   = avg_vs_line
     out["avg_vs_line_z"] = zcol(avg_vs_line, direction_aware=True)
 
-    prop_hr_prior = out.apply(
-        lambda r: _prop_hit_rate_prior(
-            r.get("prop_norm", ""),
-            str(r.get("bet_direction", "OVER")).upper(),
-            str(r.get("pick_type", "Standard")),
-            float(r.get("deviation_level", 0) or 0)
+    _dev = pd.to_numeric(out.get("deviation_level"), errors="coerce").fillna(0.0)
+    _prior_fn = np.vectorize(_prop_hit_rate_prior, otypes=[float])
+    prop_hr_prior = pd.Series(
+        _prior_fn(
+            out["prop_norm"].astype(str).to_numpy(),
+            out["bet_direction"].astype(str).str.upper().to_numpy(),
+            out["pick_type"].astype(str).to_numpy(),
+            _dev.to_numpy(),
         ),
-        axis=1
+        index=out.index,
+        dtype=float,
     )
     out["prop_hr_prior"] = prop_hr_prior
     out["prop_hr_z"]     = zcol(prop_hr_prior, direction_aware=True)

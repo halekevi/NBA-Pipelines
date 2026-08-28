@@ -243,6 +243,45 @@ def list_placed_rows(user_id: int, *, limit: int = 80) -> list[dict[str, Any]]:
             conn.close()
 
 
+def replace_placed(
+    user_id: int,
+    old_slate: str,
+    old_fingerprint: str,
+    *,
+    slate_date: str,
+    fingerprint: str,
+    stake: float | None,
+    snapshot: dict[str, Any],
+) -> None:
+    """Rewrite a placed row, including fingerprint changes. Snapshot always replaces."""
+    old_day = str(old_slate or "").strip()[:10]
+    old_fp = str(old_fingerprint or "").strip()
+    day = str(slate_date or "").strip()[:10]
+    fp = str(fingerprint or "").strip()
+    if not day or not fp:
+        raise ValueError("Missing slate date or ticket fingerprint.")
+    snap_json = json.dumps(snapshot)
+    with _LOCK:
+        conn = _connect()
+        try:
+            if old_day and old_fp and (old_day != day or old_fp != fp):
+                conn.execute(
+                    "DELETE FROM placed_slips WHERE user_id = ? AND slate_date = ? AND fingerprint = ?",
+                    (int(user_id), old_day, old_fp),
+                )
+            conn.execute(
+                "INSERT INTO placed_slips "
+                "(user_id, slate_date, fingerprint, placed_at, stake, snapshot) "
+                "VALUES (?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(user_id, slate_date, fingerprint) DO UPDATE SET "
+                "stake=excluded.stake, snapshot=excluded.snapshot",
+                (int(user_id), day, fp, _now(), stake, snap_json),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+
 def set_placed(
     user_id: int,
     slate_date: str,

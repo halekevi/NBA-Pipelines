@@ -109,5 +109,23 @@ def test_account_http_flow(tmp_path, monkeypatch):
     )
     assert custom.status_code == 200
     assert custom.get_json()["ok"] is True
+    fp = custom.get_json()["fingerprint"]
+    fixed = client.post(
+        "/api/account/placed-fix",
+        json={
+            "slate_date": "2026-08-27",
+            "fingerprint": fp,
+            "to_win": 1.9,
+            "picks": [
+                {"player": "A", "prop": "Points", "line": 10.5, "dir": "OVER", "pick_type": "Goblin"},
+                {"player": "B", "prop": "Points", "line": 8.5, "dir": "OVER", "pick_type": "Goblin"},
+                {"player": "C", "prop": "Assists", "line": 2.5, "dir": "UNDER", "pick_type": "Goblin"},
+            ],
+        },
+    )
+    assert fixed.status_code == 200
     pnl2 = client.get("/api/account/pnl").get_json()
     assert pnl2["placed"] >= 2
+    hit = next(r for r in pnl2["rows"] if "A" in (r.get("label") or "") and "C" in (r.get("label") or ""))
+    assert "1.9" in (hit.get("payout_text") or "")
+    assert any(p.get("direction") == "UNDER" for p in hit.get("picks") or [])

@@ -472,6 +472,20 @@ def settle_snapshot(
         quoted = float(table[n_legs_n])
     elif fallback is not None and math.isfinite(fallback) and fallback > 0:
         quoted = float(fallback)
+    picks = []
+    for leg in legs:
+        if not isinstance(leg, dict) or not str(leg.get("player") or "").strip():
+            continue
+        picks.append(
+            {
+                "sport": str(leg.get("sport") or ""),
+                "player": str(leg.get("player") or "").strip(),
+                "prop_type": str(leg.get("prop_type") or leg.get("prop") or "").strip(),
+                "direction": _dir(leg.get("direction") or leg.get("dir")),
+                "line": leg.get("line"),
+                "pick_type": str(leg.get("pick_type") or ""),
+            }
+        )
     base = {
         "slate_date": slate_date,
         "fingerprint": fingerprint,
@@ -481,6 +495,7 @@ def settle_snapshot(
         "stake": round(stake_f, 2),
         "n_legs": n_legs_n,
         "legs": marks,
+        "picks": picks,
         "n_correct": {str(k): v for k, v in sorted(table.items())},
         "payout_text": payout_text(table, product, n_legs_n),
         "quoted_x": quoted,

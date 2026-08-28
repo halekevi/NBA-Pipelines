@@ -70,6 +70,8 @@
   .acct-groups { display: flex; flex-wrap: wrap; gap: 8px; }
   .acct-groups label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 6px 10px; cursor: pointer; }
   .acct-note { font-size: 12px; color: var(--muted, rgba(255,255,255,.65)); margin: 0 0 10px; line-height: 1.4; }
+  .acct-import { width: 100%; min-height: 140px; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.14);
+    border-radius: 8px; color: inherit; font: 11px/1.4 ui-monospace, monospace; padding: 10px 12px; }
 </style>
 </head>
 <body class="page-account">
@@ -147,6 +149,15 @@
     {% else %}
     <p class="acct-note">No placed slips yet. Open tickets, copy a slip into PrizePicks, then check <strong>Placed</strong>.</p>
     {% endif %}
+  </div>
+  <div class="acct-card">
+    <h2>Log a slip I placed</h2>
+    <p class="acct-note">Paste one slip or a list. Use PrizePicks <strong>N-correct / To Win</strong> only — not 1st place. This does not submit to PrizePicks.</p>
+    <textarea class="acct-import" id="acct-import" spellcheck="false" placeholder='[{"slate_date":"2026-08-28","product":"Power","stake":20,"n_correct":{"6":24},"legs":[{"player":"Name","prop":"Pass Yards","line":190.5,"dir":"UNDER","pick_type":"Standard","sport":"CFB"}]}]'></textarea>
+    <p class="acct-note" id="acct-import-msg"></p>
+    <div class="acct-actions" style="margin-top:10px">
+      <button type="button" class="acct-btn" id="acct-import-btn">Import slips</button>
+    </div>
   </div>
   <div class="acct-card">
     <h2>Preferences</h2>
@@ -272,6 +283,44 @@
       });
     });
   });
+  var importBtn = document.getElementById("acct-import-btn");
+  var importBox = document.getElementById("acct-import");
+  var importMsg = document.getElementById("acct-import-msg");
+  if (importBtn && importBox) {
+    importBtn.addEventListener("click", function () {
+      var raw = String(importBox.value || "").trim();
+      if (!raw) {
+        if (importMsg) importMsg.textContent = "Paste a slip JSON first.";
+        return;
+      }
+      var data;
+      try { data = JSON.parse(raw); } catch (e) {
+        if (importMsg) importMsg.textContent = "JSON did not parse.";
+        return;
+      }
+      var slips = Array.isArray(data) ? data : [data];
+      importBtn.disabled = true;
+      var chain = Promise.resolve();
+      slips.forEach(function (slip) {
+        chain = chain.then(function () {
+          return fetch("/api/account/custom-slip", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(slip)
+          }).then(function (res) {
+            return res.json().then(function (body) {
+              if (!res.ok) throw new Error((body && body.error) || "Import failed");
+            });
+          });
+        });
+      });
+      chain.then(function () { window.location.reload(); }).catch(function (err) {
+        importBtn.disabled = false;
+        if (importMsg) importMsg.textContent = err.message || "Import failed.";
+      });
+    });
+  }
 })();
 </script>
 </body>

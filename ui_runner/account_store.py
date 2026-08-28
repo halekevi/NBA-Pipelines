@@ -55,6 +55,14 @@ def accounts_db_path() -> Path:
         return _repo_root() / "data" / "proporacle_accounts.db"
 
 
+def _migrate_placed(conn: sqlite3.Connection) -> None:
+    cols = {str(r[1]) for r in conn.execute("PRAGMA table_info(placed_slips)").fetchall()}
+    if "stake" not in cols:
+        conn.execute("ALTER TABLE placed_slips ADD COLUMN stake REAL")
+    if "snapshot" not in cols:
+        conn.execute("ALTER TABLE placed_slips ADD COLUMN snapshot TEXT")
+
+
 def _connect() -> sqlite3.Connection:
     path = accounts_db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -63,6 +71,7 @@ def _connect() -> sqlite3.Connection:
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.executescript(_SCHEMA)
+    _migrate_placed(conn)
     return conn
 
 
@@ -195,19 +204,71 @@ def list_placed(user_id: int, slate_date: str) -> list[str]:
             conn.close()
 
 
-def set_placed(user_id: int, slate_date: str, fingerprint: str, placed: bool) -> None:
+def list_placed_rows(user_id: int, *, limit: int = 80) -> list[dict[str, Any]]:
+    with _LOCK:
+        conn = _connect()
+        try:
+            rows = conn.execute(
+                "SELECT slate_date, fingerprint, placed_at, stake, snapshot "
+                "FROM placed_slips WHERE user_id = ? "
+                "ORDER BY placed_at DESC, slate_date DESC LIMIT ?",
+                (int(user_id), int(limit)),
+            ).fetchall()
+            out: list[dict[str, Any]] = []
+            for r in rows:
+                snap = None
+                raw = r["snapshot"]
+                if raw:
+                    try:
+                        parsed = json.loads(raw)
+                        if isinstance(parsed, dict):
+                            snap = parsed
+                    except (TypeError, json.JSONDecodeError):
+                        snap = None
+                try:
+                    stake_f = float(r["stake"]) if r["stake"] is not None else None
+                except (TypeError, ValueError):
+                    stake_f = None
+                out.append(
+                    {
+                        "slate_date": str(r["slate_date"] or "")[:10],
+                        "fingerprint": str(r["fingerprint"] or ""),
+                        "placed_at": str(r["placed_at"] or ""),
+                        "stake": stake_f,
+                        "snapshot": snap,
+                    }
+                )
+            return out
+        finally:
+            conn.close()
+
+
+def set_placed(
+    user_id: int,
+    slate_date: str,
+    fingerprint: str,
+    placed: bool,
+    *,
+    stake: float | None = None,
+    snapshot: dict[str, Any] | None = None,
+) -> None:
     day = str(slate_date or "").strip()[:10]
     fp = str(fingerprint or "").strip()
     if not day or not fp:
         raise ValueError("Missing slate date or ticket fingerprint.")
+    snap_json = json.dumps(snapshot) if snapshot else None
     with _LOCK:
         conn = _connect()
         try:
             if placed:
                 conn.execute(
-                    "INSERT OR IGNORE INTO placed_slips "
-                    "(user_id, slate_date, fingerprint, placed_at) VALUES (?, ?, ?, ?)",
-                    (int(user_id), day, fp, _now()),
+                    "INSERT INTO placed_slips "
+                    "(user_id, slate_date, fingerprint, placed_at, stake, snapshot) "
+                    "VALUES (?, ?, ?, ?, ?, ?) "
+                    "ON CONFLICT(user_id, slate_date, fingerprint) DO UPDATE SET "
+                    "stake=COALESCE(excluded.stake, placed_slips.stake), "
+                    "snapshot=COALESCE(excluded.snapshot, placed_slips.snapshot)",
+                    (int(user_id), day, fp, _now(), stake, snap_json),
                 )
             else:
                 conn.execute(
@@ -219,7 +280,24 @@ def set_placed(user_id: int, slate_date: str, fingerprint: str, placed: bool) ->
             conn.close()
 
 
-def set_placed_many(user_id: int, slate_date: str, fingerprints: list[str], placed: bool) -> None:
+def set_placed_many(
+    user_id: int,
+    slate_date: str,
+    fingerprints: list[str],
+    placed: bool,
+    *,
+    stake: float | None = None,
+    snapshots: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    snaps = snapshots or {}
     for fp in fingerprints:
-        if str(fp or "").strip():
-            set_placed(user_id, slate_date, str(fp).strip(), placed)
+        token = str(fp or "").strip()
+        if token:
+            set_placed(
+                user_id,
+                slate_date,
+                token,
+                placed,
+                stake=stake,
+                snapshot=snaps.get(token),
+            )

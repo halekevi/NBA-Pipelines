@@ -15,12 +15,28 @@
 <link rel="stylesheet" href="/static/mobile-content-width.css?v=20260522gradesframe"/>
 <style>
   body.page-account { font-family: Inter, system-ui, sans-serif; color: var(--text, rgba(255,255,255,.92)); }
-  .acct-wrap { max-width: 720px; margin: 0 auto; padding: 16px 18px 40px; position: relative; z-index: 1; }
+  .acct-wrap { max-width: 860px; margin: 0 auto; padding: 16px 18px 40px; position: relative; z-index: 1; }
   .acct-hero { margin: 4px 0 16px; padding: 16px 18px; border: 1px solid rgba(212,175,55,.18); border-radius: 14px; background: linear-gradient(135deg, rgba(212,175,55,.07), transparent 42%), rgba(255,255,255,.03); }
   .acct-hero h1 { margin: 0; font-family: "Bebas Neue", sans-serif; font-size: clamp(28px, 4vw, 40px); letter-spacing: .04em; color: var(--accent, #d4af37); }
   .acct-hero p { margin: 6px 0 0; font-size: 13px; color: var(--muted, rgba(255,255,255,.72)); line-height: 1.45; }
   .acct-card { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; background: rgba(255,255,255,.035); padding: 16px 18px; margin-bottom: 14px; }
   .acct-card h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.7)); }
+  .acct-pnl-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 12px; }
+  @media (max-width: 640px) { .acct-pnl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .acct-stat { border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 10px 12px; }
+  .acct-stat .n { font-size: 20px; font-variant-numeric: tabular-nums; font-weight: 650; }
+  .acct-stat .l { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.6)); margin-top: 2px; }
+  .acct-stat.pos .n { color: #39ff6e; }
+  .acct-stat.neg .n { color: #ff7f7f; }
+  .acct-slips { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .acct-slips th { text-align: left; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.55)); padding: 6px 8px 6px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .acct-slips td { padding: 8px 8px 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: top; }
+  .acct-slips .money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .acct-pill { display: inline-block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); }
+  .acct-pill.win { color: #39ff6e; border-color: rgba(57,255,110,.35); }
+  .acct-pill.loss { color: #ff7f7f; border-color: rgba(255,127,127,.35); }
+  .acct-pill.pending { color: #d4af37; border-color: rgba(212,175,55,.35); }
+  .acct-pill.cash { color: #c8ff00; border-color: rgba(200,255,0,.3); }
   .acct-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .acct-field label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.65)); }
   .acct-field input[type="email"],
@@ -60,6 +76,49 @@
       <input type="hidden" name="action" value="logout"/>
       <button class="acct-btn acct-btn-ghost" type="submit">Sign out</button>
     </form>
+  </div>
+  <div class="acct-card">
+    <h2>Your tickets</h2>
+    <p class="acct-note">P&amp;L for slips you mark <strong>Placed</strong> on /tickets, or build with <strong>+</strong> on Home cards / slate. Stake is your default below. Pays N-correct / To Win only — not 1st place. Pending until the slate grades.</p>
+    {% set pnl = pnl or {} %}
+    <div class="acct-pnl-grid">
+      <div class="acct-stat {% if (pnl.net or 0) > 0 %}pos{% elif (pnl.net or 0) < 0 %}neg{% endif %}">
+        <div class="n">{% if pnl.roi_pct is not none %}{{ '%+.1f'|format(pnl.roi_pct) }}%{% else %}—{% endif %}</div>
+        <div class="l">ROI</div>
+      </div>
+      <div class="acct-stat {% if (pnl.net or 0) > 0 %}pos{% elif (pnl.net or 0) < 0 %}neg{% endif %}">
+        <div class="n">{% if pnl.decided %}{{ '%+.2f'|format(pnl.net or 0) }}{% else %}—{% endif %}</div>
+        <div class="l">Net $</div>
+      </div>
+      <div class="acct-stat">
+        <div class="n">${{ '%.0f'|format(pnl.staked or 0) }}</div>
+        <div class="l">Staked</div>
+      </div>
+      <div class="acct-stat">
+        <div class="n">{{ pnl.wins or 0 }}–{{ pnl.losses or 0 }}{% if pnl.pending %} · {{ pnl.pending }} pend{% endif %}</div>
+        <div class="l">W–L</div>
+      </div>
+    </div>
+    {% if pnl.rows %}
+    <table class="acct-slips">
+      <thead><tr><th>Date</th><th>Slip</th><th>Result</th><th>Net</th></tr></thead>
+      <tbody>
+      {% for r in pnl.rows[:40] %}
+        <tr>
+          <td>{{ r.slate_date }}</td>
+          <td>{{ r.label }}{% if r.product %} · {{ r.product }}{% endif %} · ${{ '%.0f'|format(r.stake or 0) }}</td>
+          <td>
+            {% set st = r.status or 'pending' %}
+            <span class="acct-pill {{ st }}{% if r.result == 'CASH' %} cash{% endif %}">{{ r.result or 'PENDING' }}{% if r.multiplier %} {{ '%.2f'|format(r.multiplier) }}x{% endif %}</span>
+          </td>
+          <td class="money">{% if r.net is not none %}{{ '%+.2f'|format(r.net) }}{% else %}—{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="acct-note">No placed slips yet. Open tickets, copy a slip into PrizePicks, then check <strong>Placed</strong>.</p>
+    {% endif %}
   </div>
   <div class="acct-card">
     <h2>Preferences</h2>

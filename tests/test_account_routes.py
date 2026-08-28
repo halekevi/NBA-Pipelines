@@ -66,3 +66,48 @@ def test_account_http_flow(tmp_path, monkeypatch):
     )
     assert placed.status_code == 200
     assert "p|pts|10.5|OVER" in placed.get_json()["placed"]
+
+    pnl = client.get("/api/account/pnl")
+    assert pnl.status_code == 200
+    body = pnl.get_json()
+    assert body["placed"] >= 1
+    assert "roi_pct" in body
+
+    page = client.get("/account")
+    assert page.status_code == 200
+    assert b"Your tickets" in page.data
+    assert b"ROI" in page.data
+
+    hint = client.post(
+        "/api/account/payout-hint",
+        json={
+            "product": "Power",
+            "slate_date": "2026-08-27",
+            "legs": [
+                {"player": "A", "prop": "Points", "line": 10.5, "dir": "OVER", "pick_type": "Goblin"},
+                {"player": "B", "prop": "Points", "line": 8.5, "dir": "OVER", "pick_type": "Goblin"},
+                {"player": "C", "prop": "Assists", "line": 2.5, "dir": "OVER", "pick_type": "Goblin"},
+            ],
+        },
+    )
+    assert hint.status_code == 200
+    assert "n_correct" in hint.get_json()
+
+    custom = client.post(
+        "/api/account/custom-slip",
+        json={
+            "slate_date": "2026-08-27",
+            "product": "Power",
+            "stake": 20,
+            "n_correct": {"3": 2.0, "first_place": 99.0},
+            "legs": [
+                {"player": "A", "prop": "Points", "line": 10.5, "dir": "OVER", "pick_type": "Goblin"},
+                {"player": "B", "prop": "Points", "line": 8.5, "dir": "OVER", "pick_type": "Goblin"},
+                {"player": "C", "prop": "Assists", "line": 2.5, "dir": "OVER", "pick_type": "Goblin"},
+            ],
+        },
+    )
+    assert custom.status_code == 200
+    assert custom.get_json()["ok"] is True
+    pnl2 = client.get("/api/account/pnl").get_json()
+    assert pnl2["placed"] >= 2

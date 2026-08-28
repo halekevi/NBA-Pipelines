@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="/static/global-scrollbar.css?v=20260531scroll"/>
 <link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260419perf2"/>
 <link rel="stylesheet" href="/static/proporacle-mobile-schema.css?v=20260617pillgrid"/>
+<link rel="stylesheet" href="/static/my-slip.css?v=20260828myslip1"/>
 <style>
 :root{
   /* Hybrid liquid-glass palette */
@@ -321,6 +322,19 @@ body::after{content:'';position:fixed;inset:0;
   #top-edges-board .edge-grid{grid-template-columns:1fr!important;}
 }
 .edges-see-all{font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:1px solid rgba(212,175,55,.28);padding:8px 16px;border-radius:999px;transition:background .15s,border-color .15s;white-space:nowrap;flex-shrink:0;}
+.te-tight-match,.me-tight-banner{
+  margin:6px 0 0;padding:7px 10px;background:rgba(255,90,90,.16);color:#ffb3b3;
+  border:1px solid rgba(255,90,90,.5);border-radius:8px;font-size:11px;font-weight:800;
+  letter-spacing:.02em;line-height:1.35;
+}
+.tight-match-chip{
+  display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;font-size:9px;font-weight:800;
+  letter-spacing:.08em;vertical-align:middle;background:rgba(255,90,90,.18);color:#ff9a9a;
+  border:1px solid rgba(255,90,90,.5);
+}
+[data-theme="light"] .te-tight-match,[data-theme="light"] .tight-match-chip,[data-theme="light"] .me-tight-banner{
+  background:rgba(180,20,20,.12);color:#9a1212;border-color:rgba(180,20,20,.4);
+}
 .edges-see-all:hover{background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.45);}
 [data-theme="light"] .edges-see-all{border-color:rgba(75,111,150,.35);color:var(--accent);}
 .sec-header{flex-wrap:wrap;gap:10px 14px;}
@@ -2472,6 +2486,33 @@ body > nav.snav.glass-card {
     </div>
     <div id="prop-detail-chart" style="margin:8px 0 12px;"></div>
     <div id="prop-detail-meta" class="prop-detail-meta"></div>
+    <button type="button" class="my-slip-add prop-detail-add" id="prop-detail-add">Add to my slip</button>
+  </div>
+</div>
+
+<div id="my-slip-dock" class="my-slip-dock" aria-live="polite">
+  <div class="my-slip-dock-hd" id="my-slip-hd">
+    <h2>My slip</h2>
+    <span class="my-slip-count" id="my-slip-count">0 / 6</span>
+  </div>
+  <div class="my-slip-body">
+    <p class="my-slip-note">Tap + on a Top Edges card or a slate row. Copy into PrizePicks yourself — this only tracks P&amp;L. Use N-correct / To Win, never 1st place.</p>
+    <ul class="my-slip-legs" id="my-slip-legs"></ul>
+    <div class="my-slip-row">
+      <label>Product
+        <select id="my-slip-product">
+          <option value="Power">Power</option>
+          <option value="Flex">Flex</option>
+        </select>
+      </label>
+      <label>Stake $
+        <input id="my-slip-stake" type="number" min="0" max="10000" step="1" placeholder="20"/>
+      </label>
+      <div class="my-slip-row" id="my-slip-ncorrect"></div>
+    </div>
+    <p class="my-slip-note" id="my-slip-hint">N-correct from PrizePicks. A lookup may prefill — confirm on the slip.</p>
+    <p class="my-slip-msg" id="my-slip-msg"></p>
+    <button type="button" class="my-slip-save" id="my-slip-save">I placed this</button>
   </div>
 </div>
 
@@ -4315,6 +4356,23 @@ function makeSparkSVG(data, line, isOver, W=150, H=48, projRef=null) {
 /** Legacy: charts are always rendered; accordion state removed */
 let EDGE_DISPLAY_PICK = {};
 
+function mySlipLegAttr(p) {
+  if (window.MySlip && typeof MySlip.encodeLeg === "function") return MySlip.encodeLeg(p);
+  try {
+    const direction = String(p.dir || p.direction || "").trim().toUpperCase();
+    return encodeURIComponent(JSON.stringify({
+      sport: String(p.sport || ""),
+      player: String(p.player || "").trim(),
+      prop_type: String(p.prop || p.prop_type || "").trim(),
+      direction: direction,
+      line: p.line,
+      pick_type: String(p.pick || p.pick_type || "Standard").trim(),
+    }));
+  } catch (_e) {
+    return "";
+  }
+}
+
 function buildEdgeCard(p, idx, rec) {
   const isOver=p.dir==="OVER", dc=isOver?"over":"under";
   const sc=`sp-${safeSportKey(p)}`;
@@ -4345,8 +4403,13 @@ function buildEdgeCard(p, idx, rec) {
   if (dS) subBits.push(dS);
   if (matchup) subBits.push(matchup);
   const l5l10 = rec ? `L5 ${l5o}/${l5u}` : edgeHitCountsLabel(p);
+  const tightNote = (rec && rec.matchup_note) || (window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchNote ? TopEdgesBadgeBoard.tightMatchNote(p, rec) : "");
+  const tightHtml = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchBannerHtml
+    ? TopEdgesBadgeBoard.tightMatchBannerHtml(tightNote)
+    : (tightNote ? `<div class="te-tight-match">${tightNote}</div>` : "");
   const div=document.createElement("div");
   div.className=`edge-card insight-card ${dc}${rec ? " te-card" : ""}`;
+  div.setAttribute("data-my-slip-leg", mySlipLegAttr(p));
   const hitBar=Math.min(100,hitPct);
   const hitColor=hitPct>=90?'var(--green)':hitPct>=75?'var(--amber)':'var(--red)';
   const hitBlock = `
@@ -4381,6 +4444,7 @@ function buildEdgeCard(p, idx, rec) {
       <div class="edge-row edge-row-main">
         <div class="edge-name">${p.player}${l10StreakBadgeHtml(p)}${consLineBadgeHtml(p)}</div>
         <div class="edge-prop">${p.dir} ${lineDisp} · ${p.prop}</div>
+        ${tightHtml}
       </div>
       <div class="edge-row edge-row-tags">
         <div class="edge-tags">
@@ -4389,6 +4453,7 @@ function buildEdgeCard(p, idx, rec) {
           ${p.tier ? `<span class="tier-badge tier-${p.tier}">${p.tier}</span>` : ''}${confDotHtml(p)}
         </div>
         <div class="edge-line-badge">${hitPct}% hit</div>
+        <button type="button" class="my-slip-add" title="Add to my slip">+</button>
       </div>
     </div>
     <div style="padding:0 12px 10px;display:flex;align-items:center;gap:8px;">
@@ -4769,6 +4834,7 @@ function renderBadgeTopEdges(board) {
   renderTopEdgesSportTabs(counts);
   applyTopEdgesSportFilter(_teSportFilter);
   wireEdgeCardExpandHandlers();
+  if (window.MySlip) MySlip.render();
   const emptyHost = document.getElementById("top-edges-empty");
   if (emptyHost) {
     emptyHost.hidden = true;
@@ -4908,6 +4974,7 @@ function renderEdges() {
   appendAll(gobO, og);
   if (us) appendUnderRows(underRows, us);
   wireEdgeCardExpandHandlers();
+  if (window.MySlip) MySlip.render();
   /* Hide empty bucket chrome so Top Edges doesn't look blank under full grids. */
   const toggleBucket = (gridEl, hasCards) => {
     if (!gridEl) return;
@@ -4958,7 +5025,7 @@ function wireEdgeCardExpandHandlers() {
     if (!el || el.dataset.expandWired === "1") return;
     el.dataset.expandWired = "1";
     el.addEventListener("click", (e) => {
-      if (e.target.closest(".expand-tab")) return;
+      if (e.target.closest(".expand-tab, .my-slip-add")) return;
       const card = e.target.closest(".edge-card");
       if (!card) return;
       const wasOpen = card.classList.contains("expanded");
@@ -5008,9 +5075,16 @@ function openPropDetailPanel(p) {
     meta.innerHTML = rows.map(([lbl, val]) =>
       `<div class="expand-stat"><div class="expand-stat-lbl">${lbl}</div><div class="expand-stat-val">${val}</div></div>`
     ).join("");
+    const tightNote = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchNote ? TopEdgesBadgeBoard.tightMatchNote(p) : "";
+    if (tightNote) {
+      meta.insertAdjacentHTML("beforebegin", `<div class="te-tight-match">${tightNote.replace(/</g,"&lt;")}</div>`);
+    }
   }
+  const addBtn = document.getElementById("prop-detail-add");
+  if (addBtn) addBtn.setAttribute("data-my-slip-leg", mySlipLegAttr(p));
   overlay.classList.remove("hidden");
   document.body.style.overflow = "hidden";
+  if (window.MySlip) MySlip.render();
 }
 
 function closePropDetailPanel() {
@@ -5809,12 +5883,15 @@ function renderSlateTable(sport) {
     const l5u = l5fmt.under;
     const rankStr = r.rank_score != null ? r.rank_score.toFixed(2) : '—';
     const timeStr = formatGameTimeDisplay(r.game_time);
+    const tightNote = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchNote ? TopEdgesBadgeBoard.tightMatchNote(r) : "";
+    const tightChip = window.TopEdgesBadgeBoard && TopEdgesBadgeBoard.tightMatchChipHtml ? TopEdgesBadgeBoard.tightMatchChipHtml(tightNote) : "";
+    const oppTitle = tightNote ? tightNote : (r.opp || "");
     return `<tr class="slate-row-clickable" data-slate-idx="${rowIdx}">
       <td class="scol-tier"><span class="tier-badge ${tierCls}">${r.tier || '?'}</span>${confDotHtml(r)}</td>
       <td class="scol-rank slate-rank-cell">${rankStr}</td>
-      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;">${r.player || '—'}${l10StreakBadgeHtml(r)}${consLineBadgeHtml(r)}</td>
+      <td class="scol-player" style="color:var(--text);font-weight:600;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;" data-my-slip-leg="${mySlipLegAttr(r)}"><button type="button" class="my-slip-add" title="Add to my slip">+</button>${r.player || '—'}${l10StreakBadgeHtml(r)}${consLineBadgeHtml(r)}</td>
       <td class="scol-team" style="color:var(--muted);" title="${r.team || ''}">${r.team || '—'}</td>
-      <td class="scol-opp" style="color:var(--muted);" title="${r.opp || ''}">${r.opp || '—'}</td>
+      <td class="scol-opp" style="color:var(--muted);" title="${oppTitle}">${r.opp || '—'}${tightChip}</td>
       <td class="scol-prop" style="color:var(--text);">${r.prop || '—'}</td>
       <td class="scol-type slate-pick-type-cell ${pickCls}">${r.pick_type || '—'}</td>
       <td class="scol-line" style="font-family:'Inter',sans-serif;">${r.line != null ? r.line : '—'}</td>
@@ -5831,6 +5908,7 @@ function renderSlateTable(sport) {
   if (filtered.length <= chunkSize) {
     tbody.innerHTML = filtered.map((r, i) => rowHtml(r, i)).join("");
     wireSlateRowClicks(tbody, filtered);
+    if (window.MySlip) MySlip.render();
     return;
   }
 
@@ -5842,7 +5920,10 @@ function renderSlateTable(sport) {
     tbody.insertAdjacentHTML('beforeend', chunk);
     idx += chunkSize;
     if (idx < filtered.length) requestAnimationFrame(renderChunk);
-    else wireSlateRowClicks(tbody, filtered);
+    else {
+      wireSlateRowClicks(tbody, filtered);
+      if (window.MySlip) MySlip.render();
+    }
   };
   requestAnimationFrame(renderChunk);
 }
@@ -5850,6 +5931,7 @@ function renderSlateTable(sport) {
 function wireSlateRowClicks(tbody, filteredRows) {
   if (!tbody) return;
   tbody.onclick = (e) => {
+    if (e.target.closest(".my-slip-add")) return;
     const tr = e.target.closest("tr[data-slate-idx]");
     if (!tr || !tbody.contains(tr)) return;
     const i = Number(tr.dataset.slateIdx);
@@ -6415,6 +6497,8 @@ function sortSlateDynamic(sport, key) {
   else run();
 })();
 </script>
+
+<script src="/static/my-slip.js?v=20260828myslip1"></script>
 
 </body>
 </html>

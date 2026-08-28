@@ -79,6 +79,31 @@ def _load_user():
         return None
 
 
+def _pnl_mod():
+    try:
+        from ui_runner import placed_pnl as pnl
+    except ImportError:
+        import placed_pnl as pnl  # type: ignore
+    return pnl
+
+
+def _pnl_for_user(user: dict | None):
+    if not user:
+        return None
+    pnl = _pnl_mod()
+    raw_rows = _store().list_placed_rows(int(user["id"]))
+    settled = [
+        pnl.settle_snapshot(
+            r.get("snapshot"),
+            fingerprint=str(r.get("fingerprint") or ""),
+            slate_date=str(r.get("slate_date") or ""),
+            stake=r.get("stake") if r.get("stake") is not None else user.get("default_stake"),
+        )
+        for r in raw_rows
+    ]
+    return pnl.summarize(settled)
+
+
 def _account_page(*, error: str = "", message: str = "", status: int = 200):
     user = _load_user() if accounts_enabled() else None
     chosen = list((user or {}).get("preferred_groups") or [])
@@ -95,6 +120,7 @@ def _account_page(*, error: str = "", message: str = "", status: int = 200):
         signup_open=bool(signup_code_required()),
         ui_build_id=current_app.config.get("UI_BUILD_ID", ""),
         accounts_enabled=accounts_enabled(),
+        pnl=_pnl_for_user(user),
     )
     return html, status
 
@@ -211,6 +237,16 @@ def api_me():
     )
 
 
+@account_bp.get("/api/account/pnl")
+def api_pnl():
+    if not accounts_enabled():
+        return jsonify({"error": "accounts_disabled"}), 503
+    user = _load_user()
+    if not user:
+        return jsonify({"error": "login_required"}), 401
+    return jsonify(_pnl_for_user(user) or {})
+
+
 @account_bp.post("/api/account/placed")
 def api_placed():
     if not accounts_enabled():
@@ -223,12 +259,129 @@ def api_placed():
     placed = bool(payload.get("placed"))
     fps = payload.get("fingerprints")
     store = _store()
+    try:
+        stake = float(user.get("default_stake")) if user.get("default_stake") is not None else 20.0
+    except (TypeError, ValueError):
+        stake = 20.0
+    pnl = _pnl_mod()
+
+    def _snap(fp: str):
+        found = pnl.find_ticket(fp)
+        if not found:
+            return None
+        ticket, gname = found
+        return pnl.snapshot_from_ticket(ticket, group_name=gname, stake=stake)
+
     if isinstance(fps, list) and fps:
-        store.set_placed_many(int(user["id"]), slate, [str(x) for x in fps], placed)
+        tokens = [str(x).strip() for x in fps if str(x).strip()]
+        snaps = {fp: s for fp in tokens if (s := _snap(fp))}
+        store.set_placed_many(
+            int(user["id"]), slate, tokens, placed, stake=stake, snapshots=snaps
+        )
         return jsonify({"ok": True, "placed": store.list_placed(int(user["id"]), slate)})
     fp = str(payload.get("fingerprint") or "").strip()
     try:
-        store.set_placed(int(user["id"]), slate, fp, placed)
+        store.set_placed(int(user["id"]), slate, fp, placed, stake=stake, snapshot=_snap(fp) if placed else None)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify({"ok": True, "placed": store.list_placed(int(user["id"]), slate)})
+
+
+def _parse_legs(raw: object) -> list[dict]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        player = str(item.get("player") or "").strip()
+        if not player:
+            continue
+        direction = str(item.get("direction") or item.get("dir") or "").strip().upper()
+        if direction == "LOWER":
+            direction = "UNDER"
+        out.append(
+            {
+                "sport": str(item.get("sport") or ""),
+                "player": player,
+                "prop_type": str(item.get("prop_type") or item.get("prop") or "").strip(),
+                "direction": direction,
+                "line": item.get("line"),
+                "pick_type": str(item.get("pick_type") or item.get("pick") or "Standard").strip(),
+                "standard_line": item.get("standard_line") or item.get("book_line"),
+            }
+        )
+    return out
+
+
+@account_bp.post("/api/account/payout-hint")
+def api_payout_hint():
+    """Suggested N-correct for a custom mix. Confirm on the PrizePicks slip."""
+    if not accounts_enabled():
+        return jsonify({"error": "accounts_disabled"}), 503
+    payload = request.get_json(silent=True) or {}
+    legs = _parse_legs(payload.get("legs"))
+    product = "Flex" if "flex" in str(payload.get("product") or "").lower() else "Power"
+    slate = str(payload.get("slate_date") or payload.get("slate") or "").strip()[:10]
+    if len(legs) < 2:
+        return jsonify({"n_correct": {}, "note": "Add at least 2 legs.", "source": ""})
+    try:
+        from utils.n_correct_payout import resolve_n_correct
+    except ImportError:
+        resolve_n_correct = None  # type: ignore
+    pnl = _pnl_mod()
+    family = pnl.family_from_legs(legs)
+    if resolve_n_correct is None:
+        return jsonify({"n_correct": {}, "note": "Type N-correct from PrizePicks.", "source": ""})
+    pay = resolve_n_correct(legs, product, family, date=slate)
+    table = pay.get("n_correct") or {}
+    n_correct = {str(k): v for k, v in table.items()}
+    source = str(pay.get("payout_source") or "")
+    return jsonify(
+        {
+            "n_correct": n_correct,
+            "note": str(pay.get("note") or ""),
+            "source": source,
+            "family": family,
+            "product": product,
+            "needs_confirm": source != "n_correct_live",
+        }
+    )
+
+
+@account_bp.post("/api/account/custom-slip")
+def api_custom_slip():
+    if not accounts_enabled():
+        return jsonify({"error": "accounts_disabled"}), 503
+    user = _load_user()
+    if not user:
+        return jsonify({"error": "login_required", "login_url": "/account?next=/"}), 401
+    payload = request.get_json(silent=True) or {}
+    slate = str(payload.get("slate_date") or payload.get("slate") or "").strip()[:10]
+    if len(slate) != 10:
+        return jsonify({"error": "Missing slate date."}), 400
+    legs = _parse_legs(payload.get("legs"))
+    if not (2 <= len(legs) <= 6):
+        return jsonify({"error": "Need 2 to 6 legs."}), 400
+    product = "Flex" if "flex" in str(payload.get("product") or "").lower() else "Power"
+    pnl = _pnl_mod()
+    table = pnl.parse_n_correct(payload.get("n_correct") or payload.get("payout"))
+    if not table:
+        return jsonify({"error": "Enter N-correct / To Win from PrizePicks — not 1st place."}), 400
+    try:
+        stake = float(payload.get("stake") if payload.get("stake") is not None else user.get("default_stake") or 20)
+    except (TypeError, ValueError):
+        stake = 20.0
+    if stake < 0 or stake > 10000:
+        return jsonify({"error": "Stake must be between 0 and 10000."}), 400
+    snap = pnl.snapshot_from_custom(
+        legs, product=product, n_correct=table, stake=stake, group_name="My slip"
+    )
+    fp = str(snap.get("fingerprint") or "")
+    if not fp:
+        return jsonify({"error": "Could not fingerprint those legs."}), 400
+    try:
+        _store().set_placed(int(user["id"]), slate, fp, True, stake=stake, snapshot=snap)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({"ok": True, "fingerprint": fp, "placed": _store().list_placed(int(user["id"]), slate)})

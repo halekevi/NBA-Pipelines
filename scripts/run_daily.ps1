@@ -1888,13 +1888,12 @@ else {
             Write-Log "STEP E - publishing via main worktree: $MainRoot"
         }
         $stepELiveRels = @(
+            "ui_runner/runtime/tickets_latest.json",
             "ui_runner/templates/tickets_latest.json",
-            "ui_runner/docs/tickets_latest.json",
-            "mobile/www/tickets_latest.json",
+            "ui_runner/runtime/slate_latest.json",
             "ui_runner/templates/slate_latest.json",
-            "mobile/www/slate_latest.json",
-            "ui_runner/templates/pipeline_status.json",
-            "mobile/www/pipeline_status.json"
+            "ui_runner/runtime/pipeline_status.json",
+            "ui_runner/templates/pipeline_status.json"
         )
         # Snapshot live tickets from the daily run workspace before main-side staging.
         $stepELiveSnap = Join-Path $env:TEMP ("proporacle_step_e_live_" + [guid]::NewGuid().ToString("N"))
@@ -1930,7 +1929,7 @@ else {
 
             # Also copy today's outputs/templates/mobile from run workspace when paths differ
             if ($MainRoot -ne $Root) {
-                foreach ($dirRel in @("outputs\$Today", "ui_runner\templates", "mobile\www", "ui_runner\docs")) {
+                foreach ($dirRel in @("outputs\$Today", "ui_runner\templates", "ui_runner\runtime", "mobile\www", "ui_runner\docs")) {
                     $srcDir = Join-Path $Root $dirRel
                     $dstDir = Join-Path $MainRoot $dirRel
                     if (Test-Path -LiteralPath $srcDir) {
@@ -2122,10 +2121,20 @@ else {
                         & pwsh -NoProfile -File $ensurePull -RepoRoot (Get-Location).Path -Label "[STEP E]" -SkipPull
                         Write-Log "STEP E - Ensure-CleanPull exit $LASTEXITCODE"
                     }
-                    else {
-                        Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
-                    }
-                }
+                      else {
+                          Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
+                      }
+                  }
+                  $tplTickets = Join-Path $MainRoot "ui_runner\templates\tickets_latest.json"
+                  $rtTickets = Join-Path $MainRoot "ui_runner\runtime\tickets_latest.json"
+                  if ((Test-Path -LiteralPath $tplTickets) -and -not (Test-Path -LiteralPath $rtTickets)) {
+                      $rtDir = Split-Path $rtTickets -Parent
+                      if (-not (Test-Path -LiteralPath $rtDir)) {
+                          New-Item -ItemType Directory -Path $rtDir -Force | Out-Null
+                      }
+                      Copy-Item -LiteralPath $tplTickets -Destination $rtTickets -Force
+                      Write-Log "STEP E - restored ui_runner/runtime/tickets_latest.json from templates after stash pop"
+                  }
             }
             Pop-Location
             if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {

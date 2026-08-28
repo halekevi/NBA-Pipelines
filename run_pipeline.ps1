@@ -1188,20 +1188,23 @@ function Publish-LiveSiteJsonToMain {
     }
 
     $liveRel = @(
+        "ui_runner/runtime/tickets_latest.json",
         "ui_runner/templates/tickets_latest.json",
-        "ui_runner/docs/tickets_latest.json",
-        "mobile/www/tickets_latest.json",
+        "ui_runner/runtime/slate_latest.json",
         "ui_runner/templates/slate_latest.json",
+        "ui_runner/runtime/slate_display_date.json",
+        "ui_runner/templates/slate_display_date.json",
+        "ui_runner/runtime/pipeline_status.json",
         "ui_runner/templates/pipeline_status.json",
-        "mobile/www/pipeline_status.json",
-        "mobile/www/slate_latest.json",
+        "ui_runner/runtime/tickets_winrate_latest.json",
         "ui_runner/templates/tickets_winrate_latest.json",
+        "ui_runner/runtime/sport_breakdown.json",
         "ui_runner/templates/sport_breakdown.json"
     )
+    Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\runtime") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
+        ForEach-Object { $liveRel += ("ui_runner/runtime/" + $_.Name) }
     Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\templates") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
         ForEach-Object { $liveRel += ("ui_runner/templates/" + $_.Name) }
-    Get-ChildItem -LiteralPath (Join-Path $Root "mobile\www") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
-        ForEach-Object { $liveRel += ("mobile/www/" + $_.Name) }
 
     $toPublish = @()
     foreach ($rel in $liveRel) {

@@ -28,6 +28,8 @@ import pandas as pd
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 SAMPLES_DIR = ROOT / "data" / "payout_samples"
 PAYOUT_LADDER_LIVE_CDP_PATH = ROOT / "ui_runner" / "data" / "payout_ladder_live_cdp.json"
 DEBUG_DIR = ROOT / "data" / "debug"
@@ -3073,21 +3075,19 @@ def sync_tickets_json_mirrors(
     date_str: str = "",
     primary: Path | None = None,
 ) -> None:
-    """Keep templates + docs + mobile tickets_latest.json aligned after payout write-back."""
+    """Keep runtime (disk) + templates (GitHub raw) + data snapshot aligned after payout write-back."""
+    from utils.ui_live_json import write_paths
+
     date_str = str(date_str or data.get("date") or "").strip()[:10]
     body = json.dumps(data, indent=2, ensure_ascii=False)
-    mirrors = [
-        ROOT / "ui_runner" / "templates" / "tickets_latest.json",
-        ROOT / "ui_runner" / "docs" / "tickets_latest.json",
-        ROOT / "mobile" / "www" / "tickets_latest.json",
-    ]
+    mirrors = write_paths("tickets_latest.json", ROOT, include_data_snapshot=True)
     for path in mirrors:
         try:
             if primary is not None and path.resolve() == Path(primary).resolve():
                 continue
         except Exception:
             pass
-        if not path.parent.is_dir() and path.parent.name in ("www", "docs", "templates"):
+        if not path.parent.is_dir() and path.parent.name in ("runtime", "templates", "data"):
             path.parent.mkdir(parents=True, exist_ok=True)
         if not path.parent.is_dir():
             continue
@@ -4192,6 +4192,7 @@ def sync_captures_to_payout_ladder_live(
     tickets_by_id: dict[str, dict] = {}
     for cand in (
         tickets_path,
+        ROOT / "ui_runner" / "runtime" / "tickets_latest.json",
         ROOT / "ui_runner" / "templates" / "tickets_latest.json",
         ROOT / "ui_runner" / "data" / "tickets_latest.json",
     ):

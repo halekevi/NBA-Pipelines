@@ -11,11 +11,12 @@
          → (D-payout) live CDP FillMissing (AFTER publish so tickets go live first)
          → (F) optional night poll of historical actuals.
          Board floors require exact per-ticket live_cdp (peer SG-Δ rate cards off by default).
-         STEP D-payout: after STEP E; 5AM passes -SkipLivePayout (8/9/10:30/1 + 11AM own CDP).
-         Mid-day 8/9/10:30/1 refreshes Force re-scrape CDP after prop/line updates.
-         A1 often runs at 1AM (run_grader_evening); 5AM passes -SkipHistoricalActuals when stamp present.
+         STEP D-payout: after STEP E; 1AM, 5AM, and 8AM+ Force-scrape live CDP with timestamps.
+         Every cadence window (1AM / 8AM / 9AM / 9:45 / 10:30 / 1PM / 4:30) writes scrape logs.
+         A1 + grader run at Grader 3AM (run_grader_evening.ps1); Daily 1AM is fetch + payout CDP.
+         Disk preflight logs to run_daily_<date>.log first and only aborts if C: AND the repo drive are both critical.
          11:00 / 15:00 Payout CDP tasks are catchup only.
-         Tennis: -TennisDate defaults to same day as -Date (early-AM board; 3AM light + 5AM full daily + 8AM update refresh); override when needed.
+         Tennis: -TennisDate defaults to same day as -Date (1AM full daily + 8AM+ refreshes); override when needed.
          Set env PROPORACLE_PAYOUT_EXPORT_URL (e.g. https://<app>.up.railway.app/api/payout/export-log-hand) to merge Railway volume logs into data\payout_samples\payout_log_hand.csv after STEP E.
          Combined slate (STEP D via run_pipeline.ps1) fetches Underdog + DraftKings by default; set PROPORACLE_SKIP_ALT_BOOKS=1 or pass -SkipAltBooks to run_pipeline to disable.
          Use -SkipFetch to skip A1 and C0b. -SkipGameLines skips C0. -SkipPeriodHistorySync skips C0b only.
@@ -43,7 +44,7 @@ param(
     [switch]$AllowMissingSlates,
     [switch]$SkipPeriodHistorySync,
     [int]$PeriodHistoryLookbackDays = 10,
-    [int]$A1TimeoutMinutes = 30,
+    [int]$A1TimeoutMinutes = 90,
     [switch]$PollHistoricalActuals,
     [int]$PollPasses = 4,
     [int]$PollIntervalSeconds = 5400,
@@ -85,6 +86,7 @@ if ($env:WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:WNBA_PAUSE_START.T
 elseif ($env:PROPORACLE_WNBA_PAUSE_START) { $WNBA_ALLSTAR_PAUSE_START = $env:PROPORACLE_WNBA_PAUSE_START.Trim() }
 # NBA / NBA1H / NBA1Q grading: must match run_pipeline.ps1 $NBA_SEASON_RESUME.
 $NBA_SEASON_RESUME = "2026-10-01"
+$NHL_SEASON_RESUME = "2026-09-01"
 
 function Test-WnbaAllStarPause {
     param([string]$SlateDate)
@@ -112,26 +114,13 @@ if (!(Test-Path $CacheDir)) {
       -ForegroundColor DarkGray
 }
 
-# C: drive preflight — xlsx writes and Python temp fail when disk is full.
-$cFree = [math]::Round((Get-PSDrive -Name C).Free / 1GB, 1)
-if ($cFree -lt 10) {
-    Write-Warning "C: drive has only ${cFree} GB free — daily run may fail on xlsx writes"
-    Write-Warning "Run scripts/cleanup_c_drive.ps1 before proceeding"
-}
-if ($cFree -lt 2) {
-    Write-Error "C: drive critically low (${cFree} GB) — aborting daily run"
-    exit 1
-}
-if ($cFree -lt 5) {
-    $tmpPath = Join-Path $Root ".tmp"
-    New-Item -ItemType Directory -Force -Path $tmpPath | Out-Null
-    $env:TEMP = $tmpPath
-    $env:TMP  = $tmpPath
-    Write-Warning "C: low — Python temp redirected to $tmpPath"
-}
+# Disk preflight runs after Write-Log exists (see below). Do not abort here:
+# a silent `exit 1` before logs made 1AM/5AM look like 16-second no-ops.
 
 $script:DailyStart = Get-Date
 $script:PipelineFailed = $false
+$script:ActiveSportsFreshFailed = $false
+$script:ActiveSportsFreshChecked = $false
 $script:WeeklyAnalysisReport = ""
 function Get-TimeStamp { return Get-Date -Format "HH:mm:ss" }
 
@@ -197,6 +186,72 @@ function Write-Log([string]$Message) {
     $line = "[$(Get-TimeStamp)] $Message"
     $line | Tee-Object -FilePath $LogFile -Append
 }
+
+function Get-DriveFreeGb([string]$Name) {
+    try {
+        $d = Get-PSDrive -Name $Name -ErrorAction Stop
+        if ($null -eq $d -or $null -eq $d.Free) { return $null }
+        return [math]::Round([double]$d.Free / 1GB, 1)
+    } catch {
+        return $null
+    }
+}
+
+function Invoke-DailyDiskPreflight {
+    $cFree = Get-DriveFreeGb "C"
+    $repoLetter = ""
+    $repoRootPath = [System.IO.Path]::GetPathRoot($Root)
+    if ($repoRootPath -match '^([A-Za-z]):') { $repoLetter = $Matches[1] }
+    $repoFree = if ($repoLetter) { Get-DriveFreeGb $repoLetter } else { $null }
+
+    Write-Log "Preflight disk: C=$cFree GB; ${repoLetter}:=$repoFree GB (repo $Root)"
+    Write-Host ("[preflight] C:={0} GB  {1}:={2} GB" -f $cFree, $repoLetter, $repoFree) -ForegroundColor DarkGray
+
+    if ($null -eq $cFree) {
+        Write-Log "Preflight disk: WARN — could not read C: free space (not treating as 0 GB)"
+        Write-Warning "Could not read C: free space — continuing (repo drive ${repoFree} GB)"
+    }
+    elseif ($cFree -lt 10) {
+        Write-Log "Preflight disk: C: only ${cFree} GB — considering cleanup"
+        Write-Warning "C: drive has only ${cFree} GB free — daily run may fail on xlsx writes"
+        $cleanup = Join-Path $Root "scripts\cleanup_c_drive.ps1"
+        if ($cFree -lt 5 -and (Test-Path -LiteralPath $cleanup)) {
+            Write-Log "Preflight disk: running cleanup_c_drive.ps1"
+            try {
+                & pwsh -NoProfile -File $cleanup
+            } catch {
+                Write-Log "Preflight disk: cleanup failed ($($_.Exception.Message))"
+            }
+            $cFree = Get-DriveFreeGb "C"
+            Write-Log "Preflight disk: C: after cleanup = $cFree GB"
+        }
+    }
+
+    $tmpPath = Join-Path $Root ".tmp"
+    $needRepoTemp = ($null -ne $cFree -and $cFree -lt 5) -or ($null -eq $cFree)
+    if ($needRepoTemp -and $repoFree -ne $null -and $repoFree -ge 5) {
+        New-Item -ItemType Directory -Force -Path $tmpPath | Out-Null
+        $env:TEMP = $tmpPath
+        $env:TMP = $tmpPath
+        Write-Log "Preflight disk: Python TEMP redirected to $tmpPath"
+        Write-Warning "C: low/unknown — Python temp redirected to $tmpPath"
+    }
+
+    $cCritical = ($null -ne $cFree -and $cFree -lt 2)
+    $repoOk = ($null -ne $repoFree -and $repoFree -ge 5)
+    if ($cCritical -and -not $repoOk) {
+        $msg = "C: drive critically low (${cFree} GB) and repo drive ${repoLetter}: ${repoFree} GB — aborting daily run"
+        Write-Log "Preflight disk: ABORT — $msg"
+        Write-Error $msg
+        exit 1
+    }
+    if ($cCritical -and $repoOk) {
+        Write-Log "Preflight disk: C: ${cFree} GB is below 2 GB, but ${repoLetter}: has ${repoFree} GB — continuing with repo TEMP"
+        Write-Warning "C: ${cFree} GB — not aborting because repo drive ${repoLetter}: has ${repoFree} GB"
+    }
+}
+
+Invoke-DailyDiskPreflight
 
 function Get-VersionedPath([string]$Path) {
     $dir = Split-Path -Parent $Path
@@ -298,6 +353,8 @@ function Get-MissingTodaySlateOutputs {
         "step8_mlb_direction_clean_$RunDate.xlsx"     = @{ key = "mlb";    step1 = (Join-Path $outDir "mlb\step1_mlb_props.csv") }
         "step8_tennis_direction_clean_$tennisDated.xlsx" = @{ key = "tennis"; step1 = (Join-Path $outDir "tennis\step1_tennis_props.csv") }
         "step8_wnba_direction_clean_$RunDate.xlsx"    = @{ key = "wnba";   step1 = (Join-Path $outDir "wnba\step1_wnba_props.csv") }
+        "step6_ranked_cbb_$RunDate.xlsx"              = @{ key = "cbb";    step1 = (Join-Path $outDir "cbb\step1_cbb.csv") }
+        "step6_ranked_wcbb_$RunDate.xlsx"             = @{ key = "wcbb";   step1 = (Join-Path $outDir "wcbb\step1_wcbb.csv") }
     }
     $required = @(
         "step8_soccer_direction_clean_$RunDate.xlsx",
@@ -320,12 +377,12 @@ function Get-MissingTodaySlateOutputs {
     if (($RunDate -ge $WNBA_SEASON_START) -and -not (Test-WnbaAllStarPause -SlateDate $RunDate)) {
         $required = @($required) + @("step8_wnba_direction_clean_$RunDate.xlsx")
     }
-    # 2026 NCAA: WCBB title Sun Apr 5; men's title Mon Apr 6. Expect no WCBB slate from Apr 6+;
-    # no men's CBB slate from Apr 7+ — omit from required outputs so daily does not false-fail.
-    if ($RunDate -lt "2026-04-07") {
+    # 2026 NCAA: WCBB title Sun Apr 5; men's title Mon Apr 6. No slate Apr 6/7 through Oct 31.
+    # Resume 2026-11-01 (DI tipoff window).
+    if ($RunDate -lt "2026-04-07" -or $RunDate -ge "2026-11-01") {
         $required = @($required) + @("step6_ranked_cbb_$RunDate.xlsx")
     }
-    if ($RunDate -lt "2026-04-06") {
+    if ($RunDate -lt "2026-04-06" -or $RunDate -ge "2026-11-01") {
         $required = @($required) + @("step6_ranked_wcbb_$RunDate.xlsx")
     }
     # Some sports can intentionally skip writing dated copies while still producing
@@ -366,6 +423,14 @@ function Get-MissingTodaySlateOutputs {
         "step8_wnba_direction_clean_$RunDate.xlsx" = @(
             (Join-Path $SportsRoot "WNBA\step8_wnba_direction_clean.xlsx"),
             (Join-Path $SportsRoot "WNBA\outputs\step8_wnba_direction_clean.xlsx")
+        )
+        "step6_ranked_cbb_$RunDate.xlsx" = @(
+            (Join-Path $outDir "cbb\step6_ranked_cbb.xlsx"),
+            (Join-Path $SportsRoot "CBB\step6_ranked_cbb.xlsx")
+        )
+        "step6_ranked_wcbb_$RunDate.xlsx" = @(
+            (Join-Path $outDir "wcbb\step6_ranked_wcbb.xlsx"),
+            (Join-Path $SportsRoot "CBB\step6_ranked_wcbb.xlsx")
         )
     }
     $missing = @()
@@ -442,7 +507,11 @@ else {
         # Incremental: past seasons stay in SQLite; only current season is re-fetched per player.
         # (Do not pass legacy --refresh-current — it forced a full multi-season re-download and was very slow.)
         $a1Proc = Start-Process -FilePath "py" `
-            -ArgumentList @("-3.14", "-u", $fetchScript) `
+            -ArgumentList @(
+                "-3.14", "-u", $fetchScript,
+                "--active-slate-days", "3",
+                "--workers", "20"
+            ) `
             -NoNewWindow -PassThru
 
         $waitSec = [Math]::Max(60, $A1TimeoutMinutes * 60)
@@ -575,6 +644,17 @@ if (-not $SkipGrader) {
                     }
                     else {
                         Write-Log "STEP A1d - Slate consistency grade ($graderDate): OK"
+                    }
+                }
+                $d2xScript = Join-Path $Root "scripts\diamond_2x_tickets.py"
+                if (Test-Path $d2xScript) {
+                    & py -3.14 -X utf8 $d2xScript --mode grade --date $graderDate
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Warning "Diamond 2x grade failed for $graderDate (non-fatal, exit $LASTEXITCODE)"
+                        Write-Log "STEP A1e - Diamond 2x grade ($graderDate): FAILED"
+                    }
+                    else {
+                        Write-Log "STEP A1e - Diamond 2x grade ($graderDate): OK"
                     }
                 }
             }
@@ -1286,6 +1366,22 @@ if ($script:PipelineFailed) {
 }
 
 # =============================================================================
+# STEP D-2x — Diamond Goblin 4-Flex / 5-Flex / 3-Power card (2x EV floor)
+# =============================================================================
+$d2xScript = Join-Path $Root "scripts\diamond_2x_tickets.py"
+if (Test-Path $d2xScript) {
+    Write-Log "STEP D-2x - Diamond 2x tickets: START"
+    & py -3.14 -X utf8 $d2xScript --mode daily --date $Today
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Diamond 2x daily card failed (non-fatal, exit $LASTEXITCODE)"
+        Write-Log "STEP D-2x - Diamond 2x tickets: FAILED (py exit $LASTEXITCODE)"
+    }
+    else {
+        Write-Log "STEP D-2x - Diamond 2x tickets: OK"
+    }
+}
+
+# =============================================================================
 # STEP D-payout — deferred until AFTER STEP E publish (tickets live first).
 # Mid-day refreshes / 11AM Payout CDP still own Force re-scrape; 5AM uses -SkipLivePayout.
 # =============================================================================
@@ -1929,7 +2025,7 @@ else {
 
             # Also copy today's outputs/templates/mobile from run workspace when paths differ
             if ($MainRoot -ne $Root) {
-                foreach ($dirRel in @("outputs\$Today", "ui_runner\templates", "ui_runner\runtime", "mobile\www", "ui_runner\docs")) {
+                foreach ($dirRel in @("outputs\$Today", "ui_runner\templates", "mobile\www", "ui_runner\docs")) {
                     $srcDir = Join-Path $Root $dirRel
                     $dstDir = Join-Path $MainRoot $dirRel
                     if (Test-Path -LiteralPath $srcDir) {
@@ -2121,25 +2217,72 @@ else {
                         & pwsh -NoProfile -File $ensurePull -RepoRoot (Get-Location).Path -Label "[STEP E]" -SkipPull
                         Write-Log "STEP E - Ensure-CleanPull exit $LASTEXITCODE"
                     }
-                      else {
-                          Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
-                      }
-                  }
-                  $tplTickets = Join-Path $MainRoot "ui_runner\templates\tickets_latest.json"
-                  $rtTickets = Join-Path $MainRoot "ui_runner\runtime\tickets_latest.json"
-                  if ((Test-Path -LiteralPath $tplTickets) -and -not (Test-Path -LiteralPath $rtTickets)) {
-                      $rtDir = Split-Path $rtTickets -Parent
-                      if (-not (Test-Path -LiteralPath $rtDir)) {
-                          New-Item -ItemType Directory -Path $rtDir -Force | Out-Null
-                      }
-                      Copy-Item -LiteralPath $tplTickets -Destination $rtTickets -Force
-                      Write-Log "STEP E - restored ui_runner/runtime/tickets_latest.json from templates after stash pop"
-                  }
+                    else {
+                        Write-Log "STEP E - Ensure-CleanPull.ps1 missing; leaving conflicts for manual repair"
+                    }
+                }
+                # Stash pop has been deleting/overwriting today's published board
+                # (e.g. mobile/www/tickets_latest.json). Always re-assert committed
+                # publish artifacts from HEAD after pop.
+                $publishGuard = @(
+                    "ui_runner/runtime/tickets_latest.json",
+                    "ui_runner/runtime/slate_latest.json",
+                    "ui_runner/runtime/slate_display_date.json",
+                    "ui_runner/runtime/pipeline_status.json",
+                    "ui_runner/templates/tickets_latest.json",
+                    "ui_runner/templates/slate_display_date.json",
+                    "ui_runner/templates/pipeline_status.json"
+                )
+                foreach ($rel in $publishGuard) {
+                    $tracked = git ls-files -- $rel 2>$null
+                    if ($tracked) {
+                        git checkout HEAD -- $rel 2>&1 | Out-Null
+                    }
+                }
+                # Prefer templates tickets into runtime if HEAD lacked the disk copy.
+                $tplTickets = Join-Path $MainRoot "ui_runner\templates\tickets_latest.json"
+                $rtTickets = Join-Path $MainRoot "ui_runner\runtime\tickets_latest.json"
+                if ((Test-Path -LiteralPath $tplTickets) -and -not (Test-Path -LiteralPath $rtTickets)) {
+                    $rtDir = Split-Path $rtTickets -Parent
+                    if (-not (Test-Path -LiteralPath $rtDir)) {
+                        New-Item -ItemType Directory -Path $rtDir -Force | Out-Null
+                    }
+                    Copy-Item -LiteralPath $tplTickets -Destination $rtTickets -Force
+                    Write-Log "STEP E - restored ui_runner/runtime/tickets_latest.json from templates after stash pop"
+                }
+                Write-Log "STEP E - re-asserted publish artifacts from HEAD after stash pop"
             }
             Pop-Location
             if ($stepELiveSnap -and (Test-Path -LiteralPath $stepELiveSnap)) {
                 Remove-Item -LiteralPath $stepELiveSnap -Recurse -Force -ErrorAction SilentlyContinue
             }
+        }
+
+        # Hard gate after publish: every active sport for today must be FRESH on
+        # slate_latest (catches stash/partial Soccer-only publishes). Non-zero →
+        # Task Scheduler failure — do not soft-succeed.
+        $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+        if (-not (Test-Path -LiteralPath $assertFresh)) {
+            $assertFresh = Join-Path $PSScriptRoot "Assert-ActiveSportsFresh.ps1"
+        }
+        if (Test-Path -LiteralPath $assertFresh) {
+            $freshRoot = if ($MainRoot) { $MainRoot } else { $Root }
+            $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+            Write-Log "STEP E-fresh - Assert active sports FRESH: START ($freshRoot)"
+            & pwsh -NoProfile -File $assertFresh -RepoRoot $freshRoot -Today $Today -JsonOut $freshJson
+            $freshExit = $LASTEXITCODE
+            if ($freshExit -ne 0) {
+                Write-Log "STEP E-fresh - Assert active sports FRESH: FAILED (exit $freshExit)"
+                Write-Warning "Active-sports freshness gate failed (exit $freshExit) — see logs\LAST_ACTIVE_SPORTS_FRESH.json"
+                $script:ActiveSportsFreshFailed = $true
+            }
+            else {
+                Write-Log "STEP E-fresh - Assert active sports FRESH: OK"
+            }
+            $script:ActiveSportsFreshChecked = $true
+        }
+        else {
+            Write-Log "STEP E-fresh - Assert-ActiveSportsFresh.ps1 missing (skip)"
         }
     }
 }
@@ -2190,7 +2333,8 @@ else {
 # STEP D-payout — Live PrizePicks payout capture (AFTER publish)
 # Exact per-ticket live_cdp only — peer SG-Δ rate cards are not trusted.
 # Runs after STEP E so tickets/slate hit Railway even if CDP hangs.
-# Mid-day refreshes Force re-scrape; 11:00/15:00 are catchup; 5AM uses -SkipLivePayout.
+# 1AM / 5AM daily and 8AM+ refreshes Force re-scrape so timestamps land on
+# every window (not only 9:45 / 10:30 / 1PM / 4:30).
 # =============================================================================
 if ($script:PipelineFailed) {
     Write-Log "STEP D-payout - Live payout capture: SKIPPED (pipeline failed)"
@@ -2201,27 +2345,45 @@ elseif ($SkipLivePayout -and -not $RunLivePayout) {
 }
 else {
     $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
-    $payoutTickets = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Today.json"
+    $payoutTickets = Join-Path $Root "ui_runner\templates\tickets_latest.json"
     if (-not (Test-Path -LiteralPath $payoutTickets)) {
-        $payoutTicketsAlt = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.json"
-        if (Test-Path -LiteralPath $payoutTicketsAlt) {
-            $payoutTickets = $payoutTicketsAlt
+        $payoutTickets = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Today.json"
+        if (-not (Test-Path -LiteralPath $payoutTickets)) {
+            $payoutTicketsAlt = Join-Path $Root "outputs\$Today\combined_slate_tickets_$Today.json"
+            if (Test-Path -LiteralPath $payoutTicketsAlt) {
+                $payoutTickets = $payoutTicketsAlt
+            }
         }
+    }
+    if (-not "$($env:PROPORACLE_BET_WINDOW)".Trim()) {
+        try {
+            $tzBet = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+            $etBet = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tzBet)
+            $minsBet = ($etBet.Hour * 60) + $etBet.Minute
+            if ($minsBet -lt 180) { $env:PROPORACLE_BET_WINDOW = "1AM" }
+            elseif ($minsBet -lt 420) { $env:PROPORACLE_BET_WINDOW = "5AM" }
+            elseif ($minsBet -lt 510) { $env:PROPORACLE_BET_WINDOW = "8AM" }
+        } catch { }
     }
     if (-not (Test-Path -LiteralPath $livePayScript)) {
         Write-Host "  [PAYOUT] WARN: run_live_payout_capture.ps1 missing" -ForegroundColor Yellow
         Write-Log "STEP D-payout - Live payout capture: SKIPPED (helper missing)"
     }
     else {
-        Write-Log "STEP D-payout - Live payout capture + verify: START (exact live_cdp required; post-publish)"
+        Write-Log "STEP D-payout - Live payout capture + verify: START (Force scrape window=$($env:PROPORACLE_BET_WINDOW); post-publish)"
         try {
-            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -FillMissingTickets -UpdateOnly
+            & $livePayScript -Date $Today -Root $Root -TicketsPath $payoutTickets -Force -FillMissingTickets -RebuildRateCard
             Write-Log "STEP D-payout - Live payout capture + verify: DONE (exit $LASTEXITCODE)"
         }
         catch {
             Write-Host "  [PAYOUT] WARN: payout capture error (non-blocking)" -ForegroundColor Yellow
             Write-Log "STEP D-payout - Live payout capture: WARN ($($_.Exception.Message))"
         }
+    }
+    try {
+        & py -3.14 -c "from utils.bet_windows import rebuild_bet_windows; rebuild_bet_windows()"
+    } catch {
+        Write-Log "STEP D-payout - bet-windows rebuild: WARN ($($_.Exception.Message))"
     }
 }
 
@@ -2367,8 +2529,8 @@ if ($MonthlyRetrain) {
 
 # =============================================================================
 # Late slate refresh — PrizePicks posts NBA props mid-morning (often ~10–11 ET).
-# 7AM daily may have a thin NBA board; scripts\run_nba_late_fetch.ps1 (Refresh 9AM /
-# 1030AM / 1PM) re-fetches NBA (append) plus other sports, then full pipeline -SkipFetch.
+# 7AM daily may have a thin NBA board; scripts\run_nba_late_fetch.ps1 (Refresh 945AM /
+# 1030AM / 1PM / 430PM) re-fetches plus other sports, then full pipeline -SkipFetch.
 # If you run run_daily.ps1 manually after ~10:00 local, the same multi-sport refresh runs here.
 # =============================================================================
 # Optional standalone (prefer Register_Daily_Task Refresh 1030AM):
@@ -2427,6 +2589,17 @@ try {
             if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $completeCount++ }
         }
         if ($completeCount -eq 0) { $todaySlateNeedsCatchup = $true }
+        else {
+            # Tennis-only complete must not skip WNBA/MLB/soccer catchup (5AM empty boards).
+            foreach ($sk in $active) {
+                $st = ""
+                if ($ss.sports) { $st = "$($ss.sports.$sk)" }
+                if ($st -notin @("complete", "off_season")) {
+                    $todaySlateNeedsCatchup = $true
+                    break
+                }
+            }
+        }
     }
 }
 catch {
@@ -2453,25 +2626,23 @@ if ($NowHour -ge 10) {
             Write-Host "[LATE_FETCH] Today's slate still empty — running catchup late-fetch" -ForegroundColor Yellow
             Write-Log "[NBA_LATE_FETCH] CATCHUP: slate incomplete; running inline late-fetch"
         }
-        Write-Host "[LATE_FETCH] Re-fetching all sports (append only, no overwrites)..." -ForegroundColor Cyan
-        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (all sports step1 --append + full pipeline -SkipFetch -SkipLivePayoutCapture)"
+        Write-Host "[LATE_FETCH] Re-fetching in-season sports (fail-fast HTTP, no off-season boards)..." -ForegroundColor Cyan
+        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour >= 10: late slate refresh (in-season step1 --fail-fast + pipeline -SkipFetch)"
 
+    if ($Today -ge $NBA_SEASON_RESUME) {
     $NBADir = Join-Path $SportsRoot "NBA"
     $lateNbaOutDir = Join-Path $Root "outputs\$Today\nba"
     if (-not (Test-Path -LiteralPath $lateNbaOutDir)) {
         New-Item -ItemType Directory -Force -Path $lateNbaOutDir | Out-Null
     }
     $lateNbaArgs = @(
-        # Gentler late-fetch anti-403 settings.
         "--league_id", "7",
         "--game_mode", "pickem",
         "--per_page", "250",
         "--max_pages", "3",
-        "--retries", "6",
+        "--retries", "2",
         "--sleep", "2.0",
-        "--cooldown_seconds", "180",
-        "--max_cooldowns", "4",
-        "--jitter_seconds", "14.0",
+        "--fail-fast",
         "--append",
         "--date", $Today,
         "--output", (Join-Path $Root "outputs\$Today\nba\step1_pp_props_today.csv")
@@ -2487,11 +2658,17 @@ if ($NowHour -ge 10) {
         Write-Warning "[NBA_LATE_FETCH] NBA step1 failed (exit $LASTEXITCODE) — continuing other sports"
         Write-Log "[NBA_LATE_FETCH] WARN: NBA step1 exit $LASTEXITCODE"
     }
+    }
+    else {
+        Write-Host "[LATE_FETCH] Skipping NBA fetch (off-season until $NBA_SEASON_RESUME)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] SKIP: NBA off-season until $NBA_SEASON_RESUME"
+    }
 
+    if ($Today -ge $NHL_SEASON_RESUME) {
     $NHLDir = Join-Path $SportsRoot "NHL"
     Push-Location $NHLDir
     try {
-        & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--output" "outputs\step1_nhl_props.csv"
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_nhl.py" "--append" "--fail-fast" "--output" "outputs\step1_nhl_props.csv"
     }
     finally {
         Pop-Location
@@ -2500,11 +2677,16 @@ if ($NowHour -ge 10) {
         Write-Warning "[NBA_LATE_FETCH] NHL step1 failed (exit $LASTEXITCODE) — continuing"
         Write-Log "[NBA_LATE_FETCH] WARN: NHL step1 exit $LASTEXITCODE"
     }
+    }
+    else {
+        Write-Host "[LATE_FETCH] Skipping NHL fetch (off-season until $NHL_SEASON_RESUME)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] SKIP: NHL off-season until $NHL_SEASON_RESUME"
+    }
 
     $SoccerDir = Join-Path $SportsRoot "Soccer"
     Push-Location $SoccerDir
     try {
-        & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--date" "$Today" "--output" "outputs\step1_soccer_props.csv"
+        & py -3.14 ".\scripts\step1_fetch_prizepicks_soccer.py" "--append" "--fail-fast" "--date" "$Today" "--output" "outputs\step1_soccer_props.csv"
     }
     finally {
         Pop-Location
@@ -2524,13 +2706,10 @@ if ($NowHour -ge 10) {
         "--date", "$Today",
         "--output", $mlbLateOut,
         "--per-page", "250",
-        "--max-pages", "10",
-        "--api-retries", "5",
-        "--api-session-waves", "3",
-        "--api-403-cooldown-after", "5",
-        "--api-403-cooldown-seconds", "90",
-        "--api-403-cooldown-jitter-min", "12",
-        "--api-403-cooldown-jitter-max", "40",
+        "--max-pages", "3",
+        "--api-retries", "1",
+        "--api-session-waves", "1",
+        "--api-403-cooldown-after", "1",
         "--append",
         "--allow-nearest-future"
     )
@@ -2552,14 +2731,8 @@ if ($NowHour -ge 10) {
             }
         }
         if ($LASTEXITCODE -ne 0) {
-            if (-not $mlbCdpReachable) {
-                Write-Warning "[NBA_LATE_FETCH] MLB CDP not reachable — trying Playwright"
-            } else {
-                Write-Warning "[NBA_LATE_FETCH] MLB CDP fetch failed (exit $LASTEXITCODE) — trying Playwright"
-            }
-            & py -3.14 -u ".\scripts\step1_fetch_prizepicks_mlb.py" `
-                --playwright --timeout 120 --retries 1 --retry_delay 5 `
-                --append --allow-nearest-future --date "$Today" --output $mlbLateOut
+            Write-Warning "[NBA_LATE_FETCH] MLB step1 failed — skipping Playwright (extra Chrome burns DataDome)"
+            Write-Log "[NBA_LATE_FETCH] SKIP Playwright after MLB HTTP/CDP fail"
         }
     }
     finally {
@@ -2612,8 +2785,25 @@ if ($NowHour -ge 10) {
     }
 }
 else {
-    Write-Host "[NBA_LATE_FETCH] Hour=$NowHour < 10, skipping NBA re-fetch (use Refresh 1030AM / 1PM)" -ForegroundColor DarkGray
-    Write-Log "[NBA_LATE_FETCH] Hour=$NowHour < 10: skipped (scheduled refresh handles late fetch)"
+    if ($todaySlateNeedsCatchup -and -not $refreshRunning -and -not $refreshLockBlocks) {
+        Write-Host "[LATE_FETCH] Hour=$NowHour < 10 but in-season sports still incomplete — catchup (do not wait for 10:30)" -ForegroundColor Yellow
+        Write-Log "[NBA_LATE_FETCH] CATCHUP hour=${NowHour}: in-season slate incomplete; running scripts\run_nba_late_fetch.ps1"
+        $lateScript = Join-Path $Root "scripts\run_nba_late_fetch.ps1"
+        if (Test-Path -LiteralPath $lateScript) {
+            & pwsh -NoProfile -File $lateScript -RunLabel "DAILY_PRE10_CATCHUP"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "[NBA_LATE_FETCH] pre-10 catchup exited $LASTEXITCODE"
+                Write-Log "[NBA_LATE_FETCH] WARN: DAILY_PRE10_CATCHUP exit $LASTEXITCODE"
+            }
+        }
+        else {
+            Write-Warning "[NBA_LATE_FETCH] missing $lateScript — cannot catch up before 10"
+        }
+    }
+    else {
+        Write-Host "[NBA_LATE_FETCH] Hour=$NowHour < 10, skipping NBA re-fetch (use Refresh 1030AM / 1PM)" -ForegroundColor DarkGray
+        Write-Log "[NBA_LATE_FETCH] Hour=$NowHour < 10: skipped (scheduled refresh handles late fetch)"
+    }
 }
 
 # =============================================================================
@@ -2639,6 +2829,27 @@ else {
     Write-Log "STEP G - Mobile data push: SKIP (script missing)"
 }
 
+# When STEP E was skipped (-SkipPush) or had no main worktree, still gate local
+# templates so refresh/manual runs cannot declare success with a partial board.
+if (-not $script:ActiveSportsFreshChecked) {
+    $assertFreshEnd = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+    if (-not (Test-Path -LiteralPath $assertFreshEnd)) {
+        $assertFreshEnd = Join-Path $PSScriptRoot "Assert-ActiveSportsFresh.ps1"
+    }
+    if (Test-Path -LiteralPath $assertFreshEnd) {
+        $freshJsonEnd = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+        Write-Log "STEP E-fresh - final assert (local templates): START"
+        & pwsh -NoProfile -File $assertFreshEnd -RepoRoot $Root -Today $Today -JsonOut $freshJsonEnd
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "STEP E-fresh - final assert: FAILED (exit $LASTEXITCODE)"
+            $script:ActiveSportsFreshFailed = $true
+        }
+        else {
+            Write-Log "STEP E-fresh - final assert: OK"
+        }
+    }
+}
+
 $dur = (Get-Date) - $script:DailyStart
 Write-Log "Daily run complete. Duration: $([int]$dur.TotalMinutes)m $([int]$dur.Seconds)s"
 if ($WeeklyAnalysis -and $script:WeeklyAnalysisReport) {
@@ -2647,6 +2858,10 @@ if ($WeeklyAnalysis -and $script:WeeklyAnalysisReport) {
 }
 Write-Log "======== Daily run end ========"
 
+if ($script:ActiveSportsFreshFailed) {
+    Write-Host "ACTIVE SPORTS FRESHNESS GATE FAILED — see logs\LAST_ACTIVE_SPORTS_FRESH.json" -ForegroundColor Red
+    exit 2
+}
 if ($script:PipelineFailed -and -not $SkipPipeline) {
     exit 1
 }

@@ -4,8 +4,8 @@
   Scheduled 8:00 AM line-move update: git pull main, then mid-day-style refresh.
 
 .NOTES
-  First full multi-sport fetch is PropOracle - Daily 5AM (run_daily_5am.ps1).
-  This task mirrors 9AM / 11AM / 1PM via run_refresh_with_log.ps1 → run_nba_late_fetch.ps1.
+  First full multi-sport fetch is PropOracle - Daily 1AM (run_daily_1am.ps1).
+  This task is the PRIMARY same-day lock; 9:45 / 10:30 / 1PM / 4:30 follow via run_refresh_with_log.ps1.
   Scheduled at 8:00 (was 7:00) so the 5AM full daily usually finishes first.
   Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 8AM".
 #>
@@ -15,6 +15,18 @@ $ErrorActionPreference = "Continue"
 try { $Host.UI.RawUI.WindowTitle = "PropOracle - Daily 8AM" } catch { }
 $Root = Split-Path $PSScriptRoot -Parent
 $Refresh = Join-Path $Root "scripts\run_refresh_with_log.ps1"
+$SkipFlagDir = Join-Path $Root "data\cache"
+$todayEt = (Get-Date).ToString("yyyy-MM-dd")
+try {
+    $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+    $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+} catch { }
+$SkipFlag = Join-Path $SkipFlagDir "skip_8am_$todayEt.flag"
+if (Test-Path -LiteralPath $SkipFlag) {
+    $why = (Get-Content -LiteralPath $SkipFlag -ErrorAction SilentlyContinue | Select-Object -First 1)
+    Write-Host "[8AM UPDATE] SKIP — manual refresh already ran today ($why)" -ForegroundColor Yellow
+    exit 0
+}
 
 if (-not (Test-Path $Refresh)) {
     Write-Error "Missing refresh script: $Refresh"
@@ -57,6 +69,13 @@ if ($branch -ne "main") {
     }
 }
 
+$LogsDir = Join-Path $Root "logs"
+if (-not (Test-Path -LiteralPath $LogsDir)) {
+    New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+}
+$WrapperLog = Join-Path $LogsDir ("task_8am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+try { Start-Transcript -Path $WrapperLog -Append | Out-Null } catch { }
+
 Write-Host "[8AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
 # Same permanent fix as 3AM/5AM: never abort the run for generated publish JSON.
 $EnsurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
@@ -72,6 +91,7 @@ if ($pullPrepExit -eq 2) {
 }
 if ($pullPrepExit -eq 2) {
     Write-Host "[8AM UPDATE] FAILED: source-code conflicts block pull (resolve manually)." -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
     exit 128
 }
 if ($pullPrepExit -ne 0) {
@@ -79,13 +99,25 @@ if ($pullPrepExit -ne 0) {
 }
 
 Write-Host "[8AM UPDATE] Running line-move refresh (RunLabel 8AM)..." -ForegroundColor Cyan
-& pwsh -NoProfile -File $Refresh -RunLabel "8AM"
-$refreshExit = $LASTEXITCODE
+$env:PROPORACLE_BET_WINDOW = "8AM"
+$loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+$childLog = Join-Path $LogsDir ("run_refresh_child_8am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+if (Test-Path -LiteralPath $loggedHelper) {
+    . $loggedHelper
+    $refreshExit = Invoke-LoggedPwsh -File $Refresh -ArgumentList @("-RunLabel", "8AM") -LogPath $childLog -WorkingDirectory $Root
+} else {
+    Write-Host "[8AM UPDATE] WARN: Invoke-LoggedPwsh.ps1 missing — child output may not be logged" -ForegroundColor Yellow
+    & pwsh -NoProfile -File $Refresh -RunLabel "8AM"
+    $refreshExit = $LASTEXITCODE
+}
 
 if ($refreshExit -ne 0) {
     Write-Host "[8AM UPDATE] Refresh failed (exit $refreshExit)" -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
     exit $refreshExit
 }
 
 Write-Host "[8AM UPDATE] Complete" -ForegroundColor Green
+try { Stop-Transcript | Out-Null } catch { }
 exit 0

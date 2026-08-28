@@ -1,16 +1,18 @@
 #requires -Version 5.1
 <#
-  Line-move refresh (scheduled 8 AM update, 9 AM, 11 AM, 1 PM).
+  Line-move refresh (8 AM primary lock, 9:00, 9:45, 10:30, 1 PM, 4:30 PM).
   - log_prop_snapshot PRE/POST captures added/removed props vs prior state
   - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
     combined slate / ticket_eval before rerun so line movement is visible
-  - After rebuild: incremental payout UPDATE only (slips missing live_cdp);
-    MAIN full scrape is PropOracle - Payout CDP @ 11:00 (after 10:30 line-move refresh)
-  First full multi-sport fetch of the day is PropOracle - Daily 5AM (run_daily_5am.ps1).
-  Refresh cadence: 8 / 9 / 10:30 / 1.
+  After rebuild: Force CDP payout scrape on every window (1AM daily, 8AM lock,
+  9:00, 9:45, 10:30, 1 PM, 4:30 PM), rebuild Goblin-70 + patch mixer legs
+    from this fetch, then Publish-LiveSite.ps1 so Railway / GitHub raw tickets
+    match the new lines (not a stale overnight board).
+  First full multi-sport fetch of the day is PropOracle - Daily 1AM (run_daily_1am.ps1).
+  Refresh cadence: 8 / 9 / 9:45 / 10:30 / 1 / 4:30 (all Force-scrape + timestamps).
 #>
 param(
-    [string]$RunLabel = "9AM"
+    [string]$RunLabel = "945AM"
 )
 
 $ErrorActionPreference = "Continue"
@@ -65,9 +67,11 @@ function Test-TodaySlateNeedsCatchup {
             $active = @("mlb", "wnba", "soccer", "tennis")
         }
         foreach ($sk in $active) {
-            if ($ss.sports -and "$($ss.sports.$sk)" -eq "complete") { $complete++ }
+            $st = if ($ss.sports) { "$($ss.sports.$sk)" } else { "" }
+            if ($st -eq "complete" -or $st -eq "off_season") { $complete++ }
         }
-        return ($complete -eq 0)
+        # Any in-season sport still empty/pending (incl. no_slate) means 8AM should keep going.
+        return ($complete -lt $active.Count)
     } catch {
         return $true
     }
@@ -86,21 +90,22 @@ if (Test-Path -LiteralPath $LockFile) {
 
     $staleByAge = ($lockAge.TotalMinutes -ge $LockTTLMinutes)
     $staleByDeadPid = ($lockPid -and -not $lockPidAlive)
-    if ($staleByAge -or $staleByDeadPid) {
-        $why = if ($staleByDeadPid) { "owner PID $lockPid not running" } else { "$([int]$lockAge.TotalMinutes) min old (TTL $LockTTLMinutes)" }
-        Write-Host "[REFRESH $RunLabel] Stale lock detected ($why) — clearing" -ForegroundColor Yellow
-        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
-    }
-    elseif ($lockPidAlive) {
+    # Never steal a live owner — 8AM often runs past 90 min. TTL only applies when PID is dead/unknown.
+    if ($lockPidAlive) {
         $needsCatchup = Test-TodaySlateNeedsCatchup
         Write-Host "[REFRESH $RunLabel] SKIP — another refresh is running ($lockContent)" -ForegroundColor Yellow
-        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $LockTTLMinutes min)" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $LockTTLMinutes min, live PID kept)" -ForegroundColor Yellow
         if ($needsCatchup) {
             # Non-zero so Task Scheduler LastResult is not a false success when the day is still empty.
             Write-Host "[REFRESH $RunLabel] Today's slate still incomplete — exit 2 (not a soft success)" -ForegroundColor Yellow
             exit 2
         }
         exit 0
+    }
+    elseif ($staleByAge -or $staleByDeadPid) {
+        $why = if ($staleByDeadPid) { "owner PID $lockPid not running" } else { "$([int]$lockAge.TotalMinutes) min old (TTL $LockTTLMinutes)" }
+        Write-Host "[REFRESH $RunLabel] Stale lock detected ($why) — clearing" -ForegroundColor Yellow
+        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
     }
     else {
         Write-Host "[REFRESH $RunLabel] Orphan lock without live PID — clearing" -ForegroundColor Yellow
@@ -111,6 +116,17 @@ if (Test-Path -LiteralPath $LockFile) {
 $lockContent = "$RunLabel | PID $PID | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Set-Content -LiteralPath $LockFile -Value $lockContent
 Write-Host "[REFRESH $RunLabel] Lock acquired: $lockContent" -ForegroundColor DarkGray
+if (-not "$($env:PROPORACLE_BET_WINDOW)".Trim()) {
+    $env:PROPORACLE_BET_WINDOW = $RunLabel
+}
+Write-Host "[REFRESH $RunLabel] Bet window $($env:PROPORACLE_BET_WINDOW) (Force CDP + timestamps)" -ForegroundColor DarkGray
+
+$LogsDir = Join-Path $Root "logs"
+if (-not (Test-Path -LiteralPath $LogsDir)) {
+    New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+}
+$RefreshLog = Join-Path $LogsDir ("task_refresh_{0}_{1:yyyy-MM-dd_HHmmss}.log" -f $RunLabel, (Get-Date))
+try { Start-Transcript -Path $RefreshLog -Append | Out-Null } catch { }
 
 $scriptExit = 0
 try {
@@ -122,8 +138,16 @@ try {
         Write-Host "[REFRESH $RunLabel] PRE snapshot logging failed (continuing)" -ForegroundColor Yellow
     }
 
-    & pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
-    $refreshExit = $LASTEXITCODE
+    $loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+    if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+    $childLog = Join-Path $LogsDir ("late_fetch_child_{0}_{1:yyyy-MM-dd_HHmmss}.log" -f $RunLabel, (Get-Date))
+    if (Test-Path -LiteralPath $loggedHelper) {
+        . $loggedHelper
+        $refreshExit = Invoke-LoggedPwsh -File $LateFetch -ArgumentList @("-NoOverwrite", "-RunLabel", $RunLabel) -LogPath $childLog -WorkingDirectory $Root
+    } else {
+        & pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
+        $refreshExit = $LASTEXITCODE
+    }
 
     & pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState
     if ($LASTEXITCODE -ne 0) {
@@ -136,6 +160,39 @@ try {
     }
     else {
         Write-Host "[REFRESH $RunLabel] Complete" -ForegroundColor Green
+        $todayEt = (Get-Date).ToString("yyyy-MM-dd")
+        try {
+            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+            $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+        } catch { }
+        $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+        if (Test-Path -LiteralPath $assertFresh) {
+            $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+            Write-Host "[REFRESH $RunLabel] Asserting active sports FRESH..." -ForegroundColor Cyan
+            & pwsh -NoProfile -File $assertFresh -RepoRoot $Root -Today $todayEt -JsonOut $freshJson
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "[REFRESH $RunLabel] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+                $scriptExit = $LASTEXITCODE
+            }
+        }
+        # Pipeline push happens before CDP payout scrape. Always publish after
+        # late_fetch so Railway / GitHub raw tickets match this refresh.
+        $publish = Join-Path $Root "scripts\Publish-LiveSite.ps1"
+        if (-not (Test-Path -LiteralPath $publish)) {
+            $hit = Get-ChildItem -LiteralPath (Join-Path $Root "scripts") -Filter "Publish*Live*.ps1" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($hit) { $publish = $hit.FullName }
+        }
+        if (Test-Path -LiteralPath $publish) {
+            Write-Host "[REFRESH $RunLabel] Publishing live site JSON to origin/main..." -ForegroundColor Cyan
+            & pwsh -NoProfile -File $publish -RepoRoot $Root -CommitMessage "chore: live tickets/slate $todayEt $RunLabel"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "[REFRESH $RunLabel] LIVE SITE PUBLISH FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+                if ($scriptExit -eq 0) { $scriptExit = $LASTEXITCODE }
+            }
+        }
+        else {
+            Write-Host "[REFRESH $RunLabel] WARN: Publish-LiveSite.ps1 missing — site may stay on prior board" -ForegroundColor Yellow
+        }
     }
 }
 finally {
@@ -146,6 +203,7 @@ finally {
             Write-Host "[REFRESH $RunLabel] Lock released" -ForegroundColor DarkGray
         }
     }
+    try { Stop-Transcript | Out-Null } catch { }
 }
 
 exit $scriptExit

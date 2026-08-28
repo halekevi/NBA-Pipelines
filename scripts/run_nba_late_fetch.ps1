@@ -4,8 +4,9 @@
   Mid-day slate refresh: re-fetch props/lines (step1 --append), rebuild tickets, then re-scrape
   PrizePicks CDP payout floors for the new board.
 .NOTES
-  Cadence: Daily 8AM / Refresh 9AM / 1030AM / 1PM (run_refresh_with_log.ps1).
-  5AM is the initial full daily; these runs only update props/lines + redo ticket CDP rates.
+  Cadence: Daily 8AM / Refresh 9AM / 945AM / 1030AM / 1PM / 430PM (run_refresh_with_log.ps1).
+  1AM is the initial full daily; these runs re-fetch props/lines, rebuild tickets
+  (Goblin-70 dual card first), then scrape PrizePicks N-correct onto that card.
   Pipeline uses -SkipLivePayoutCapture so rebuild stays fast; CDP runs immediately after.
   Separate PropOracle - Payout CDP @ 11:00 / Update @ 15:00 are retired —
   CDP runs only after this fetch/rebuild (or manual run_payout_cdp.ps1).
@@ -26,6 +27,9 @@ $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
 if (-not "$($env:PROPORACLE_CURL_IMPERSONATE)".Trim()) {
     $env:PROPORACLE_CURL_IMPERSONATE = "chrome131"
+}
+if ($RunLabel -and -not "$($env:PROPORACLE_BET_WINDOW)".Trim()) {
+    $env:PROPORACLE_BET_WINDOW = $RunLabel
 }
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
 
@@ -138,7 +142,7 @@ function Resolve-LateFetchMaxRetries {
     # (and blocking MLB) for 30–120+ minutes during morning refresh.
     if ($lbl -match '^(MANUAL_FULL|MANUAL_RECOVERY)') { return 5 }
     if ($lbl -match '^(MANUAL_1800|MANUAL_1[3-9]|1PM|2PM|3PM)') { return 2 }
-    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM|1030AM|8AM|MANUAL_CDP)') { return 2 }
+    if ($lbl -match '^(MANUAL_11|MANUAL_9|11AM|9AM|945AM|1030AM|8AM|430PM|MANUAL_CDP)') { return 2 }
     return 2
 }
 
@@ -217,14 +221,69 @@ function Resolve-Step1MorningFallback {
     return $false
 }
 
+function Get-SiblingRepoRoots {
+    $roots = New-Object 'System.Collections.Generic.List[string]'
+    $self = $Root.TrimEnd('\')
+    foreach ($hard in @("H:\PropORACLE", "H:\PropORACLE_main_cp")) {
+        $h = $hard.TrimEnd('\')
+        if ($h -ne $self -and (Test-Path -LiteralPath $h)) { [void]$roots.Add($h) }
+    }
+    $porcelain = git -C $Root worktree list --porcelain 2>$null
+    foreach ($line in @($porcelain)) {
+        if ($line -match '^worktree (.+)$') {
+            $cand = $Matches[1].Trim().TrimEnd('\')
+            if ($cand -and $cand -ne $self -and (Test-Path -LiteralPath $cand) -and -not $roots.Contains($cand)) {
+                [void]$roots.Add($cand)
+            }
+        }
+    }
+    return @($roots)
+}
+
+function Copy-SiblingDatedStep1 {
+    param(
+        [string]$Sport,
+        [string]$SportTag,
+        [string]$FileName,
+        [string]$Step1Path
+    )
+    if ((Get-CsvDataRowCount -CsvPath $Step1Path) -gt 0) { return $true }
+    foreach ($wt in Get-SiblingRepoRoots) {
+        $cand = Join-Path $wt "outputs\$PipeDate\$SportTag\$FileName"
+        $n = Get-CsvDataRowCount -CsvPath $cand
+        if ($n -le 0) { continue }
+        $destDir = Split-Path -Parent $Step1Path
+        if (-not (Test-Path -LiteralPath $destDir)) {
+            New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+        }
+        Copy-Item -LiteralPath $cand -Destination $Step1Path -Force
+        Write-Host "[LATE_FETCH] ${Sport}: recovered $n rows from sibling $wt" -ForegroundColor Yellow
+        return $true
+    }
+    return $false
+}
+
 $MaxRetries = Resolve-LateFetchMaxRetries -Label $RunLabel
 $Quiet403 = ($MaxRetries -le 2)
 $CdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
 $CdpReachable = Test-LateFetchCdp -BaseUrl $CdpUrl
+if (-not $CdpReachable) {
+    $ppChromePs1 = Join-Path $Root "scripts\launch_prizepicks_chrome_cdp.ps1"
+    if (Test-Path -LiteralPath $ppChromePs1) {
+        Write-Host "[LATE_FETCH] CDP down ($CdpUrl) — launching PP Chrome (same as daily STEP C0a)" -ForegroundColor Yellow
+        & pwsh -NoProfile -File $ppChromePs1 -OpenBoard -LeagueId 2
+        Start-Sleep -Seconds 8
+        $CdpReachable = Test-LateFetchCdp -BaseUrl $CdpUrl
+        if ($CdpReachable) {
+            Write-Host "[LATE_FETCH] CDP ready after launch" -ForegroundColor Green
+        } else {
+            Write-Host "[LATE_FETCH] CDP still down after launch — HTTP/fail-fast (empty boards likely)" -ForegroundColor Yellow
+        }
+    }
+}
 if ($RunLabel) {
     Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray
-}
-else {
+} else {
     Write-Host "[LATE_FETCH] max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray
 }
 
@@ -289,6 +348,7 @@ if (Test-Path -LiteralPath $wnbaPs1) {
     $wnbaFailed = ($wnbaExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $wnbaStep1) -eq 0)
     if ($wnbaFailed) {
         [void](Resolve-Step1MorningFallback -Sport "WNBA" -Step1Path $wnbaStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+        [void](Copy-SiblingDatedStep1 -Sport "WNBA" -SportTag "wnba" -FileName "step1_wnba_props.csv" -Step1Path $wnbaStep1)
     }
 }
 else {
@@ -328,7 +388,7 @@ $soccerStep1 = Join-Path $soccerRunOut "step1_soccer_props.csv"
 $soccerArgs = @(
     "-3.14", ".\scripts\step1_fetch_prizepicks_soccer.py",
     "--append", "--date", "$PipeDate", "--output", $soccerStep1,
-    "--max-retries", "$MaxRetries", "--fail-fast"
+    "--max-retries", "$MaxRetries", "--fail-fast", "--include-tomorrow"
 )
 if ($CdpReachable) {
     $soccerArgs += @("--cdp", $CdpUrl)
@@ -339,6 +399,7 @@ $soccerExit = Invoke-TimedCommand -Label "Soccer step1" -FilePath "py" -Argument
 $soccerFailed = ($soccerExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $soccerStep1) -eq 0)
 if ($soccerFailed) {
     [void](Resolve-Step1MorningFallback -Sport "Soccer" -Step1Path $soccerStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    [void](Copy-SiblingDatedStep1 -Sport "Soccer" -SportTag "soccer" -FileName "step1_soccer_props.csv" -Step1Path $soccerStep1)
 }
 elseif ((Get-CsvDataRowCount -CsvPath $soccerStep1) -gt 0) {
     Copy-Step1Mirror -Source $soccerStep1 -MirrorPath (Join-Path $SoccerDir "outputs\step1_soccer_props.csv")
@@ -366,9 +427,44 @@ $tennisExit = Invoke-TimedCommand -Label "Tennis step1" -FilePath "py" -Argument
 $tennisFailed = ($tennisExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $tennisStep1) -eq 0)
 if ($tennisFailed) {
     [void](Resolve-Step1MorningFallback -Sport "Tennis" -Step1Path $tennisStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+    [void](Copy-SiblingDatedStep1 -Sport "Tennis" -SportTag "tennis" -FileName "step1_tennis_props.csv" -Step1Path $tennisStep1)
 }
 elseif ((Get-CsvDataRowCount -CsvPath $tennisStep1) -gt 0) {
     Copy-Step1Mirror -Source $tennisStep1 -MirrorPath (Join-Path $TennisDir "outputs\step1_tennis_props.csv")
+}
+
+# NFL — NFL (9) and NFLP (44) together. After preseason, NFLP is empty and that is fine.
+$NFL_SEASON_RESUME = "2026-08-13"
+$NFLOffSeason = ($PipeDate -lt $NFL_SEASON_RESUME)
+if ($NFLOffSeason) {
+    Write-Host "[LATE_FETCH] Skipping NFL fetch (off-season until $NFL_SEASON_RESUME)" -ForegroundColor DarkGray
+}
+else {
+    Write-Host "[LATE_FETCH] Fetching NFL + NFLP props..."
+    $NFLDir = Join-Path $SportsRoot "NFL"
+    $nflRunOut = Ensure-RunOutDir -SportTag "nfl"
+    $nflStep1 = Join-Path $nflRunOut "step1_pp_props_today.csv"
+    $nflArgs = @(
+        "-3.14", ".\scripts\step1_fetch_prizepicks_nfl.py",
+        "--output", $nflStep1,
+        "--date", "$PipeDate",
+        "--replace",
+        "--fail-fast"
+    )
+    if ($CdpReachable) {
+        $nflArgs += @("--cdp", $CdpUrl)
+        Write-Host "[LATE_FETCH] NFL: CDP reachable — in-page fetch (NFL+NFLP)" -ForegroundColor DarkGray
+    }
+    $nflTimeout = if ($CdpReachable) { 240 } else { 150 }
+    $nflExit = Invoke-TimedCommand -Label "NFL step1" -FilePath "py" -ArgumentList $nflArgs -WorkingDirectory $NFLDir -TimeoutSec $nflTimeout
+    $nflFailed = ($nflExit -ne 0) -or ((Get-CsvDataRowCount -CsvPath $nflStep1) -eq 0)
+    if ($nflFailed) {
+        [void](Resolve-Step1MorningFallback -Sport "NFL" -Step1Path $nflStep1 -MaxRetries $MaxRetries -FetchFailed $true)
+        [void](Copy-SiblingDatedStep1 -Sport "NFL" -SportTag "nfl" -FileName "step1_pp_props_today.csv" -Step1Path $nflStep1)
+    }
+    elseif ((Get-CsvDataRowCount -CsvPath $nflStep1) -gt 0) {
+        Copy-Step1Mirror -Source $nflStep1 -MirrorPath (Join-Path $NFLDir "outputs\step1_pp_props_today.csv")
+    }
 }
 
 # MLB — CDP-first when Chrome is listening (same DataDome pattern as WNBA).
@@ -446,6 +542,9 @@ if ($LASTEXITCODE -ne 0) {
 elseif ((Get-CsvDataRowCount -CsvPath $mlbStep1) -gt 0) {
     Copy-Step1Mirror -Source $mlbStep1 -MirrorPath (Join-Path $MLBDir "data\outputs\step1_mlb_props.csv")
 }
+if ((Get-CsvDataRowCount -CsvPath $mlbStep1) -eq 0) {
+    [void](Copy-SiblingDatedStep1 -Sport "MLB" -SportTag "mlb" -FileName "step1_mlb_props.csv" -Step1Path $mlbStep1)
+}
 
 $pipeScript = Join-Path $Root "run_pipeline.ps1"
 if (-not (Test-Path $pipeScript)) {
@@ -491,20 +590,35 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# Rebuild Goblin-70 from this fetch first, then scrape PrizePicks N-correct
+# onto the dual card so 8AM / 9AM / 9:45 / 10:30 / 1PM / 4:30 all publish
+# live floors with scrape timestamps (1AM uses the same Force scrape in run_daily).
+$goblin70 = Join-Path $Root "scripts\build_goblin70_tickets.py"
+if (Test-Path -LiteralPath $goblin70) {
+    Write-Host "[LATE_FETCH] Rebuilding Goblin-70 + patching mixer from this fetch..." -ForegroundColor Cyan
+    try {
+        & py -3.14 $goblin70 --date $PipeDate --write-web
+        Write-Host "[LATE_FETCH] Goblin-70 dual card exit $LASTEXITCODE" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "[LATE_FETCH] WARN: Goblin-70 rebuild failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
 if (Test-Path -LiteralPath $livePayScript) {
     # New tickets after a line-move rebuild need fresh live_cdp (≥1.5x) or the web
-    # filter ships an empty board. Re-scrape all MAIN/STRONG slips (Force) so moved
-    # lines get new floors — UpdateOnly/missing-only is not enough.
+    # filter ships an empty board. Re-scrape all slips on the dual card (Force) so
+    # Goblin-70 + mixer get N-correct floors — UpdateOnly/missing-only is not enough.
     $cdpReady = $false
     try {
         $null = Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/version" -TimeoutSec 2 -ErrorAction Stop
         $cdpReady = $true
     } catch { }
     if ($cdpReady) {
-        Write-Host "[LATE_FETCH] CDP payout re-scrape (Force + FillMissing) after prop/line refresh..." -ForegroundColor Cyan
+        Write-Host "[LATE_FETCH] CDP payout re-scrape (Force + FillMissing) after Goblin-70 merge..." -ForegroundColor Cyan
         try {
-            & pwsh -NoProfile -File $livePayScript -Date $PipeDate -Root $Root -Force -FillMissingTickets -RebuildRateCard
+            $dualTickets = Join-Path $Root "ui_runner\templates\tickets_latest.json"
+            & pwsh -NoProfile -File $livePayScript -Date $PipeDate -Root $Root -TicketsPath $dualTickets -Force -FillMissingTickets -RebuildRateCard
             Write-Host "[LATE_FETCH] Payout re-scrape exit $LASTEXITCODE" -ForegroundColor DarkGray
         } catch {
             Write-Host "[LATE_FETCH] WARN: payout re-scrape failed (non-blocking): $($_.Exception.Message)" -ForegroundColor Yellow

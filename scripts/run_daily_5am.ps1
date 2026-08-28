@@ -1,16 +1,13 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-  Scheduled 5:00 AM full daily: git pull main, run_daily.ps1 (today's pipeline + publish), prop snapshot.
+  Unscheduled or scheduled full daily: git pull main, run_daily.ps1 (today's pipeline + publish), prop snapshot.
 
 .NOTES
-  First big multi-sport run of the day. Publishes fresh slate_latest / tickets for the home page.
-  Overnight (1AM) owns: historical actuals (A1) + grader. This wrapper passes -SkipGrader /
-  -SkipHistoricalActuals when those outputs/stamps exist, and always -SkipLivePayout
-  (mid-day refresh + 11AM Payout CDP own live floors).
-  Refresh cadence: 8 / 9 / 10:30 / 1 (PP line moves often hit ~10:30–11).
-  3:00 AM remains light TennisOnly.
-  Registered by scripts\Register_Daily_Task.ps1 as "PropOracle - Daily 5AM".
+  Scheduled 5:00 AM fetch + line snapshot + live payout CDP. Grader/A1 stay at 3AM
+  when overnight stamps exist. 1AM already fetched overnight; this recaptures the
+  pre-lock board (lines + payout_patch / rate cards) before 8AM.
+  Refresh cadence after this: 8 / 9:45 / 10:30 / 1 / 4:30.
 #>
 param()
 
@@ -110,7 +107,7 @@ $gradedProbe = @(
 )
 $missingOvernight = @($gradedProbe | Where-Object { -not (Test-Path -LiteralPath $_) })
 $a1Stamp = Join-Path $Root "data\cache\historical_actuals_ok_$Today.flag"
-$dailyArgs = @("-SkipLivePayout")
+$dailyArgs = @()
 if ($missingOvernight.Count -eq 0) {
     $dailyArgs += "-SkipGrader"
 }
@@ -128,8 +125,18 @@ else {
     Write-Host "[5AM DAILY] No A1 stamp — historical actuals will run in daily" -ForegroundColor Yellow
 }
 Write-Host ("[5AM DAILY] Running run_daily.ps1 {0}" -f ($dailyArgs -join " ")) -ForegroundColor Cyan
-& pwsh -NoProfile -File $Daily @dailyArgs
-$dailyExit = $LASTEXITCODE
+$env:PROPORACLE_BET_WINDOW = "5AM"
+$loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+$childLog = Join-Path $LogsDir ("run_daily_child_5am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+if (Test-Path -LiteralPath $loggedHelper) {
+    . $loggedHelper
+    $dailyExit = Invoke-LoggedPwsh -File $Daily -ArgumentList $dailyArgs -LogPath $childLog -WorkingDirectory $Root
+} else {
+    Write-Host "[5AM DAILY] WARN: Invoke-LoggedPwsh.ps1 missing — child output may not be logged" -ForegroundColor Yellow
+    & pwsh -NoProfile -File $Daily @dailyArgs
+    $dailyExit = $LASTEXITCODE
+}
 
 Write-Host "[5AM DAILY] Logging fetched prop snapshot..." -ForegroundColor Cyan
 & pwsh -NoProfile -File $Snapshot -Label "5AM DAILY POST" -CompareToState -WriteState
@@ -137,10 +144,37 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[5AM DAILY] Snapshot logging failed" -ForegroundColor Yellow
 }
 
+$Health = Join-Path $Root "scripts\Write-DailyRunHealth.ps1"
+$healthExit = 0
+if (Test-Path -LiteralPath $Health) {
+    Write-Host "[5AM DAILY] Writing health stamp (fails task if board date != today)..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File $Health -RepoRoot $Root -Label "5AM" -RequireTickets
+    $healthExit = $LASTEXITCODE
+}
+else {
+    Write-Host "[5AM DAILY] WARN: Write-DailyRunHealth.ps1 missing" -ForegroundColor Yellow
+}
+
 if ($dailyExit -ne 0) {
     Write-Host "[5AM DAILY] run_daily failed (exit $dailyExit)" -ForegroundColor Red
     try { Stop-Transcript | Out-Null } catch { }
     exit $dailyExit
+}
+if ($healthExit -ne 0) {
+    Write-Host "[5AM DAILY] HEALTH CHECK FAILED (exit $healthExit) — Task Scheduler will show non-zero LastTaskResult" -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
+    exit $healthExit
+}
+
+$AssertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+if (Test-Path -LiteralPath $AssertFresh) {
+    Write-Host "[5AM DAILY] Asserting active sports FRESH..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File $AssertFresh -RepoRoot $Root -Today $Today -JsonOut (Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json")
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[5AM DAILY] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+        try { Stop-Transcript | Out-Null } catch { }
+        exit $LASTEXITCODE
+    }
 }
 
 Write-Host "[5AM DAILY] Complete" -ForegroundColor Green

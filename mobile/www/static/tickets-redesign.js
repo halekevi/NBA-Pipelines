@@ -150,6 +150,185 @@
 
     /* 4. Hero strip removed — showed ticket # not props; EV sort is in filter bar. */
 
+    /* 5. Copy slip / copy group — paste into PrizePicks search; does not submit. */
+    function ticketCopyText(ticketEl) {
+      if (!ticketEl) return '';
+      var no = (ticketEl.getAttribute('data-ticket-no') || '').trim();
+      var group = (ticketEl.getAttribute('data-group-name') || '').trim();
+      var header = (group ? group : 'Ticket') + (no ? '  #' + no : '');
+      var lines = [];
+      ticketEl.querySelectorAll('tr.leg-row').forEach(function (row) {
+        var player = (row.getAttribute('data-player') || '').trim();
+        var prop = (row.getAttribute('data-prop') || '').trim();
+        var dir = (row.getAttribute('data-dir') || '').trim();
+        var line = (row.getAttribute('data-line') || '').trim();
+        var pick = (row.getAttribute('data-pick') || '').trim();
+        if (!player) return;
+        var parts = [player];
+        if (prop) parts.push(prop);
+        if (dir) parts.push(dir);
+        if (line && line !== '—') parts.push(line);
+        if (pick) parts.push('(' + pick + ')');
+        lines.push(parts.join('  '));
+      });
+      if (!lines.length) return header;
+      return header + '\n' + lines.join('\n');
+    }
+
+    function groupCopyText(section) {
+      if (!section) return '';
+      var blocks = [];
+      section.querySelectorAll('.ticket').forEach(function (t) {
+        var txt = ticketCopyText(t);
+        if (txt) blocks.push(txt);
+      });
+      return blocks.join('\n\n');
+    }
+
+    function markCopied(btn) {
+      if (!btn) return;
+      var prev = btn.getAttribute('data-label') || btn.textContent;
+      btn.setAttribute('data-label', prev);
+      btn.classList.add('is-copied');
+      btn.textContent = 'Copied';
+      setTimeout(function () {
+        btn.classList.remove('is-copied');
+        btn.textContent = btn.getAttribute('data-label') || prev;
+      }, 1400);
+    }
+
+    function writeClipboard(text, btn) {
+      if (!text) return;
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); markCopied(btn); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { markCopied(btn); }).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    built.addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.ticket-copy-btn');
+      if (!btn || !built.contains(btn)) return;
+      if (btn.getAttribute('data-placed') || btn.classList.contains('ticket-placed-all')) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var kind = btn.getAttribute('data-copy');
+      var text = '';
+      if (kind === 'group') {
+        text = groupCopyText(btn.closest('.ticket-group-section'));
+      } else {
+        text = ticketCopyText(btn.closest('.ticket'));
+      }
+      writeClipboard(text, btn);
+    });
+
+    /* 6. Account: placed checkboxes + My Groups filter. */
+    function slateDate() {
+      return (built.getAttribute('data-slate-date') || '').trim().slice(0, 10);
+    }
+    function loginUrl() {
+      return '/account?next=' + encodeURIComponent('/tickets');
+    }
+    function applyPlacedSet(fps) {
+      var set = {};
+      (fps || []).forEach(function (fp) { if (fp) set[fp] = true; });
+      built.querySelectorAll('.ticket').forEach(function (t) {
+        var fp = t.getAttribute('data-fp') || '';
+        var on = !!set[fp];
+        t.classList.toggle('is-placed', on);
+        var cb = t.querySelector('.ticket-placed-cb');
+        if (cb) cb.checked = on;
+      });
+    }
+    function postPlaced(body) {
+      return fetch('/api/account/placed', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(function (res) {
+        if (res.status === 401) {
+          window.location.href = loginUrl();
+          return null;
+        }
+        return res.json();
+      });
+    }
+    function ensureMinePill(prefs) {
+      window.__ACCOUNT_PREFERRED_GROUPS = prefs || [];
+      var bar = built.querySelector('.ticket-filter-bar');
+      if (!bar || !prefs || !prefs.length) return;
+      if (!bar.querySelector('[data-filter="mine"]')) {
+        var pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'ticket-filter-pill';
+        pill.setAttribute('data-filter', 'mine');
+        pill.textContent = 'MY GROUPS';
+        var all = bar.querySelector('[data-filter="all"]');
+        if (all && all.nextSibling) bar.insertBefore(pill, all.nextSibling);
+        else bar.insertBefore(pill, bar.firstChild);
+      }
+      if (typeof window.__ticketsSetFilter === 'function') {
+        window.__ticketsSetFilter('mine');
+      }
+    }
+    fetch('/api/account/me?slate=' + encodeURIComponent(slateDate()), { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (me) {
+        if (!me) return;
+        if (me.logged_in) {
+          applyPlacedSet(me.placed || []);
+          ensureMinePill(me.preferred_groups || []);
+        }
+      })
+      .catch(function () {});
+
+    built.addEventListener('change', function (ev) {
+      var cb = ev.target.closest('.ticket-placed-cb');
+      if (!cb || !built.contains(cb)) return;
+      var fp = cb.getAttribute('data-fp') || (cb.closest('.ticket') && cb.closest('.ticket').getAttribute('data-fp')) || '';
+      postPlaced({ slate_date: slateDate(), fingerprint: fp, placed: !!cb.checked }).then(function (data) {
+        if (data && data.placed) applyPlacedSet(data.placed);
+      });
+    });
+
+    built.addEventListener('click', function (ev) {
+      var mark = ev.target.closest('.ticket-placed-all');
+      if (!mark || !built.contains(mark)) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      var sec = mark.closest('.ticket-group-section');
+      var fps = [];
+      if (sec) {
+        sec.querySelectorAll('.ticket').forEach(function (t) {
+          var fp = t.getAttribute('data-fp') || '';
+          if (fp) fps.push(fp);
+        });
+      }
+      postPlaced({ slate_date: slateDate(), fingerprints: fps, placed: true }).then(function (data) {
+        if (data && data.placed) applyPlacedSet(data.placed);
+        var prev = mark.getAttribute('data-label') || mark.textContent;
+        mark.setAttribute('data-label', prev);
+        mark.classList.add('is-copied');
+        mark.textContent = 'Marked';
+        setTimeout(function () {
+          mark.classList.remove('is-copied');
+          mark.textContent = mark.getAttribute('data-label') || prev;
+        }, 1400);
+      });
+    });
+
   }); /* end waitForTickets */
 
 })();

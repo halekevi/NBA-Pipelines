@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-ui-build="{{ ui_build_id|default('', true) }}">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<script>(function(){try{var t=localStorage.getItem('proporacle-theme')||localStorage.getItem('theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.add('light-theme');}}catch(e){}})();</script>
+<meta name="theme-color" content="#050505"/>
+<title>PropOracle — Account</title>
+<link rel="stylesheet" href="/static/global-scrollbar.css?v=20260517platform"/>
+<link rel="stylesheet" href="/static/proporacle-page-shell.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="/static/light-theme-dim-overrides.css?v=20260416perf"/>
+<link rel="stylesheet" href="/static/site-nav-unified.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
+<link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260418nav"/>
+<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260522gradesframe"/>
+<style>
+  body.page-account { font-family: Inter, system-ui, sans-serif; color: var(--text, rgba(255,255,255,.92)); }
+  .acct-wrap { max-width: 720px; margin: 0 auto; padding: 16px 18px 40px; position: relative; z-index: 1; }
+  .acct-hero { margin: 4px 0 16px; padding: 16px 18px; border: 1px solid rgba(212,175,55,.18); border-radius: 14px; background: linear-gradient(135deg, rgba(212,175,55,.07), transparent 42%), rgba(255,255,255,.03); }
+  .acct-hero h1 { margin: 0; font-family: "Bebas Neue", sans-serif; font-size: clamp(28px, 4vw, 40px); letter-spacing: .04em; color: var(--accent, #d4af37); }
+  .acct-hero p { margin: 6px 0 0; font-size: 13px; color: var(--muted, rgba(255,255,255,.72)); line-height: 1.45; }
+  .acct-card { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; background: rgba(255,255,255,.035); padding: 16px 18px; margin-bottom: 14px; }
+  .acct-card h2 { margin: 0 0 12px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.7)); }
+  .acct-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .acct-field label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, rgba(255,255,255,.65)); }
+  .acct-field input[type="email"],
+  .acct-field input[type="password"],
+  .acct-field input[type="text"],
+  .acct-field input[type="number"] {
+    background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.14); border-radius: 8px;
+    color: inherit; font: inherit; padding: 10px 12px;
+  }
+  .acct-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .acct-btn { font: inherit; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; padding: 9px 14px; border-radius: 999px; cursor: pointer; border: 1px solid rgba(200,255,0,.35); background: rgba(200,255,0,.1); color: var(--accent, #c8ff00); }
+  .acct-btn-ghost { border-color: rgba(255,255,255,.18); background: transparent; color: inherit; }
+  .acct-msg { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; font-size: 13px; }
+  .acct-msg.err { background: rgba(255,77,77,.12); border: 1px solid rgba(255,77,77,.28); }
+  .acct-msg.ok { background: rgba(57,255,110,.1); border: 1px solid rgba(57,255,110,.28); }
+  .acct-groups { display: flex; flex-wrap: wrap; gap: 8px; }
+  .acct-groups label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+  .acct-note { font-size: 12px; color: var(--muted, rgba(255,255,255,.65)); margin: 0 0 10px; line-height: 1.4; }
+</style>
+</head>
+<body class="page-account">
+{% set nav_active = 'account' %}
+{% include '_site_nav.html' %}
+<div class="acct-wrap">
+  <div class="acct-hero">
+    <h1>Account</h1>
+    <p>One login for the website and the Android app. Copy slips still paste into PrizePicks — this page does not place bets.</p>
+  </div>
+  {% if error %}<p class="acct-msg err" role="alert">{{ error }}</p>{% endif %}
+  {% if message %}<p class="acct-msg ok" role="status">{{ message }}</p>{% endif %}
+
+  {% if user %}
+  <div class="acct-card">
+    <h2>Signed in</h2>
+    <p class="acct-note">{{ user.email }}</p>
+    <form method="post" action="/account">
+      <input type="hidden" name="action" value="logout"/>
+      <button class="acct-btn acct-btn-ghost" type="submit">Sign out</button>
+    </form>
+  </div>
+  <div class="acct-card">
+    <h2>Preferences</h2>
+    <form method="post" action="/account">
+      <input type="hidden" name="action" value="save_prefs"/>
+      <div class="acct-field">
+        <label for="default_stake">Default stake ($)</label>
+        <input id="default_stake" name="default_stake" type="number" min="0" max="10000" step="1" value="{{ user.default_stake if user.default_stake is not none else '' }}" placeholder="20"/>
+      </div>
+      <p class="acct-note">Preferred groups default the My Groups filter on /tickets.</p>
+      <div class="acct-groups">
+        {% for g in group_choices %}
+        <label><input type="checkbox" name="preferred_groups" value="{{ g }}" {% if g in (user.preferred_groups or []) %}checked{% endif %}/> {{ g }}</label>
+        {% endfor %}
+      </div>
+      <div class="acct-field" style="margin-top:12px">
+        <label for="preferred_extra">Extra prefixes (comma-separated)</label>
+        <input id="preferred_extra" name="preferred_extra" type="text" value="{{ extra_groups|join(', ') }}" placeholder="e.g. NHL, Goblin"/>
+      </div>
+      <div class="acct-actions">
+        <button class="acct-btn" type="submit">Save preferences</button>
+        <a class="acct-btn acct-btn-ghost" href="/tickets" style="text-decoration:none;display:inline-flex;align-items:center">Open tickets</a>
+      </div>
+    </form>
+  </div>
+  {% else %}
+  <div class="acct-card">
+    <h2>Sign in</h2>
+    <form method="post" action="/account">
+      <input type="hidden" name="action" value="login"/>
+      <input type="hidden" name="next" value="{{ next_url }}"/>
+      <div class="acct-field">
+        <label for="login_email">Email</label>
+        <input id="login_email" name="email" type="email" autocomplete="username" required/>
+      </div>
+      <div class="acct-field">
+        <label for="login_password">Password</label>
+        <input id="login_password" name="password" type="password" autocomplete="current-password" required/>
+      </div>
+      <button class="acct-btn" type="submit">Sign in</button>
+    </form>
+  </div>
+  <div class="acct-card">
+    <h2>Create account</h2>
+    {% if signup_open %}
+    <p class="acct-note">Requires the sign-up code from your environment. Same account works on phone and desktop.</p>
+    <form method="post" action="/account">
+      <input type="hidden" name="action" value="signup"/>
+      <input type="hidden" name="next" value="{{ next_url }}"/>
+      <div class="acct-field">
+        <label for="signup_email">Email</label>
+        <input id="signup_email" name="email" type="email" autocomplete="username" required/>
+      </div>
+      <div class="acct-field">
+        <label for="signup_password">Password (8+ characters)</label>
+        <input id="signup_password" name="password" type="password" autocomplete="new-password" minlength="8" required/>
+      </div>
+      <div class="acct-field">
+        <label for="signup_code">Sign-up code</label>
+        <input id="signup_code" name="signup_code" type="password" autocomplete="off" required/>
+      </div>
+      <button class="acct-btn" type="submit">Create account</button>
+    </form>
+    {% else %}
+    <p class="acct-note">Sign-up is closed until <code>PROPORACLE_SIGNUP_CODE</code> is set on the server.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+<script src="/static/site-nav-chrome.js?v=20260412" defer></script>
+</body>
+</html>

@@ -7,8 +7,9 @@ Policy
   ``ui_runner/data/ticket_runs/{date}/{run_id}/tickets.json``.
 - ``ui_runner/data/combined_slate_tickets_{date}.json`` is the **grade pool**
   for that slate date (union of runs; never pruned for board churn).
-- ``ui_runner/templates/tickets_latest.json`` is the **live / playable** board
-  for the site+app; slips whose props left PrizePicks are removed here only.
+- ``ui_runner/runtime/tickets_latest.json`` is the canonical *disk* live board;
+  ``ui_runner/templates/tickets_latest.json`` is the GitHub-raw / Railway publish mirror.
+  Slips whose props left PrizePicks are removed from those live files only.
 
 Grading always reads the dated grade pool / run archives — not the pruned live file.
 """
@@ -18,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +29,9 @@ ROOT = Path(__file__).resolve().parent.parent
 RUNS_DIR = ROOT / "ui_runner" / "data" / "ticket_runs"
 UI_DATA = ROOT / "ui_runner" / "data"
 TEMPLATES = ROOT / "ui_runner" / "templates"
+
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def new_run_id(when: datetime | None = None) -> str:
@@ -351,7 +356,11 @@ def prune_live_tickets_from_capture(
 
     Grade pool / run archives are untouched.
     """
-    latest = tickets_latest or (TEMPLATES / "tickets_latest.json")
+    latest = tickets_latest
+    if latest is None:
+        from utils.ui_live_json import disk_path
+
+        latest = disk_path("tickets_latest.json", ROOT)
     if not latest.is_file():
         return {"ok": False, "error": f"missing {latest}"}
 
@@ -390,18 +399,20 @@ def prune_live_tickets_from_capture(
     after = counts["kept"]
     latest.write_text(json.dumps(pruned, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    # Keep docs + mobile mirrors in sync (static/GitHub Pages often reads docs/).
-    for mirror in (
-        ROOT / "ui_runner" / "docs" / "tickets_latest.json",
-        ROOT / "mobile" / "www" / "tickets_latest.json",
-    ):
-        if mirror.parent.is_dir():
-            try:
-                mirror.write_text(
-                    json.dumps(pruned, indent=2, ensure_ascii=False), encoding="utf-8"
-                )
-            except OSError:
-                pass
+    from utils.ui_live_json import write_paths
+
+    body = json.dumps(pruned, indent=2, ensure_ascii=False)
+    for mirror in write_paths("tickets_latest.json", ROOT, include_data_snapshot=True):
+        try:
+            if mirror.resolve() == latest.resolve():
+                continue
+        except OSError:
+            pass
+        try:
+            mirror.parent.mkdir(parents=True, exist_ok=True)
+            mirror.write_text(body, encoding="utf-8")
+        except OSError:
+            pass
 
     print(
         f"  [ticket-run] live prune: before={before} after={after} "

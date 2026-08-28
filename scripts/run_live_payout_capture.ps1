@@ -3,10 +3,9 @@
 #  Live PrizePicks payout capture (post-ticket step)
 #
 #  Two-tier model:
-#    MAIN (PropOracle - Payout CDP @ 11:00, after 10:30 refresh): scrape MAIN/STRONG
-#      slips missing live floors, then verify + rebuild rate card.
-#    UPDATE (8/9/10:30/1 refreshes): only slips still missing live_cdp.
-#    5AM daily does NOT run live CDP by default (pass -RunLivePayout to opt in).
+#    1AM / 5AM daily (run_daily STEP D-payout): Force re-scrape dual card + timestamps.
+#    8AM / 9 / 9:45 / 10:30 / 1PM / 4:30 (run_nba_late_fetch): Force after line-move rebuild.
+#    -UpdateOnly is incremental catchup only (manual / CDP-down audit).
 #
 #  Steps:
 #    1) CDP scrape of generated MAIN/STRONG slips → power_min_x
@@ -68,6 +67,7 @@ $payoutOut = Join-Path $Root "data\reports\payout_capture_$Date.json"
 $mixGridOut = Join-Path $Root "data\reports\payout_mix_grid_$Date.json"
 $rateCardOut = Join-Path $Root "data\reports\payout_rate_card.json"
 $ticketsLatest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
+$runtimeTickets = Join-Path $Root "ui_runner\runtime\tickets_latest.json"
 $mobileTickets = Join-Path $Root "mobile\www\tickets_latest.json"
 $verifyScript = Join-Path $Root "scripts\verify_ticket_payout_rates.py"
 $lockDir = Join-Path $Root "data\cache"
@@ -192,16 +192,18 @@ $env:PROPORACLE_PAYOUT_LOCK_HELD = "1"
 Write-Host "  [PAYOUT] Lock acquired" -ForegroundColor DarkGray
 
 if (-not $TicketsPath) {
-    $TicketsPath = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
-    if (-not (Test-Path -LiteralPath $TicketsPath)) {
-        $alt = Join-Path $Root "outputs\$Date\combined_slate_tickets_$Date.json"
-        if (Test-Path -LiteralPath $alt) {
-            $TicketsPath = $alt
-        } elseif (Test-Path -LiteralPath (Join-Path $Root "ui_runner\templates\tickets_latest.json")) {
-            $TicketsPath = Join-Path $Root "ui_runner\templates\tickets_latest.json"
-        } elseif (Test-Path -LiteralPath (Join-Path $Root "ui_runner\data\tickets_latest.json")) {
-            $TicketsPath = Join-Path $Root "ui_runner\data\tickets_latest.json"
-        }
+    $latest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
+    $latestData = Join-Path $Root "ui_runner\data\tickets_latest.json"
+    $combined = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
+    $combinedOut = Join-Path $Root "outputs\$Date\combined_slate_tickets_$Date.json"
+    if (Test-Path -LiteralPath $latest) {
+        $TicketsPath = $latest
+    } elseif (Test-Path -LiteralPath $latestData) {
+        $TicketsPath = $latestData
+    } elseif (Test-Path -LiteralPath $combined) {
+        $TicketsPath = $combined
+    } elseif (Test-Path -LiteralPath $combinedOut) {
+        $TicketsPath = $combinedOut
     }
 }
 
@@ -451,9 +453,16 @@ try {
         }
 
         if ($capExit -eq 0 -and $nOk -gt 0) {
-            if ((Test-Path -LiteralPath $ticketsLatest) -and (Test-Path (Split-Path $mobileTickets -Parent))) {
-                Copy-Item $ticketsLatest $mobileTickets -Force -ErrorAction SilentlyContinue
-                Write-Host "  [PAYOUT] mirrored -> mobile/www/tickets_latest.json" -ForegroundColor Green
+            if (Test-Path -LiteralPath $ticketsLatest) {
+                $rtDir = Split-Path $runtimeTickets -Parent
+                if (-not (Test-Path -LiteralPath $rtDir)) {
+                    New-Item -ItemType Directory -Path $rtDir -Force | Out-Null
+                }
+                Copy-Item $ticketsLatest $runtimeTickets -Force -ErrorAction SilentlyContinue
+                Write-Host "  [PAYOUT] mirrored -> ui_runner/runtime/tickets_latest.json" -ForegroundColor Green
+                if (Test-Path (Split-Path $mobileTickets -Parent)) {
+                    Copy-Item $ticketsLatest $mobileTickets -Force -ErrorAction SilentlyContinue
+                }
             }
             Write-Host "  [PAYOUT] Live floors applied (payout_source=live_cdp on patched slips)" -ForegroundColor Green
             $rateCardsScript = Join-Path $Root "scripts\build_payout_rate_cards.py"

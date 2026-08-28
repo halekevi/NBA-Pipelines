@@ -34,7 +34,7 @@ Everything assumes the **repository root** is the working directory for `run_pip
 Do **not** move these without updating **Docker**, **Railway / Nixpacks**, **Procfile**, and docs: `Dockerfile`, `Procfile`, `railway.toml`, `nixpacks.toml`, `main.py` (Gunicorn `main:app`), `requirements.txt`, `run_pipeline.ps1`, `.dockerignore`. Pipeline ML deps live at `config\requirements-pipeline.txt` (install explicitly — not part of the web image).
 | `outputs\<yyyy-MM-dd>\` | Dated run artifacts (copies of combined tickets, quality reports, etc.) |
 | `logs\` | Long-lived logs, `git_push_log.txt` (from optional pipeline git push), and dated debug text from `organize_project_root.ps1` |
-| `ui_runner\` | Flask app (`app.py`), static assets, HTML templates (including generated slate JSON/HTML) |
+| `ui_runner\` | Flask app (`app.py`), static assets, hand-edited HTML in `templates/`. Generated live JSON: disk `ui_runner/runtime/`, GitHub-raw publish mirror still in `templates/` (`tickets_latest.json`, `slate_latest.json`, …). |
 | `data\` | Small shared data (e.g. pipeline health log under `data\logs\`) |
 | `.venv\` | Optional local virtualenv (activated by `run_pipeline.ps1` if present) |
 

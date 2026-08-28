@@ -22,9 +22,14 @@ def main() -> int:
         help="tickets JSON to update in place",
     )
     ap.add_argument(
+        "--also-runtime",
+        action="store_true",
+        help="Also write ui_runner/runtime/tickets_latest.json (canonical disk copy).",
+    )
+    ap.add_argument(
         "--also-docs",
         action="store_true",
-        help="Also write ui_runner/docs/tickets_latest.json",
+        help="Deprecated. Use --also-runtime; docs/ is not a live path.",
     )
     args = ap.parse_args()
 
@@ -38,11 +43,12 @@ def main() -> int:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"[OK] wrote {path}")
 
-    if args.also_docs:
-        docs = path.parent.parent / "docs" / path.name
-        docs.parent.mkdir(parents=True, exist_ok=True)
-        docs.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
-        print(f"[OK] wrote {docs}")
+    from utils.ui_live_json import maybe_mirror_to_runtime
+
+    if args.also_runtime or args.also_docs or path.name == "tickets_latest.json":
+        mirrored = maybe_mirror_to_runtime(path, json.dumps(payload, indent=2, ensure_ascii=False))
+        if mirrored:
+            print(f"[OK] wrote {mirrored}")
 
     dist = tier_distribution_summary(payload)
     print(f"[tier-ev] distribution: {dist}")

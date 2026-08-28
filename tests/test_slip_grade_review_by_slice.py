@@ -1,19 +1,15 @@
 """Tests for unified slip grade slice review."""
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
-
-import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from slip_grade_review_by_slice import (  # noqa: E402
-    GradedLeg,
     TRACK_MAIN,
-    TRACK_STRONG_PRE,
+    GradedLeg,
     _classify_pick_mix,
     _classify_sport_mix,
     _classify_tier_mix,

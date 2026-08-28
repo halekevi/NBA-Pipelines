@@ -9,13 +9,13 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from build_ticket_eval import _canon_void_note  # noqa: E402
+from grading.leg_grade_utils import leg_grade_for_ticket_eval  # noqa: E402
 from soccer_grader_advanced import (  # noqa: E402
     _soccer_missing_actual_reason,
     build_soccer_actuals_lookup,
     lookup_soccer_actual_combo,
 )
-from grading.leg_grade_utils import leg_grade_for_ticket_eval  # noqa: E402
-from build_ticket_eval import _canon_void_note  # noqa: E402
 
 
 def _lut_fra_esp_shots():

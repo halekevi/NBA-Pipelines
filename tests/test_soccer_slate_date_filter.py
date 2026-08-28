@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import pandas as pd
-
-from scripts.soccer_grader_advanced import filter_soccer_slate_by_date, normalize_soccer_slate_columns
+from scripts.soccer_grader_advanced import (
+    filter_soccer_slate_by_date,
+    normalize_soccer_slate_columns,
+)
 
 
 def test_filter_soccer_slate_empty_when_all_rows_are_other_day():

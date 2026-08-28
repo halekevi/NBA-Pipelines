@@ -173,7 +173,7 @@ def test_filter_main_high_prob_keeps_standard_and_goblin():
     demon_left = [
         t
         for t in tickets
-        if any("demon" in str(l.get("pick_type", "")).lower() for l in t["legs"])
+        if any("demon" in str(leg.get("pick_type", "")).lower() for leg in t["legs"])
     ]
     assert not demon_left
 

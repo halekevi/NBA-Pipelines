@@ -346,7 +346,7 @@ def test_goblin70_web_leg_splits_hr_and_ml():
 
 
 def test_merge_keeps_goblin70_and_graded_main():
-    from build_goblin70_tickets import merge_web_payload, is_g70_group
+    from build_goblin70_tickets import is_g70_group, merge_web_payload
 
     g70 = {
         "date": "2026-08-27",

@@ -10,13 +10,13 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from utils.ticket_ev_tiers import (
+from utils.ticket_ev_tiers import (  # noqa: E402
+    _demote_strong_recommendation,
     all_legs_strong_quality,
     apply_slate_ev_tier_recommendations,
     compute_ev_tier_thresholds,
     recommendation_from_ev,
     tier_distribution_summary,
-    _demote_strong_recommendation,
 )
 
 

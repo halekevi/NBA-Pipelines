@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pandas as pd
-
 from utils.defense_tiers import normalize_def_tier_label
 from utils.stat_def_slate import apply_category_def_to_ticket_tier, category_def_align_mask
 from utils.wnba_prop_defense import lookup_stat_defense, prop_category

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pandas as pd
-
 from utils.best_props_pool import (
     SEED_TIER_L5_4_D,
     SEED_TIER_L5_5_D,

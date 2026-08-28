@@ -7,11 +7,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from build_ticket_eval import _filter_payload_groups  # noqa: E402
 from combined_slate_tickets import (  # noqa: E402
     _player_name_atoms,
     _ticket_players_unique,
 )
-from build_ticket_eval import _filter_payload_groups  # noqa: E402
 
 
 def test_player_atoms_split_combo():

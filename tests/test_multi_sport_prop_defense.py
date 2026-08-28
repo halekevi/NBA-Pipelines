@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -13,11 +12,15 @@ if str(ROOT) not in sys.path:
 
 from utils.football_prop_defense import (  # noqa: E402
     lookup_stat_defense,
-    prop_category as fb_prop_category,
     rebuild_nfl_defense_by_stat,
+)
+from utils.football_prop_defense import (  # noqa: E402
+    prop_category as fb_prop_category,
 )
 from utils.mlb_prop_defense import (  # noqa: E402
     lookup_stat_defense as mlb_lookup,
+)
+from utils.mlb_prop_defense import (  # noqa: E402
     prop_category as mlb_prop_category,
 )
 

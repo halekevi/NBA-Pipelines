@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pandas as pd
-
 from utils.group_rank_tier import (
     SPORT_STANDARD_DIRECTION_CUTS,
     _resolve_standard_direction_cuts,

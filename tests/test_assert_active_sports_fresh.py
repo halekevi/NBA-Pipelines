@@ -4,8 +4,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from scripts.assert_active_sports_fresh import (
     assert_active_sports_fresh,
     classify_sport,

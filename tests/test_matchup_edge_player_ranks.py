@@ -1,10 +1,10 @@
+import pandas as pd
 from utils.matchup_edge.player_ranks import (
     assign_league_ranks,
     assign_team_ranks,
     format_category_rank_label,
     stamp_player_ranks,
 )
-import pandas as pd
 
 
 def test_assign_league_and_team_ranks():

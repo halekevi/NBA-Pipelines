@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from datetime import date
 
-import pytest
-
 from scripts.track_model_performance import (
     _NBA1H_UNBLOCK_AUC,
     _consecutive_days_above_052,

@@ -1,7 +1,6 @@
 """WNBA prop-specific defense soft priority + same-game density preference."""
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 
@@ -13,16 +12,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from combined_slate_tickets import (  # noqa: E402
+    _attach_ticket_pick_order,
+    _same_game_density_multiplier,
+)
 from utils.wnba_prop_defense import (  # noqa: E402
     attach_stat_defense_columns,
     clear_defense_cache,
     lookup_stat_defense,
     prop_category,
     soft_priority_delta,
-)
-from combined_slate_tickets import (  # noqa: E402
-    _attach_ticket_pick_order,
-    _same_game_density_multiplier,
 )
 
 

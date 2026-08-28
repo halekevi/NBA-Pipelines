@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pandas as pd
-
 from utils.l5_recency_policy import goblin_over_clears_tough_defense
 from utils.prop_signal_score import context_signal_adjustment_series
 

@@ -1,6 +1,6 @@
 {
   "date": "2026-08-29",
-  "generated_at": "2026-08-29T03:29:06-04:00",
+  "generated_at": "2026-08-29T08:01:37-04:00",
   "line_pulls": [
     {
       "fetched_at": "2026-08-28T16:37:06-04:00",
@@ -78,6 +78,90 @@
       "fetched_at": "2026-08-29T02:43:02-04:00",
       "window": "02:43",
       "n_props": 18709,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T05:04:33-04:00",
+      "window": "05:04",
+      "n_props": 7932,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T05:10:22-04:00",
+      "window": "05:10",
+      "n_props": 6570,
+      "n_moved": 141
+    },
+    {
+      "fetched_at": "2026-08-29T06:27:38-04:00",
+      "window": "06:27",
+      "n_props": 718,
+      "n_moved": 30
+    },
+    {
+      "fetched_at": "2026-08-29T06:27:55-04:00",
+      "window": "06:27",
+      "n_props": 7902,
+      "n_moved": 29
+    },
+    {
+      "fetched_at": "2026-08-29T06:28:06-04:00",
+      "window": "06:28",
+      "n_props": 3372,
+      "n_moved": 105
+    },
+    {
+      "fetched_at": "2026-08-29T06:28:19-04:00",
+      "window": "06:28",
+      "n_props": 3530,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T06:32:43-04:00",
+      "window": "06:32",
+      "n_props": 7324,
+      "n_moved": 44
+    },
+    {
+      "fetched_at": "2026-08-29T06:33:00-04:00",
+      "window": "06:33",
+      "n_props": 20737,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T08:00:29-04:00",
+      "window": "8AM",
+      "n_props": 720,
+      "n_moved": 4
+    },
+    {
+      "fetched_at": "2026-08-29T08:00:43-04:00",
+      "window": "8AM",
+      "n_props": 7875,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T08:00:53-04:00",
+      "window": "8AM",
+      "n_props": 3565,
+      "n_moved": 16
+    },
+    {
+      "fetched_at": "2026-08-29T08:01:05-04:00",
+      "window": "8AM",
+      "n_props": 3528,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T08:01:29-04:00",
+      "window": "8AM",
+      "n_props": 7757,
+      "n_moved": 60
+    },
+    {
+      "fetched_at": "2026-08-29T08:01:33-04:00",
+      "window": "8AM",
+      "n_props": 21412,
       "n_moved": 0
     }
   ],

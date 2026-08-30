@@ -1,13 +1,13 @@
 {
   "date": "2026-08-30",
-  "window": "1AM",
-  "generated_at": "2026-08-30T02:13:52-04:00",
-  "n_pulls_this_window": 11,
-  "n_moved_this_window": 94,
-  "n_moved_from_initial": 0,
-  "is_initial_stamp": true,
-  "force_payout": true,
-  "rebuild_tickets": true,
-  "latest_fetched_at": "2026-08-30T02:13:48-04:00",
+  "window": "9AM",
+  "generated_at": "2026-08-30T09:50:10-04:00",
+  "n_pulls_this_window": 1,
+  "n_moved_this_window": 0,
+  "n_moved_from_initial": 532,
+  "is_initial_stamp": false,
+  "force_payout": false,
+  "rebuild_tickets": false,
+  "latest_fetched_at": "2026-08-30T08:05:37-04:00",
   "initial_fetched_at": "2026-08-29T01:44:01-04:00"
 }

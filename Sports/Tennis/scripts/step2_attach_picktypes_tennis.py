@@ -21,7 +21,19 @@ if str(_REPO) not in sys.path:
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
-from tennis_shared import load_or_refresh_rankings, norm_tennis_prop, resolve_athlete_id
+from tennis_shared import (
+    backfill_pp_descriptions_from_api,
+    fill_doubles_opponents_df,
+    hydrate_rankings_from_slate,
+    is_doubles_pair,
+    load_or_refresh_rankings,
+    merge_doubles_fields_into_step1,
+    norm_tennis_prop,
+    resolve_or_search_athlete_id,
+    resolve_tour_for_player_or_pair,
+    split_pair,
+    update_doubles_opp_cache_from_df,
+)
 from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.pick_line_standard import (
     attach_standard_line_and_deviation,
@@ -50,6 +62,16 @@ def main() -> None:
     ap.add_argument("--input", default="outputs/step1_tennis_props.csv")
     ap.add_argument("--output", default="outputs/step2_tennis_picktypes.csv")
     ap.add_argument("--rankings-cache", default="cache/tennis_rankings.json")
+    ap.add_argument(
+        "--skip-pp-backfill",
+        action="store_true",
+        help="Use doubles opp cache only; do not call PrizePicks API from step2.",
+    )
+    ap.add_argument(
+        "--writeback-step1",
+        action="store_true",
+        help="Merge pp_description/opp_team for doubles rows back into --input step1 CSV.",
+    )
     args = ap.parse_args()
 
     inp = Path(args.input)
@@ -74,6 +96,15 @@ def main() -> None:
     df, n_fantasy = drop_fantasy_props(df)
     if n_fantasy:
         print(f"  Dropped {n_fantasy} fantasy prop row(s)")
+
+    if "is_doubles" not in df.columns:
+        df["is_doubles"] = df["player"].astype(str).map(lambda s: int(is_doubles_pair(s)))
+    df = backfill_pp_descriptions_from_api(df, skip_api=bool(args.skip_pp_backfill))
+    df = fill_doubles_opponents_df(df)
+    n_dbl = int(pd.to_numeric(df.get("is_doubles", 0), errors="coerce").fillna(0).astype(int).sum())
+    if n_dbl:
+        opp_ok = df.loc[df["is_doubles"].astype(int) == 1, "opp_team"].astype(str).str.strip().ne("").sum()
+        print(f"  Doubles/combined rows: {n_dbl}  opp_team filled: {opp_ok}/{n_dbl}")
 
     df, n_reclass = reclassify_mislabeled_discount_standards(df)
     if n_reclass:
@@ -101,13 +132,29 @@ def main() -> None:
     if not rpath.is_absolute():
         rpath = root / rpath
     rankings = load_or_refresh_rankings(rpath)
+    rankings = hydrate_rankings_from_slate(
+        df,
+        rankings,
+        cache_path=root / "cache" / "tennis_opp_rank_cache.json",
+    )
 
     eids: list[str] = []
     tours: list[str] = []
     for _, r in df.iterrows():
-        eid, tour = resolve_athlete_id(str(r.get("player", "")), rankings)
-        eids.append(eid)
-        tours.append(tour or "ATP")
+        player = str(r.get("player", ""))
+        if is_doubles_pair(player):
+            eid = ""
+            for part in split_pair(player):
+                eid_part, _t = resolve_or_search_athlete_id(part, rankings)
+                if eid_part:
+                    eid = eid_part
+                    break
+            eids.append(eid)
+            tours.append(resolve_tour_for_player_or_pair(player, rankings))
+        else:
+            eid, tour = resolve_or_search_athlete_id(player, rankings)
+            eids.append(eid)
+            tours.append(tour or "ATP")
 
     df["espn_athlete_id"] = eids
     df["tour"] = tours
@@ -124,6 +171,12 @@ def main() -> None:
         normalize_pick_type=False,
     )
     log_goblin_standard_line_fill(df, "[Tennis step2]")
+
+    update_doubles_opp_cache_from_df(df)
+    if args.writeback_step1:
+        n_wb = merge_doubles_fields_into_step1(inp, df)
+        if n_wb:
+            print(f"  [Tennis step2] wrote doubles opp fields back to step1: {n_wb} row(s)")
 
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out, index=False, encoding="utf-8-sig")

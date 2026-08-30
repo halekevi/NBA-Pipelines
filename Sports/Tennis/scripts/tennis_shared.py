@@ -28,6 +28,29 @@ URL_ESPN_SEARCH = "https://site.web.api.espn.com/apis/common/v3/search"
 
 # ESPN only publishes top ~150; confirmed athletes outside that band map to Weak for D gates.
 UNRANKED_OUTSIDE_TOP150 = 250
+ATP_ELITE_MAX = 10
+ATP_ABOVE_AVG_MAX = 25
+ATP_AVG_MAX = 50
+ATP_BELOW_AVG_MAX = 100
+
+
+def atp_wta_def_tier(rank: object) -> str:
+    """Map individual opponent ATP/WTA rank to Elite→Weak. Blank if unknown."""
+    try:
+        v = float(rank)
+    except (TypeError, ValueError):
+        return ""
+    if v != v or v <= 0:
+        return ""
+    if v <= ATP_ELITE_MAX:
+        return "Elite"
+    if v <= ATP_ABOVE_AVG_MAX:
+        return "Above Avg"
+    if v <= ATP_AVG_MAX:
+        return "Avg"
+    if v <= ATP_BELOW_AVG_MAX:
+        return "Below Avg"
+    return "Weak"
 
 
 def athlete_statistics_url(tour: str, athlete_id: str) -> str:
@@ -753,6 +776,20 @@ def resolve_athlete_id(player_name: str, rankings: list[dict[str, Any]]) -> tupl
     if best:
         return best, best_tour
     return _resolve_pp_abbrev_athlete_id(player_name, rankings)
+
+
+def resolve_or_search_athlete_id(
+    player_name: str,
+    rankings: list[dict[str, Any]],
+) -> tuple[str, str]:
+    """Rankings / abbrev first; ESPN search for anyone outside the top 150."""
+    eid, tour = resolve_athlete_id(player_name, rankings)
+    if eid:
+        return eid, tour
+    hit = search_espn_tennis_athlete(player_name)
+    if not hit:
+        return "", tour
+    return str(hit.get("espn_athlete_id") or ""), str(hit.get("tour") or tour or "")
 
 
 def _pp_abbrev_tokens(name: str) -> tuple[str, str]:

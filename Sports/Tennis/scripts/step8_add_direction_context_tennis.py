@@ -35,6 +35,42 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
+try:
+    from proporacle.data.table_io import (
+        copy_parquet_sidecar,
+        read_table_str,
+        table_exists,
+        write_excel_sheets,
+        write_parquet_sidecars,
+    )
+except ImportError:
+    def table_exists(path):
+        return Path(path).is_file()
+
+    def read_table_str(path, sheet="ALL", sheet_order=None):
+        sheets = [sheet]
+        if sheet_order:
+            sheets = list(sheet_order) + [sheet]
+        last_err = None
+        for sh in sheets:
+            try:
+                return pd.read_excel(path, sheet_name=sh, dtype=str).fillna("")
+            except Exception as exc:
+                last_err = exc
+        raise last_err or FileNotFoundError(path)
+
+    def write_excel_sheets(path, sheets):
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        with pd.ExcelWriter(path, engine="openpyxl") as writer:
+            for name, df in sheets.items():
+                df.to_excel(writer, sheet_name=str(name)[:31], index=False)
+
+    def write_parquet_sidecars(*_a, **_k):
+        return None
+
+    def copy_parquet_sidecar(*_a, **_k):
+        return None
+
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns, fill_l5_from_stat_games
 from utils.slate_context_fill import fill_cv_pct_if_missing
@@ -138,9 +174,13 @@ def _parse_g_vals(row, prefix: str = "stat_g", n: int = 10) -> list[float]:
 
 def _attach_distribution_std(df: pd.DataFrame) -> pd.DataFrame:
     """Population sample std (ddof=1) of stat_g1..10 for pipeline_read distribution_std."""
-    if df is None or len(df) == 0:
+    if df is None:
         return df
     out = df.copy()
+    if len(out) == 0:
+        out["distribution_n"] = pd.Series(dtype=int)
+        out["distribution_std"] = None
+        return out
     g_cols = [f"stat_g{i}" for i in range(1, 11) if f"stat_g{i}" in out.columns]
     if not g_cols:
         out["distribution_n"] = 0
@@ -312,6 +352,15 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     keep = [
         "tier", "rank_score",
         "surface",
+        "surface_encoded",
+        "aces_per_match_mean",
+        "first_serve_pct",
+        "win_rate_on_surface",
+        "games_won_per_match",
+        "surface_specialist",
+        "surface_struggle",
+        "n_matches_on_surface",
+        "h2h_win_rate_on_surface",
         "player", "pos", "position_group", "team", "opp_team", "league", "game_time",
         "espn_player_id",
         "prop_type", "pick_type", "line", "standard_line", "deviation_level",
@@ -331,6 +380,8 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "l10_over", "l10_under", "l10_over_pct", "l10_streak", "l10_games_played",
         "OVERALL_DEF_RANK", "DEF_TIER",
         "minutes_tier", "shot_role", "usage_role",
+        "last_match_minutes", "days_rest", "last_match_games", "last_match_sets",
+        "last_match_date",
         "cv_pct",
         "void_reason",
         # ── Game log ─────────────────────────────────────────────────────────
@@ -400,6 +451,11 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "OVERALL_DEF_RANK": "Def Rank", "DEF_TIER": "Def Tier",
         "player_atp_rank": "Player Rank", "opponent_rank": "Opponent Rank",
         "minutes_tier": "Min Tier", "shot_role": "Shot Role", "usage_role": "Usage Role",
+        "last_match_minutes": "Last Match Min",
+        "days_rest": "Days Rest",
+        "last_match_games": "Last Match Games",
+        "last_match_sets": "Last Match Sets",
+        "last_match_date": "Last Match Date",
         "cv_pct": "CV%",
         "void_reason": "Void Reason",
         # Game log
@@ -424,17 +480,11 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     else:
         clean_eligible = clean.copy()
 
-    wb = Workbook()
-    wb.remove(wb.active)
-    write_sheet(wb, "Tennis", clean)
-    write_sheet(wb, "ALL", clean)
+    sheets = {"Tennis": clean, "ALL": clean}
     for tier in ["A", "B", "C", "D"]:
         subset = clean_eligible[clean_eligible["Tier"] == tier].copy()
-        # Always write every Tier sheet (even if empty) so step9 never crashes
-        # on a missing sheet_name
-        write_sheet(wb, f"Tier {tier}", subset if len(subset) else clean_eligible.head(0))
-
-    wb.save(xlsx_path)
+        sheets[f"Tier {tier}"] = subset if len(subset) else clean_eligible.head(0)
+    write_excel_sheets(xlsx_path, sheets)
     print(f"Clean XLSX saved -> {xlsx_path}")
 
 
@@ -454,7 +504,7 @@ def main() -> None:
 
     print("[Tennis step8] Starting...")
     input_path = Path(args.input)
-    if not input_path.is_file():
+    if not table_exists(input_path):
         repo = Path(__file__).resolve().parents[3]
         fallbacks: list[Path] = []
         if input_path.parent.name == "tennis":
@@ -466,16 +516,16 @@ def main() -> None:
             repo / "Tennis" / "outputs" / "step7_tennis_ranked.xlsx",
         ])
         for fb in fallbacks:
-            if fb.is_file():
+            if table_exists(fb):
                 print(f"[Tennis step8] WARN: --input missing; using fallback {fb}")
                 input_path = fb
                 break
-        if not input_path.is_file():
+        if not table_exists(input_path):
             print(f"ERROR [Tennis-S8] Input not found: {args.input}")
             sys.exit(1)
 
     print(f"Loading: {input_path} (sheet={args.sheet})")
-    df  = pd.read_excel(input_path, sheet_name=args.sheet, dtype=str).fillna("")
+    df  = read_table_str(input_path, sheet=args.sheet, sheet_order=(args.sheet, "ALL"))
 
     if df.empty:
         print("ERROR [Tennis-S8] Empty input from S7 — aborting.")
@@ -491,29 +541,39 @@ def main() -> None:
         df["_et_date"] = et_dates.dt.date.apply(
             lambda d: d.isoformat() if isinstance(d, _dt.date) else ""
         )
-        mask = df["_et_date"] == target_str
-        if not mask.any():
+        keep_dates = {target_str}
+        try:
+            keep_dates.add((_dt.date.fromisoformat(target_str) + _dt.timedelta(days=1)).isoformat())
+        except ValueError:
+            pass
+        mask = df["_et_date"].isin(keep_dates)
+        if mask.any():
+            print(
+                f"[DateFilter] Keeping ET days {sorted(keep_dates)} "
+                f"(today + day-ahead; {int(mask.sum())} rows)"
+            )
+        else:
             valid = df["_et_date"].astype(str).str.match(r"^\d{4}-\d{2}-\d{2}$")
             avail = sorted(df.loc[valid, "_et_date"].unique().tolist())
-            if args.allow_date_fallback:
-                # Opt-in only: nearest ET date <= target (folder date), not future
-                past_or_equal = [d for d in avail if d <= target_str]
-                if past_or_equal:
-                    fallback_date = past_or_equal[-1]
-                    print(f"[DateFilter] No exact ET match for {target_str} — falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                    mask = df["_et_date"] == fallback_date
-                elif avail:
-                    fallback_date = avail[0]
-                    print(f"[DateFilter] No past ET match — using earliest available {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                    mask = df["_et_date"] == fallback_date
-                else:
-                    print(f"[DateFilter] No valid ET dates found — keeping 0 rows for {target_str}")
-                    mask = pd.Series(False, index=df.index)
+            future = [d for d in avail if d >= target_str]
+            if future:
+                fallback_date = future[0]
+                print(
+                    f"[DateFilter] No rows on {sorted(keep_dates)} — "
+                    f"using nearest upcoming {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)"
+                )
+                mask = df["_et_date"] == fallback_date
+            elif args.allow_date_fallback and avail:
+                fallback_date = avail[-1]
+                print(
+                    f"[DateFilter] No upcoming ET match for {target_str} — "
+                    f"falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)"
+                )
+                mask = df["_et_date"] == fallback_date
             else:
                 print(
                     f"[DateFilter] No exact ET match for {target_str} "
-                    f"(available={avail[:8]}{'...' if len(avail) > 8 else ''}) — "
-                    f"keeping 0 rows (pass --allow-date-fallback to use nearest past day)"
+                    f"(available={avail[:8]}{'...' if len(avail) > 8 else ''}) — keeping 0 rows"
                 )
                 mask = pd.Series(False, index=df.index)
         df = df.loc[mask].drop(columns="_et_date")
@@ -528,7 +588,7 @@ def main() -> None:
     _tennis_scripts = Path(__file__).resolve().parent
     if str(_tennis_scripts) not in sys.path:
         sys.path.insert(0, str(_tennis_scripts))
-    from tennis_shared import ensure_opponent_atp_wta_rank, fill_doubles_opponents_df
+    from tennis_shared import atp_wta_def_tier, ensure_opponent_atp_wta_rank, fill_doubles_opponents_df
 
     out = fill_doubles_opponents_df(out)
     # Backfill blank opp_team from the other singles player on pp_game_id, then
@@ -536,6 +596,14 @@ def main() -> None:
     out = ensure_opponent_atp_wta_rank(out)
     n_opp_rk = int(pd.to_numeric(out.get("opponent_rank"), errors="coerce").notna().sum())
     print(f"[Tennis step8] opponent_rank (ATP/WTA) filled {n_opp_rk}/{len(out)}")
+    opp_rk = pd.to_numeric(out.get("opponent_rank"), errors="coerce")
+    out["DEF_TIER"] = [atp_wta_def_tier(v) or "N/A" for v in opp_rk]
+    out["opp_def_tier"] = out["DEF_TIER"]
+    out["OVERALL_DEF_RANK"] = [
+        int(v) if pd.notna(v) else "N/A" for v in opp_rk
+    ]
+    n_d = int((out["DEF_TIER"].astype(str) != "N/A").sum())
+    print(f"[Tennis step8] DEF_TIER from opponent ATP/WTA rank: {n_d}/{len(out)}")
 
     reconcile_signed_edge_abs_dataframe(out)
 
@@ -612,7 +680,6 @@ def main() -> None:
     out["final_dir_reason"]    = reason
     out["direction"] = out["final_bet_direction"]
     out["bet_direction"] = out["final_bet_direction"]
-    out["DEF_TIER"] = "N/A"
 
     repo_root = Path(__file__).resolve().parents[3]
     out = _attach_unified_ml_prob(out, repo_root)
@@ -630,7 +697,7 @@ def main() -> None:
     out["blended_score"] = (0.3 * mpb + 0.7 * comp_hr).round(4)
 
     out = _attach_distribution_std(out)
-    filled_std = int(pd.to_numeric(out["distribution_std"], errors="coerce").notna().sum())
+    filled_std = int(pd.to_numeric(out.get("distribution_std"), errors="coerce").notna().sum()) if "distribution_std" in out.columns else 0
     print(f"[Tennis step8] distribution_std filled {filled_std}/{len(out)} rows")
 
     out.to_csv(args.output, index=False, encoding="utf-8-sig")
@@ -653,19 +720,12 @@ def main() -> None:
         print(f"WARN build_clean_xlsx failed: {e}")
         print("   Writing raw fallback xlsx so combined pipeline can proceed...")
         try:
-            with pd.ExcelWriter(xlsx_path, engine="openpyxl") as w:
-                out.to_excel(w, sheet_name="Tennis", index=False)
-                out.to_excel(w, sheet_name="ALL", index=False)
-                for _tier in ["A", "B", "C", "D"]:
-                    _mask = out.get("tier", pd.Series(dtype=str)) == _tier
-                    _void = out.get("void_reason", pd.Series("", index=out.index)).fillna("")
-                    _elig = out[_mask & (_void == "")].copy() if _mask.any() else out.head(0)
-                    _elig.to_excel(w, sheet_name=f"Tier {_tier}", index=False)
+            write_excel_sheets(xlsx_path, {"Tennis": out, "ALL": out})
             print(f"Fallback xlsx saved -> {xlsx_path}")
         except Exception as e2:
             print(f"ERROR Fallback xlsx also failed: {e2}")
 
-    # Dated copy: <repo>/outputs/{date}/step8_tennis_direction_clean_{date}.xlsx
+    write_parquet_sidecars(out, args.output, xlsx_path)
     try:
         eastern = zoneinfo.ZoneInfo("America/New_York")
         slate_date = (
@@ -683,6 +743,7 @@ def main() -> None:
             xp = repo_root / "Sports" / "Tennis" / str(xlsx_path).replace("\\", "/").lstrip("./")
         if xp.is_file():
             shutil.copy2(xp, dated_xlsx)
+            copy_parquet_sidecar(xp, dated_xlsx)
             print(f"[Tennis step8] Dated clean workbook -> {dated_xlsx}")
         csv_src = Path(args.output)
         if not csv_src.is_file():
@@ -690,6 +751,7 @@ def main() -> None:
         if csv_src.is_file():
             dated_csv = dated_dir / "step8_tennis_direction.csv"
             shutil.copy2(csv_src, dated_csv)
+            copy_parquet_sidecar(csv_src, dated_csv)
             print(f"[Tennis step8] Dated direction CSV -> {dated_csv}")
     except Exception as e:
         print(f"[Tennis step8] WARN dated copy skipped: {e}")

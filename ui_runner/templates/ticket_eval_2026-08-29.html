@@ -324,501 +324,815 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
   <a href="/payout" class="">💰 Payouts</a>
   <a href="/account" class="">👤 Account</a>
 </div>
-<div class="grade-eval-summary grade-eval-summary-empty"><div>Date: 2026-08-29 · Graded Main Slate (high-prob Std+Gob) · No fully graded tickets for payout summary (ungraded, all-void, or none).</div></div>
+<div class="grade-eval-summary"><div class="grade-eval-summary-line1">Graded Main Slate (high-prob Std+Gob) · 2026-08-29 · 13 tickets</div><div class="grade-eval-summary-line2"><span class="ges-pill ges-win">Wins 2</span><span class="ges-pill ges-guar">Guarantees 0</span><span class="ges-pill ges-loss">Losses 11</span><span class="ges-pill ges-rate">15% win rate</span><span class="ges-pill ges-ev">Avg EV 0.67</span></div><div class="grade-eval-summary-line4">−$64.69 net on $130 ($10 flat) — loss</div></div>
 <div class="stats-bar">
 <div class="sum-row sum-row-results">
 <div class="sum-row-label">Results</div>
-<div class="sum-item"><div class="sum-val">0.0%</div><div class="sum-lab">Hit rate</div></div>
-<div class="sum-item"><div class="sum-val green">0</div><div class="sum-lab">Paid</div></div>
-<div class="sum-item"><div class="sum-val red">0</div><div class="sum-lab">No payout</div></div>
-<div class="sum-item"><div class="sum-val">0</div><div class="sum-lab">Perfect</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">Net @ $10</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">ROI</div></div>
+<div class="sum-item"><div class="sum-val">15.4%</div><div class="sum-lab">Hit rate</div></div>
+<div class="sum-item sum-item-sport"><div class="sum-val">15.4%</div><div class="sum-lab">MLB</div></div>
+<div class="sum-item sum-item-pending-sport" title="2 ticket slips still have UNGRADED legs (no graded row / actual yet—run grader after matches; tennis often uses next calendar day workbook merge)."><div class="sum-val pend">—</div><div class="sum-lab">SOCCER<span class="sum-lab-badge">2 pending</span></div></div>
+<div class="sum-item"><div class="sum-val green">2</div><div class="sum-lab">Paid</div></div>
+<div class="sum-item"><div class="sum-val red">11</div><div class="sum-lab">No payout</div></div>
+<div class="sum-item"><div class="sum-val">2</div><div class="sum-lab">Perfect</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">-64.69</div><div class="sum-lab">Net @ $10</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">-49.8%</div><div class="sum-lab">ROI</div></div>
 </div>
 <div class="sum-row sum-row-legs">
 <div class="sum-row-label">Legs</div>
-<div class="sum-item"><div class="sum-val green">0</div><div class="sum-lab">Hits</div></div>
-<div class="sum-item"><div class="sum-val red">0</div><div class="sum-lab">Misses</div></div>
-<div class="sum-item"><div class="sum-val void">34</div><div class="sum-lab">Void / push</div></div>
-<div class="sum-item"><div class="sum-val pend">0</div><div class="sum-lab">Ungraded</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm">34</div><div class="sum-lab">Total legs</div></div>
+<div class="sum-item"><div class="sum-val green">38</div><div class="sum-lab">Hits</div></div>
+<div class="sum-item"><div class="sum-val red">16</div><div class="sum-lab">Misses</div></div>
+<div class="sum-item"><div class="sum-val void">0</div><div class="sum-lab">Void / push</div></div>
+<div class="sum-item"><div class="sum-val pend">3</div><div class="sum-lab">Ungraded</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">57</div><div class="sum-lab">Total legs</div></div>
 </div></div>
 <div class="wrap ticket-eval-main">
 <p class="slate-kicker">SLATE DATE · 2026-08-29</p>
 <details class="grade-eval-help"><summary>How these grades work</summary>
-<p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-08-29/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss.</p></details>
+<p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-08-29/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss. <strong>UNGRADED (3 legs):</strong> the matched graded row still has no actual or HIT/MISS—often unfinished games, voids, or grading before final stats. Re-run the grader after games; on hosts without <code>outputs/2026-08-29/</code>, commit workbooks under <code>ui_runner/graded_slate/2026-08-29/</code> before rebuilding this page. </p></details>
 <div class="ticket-sections-wrap">
 <details class="ticket-bucket sb-mlb">
-<summary><span class="ticket-bucket-title">MLB</span><span class="ticket-bucket-meta">8 sections · 8 tickets</span></summary>
+<summary><span class="ticket-bucket-title">MLB</span><span class="ticket-bucket-meta">13 sections · 13 tickets</span></summary>
 <div class="ticket-bucket-body">
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 3-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card all-hit">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 3-Leg #1</span>
-<span class="tg">0✓ 0✗ / 3</span>
-<span class="payout">PWR 2.95× · FLEX 1.47×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg">3✓ 0✗ / 3</span>
+<span class="payout">PWR 2.58× · FLEX 1.29×</span>
+<span class="tg grade-ticket-result won">RESULT: ✅ ✅ WON <span class="grade-ticket-result-label">(WIN)</span></span>
+<span class="banner hit">ALL HIT</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Zach Neto</div>
+<div class="pl-hit">Zach Neto</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">1.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Otto Lopez</div>
+<div class="pl-hit">Lawrence Butler</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">ATH vs BAL</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.9</div>
+<div class="leg-extra pl-hit">2</div>
+<div class="leg-extra">2.7</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Heriberto Hernández</div>
+<div class="pl-hit">Shane Baz</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-prop-col"><div>Earned Runs Allowed</div><div class="meta-muted">BAL vs ATH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">2</div>
 <div class="leg-extra">2.3</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-win">✅ WIN</div><div class="grade-result-sub">WIN — all 3 legs correct</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>1.60x</td><td>1.60x</td></tr><tr><td>P(Win)</td><td>64.9%</td><td>✅</td></tr><tr><td>EV at Entry</td><td>0.04 — MARGINAL</td><td>+$16.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Won $16.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 3-Leg #2</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 3-Leg #2</span>
-<span class="tg">0✓ 0✗ / 3</span>
-<span class="payout">PWR 2.62× · FLEX 1.31×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg">2✓ 1✗ / 3</span>
+<span class="payout">PWR 2.95× · FLEX 1.47×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Heriberto Hernández</div>
+<div class="pl-hit">Otto Lopez</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">2.1</div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Xavier Edwards</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tommy White</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">ATH vs BAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">2.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Francisco Alvarez</div>
+<div class="pl-hit">Heriberto Hernández</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
+<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.5</div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.3</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>1.60x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>56.6%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.09 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 3-Leg #3</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 3-Leg #3</span>
-<span class="tg">0✓ 0✗ / 3</span>
-<span class="payout">PWR 2.62× · FLEX 1.31×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg">2✓ 1✗ / 3</span>
+<span class="payout">PWR 2.95× · FLEX 1.47×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Mike Trout</div>
+<div class="pl-hit">Lawrence Butler</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">ATH vs BAL</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.1</div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Lawrence Butler</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">A.J. Ewing</div>
+<div class="pl-hit">Heriberto Hernández</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>1.60x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>56.7%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.09 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 3-Leg #4</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 3-Leg #4</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">2✓ 1✗ / 3</span>
 <span class="payout">PWR 2.33× · FLEX 1.17×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Xavier Edwards</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Tyrone Taylor</div>
+<div class="pl-hit">Tyrone Taylor</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">CHC vs CIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.3</div>
+<div class="leg-extra pl-hit">7</div>
+<div class="leg-extra">2.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Jose Siri</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Mike Trout</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.1</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Lawrence Butler</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">0.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>1.60x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>56.3%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.10 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">MLB Goblin 3-Leg #5</h2>
+<article class="ticket-card card-missed">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">MLB Goblin 3-Leg #5</span>
+<span class="tg">2✓ 1✗ / 3</span>
+<span class="payout">PWR 2.33× · FLEX 1.17×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">A.J. Ewing</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.9</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Christian Encarnacion-Strand</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">BAL vs ATH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">0.9</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>1.60x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>62.8%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.00 — MARGINAL</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">MLB Goblin 3-Leg #6</h2>
+<article class="ticket-card card-missed">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">MLB Goblin 3-Leg #6</span>
+<span class="tg">1✓ 2✗ / 3</span>
+<span class="payout">PWR 2.33× · FLEX 1.17×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">0.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Jose Siri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hitter Strikeouts</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">0.9</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Heriberto Hernández</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.9</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (1 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>1.60x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>54.5%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.13 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 4-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card all-hit">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 4-Leg #1</span>
-<span class="tg">0✓ 0✗ / 4</span>
-<span class="payout">PWR 3.19× · FLEX 1.91×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg">4✓ 0✗ / 4</span>
+<span class="payout">PWR 3.53× · FLEX 2.12×</span>
+<span class="tg grade-ticket-result won">RESULT: ✅ ✅ WON <span class="grade-ticket-result-label">(WIN)</span></span>
+<span class="banner hit">ALL HIT</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Heriberto Hernández</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">2.1</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Francisco Alvarez</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.5</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Mike Trout</div>
+<div class="pl-hit">Zach Neto</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.1</div>
+<div class="leg-extra pl-hit">3</div>
+<div class="leg-extra">1.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Lawrence Butler</div>
+<div class="pl-hit">Lawrence Butler</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">ATH vs BAL</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="leg-extra pl-hit">2</div>
+<div class="leg-extra">2.7</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Shane Baz</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Earned Runs Allowed</div><div class="meta-muted">BAL vs ATH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">2</div>
+<div class="leg-extra">2.3</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Otto Lopez</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.9</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-win">✅ WIN</div><div class="grade-result-sub">WIN — all 4 legs correct</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.93x</td><td>4.93x</td></tr><tr><td>P(Win)</td><td>57.2%</td><td>✅</td></tr><tr><td>EV at Entry</td><td>1.82 — OK</td><td>+$49.31 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Won $49.31</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 4-Leg #2</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 4-Leg #2</span>
-<span class="tg">0✓ 0✗ / 4</span>
-<span class="payout">PWR 2.84× · FLEX 1.7×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg">2✓ 2✗ / 4</span>
+<span class="payout">PWR 3.58× · FLEX 2.15×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">A.J. Ewing</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tommy White</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">ATH vs BAL</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">2.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Xavier Edwards</div>
+<div class="pl-hit">Heriberto Hernández</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.3</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Tyrone Taylor</div>
+<div class="pl-hit">Lawrence Butler</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">ATH vs BAL</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.9</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.5</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.93x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>45.5%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.24 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">MLB Goblin 4-Leg #3</h2>
+<article class="ticket-card card-missed">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">MLB Goblin 4-Leg #3</span>
+<span class="tg">3✓ 1✗ / 4</span>
+<span class="payout">PWR 3.19× · FLEX 1.91×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Heriberto Hernández</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.1</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Tyrone Taylor</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">CHC vs CIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.3</div>
+<div class="leg-extra pl-hit">7</div>
+<div class="leg-extra">2.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Jose Siri</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Mike Trout</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.1</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Lawrence Butler</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">0.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (3 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.93x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>45.1%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.22 — MARGINAL</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">MLB Goblin 4-Leg #4</h2>
+<article class="ticket-card card-missed">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">MLB Goblin 4-Leg #4</span>
+<span class="tg">2✓ 2✗ / 4</span>
+<span class="payout">PWR 2.84× · FLEX 1.7×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">A.J. Ewing</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.9</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Christian Encarnacion-Strand</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">BAL vs ATH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">0.9</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Jose Siri</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hitter Strikeouts</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">0.9</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.93x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>50.4%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.49 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">MLB Goblin 5-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">MLB Goblin 5-Leg #1</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">3✓ 2✗ / 5</span>
 <span class="payout">PWR 4.66× · FLEX 2.33×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Heriberto Hernández</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">2.1</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Mike Trout</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.1</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Lawrence Butler</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">A.J. Ewing</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Xavier Edwards</div>
+<div class="pl-hit">Heriberto Hernández</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.3</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
-</article>
-</section>
-<section class="sec"><h2 class="sec-head bebas">MLB Goblin 6-Leg #1</h2>
-<article class="ticket-card">
-<div class="thdr">
-<span class="tn bebas">#1</span>
-<span class="tg">MLB Goblin 6-Leg #1</span>
-<span class="tg">0✓ 0✗ / 6</span>
-<span class="payout">PWR 6.05× · FLEX 3.78×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
-</div>
-<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Heriberto Hernández</div>
+<div class="pl-hit">Lawrence Butler</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">ATH vs BAL</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">2.1</div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Lawrence Butler</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">A.J. Ewing</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Xavier Edwards</div>
-<div class="tier">G</div>
-<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
-<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">0.9</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Tyrone Taylor</div>
+<div class="pl-hit">Tyrone Taylor</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">CHC vs CIN</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">1.3</div>
+<div class="leg-extra pl-hit">7</div>
+<div class="leg-extra">2.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-mlb">MLB</span></div>
-<div class="pl-void">Jose Siri</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Mike Trout</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.1</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (3 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.50x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>37.9%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.70 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">MLB Goblin 5-Leg #2</h2>
+<article class="ticket-card card-missed">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">MLB Goblin 5-Leg #2</span>
+<span class="tg">4✓ 1✗ / 5</span>
+<span class="payout">PWR 4.66× · FLEX 2.33×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Heriberto Hernández</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
 <div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.1</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Lawrence Butler</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hits</div><div class="meta-muted">ATH vs BAL</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">0.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 6 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">A.J. Ewing</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.9</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Christian Encarnacion-Strand</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">BAL vs ATH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Bases</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">0.9</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (4 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.50x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>42.4%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.91 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">MLB Goblin 6-Leg #1</h2>
+<article class="ticket-card card-missed">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">MLB Goblin 6-Leg #1</span>
+<span class="tg">4✓ 2✗ / 6</span>
+<span class="payout">PWR 7.64× · FLEX 4.77×</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Lawrence Butler</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Total Bases</div><div class="meta-muted">ATH vs BAL</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.9</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Xavier Edwards</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.5</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Heriberto Hernández</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">MIA vs WSH</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">4</div>
+<div class="leg-extra">2.1</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">Tyrone Taylor</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hits+Runs+RBIs</div><div class="meta-muted">CHC vs CIN</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">7</div>
+<div class="leg-extra">2.1</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Mike Trout</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">G</div>
+<div class="leg-prop-col miss-leg-cell"><div>Hits+Runs+RBIs</div><div class="meta-muted">LAA vs PHI</div></div>
+<div class="leg-extra miss-leg-cell">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">0</div>
+<div class="leg-extra miss-leg-cell">1.1</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-mlb">MLB</span></div>
+<div class="pl-hit">A.J. Ewing</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Hitter Strikeouts</div><div class="meta-muted">NYM vs HOU</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">0.9</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (4 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>8.40x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>32.0%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.69 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 </div></details>
 <details class="ticket-bucket sb-soccer">
-<summary><span class="ticket-bucket-title">SOCCER</span><span class="ticket-bucket-meta">1 sections · 1 tickets</span></summary>
+<summary><span class="ticket-bucket-title">SOCCER</span><span class="ticket-bucket-meta">2 sections · 2 tickets</span></summary>
 <div class="ticket-bucket-body">
 <section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 3-Leg #1</h2>
 <article class="ticket-card">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">SOCCER Goblin 3-Leg #1</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">2✓ 0✗ / 3</span>
 <span class="payout">PWR 2.33× · FLEX 1.17×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="banner pend">UNGRADED</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-void">Frederik Rønnow</div>
+<div class="pl-hit">Daniel Heuer Fernandes</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">UNION BERLIN vs FRANKFURT</div></div>
+<div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">HAMBURG vs DORTMUND</div></div>
+<div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">5</div>
+<div class="leg-extra">1.5</div>
+</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
+<div><span class="pill sport-soccer">SOCCER</span></div>
+<div class="pl-hit">Rayan Philippe</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">HAMBURG vs DORTMUND</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
+<div class="leg-extra">1.5</div>
+</div>
+<div class="legrow leg-pend">
+<div class="badge pend">·</div>
+<div><span class="pill sport-soccer">SOCCER</span></div>
+<div class="pl-pend">Diego Conde</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">BETIS vs LEVANTE</div></div>
 <div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-pend">—</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
+</article>
+</section>
+<section class="sec"><h2 class="sec-head bebas">SOCCER Goblin 4-Leg #1</h2>
+<article class="ticket-card">
+<div class="thdr">
+<span class="tn bebas">#1</span>
+<span class="tg">SOCCER Goblin 4-Leg #1</span>
+<span class="tg">2✓ 0✗ / 4</span>
+<span class="payout">PWR 3.19× · FLEX 1.91×</span>
+<span class="banner pend">UNGRADED</span>
+</div>
+<div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-void">Daniel Heuer Fernandes</div>
+<div class="pl-hit">Daniel Heuer Fernandes</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">HAMBURG vs DORTMUND</div></div>
 <div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">5</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-soccer">SOCCER</span></div>
-<div class="pl-void">Sander Tangvik</div>
+<div class="pl-hit">Rayan Philippe</div>
 <div class="tier">G</div>
-<div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">HAMBURG vs DORTMUND</div></div>
-<div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-prop-col"><div>Shots</div><div class="meta-muted">HAMBURG vs DORTMUND</div></div>
+<div class="leg-extra">0.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-hit">1</div>
 <div class="leg-extra">1.5</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="legrow leg-pend">
+<div class="badge pend">·</div>
+<div><span class="pill sport-soccer">SOCCER</span></div>
+<div class="pl-pend">Diego Conde</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">BETIS vs LEVANTE</div></div>
+<div class="leg-extra">1.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra">1.5</div>
+</div>
+<div class="legrow leg-pend">
+<div class="badge pend">·</div>
+<div><span class="pill sport-soccer">SOCCER</span></div>
+<div class="pl-pend">Héctor Holguín</div>
+<div class="tier">G</div>
+<div class="leg-prop-col"><div>Goalie Saves</div><div class="meta-muted">SANTOS LAGUNA vs TIGRES</div></div>
+<div class="leg-extra">2.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra pl-pend">—</div>
+<div class="leg-extra">1</div>
+</div>
+<div class="ticket-grade-payout"><div class="grade-payout-pending">Payout model: awaiting all leg grades</div></div>
 </article>
 </section>
 </div></details>
@@ -1117,7 +1431,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </details>
 
 <script>
-  window.SLATE_DATA = [{"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 1.5, "direction": "OVER", "player": "Frederik Rønnow", "team": "UNION BERLIN", "opp": "FRANKFURT", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 3.0, "season_avg": 3.0, "sport": "SOCCER", "data_warning": null, "initials": "FR"}, {"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 2.5, "direction": "OVER", "player": "Daniel Heuer Fernandes", "team": "HAMBURG", "opp": "DORTMUND", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 4.0, "season_avg": 4.0, "sport": "SOCCER", "data_warning": null, "initials": "DF"}, {"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 2.5, "direction": "OVER", "player": "Sander Tangvik", "team": "HAMBURG", "opp": "DORTMUND", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 4.0, "season_avg": 4.0, "sport": "SOCCER", "data_warning": null, "initials": "ST"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Zach Neto", "team": "LAA", "opp": "PHI", "edge": 1.9, "hit_rate": 0.873, "l5_avg": 2.4, "season_avg": 3.6, "sport": "MLB", "data_warning": null, "initials": "ZN"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Otto Lopez", "team": "MIA", "opp": "WSH", "edge": 1.9, "hit_rate": 0.881, "l5_avg": 2.4, "season_avg": 2.3, "sport": "MLB", "data_warning": null, "initials": "OL"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.3, "hit_rate": 0.802, "l5_avg": 2.8, "season_avg": 2.0, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 1.5, "hit_rate": 0.8410000000000001, "l5_avg": 2.0, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Francisco Alvarez", "team": "NYM", "opp": "HOU", "edge": 1.5, "hit_rate": 0.845225806451613, "l5_avg": 2.0, "season_avg": 1.8, "sport": "MLB", "data_warning": null, "initials": "FA"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 1.3, "hit_rate": 0.801, "l5_avg": 1.8, "season_avg": 1.2, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Jose Siri", "team": "LAA", "opp": "PHI", "edge": 0.9, "hit_rate": 0.8029032258064517, "l5_avg": 1.4, "season_avg": 1.1, "sport": "MLB", "data_warning": null, "initials": "JS"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Francisco Alvarez", "team": "NYM", "opp": "HOU", "edge": 1.5, "hit_rate": 0.845225806451613, "l5_avg": 2.0, "season_avg": 1.8, "sport": "MLB", "data_warning": null, "initials": "FA"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 1.3, "hit_rate": 0.801, "l5_avg": 1.8, "season_avg": 1.2, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Jose Siri", "team": "LAA", "opp": "PHI", "edge": 0.9, "hit_rate": 0.8029032258064517, "l5_avg": 1.4, "season_avg": 1.1, "sport": "MLB", "data_warning": null, "initials": "JS"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 1.3, "hit_rate": 0.801, "l5_avg": 1.8, "season_avg": 1.2, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Jose Siri", "team": "LAA", "opp": "PHI", "edge": 0.9, "hit_rate": 0.8029032258064517, "l5_avg": 1.4, "season_avg": 1.1, "sport": "MLB", "data_warning": null, "initials": "JS"}];
+  window.SLATE_DATA = [{"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 2.5, "direction": "OVER", "player": "Daniel Heuer Fernandes", "team": "HAMBURG", "opp": "DORTMUND", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 4.0, "season_avg": 4.0, "sport": "SOCCER", "data_warning": null, "initials": "DF"}, {"pick_type": "Goblin", "prop_type": "Shots", "line": 0.5, "direction": "OVER", "player": "Rayan Philippe", "team": "HAMBURG", "opp": "DORTMUND", "edge": 1.5, "hit_rate": 0.66, "l5_avg": 2.0, "season_avg": 2.0, "sport": "SOCCER", "data_warning": null, "initials": "RP"}, {"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 1.5, "direction": "OVER", "player": "Diego Conde", "team": "BETIS", "opp": "LEVANTE", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 3.0, "season_avg": 3.0, "sport": "SOCCER", "data_warning": null, "initials": "DC"}, {"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 2.5, "direction": "OVER", "player": "Daniel Heuer Fernandes", "team": "HAMBURG", "opp": "DORTMUND", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 4.0, "season_avg": 4.0, "sport": "SOCCER", "data_warning": null, "initials": "DF"}, {"pick_type": "Goblin", "prop_type": "Shots", "line": 0.5, "direction": "OVER", "player": "Rayan Philippe", "team": "HAMBURG", "opp": "DORTMUND", "edge": 1.5, "hit_rate": 0.66, "l5_avg": 2.0, "season_avg": 2.0, "sport": "SOCCER", "data_warning": null, "initials": "RP"}, {"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 1.5, "direction": "OVER", "player": "Diego Conde", "team": "BETIS", "opp": "LEVANTE", "edge": 1.5, "hit_rate": 0.7, "l5_avg": 3.0, "season_avg": 3.0, "sport": "SOCCER", "data_warning": null, "initials": "DC"}, {"pick_type": "Goblin", "prop_type": "Goalie Saves", "line": 2.5, "direction": "OVER", "player": "Héctor Holguín", "team": "SANTOS LAGUNA", "opp": "TIGRES", "edge": 1.0, "hit_rate": 0.66, "l5_avg": 3.5, "season_avg": 3.5, "sport": "SOCCER", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Zach Neto", "team": "LAA", "opp": "PHI", "edge": 1.9, "hit_rate": 0.873, "l5_avg": 2.4, "season_avg": 3.6, "sport": "MLB", "data_warning": null, "initials": "ZN"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 2.7, "hit_rate": 0.8410000000000001, "l5_avg": 3.2, "season_avg": 2.6, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Earned Runs Allowed", "line": 0.5, "direction": "OVER", "player": "Shane Baz", "team": "BAL", "opp": "ATH", "edge": 2.3, "hit_rate": 0.8841290322580646, "l5_avg": 2.8, "season_avg": 2.3, "sport": "MLB", "data_warning": null, "initials": "SB"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Otto Lopez", "team": "MIA", "opp": "WSH", "edge": 1.9, "hit_rate": 0.881, "l5_avg": 2.4, "season_avg": 2.3, "sport": "MLB", "data_warning": null, "initials": "OL"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tommy White", "team": "ATH", "opp": "BAL", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 2.1, "sport": "MLB", "data_warning": null, "initials": "TW"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.3, "hit_rate": 0.802, "l5_avg": 2.8, "season_avg": 2.0, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 1.9, "hit_rate": 0.8420000000000001, "l5_avg": 2.4, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 1.5, "hit_rate": 0.8410000000000001, "l5_avg": 2.0, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 2.1, "hit_rate": 0.8410000000000001, "l5_avg": 2.6, "season_avg": 1.7, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Christian Encarnacion-Strand", "team": "BAL", "opp": "ATH", "edge": 0.7, "hit_rate": 0.8821290322580646, "l5_avg": 1.2, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "CE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.7, "hit_rate": 0.8440000000000001, "l5_avg": 1.2, "season_avg": 1.2, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Jose Siri", "team": "LAA", "opp": "PHI", "edge": 0.9, "hit_rate": 0.8029032258064517, "l5_avg": 1.4, "season_avg": 1.1, "sport": "MLB", "data_warning": null, "initials": "JS"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.804, "l5_avg": 1.4, "season_avg": 1.0, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Zach Neto", "team": "LAA", "opp": "PHI", "edge": 1.9, "hit_rate": 0.873, "l5_avg": 2.4, "season_avg": 3.6, "sport": "MLB", "data_warning": null, "initials": "ZN"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 2.7, "hit_rate": 0.8410000000000001, "l5_avg": 3.2, "season_avg": 2.6, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Earned Runs Allowed", "line": 0.5, "direction": "OVER", "player": "Shane Baz", "team": "BAL", "opp": "ATH", "edge": 2.3, "hit_rate": 0.8841290322580646, "l5_avg": 2.8, "season_avg": 2.3, "sport": "MLB", "data_warning": null, "initials": "SB"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Otto Lopez", "team": "MIA", "opp": "WSH", "edge": 1.9, "hit_rate": 0.881, "l5_avg": 2.4, "season_avg": 2.3, "sport": "MLB", "data_warning": null, "initials": "OL"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tommy White", "team": "ATH", "opp": "BAL", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 2.1, "sport": "MLB", "data_warning": null, "initials": "TW"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.3, "hit_rate": 0.802, "l5_avg": 2.8, "season_avg": 2.0, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 1.9, "hit_rate": 0.8420000000000001, "l5_avg": 2.4, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 1.5, "hit_rate": 0.8410000000000001, "l5_avg": 2.0, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 2.1, "hit_rate": 0.8410000000000001, "l5_avg": 2.6, "season_avg": 1.7, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Christian Encarnacion-Strand", "team": "BAL", "opp": "ATH", "edge": 0.7, "hit_rate": 0.8821290322580646, "l5_avg": 1.2, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "CE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Jose Siri", "team": "LAA", "opp": "PHI", "edge": 0.9, "hit_rate": 0.8029032258064517, "l5_avg": 1.4, "season_avg": 1.1, "sport": "MLB", "data_warning": null, "initials": "JS"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.3, "hit_rate": 0.802, "l5_avg": 2.8, "season_avg": 2.0, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 1.9, "hit_rate": 0.8420000000000001, "l5_avg": 2.4, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 1.5, "hit_rate": 0.8410000000000001, "l5_avg": 2.0, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 2.1, "hit_rate": 0.8410000000000001, "l5_avg": 2.6, "season_avg": 1.7, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 0.9, "hit_rate": 0.8440000000000001, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "Christian Encarnacion-Strand", "team": "BAL", "opp": "ATH", "edge": 0.7, "hit_rate": 0.8821290322580646, "l5_avg": 1.2, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "CE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 0.9, "hit_rate": 0.8420000000000001, "l5_avg": 1.4, "season_avg": 1.3, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Total Bases", "line": 0.5, "direction": "OVER", "player": "Lawrence Butler", "team": "ATH", "opp": "BAL", "edge": 1.9, "hit_rate": 0.8420000000000001, "l5_avg": 2.4, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "LB"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Xavier Edwards", "team": "MIA", "opp": "WSH", "edge": 1.5, "hit_rate": 0.8410000000000001, "l5_avg": 2.0, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "XE"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Heriberto Hernández", "team": "MIA", "opp": "WSH", "edge": 2.1, "hit_rate": 0.801, "l5_avg": 2.6, "season_avg": 1.9, "sport": "MLB", "data_warning": null, "initials": "HH"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Tyrone Taylor", "team": "CHC", "opp": "CIN", "edge": 2.1, "hit_rate": 0.8410000000000001, "l5_avg": 2.6, "season_avg": 1.7, "sport": "MLB", "data_warning": null, "initials": "TT"}, {"pick_type": "Goblin", "prop_type": "Hits+Runs+RBIs", "line": 0.5, "direction": "OVER", "player": "Mike Trout", "team": "LAA", "opp": "PHI", "edge": 1.1, "hit_rate": 0.793, "l5_avg": 1.6, "season_avg": 1.5, "sport": "MLB", "data_warning": null, "initials": "MT"}, {"pick_type": "Goblin", "prop_type": "Hitter Strikeouts", "line": 0.5, "direction": "OVER", "player": "A.J. Ewing", "team": "NYM", "opp": "HOU", "edge": 0.9, "hit_rate": 0.845225806451613, "l5_avg": 1.4, "season_avg": 1.4, "sport": "MLB", "data_warning": null, "initials": "AE"}];
 </script>
 
 <script>

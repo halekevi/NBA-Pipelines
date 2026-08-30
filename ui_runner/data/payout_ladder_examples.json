@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-08-25T21:15:13.212053+00:00",
+  "generated_at": "2026-08-30T15:52:58.129169+00:00",
   "examples": [
     {
       "composition": "1S+1G+0D",
       "goblin_delta": 0.5,
       "legs": [
         {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8864516129032258
         },
         {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Chris Bassitt",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.5,
           "pick_type": "Goblin",
           "delta": 0.5,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8841290322580646
         }
       ]
     },
@@ -32,24 +32,24 @@
       "goblin_delta": 1.0,
       "legs": [
         {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8864516129032258
         },
         {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Chris Bassitt",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.5,
           "pick_type": "Goblin",
           "delta": 1.0,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8841290322580646
         }
       ]
     },
@@ -58,24 +58,24 @@
       "goblin_delta": 1.5,
       "legs": [
         {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8864516129032258
         },
         {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Chris Bassitt",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.5,
           "pick_type": "Goblin",
           "delta": 1.5,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8841290322580646
         }
       ]
     },
@@ -84,131 +84,17 @@
       "goblin_delta": 2.0,
       "legs": [
         {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8864516129032258
         },
         {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        }
-      ]
-    },
-    {
-      "composition": "1S+1G+0D",
-      "goblin_delta": 2.5,
-      "legs": [
-        {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        },
-        {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 2.5,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        }
-      ]
-    },
-    {
-      "composition": "1S+1G+0D",
-      "goblin_delta": 3.0,
-      "legs": [
-        {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        },
-        {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 3.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        }
-      ]
-    },
-    {
-      "composition": "1S+0G+1D",
-      "goblin_delta": null,
-      "legs": [
-        {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        },
-        {
-          "player": "Maya Joint",
-          "prop_type": "Total Games",
-          "line": 16.5,
-          "standard_line": 20.5,
-          "pick_type": "Demon",
-          "delta": 4.0,
-          "direction": "OVER",
-          "hit_rate": 1.0
-        }
-      ]
-    },
-    {
-      "composition": "1S+2G+0D",
-      "goblin_delta": 2.0,
-      "legs": [
-        {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
-          "pick_type": "Standard",
-          "delta": 0.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        },
-        {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
-          "pick_type": "Goblin",
-          "delta": 2.0,
-          "direction": "OVER",
-          "hit_rate": 0.7984800000000001
-        },
-        {
-          "player": "Taj Bradley",
+          "player": "Chris Bassitt",
           "prop_type": "Earned Runs Allowed",
           "line": 0.5,
           "standard_line": 2.5,
@@ -220,38 +106,90 @@
       ]
     },
     {
-      "composition": "1S+1G+1D",
-      "goblin_delta": 1.5,
+      "composition": "1S+1G+0D",
+      "goblin_delta": 2.5,
       "legs": [
         {
-          "player": "George Kirby",
-          "prop_type": "Hits Allowed",
-          "line": 3.5,
-          "standard_line": 5.5,
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
           "pick_type": "Standard",
           "delta": 0.0,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8864516129032258
         },
         {
-          "player": "Will Warren",
-          "prop_type": "Hits Allowed",
-          "line": 2.5,
-          "standard_line": 4.5,
+          "player": "Chris Bassitt",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.5,
           "pick_type": "Goblin",
-          "delta": 1.5,
+          "delta": 2.5,
           "direction": "OVER",
-          "hit_rate": 0.7984800000000001
+          "hit_rate": 0.8841290322580646
+        }
+      ]
+    },
+    {
+      "composition": "1S+1G+0D",
+      "goblin_delta": 3.0,
+      "legs": [
+        {
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8864516129032258
         },
         {
-          "player": "Maya Joint",
-          "prop_type": "Total Games",
-          "line": 16.5,
-          "standard_line": 20.5,
-          "pick_type": "Demon",
-          "delta": 4.0,
+          "player": "Chris Bassitt",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.5,
+          "pick_type": "Goblin",
+          "delta": 3.0,
           "direction": "OVER",
-          "hit_rate": 1.0
+          "hit_rate": 0.8841290322580646
+        }
+      ]
+    },
+    {
+      "composition": "1S+2G+0D",
+      "goblin_delta": 2.0,
+      "legs": [
+        {
+          "player": "Jeffrey Springs",
+          "prop_type": "Earned Runs Allowed",
+          "line": 1.5,
+          "standard_line": 3.0,
+          "pick_type": "Standard",
+          "delta": 0.0,
+          "direction": "OVER",
+          "hit_rate": 0.8864516129032258
+        },
+        {
+          "player": "Chris Bassitt",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.5,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8841290322580646
+        },
+        {
+          "player": "Shota Imanaga",
+          "prop_type": "Earned Runs Allowed",
+          "line": 0.5,
+          "standard_line": 2.0,
+          "pick_type": "Goblin",
+          "delta": 2.0,
+          "direction": "OVER",
+          "hit_rate": 0.8033548387096775
         }
       ]
     }

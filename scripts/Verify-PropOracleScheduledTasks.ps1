@@ -22,6 +22,7 @@ $names = @(
     "PropOracle - Grader 3AM",
     "PropOracle - Daily 5AM",
     "PropOracle - Daily 8AM",
+    "PropOracle - Refresh 9AM",
     "PropOracle - Refresh 945AM",
     "PropOracle - Refresh 1030AM",
     "PropOracle - Refresh 1PM",

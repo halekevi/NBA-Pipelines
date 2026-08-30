@@ -34,6 +34,10 @@ if str(_SCRIPT_DIR) not in sys.path:
 
 from _nfl_pipeline_active import require_nfl_pipeline_active_or_exit
 
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from utils.nfl_prop_defense import assign_prop_aware_def_tier, fill_opp_team_from_game
+
 LEGACY_DEFENSE = _NFL_ROOT / "data" / "defense_rankings.csv"
 REFERENCE_DEFENSE = _REPO_ROOT / "data" / "reference" / "nfl_team_defense.csv"
 
@@ -81,6 +85,25 @@ def load_defense_table(path: Path) -> pd.DataFrame:
     raw = pd.read_csv(path, encoding="utf-8-sig")
     df = raw.copy()
 
+    rename: dict[str, str] = {}
+    if "team_abbr" in df.columns and "team" not in df.columns:
+        rename["team_abbr"] = "team"
+    for dest, srcs in (
+        ("pass_def_rank", ("pass_def_rank", "pass_def_rank", "pass_rank")),
+        ("rush_def_rank", ("rush_def_rank", "rush_def_rank", "rush_rank")),
+        ("points_allowed_pg", ("points_allowed_pg", "points_allowed_pg", "pa_pg")),
+        ("fg_def_rank", ("fg_def_rank", "fg_def_rank")),
+        ("kick_pts_def_rank", ("kick_pts_def_rank", "kick_pts_def_rank")),
+    ):
+        if dest in df.columns:
+            continue
+        for src in srcs:
+            if src in df.columns and src != dest:
+                rename[src] = dest
+                break
+    if rename:
+        df = df.rename(columns=rename)
+
     if "team_abbr" in df.columns:
         df["team"] = df["team_abbr"].map(_abbr)
     elif "team" in df.columns:
@@ -88,6 +111,21 @@ def load_defense_table(path: Path) -> pd.DataFrame:
     else:
         raise SystemExit(f"Defense CSV missing team/team_abbr: {path}")
 
+    if "pass_def_rank" not in df.columns:
+        for alt in list(df.columns):
+            if str(alt).lower().replace("_", "") == "passdefrank":
+                df["pass_def_rank"] = df[alt]
+                break
+    if "rush_def_rank" not in df.columns:
+        for alt in list(df.columns):
+            if str(alt).lower().replace("_", "") == "rushdefrank":
+                df["rush_def_rank"] = df[alt]
+                break
+    if "fg_def_rank" not in df.columns:
+        for alt in list(df.columns):
+            if str(alt).lower().replace("_", "") == "fgdefrank":
+                df["fg_def_rank"] = df[alt]
+                break
     if "pass_def_rank" not in df.columns:
         raise SystemExit(f"Defense CSV missing pass_def_rank: {path}")
 
@@ -98,7 +136,15 @@ def load_defense_table(path: Path) -> pd.DataFrame:
         df["points_allowed_pg"] = pd.NA
 
     keep = ["team", "pass_def_rank", "rush_def_rank", "points_allowed_pg"]
-    for opt in ("sacks_rank", "to_rank"):
+    for opt in (
+        "sacks_rank",
+        "to_rank",
+        "fg_def_rank",
+        "kick_pts_def_rank",
+        "opp_fg_made_pg",
+        "opp_fg_pct",
+        "opp_kick_pts_pg",
+    ):
         if opt in df.columns:
             keep.append(opt)
     return df[keep].drop_duplicates(subset=["team"], keep="first")
@@ -178,6 +224,8 @@ def main() -> None:
         print(f"[NFL step3] Wrote empty {out}")
         return
 
+    df = fill_opp_team_from_game(df)
+
     dref = load_defense_table(deff)
     dmap_pass = dref.set_index("team")["pass_def_rank"].to_dict()
     dmap_rush = dref.set_index("team")["rush_def_rank"].to_dict()
@@ -186,6 +234,12 @@ def main() -> None:
         dref.set_index("team")["sacks_rank"].to_dict() if "sacks_rank" in dref.columns else {}
     )
     to_map = dref.set_index("team")["to_rank"].to_dict() if "to_rank" in dref.columns else {}
+    fg_map = dref.set_index("team")["fg_def_rank"].to_dict() if "fg_def_rank" in dref.columns else {}
+    kick_map = (
+        dref.set_index("team")["kick_pts_def_rank"].to_dict()
+        if "kick_pts_def_rank" in dref.columns
+        else {}
+    )
 
     team_col = "team" if "team" in df.columns else None
     opp_col = "opp_team" if "opp_team" in df.columns else ("opponent" if "opponent" in df.columns else None)
@@ -204,6 +258,18 @@ def main() -> None:
         df["opp_sacks_rank"] = o.map(lambda x: sacks_map.get(x, pd.NA))
     if to_map:
         df["opp_to_rank"] = o.map(lambda x: to_map.get(x, pd.NA))
+    if fg_map:
+        df["team_fg_def_rank"] = t.map(lambda x: fg_map.get(x, pd.NA))
+        df["opp_fg_def_rank"] = o.map(lambda x: fg_map.get(x, pd.NA))
+    if kick_map:
+        df["team_kick_pts_def_rank"] = t.map(lambda x: kick_map.get(x, pd.NA))
+        df["opp_kick_pts_def_rank"] = o.map(lambda x: kick_map.get(x, pd.NA))
+
+    df = assign_prop_aware_def_tier(df, n_teams=32)
+    if "opp_def_rank_prop" in df.columns:
+        df["OVERALL_DEF_RANK"] = df["opp_def_rank_prop"]
+    if "def_tier" in df.columns:
+        df["DEF_TIER"] = df["def_tier"]
 
     tf = str(args.team_form or "").strip()
     if tf:
@@ -219,7 +285,7 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
     print(f"[NFL step3] Wrote {out_path} rows={len(df)}")
-    # TODO Phase 2: def_tier from utils.defense_tiers using opp_pass_def_rank / points_allowed_pg_opp
+    # Prop-aware def_tier (pass/rush/rec) is assigned in step7 via utils.nfl_prop_defense.
 
 
 if __name__ == "__main__":

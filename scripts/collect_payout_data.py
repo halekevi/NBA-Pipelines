@@ -404,7 +404,7 @@ def ensure_popular_filter(frame, page):
         return
     clicked = False
     chosen = None
-    for primary in ("Points", "Popular"):
+    for primary in ("Popular", "Total Games", "Points"):
         try:
             frame.get_by_text(primary, exact=True).first.click(timeout=1200)
             clicked = True
@@ -2494,6 +2494,9 @@ DEFAULT_CAPTURE_FIELDS = (
     "power_first_x",
     "min_guarantee",
     "flex_min",
+    "flex_n_correct",
+    "captured_at",
+    "window",
 )
 
 # PrizePicks board league_id for ticket-sport navigation (ticket scrape only).
@@ -2628,8 +2631,32 @@ def load_main_strong_tickets(path: Path, *, only_missing_live: bool = False) -> 
     return slips
 
 
+def _stamp_captured_at(rec: dict) -> str:
+    """ET ISO clock time for this scrape (line/payout movement through the day)."""
+    existing = str(rec.get("captured_at") or "").strip()
+    if existing:
+        stamp = existing
+    else:
+        try:
+            from utils.bet_windows import now_et_iso
+
+            stamp = now_et_iso()
+        except Exception:
+            stamp = datetime.now().isoformat(timespec="seconds")
+        rec["captured_at"] = stamp
+    if not str(rec.get("window") or "").strip():
+        try:
+            from utils.bet_windows import job_window_label
+
+            rec["window"] = job_window_label(stamp, explicit=rec.get("window"))
+        except Exception:
+            rec["window"] = ""
+    return stamp
+
+
 def _project_capture_fields(rec: dict, fields: list[str]) -> dict:
     """Keep identity + requested payout fields; power_min_x listed first when present."""
+    _stamp_captured_at(rec)
     base_keys = (
         "ticket_id",
         "slip_type",
@@ -2640,6 +2667,8 @@ def _project_capture_fields(rec: dict, fields: list[str]) -> dict:
         "status",
         "error",
         "ticket_type_captured",
+        "captured_at",
+        "window",
     )
     out = {k: rec.get(k) for k in base_keys if k in rec}
     if "power_min_x" in fields:
@@ -2821,6 +2850,7 @@ def write_payout_patch_and_apply_to_tickets(
                         "payout_source": "live_cdp",
                         "ticket_id": t.get("ticket_id"),
                         "n_legs": t.get("n_legs") or len(t.get("legs") or []),
+                        "captured_at": pay.get("captured_at"),
                     }
                     tid = str(t.get("ticket_id") or "").strip()
                     if tid and tid not in prior_by_id:
@@ -2861,6 +2891,7 @@ def write_payout_patch_and_apply_to_tickets(
             "ticket_id": rec.get("ticket_id"),
             "n_legs": rec.get("n_legs"),
             "slip_type": rec.get("slip_type"),
+            "captured_at": rec.get("captured_at") or _stamp_captured_at(rec),
         }
         tid = str(rec.get("ticket_id") or "").strip()
         if tid:
@@ -2929,6 +2960,8 @@ def write_payout_patch_and_apply_to_tickets(
                     pay["payout_source"] = "live_cdp"
                     if entry.get("power_first_x") is not None:
                         pay["power_first_x"] = entry["power_first_x"]
+                    if entry.get("captured_at"):
+                        pay["captured_at"] = entry["captured_at"]
                     try:
                         from utils.ticket_ev_tiers import refresh_ticket_ev_from_min_guarantee
 
@@ -3220,6 +3253,50 @@ def capture_tickets_from_board(
     )
 
     want_flex = "flex_min" in fields
+    date_str = (
+        str(date_override or "").strip()[:10]
+        or (slips[0].get("date") if slips else "")
+        or datetime.utcnow().strftime("%Y-%m-%d")
+    )
+    if not str(date_str or "").strip():
+        m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
+        date_str = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
+
+    def _flush_capture_json(*, note: str = "") -> None:
+        """Write whatever is in `captured` so a CDP drop does not lose N-correct rows."""
+        payload = {
+            "date": date_str,
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "cdp_url": cdp_url,
+            "tickets_path": str(tickets_path),
+            "tickets_fingerprint": fp_info.get("fingerprint") or "",
+            "fingerprint_n_slips": int(fp_info.get("n_slips") or 0),
+            "fingerprint_n_missing_live": int(fp_info.get("n_missing_live") or 0),
+            "fields": fields,
+            "primary_field": "power_min_x",
+            "entry_amount": entry_amount,
+            "only_missing_live": bool(only_missing_live),
+            "timed_out": bool(timed_out),
+            "max_runtime_sec": float(max_runtime_sec or 0),
+            "slips": captured,
+            "summary": {
+                "n_total": len(captured),
+                "n_ok": n_ok,
+                "n_partial": n_partial,
+                "n_failed": n_failed,
+                "n_strong": sum(1 for s in captured if s.get("slip_type") == "strong"),
+                "n_main": sum(1 for s in captured if s.get("slip_type") == "main"),
+                "n_skipped_live": int(fp_info.get("n_live") or 0) if only_missing_live else 0,
+                "timed_out": bool(timed_out),
+            },
+        }
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        if note:
+            print(f"[PAYOUT] checkpoint {note} -> {output_path} ok={n_ok} failed={n_failed}")
+
     print(f"[PAYOUT] attaching CDP {cdp_url} ...", flush=True)
     p, browser, context, page = connect_existing_browser(cdp_url)
     print(f"[PAYOUT] CDP attached; page={page.url!r}", flush=True)
@@ -3243,6 +3320,7 @@ def capture_tickets_from_board(
         print("[PAYOUT] board ready — starting slips", flush=True)
 
         for i, slip in enumerate(slips_sorted, 1):
+          try:
             if deadline is not None and time.monotonic() >= deadline:
                 timed_out = True
                 print(
@@ -3289,6 +3367,7 @@ def capture_tickets_from_board(
                 "power_first_x": None,
                 "min_guarantee": None,
                 "flex_min": None,
+                "flex_n_correct": {},
             }
 
             try:
@@ -3481,7 +3560,26 @@ def capture_tickets_from_board(
                             if flex_min is None:
                                 flex_min = flex_slip.get("flex_miss_1")
                             rec["flex_min"] = flex_min
-                            print(f"  [FLEX] min={flex_min}")
+                            pays = flex_slip.get("flex_correct_pays") or []
+                            ladder: dict[str, float] = {}
+                            if isinstance(pays, list):
+                                for item in pays:
+                                    if not isinstance(item, (list, tuple)) or len(item) < 2:
+                                        continue
+                                    try:
+                                        hits = int(item[0])
+                                        fx = float(item[1])
+                                    except (TypeError, ValueError):
+                                        continue
+                                    if hits >= 2 and fx > 0:
+                                        ladder[str(hits)] = fx
+                            rec["flex_n_correct"] = ladder
+                            if ladder:
+                                n_hit = str(int(rec.get("n_legs") or clicked or 0))
+                                rec["flex_all_correct_x"] = ladder.get(n_hit)
+                            print(
+                                f"  [FLEX] min={flex_min} n_correct={ladder}"
+                            )
                     except Exception as fe:
                         print(f"  [FLEX] skip: {fe}")
 
@@ -3517,6 +3615,11 @@ def capture_tickets_from_board(
                     dismiss_modal(frame, page)
                 except Exception:
                     pass
+            _flush_capture_json()
+          except Exception as e:
+            print(f"[PAYOUT] session lost after {len(captured)} slips: {e}", flush=True)
+            _flush_capture_json(note="session-lost")
+            break
     finally:
         try:
             browser.close()
@@ -3527,44 +3630,7 @@ def capture_tickets_from_board(
         except Exception:
             pass
 
-    date_str = (
-        str(date_override or "").strip()[:10]
-        or (slips[0].get("date") if slips else "")
-        or datetime.utcnow().strftime("%Y-%m-%d")
-    )
-    if not str(date_str or "").strip():
-        m = re.search(r"(\d{4}-\d{2}-\d{2})", tickets_path.name)
-        date_str = m.group(1) if m else datetime.utcnow().strftime("%Y-%m-%d")
-    payload = {
-        "date": date_str,
-        "generated_at": datetime.utcnow().isoformat() + "Z",
-        "cdp_url": cdp_url,
-        "tickets_path": str(tickets_path),
-        "tickets_fingerprint": fp_info.get("fingerprint") or "",
-        "fingerprint_n_slips": int(fp_info.get("n_slips") or 0),
-        "fingerprint_n_missing_live": int(fp_info.get("n_missing_live") or 0),
-        "fields": fields,
-        "primary_field": "power_min_x",
-        "entry_amount": entry_amount,
-        "only_missing_live": bool(only_missing_live),
-        "timed_out": bool(timed_out),
-        "max_runtime_sec": float(max_runtime_sec or 0),
-        "slips": captured,
-        "summary": {
-            "n_total": len(captured),
-            "n_ok": n_ok,
-            "n_partial": n_partial,
-            "n_failed": n_failed,
-            "n_strong": sum(1 for s in captured if s.get("slip_type") == "strong"),
-            "n_main": sum(1 for s in captured if s.get("slip_type") == "main"),
-            "n_skipped_live": int(fp_info.get("n_live") or 0) if only_missing_live else 0,
-            "timed_out": bool(timed_out),
-        },
-    }
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    _flush_capture_json(note="final")
     print(f"[PAYOUT] Saved -> {output_path}")
     print(
         f"[PAYOUT] ok={n_ok} partial={n_partial} failed={n_failed} "
@@ -4028,6 +4094,22 @@ def rebuild_payout_rate_cards_deck() -> None:
         print(f"[PAYOUT] rebuilt -> {ROOT / 'data' / 'payout_rate_cards.json'}")
     except subprocess.CalledProcessError as exc:
         print(f"[PAYOUT] WARN: rate-cards rebuild failed: {exc.stderr or exc}")
+    pred = ROOT / "scripts" / "build_predicted_payout_tables.py"
+    if pred.is_file():
+        try:
+            subprocess.run(
+                [sys.executable, str(pred)],
+                cwd=str(ROOT),
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            print(
+                f"[PAYOUT] predicted tables -> "
+                f"{ROOT / 'data' / 'reports' / 'predicted_payout_tables_latest.json'}"
+            )
+        except subprocess.CalledProcessError as exc:
+            print(f"[PAYOUT] WARN: predicted tables rebuild failed: {exc.stderr or exc}")
 
 
 def _composition_label_from_legs(legs: list[dict]) -> str:
@@ -4102,6 +4184,29 @@ def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
         }
     )
     sport_note = ",".join(sports) if sports else "unknown"
+    flex_ladder = rec.get("flex_n_correct") if isinstance(rec.get("flex_n_correct"), dict) else {}
+    flex_all = ""
+    if flex_ladder:
+        try:
+            flex_all = str(flex_ladder.get(str(n_legs)) or rec.get("flex_all_correct_x") or "")
+        except (TypeError, ValueError):
+            flex_all = ""
+    if not flex_all:
+        try:
+            fm = rec.get("flex_min")
+            if fm not in (None, ""):
+                flex_all = str(round(float(fm), 4))
+        except (TypeError, ValueError):
+            flex_all = ""
+    captured_at = _stamp_captured_at(rec)
+    window = str(rec.get("window") or "").strip()
+    if not window:
+        try:
+            from utils.bet_windows import job_window_label
+
+            window = job_window_label(captured_at)
+        except Exception:
+            window = ""
     return {
         "date": date_str,
         "n_legs": str(n_legs),
@@ -4111,10 +4216,15 @@ def _capture_to_ladder_row(rec: dict, date_str: str) -> dict[str, Any] | None:
         "goblin_deltas": list(goblin_deltas),
         "demon_deltas": list(demon_deltas),
         "power_payout_x": str(round(min_x, 4)),
-        "flex_payout_x": "",
+        "flex_payout_x": flex_all,
+        "flex_n_correct": flex_ladder or {},
         "source": "live_cdp",
         "notes": f"ticket_id={tid}; sports={sport_note}; CDP power_min_x Min Guarantee",
         "ticket_id": tid,
+        "captured_at": captured_at,
+        "first_captured_at": captured_at,
+        "last_captured_at": captured_at,
+        "window": window,
     }
 
 
@@ -4177,7 +4287,7 @@ def sync_captures_to_payout_ladder_live(
     date_str: str,
     output_path: Path | None = None,
     tickets_path: Path | None = None,
-    keep_same_date: bool = False,
+    keep_same_date: bool = True,
     allow_tipped: bool = False,
 ) -> dict[str, Any]:
     """
@@ -4185,10 +4295,11 @@ def sync_captures_to_payout_ladder_live(
 
     Merged at read time with payout_ladder_log.csv for /payout/ladder table.
 
-    keep_same_date=False (default): drop prior rows for date_str then write this
-    capture batch (full ticket scrape).
-    keep_same_date=True: keep prior same-date rows and upsert by dedupe key
-    (ladder validation merge).
+    keep_same_date=True (default): keep prior same-date rows and upsert by
+    date|leg-sig|payout. Same lines+payout refresh last_captured_at; a line
+    or N-correct move writes a new row so you can review movement through
+    1AM / 8AM / 9AM / 9:45 / 10:30 / 1PM / 4:30.
+    keep_same_date=False: drop prior rows for date_str then write this batch.
 
     By default, slips with any tipped/in-progress leg (parseable start_time <= now)
     are skipped — Goblin floors shift post-tip and must not pollute the rate card.
@@ -4323,7 +4434,13 @@ def sync_captures_to_payout_ladder_live(
         min_x = row.get("power_payout_x") or ""
         key = f"{date_str}|{sig}|{min_x}"
         row["_dedupe_key"] = key
-        if key not in rows_by_id:
+        old = rows_by_id.get(key)
+        if old:
+            row["first_captured_at"] = (
+                old.get("first_captured_at") or old.get("captured_at") or row.get("captured_at")
+            )
+            row["last_captured_at"] = row.get("captured_at") or old.get("last_captured_at")
+        else:
             n_new += 1
         rows_by_id[key] = row
     def _sort_key(r: dict) -> tuple:
@@ -4348,6 +4465,15 @@ def sync_captures_to_payout_ladder_live(
         f"(rows={len(out['rows'])} new={n_new} with_goblin_delta={n_with_delta} "
         f"keep_same_date={keep_same_date})"
     )
+    try:
+        from utils.bet_windows import append_payout_scrape_log, rebuild_bet_windows
+
+        n_log = append_payout_scrape_log(date_str, enriched_captured)
+        rebuild_bet_windows(date_str)
+        if n_log:
+            print(f"[PAYOUT] scrape log +{n_log} -> data/reports/payout_scrape_log_{date_str}.jsonl")
+    except Exception as e:
+        print(f"[PAYOUT] WARN: bet-windows log skipped: {e}")
     return out
 
 

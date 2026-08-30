@@ -19,10 +19,15 @@ from pathlib import Path
 import pandas as pd
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
+_NFL_ROOT = _SCRIPT_DIR.parent
+_REPO_ROOT = _SCRIPT_DIR.resolve().parents[2]
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from _nfl_pipeline_active import require_nfl_pipeline_active_or_exit
+from utils.nfl_prop_defense import fill_opp_team_from_game
 
 PASSING_PROPS = frozenset(
     {
@@ -107,6 +112,22 @@ def main() -> None:
         print(f"[NFL step2] Wrote empty {out}")
         return
 
+    # NFLP (44) stays; NFLSZN season-long is not a game board.
+    lid = df["league_id"].astype(str) if "league_id" in df.columns else pd.Series("", index=df.index)
+    lg = df["league"].astype(str).str.upper() if "league" in df.columns else pd.Series("", index=df.index)
+    szn = lid.eq("163") | lg.eq("NFLSZN")
+    n_szn = int(szn.sum()) if len(df) else 0
+    if n_szn:
+        df = df.loc[~szn].reset_index(drop=True)
+        print(f"[NFL step2] Dropped {n_szn} NFLSZN rows (NFL + NFLP game boards only)")
+
+    if df.empty:
+        out = Path(args.output)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(out, index=False, encoding="utf-8-sig")
+        print(f"[NFL step2] Wrote empty {out} after dropping NFLSZN")
+        return
+
     prop_col = "prop_type" if "prop_type" in df.columns else ""
     if not prop_col:
         print("[NFL step2] prop_type column missing")
@@ -120,6 +141,7 @@ def main() -> None:
         _position_group_from_row(p, str(pos_series.iloc[i]))
         for i, p in enumerate(df["prop_type_normalized"])
     ]
+    df = fill_opp_team_from_game(df)
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)

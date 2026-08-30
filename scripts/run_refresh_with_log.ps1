@@ -1,14 +1,10 @@
 #requires -Version 5.1
 <#
   Line-move refresh (8 AM primary lock, 9:00, 9:45, 10:30, 1 PM, 4:30 PM).
-  - log_prop_snapshot PRE/POST captures added/removed props vs prior state
-  - run_nba_late_fetch -NoOverwrite appends step1 CSV rows and backs up prior
-    combined slate / ticket_eval before rerun so line movement is visible
-  - After rebuild: Force CDP payout scrape, rebuild Goblin-70 + patch mixer legs
-    from this fetch, then Publish-LiveSite.ps1 so Railway / GitHub raw tickets
-    match the new lines (not the 1AM board).
-  First full multi-sport fetch of the day is PropOracle - Daily 1AM (run_daily_1am.ps1).
-  Refresh cadence: 8 / 9 / 9:45 / 10:30 / 1 / 4:30.
+  Every window: fetch + line timestamps + live publish.
+  Payout Force timestamps only when lines moved vs the previous/initial stamp.
+  Wait for refresh.lock instead of skipping (9AM/10:30 must still stamp + publish).
+  Payout scrape runs AFTER publish and lock release so the next window can fetch.
 #>
 param(
     [string]$RunLabel = "945AM"
@@ -76,7 +72,15 @@ function Test-TodaySlateNeedsCatchup {
     }
 }
 
-if (Test-Path -LiteralPath $LockFile) {
+$LogsDir = Join-Path $Root "logs"
+if (-not (Test-Path -LiteralPath $LogsDir)) {
+    New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+}
+$RefreshLog = Join-Path $LogsDir ("task_refresh_{0}_{1:yyyy-MM-dd_HHmmss}.log" -f $RunLabel, (Get-Date))
+try { Start-Transcript -Path $RefreshLog -Append | Out-Null } catch { }
+
+function Get-RefreshLockInfo {
+    if (-not (Test-Path -LiteralPath $LockFile)) { return $null }
     $lockAge = (Get-Date) - (Get-Item -LiteralPath $LockFile).LastWriteTime
     $lockContent = (Get-Content -LiteralPath $LockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
     if (-not $lockContent) { $lockContent = "<unknown owner>" }
@@ -86,37 +90,94 @@ if (Test-Path -LiteralPath $LockFile) {
     if ($lockPid) {
         $lockPidAlive = $null -ne (Get-Process -Id $lockPid -ErrorAction SilentlyContinue)
     }
+    return @{
+        Content = $lockContent
+        Pid = $lockPid
+        Alive = $lockPidAlive
+        AgeMin = [int]$lockAge.TotalMinutes
+        Stale = (($lockPid -and -not $lockPidAlive) -or ($lockAge.TotalMinutes -ge $LockTTLMinutes -and -not $lockPidAlive))
+    }
+}
 
-    $staleByAge = ($lockAge.TotalMinutes -ge $LockTTLMinutes)
-    $staleByDeadPid = ($lockPid -and -not $lockPidAlive)
-    # Never steal a live owner — 8AM often runs past 90 min. TTL only applies when PID is dead/unknown.
-    if ($lockPidAlive) {
-        $needsCatchup = Test-TodaySlateNeedsCatchup
-        Write-Host "[REFRESH $RunLabel] SKIP — another refresh is running ($lockContent)" -ForegroundColor Yellow
-        Write-Host "[REFRESH $RunLabel] Lock age: $([int]$lockAge.TotalMinutes) min (TTL: $LockTTLMinutes min, live PID kept)" -ForegroundColor Yellow
-        if ($needsCatchup) {
-            # Non-zero so Task Scheduler LastResult is not a false success when the day is still empty.
-            Write-Host "[REFRESH $RunLabel] Today's slate still incomplete — exit 2 (not a soft success)" -ForegroundColor Yellow
-            exit 2
+# Wait for a live owner instead of skipping the window (9AM/10:30 must still stamp).
+$LockWaitMinutes = 50
+$waitDeadline = (Get-Date).AddMinutes($LockWaitMinutes)
+while ($true) {
+    $info = Get-RefreshLockInfo
+    if (-not $info) { break }
+    if ($info.Alive) {
+        if ((Get-Date) -ge $waitDeadline) {
+            Write-Host "[REFRESH $RunLabel] WAIT TIMEOUT — still running ($($info.Content), age $($info.AgeMin) min)" -ForegroundColor Yellow
+            $needsCatchup = Test-TodaySlateNeedsCatchup
+            $stampPy = Join-Path $Root "scripts\stamp_fetch_window.py"
+            if (Test-Path -LiteralPath $stampPy) {
+                & py -3.14 $stampPy --write-stamp --window $RunLabel
+            }
+            $publish = Join-Path $Root "scripts\Publish-LiveSite.ps1"
+            $todayEt = (Get-Date).ToString("yyyy-MM-dd")
+            try {
+                $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+                $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
+            } catch { }
+            if (Test-Path -LiteralPath $publish) {
+                Write-Host "[REFRESH $RunLabel] Publishing current tickets (fetch blocked)..." -ForegroundColor Yellow
+                & pwsh -NoProfile -File $publish -RepoRoot $Root -CommitMessage "chore: live tickets/slate $todayEt $RunLabel (blocked)"
+            }
+            try { Stop-Transcript | Out-Null } catch { }
+            if ($needsCatchup) { exit 2 }
+            exit 0
         }
-        exit 0
+        Write-Host "[REFRESH $RunLabel] waiting for lock ($($info.Content), age $($info.AgeMin) min)..." -ForegroundColor DarkGray
+        Start-Sleep -Seconds 20
+        continue
     }
-    elseif ($staleByAge -or $staleByDeadPid) {
-        $why = if ($staleByDeadPid) { "owner PID $lockPid not running" } else { "$([int]$lockAge.TotalMinutes) min old (TTL $LockTTLMinutes)" }
-        Write-Host "[REFRESH $RunLabel] Stale lock detected ($why) — clearing" -ForegroundColor Yellow
-        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
-    }
-    else {
-        Write-Host "[REFRESH $RunLabel] Orphan lock without live PID — clearing" -ForegroundColor Yellow
-        Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
-    }
+    Write-Host "[REFRESH $RunLabel] Clearing dead/stale lock ($($info.Content))" -ForegroundColor Yellow
+    Remove-Item -LiteralPath $LockFile -Force -ErrorAction SilentlyContinue
+    break
 }
 
 $lockContent = "$RunLabel | PID $PID | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Set-Content -LiteralPath $LockFile -Value $lockContent
 Write-Host "[REFRESH $RunLabel] Lock acquired: $lockContent" -ForegroundColor DarkGray
+if (-not "$($env:PROPORACLE_BET_WINDOW)".Trim()) {
+    $env:PROPORACLE_BET_WINDOW = $RunLabel
+}
+Write-Host "[REFRESH $RunLabel] Bet window $($env:PROPORACLE_BET_WINDOW) (line stamps + live publish; Force payout if lines moved)" -ForegroundColor DarkGray
+
+function Publish-RefreshWindow {
+    param([string]$Date, [string]$Label, [string]$Suffix = "")
+    $publish = Join-Path $Root "scripts\Publish-LiveSite.ps1"
+    if (-not (Test-Path -LiteralPath $publish)) {
+        $hit = Get-ChildItem -LiteralPath (Join-Path $Root "scripts") -Filter "Publish*Live*.ps1" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($hit) { $publish = $hit.FullName }
+    }
+    if (-not (Test-Path -LiteralPath $publish)) {
+        Write-Host "[REFRESH $Label] WARN: Publish-LiveSite.ps1 missing — site may stay on prior board" -ForegroundColor Yellow
+        return
+    }
+    $msg = "chore: live tickets/slate $Date $Label"
+    if ($Suffix) { $msg = "$msg $Suffix" }
+    Write-Host "[REFRESH $Label] Publishing live site JSON to origin/main..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File $publish -RepoRoot $Root -CommitMessage $msg
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[REFRESH $Label] LIVE SITE PUBLISH FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+    }
+}
 
 $scriptExit = 0
+# After 20:00 ET the fetch targets tomorrow's slate (same rule as late_fetch).
+$todayEt = (Get-Date).ToString("yyyy-MM-dd")
+try {
+    $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+    $etNow = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz)
+    if ($etNow.Hour -ge 20) {
+        $todayEt = $etNow.Date.AddDays(1).ToString("yyyy-MM-dd")
+    }
+    else {
+        $todayEt = $etNow.ToString("yyyy-MM-dd")
+    }
+} catch { }
+
 try {
     Set-Location $Root
     Write-Host "[REFRESH $RunLabel] Starting $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
@@ -126,54 +187,50 @@ try {
         Write-Host "[REFRESH $RunLabel] PRE snapshot logging failed (continuing)" -ForegroundColor Yellow
     }
 
-    & pwsh -NoProfile -File $LateFetch -NoOverwrite -RunLabel $RunLabel
-    $refreshExit = $LASTEXITCODE
+    $loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+    if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+    $childLog = Join-Path $LogsDir ("late_fetch_child_{0}_{1:yyyy-MM-dd_HHmmss}.log" -f $RunLabel, (Get-Date))
+    $lateArgs = @("-NoOverwrite", "-RunLabel", $RunLabel, "-SkipPayout")
+    if (Test-Path -LiteralPath $loggedHelper) {
+        . $loggedHelper
+        $refreshExit = Invoke-LoggedPwsh -File $LateFetch -ArgumentList $lateArgs -LogPath $childLog -WorkingDirectory $Root
+    } else {
+        & pwsh -NoProfile -File $LateFetch @lateArgs
+        $refreshExit = $LASTEXITCODE
+    }
 
     & pwsh -NoProfile -File $Snapshot -Label "$RunLabel POST" -CompareToState -WriteState
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[REFRESH $RunLabel] POST snapshot logging failed" -ForegroundColor Yellow
     }
 
+    $stampPy = Join-Path $Root "scripts\stamp_fetch_window.py"
+    if (Test-Path -LiteralPath $stampPy) {
+        $stampArgs = @("-3.14", $stampPy, "--date", $todayEt, "--window", $RunLabel, "--write-stamp")
+        if ($refreshExit -ne 0) { $stampArgs += "--restamp-csvs" }
+        & py @stampArgs
+    }
+
     if ($refreshExit -ne 0) {
-        Write-Host "[REFRESH $RunLabel] Refresh failed (exit $refreshExit)" -ForegroundColor Red
+        Write-Host "[REFRESH $RunLabel] Refresh failed (exit $refreshExit) — still publishing this window" -ForegroundColor Red
         $scriptExit = $refreshExit
     }
     else {
-        Write-Host "[REFRESH $RunLabel] Complete" -ForegroundColor Green
-        $todayEt = (Get-Date).ToString("yyyy-MM-dd")
-        try {
-            $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
-            $todayEt = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd")
-        } catch { }
-        $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
-        if (Test-Path -LiteralPath $assertFresh) {
-            $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
-            Write-Host "[REFRESH $RunLabel] Asserting active sports FRESH..." -ForegroundColor Cyan
-            & pwsh -NoProfile -File $assertFresh -RepoRoot $Root -Today $todayEt -JsonOut $freshJson
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "[REFRESH $RunLabel] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
-                $scriptExit = $LASTEXITCODE
-            }
-        }
-        # Pipeline push happens before CDP payout scrape. Always publish after
-        # late_fetch so Railway / GitHub raw tickets match this refresh.
-        $publish = Join-Path $Root "scripts\Publish-LiveSite.ps1"
-        if (-not (Test-Path -LiteralPath $publish)) {
-            $hit = Get-ChildItem -LiteralPath (Join-Path $Root "scripts") -Filter "Publish*Live*.ps1" -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($hit) { $publish = $hit.FullName }
-        }
-        if (Test-Path -LiteralPath $publish) {
-            Write-Host "[REFRESH $RunLabel] Publishing live site JSON to origin/main..." -ForegroundColor Cyan
-            & pwsh -NoProfile -File $publish -RepoRoot $Root -CommitMessage "chore: live tickets/slate $todayEt $RunLabel"
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "[REFRESH $RunLabel] LIVE SITE PUBLISH FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
-                if ($scriptExit -eq 0) { $scriptExit = $LASTEXITCODE }
-            }
-        }
-        else {
-            Write-Host "[REFRESH $RunLabel] WARN: Publish-LiveSite.ps1 missing — site may stay on prior board" -ForegroundColor Yellow
+        Write-Host "[REFRESH $RunLabel] Fetch complete" -ForegroundColor Green
+    }
+
+    $assertFresh = Join-Path $Root "scripts\Assert-ActiveSportsFresh.ps1"
+    if (Test-Path -LiteralPath $assertFresh) {
+        $freshJson = Join-Path $Root "logs\LAST_ACTIVE_SPORTS_FRESH.json"
+        Write-Host "[REFRESH $RunLabel] Asserting active sports FRESH..." -ForegroundColor Cyan
+        & pwsh -NoProfile -File $assertFresh -RepoRoot $Root -Today $todayEt -JsonOut $freshJson
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "[REFRESH $RunLabel] ACTIVE SPORTS FRESHNESS GATE FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+            if ($scriptExit -eq 0) { $scriptExit = $LASTEXITCODE }
         }
     }
+
+    Publish-RefreshWindow -Date $todayEt -Label $RunLabel
 }
 finally {
     if (Test-Path -LiteralPath $LockFile) {
@@ -185,4 +242,44 @@ finally {
     }
 }
 
+$forcePayout = $true
+$deltaPath = Join-Path $Root "data\cache\last_line_window.json"
+if (Test-Path -LiteralPath $deltaPath) {
+    try {
+        $delta = Get-Content -LiteralPath $deltaPath -Raw | ConvertFrom-Json
+        $forcePayout = [bool]$delta.force_payout
+        Write-Host ("[REFRESH $RunLabel] line stamp window={0} moved_this={1} from_initial={2} force_payout={3}" -f `
+            $delta.window, $delta.n_moved_this_window, $delta.n_moved_from_initial, $delta.force_payout) -ForegroundColor DarkGray
+    } catch { }
+}
+if ($forcePayout) {
+    $livePayScript = Join-Path $Root "scripts\run_live_payout_capture.ps1"
+    if (Test-Path -LiteralPath $livePayScript) {
+        Write-Host "[REFRESH $RunLabel] Lines moved vs previous/initial stamp — Force payout scrape" -ForegroundColor Cyan
+        $dualTickets = Join-Path $Root "ui_runner\templates\tickets_latest.json"
+        try {
+            $liveSrc = Get-Content -LiteralPath $livePayScript -Raw -ErrorAction SilentlyContinue
+            $payArgs = @(
+                "-Date", $todayEt, "-Root", $Root, "-TicketsPath", $dualTickets,
+                "-RebuildRateCard", "-FillMissingTickets"
+            )
+            if ("$liveSrc" -match '\$Window') { $payArgs += @("-Window", $RunLabel) }
+            if ("$liveSrc" -match 'RescrapeMode') {
+                $payArgs += @("-RescrapeMode", "Auto")
+            } else {
+                $payArgs += "-Force"
+            }
+            & pwsh -NoProfile -File $livePayScript @payArgs
+            Write-Host "[REFRESH $RunLabel] Payout scrape exit $LASTEXITCODE" -ForegroundColor DarkGray
+        } catch {
+            Write-Host "[REFRESH $RunLabel] WARN: payout scrape failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+        Publish-RefreshWindow -Date $todayEt -Label $RunLabel -Suffix "payout"
+    }
+}
+else {
+    Write-Host "[REFRESH $RunLabel] No line changes vs previous stamp — skip Force payout (line timestamps + publish already done)" -ForegroundColor DarkGray
+}
+
+try { Stop-Transcript | Out-Null } catch { }
 exit $scriptExit

@@ -26,10 +26,14 @@ import pandas as pd
 import requests
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _SCRIPT_DIR.resolve().parents[2]
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from _nfl_pipeline_active import require_nfl_pipeline_active_or_exit
+from utils.nfl_prop_defense import last_completed_nfl_season
 
 HEADERS = {
     "User-Agent": (
@@ -166,25 +170,31 @@ def main() -> None:
     require_nfl_pipeline_active_or_exit()
 
     ap = argparse.ArgumentParser(description="Fetch each NFL team's last N completed regular-season games (ESPN).")
-    ap.add_argument("--season", type=int, required=True, help="League season year (e.g. 2025 for 2025 NFL season).")
+    ap.add_argument(
+        "--season",
+        type=int,
+        default=0,
+        help="League season year (0 = last completed regular season).",
+    )
     ap.add_argument("--n-games", type=int, default=5, dest="n_games", help="Rolling window size (default 5).")
     ap.add_argument("--max-week", type=int, default=18, help="Regular season weeks to scan (default 18).")
     ap.add_argument("--output", default="data/nfl_team_last5.csv")
     ap.add_argument("--timeout", type=float, default=45.0)
     ap.add_argument("--sleep", type=float, default=0.25, help="Delay between week requests.")
     args = ap.parse_args()
+    season = int(args.season) if int(args.season) else last_completed_nfl_season()
 
     out_path = Path(args.output)
     if not out_path.is_absolute():
         out_path = Path(__file__).resolve().parents[1] / out_path
 
     print(
-        f"[NFL step4b] Fetching {args.max_week} regular-season weeks for season={args.season} "
+        f"[NFL step4b] Fetching {args.max_week} regular-season weeks for season={season} "
         f"(last {args.n_games} games per team)..."
     )
     try:
         rows = fetch_regular_season_games(
-            int(args.season), max_week=int(args.max_week), timeout=float(args.timeout), sleep_s=float(args.sleep)
+            int(season), max_week=int(args.max_week), timeout=float(args.timeout), sleep_s=float(args.sleep)
         )
     except Exception as e:
         if out_path.is_file():
@@ -208,7 +218,7 @@ def main() -> None:
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame.from_records(records).to_csv(out_path, index=False, encoding="utf-8-sig")
-    print(f"[NFL step4b] Wrote {out_path} rows={len(records)} (season={args.season}, n={args.n_games})")
+    print(f"[NFL step4b] Wrote {out_path} rows={len(records)} (season={season}, n={args.n_games})")
 
 
 if __name__ == "__main__":

@@ -76,6 +76,8 @@ def test_scrape_beats_slip_pin(tmp_path: Path):
                         "power_payout_x": "2.0",
                         "source": "live_cdp",
                         "ticket_id": "scrape",
+                        "captured_at": "2026-08-27T16:32:00-04:00",
+                        "last_captured_at": "2026-08-27T16:32:00-04:00",
                     }
                 ]
             }
@@ -90,6 +92,7 @@ def test_scrape_beats_slip_pin(tmp_path: Path):
     got = resolve_n_correct(legs, "Power", "goblin", date="2026-08-27", repo=tmp_path)
     assert got["n_correct"][3] == 2.0
     assert got["payout_source"] == "n_correct_live"
+    assert got["captured_at"] == "2026-08-27T16:32:00-04:00"
 
 
 def test_same_day_cdp_matches_delta(tmp_path: Path):

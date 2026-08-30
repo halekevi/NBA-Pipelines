@@ -413,6 +413,13 @@ def try_archive_lines(
             print(f"  [line_events] {str(sport).upper()} {bits}")
     except Exception as exc:
         print(f"  [WARN] line_history archive skipped: {exc}")
+        return
+    try:
+        from utils.bet_windows import rebuild_bet_windows
+
+        rebuild_bet_windows()
+    except Exception as exc:
+        print(f"  [WARN] bet-windows rebuild skipped: {exc}")
 
 
 def backfill_events(*, since: str = "", sports: list[str] | None = None) -> None:

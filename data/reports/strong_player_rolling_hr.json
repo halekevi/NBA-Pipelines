@@ -1,112 +1,217 @@
 {
   "Aliyah Boston": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 2
   },
   "Awa Fam": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 5
+  },
+  "Brandon Young": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Bryan Woo": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Chris Sale": {
+    "hr": 1.0,
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Christian Scott": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Connor Prielipp": {
+    "hr": 0.3333,
+    "last_updated": "2026-08-30",
+    "n": 3
   },
   "Courtney Vandersloot": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 2
   },
   "Dearica Hamby": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 2
   },
   "Dominique Malonga": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 4
   },
   "Drew Rasmussen": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 1
   },
   "Erica Wheeler": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 12
+  },
+  "Eury P\u00e9rez": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 3
   },
   "Flau'jae Johnson": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 10
   },
   "Gabby Williams": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Gabriel Hughes": {
+    "hr": 1.0,
+    "last_updated": "2026-08-30",
+    "n": 3
+  },
+  "George Kirby": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Gerrit Cole": {
+    "hr": 0.3333,
+    "last_updated": "2026-08-30",
+    "n": 3
+  },
+  "Jacob Misiorowski": {
+    "hr": 1.0,
+    "last_updated": "2026-08-30",
     "n": 2
   },
   "Jacob deGrom": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 1
   },
   "Jade Melbourne": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 7
+  },
+  "Jake Irvin": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
   },
   "Jos\u00e9 Soriano": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 1
   },
   "Kelsey Mitchell": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 10
   },
   "Kiah Stokes": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 4
   },
   "Kyle Leahy": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 1
+  },
+  "Landen Roupp": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 3
   },
   "Lexie Hull": {
     "hr": 0.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 8
   },
   "Monique Billings": {
     "hr": 0.8333,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 12
   },
   "Natasha Howard": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 5
   },
   "Natisha Hiedeman": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 10
   },
   "Nneka Ogwumike": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 8
+  },
+  "Noah Cameron": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 3
+  },
+  "Nolan McLean": {
+    "hr": 1.0,
+    "last_updated": "2026-08-30",
+    "n": 2
   },
   "Rae Burrell": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 4
+  },
+  "Sandy Alcantara": {
+    "hr": 1.0,
+    "last_updated": "2026-08-30",
+    "n": 3
+  },
+  "Sean Manaea": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 3
+  },
+  "Shane Baz": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
+  },
+  "Spencer Arrighetti": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 3
+  },
+  "Taj Bradley": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 1
+  },
+  "Trevor Rogers": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 3
   },
   "Veronica Burton": {
     "hr": 1.0,
-    "last_updated": "2026-08-25",
+    "last_updated": "2026-08-30",
     "n": 9
+  },
+  "Will Warren": {
+    "hr": 0.0,
+    "last_updated": "2026-08-30",
+    "n": 2
   }
 }

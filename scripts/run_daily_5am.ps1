@@ -125,8 +125,18 @@ else {
     Write-Host "[5AM DAILY] No A1 stamp — historical actuals will run in daily" -ForegroundColor Yellow
 }
 Write-Host ("[5AM DAILY] Running run_daily.ps1 {0}" -f ($dailyArgs -join " ")) -ForegroundColor Cyan
-& pwsh -NoProfile -File $Daily @dailyArgs
-$dailyExit = $LASTEXITCODE
+$env:PROPORACLE_BET_WINDOW = "5AM"
+$loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+$childLog = Join-Path $LogsDir ("run_daily_child_5am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+if (Test-Path -LiteralPath $loggedHelper) {
+    . $loggedHelper
+    $dailyExit = Invoke-LoggedPwsh -File $Daily -ArgumentList $dailyArgs -LogPath $childLog -WorkingDirectory $Root
+} else {
+    Write-Host "[5AM DAILY] WARN: Invoke-LoggedPwsh.ps1 missing — child output may not be logged" -ForegroundColor Yellow
+    & pwsh -NoProfile -File $Daily @dailyArgs
+    $dailyExit = $LASTEXITCODE
+}
 
 Write-Host "[5AM DAILY] Logging fetched prop snapshot..." -ForegroundColor Cyan
 & pwsh -NoProfile -File $Snapshot -Label "5AM DAILY POST" -CompareToState -WriteState

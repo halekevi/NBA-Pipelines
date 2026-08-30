@@ -93,12 +93,22 @@ if ($pullPrepExit -ne 0) {
     Write-Host "[1AM DAILY] Pull prep warned (exit $pullPrepExit); continuing with local tree." -ForegroundColor Yellow
 }
 
-$Today = (Get-Date).ToString("yyyy-MM-dd")
+    $Today = (Get-Date).ToString("yyyy-MM-dd")
 # 3AM Grader owns A1 + yesterday's grades so this job stays on fetch + payout CDP.
 $dailyArgs = @("-SkipGrader", "-SkipHistoricalActuals")
+$env:PROPORACLE_BET_WINDOW = "1AM"
 Write-Host ("[1AM DAILY] Running run_daily.ps1 {0} (all-sport fetch + live payout CDP; grader is 3AM)" -f ($dailyArgs -join " ")) -ForegroundColor Cyan
-& pwsh -NoProfile -File $Daily @dailyArgs
-$dailyExit = $LASTEXITCODE
+$loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+$childLog = Join-Path $LogsDir ("run_daily_child_1am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+if (Test-Path -LiteralPath $loggedHelper) {
+    . $loggedHelper
+    $dailyExit = Invoke-LoggedPwsh -File $Daily -ArgumentList $dailyArgs -LogPath $childLog -WorkingDirectory $Root
+} else {
+    Write-Host "[1AM DAILY] WARN: Invoke-LoggedPwsh.ps1 missing — child output may not be logged" -ForegroundColor Yellow
+    & pwsh -NoProfile -File $Daily @dailyArgs
+    $dailyExit = $LASTEXITCODE
+}
 
 Write-Host "[1AM DAILY] Logging fetched prop snapshot..." -ForegroundColor Cyan
 & pwsh -NoProfile -File $Snapshot -Label "1AM DAILY POST" -CompareToState -WriteState
@@ -118,8 +128,28 @@ else {
     Write-Host "[1AM DAILY] WARN: Write-DailyRunHealth.ps1 missing" -ForegroundColor Yellow
 }
 
+$stampPy = Join-Path $Root "scripts\stamp_fetch_window.py"
+if (Test-Path -LiteralPath $stampPy) {
+    $stampArgs = @("-3.14", $stampPy, "--date", $Today, "--window", "1AM", "--write-stamp")
+    $todayOut = Join-Path $Root "outputs\$Today"
+    if ($dailyExit -ne 0 -and (Test-Path -LiteralPath $todayOut)) { $stampArgs += "--restamp-csvs" }
+    & py @stampArgs
+}
+
+$publish = Join-Path $Root "scripts\Publish-LiveSite.ps1"
+if (Test-Path -LiteralPath $publish) {
+    Write-Host "[1AM DAILY] Publishing live site JSON to origin/main..." -ForegroundColor Cyan
+    & pwsh -NoProfile -File $publish -RepoRoot $Root -CommitMessage "chore: live tickets/slate $Today 1AM"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[1AM DAILY] LIVE SITE PUBLISH FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+    }
+}
+else {
+    Write-Host "[1AM DAILY] WARN: Publish-LiveSite.ps1 missing" -ForegroundColor Yellow
+}
+
 if ($dailyExit -ne 0) {
-    Write-Host "[1AM DAILY] run_daily failed (exit $dailyExit)" -ForegroundColor Red
+    Write-Host "[1AM DAILY] run_daily failed (exit $dailyExit) — window stamp + publish still attempted" -ForegroundColor Red
     try { Stop-Transcript | Out-Null } catch { }
     exit $dailyExit
 }

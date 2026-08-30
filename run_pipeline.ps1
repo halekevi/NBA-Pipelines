@@ -3313,17 +3313,25 @@ $TennisJob = Start-Job -ScriptBlock {
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
     . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
-        param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
+        param([string]$Label,[string]$Dir,[string]$Script,[string[]]$ArgList = @())
         Write-Output "[TENNIS] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @($ArgList | Where-Object { $_ -ne $null -and "$_" -ne "" })
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "[TENNIS] FAILED: $Label (exit $exit)"; return $false }
-            Write-Output "[TENNIS] OK: $Label"; return $true
-        } catch { Write-Output "[TENNIS] EXCEPTION: $_"; return $false
+            $script:LastTennisStepOk = ($exit -eq 0)
+            if (-not $script:LastTennisStepOk) { Write-Output "[TENNIS] FAILED: $Label (exit $exit)" }
+            else { Write-Output "[TENNIS] OK: $Label" }
+        } catch {
+            Write-Output "[TENNIS] EXCEPTION: $_"
+            $script:LastTennisStepOk = $false
         } finally { Pop-Location }
     }
     function Invoke-Step7b-Job {
@@ -3349,32 +3357,46 @@ $TennisJob = Start-Job -ScriptBlock {
     Write-Output "[TENNIS] Step8 filters to ET date $TennisDate; step1 loads full PrizePicks tennis board (may include several calendar days)"
     $ok = $true
     if (-not $SkipFetch) {
-        if ($ok) {
-            $ok = Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "Tennis" -WorkDir $TennisDir `
-                -ScriptRel ".\scripts\step1_fetch_prizepicks_tennis.py" `
-                -OutputPath "$TennisRunOutDir\step1_tennis_props.csv" `
-                -SkipDateHealth `
-                -HttpArgs @("--league_id", "5", "--replace", "--output", "$TennisRunOutDir\step1_tennis_props.csv")
+        $cascadeOut = @(Invoke-PrizePicksStep1Cascade -AsJobOutput -SportLabel "Tennis" -WorkDir $TennisDir `
+            -ScriptRel ".\scripts\step1_fetch_prizepicks_tennis.py" `
+            -OutputPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv") `
+            -SkipDateHealth `
+            -HttpArgs @("--league_id", "5", "--replace", "--output", (Join-Path $TennisRunOutDir "step1_tennis_props.csv")))
+        foreach ($line in $cascadeOut) {
+            if ($line -is [bool]) { continue }
+            Write-Output $line
         }
+        $cascadeBool = @($cascadeOut | Where-Object { $_ -is [bool] })
+        $ok = if ($cascadeBool.Count) { [bool]$cascadeBool[-1] } else { $true }
     } else { Write-Output "[Tennis] Skipping step1 fetch" }
-    $tennisStep2Args = "--input `"$TennisRunOutDir\step1_tennis_props.csv`" --output `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --writeback-step1"
-    if ($SkipFetch) { $tennisStep2Args += " --skip-pp-backfill" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" $tennisStep2Args }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" "--input `"$TennisRunOutDir\step2_tennis_picktypes.csv`" --output `"$TennisRunOutDir\step3_tennis_with_defense.csv`"" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" "--input `"$TennisRunOutDir\step3_tennis_with_defense.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --history-source both --history-n 20 --date $TennisDate" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 4b - Surface context" $TennisDir ".\scripts\step4b_attach_surface_context.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --date $TennisDate" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 5 - Hit Rates" $TennisDir ".\scripts\step5_compute_hitrates_tennis.py" "--input `"$TennisRunOutDir\step4_tennis_with_stats.csv`" --output `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --compute10" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 6 - Context" $TennisDir ".\scripts\step6_add_context_tennis.py" "--input `"$TennisRunOutDir\step5_tennis_hit_rates.csv`" --output `"$TennisRunOutDir\step6_tennis_role_context.csv`"" }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 7 - Rank Props" $TennisDir ".\scripts\step7_rank_props_tennis.py" "--input `"$TennisRunOutDir\step6_tennis_role_context.csv`" --output `"$TennisRunOutDir\step7_tennis_ranked.xlsx`"" }
+    $script:LastTennisStepOk = $true
+    $t1 = Join-Path $TennisRunOutDir "step1_tennis_props.csv"
+    $t2 = Join-Path $TennisRunOutDir "step2_tennis_picktypes.csv"
+    $t3 = Join-Path $TennisRunOutDir "step3_tennis_with_defense.csv"
+    $t4 = Join-Path $TennisRunOutDir "step4_tennis_with_stats.csv"
+    $t5 = Join-Path $TennisRunOutDir "step5_tennis_hit_rates.csv"
+    $t6 = Join-Path $TennisRunOutDir "step6_tennis_role_context.csv"
+    $t7 = Join-Path $TennisRunOutDir "step7_tennis_ranked.xlsx"
+    $t8csv = Join-Path $TennisRunOutDir "step8_tennis_direction.csv"
+    $t8xlsx = Join-Path $TennisRunOutDir "step8_tennis_direction_clean.xlsx"
+    $step2Args = @("--input", $t1, "--output", $t2, "--writeback-step1")
+    if ($SkipFetch) { $step2Args += "--skip-pp-backfill" }
+    if ($ok) { Run-Step-Job "Tennis Step 2 - Attach Pick Types" $TennisDir ".\scripts\step2_attach_picktypes_tennis.py" $step2Args; $ok = $script:LastTennisStepOk }
+    if ($ok) { Run-Step-Job "Tennis Step 3 - Defense Stub" $TennisDir ".\scripts\step3_defense_rankings_tennis.py" @("--input", $t2, "--output", $t3); $ok = $script:LastTennisStepOk }
+    if ($ok) { Run-Step-Job "Tennis Step 4 - Player Stats + History" $TennisDir ".\scripts\step4_attach_player_stats_tennis.py" @("--input", $t3, "--output", $t4, "--history-source", "both", "--history-n", "20", "--date", $TennisDate); $ok = $script:LastTennisStepOk }
+    if ($ok) { Run-Step-Job "Tennis Step 4b - Surface context" $TennisDir ".\scripts\step4b_attach_surface_context.py" @("--input", $t4, "--output", $t4, "--date", $TennisDate); $ok = $script:LastTennisStepOk }
+    if ($ok) { Run-Step-Job "Tennis Step 5 - Hit Rates" $TennisDir ".\scripts\step5_compute_hitrates_tennis.py" @("--input", $t4, "--output", $t5, "--compute10"); $ok = $script:LastTennisStepOk }
+    if ($ok) { Run-Step-Job "Tennis Step 6 - Context" $TennisDir ".\scripts\step6_add_context_tennis.py" @("--input", $t5, "--output", $t6); $ok = $script:LastTennisStepOk }
+    if ($ok) { Run-Step-Job "Tennis Step 7 - Rank Props" $TennisDir ".\scripts\step7_rank_props_tennis.py" @("--input", $t6, "--output", $t7); $ok = $script:LastTennisStepOk }
     if ($ok) {
-        $tennisStep7 = Join-Path $TennisRunOutDir "step7_tennis_ranked.xlsx"
-        if (-not (Test-Path $tennisStep7)) {
-            Write-Output "[TENNIS] WARN: step7 output missing at $tennisStep7 — skipping step7b"
+        if (-not (Test-Path $t7)) {
+            Write-Output "[TENNIS] WARN: step7 output missing at $t7 — skipping step7b"
         } else {
-            Invoke-Step7b-Job "Tennis" $RepoRoot $tennisStep7 $PipelineDate
+            Invoke-Step7b-Job "Tennis" $RepoRoot $t7 $PipelineDate
         }
     }
-    if ($ok) { $ok = Run-Step-Job "Tennis Step 8 - Direction Context" $TennisDir (Join-Path $RepoRoot "Sports\Tennis\scripts\step8_add_direction_context_tennis.py") "--input `"$TennisRunOutDir\step7_tennis_ranked.xlsx`" --sheet ALL --output `"$TennisRunOutDir\step8_tennis_direction.csv`" --xlsx `"$TennisRunOutDir\step8_tennis_direction_clean.xlsx`" --date $TennisDate" }
+    $s8 = Join-Path $RepoRoot "Sports\Tennis\scripts\step8_add_direction_context_tennis.py"
+    if ($ok) { Run-Step-Job "Tennis Step 8 - Direction Context" $TennisDir $s8 @("--input", $t7, "--sheet", "ALL", "--output", $t8csv, "--xlsx", $t8xlsx, "--date", $TennisDate); $ok = $script:LastTennisStepOk }
     return $ok
 } -ArgumentList $TennisDir, $TennisDate, $Date, $SkipFetch, $Root, $TennisRunOutDir, $TennisCdpUrl, $TennisCdpReachable
 

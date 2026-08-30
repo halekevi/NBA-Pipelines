@@ -69,6 +69,13 @@ if ($branch -ne "main") {
     }
 }
 
+$LogsDir = Join-Path $Root "logs"
+if (-not (Test-Path -LiteralPath $LogsDir)) {
+    New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+}
+$WrapperLog = Join-Path $LogsDir ("task_8am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+try { Start-Transcript -Path $WrapperLog -Append | Out-Null } catch { }
+
 Write-Host "[8AM UPDATE] Pulling latest repository (main)..." -ForegroundColor Cyan
 # Same permanent fix as 3AM/5AM: never abort the run for generated publish JSON.
 $EnsurePull = Join-Path $PSScriptRoot "Ensure-CleanPull.ps1"
@@ -84,6 +91,7 @@ if ($pullPrepExit -eq 2) {
 }
 if ($pullPrepExit -eq 2) {
     Write-Host "[8AM UPDATE] FAILED: source-code conflicts block pull (resolve manually)." -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
     exit 128
 }
 if ($pullPrepExit -ne 0) {
@@ -91,13 +99,25 @@ if ($pullPrepExit -ne 0) {
 }
 
 Write-Host "[8AM UPDATE] Running line-move refresh (RunLabel 8AM)..." -ForegroundColor Cyan
-& pwsh -NoProfile -File $Refresh -RunLabel "8AM"
-$refreshExit = $LASTEXITCODE
+$env:PROPORACLE_BET_WINDOW = "8AM"
+$loggedHelper = Join-Path $PSScriptRoot "Invoke-LoggedPwsh.ps1"
+if (-not (Test-Path -LiteralPath $loggedHelper)) { $loggedHelper = Join-Path $Root "scripts\Invoke-LoggedPwsh.ps1" }
+$childLog = Join-Path $LogsDir ("run_refresh_child_8am_{0:yyyy-MM-dd_HHmmss}.log" -f (Get-Date))
+if (Test-Path -LiteralPath $loggedHelper) {
+    . $loggedHelper
+    $refreshExit = Invoke-LoggedPwsh -File $Refresh -ArgumentList @("-RunLabel", "8AM") -LogPath $childLog -WorkingDirectory $Root
+} else {
+    Write-Host "[8AM UPDATE] WARN: Invoke-LoggedPwsh.ps1 missing — child output may not be logged" -ForegroundColor Yellow
+    & pwsh -NoProfile -File $Refresh -RunLabel "8AM"
+    $refreshExit = $LASTEXITCODE
+}
 
 if ($refreshExit -ne 0) {
     Write-Host "[8AM UPDATE] Refresh failed (exit $refreshExit)" -ForegroundColor Red
+    try { Stop-Transcript | Out-Null } catch { }
     exit $refreshExit
 }
 
 Write-Host "[8AM UPDATE] Complete" -ForegroundColor Green
+try { Stop-Transcript | Out-Null } catch { }
 exit 0

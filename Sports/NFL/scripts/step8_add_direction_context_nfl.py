@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-# NFL SCAFFOLD — inactive until September 2026
 """
 NFL step8 — formatted direction workbook for combined_slate_tickets / web UI.
 
-Reads step7_nfl_ranked.xlsx (ALL), writes step8_nfl_direction_clean.xlsx with display columns.
+NFL (PrizePicks 9) and NFLP preseason (44) share this sheet. Defense ranks
+are the last completed regular season until the new year has a full table.
+
+Reads step7_nfl_ranked.xlsx (ALL), writes step8_nfl_direction_clean.xlsx.
 
 Run from NFL/ with NFL_PIPELINE_ACTIVE=1.
 """
@@ -30,8 +32,11 @@ def _copy_dated(out_xlsx: Path, slate_date: str) -> None:
     if not out_xlsx.is_file():
         return
     d = (slate_date or "").strip() or date.today().isoformat()
-    repo_root = Path(__file__).resolve().parent.parent
-    for dated_dir in (repo_root / "outputs" / d, repo_root / "NFL" / "data" / "outputs" / d):
+    repo_root = Path(__file__).resolve().parents[3]
+    for dated_dir in (
+        repo_root / "outputs" / d / "nfl",
+        Path(__file__).resolve().parents[1] / "outputs" / d,
+    ):
         try:
             dated_dir.mkdir(parents=True, exist_ok=True)
             dst = dated_dir / f"step8_nfl_direction_clean_{d}.xlsx"
@@ -61,6 +66,7 @@ def main() -> None:
     if str(_repo) not in sys.path:
         sys.path.insert(0, str(_repo))
     from utils.hit_tracking_columns import attach_hit_tracking_columns
+    from utils.nfl_prop_defense import fill_opp_team_from_game, prop_def_axis
 
     if not df.empty:
         work = df.copy()
@@ -77,6 +83,7 @@ def main() -> None:
                     work["final_bet_direction"] = work[c]
                     break
         df = attach_hit_tracking_columns(work, "NFL")
+        df = fill_opp_team_from_game(df)
 
     if df.empty:
         out = Path(args.output)
@@ -96,7 +103,7 @@ def main() -> None:
     rs = pd.to_numeric(col("rank_score", "prop_score"), errors="coerce")
     pos = col("position_group", "pos")
     team = col("team")
-    opp = col("opp_team", "opponent")
+    opp = col("opp_team", "opponent", "opp")
     gt = col("start_time", "game_time")
     prop = col("stat_type", "prop_type", "prop_type_normalized")
     pt = col("pick_type")
@@ -107,7 +114,12 @@ def main() -> None:
     hr = pd.to_numeric(col("hit_rate", "composite_hit_rate"), errors="coerce")
     l5o = pd.to_numeric(col("l5_over", "last5_over"), errors="coerce")
     l5u = pd.to_numeric(col("l5_under", "last5_under"), errors="coerce")
-    dtr = col("def_tier")
+    dtr = col("def_tier", "DEF_TIER")
+    drk = pd.to_numeric(col("OVERALL_DEF_RANK", "opp_def_rank_prop", "def_rank"), errors="coerce")
+    opp_pass_rk = pd.to_numeric(col("opp_pass_def_rank"), errors="coerce")
+    opp_rush_rk = pd.to_numeric(col("opp_rush_def_rank"), errors="coerce")
+    opp_fg_rk = pd.to_numeric(col("opp_fg_def_rank"), errors="coerce")
+    axis = prop.map(prop_def_axis)
     tm_l5_rec = col("team_last5_record")
     tm_l5_pf = pd.to_numeric(col("team_last5_pf_pg"), errors="coerce")
     tm_l5_pa = pd.to_numeric(col("team_last5_pa_pg"), errors="coerce")
@@ -157,7 +169,16 @@ def main() -> None:
             "Opp L5 PA/G": op_l5_pa.round(1),
             "Opp L5 +/-": op_l5_pm.round(1),
             "Def Tier": dtr,
+            "Def Rank": drk,
+            "Def Axis": axis,
+            "Opp Pass Def Rank": opp_pass_rk,
+            "Opp Rush Def Rank": opp_rush_rk,
+            "Opp FG Def Rank": opp_fg_rk,
             "League": col("league"),
+            "Snap L3": pd.to_numeric(col("snap_pct_L3", "snap_pct_season"), errors="coerce"),
+            "Starter Policy": col("starter_policy"),
+            "Expected Snaps": col("expected_snaps"),
+            "Minutes Tier": col("minutes_tier"),
         }
     )
 

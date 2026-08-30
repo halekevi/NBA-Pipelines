@@ -147,13 +147,18 @@ def extra_match_dates_for_sport(sport: str, args) -> list[str]:
     """Optional extra ET match days kept in addition to Combined --date."""
     su = str(sport or "").strip().upper()
     attr = {"WNBA": "wnba_date", "MLB": "mlb_date"}.get(su)
-    if not attr:
-        return []
-    extra = str(getattr(args, attr, None) or "").strip()[:10]
     target = str(getattr(args, "date", "") or "").strip()[:10]
-    if extra and extra != target:
-        return [extra]
-    return []
+    extras: list[str] = []
+    if attr:
+        extra = str(getattr(args, attr, None) or "").strip()[:10]
+        if extra and extra != target:
+            extras.append(extra)
+    # NFL + NFLP post the night before kickoff. Tennis rest days post tomorrow.
+    if su in {"NFL", "TENNIS"} and target:
+        nxt = default_day_ahead_match_date(target)
+        if nxt and nxt != target and nxt not in extras:
+            extras.append(nxt)
+    return extras
 
 
 import numpy as np
@@ -1845,6 +1850,8 @@ def harvest_live_cdp_entries(payload: dict) -> tuple[dict, dict]:
             }
             if pay.get("power_first_x") is not None:
                 entry["power_first_x"] = pay.get("power_first_x")
+            if pay.get("captured_at"):
+                entry["captured_at"] = pay.get("captured_at")
             tid = str(t.get("ticket_id") or "").strip()
             if tid:
                 by_id[tid] = entry
@@ -1889,6 +1896,8 @@ def preserve_live_cdp_onto_payload(payload: dict, source_payload: dict) -> int:
             pay["payout_source"] = "live_cdp"
             if entry.get("power_first_x") is not None:
                 pay["power_first_x"] = entry.get("power_first_x")
+            if entry.get("captured_at"):
+                pay["captured_at"] = entry.get("captured_at")
             refresh_ticket_ev_from_min_guarantee(pay, min_x, update_recommendation=False)
             t["payout"] = pay
             t["display_min_x"] = pay["display_min_x"]
@@ -1987,6 +1996,8 @@ def apply_payout_patch_to_payload(payload: dict) -> int:
             pay["payout_source"] = "live_cdp"
             if entry.get("power_first_x") is not None:
                 pay["power_first_x"] = entry.get("power_first_x")
+            if entry.get("captured_at"):
+                pay["captured_at"] = entry.get("captured_at")
             refresh_ticket_ev_from_min_guarantee(pay, min_x, update_recommendation=False)
             t["payout"] = pay
             t["display_min_x"] = pay["display_min_x"]
@@ -21143,7 +21154,11 @@ def main():
             tennis = load_tennis(args.tennis)
             tennis_match_day = str(getattr(args, "tennis_date", None) or args.date).strip()[:10]
             tennis = enforce_target_date(
-                tennis, "Tennis", tennis_match_day, allow_cross_date_fallback=args.allow_cross_date_fallback
+                tennis,
+                "Tennis",
+                tennis_match_day,
+                allow_cross_date_fallback=args.allow_cross_date_fallback,
+                extra_dates=extra_match_dates_for_sport("Tennis", args),
             )
             tennis = attach_standard_refs(tennis)
             print(f"  {len(tennis)} Tennis props loaded")
@@ -24073,7 +24088,32 @@ def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = Non
     return None
 
 
-def _board_payout_label(display_x: float | None, source: str | None) -> tuple[str, str, str]:
+def _fmt_payout_scrape_clock(raw: object) -> str:
+    """Human clock for payout.captured_at (ET). Empty if missing/unparseable."""
+    text = str(raw or "").strip()
+    if not text:
+        return ""
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        t = text[:-1] + "+00:00" if text.endswith("Z") else text
+        dt = datetime.fromisoformat(t)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("America/New_York"))
+        dt = dt.astimezone(ZoneInfo("America/New_York"))
+        hour = dt.hour % 12 or 12
+        ampm = "AM" if dt.hour < 12 else "PM"
+        return f"{hour}:{dt.minute:02d} {ampm} ET"
+    except Exception:
+        return text[:22]
+
+
+def _board_payout_label(
+    display_x: float | None,
+    source: str | None,
+    captured_at: object = None,
+) -> tuple[str, str, str]:
     """
     Option A board payout copy: (mult_text, source_badge, title).
     live_cdp → "2.2x" + "✓ live"; sg_delta_verified → "2.2x" + "✓ lines";
@@ -24081,39 +24121,49 @@ def _board_payout_label(display_x: float | None, source: str | None) -> tuple[st
     """
     src = _normalize_payout_source(source)
     if src == "pending_live":
-        return (
+        mult_text, badge, title = (
             "—",
             "pending",
             "Waiting for verified lines (live CDP or same-line SG-Δ evidence)",
         )
-    if display_x is None:
-        return "—", "pending" if require_live_payout_display() else "est", "Board payout unavailable"
-    mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
-    if src == "live_cdp":
-        return f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
-    if src == "sg_delta_live":
-        return f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
-    if src == "sg_delta_verified":
-        return (
-            f"{mult}x",
-            "✓ lines",
-            f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
+    elif display_x is None:
+        mult_text, badge, title = (
+            "—",
+            "pending" if require_live_payout_display() else "est",
+            "Board payout unavailable",
         )
-    if src == "rate_card":
-        return f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
-    if src == "mix_grid_average":
-        return f"~{mult}x", "board avg", f"Mix-grid board average ~{mult}x"
-    if src == "fallback_estimate":
-        return f"~{mult}x", "model est", f"Model estimate ~{mult}x"
-    if src == "exact":
-        return f"{mult}x", "exact", f"Exact payout {mult}x"
-    if src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
-        return (
-            f"{mult}x",
-            "N-correct",
-            f"PrizePicks N-correct / To Win {mult}x (not 1st place)",
-        )
-    return f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
+    else:
+        mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
+        if src == "live_cdp":
+            mult_text, badge, title = f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
+        elif src == "sg_delta_live":
+            mult_text, badge, title = f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
+        elif src == "sg_delta_verified":
+            mult_text, badge, title = (
+                f"{mult}x",
+                "✓ lines",
+                f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
+            )
+        elif src == "rate_card":
+            mult_text, badge, title = f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
+        elif src == "mix_grid_average":
+            mult_text, badge, title = f"~{mult}x", "board avg", f"Mix-grid board average ~{mult}x"
+        elif src == "fallback_estimate":
+            mult_text, badge, title = f"~{mult}x", "model est", f"Model estimate ~{mult}x"
+        elif src == "exact":
+            mult_text, badge, title = f"{mult}x", "exact", f"Exact payout {mult}x"
+        elif src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
+            mult_text, badge, title = (
+                f"{mult}x",
+                "N-correct",
+                f"PrizePicks N-correct / To Win {mult}x (not 1st place)",
+            )
+        else:
+            mult_text, badge, title = f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
+    clock = _fmt_payout_scrape_clock(captured_at)
+    if clock:
+        title = f"{title} · scraped {clock}"
+    return mult_text, badge, title
 
 
 def _payout_source_badge_html(source: str, *, badge_label: str | None = None) -> str:
@@ -24145,9 +24195,15 @@ def _payout_source_badge_html(source: str, *, badge_label: str | None = None) ->
     )
 
 
-def _board_payout_badge_html(display_x: float | None, source: str | None) -> str:
+def _board_payout_badge_html(
+    display_x: float | None,
+    source: str | None,
+    captured_at: object = None,
+) -> str:
     """Single header/footer payout chip: ~2.2x + board-avg/live badge."""
-    mult_text, badge_label, title = _board_payout_label(display_x, source)
+    mult_text, badge_label, title = _board_payout_label(
+        display_x, source, captured_at=captured_at
+    )
     src = _normalize_payout_source(source)
     return (
         f'<span class="payout-x-badge" title="{_h(title)}">[{_h(mult_text)}]</span>'
@@ -25252,10 +25308,12 @@ def render_tickets_body_html(
                 payout if isinstance(payout, dict) else None, ticket
             )
             board_pay_src = "calibrated"
+            board_captured_at = None
             if isinstance(payout, dict):
                 board_pay_src = str(payout.get("payout_source") or "calibrated")
+                board_captured_at = payout.get("captured_at")
             board_mult_text, board_badge_label, board_title = _board_payout_label(
-                board_pay_x, board_pay_src
+                board_pay_x, board_pay_src, captured_at=board_captured_at
             )
             if payout_ok:
                 rec_s = str(payout.get("recommendation") or "")
@@ -25264,7 +25322,7 @@ def render_tickets_body_html(
                 hdr_brackets = f'''
         <span class="ticket-hdr-bracket">[{_h(group_name)}]</span>
         <span class="payout-rec-badge {ev_cls}">[{_h(pre)} {_h(rec_s)} — EV {_fmt(ev_emp_f, 2)}]</span>
-        {_board_payout_badge_html(board_pay_x, board_pay_src)}
+        {_board_payout_badge_html(board_pay_x, board_pay_src, captured_at=board_captured_at)}
         <span class="{sig_cls}" title="Empirical EV tier (fallback to modeled EV when payout block is missing)">{sig_lbl}</span>'''
             if not hdr_brackets:
                 hdr_brackets = (
@@ -25282,11 +25340,11 @@ def render_tickets_body_html(
             ):
                 kpi_payout = t_power_pay
                 board_mult_text, board_badge_label, board_title = _board_payout_label(
-                    _safe_positive_float(kpi_payout), kpi_source
+                    _safe_positive_float(kpi_payout), kpi_source, captured_at=board_captured_at
                 )
             elif kpi_payout is None:
                 board_mult_text, board_badge_label, board_title = _board_payout_label(
-                    None, kpi_source
+                    None, kpi_source, captured_at=board_captured_at
                 )
 
             warn_html = ('<span class="ticket-data-warn">⚠ data warning</span>'
@@ -25474,7 +25532,9 @@ def render_tickets_body_html(
                 board_x = _resolve_ticket_display_min_x(payout, ticket)
                 if board_x is None:
                     board_x = _safe_positive_float(kpi_payout)
-                mult_text, badge_label, title = _board_payout_label(board_x, psrc2)
+                mult_text, badge_label, title = _board_payout_label(
+                    board_x, psrc2, captured_at=payout.get("captured_at") or board_captured_at
+                )
                 try:
                     e10 = round(10.0 * float(board_x), 2) if board_x is not None else None
                 except (TypeError, ValueError):

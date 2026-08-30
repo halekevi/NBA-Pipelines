@@ -2,11 +2,10 @@
 # ============================================================
 #  Live PrizePicks payout capture (post-ticket step)
 #
-#  Cadence model:
-#    5AM daily: initial FillMissing after Combined (STEP D-payout).
-#    8/9/10:30/1 refreshes: Force re-scrape after prop/line rebuild (run_nba_late_fetch).
-#    PropOracle - Payout CDP @ 11:00 + Update @ 15:00: catchup/backup only
-#      (if a refresh hung or CDP was down).
+#  Two-tier model:
+#    1AM / 5AM daily (run_daily STEP D-payout): Force re-scrape dual card + timestamps.
+#    8AM / 9 / 9:45 / 10:30 / 1PM / 4:30 (run_nba_late_fetch): Force after line-move rebuild.
+#    -UpdateOnly is incremental catchup only (manual / CDP-down audit).
 #
 #  Steps:
 #    1) CDP scrape of generated MAIN/STRONG slips → power_min_x
@@ -192,16 +191,18 @@ $env:PROPORACLE_PAYOUT_LOCK_HELD = "1"
 Write-Host "  [PAYOUT] Lock acquired" -ForegroundColor DarkGray
 
 if (-not $TicketsPath) {
-    $TicketsPath = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
-    if (-not (Test-Path -LiteralPath $TicketsPath)) {
-        $alt = Join-Path $Root "outputs\$Date\combined_slate_tickets_$Date.json"
-        if (Test-Path -LiteralPath $alt) {
-            $TicketsPath = $alt
-        } elseif (Test-Path -LiteralPath (Join-Path $Root "ui_runner\templates\tickets_latest.json")) {
-            $TicketsPath = Join-Path $Root "ui_runner\templates\tickets_latest.json"
-        } elseif (Test-Path -LiteralPath (Join-Path $Root "ui_runner\data\tickets_latest.json")) {
-            $TicketsPath = Join-Path $Root "ui_runner\data\tickets_latest.json"
-        }
+    $latest = Join-Path $Root "ui_runner\templates\tickets_latest.json"
+    $latestData = Join-Path $Root "ui_runner\data\tickets_latest.json"
+    $combined = Join-Path $Root "ui_runner\data\combined_slate_tickets_$Date.json"
+    $combinedOut = Join-Path $Root "outputs\$Date\combined_slate_tickets_$Date.json"
+    if (Test-Path -LiteralPath $latest) {
+        $TicketsPath = $latest
+    } elseif (Test-Path -LiteralPath $latestData) {
+        $TicketsPath = $latestData
+    } elseif (Test-Path -LiteralPath $combined) {
+        $TicketsPath = $combined
+    } elseif (Test-Path -LiteralPath $combinedOut) {
+        $TicketsPath = $combinedOut
     }
 }
 
@@ -425,20 +426,9 @@ try {
             "--output", $payoutOut,
             "--date", $Date,
             "--cdp-url", $CdpUrl,
-            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min"
+            "--fields", "power_min_x,power_first_x,min_guarantee,flex_min",
+            "--max-runtime-sec", "$runtimeSec"
         )
-        # --max-runtime-sec landed on feature before main's collect_payout_data.py;
-        # only pass it when supported so midday UPDATE does not hard-fail.
-        $supportsMaxRuntime = $false
-        try {
-            $helpText = & py -3.14 -X utf8 $payoutScript --help 2>&1 | Out-String
-            if ($helpText -match "max-runtime-sec") { $supportsMaxRuntime = $true }
-        } catch { }
-        if ($supportsMaxRuntime) {
-            $ticketArgs += @("--max-runtime-sec", "$runtimeSec")
-        } else {
-            Write-Host "  [PAYOUT] collect_payout_data.py has no --max-runtime-sec — relying on wrapper timeout only" -ForegroundColor DarkGray
-        }
         if ($NoWriteBack) { $ticketArgs += "--no-write-back" }
         if ($AllowLineFallback) { $ticketArgs += "--allow-line-fallback" }
         if ($Gentle) { $ticketArgs += "--gentle" }

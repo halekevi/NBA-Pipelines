@@ -371,6 +371,21 @@
 
 
 <nav class="snav glass-card">
+  <style>
+    .snav-account {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: inherit;
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(212,175,55,0.28);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .snav-account.active { color: #c8ff00; border-color: rgba(200,255,0,0.45); }
+  </style>
   <div class="nav-accent"></div>
   <a class="snav-brand" href="index.html">
     <div class="hybrid-logo">
@@ -386,6 +401,7 @@
     <li><a href="payout.html" class=""><span class="ni ni-pay"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 3.5v7M5 5.5c0-.8.9-1.5 2-1.5s2 .7 2 1.5-1 1.3-2 1.5-2 .7-2 1.5.9 1.5 2 1.5 2-.7 2-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span> Payouts</a></li>
   </ul>
   <div class="snav-right">
+    <a class="snav-account " href="/account" title="">Account</a>
     <button class="theme-toggle theme-switch" type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle theme">
       <span class="tt-icon tt-moon">🌙</span>
       <span class="tt-icon tt-sun" style="display:none">☀️</span>
@@ -409,6 +425,7 @@
   <a href="grades.html" class="" title="Ticket evaluation hub">✏️ Grades</a>
   <a href="income.html" class="">📈 Income</a>
   <a href="payout.html" class="">💰 Payouts</a>
+  <a href="/account" class="">👤 Account</a>
 </div>
 
 

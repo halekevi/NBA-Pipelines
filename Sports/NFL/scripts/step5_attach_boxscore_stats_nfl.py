@@ -32,8 +32,10 @@ def main() -> None:
     if "--cache" not in argv:
         argv.extend(["--cache", "data/cache/nfl_boxscore_cache.csv"])
     if "--days" not in argv:
-        # Season-open needs prior-year games (~Sep→Feb). 120 days is too short in September.
-        argv.extend(["--days", "320"])
+        # August NFLP / early Sept: 120d never reaches the prior regular season.
+        # L5 uses last year's NFL regular-season boxscores (Sep–Feb), not preseason.
+        # NFLP and NFL share the same ESPN NFL game logs.
+        argv.extend(["--days", "400"])
     sys.argv = argv
     runpy.run_path(str(_ENGINE), run_name="__main__")
 

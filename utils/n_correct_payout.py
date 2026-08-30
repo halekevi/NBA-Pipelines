@@ -164,12 +164,16 @@ def _result(
     *,
     note: str,
     source: str,
+    captured_at: str | None = None,
 ) -> dict[str, Any]:
-    return {
+    out = {
         "n_correct": {int(k): float(v) for k, v in table.items()},
         "note": note,
         "payout_source": source,
     }
+    if captured_at:
+        out["captured_at"] = str(captured_at)
+    return out
 
 
 def fallback_pay(family: str, n_legs: int, product: str) -> dict[str, Any]:
@@ -269,12 +273,14 @@ def lookup_live_cdp_scrape(
     hits.sort(
         key=lambda r: (
             1 if str(r.get("date") or "")[:10] == date_s else 0,
+            str(r.get("last_captured_at") or r.get("captured_at") or ""),
             str(r.get("date") or ""),
             str(r.get("ticket_id") or ""),
         )
     )
     rec = hits[-1]
     rec_date = str(rec.get("date") or "")[:10]
+    captured_at = str(rec.get("last_captured_at") or rec.get("captured_at") or "").strip() or None
     if product.lower() == "flex":
         table = _int_ladder(rec.get("flex_n_correct"))
         if not table:
@@ -283,6 +289,7 @@ def lookup_live_cdp_scrape(
             table,
             note=f"CDP scrape Flex {want} Δ={delta_sig} ({rec_date})",
             source="n_correct_live",
+            captured_at=captured_at,
         )
     power = _f(rec.get("power_payout_x") or rec.get("power_min_x"))
     if power is None:
@@ -291,6 +298,7 @@ def lookup_live_cdp_scrape(
         {n_legs: power},
         note=f"CDP scrape Power {want} Δ={delta_sig} ({rec_date})",
         source="n_correct_live",
+        captured_at=captured_at,
     )
 
 

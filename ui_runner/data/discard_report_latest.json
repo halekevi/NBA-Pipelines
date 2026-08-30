@@ -1,25 +1,23 @@
 {
-  "build_date": "2026-08-25",
-  "generated_at": "2026-08-25T21:15:15.061039+00:00",
+  "build_date": "2026-08-30",
+  "generated_at": "2026-08-30T15:52:58.207564+00:00",
   "discards": {
     "MLB": {
-      "mlb_construction_banned": 1112,
-      "directional_l5_hr_fail": 4172,
-      "standard_over_edge_below_floor": 4,
+      "mlb_construction_banned": 736,
+      "directional_l5_hr_fail": 3456,
       "standard_under_edge_below_floor": 56,
-      "final_pool_kept": 96
+      "final_pool_kept": 68
     },
     "TENNIS": {
-      "directional_l5_hr_fail": 95,
-      "final_pool_kept": 47
+      "directional_l5_hr_fail": 680,
+      "final_pool_kept": 240
     },
     "SOCCER": {
-      "directional_l5_hr_fail": 480
+      "directional_l5_hr_fail": 618,
+      "final_pool_kept": 9
     },
     "WNBA": {
-      "prop_banned": 30,
-      "mlb_construction_banned": 225,
-      "directional_l5_hr_fail": 2375
+      "MODEL_AUC_GATE": 1603
     }
   },
   "funnel": {
@@ -38,113 +36,104 @@
       "after_pick_type_eligible",
       "after_void_reason",
       "after_prop_quality",
-      "after_season_long_board"
+      "after_season_long_board",
+      "after_model_auc_gate"
     ],
     "snapshots": {
       "input": {
-        "ALL": 2380,
-        "MLB": 1641,
-        "TENNIS": 53,
-        "SOCCER": 160,
-        "WNBA": 526
+        "ALL": 1914,
+        "MLB": 1290,
+        "TENNIS": 418,
+        "SOCCER": 206
       },
       "after_invalid_market_side": {
-        "ALL": 2380,
-        "MLB": 1641,
-        "TENNIS": 53,
-        "SOCCER": 160,
-        "WNBA": 526
+        "ALL": 1914,
+        "MLB": 1290,
+        "TENNIS": 418,
+        "SOCCER": 206
       },
       "after_prop_ban": {
-        "ALL": 2374,
-        "MLB": 1641,
-        "TENNIS": 53,
-        "SOCCER": 160,
-        "WNBA": 520
+        "ALL": 1914,
+        "MLB": 1290,
+        "TENNIS": 418,
+        "SOCCER": 206
       },
       "after_mlb_construction_ban": {
-        "ALL": 2051,
-        "MLB": 1363,
-        "TENNIS": 53,
-        "SOCCER": 160,
-        "WNBA": 475
+        "ALL": 1730,
+        "MLB": 1106,
+        "TENNIS": 418,
+        "SOCCER": 206
       },
       "after_fantasy_score": {
-        "ALL": 2051,
-        "MLB": 1363,
-        "TENNIS": 53,
-        "SOCCER": 160,
-        "WNBA": 475
+        "ALL": 1730,
+        "MLB": 1106,
+        "TENNIS": 418,
+        "SOCCER": 206
       },
       "after_directional_l5_hr": {
-        "ALL": 347,
-        "MLB": 320,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 487,
+        "MLB": 242,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_standard_over_edge_floor": {
-        "ALL": 346,
-        "MLB": 319,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 487,
+        "MLB": 242,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_standard_over_rank_score_floor": {
-        "ALL": 346,
-        "MLB": 319,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 487,
+        "MLB": 242,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_standard_under_edge_floor": {
-        "ALL": 332,
-        "MLB": 305,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 473,
+        "MLB": 228,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_picktype_direction_tier_policy": {
-        "ALL": 332,
-        "MLB": 305,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 473,
+        "MLB": 228,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_pick_type": {
-        "ALL": 332,
-        "MLB": 305,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 473,
+        "MLB": 228,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_pick_type_eligible": {
-        "ALL": 332,
-        "MLB": 305,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 473,
+        "MLB": 228,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_void_reason": {
-        "ALL": 332,
-        "MLB": 305,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 473,
+        "MLB": 228,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_prop_quality": {
-        "ALL": 332,
-        "MLB": 305,
-        "TENNIS": 27,
-        "SOCCER": 0,
-        "WNBA": 0
+        "ALL": 473,
+        "MLB": 228,
+        "TENNIS": 245,
+        "SOCCER": 0
       },
       "after_season_long_board": {
-        "ALL": 213,
-        "TENNIS": 53,
-        "SOCCER": 160
+        "ALL": 624,
+        "TENNIS": 418,
+        "SOCCER": 206
+      },
+      "after_model_auc_gate": {
+        "ALL": 0,
+        "WNBA": 0
       }
     }
   },
-  "final_pool_size": 30
+  "final_pool_size": 66
 }

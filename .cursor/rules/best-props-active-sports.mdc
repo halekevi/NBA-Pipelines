@@ -7,10 +7,28 @@ alwaysApply: true
 
 When ranking or locking **Standard Over / Standard Under / Goblin** plays for a slate, always output **four sections**: WNBA, MLB, Soccer, Tennis.
 
-- Do not skip a sport because the pool is thin. If nothing clears L5+D, say so in that section.
+- Do not skip a sport because the pool is thin. If nothing clears L5, say so in that section.
 - Soccer/tennis often store hits in `last5_over` / `last5_under` (not `l5_over`). Use those when `l5_over` is empty.
-- Filters: directional L5 >= 4; Goblins Over-only; no Demons.
-- **WNBA / MLB:** Overs vs Weak D only; Unders vs Elite D only.
-- **Soccer:** rank opponent defense like WNBA/NBA. Overs vs Weak/Below Avg; Unders vs Elite/Above Avg. Avg is mid and does not clear the D gate.
-- **Tennis:** no team D — rank the **individual opponent** (ATP/WTA). Overs vs Weak/Below Avg opponent; Unders vs Elite/Above Avg opponent. No prop preference (Total Games, Games Won, Aces, DF all eligible). Unknown opponent does not pass D.
-- Prefer `scripts/rank_best_props_today.py` so all four sports are generated the same way.
+- **Hard list gate:** directional L5 >= 4; Goblins Over-only; no Demons.
+- **NFLP (preseason) exception:** 2025 L5 / snap% is starter volume, not tonight. Week-3 starters sit or play 1 series — do not list Sit/cameo skill **overs** even with L5 4+ (tiny cameo lines like pass 25.5 still drop). Backup QBs play the bulk (Q2–Q4); 2025 snap 40–70% is a spot start, not tonight’s cameo. Backup skill overs need D (Weak|Below Avg); L5 is not required. Kickers still use L5 >= 4. Regular-season NFL (League=NFL) keeps the normal L5 gate. D stays a veto on NFLP skill overs into Elite | Above Avg | Avg.
+- **D is badge-only (not a hard filter)** except NFLP skill overs (see above). Failing D on other sports should still appear, usually as **Silver** when D is the only miss (Gold = L5 + Cover + Delta + Dir + D + Rank all pass).
+- **D alignment for badges (all pipeline sports — WNBA, MLB, Soccer, Tennis, NBA, CFB, CBB, NHL, NFL, etc.):**
+  - Overs vs Weak | Below Avg; Unders vs Elite | Above Avg. Avg never passes D.
+  - **MLB hitter_strikeouts exception:** Overs vs Elite | Above Avg; Unders vs Weak | Below Avg (Elite/Above Avg pitching → more batter Ks). Rank also inverts (OVER favors low/stingy ranks; UNDER favors high/Weak ranks). Do not invert pitcher strikeouts (those stay blank / unchanged).
+  - **Tennis:** individual opponent (ATP/WTA). Same Weak|Below / Elite|Above bands. Unknown opponent does not pass D.
+- **Diamond / Platinum (on top of Gold):** Diamond = Gold + directional L10 >= 8 AND season HR > 70% (min 10 games vs today's line). Platinum = Gold + exactly one of those two extra gates. Remaining Gold has neither. Same gates for CFB Week 1 (2025 boxscores vs today's line).
+- **Prop tier (S–D) is the market; badge is the play.** They stack. Sort S → A → B → C → D then Diamond → Platinum → Gold → Silver → Bronze. S = MLB pitcher Goblins (~80%). A = WNBA/tennis Goblin scoring, pitching outs, soccer saves (~74%). Promotions into A/S: MLB Goblin H+R+RBI with D pass; WNBA Goblin reb+ast with cover ≥2; MLB Goblin total bases with cover + D; hitter Ks with cover ≥1. Shadow cells (tennis Goblin aces/DF, soccer SOG, MLB Goblin singles, WNBA Std Over points, etc.) tag as **W** and stay on the list for tracking — do not drop them. `scripts/rank_best_props_today.py` prints `S/Diamond`, `A/Gold*`, `W/Silver`.
+- Prefer `scripts/rank_best_props_today.py` so all four sports are generated the same way. CFB prints as an extra section when `outputs/<date>/cfb/step8_cfb_direction_clean.xlsx` exists. Golf prints as an extra section when `outputs/<date>/golf/step8_golf_direction_clean.xlsx` exists.
+- **Tennis list window:** keep ET today + 2 days (slam first rounds post Saturday–Monday). Do not ranker-filter tennis down to the slate date only.
+- **Tennis format:** BO5 Total Games (line > 31.5) must not list from BO3 last-5 (all games / avg < 32). Inverse of the BO3-line slam strip. If tennis step1 exists and step8 is missing, warn — do not print `(no step8 file)` as an empty slate.
+- That script **must not** use a day-prior board just because it lives in the open Cursor checkout. It picks the worktree whose step1 `fetched_at` is the **slate date** (usually `PropORACLE_main_cp` after 1AM/8AM). If you rank by hand, pass `--step8-root` to that tree when this checkout's `fetched_at` is yesterday.
+
+# Pipeline tickets (all sports)
+
+**Live `/tickets` is always both:** Goblin-70 groups first, graded-main mixer under. Builder `scripts/build_goblin70_tickets.py --write-web` merges from the grade pool so a refresh cannot wipe STRONG / MLB Goblin OVER / tennis mixer groups. 9AM / 9:45 / 10:30 / 1PM / 4:30 refetches rebuild Goblin-70 and patch mixer **lines**; they do not drop mixer slips that left the live board.
+
+**70% ticket engine (top of the card):** Goblin OVER only. Hard gates: directional L5 >= 4 **and** cover floor (per-prop typical |last5−line| when mapped — PRA ~+3.7, FGA ~+1.1, 3s ~+0.7 — else WNBA/Tennis >= 2, MLB/Soccer >= 1). No Demons. No shadow cells as ticket legs. Rank S → A → B, then L5 = 5, then cover. D is a badge, not a ticket filter. Power is OK on this book. Extra groups: sport-pure WNBA/MLB; NFLP Standard backup overs with D when Goblins are empty.
+
+**Standard:** stay on the four-sport best-props **list**. Do not mix onto Goblin Power slips. Flex-only fill uses an allowlist (WNBA steals Under L5>=4, WNBA combo Over L5>=4, WNBA assists Under L5>=4, MLB H+R+RBI Under L5=5) with at most one Standard per ticket. A Standard cell joins the Goblin card only when it independently holds ~70% at L5>=4 with n>=40.
+
+Combined / graded-main (under Goblin-70) still uses **L5=5+D → L5=4+D → L5≥4 no-D** as a seed order for the mixer.

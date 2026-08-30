@@ -36,7 +36,11 @@ else:
 
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str, write_excel_sheets
-from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns
+from utils.hit_tracking_columns import (
+    HIT_TRACKING_RENAME,
+    attach_hit_tracking_columns,
+    fill_l5_from_stat_games,
+)
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 
 try:
@@ -51,6 +55,16 @@ TIER_COLORS = {
     "D": ("717D7E", "FFFFFF"),
 }
 HEADER_COLOR = "1C1C1C"
+
+
+def golf_tournament_keep_dates(target: str, *, back: int = 3, ahead: int = 3) -> set[str]:
+    """PGA events run Thu–Sun. Keep ET dates in [target-back, target+ahead]."""
+    raw = str(target or "").strip()[:10]
+    try:
+        d0 = _dt.date.fromisoformat(raw)
+    except ValueError:
+        return {raw} if raw else set()
+    return {(d0 + _dt.timedelta(days=i)).isoformat() for i in range(-int(back), int(ahead) + 1)}
 
 
 def _norm_pick_type(x: str) -> str:
@@ -117,17 +131,26 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
 
     l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
     l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
-    l5_over_fallback = (hr5.fillna(0.5) * 5.0).round().clip(0, 5)
-    l5_under_fallback = (5 - l5_over_fallback).clip(0, 5)
-    df2["last5_over"] = l5_over.fillna(l5_over_fallback)
-    df2["last5_under"] = l5_under.fillna(l5_under_fallback)
+    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
+    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("line_hits_under_5", np.nan), errors="coerce"))
+    l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
+    l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
+    df2 = fill_l5_from_stat_games(df2, line_col="line", min_games=1)
+    from_g_over = pd.to_numeric(df2.get("l5_over"), errors="coerce")
+    from_g_under = pd.to_numeric(df2.get("l5_under"), errors="coerce")
+    l5_over = from_g_over.combine_first(l5_over)
+    l5_under = from_g_under.combine_first(l5_under)
+    df2["last5_over"] = l5_over
+    df2["last5_under"] = l5_under
+    df2["l5_over"] = l5_over
+    df2["l5_under"] = l5_under
 
     if "line" in df2.columns:
         df2 = finalize_l10_ui_columns(df2, line_col="line")
     df2 = attach_hit_tracking_columns(df2, "GOLF")
 
     if "DEF_TIER" not in df2.columns:
-        df2["DEF_TIER"] = "LEAGUE AVG"
+        df2["DEF_TIER"] = "N/A"
     if "OVERALL_DEF_RANK" not in df2.columns:
         df2["OVERALL_DEF_RANK"] = "N/A"
 
@@ -144,7 +167,9 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "sport_signal_maturity", "confidence_tier", "confidence_score", "confidence_note",
         "line_hit_rate_over_ou_5", "line_hit_rate_over_ou_10",
         "stat_last5_avg", "stat_season_avg",
-        "last5_over", "last5_under",
+        "last5_over", "last5_under", "l5_over", "l5_under",
+        "stat_g1", "stat_g2", "stat_g3", "stat_g4", "stat_g5",
+        "stat_g6", "stat_g7", "stat_g8", "stat_g9", "stat_g10",
         "l10_over", "l10_under", "l10_over_pct", "l10_streak", "l10_games_played",
         "DEF_TIER", "OVERALL_DEF_RANK",
         "course_fit_score", "sg_ott", "sg_app", "sg_arg", "weather_signal",
@@ -162,7 +187,7 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     for col in ["stat_last5_avg", "stat_season_avg"]:
         if col in clean.columns:
             clean[col] = pd.to_numeric(clean[col], errors="coerce").round(1)
-    for col in ["last5_over", "last5_under"]:
+    for col in ["last5_over", "last5_under", "l5_over", "l5_under"]:
         if col in clean.columns:
             clean[col] = pd.to_numeric(clean[col], errors="coerce").astype("Int64")
 
@@ -183,6 +208,9 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
         "line_hit_rate_over_ou_10": "Hit Rate (10g)",
         "stat_last5_avg": "Last 5 Avg", "stat_season_avg": "Season Avg",
         "last5_over": "L5 Over", "last5_under": "L5 Under",
+        "stat_g1": "G1", "stat_g2": "G2", "stat_g3": "G3",
+        "stat_g4": "G4", "stat_g5": "G5", "stat_g6": "G6",
+        "stat_g7": "G7", "stat_g8": "G8", "stat_g9": "G9", "stat_g10": "G10",
         "OVERALL_DEF_RANK": "Def Rank", "DEF_TIER": "Def Tier",
         "course_fit_score": "Course Fit",
         "sg_ott": "SG OTT", "sg_app": "SG APP", "sg_arg": "SG ARG",
@@ -238,23 +266,33 @@ def main() -> None:
         df["_et_date"] = et_dates.dt.date.apply(
             lambda d: d.isoformat() if isinstance(d, _dt.date) else ""
         )
-        mask = df["_et_date"] == target_str
+        keep_dates = golf_tournament_keep_dates(target_str)
+        mask = df["_et_date"].isin(keep_dates)
         if not mask.any():
             valid = df["_et_date"].astype(str).str.match(r"^\d{4}-\d{2}-\d{2}$")
             avail = sorted(df.loc[valid, "_et_date"].unique().tolist())
-            past_or_equal = [d for d in avail if d <= target_str]
-            if past_or_equal:
-                fallback_date = past_or_equal[-1]
-                print(f"[DateFilter] No exact ET match for {target_str} — fallback {fallback_date}")
+            future = [d for d in avail if d >= target_str]
+            if future:
+                fallback_date = future[0]
+                print(
+                    f"[DateFilter] No rows on {sorted(keep_dates)} — "
+                    f"using nearest upcoming {fallback_date}"
+                )
                 mask = df["_et_date"] == fallback_date
             elif avail:
-                fallback_date = avail[0]
-                print(f"[DateFilter] Using earliest available {fallback_date}")
+                fallback_date = avail[-1]
+                print(
+                    f"[DateFilter] No upcoming ET match for {target_str} — "
+                    f"falling back to {fallback_date}"
+                )
                 mask = df["_et_date"] == fallback_date
             else:
                 mask = pd.Series(True, index=df.index)
         df = df.loc[mask].drop(columns="_et_date")
-        print(f"[DateFilter] Kept {len(df)}/{before_filter} rows for {target_str} ET")
+        print(
+            f"[DateFilter] Kept {len(df)}/{before_filter} rows for tournament window "
+            f"{sorted(keep_dates)} (target {target_str} ET)"
+        )
     else:
         print("[DateFilter] WARNING: no start_time — skipping date filter")
 

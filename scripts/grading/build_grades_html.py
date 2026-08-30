@@ -1897,6 +1897,7 @@ def build_takeaways(
     mlb_rows: list[dict] | None = None,
     wnba_rows: list[dict] | None = None,
     tennis_rows: list[dict] | None = None,
+    golf_rows: list[dict] | None = None,
 ) -> str:
     """
     Insight cards at the bottom of slate_eval. Uses **all loaded sports** so Railway /grades
@@ -1907,6 +1908,7 @@ def build_takeaways(
     mlb_rows = mlb_rows or []
     wnba_rows = wnba_rows or []
     tennis_rows = tennis_rows or []
+    golf_rows = golf_rows or []
 
     all_rows: list[dict] = (
         list(nba_rows)
@@ -1916,6 +1918,7 @@ def build_takeaways(
         + list(mlb_rows)
         + list(wnba_rows)
         + list(tennis_rows)
+        + list(golf_rows)
     )
 
     insights: list[str] = []
@@ -1952,6 +1955,7 @@ def build_takeaways(
         ("MLB", mlb_rows),
         ("WNBA", wnba_rows),
         ("Tennis", tennis_rows),
+        ("Golf", golf_rows),
     ]
     sport_line = _takeaway_sport_snippets(bundles)
 
@@ -2891,6 +2895,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
                mlb_rows: list[dict] | None = None,
                wnba_rows: list[dict] | None = None,
                tennis_rows: list[dict] | None = None,
+               golf_rows: list[dict] | None = None,
                nhl_path: Path | None = None,
                soccer_path: Path | None = None,
                mlb_path: Path | None = None) -> str:
@@ -2905,6 +2910,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
     mlb_rows    = mlb_rows    or []
     wnba_rows   = wnba_rows   or []
     tennis_rows = tennis_rows or []
+    golf_rows = golf_rows or []
     all_rows = (
         list(nba_rows)
         + list(cbb_rows)
@@ -2913,6 +2919,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         + list(mlb_rows)
         + list(wnba_rows)
         + list(tennis_rows)
+        + list(golf_rows)
     )
     all_section = build_sport_section(all_rows, "ALL SPORTS", "🌐") if all_rows else ""
     nba_section    = build_sport_section(nba_rows,    "NBA",    "🏀") if nba_rows    else ""
@@ -2922,6 +2929,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
     mlb_section    = build_sport_section(mlb_rows,    "MLB",    "⚾") if mlb_rows    else ""
     wnba_section   = build_sport_section(wnba_rows,   "WNBA",   "🏀") if wnba_rows   else ""
     tennis_section = build_sport_section(tennis_rows, "Tennis", "🎾") if tennis_rows else ""
+    golf_section = build_sport_section(golf_rows, "Golf", "⛳") if golf_rows else ""
     takeaways = build_takeaways(
         nba_rows,
         cbb_rows,
@@ -2930,6 +2938,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         mlb_rows=mlb_rows,
         wnba_rows=wnba_rows,
         tennis_rows=tennis_rows,
+        golf_rows=golf_rows,
     )
 
     if not (
@@ -2940,6 +2949,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         or mlb_section
         or wnba_section
         or tennis_section
+        or golf_section
     ):
         body_content = """<div style="text-align:center;padding:60px 20px;font-family:'Inter',sans-serif">
           <div style="font-size:32px;margin-bottom:16px">📭</div>
@@ -2958,6 +2968,7 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
             + mlb_section
             + wnba_section
             + tennis_section
+            + golf_section
             + takeaways
         )
 
@@ -3024,6 +3035,8 @@ def main() -> None:
                         help="Path to graded_wnba_*.xlsx or wnba_graded_*.xlsx")
     parser.add_argument("--tennis", type=str, default="",
                         help="Path to graded_tennis_*.xlsx")
+    parser.add_argument("--golf", type=str, default="",
+                        help="Path to graded_golf_*.xlsx")
     parser.add_argument("--out",  type=str, default="",
                         help="Output path or directory (default: next to this script)")
     parser.add_argument(
@@ -3139,6 +3152,17 @@ def main() -> None:
         if tennis_path:
             print(f"  Auto-detected Tennis: {tennis_path}")
 
+    golf_path: Path | None = None
+    if args.golf:
+        golf_path = Path(args.golf).resolve()
+        if not golf_path.exists():
+            print(f"  WARNING: Golf file not found: {golf_path}")
+            golf_path = None
+    else:
+        golf_path = find_graded_file("golf", date_str)
+        if golf_path:
+            print(f"  Auto-detected Golf: {golf_path}")
+
     if not (
         nba_path
         or nba1q_path
@@ -3151,12 +3175,13 @@ def main() -> None:
         or wnba1q_path
         or wnba1h_path
         or tennis_path
+        or golf_path
     ):
         if args.allow_empty:
             print("  NOTE: No graded files; emitting empty slate eval (--allow-empty).")
         else:
             print(
-                "  ERROR: No graded files found. Specify --nba/--cbb/--nhl/--soccer/--mlb/--wnba/--tennis."
+                "  ERROR: No graded files found. Specify --nba/--cbb/--nhl/--soccer/--mlb/--wnba/--tennis/--golf."
             )
             sys.exit(1)
 
@@ -3231,6 +3256,12 @@ def main() -> None:
         tennis_rows = load_graded(tennis_path, "tennis")
         print(f" {len(tennis_rows):,} rows")
 
+    golf_rows: list[dict] = []
+    if golf_path:
+        print(f"  Loading Golf: {golf_path.name} ...", end="", flush=True)
+        golf_rows = load_graded(golf_path, "golf")
+        print(f" {len(golf_rows):,} rows")
+
     # Build HTML (use merged NBA so 1Q/1H rows appear in Slate Evaluation, not only in JSON)
     print("  Building HTML ...", end="", flush=True)
     html = build_html(
@@ -3244,6 +3275,7 @@ def main() -> None:
         mlb_rows=mlb_rows,
         wnba_rows=wnba_rows_merged,
         tennis_rows=tennis_rows,
+        golf_rows=golf_rows,
         nhl_path=nhl_path,
         soccer_path=soccer_path,
         mlb_path=mlb_path,
@@ -3288,6 +3320,8 @@ def main() -> None:
         json_bundles.append(("WNBA1H", wnba1h_rows))
     if tennis_rows:
         json_bundles.append(("Tennis", tennis_rows))
+    if golf_rows:
+        json_bundles.append(("Golf", golf_rows))
     json_p = export_graded_props_json(date_str, out_p.parent, json_bundles)
     print(f"  Saved  -> {json_p}")
     all_rows = [
@@ -3298,6 +3332,7 @@ def main() -> None:
         *mlb_rows,
         *wnba_rows_merged,
         *tennis_rows,
+        *golf_rows,
     ]
     tabs_p = export_analysis_tabs_xlsx(date_str, out_p.parent, all_rows)
     print(f"  Saved  -> {tabs_p}")

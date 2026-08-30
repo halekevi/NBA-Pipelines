@@ -19,13 +19,13 @@ import pandas as pd
 
 
 def test_main_excludes_nfl_before_season():
+    # Golf has no resume calendar; year-round when a board exists (not in default exclude).
     excl = main_exclude_sports_for_date("2026-07-14")
     assert "NFL" in excl
     assert "CFB" in excl
     assert "CBB" in excl
     assert "WCBB" in excl
-    # Golf has no resume calendar → stays hard-excluded while in candidate list
-    assert "GOLF" in excl
+    assert "GOLF" not in excl
 
 
 def test_main_reactivates_nfl_near_kickoff():
@@ -39,6 +39,16 @@ def test_main_reactivates_cfb_before_week_zero():
     # CFB resume 2026-08-27 − 7d = 2026-08-20
     assert "CFB" not in main_exclude_sports_for_date("2026-08-20")
     assert "CFB" in main_exclude_sports_for_date("2026-08-19")
+
+
+def test_nflp_preseason_opens_nfl_main():
+    from combined_slate_tickets import _nflp_slate_exists
+
+    if not _nflp_slate_exists("2026-08-23"):
+        return
+    assert "NFL" not in main_exclude_sports_for_date("2026-08-23")
+    assert _sport_in_season_for_main("NFL", "2026-08-23")
+    assert not _sport_slug_off_season("nfl", "2026-08-23")
 
 
 def test_sport_slug_off_season_uses_resume():

@@ -2,10 +2,11 @@
 """
 step7_rank_props_golf.py — rank PrizePicks golf props for step8.
 
-Reads step1/step2 CSV and writes step7_golf_ranked.xlsx (sheet ALL).
+Keeps upstream columns (stat_g1..10, L5 hits) so step8 can recompute real
+round history. Writes step7_golf_ranked.xlsx (sheet ALL).
 
 Run:
-  py -3.14 Sports/Golf/scripts/step7_rank_props_golf.py --input outputs/step2_golf_context.csv
+  py -3.14 Sports/Golf/scripts/step7_rank_props_golf.py --input outputs/step5_golf_hit_rates.csv
 """
 
 from __future__ import annotations
@@ -25,10 +26,13 @@ except Exception:
 _GOLF_REPO = Path(__file__).resolve().parents[3]
 if str(_GOLF_REPO) not in sys.path:
     sys.path.insert(0, str(_GOLF_REPO))
+from utils.consistency_grade_scores import apply_consistency_grade_scores  # noqa: E402
 from utils.group_rank_tier import (  # noqa: E402
     assign_tier_column,
+    print_tier_distribution_by_pick_direction_group,
     report_goblin_demon_standard_line_fill,
 )
+from utils.prop_signal_score import apply_ml_rank_blend  # noqa: E402
 from proporacle.data.table_io import write_excel_sheets, write_parquet_sidecar
 
 
@@ -52,8 +56,9 @@ def _num_series(df: pd.DataFrame, col: str, default: float = np.nan) -> pd.Serie
 
 
 def main() -> None:
+    print("[Golf step7] Starting...")
     root = Path(__file__).resolve().parent.parent
-    ap = argparse.ArgumentParser(description="Golf step7 — rank props from step1/2 CSV.")
+    ap = argparse.ArgumentParser(description="Golf step7 — rank props from step4/5 CSV.")
     ap.add_argument("--input", default="outputs/step1_golf_props.csv")
     ap.add_argument("--output", default="outputs/step7_golf_ranked.xlsx")
     args = ap.parse_args()
@@ -64,12 +69,19 @@ def main() -> None:
     if not inp.is_file():
         raise SystemExit(f"Missing input: {inp}")
 
-    work = pd.read_csv(inp, dtype=str, low_memory=False)
+    work = pd.read_csv(inp, low_memory=False, encoding="utf-8-sig")
+    if "line" not in work.columns and "line_score" in work.columns:
+        work["line"] = work["line_score"]
     work["line"] = pd.to_numeric(work.get("line"), errors="coerce")
     work = work.dropna(subset=["line"])
     work = work[work["line"] >= 0]
     if work.empty:
         raise SystemExit("No rows with valid line values.")
+
+    if "player" not in work.columns or work["player"].astype(str).str.strip().eq("").all():
+        work["player"] = work.get("player_name", "").fillna("").astype(str).str.strip()
+    else:
+        work["player"] = work["player"].fillna("").astype(str).str.strip()
 
     line = work["line"]
     l5 = _num_series(work, "stat_last5_avg")
@@ -102,60 +114,65 @@ def main() -> None:
         + sg_bonus
     ).clip(0.0, 10.0)
 
-    out = pd.DataFrame(
-        {
-            "tier": "",
-            "rank_score": rank_score.round(4),
-            "player": work.get("player", "").fillna("").astype(str).str.strip(),
-            "pos": work.get("pos", "").fillna("").astype(str),
-            "team": work.get("team", work.get("event", "")).fillna("").astype(str),
-            "event": work.get("event", work.get("tournament", "")).fillna("").astype(str),
-            "tournament": work.get("tournament", "").fillna("").astype(str),
-            "course": work.get("course", "").fillna("").astype(str),
-            "opp_team": work.get("opp_team", work.get("course", "")).fillna("").astype(str),
-            "league": work.get("league", "PGA").fillna("PGA").astype(str),
-            "start_time": work.get("start_time", "").fillna("").astype(str),
-            "prop_type": work.get("prop_type", "").fillna("").astype(str),
-            "pick_type": pick,
-            "line": line,
-            "standard_line": pd.to_numeric(work.get("standard_line", line), errors="coerce"),
-            "bet_direction": bet_dir,
-            "final_bet_direction": bet_dir,
-            "edge": edge.round(4),
-            "abs_edge": edge.abs().round(4),
-            "projection": proj.round(4),
-            "composite_hit_rate": composite_hr.round(4),
-            "ml_prob": (0.40 + 0.25 * composite_hr).clip(0.38, 0.78).round(4),
-            "line_hit_rate": composite_hr.round(4),
-            "line_hit_rate_over_ou_5": hr5,
-            "line_hit_rate_over_ou_10": hr10,
-            "stat_last5_avg": l5,
-            "stat_season_avg": seas,
-            "last5_over": _num_series(work, "last5_over"),
-            "last5_under": _num_series(work, "last5_under"),
-            "DEF_TIER": "LEAGUE AVG",
-            "OVERALL_DEF_RANK": "N/A",
-            "sport": "Golf",
-            "pp_projection_id": work.get("projection_id", work.get("pp_projection_id", "")).fillna("").astype(str),
-            "pp_game_id": work.get("pp_game_id", "").fillna("").astype(str),
-            "course_fit_score": _num_series(work, "course_fit_score"),
-            "sg_ott": _num_series(work, "sg_ott"),
-            "sg_app": _num_series(work, "sg_app"),
-            "sg_arg": _num_series(work, "sg_arg"),
-            "weather_signal": work.get("weather_signal", pd.NA),
-        }
+    work["rank_score"] = rank_score.round(4)
+    work["projection"] = proj.round(4)
+    work["edge"] = edge.round(4)
+    work["abs_edge"] = edge.abs().round(4)
+    work["composite_hit_rate"] = composite_hr.round(4)
+    work["line_hit_rate"] = composite_hr.round(4)
+    work["line_hit_rate_over_ou_5"] = hr5
+    work["line_hit_rate_over_ou_10"] = hr10
+    work["stat_last5_avg"] = l5
+    work["stat_season_avg"] = seas
+    work["ml_prob"] = (0.40 + 0.25 * composite_hr).clip(0.38, 0.78).round(4)
+    work["pick_type"] = pick
+    work["bet_direction"] = bet_dir
+    work["final_bet_direction"] = bet_dir
+    work["sport"] = "Golf"
+    if "league" not in work.columns or work["league"].astype(str).str.strip().eq("").all():
+        work["league"] = "PGA"
+    work["league"] = work["league"].fillna("PGA").astype(str)
+    event = work.get("event", work.get("tournament", pd.Series("", index=work.index)))
+    if "team" not in work.columns or work["team"].astype(str).str.strip().eq("").all():
+        work["team"] = event.fillna("").astype(str)
+    if "event" not in work.columns:
+        work["event"] = event.fillna("").astype(str)
+    if "tournament" not in work.columns:
+        work["tournament"] = work.get("event", "").fillna("").astype(str)
+    if "course" not in work.columns:
+        work["course"] = ""
+    if "opp_team" not in work.columns:
+        work["opp_team"] = work["course"].fillna("").astype(str)
+    if "pos" not in work.columns:
+        work["pos"] = ""
+    if "pp_projection_id" not in work.columns:
+        work["pp_projection_id"] = work.get("projection_id", "").fillna("").astype(str)
+    # Individual sport — no opponent D. N/A is skipped in badges, not a miss.
+    work["DEF_TIER"] = "N/A"
+    work["OVERALL_DEF_RANK"] = "N/A"
+
+    work = apply_ml_rank_blend(
+        work,
+        rank_col="rank_score",
+        composite_hr_col="composite_hit_rate",
+        label="Golf step7",
     )
-    out["tier"] = assign_tier_column(out, sport="golf")
-    report_goblin_demon_standard_line_fill(out, "[Golf step7]")
+    apply_consistency_grade_scores(work, "Golf")
+    work["tier"] = assign_tier_column(work, sport="golf")
+    report_goblin_demon_standard_line_fill(work, "[Golf step7]")
+    print_tier_distribution_by_pick_direction_group(work, label="[Golf step7]")
+
+    g1 = int(pd.to_numeric(work.get("stat_g1"), errors="coerce").notna().sum()) if "stat_g1" in work.columns else 0
+    print(f"[Golf step7] stat_g1 fill={g1}/{len(work)}")
 
     out_path = Path(args.output)
     if not out_path.is_absolute():
         out_path = root / out_path
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    write_excel_sheets(out_path, {"ALL": out})
-    write_parquet_sidecar(out, out_path)
-    print(f"[Golf step7] Saved → {out_path}  rows={len(out)}")
+    write_excel_sheets(out_path, {"ALL": work})
+    write_parquet_sidecar(work, out_path)
+    print(f"[Golf step7] Saved → {out_path}  rows={len(work)}")
 
 
 if __name__ == "__main__":

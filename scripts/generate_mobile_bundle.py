@@ -1292,7 +1292,7 @@ async function fetch_smart(localPath) {
         modified_default = f"{slate_date} 12:00:00" if slate_date else ""
         status_sports = [
             "nba", "nba1h", "nba1q", "cbb", "cfb", "nhl", "soccer", "mlb", "nfl",
-            "tennis", "wnba", "wnba1h", "wnba1q", "combined",
+            "tennis", "golf", "wnba", "wnba1h", "wnba1q", "combined",
         ]
         R = ROOT_DIR
         combined_candidates = list(R.glob("combined_slate_tickets_*.xlsx"))
@@ -1360,6 +1360,13 @@ async function fetch_smart(localPath) {
                 [
                     R / "outputs" / slate_date / "tennis" / "step8_tennis_direction_clean.xlsx",
                     R / "Sports" / "Tennis" / "outputs" / "step8_tennis_direction_clean.xlsx",
+                ]
+            ),
+            "golf": _first_existing_path(
+                [
+                    R / "outputs" / slate_date / "golf" / "step8_golf_direction_clean.xlsx",
+                    R / "outputs" / slate_date / "golf" / f"step8_golf_direction_clean_{slate_date}.xlsx",
+                    R / "Sports" / "Golf" / "outputs" / "step8_golf_direction_clean.xlsx",
                 ]
             ),
             "wnba": _first_existing_path(

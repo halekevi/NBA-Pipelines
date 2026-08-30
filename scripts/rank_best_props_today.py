@@ -3,10 +3,13 @@
 
 Always prints four sports: WNBA, MLB, Soccer, Tennis. Thin pools are listed
 as empty, never omitted. NFL + NFLP share one step8 workbook and print as
-an extra NFL section when that file exists.
+an extra NFL section when that file exists. CFB and Golf print as extra
+sections when their step8 workbooks exist.
 
-Season cover = mean of that exact prop over logged games minus the posted
-line. Overs COVER when avg > line; Unders COVER when avg < line.
+Season cover (badge) = season/L10 mean of that exact prop minus the posted
+line. List ranking uses last-5 mean first, then L10, then season as
+tiebreakers. Overs COVER when season avg > line; Unders COVER when
+season avg < line.
 
 List gate (hard): directional L5 >= 4. D is NOT a hard filter — a D miss
   only costs a badge (typically Silver if D is the only miss).
@@ -15,7 +18,7 @@ List gate (hard): directional L5 >= 4. D is NOT a hard filter — a D miss
 
 Badge = how many of six checks miss (N/A skipped, not a miss):
   L5 (>=4 on the play side), Cover (avg on the right side of the line),
-  Delta (|avg-line| >= max(0.5, 15% of line)), Dir (model_dir agrees),
+  Delta (play-side last-5 vs line >= per-prop typical gap, else max(0.5, 15% of line)),
   D (all sports O=Weak|Below Avg U=Elite|Above Avg; MLB hitter_strikeouts
   inverted O=Elite|Above Avg U=Weak|Below Avg; Avg never passes), Rank (O
   worse than median D, U top 40%; hitter Ks invert; tennis ATP #).
@@ -24,7 +27,9 @@ Badge = how many of six checks miss (N/A skipped, not a miss):
   Platinum = Gold + exactly one of those two extra gates.
 
   Prop tier (S–D) is the market: S = MLB pitcher Goblins, A = WNBA/tennis
-  Goblin scoring + pitching outs + soccer saves. Sort S→D then Diamond→Bronze.
+  Goblin scoring (incl. 3PA) + pitching outs + soccer saves. Goblin FGA is B.
+  Sort S→D then Diamond→Bronze. Console prints every L5≥4 row; leftover
+  counts are listed by prop if a bucket is capped.
   Promotions can raise B/C into A/S (H+R+RBI + D, reb+ast cover, TB cover+D,
   hitter K cover). Shadow cells tag as W and stay on the list.
 
@@ -36,7 +41,8 @@ from __future__ import annotations
 import argparse
 import math
 import sys
-from datetime import datetime
+from collections import Counter
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -57,7 +63,17 @@ from utils.nflp_playing_time import (  # noqa: E402
     nflp_list_eligible,
     policy_from_row,
 )
-from prop_hit_tiers import assign_tier, sort_key_tier_then_badge  # noqa: E402
+_TENNIS_SCRIPTS = _REPO / "Sports" / "Tennis" / "scripts"
+if str(_TENNIS_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_TENNIS_SCRIPTS))
+from tennis_shared import tennis_bo5_graded_on_bo3_tape  # noqa: E402
+from prop_hit_tiers import (  # noqa: E402
+    PROP_COVER_UNIT,
+    assign_tier,
+    canon_prop,
+    norm_sport,
+    sort_key_tier_then_badge,
+)
 
 WEAK = {"weak", "easy", "easiest"}
 ELITE = {"elite", "hard", "hardest", "tough"}
@@ -88,6 +104,7 @@ _STEP1_FILES = (
     ("tennis", "step1_tennis_props.csv"),
     ("nfl", "step1_pp_props_today.csv"),
     ("cfb", "step1_cfb.csv"),
+    ("golf", "step1_golf_props.csv"),
 )
 
 
@@ -147,6 +164,7 @@ def _choose_step8_root(candidates: list[Path], date: str) -> Path | None:
                 ("tennis", "step8_tennis_direction.csv"),
                 ("nfl", "step8_nfl_direction_clean.xlsx"),
                 ("cfb", "step8_cfb_direction_clean.xlsx"),
+                ("golf", "step8_golf_direction_clean.xlsx"),
             )
         )
         if not has8:
@@ -252,7 +270,13 @@ def _n_teams(df: pd.DataFrame):
     return None
 
 
-def _delta_need(line: float) -> float:
+def _delta_need(line: float, sport: str = "", prop: str = "") -> float:
+    """Fair cover size: per-prop typical |last5-line|, else max(0.5, 15% of line)."""
+    if sport:
+        sport_n = norm_sport(sport)
+        prop_n = canon_prop(sport_n, prop)
+        if (sport_n, prop_n) in PROP_COVER_UNIT:
+            return max(DELTA_FLOOR, float(PROP_COVER_UNIT[(sport_n, prop_n)]))
     return max(DELTA_FLOOR, abs(line) * DELTA_PCT)
 
 
@@ -317,24 +341,75 @@ def _flt(v):
         return None
 
 
-def _prop_avg(r) -> float | None:
-    """Mean of that exact prop over all logged games (season avg, else g1..gN)."""
-    seas = (
-        _flt(r.get("stat_season_avg"))
-        or _flt(r.get("season_avg"))
-        or _flt(r.get("Season Avg"))
-        or _flt(r.get("Projection"))
-    )
-    if seas is not None:
-        return seas
+def _first_num(r, *keys) -> float | None:
+    for k in keys:
+        v = _flt(r.get(k))
+        if v is not None:
+            return v
+    return None
+
+
+def _mean_stat_g(r, n: int) -> float | None:
     vals = []
-    for i in range(1, 21):
+    for i in range(1, n + 1):
         v = _flt(r.get(f"stat_g{i}"))
         if v is not None:
             vals.append(v)
     if not vals:
         return None
     return sum(vals) / len(vals)
+
+
+def _avg_windows(r) -> tuple[float | None, float | None, float | None]:
+    """Last-5, last-10, and season means for the posted prop.
+
+    PrizePicks last-5 is the list sample. Season/L10 on MLB pitching is often
+    pulled down by short outings (Lowder L5 94 vs L10/season 70).
+    """
+    l5 = _first_num(r, "stat_last5_avg", "Last 5 Avg", "last5_avg")
+    if l5 is None:
+        l5 = _mean_stat_g(r, 5)
+    l10 = _first_num(r, "stat_last10_avg", "Last 10 Avg", "last10_avg")
+    if l10 is None:
+        l10 = _mean_stat_g(r, 10)
+    seas = _first_num(r, "stat_season_avg", "season_avg", "Season Avg", "Projection")
+    if seas is None:
+        seas = l10 if l10 is not None else l5
+    return l5, l10, seas
+
+
+def _prop_avg(r) -> float | None:
+    """Season / L10 mean (badge Cover). Prefer this over last-5 so Gold stays strict."""
+    _l5, l10, seas = _avg_windows(r)
+    if seas is not None:
+        return seas
+    if l10 is not None:
+        return l10
+    return _l5
+
+
+def _dist(avg, line) -> float | None:
+    if avg is None or line is None:
+        return None
+    return round(float(avg) - float(line), 2)
+
+
+def l5_window_sort_key(r: dict) -> tuple:
+    """Biggest |L5 avg − line| first; L10 then season break ties."""
+
+    def absd(*vals) -> float:
+        for v in vals:
+            if isinstance(v, (int, float)):
+                return abs(float(v))
+        return -1.0
+
+    return (
+        -absd(r.get("dist_l5"), r.get("Dist_L5")),
+        -absd(r.get("dist_l10"), r.get("Dist_L10")),
+        -absd(r.get("dist_season"), r.get("Dist_Season")),
+        str(r.get("sport") or r.get("Sport") or ""),
+        str(r.get("player") or r.get("Player") or ""),
+    )
 
 
 def _first_count(*vals):
@@ -451,8 +526,11 @@ def _badge(rec: dict, n_teams: int | None) -> dict:
     if cover is None or line is None:
         checks["Delta"] = None
     else:
-        need = _delta_need(float(line))
-        checks["Delta"] = cover >= need if over else cover <= -need
+        need = _delta_need(float(line), sport, str(rec.get("prop") or ""))
+        gap = rec.get("dist_l5")
+        if gap is None:
+            gap = cover
+        checks["Delta"] = gap >= need if over else gap <= -need
 
     if not model:
         checks["Dir"] = None
@@ -546,22 +624,59 @@ def fill_tennis_opp_rank_from_slate(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def filter_step8_to_slate_date(df: pd.DataFrame, date: str, sport: str = "") -> pd.DataFrame:
-    """Keep rows whose game starts on ``date`` Eastern.
+    """Keep rows whose game starts on the list window in Eastern.
 
     Day-ahead boards often store the fetch day in ``game_date`` while
     ``start_time`` is the actual tip. Prefer start_time when it parses.
+
+    Tennis keeps today + 2 ET days so Saturday ranking still includes
+    Monday slam first-round matches (US Open Total Games, etc.).
     """
     if df is None or getattr(df, "empty", True):
         return df
+    keep = _slate_keep_dates(date, sport)
     if "start_time" in df.columns:
         st = pd.to_datetime(df["start_time"], errors="coerce", utc=True)
         if st.notna().any():
             et = st.dt.tz_convert("America/New_York").dt.strftime("%Y-%m-%d")
-            return df.loc[et.eq(date)].copy()
+            return df.loc[et.isin(keep)].copy()
     if "game_date" in df.columns and str(sport).upper() != "TENNIS":
         gd = df["game_date"].astype(str).str[:10]
         return df.loc[gd.eq(date) | gd.eq("") | gd.eq("nan")].copy()
     return df
+
+
+def _slate_keep_dates(date: str, sport: str = "") -> set[str]:
+    day = str(date or "")[:10]
+    keep = {day} if day else set()
+    if str(sport or "").upper() != "TENNIS":
+        return keep
+    try:
+        d0 = datetime.strptime(day, "%Y-%m-%d").date()
+    except ValueError:
+        return keep
+    return {(d0 + timedelta(days=i)).isoformat() for i in range(3)}
+
+
+def step8_empty_reason(
+    root: Path, date: str, sport: str, folder: str, fname: str
+) -> str:
+    """Explain an empty sport section — missing pipeline vs truly empty slate."""
+    step8_path = root / "outputs" / date / folder / fname
+    step1_name = {
+        "wnba": "step1_wnba_props.csv",
+        "mlb": "step1_mlb_props.csv",
+        "soccer": "step1_soccer_props.csv",
+        "tennis": "step1_tennis_props.csv",
+    }.get(folder)
+    if table_exists(step8_path):
+        return f"  (step8 present but 0 rows in list window for {date})"
+    if step1_name and (root / "outputs" / date / folder / step1_name).is_file():
+        return (
+            f"  WARN: {sport} step1 exists but {fname} is missing — "
+            "pipeline did not finish; do not treat as an empty slate."
+        )
+    return "  (no step8 file)"
 
 
 def load_sport(root: Path, date: str, sport: str, folder: str, fname: str) -> pd.DataFrame:
@@ -606,6 +721,21 @@ def load_cfb(root: Path, date: str) -> pd.DataFrame:
     return df
 
 
+def load_golf(root: Path, date: str) -> pd.DataFrame:
+    """PGA tournament-week step8 workbook."""
+    candidates = [
+        root / "outputs" / date / "golf" / "step8_golf_direction_clean.xlsx",
+        root / "outputs" / date / "golf" / f"step8_golf_direction_clean_{date}.xlsx",
+        root / "Sports" / "Golf" / "outputs" / "step8_golf_direction_clean.xlsx",
+    ]
+    path = next((p for p in candidates if table_exists(p)), None)
+    if path is None:
+        return pd.DataFrame()
+    df = read_table(path, sheet_order=("Golf", "ALL"))
+    df["sport"] = "GOLF"
+    return df
+
+
 CBB_SEASON_END_2026 = "2026-04-07"
 CBB_SEASON_RESUME = "2026-11-01"
 
@@ -643,6 +773,8 @@ def recs(df: pd.DataFrame) -> list[dict]:
     out = []
     n_teams = _n_teams(df)
     for _, r in df.iterrows():
+        if str(r.get("sport") or "").upper() == "TENNIS" and tennis_bo5_graded_on_bo3_tape(r):
+            continue
         prop = str(r.get("prop_type") or r.get("prop") or r.get("Prop") or "").strip()
         if prop.lower() in SKIP_PROPS:
             continue
@@ -652,6 +784,7 @@ def recs(df: pd.DataFrame) -> list[dict]:
         line = _flt(r.get("line"))
         if line is None:
             line = _flt(r.get("Line"))
+        avg_l5, avg_l10, avg_seas = _avg_windows(r)
         avg = _prop_avg(r)
         cover = None if avg is None or line is None else avg - line
         side = _dir(r)
@@ -677,7 +810,13 @@ def recs(df: pd.DataFrame) -> list[dict]:
             "l5_under": _l5(r, False),
             "l10_over": _l10(r, True),
             "l10_under": _l10(r, False),
+            "avg_l5": None if avg_l5 is None else round(avg_l5, 2),
+            "avg_l10": None if avg_l10 is None else round(avg_l10, 2),
+            "avg_season": None if avg_seas is None else round(avg_seas, 2),
             "season_avg": None if avg is None else round(avg, 2),
+            "dist_l5": _dist(avg_l5, line),
+            "dist_l10": _dist(avg_l10, line),
+            "dist_season": _dist(avg_seas, line),
             "cover": None if cover is None else round(cover, 2),
             "clears_line": clears,
             "def": _def(r),
@@ -812,6 +951,10 @@ def _fmt(r: dict, side: str) -> str:
     d_s = f"{d}#{rk}" if rk else d
     avg = r.get("season_avg")
     cover = r.get("cover")
+    l5a = r.get("avg_l5")
+    l10a = r.get("avg_l10")
+    l5a_s = f"{l5a:5.2f}" if isinstance(l5a, (int, float)) else "  n/a"
+    l10a_s = f"{l10a:5.2f}" if isinstance(l10a, (int, float)) else "  n/a"
     avg_s = f"{avg:5.2f}" if isinstance(avg, (int, float)) else "  n/a"
     if isinstance(cover, (int, float)):
         cov_s = f"{cover:+5.2f}"
@@ -835,8 +978,9 @@ def _fmt(r: dict, side: str) -> str:
     if pol and pol not in ("normal", ""):
         pol_s = f"  {pol} {snaps}".rstrip()
     return (
-        f"  {tag:12} {r['player']:24} {r['prop']:18} {prefix}{line}  "
-        f"L5 {l5}  avg {avg_s}  cov {cov_s}  {d_s:12}{miss_s}{note_s}{pol_s}  {r.get('matchup') or ''}"
+        f"  {tag:12} {r['player']:24} {r['prop']:24} {prefix}{line}  "
+        f"L5 {l5}  L5avg {l5a_s}  L10avg {l10a_s}  szn {avg_s}  cov {cov_s}  "
+        f"{d_s:12}{miss_s}{note_s}{pol_s}  {r.get('matchup') or ''}"
     )
 
 
@@ -865,6 +1009,12 @@ def _row_for_xlsx(r: dict, category: str) -> dict:
         "Line_num": line,
         "L5_over": r.get("l5_over"),
         "L5_under": r.get("l5_under"),
+        "L5_avg": r.get("avg_l5"),
+        "L10_avg": r.get("avg_l10"),
+        "Season_avg": r.get("avg_season"),
+        "Dist_L5": r.get("dist_l5"),
+        "Dist_L10": r.get("dist_l10"),
+        "Dist_Season": r.get("dist_season"),
         "Avg": r.get("season_avg"),
         "Cover": r.get("cover"),
         "D": r.get("def") or "",
@@ -938,7 +1088,20 @@ def write_best_props_xlsx(path: Path, by_sport: dict[str, list[dict]]) -> None:
     write_excel_sheets(path, sheets)
 
 
-def print_sport(sport: str, std_o, std_u, gob, n_o=8, n_u=8, n_g=12) -> None:
+def _print_capped(rows: list[dict], side: str, limit: int | None) -> None:
+    """Print list-gate rows. If capped, say which props were cut (FGA/FT used to vanish here)."""
+    shown = rows if limit is None else rows[:limit]
+    for r in shown:
+        print(_fmt(r, side))
+    if limit is None or len(rows) <= limit:
+        return
+    rest = rows[limit:]
+    counts = Counter(str(r.get("prop") or "") for r in rest)
+    bits = ", ".join(f"{p} x{n}" for p, n in counts.most_common(12))
+    print(f"  … {len(rest)} more L5≥4 not shown ({bits})")
+
+
+def print_sport(sport: str, std_o, std_u, gob, n_o=None, n_u=None, n_g=None) -> None:
     listed = std_o + std_u + gob
     n_dia = sum(1 for r in listed if r.get("promo") == "Diamond")
     n_plat = sum(1 for r in listed if r.get("promo") == "Platinum")
@@ -953,19 +1116,25 @@ def print_sport(sport: str, std_o, std_u, gob, n_o=8, n_u=8, n_g=12) -> None:
         f"Diamond {n_dia}  Platinum {n_plat}  "
         f"Gold {n_gold}  Silver {n_sil}  Bronze {n_brz}"
     )
+    empty = (
+        "  (none that clear L5 4+ / NFLP playing-time gate)"
+        if sport == "NFL"
+        else "  (none that clear L5 4+)"
+    )
     print(f"Standard OVER  (n={len(std_o)})")
     if not std_o:
-        print("  (none that clear L5 4+ / NFLP playing-time gate)" if sport == "NFL" else "  (none that clear L5 4+)")
-    for r in std_o[:n_o]:
-        print(_fmt(r, "OVER"))
+        print(empty)
+    else:
+        _print_capped(std_o, "OVER", n_o)
     print(f"Standard UNDER (n={len(std_u)})")
     if not std_u:
-        print("  (none that clear L5 4+ / NFLP playing-time gate)" if sport == "NFL" else "  (none that clear L5 4+)")
-    for r in std_u[:n_u]:
-        print(_fmt(r, "UNDER"))
+        print(empty)
+    else:
+        _print_capped(std_u, "UNDER", n_u)
     print(f"Goblin OVER    (n={len(gob)})")
     if not gob:
-        print("  (none that clear L5 4+ / NFLP playing-time gate)" if sport == "NFL" else "  (none that clear L5 4+)")
+        print(empty)
+        return
 
     def _skip_er(r):
         return "earned run" in str(r.get("prop") or "").lower() and float(r.get("line") or 99) <= 0.5
@@ -973,8 +1142,7 @@ def print_sport(sport: str, std_o, std_u, gob, n_o=8, n_u=8, n_g=12) -> None:
     vis = [r for r in gob if not _skip_er(r)]
     hot = [r for r in vis if r.get("prop_tier") in ("S", "A")]
     other = [r for r in vis if r.get("prop_tier") not in ("S", "A")]
-    for r in hot + other[:n_g]:
-        print(_fmt(r, "OVER"))
+    _print_capped(hot + other, "OVER", None if n_g is None else (len(hot) + n_g))
 
 
 def main() -> int:
@@ -1021,7 +1189,8 @@ def main() -> int:
     for sport, folder, fname in SPORTS:
         df = load_sport(root, date, sport, folder, fname)
         if df.empty:
-            print(f"\n===== {sport} =====\n  (no step8 file)")
+            print(f"\n===== {sport} =====")
+            print(step8_empty_reason(root, date, sport, folder, fname))
             by_sport[sport] = []
             continue
         all_rows.extend(recs(df))
@@ -1046,6 +1215,15 @@ def main() -> int:
         so, su, gob = bucket(all_rows, "CFB")
         print_sport("CFB", so, su, gob, n_o=20, n_u=20, n_g=20)
         by_sport["CFB"] = sport_rows_for_xlsx("CFB", so, su, gob)
+    df_golf = load_golf(root, date)
+    if df_golf.empty:
+        print("\n===== GOLF =====\n  (no step8 file)")
+        by_sport["GOLF"] = []
+    else:
+        all_rows.extend(recs(df_golf))
+        so, su, gob = bucket(all_rows, "GOLF")
+        print_sport("GOLF", so, su, gob)
+        by_sport["GOLF"] = sport_rows_for_xlsx("GOLF", so, su, gob)
     for sport, loader in (("CBB", load_cbb), ("WCBB", load_wcbb)):
         df_x = loader(root, date)
         if df_x.empty:

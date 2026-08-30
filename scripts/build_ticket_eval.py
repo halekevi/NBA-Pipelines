@@ -1832,6 +1832,7 @@ def _merge_strict_graded_date_workbooks(
         "nba1h": "NBA1H",
         "nba1q": "NBA1Q",
         "tennis": "TENNIS",
+        "golf": "GOLF",
     }
     for graded_file in sorted(graded_dir.glob(f"graded_*_{arg_date}.xlsx")):
         m = re.match(r"^graded_(.+)_(\d{4}-\d{2}-\d{2})$", graded_file.stem)

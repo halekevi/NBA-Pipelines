@@ -93,6 +93,9 @@ def backfill_one_date(date_str: str, templates: Path, *, json_only: bool = False
         bundles.append(("WNBA", load_graded(wnba_path, "wnba")))
     if tennis_path:
         bundles.append(("Tennis", load_graded(tennis_path, "tennis")))
+    golf_path = find_graded_file("golf", date_str)
+    if golf_path:
+        bundles.append(("Golf", load_graded(golf_path, "golf")))
 
     if not bundles:
         return False

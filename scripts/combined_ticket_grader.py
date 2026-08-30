@@ -996,7 +996,8 @@ def lookup_actual(sport: str, player: str, team: str, prop_norm: str,
                   nhl_lpt=None, nhl_lp=None,
                   soccer_lpt=None, soccer_lp=None,
                   tennis_lpt=None, tennis_lp=None,
-                  mlb_lpt=None, mlb_lp=None) -> float:
+                  mlb_lpt=None, mlb_lp=None,
+                  golf_lpt=None, golf_lp=None) -> float:
     sport = (sport or "").upper()
     if sport == "WCBB":
         sport = "CBB"
@@ -1127,6 +1128,17 @@ def lookup_actual(sport: str, player: str, team: str, prop_norm: str,
             return float(tennis_lp[key1][0]["actual"])
         return np.nan
 
+    if sport in ("GOLF", "PGA"):
+        if golf_lpt is None or golf_lp is None:
+            return np.nan
+        key2 = (player_n, team_n, prop_norm)
+        if key2 in golf_lpt:
+            return float(golf_lpt[key2][0]["actual"])
+        key1 = (player_n, prop_norm)
+        if key1 in golf_lp:
+            return float(golf_lp[key1][0]["actual"])
+        return np.nan
+
     if sport == "MLB":
         if mlb_lpt is None or mlb_lp is None:
             return np.nan
@@ -1170,6 +1182,8 @@ def _lookup_actual_with_combo_fallback(
     tennis_lp=None,
     mlb_lpt=None,
     mlb_lp=None,
+    golf_lpt=None,
+    golf_lp=None,
 ) -> float:
     val = lookup_actual(
         sport,
@@ -1198,6 +1212,8 @@ def _lookup_actual_with_combo_fallback(
         tennis_lp=tennis_lp,
         mlb_lpt=mlb_lpt,
         mlb_lp=mlb_lp,
+        golf_lpt=golf_lpt,
+        golf_lp=golf_lp,
     )
     if not pd.isna(val):
         return val
@@ -1806,6 +1822,7 @@ def main():
     ap.add_argument("--nhl_actuals", default="", help="actuals_nhl_YYYY-MM-DD.csv (optional, for NHL legs)")
     ap.add_argument("--soccer_actuals", default="", help="actuals_soccer_YYYY-MM-DD.csv (optional, for Soccer legs)")
     ap.add_argument("--tennis_actuals", default="", help="actuals_tennis_YYYY-MM-DD.csv (optional, for Tennis legs)")
+    ap.add_argument("--golf_actuals", default="", help="actuals_golf_YYYY-MM-DD.csv (optional, for Golf/PGA legs)")
     ap.add_argument("--mlb_actuals", default="", help="actuals_mlb_YYYY-MM-DD.csv (optional, for MLB legs)")
     ap.add_argument("--wnba_actuals", default="", help="actuals_wnba_YYYY-MM-DD.csv (optional, for WNBA legs)")
     ap.add_argument("--wnba1h_actuals", default="", help="actuals_wnba1h_YYYY-MM-DD.csv (optional; 1H period only)")
@@ -1893,6 +1910,8 @@ def main():
     soccer_act = pd.DataFrame()
     tennis_act = pd.DataFrame()
     tennis_lp = tennis_lpt = None
+    golf_act = pd.DataFrame()
+    golf_lp = golf_lpt = None
     mlb_lp = mlb_lpt = None
     wnba_lp = wnba_lpt = None
     wnba_act = pd.DataFrame()
@@ -1912,6 +1931,10 @@ def main():
         tennis_csv = Path(args.tennis_actuals)
         tennis_act = prep_actuals(tennis_csv, "TENNIS")
         tennis_lp, tennis_lpt = build_lookup(tennis_act)
+    if args.golf_actuals:
+        golf_csv = Path(args.golf_actuals)
+        golf_act = prep_actuals(golf_csv, "GOLF")
+        golf_lp, golf_lpt = build_lookup(golf_act)
 
     mlb_actuals_path = Path(str(args.mlb_actuals or "").strip())
     mlb_act = pd.DataFrame()
@@ -1963,6 +1986,8 @@ def main():
         _append_grade_latency_row(ROOT, grade_date, "SOCCER", Path(args.soccer_actuals), grade_ts)
     if args.tennis_actuals:
         _append_grade_latency_row(ROOT, grade_date, "TENNIS", Path(args.tennis_actuals), grade_ts)
+    if args.golf_actuals:
+        _append_grade_latency_row(ROOT, grade_date, "GOLF", Path(args.golf_actuals), grade_ts)
     if mlb_actuals_path.is_file():
         _append_grade_latency_row(ROOT, grade_date, "MLB", mlb_actuals_path, grade_ts)
     if wnba_actuals_path.is_file():
@@ -2102,6 +2127,8 @@ def main():
             return wnba1h_act if not wnba1h_act.empty else None
         if su == "WNBA1Q":
             return wnba1q_act if not wnba1q_act.empty else None
+        if su in ("GOLF", "PGA"):
+            return golf_act if not golf_act.empty else None
         return None
 
     legs_df["actual"] = legs_df.apply(
@@ -2133,6 +2160,8 @@ def main():
             tennis_lp=tennis_lp,
             mlb_lpt=mlb_lpt,
             mlb_lp=mlb_lp,
+            golf_lpt=golf_lpt,
+            golf_lp=golf_lp,
         ),
         axis=1,
     )

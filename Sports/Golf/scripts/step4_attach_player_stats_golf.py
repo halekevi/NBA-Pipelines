@@ -29,7 +29,11 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 from utils.player_name_utils import normalize_player_name
 
-SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/golf/pga/scoreboard"
+SCOREBOARD_PATH = "apis/site/v2/sports/golf/pga/scoreboard"
+SCOREBOARD_HOSTS = (
+    "https://site.web.api.espn.com",
+    "https://site.api.espn.com",
+)
 CACHE_COLUMNS = [
     "espn_id",
     "player_name",
@@ -49,9 +53,11 @@ CACHE_COLUMNS = [
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json",
+    "Accept": "application/json, text/plain, */*",
+    "Referer": "https://www.espn.com/golf/",
+    "Origin": "https://www.espn.com",
 }
 
 
@@ -136,14 +142,24 @@ def _event_date(ev: dict) -> str:
 
 def _fetch_scoreboard_range(start: date, end: date) -> list[dict]:
     dates = f"{start.strftime('%Y%m%d')}-{end.strftime('%Y%m%d')}"
-    try:
-        r = requests.get(SCOREBOARD_URL, params={"dates": dates}, headers=HEADERS, timeout=25)
-        r.raise_for_status()
-        payload = r.json()
-    except Exception as exc:
-        print(f"  [WARN] scoreboard fetch failed for {dates}: {exc}")
-        return []
-    return list(payload.get("events") or [])
+    last_err: Exception | str | None = None
+    for host in SCOREBOARD_HOSTS:
+        url = f"{host}/{SCOREBOARD_PATH}"
+        try:
+            r = requests.get(url, params={"dates": dates}, headers=HEADERS, timeout=25)
+            if r.status_code == 403:
+                last_err = f"403 from {host.split('//', 1)[-1]}"
+                continue
+            r.raise_for_status()
+            payload = r.json()
+            if isinstance(payload, dict):
+                return list(payload.get("events") or [])
+            last_err = "non-dict JSON"
+        except Exception as exc:
+            last_err = exc
+            continue
+    print(f"  [WARN] scoreboard fetch failed for {dates}: {last_err}")
+    return []
 
 
 def _rows_from_events(events: list[dict]) -> list[dict]:

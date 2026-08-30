@@ -58,6 +58,7 @@ def _resolve_optional_actuals(date_dir: Path, d: str) -> dict[str, Path]:
         "nhl": f"actuals_nhl_{d}.csv",
         "soccer": f"actuals_soccer_{d}.csv",
         "tennis": f"actuals_tennis_{d}.csv",
+        "golf": f"actuals_golf_{d}.csv",
     }
     for k, name in map_names.items():
         p = date_dir / name
@@ -142,6 +143,8 @@ def main() -> None:
             "nhl": _resolve_board(date_dir, f"step8_nhl_direction_clean_{d}"),
             "soccer": _resolve_board(date_dir, f"step8_soccer_direction_clean_{d}"),
             "tennis": _resolve_board(date_dir, f"step8_tennis_direction_clean_{d}"),
+            "golf": _resolve_board(date_dir / "golf", "step8_golf_direction_clean")
+            or _resolve_board(date_dir, f"step8_golf_direction_clean_{d}"),
             "mlb": _resolve_board(date_dir, f"step8_mlb_direction_clean_{d}"),
             "nba1q": _resolve_board(date_dir, f"step8_nba1q_direction_clean_{d}"),
             "nba1h": _resolve_board(date_dir, f"step8_nba1h_direction_clean_{d}"),
@@ -201,6 +204,8 @@ def main() -> None:
             grade_cmd.extend(["--soccer_actuals", str(optional_actuals["soccer"])])
         if optional_actuals.get("tennis"):
             grade_cmd.extend(["--tennis_actuals", str(optional_actuals["tennis"])])
+        if optional_actuals.get("golf"):
+            grade_cmd.extend(["--golf_actuals", str(optional_actuals["golf"])])
 
         print(f"[run] {d} regenerate -> {regen_xlsx.name}")
         if args.dry_run:

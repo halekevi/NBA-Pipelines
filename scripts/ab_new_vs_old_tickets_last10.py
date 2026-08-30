@@ -47,6 +47,7 @@ def _optional_actuals(date_dir: Path, d: str) -> dict[str, Path]:
         ("nhl", f"actuals_nhl_{d}.csv"),
         ("soccer", f"actuals_soccer_{d}.csv"),
         ("tennis", f"actuals_tennis_{d}.csv"),
+        ("golf", f"actuals_golf_{d}.csv"),
     ):
         p = date_dir / name
         if p.exists():
@@ -181,6 +182,8 @@ def main() -> None:
             grade_cmd.extend(["--soccer_actuals", str(opt["soccer"])])
         if opt.get("tennis"):
             grade_cmd.extend(["--tennis_actuals", str(opt["tennis"])])
+        if opt.get("golf"):
+            grade_cmd.extend(["--golf_actuals", str(opt["golf"])])
         print(f"[new] grade {d}")
         _run(grade_cmd)
         new_graded = regen_json.with_name(regen_json.stem + "_GRADED.xlsx")

@@ -88,6 +88,7 @@ def resolve_optional_actuals(date_dir: Path, date_str: str) -> dict[str, Path]:
         ("nhl", f"actuals_nhl_{date_str}.csv"),
         ("soccer", f"actuals_soccer_{date_str}.csv"),
         ("tennis", f"actuals_tennis_{date_str}.csv"),
+        ("golf", f"actuals_golf_{date_str}.csv"),
         ("mlb", f"actuals_mlb_{date_str}.csv"),
         ("wnba", f"actuals_wnba_{date_str}.csv"),
     ]
@@ -168,6 +169,8 @@ def run_grader_subprocess(
         cmd.extend(["--soccer_actuals", str(optional["soccer"])])
     if optional.get("tennis"):
         cmd.extend(["--tennis_actuals", str(optional["tennis"])])
+    if optional.get("golf"):
+        cmd.extend(["--golf_actuals", str(optional["golf"])])
     if optional.get("mlb"):
         cmd.extend(["--mlb_actuals", str(optional["mlb"])])
     if optional.get("wnba"):

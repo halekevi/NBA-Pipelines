@@ -30,6 +30,10 @@ except Exception:
     pass
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from scripts.line_history_archive import try_archive_lines
 LEAGUES_URL = "https://api.prizepicks.com/leagues"
 
 # Verified via GET /leagues (2026-06): PGA=1, EUROGOLF=131, LPGA=256, LIVGOLF=228 (CFB=15).
@@ -270,6 +274,7 @@ def build_golf_rows(data: list[dict], included: list[dict], nba_mod: Any) -> lis
                 "pos": pos,
                 "opp_team": course,
                 "image_url": image_url,
+                "pp_updated_at": extract_pp_updated_at(attrs),
             }
         )
 
@@ -286,6 +291,9 @@ def main() -> None:
     ap.add_argument("--retries", type=int, default=5)
     ap.add_argument("--min_rows", type=int, default=3)
     ap.add_argument("--replace", action="store_true")
+    ap.add_argument("--fail-fast", action="store_true")
+    ap.add_argument("--cdp", default="")
+    ap.add_argument("--playwright", action="store_true")
     args = ap.parse_args()
 
     if args.list_leagues:
@@ -342,12 +350,27 @@ def main() -> None:
         use_id = str(args.league_id).strip()
 
     try:
-        data, included = nba.fetch_projections(
-            league_id=use_id,
-            per_page=args.per_page,
-            max_pages=args.max_pages,
-            retries=args.retries,
-        )
+        cdp_url = str(args.cdp or "").strip()
+        if cdp_url or args.playwright:
+            from utils.prizepicks_cdp import session_fetch_projections
+
+            data, included, _st = session_fetch_projections(
+                use_id,
+                cdp_url=cdp_url,
+                playwright=bool(args.playwright) and not cdp_url,
+                per_page=int(args.per_page),
+                max_pages=int(args.max_pages),
+            )
+        else:
+            data, included = nba.fetch_projections(
+                league_id=use_id,
+                per_page=args.per_page,
+                max_pages=min(4, args.max_pages) if args.fail_fast else args.max_pages,
+                retries=min(2, args.retries) if args.fail_fast else args.retries,
+                first_page_waves=1 if args.fail_fast else 3,
+                fail_fast=bool(args.fail_fast),
+                forbid_max_cooldown_windows=0 if args.fail_fast else 3,
+            )
     except Exception as e:
         if _fallback_to_existing_csv(f"fetch failed ({e})"):
             print("[Golf step1] BOARD_OK_FALLBACK")
@@ -400,7 +423,10 @@ def main() -> None:
         sys.exit(1)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
+    try_archive_lines(df, sport="GOLF", only_fetched_at=pull_ts)
     print(f"[Golf step1] Saved → {out_path}")
     print("[Golf step1] BOARD_OK")
 

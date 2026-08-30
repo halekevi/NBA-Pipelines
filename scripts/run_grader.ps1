@@ -8,7 +8,7 @@ $Root = Split-Path $PSScriptRoot -Parent
 $SportsRoot = Join-Path $Root "Sports"
 $DateDir = Join-Path $Root "outputs\$Date"
 $CanonicalDateDir = Join-Path $DateDir "canonical"
-# Tennis: early-AM board fetched same calendar day (3AM light + 7AM refresh).
+# Tennis: same calendar day as -Date via Daily 1AM full pipeline (+ later refreshes).
 # -Date is the main sports grade day; tennis match day = payload tennis_date or -Date (same day).
 # Step8 may live under outputs/<match_day>/ or outputs/<match_day-1>/ (see Get-TennisStep8Candidates).
 $TennisSlateDate = $Date
@@ -49,7 +49,7 @@ function Get-TennisStep8Candidates {
         [string]$GradeDate,
         [string]$OffsetBundleDate
     )
-    # Tennis is fetched same calendar day (3AM / 7AM). Step8 may also live under
+    # Tennis is fetched same calendar day (Daily 5AM + later refreshes). Step8 may also live under
     # match_day-1 when an older evening pre-load wrote there. Prefer:
     #   outputs/<match_day>/tennis/     (same-day pipeline)
     #   outputs/<match_day-1>/tennis/   (legacy tonight-fetch / tomorrow-play)
@@ -140,10 +140,13 @@ $WCBBActuals = Join-Path $DateDir "actuals_wcbb_$Date.csv"
 $NHLActuals  = Join-Path $DateDir "actuals_nhl_$Date.csv"
 $SoccerActuals  = Join-Path $DateDir "actuals_soccer_$Date.csv"
 $TennisActuals  = Join-Path $TennisGradeOutDir "actuals_tennis_$TennisSlateDate.csv"
+$GolfActuals    = Join-Path $DateDir "actuals_golf_$Date.csv"
 $MlbActuals    = Join-Path $DateDir "actuals_mlb_$Date.csv"
 $FetchActualsScript = Join-Path $Root "scripts\fetch_actuals.py"
 $FetchTennisActualsScript = Join-Path $Root "scripts\fetch_tennis_actuals.py"
 $TennisGraderScript = Join-Path $SportsRoot "Tennis\scripts\tennis_grader.py"
+$FetchGolfActualsScript = Join-Path $Root "scripts\fetch_golf_actuals.py"
+$GolfGraderScript = Join-Path $SportsRoot "Golf\scripts\golf_grader.py"
 $FetchNBAPeriodActualsScript = Join-Path $Root "scripts\fetch_nba_period_actuals.py"
 $BuildNBA1QHistoryScript = Join-Path $Root "scripts\build_nba1q_history_db.py"
 $SlateGraderScript = Join-Path $Root "scripts\grading\slate_grader.py"
@@ -171,6 +174,7 @@ $NBA1HGradedFile = Join-Path $DateDir "graded_nba1h_$Date.xlsx"
 $NBA1QGradedFile = Join-Path $DateDir "graded_nba1q_$Date.xlsx"
 $WCBBGradedFile = Join-Path $DateDir "graded_wcbb_$Date.xlsx"
 $TennisGradedFile = Join-Path $TennisGradeOutDir "graded_tennis_$TennisSlateDate.xlsx"
+$GolfGradedFile = Join-Path $DateDir "graded_golf_$Date.xlsx"
 $WNBAActuals = Join-Path $DateDir "actuals_wnba_$Date.csv"
 $WNBA1HActuals = Join-Path $DateDir "actuals_wnba1h_$Date.csv"
 $WNBA1QActuals = Join-Path $DateDir "actuals_wnba1q_$Date.csv"
@@ -217,6 +221,7 @@ function Copy-PropOracleGradedSlateBundle {
         "graded_nfl_$GradeDate.xlsx",
         "graded_cfb_$GradeDate.xlsx",
         $tennisGradedLeaf,
+        "graded_golf_$GradeDate.xlsx",
         "combined_tickets_graded_$GradeDate.xlsx"
     )
 
@@ -558,6 +563,38 @@ if (Test-Path $FetchActualsScript) {
                 "--output", $TennisGradedFile,
                 "--days-back", "2",
                 "--days-forward", "1"
+            ) -PreferPy314
+        }
+    }
+
+    if (Test-Path $FetchGolfActualsScript) {
+        New-Item -ItemType Directory -Force -Path $DateDir | Out-Null
+        $GolfActuals = Join-Path $DateDir "actuals_golf_$Date.csv"
+        Run-Py "Fetch Golf Actuals" $Root $FetchGolfActualsScript @(
+            "--date", $Date,
+            "--output", $GolfActuals
+        )
+    }
+    if (Test-Path $GolfGraderScript) {
+        $GolfStep8Search = @(
+            (Join-Path $DateDir "golf\step8_golf_direction_clean.xlsx"),
+            (Join-Path $DateDir "golf\step8_golf_direction_clean_$Date.xlsx"),
+            (Join-Path $DateDir "step8_golf_direction_clean_$Date.xlsx"),
+            (Join-Path $SportsRoot "Golf\outputs\step8_golf_direction_clean.xlsx"),
+            (Join-Path $SportsRoot "Golf\step8_golf_direction_clean.xlsx")
+        )
+        $GolfSlateFile = Resolve-FirstExisting $GolfStep8Search
+        if (-not $GolfSlateFile) {
+            Write-Host "Skipping Golf grader (no step8 golf slate for $Date)." -ForegroundColor Yellow
+        }
+        else {
+            Write-Host "Golf: grading $Date (step8: $GolfSlateFile)" -ForegroundColor DarkGray
+            $GolfGradedFile = Join-Path $DateDir "graded_golf_$Date.xlsx"
+            Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $GolfSlateFile -GradeDate $Date -SportLabel "Golf"
+            Run-Py "Golf Grader" $Root $GolfGraderScript @(
+                "--date", $Date,
+                "--slate", $GolfSlateFile,
+                "--output", $GolfGradedFile
             ) -PreferPy314
         }
     }
@@ -1029,14 +1066,36 @@ else {
 }
 
 $NFLStep8Dated = Join-Path $DateDir "nfl\step8_nfl_direction_clean.xlsx"
+$NFLStep8DatedLeaf = Join-Path $DateDir "nfl\step8_nfl_direction_clean_$Date.xlsx"
 $NFLStep8Bundle = Join-Path $DateDir "step8_nfl_direction_clean_$Date.xlsx"
 $NFLStep8Static = Join-Path $SportsRoot "NFL\outputs\step8_nfl_direction_clean.xlsx"
-$NFLSlateFile = Resolve-FirstExisting @($NFLStep8Dated, $NFLStep8Bundle, $NFLStep8Static)
+$NFLStep8StaticDated = Join-Path $SportsRoot "NFL\outputs\$Date\step8_nfl_direction_clean_$Date.xlsx"
+$NFLSlateFile = Resolve-FirstExisting @(
+    $NFLStep8Dated,
+    $NFLStep8DatedLeaf,
+    $NFLStep8Bundle,
+    $NFLStep8StaticDated,
+    $NFLStep8Static
+)
 if ($NFLSlateFile) {
     Write-Host "[GRADER] NFL slate: $(Split-Path $NFLSlateFile -Leaf)" -ForegroundColor Cyan
     Warn-IfSlateFilenameMissingGradeDate -ResolvedPath $NFLSlateFile -GradeDate $Date -SportLabel "NFL"
 }
-if (-not (Test-Path $NFLActuals) -and (Test-Path $FetchFootballActualsScript)) {
+# Re-fetch when missing OR empty stub (header-only). Empty stubs from mid-game / ESPN 403
+# previously blocked later grader runs from pulling final box scores.
+$NFLActualsNeedFetch = $true
+if (Test-Path -LiteralPath $NFLActuals) {
+    try {
+        $nflActRows = @(Import-Csv -LiteralPath $NFLActuals -ErrorAction Stop)
+        if ($nflActRows.Count -gt 0) { $NFLActualsNeedFetch = $false }
+        else {
+            Write-Host "[GRADER] NFL actuals stub empty — re-fetching" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "[GRADER] NFL actuals unreadable — re-fetching" -ForegroundColor Yellow
+    }
+}
+if ($NFLActualsNeedFetch -and (Test-Path $FetchFootballActualsScript)) {
     Run-Py "Fetch NFL Actuals" $Root $FetchFootballActualsScript @("--league", "nfl", "--date", $Date, "--output", $NFLActuals)
 }
 if ((Test-Path $NFLActuals) -and $NFLSlateFile -and (Test-Path $NFLSlateFile) -and (Test-Path $SlateGraderScript)) {
@@ -1060,7 +1119,19 @@ $CFBSlateFile = Resolve-FirstExisting @($CFBStep8Dated, $CFBStep8Bundle, $CFBSte
 if ($CFBSlateFile) {
     Write-Host "[GRADER] CFB slate: $(Split-Path $CFBSlateFile -Leaf)" -ForegroundColor Cyan
 }
-if (-not (Test-Path $CFBActuals) -and (Test-Path $FetchFootballActualsScript)) {
+$CFBActualsNeedFetch = $true
+if (Test-Path -LiteralPath $CFBActuals) {
+    try {
+        $cfbActRows = @(Import-Csv -LiteralPath $CFBActuals -ErrorAction Stop)
+        if ($cfbActRows.Count -gt 0) { $CFBActualsNeedFetch = $false }
+        else {
+            Write-Host "[GRADER] CFB actuals stub empty — re-fetching" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "[GRADER] CFB actuals unreadable — re-fetching" -ForegroundColor Yellow
+    }
+}
+if ($CFBActualsNeedFetch -and (Test-Path $FetchFootballActualsScript)) {
     Run-Py "Fetch CFB Actuals" $Root $FetchFootballActualsScript @("--league", "cfb", "--date", $Date, "--output", $CFBActuals)
 }
 if ((Test-Path $CFBActuals) -and $CFBSlateFile -and (Test-Path $CFBSlateFile) -and (Test-Path $SlateGraderScript)) {
@@ -1260,8 +1331,9 @@ if (Test-Path $BuildGradesHtmlScript) {
     if (Test-Path $WnbaGradedCanonical) { $HtmlArgs += @("--wnba", $WnbaGradedCanonical) }
     elseif (Test-Path $WnbaGradedAlt) { $HtmlArgs += @("--wnba", $WnbaGradedAlt) }
     if (Test-Path $TennisGradedFile) { $HtmlArgs += @("--tennis", $TennisGradedFile) }
+    if (Test-Path $GolfGradedFile) { $HtmlArgs += @("--golf", $GolfGradedFile) }
 
-    if (($HtmlArgs -contains "--nba") -or ($HtmlArgs -contains "--cbb") -or ($HtmlArgs -contains "--nhl") -or ($HtmlArgs -contains "--soccer") -or ($HtmlArgs -contains "--mlb") -or ($HtmlArgs -contains "--wnba") -or ($HtmlArgs -contains "--tennis")) {
+    if (($HtmlArgs -contains "--nba") -or ($HtmlArgs -contains "--cbb") -or ($HtmlArgs -contains "--nhl") -or ($HtmlArgs -contains "--soccer") -or ($HtmlArgs -contains "--mlb") -or ($HtmlArgs -contains "--wnba") -or ($HtmlArgs -contains "--tennis") -or ($HtmlArgs -contains "--golf")) {
         Run-Py "Build Grades HTML" $Root $BuildGradesHtmlScript $HtmlArgs
         # Keep mobile/www in sync with ui_runner/templates (Grades iframe uses same-dir slate_eval_*.html).
         if (Test-Path -LiteralPath $MobileWwwDir) {
@@ -1389,6 +1461,9 @@ else {
     if (Test-Path $TennisActuals) {
         $GraderArgs += @("--tennis_actuals", $TennisActuals)
     }
+    if (Test-Path $GolfActuals) {
+        $GraderArgs += @("--golf_actuals", $GolfActuals)
+    }
     if (Test-Path $MlbActuals) {
         $GraderArgs += @("--mlb_actuals", $MlbActuals)
     }
@@ -1492,6 +1567,7 @@ if (Test-Path $TicketEvalBuilderScript) {
         if (Test-Path $NHLActuals) { $LongParlayGraderArgs += @("--nhl_actuals", $NHLActuals) }
         if (Test-Path $SoccerActuals) { $LongParlayGraderArgs += @("--soccer_actuals", $SoccerActuals) }
         if (Test-Path $TennisActuals) { $LongParlayGraderArgs += @("--tennis_actuals", $TennisActuals) }
+        if (Test-Path $GolfActuals) { $LongParlayGraderArgs += @("--golf_actuals", $GolfActuals) }
         if (Test-Path $MlbActuals) { $LongParlayGraderArgs += @("--mlb_actuals", $MlbActuals) }
         if (Test-Path $WNBAActuals) { $LongParlayGraderArgs += @("--wnba_actuals", $WNBAActuals) }
         if (Test-Path $WNBA1HActuals) { $LongParlayGraderArgs += @("--wnba1h_actuals", $WNBA1HActuals) }
@@ -1548,6 +1624,7 @@ if (Test-Path $TicketEvalBuilderScript) {
         if (Test-Path $NHLActuals) { $HighLegGraderArgs += @("--nhl_actuals", $NHLActuals) }
         if (Test-Path $SoccerActuals) { $HighLegGraderArgs += @("--soccer_actuals", $SoccerActuals) }
         if (Test-Path $TennisActuals) { $HighLegGraderArgs += @("--tennis_actuals", $TennisActuals) }
+        if (Test-Path $GolfActuals) { $HighLegGraderArgs += @("--golf_actuals", $GolfActuals) }
         if (Test-Path $MlbActuals) { $HighLegGraderArgs += @("--mlb_actuals", $MlbActuals) }
         if (Test-Path $WNBAActuals) { $HighLegGraderArgs += @("--wnba_actuals", $WNBAActuals) }
         if (Test-Path $WNBA1HActuals) { $HighLegGraderArgs += @("--wnba1h_actuals", $WNBA1HActuals) }
@@ -1852,3 +1929,7 @@ if ($ShouldRetrain) {
     }
     Write-Host "[AUTO-RETRAIN] Complete." -ForegroundColor Green
 }
+
+# Explicit success — do not leak LASTEXITCODE from the last Run-Py / auto-retrain
+# failure into scheduled evening graders (Task Scheduler was showing Result=1 every night).
+exit 0

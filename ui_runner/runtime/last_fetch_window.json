@@ -1,9 +1,9 @@
 {
   "date": "2026-08-30",
-  "window": "9:45",
-  "generated_at": "2026-08-30T10:11:28-04:00",
-  "n_pulls_this_window": 4,
-  "n_moved_this_window": 63,
+  "window": "10:30",
+  "generated_at": "2026-08-30T11:20:13-04:00",
+  "n_pulls_this_window": 2,
+  "n_moved_this_window": 35,
   "n_moved_from_initial": 630,
   "is_initial_stamp": false,
   "force_payout": true,

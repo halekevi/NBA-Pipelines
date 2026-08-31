@@ -1,10 +1,15 @@
-"""Ticket-leg pools: Goblin 70% engine vs Standard Flex allowlist.
+"""Ticket-leg pools: Goblin-70 + Standard O/U under one recency/D gate.
 
-Goblin tickets (measured ~73.4%): OVER only, directional L5 >= 4, sport cover
-floor (WNBA/Tennis >= 2, MLB/Soccer >= 1), no Demons, no shadow.
+Ticket gate (all sports except tennis): directional L5 = 5, L10 >= 8, and
+directional D (OVER Weak|Below Avg; UNDER Elite|Above Avg; Avg/unknown fail;
+MLB hitter Ks invert). Tennis is L5 = 5 only (no L10, no D). Golf has no
+opponent D, so it uses L5 = 5 + L10 >= 8 without D.
 
-Standard stays off those slips. Flex-only fill uses a short allowlist until a
-cell independently clears ~70% with n >= 40.
+Goblin slips stay OVER-only. Standard Over and Under that clear the same
+gate can ticket (Flex), not mixed onto Goblin Power. Cover floor, no Demons,
+no shadow, no hitter Ks. NFLP stays on its own playing-time track.
+
+List gate remains L5 >= 4 (D badge-only) in rank_best_props_today.
 """
 from __future__ import annotations
 
@@ -19,8 +24,30 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 import prop_hit_tiers as T  # noqa: E402
+from utils.defense_tiers import d_aligned  # noqa: E402
 
 ACTIVE = T.ACTIVE
+TICKET_SPORTS = frozenset(
+    {
+        "WNBA",
+        "WNBA1Q",
+        "WNBA1H",
+        "MLB",
+        "Soccer",
+        "Tennis",
+        "NBA",
+        "NBA1Q",
+        "NBA1H",
+        "NFL",
+        "CFB",
+        "CBB",
+        "WCBB",
+        "Golf",
+        "NHL",
+    }
+)
+TENNIS_SPORTS = frozenset({"Tennis", "TENNIS"})
+GOLF_SPORTS = frozenset({"Golf", "GOLF", "PGA"})
 TIER_RANK = T.TIER_RANK
 canon_prop = T.canon_prop
 cover_clears_floor = T.cover_clears_floor
@@ -31,10 +58,12 @@ norm_sport = T.norm_sport
 P_GOBLIN_COVER = 0.734
 P_GOBLIN_SA = 0.774
 P_GOBLIN_L5EQ5 = 0.763
+P_GOBLIN_STRICT = 0.745
 P_WNBA_STEALS_UNDER = 0.727
 P_WNBA_ASSISTS_UNDER = 0.631
 P_MLB_HRRBI_UNDER_L5EQ5 = 0.660
 P_WNBA_COMBO_OVER = 0.644
+P_STANDARD_GATE = 0.70
 
 PITCHER_PROPS = frozenset(
     {
@@ -46,7 +75,7 @@ PITCHER_PROPS = frozenset(
         "pitching outs",
     }
 )
-WNBA_COMBO_OVER = frozenset({"pra", "pts+ast", "points (combo)"})
+WNBA_COMBO_OVER = frozenset({"pra", "pts+ast", "points_combo", "points (combo)"})
 HRRBI = frozenset({"hits+runs+rbis", "h+r+rbi"})
 
 STD_KIND_ORDER = (
@@ -86,6 +115,28 @@ def _l5(r: dict[str, Any]) -> float | None:
 
 def directional_l5(r: dict[str, Any]) -> float | None:
     return _l5(r)
+
+
+def _l10(r: dict[str, Any]) -> float | None:
+    side = _side(r)
+    keys = (
+        ("l10_over", "last10_over", "line_hits_over_10", "l10")
+        if side == "OVER"
+        else ("l10_under", "last10_under", "line_hits_under_10", "l10")
+    )
+    for k in keys:
+        v = r.get(k)
+        if v is None or v == "":
+            continue
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def directional_l10(r: dict[str, Any]) -> float | None:
+    return _l10(r)
 
 
 def skip_combo_player(r: dict[str, Any]) -> bool:
@@ -157,31 +208,109 @@ def nflp_ticket_p(r: dict[str, Any]) -> float:
     return 0.62
 
 
+def _is_tennis(sport: str) -> bool:
+    return sport in TENNIS_SPORTS or str(sport or "").upper() == "TENNIS"
+
+
+def _is_golf(sport: str) -> bool:
+    return sport in GOLF_SPORTS or str(sport or "").upper() in {"GOLF", "PGA"}
+
+
+def _is_nflp_row(r: dict[str, Any]) -> bool:
+    if _sport(r) != "NFL":
+        return False
+    from utils.nflp_playing_time import is_nflp
+
+    return bool(is_nflp(r.get("league")))
+
+
+def _d_ok(r: dict[str, Any]) -> bool:
+    checks = r.get("checks") or {}
+    if checks.get("D") is True:
+        return True
+    if checks.get("D") is False:
+        return False
+    raw = r.get("def") or r.get("d") or r.get("def_tier")
+    return d_aligned(_sport(r), _side(r), raw, _prop(r))
+
+
+def _d_ok_over(r: dict[str, Any]) -> bool:
+    """OVER-only D (kept for callers). Prefer _d_ok for both sides."""
+    if _side(r) != "OVER":
+        return False
+    return _d_ok(r)
+
+
+def ticket_gate_passes(r: dict[str, Any]) -> bool:
+    """L5=5 + L10>=8 + directional D. Tennis: L5=5 only. Golf: L5=5 + L10>=8."""
+    sport = _sport(r)
+    if sport not in TICKET_SPORTS:
+        return False
+    l5 = _l5(r)
+    if l5 is None or l5 < 5:
+        return False
+    if _is_tennis(sport):
+        return True
+    l10 = _l10(r)
+    if l10 is None or l10 < 8:
+        return False
+    if _is_golf(sport):
+        return True
+    return _d_ok(r)
+
+
 def goblin_70_eligible(r: dict[str, Any]) -> bool:
-    """Hard ticket gate for the 70% Goblin book."""
+    """Goblin OVER ticket gate: L5=5+L10>=8+D (tennis L5=5; golf no D)."""
     if _pick(r) != "Goblin" or _side(r) != "OVER":
         return False
+    if _is_nflp_row(r):
+        return False
     sport = _sport(r)
-    if sport not in ACTIVE:
+    if skip_combo_player(r) or skip_era_half(r):
+        return False
+    if not ticket_gate_passes(r):
+        return False
+    prop = _prop(r)
+    if is_shadow(sport, "Goblin OVER", prop):
+        return False
+    gap = r.get("dist_l5")
+    if gap is None:
+        gap = r.get("cover")
+    if not cover_clears_floor(sport, gap, "OVER", prop):
+        return False
+    if prop == "hitter_ks":
+        return False
+    return True
+
+
+def standard_ticket_eligible(r: dict[str, Any]) -> bool:
+    """Standard OVER or UNDER that clears the same L5/L10/D ticket gate."""
+    if _pick(r) != "Standard":
+        return False
+    side = _side(r)
+    if side not in {"OVER", "UNDER"}:
+        return False
+    if _is_nflp_row(r):
         return False
     if skip_combo_player(r) or skip_era_half(r):
         return False
-    l5 = _l5(r)
-    if l5 is None or l5 < 4:
+    if not ticket_gate_passes(r):
         return False
-    if is_shadow(sport, "Goblin OVER", _prop(r)):
+    sport = _sport(r)
+    prop = _prop(r)
+    book = f"Standard {side}"
+    if is_shadow(sport, book, prop):
         return False
-    return cover_clears_floor(sport, r.get("cover"), "OVER")
+    gap = r.get("dist_l5")
+    if gap is None:
+        gap = r.get("cover")
+    if not cover_clears_floor(sport, gap, side, prop):
+        return False
+    return True
 
 
-def goblin_ticket_p(r: dict[str, Any]) -> float:
-    l5 = _l5(r) or 0
-    tier = str(r.get("prop_tier") or "")
-    if l5 >= 5:
-        return P_GOBLIN_L5EQ5
-    if tier in {"S", "A"}:
-        return P_GOBLIN_SA
-    return P_GOBLIN_COVER
+def goblin_ticket_p(_r: dict[str, Any]) -> float:
+    return P_GOBLIN_STRICT
 
 
 def standard_flex_kind(r: dict[str, Any]) -> str | None:
@@ -214,11 +343,12 @@ def standard_flex_kind(r: dict[str, Any]) -> str | None:
 
 def standard_ticket_p(kind: str) -> float:
     return {
+        "gate": P_STANDARD_GATE,
         "wnba_steals_under": P_WNBA_STEALS_UNDER,
         "wnba_combo_over": P_WNBA_COMBO_OVER,
         "wnba_assists_under": P_WNBA_ASSISTS_UNDER,
         "mlb_hrrbi_under_l5eq5": P_MLB_HRRBI_UNDER_L5EQ5,
-    }.get(kind, 0.54)
+    }.get(kind, P_STANDARD_GATE)
 
 
 def is_pitcher_prop(r: dict[str, Any]) -> bool:

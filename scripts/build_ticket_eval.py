@@ -65,6 +65,8 @@ ALLOWED_TICKET_SPORTS = {
     "NBA1H",
     "NBA1Q",
     "WNBA",
+    "WNBA1H",
+    "WNBA1Q",
     "CBB",
     "WCBB",
     "CFB",
@@ -73,6 +75,8 @@ ALLOWED_TICKET_SPORTS = {
     "SOCCER",
     "MLB",
     "TENNIS",
+    "GOLF",
+    "PGA",
 }
 
 # Stats-bar sport win-rate columns (align with Grades Prop Evaluation pills + ACTIVE_SPORTS).
@@ -85,10 +89,13 @@ TICKET_EVAL_SPORT_ORDER: tuple[str, ...] = (
     "CFB",
     "NFL",
     "WNBA",
+    "WNBA1Q",
+    "WNBA1H",
     "MLB",
     "NHL",
     "SOCCER",
     "TENNIS",
+    "GOLF",
 )
 
 _XLSX_HDR_TO_LEG_FIELD: dict[str, str] = {
@@ -1034,10 +1041,6 @@ def _effective_power_multiplier(
     Calibrates the banner multiplier so platform-specific scaling cancels out:
       banner_pow ≈ base[n] · (∏ mod_full) · platform_scale
       effective  ≈ base[eff] · (∏ mod_remaining) · platform_scale
-
-    PrizePicks voids drop off the slip (3→2, 5→4, …). A 2-leg floor applies —
-    if voids leave fewer than 2 playable legs, there is no paying 1-leg ticket
-    (caller treats that as a refund).
     """
     eff = n - sum(1 for g in leg_grades if g == "VOID")
     if eff < 2:
@@ -1076,7 +1079,6 @@ def _effective_flex_multiplier(
     eff = n - v
     h = sum(1 for g in leg_grades if g == "HIT")
     m = sum(1 for g in leg_grades if g == "MISS")
-    # No 1-leg tickets: voids that leave <2 playable legs refund the entry.
     if eff < 2:
         return None, "refund"
     # Once the slip drops below 3 legs, PrizePicks pays it as a power play.
@@ -1287,10 +1289,9 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         emoji = "❌"
         css = "loss"
         actual = 0.0
-        # Voids drop off (3→2, 5→4, …) and pay the reduced tier when ≥2 legs
-        # remain and those hit. If voids leave <2 playable legs, PP refunds —
-        # there are no 1-leg tickets. That is not a miss / not a loss.
-        if m == 0 and v > 0 and (n - v) < 2:
+        # Voids alone are never a miss: if every remaining leg hit but <2 playable
+        # legs remain, the slip refunds / no-contests — do not label as LOSS.
+        if m == 0 and v > 0:
             result = "VOID_LOSS"
             emoji = "○"
             css = "void"
@@ -1411,12 +1412,7 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             )
 
     gross_10 = round(10.0 * actual, 2)
-    # Refund when voids leave <2 playable legs: stake returned → net $0.
-    if result == "VOID_LOSS":
-        gross_10 = 10.0
-        net_10 = 0.0
-    else:
-        net_10 = round(gross_10 - 10.0, 2)
+    net_10 = round(gross_10 - 10.0, 2)
 
     if (
         not payd
@@ -1456,8 +1452,8 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
             detail = f"{result} — all {n} legs correct"
     elif result == "VOID_LOSS" and n:
         detail = (
-            f"Refund — {v} void dropped off; {eff_legs} playable leg(s) left "
-            f"(need ≥2; no 1-leg tickets). Stake returned; not a miss."
+            f"Refund / no contest — {v} void left {eff_legs} playable leg(s) "
+            f"(need ≥2); voids drop off the slip and are not misses"
         )
     elif result == "LOSS" and n:
         if v > 0:
@@ -1482,9 +1478,8 @@ def _ticket_eval_money_outcome(group_name: str, leg_grades: list[str], ticket: d
         "net_10": net_10,
     }
     if result == "VOID_LOSS":
-        out["result_display"] = "REFUND"
+        out["result_display"] = "REFUND / NO CONTEST"
         out["omit_payout_block"] = True
-        out["is_refund"] = True
     if v > 0 and result in ("WIN", "SWEEP", "MIN GUARANTEE", "VOID_LOSS"):
         out["void_dropped_legs"] = int(v)
         out["effective_legs"] = int(eff_legs)
@@ -1563,10 +1558,9 @@ def _ticket_pays_money(group_name: str, leg_grades: list[str]) -> bool:
 
     Voids drop off the slip and the ticket pays at the next-smaller leg tier:
       * Power: every remaining (non-void) leg must HIT, with ≥2 effective legs.
-        If voids leave <2 playable legs → refund (no 1-leg tickets).
       * Flex (3+ legs): if effective legs ≥3, allow one MISS at the smaller tier.
         If voids reduce the slip below 3 effective legs, treat as a power play
-        on the remaining legs (still need ≥2).
+        on the remaining legs.
     Caller must ensure no UNGRADED legs.
     """
     if not leg_grades or any(g == "UNGRADED" for g in leg_grades):
@@ -1605,6 +1599,8 @@ def _sport_key(sport: str) -> str:
         return "CFB"
     if s in ("NCAAB",):
         return "CBB"
+    if s in ("PGA",):
+        return "GOLF"
     return s
 
 
@@ -1699,6 +1695,9 @@ def _ticket_bucket_skin_class(bucket: str) -> str:
         "SOCCER": "sb-soccer",
         "MLB": "sb-mlb",
         "TENNIS": "sb-tennis",
+        "GOLF": "sb-golf",
+        "WNBA1Q": "sb-wnba1q",
+        "WNBA1H": "sb-wnba1h",
     }.get(sk, "sb-default")
 
 
@@ -1731,10 +1730,16 @@ def _leg_match_buckets(sport: str) -> list[str]:
         return ["WCBB", "CBB"]
     if s in ("SOC", "MLS", "EPL"):
         return ["SOCCER"]
+    if s in ("WNBA1H", "WNBA_1H"):
+        return ["WNBA1H", "WNBA"]
+    if s in ("WNBA1Q", "WNBA_1Q"):
+        return ["WNBA1Q", "WNBA"]
     if s == "WNBA":
         return ["WNBA"]
     if s == "NBA":
         return ["NBA"]
+    if s in ("GOLF", "PGA"):
+        return ["GOLF"]
     if s == "CBB":
         return ["CBB"]
     if s == "NHL":
@@ -1845,6 +1850,11 @@ def _merge_strict_graded_date_workbooks(
         "nba1h": "NBA1H",
         "nba1q": "NBA1Q",
         "tennis": "TENNIS",
+        "golf": "GOLF",
+        "nfl": "NFL",
+        "cfb": "CFB",
+        "wnba1h": "WNBA1H",
+        "wnba1q": "WNBA1Q",
     }
     for graded_file in sorted(graded_dir.glob(f"graded_*_{arg_date}.xlsx")):
         m = re.match(r"^graded_(.+)_(\d{4}-\d{2}-\d{2})$", graded_file.stem)
@@ -2006,7 +2016,7 @@ def _resolve_tennis_match_date_from_payload(
 ) -> str | None:
     """Tennis match day = payload tennis_date, else same calendar day as slate_date.
 
-    Early-AM board is fetched same day via Daily 5AM (+ later refreshes). Legacy tickets
+    Early-AM board is fetched same day (3AM light + 7AM refresh). Legacy tickets
     without tennis_date may still store next-day legs in game_time; prefer payload.
     """
     if not _payload_has_tennis_legs(payload):
@@ -3755,20 +3765,10 @@ def _ticket_grade_payout_html(
         f"{float(pred_ev):.2f} — {esc(rec)}" if pred_ev is not None else f"N/A — {esc(rec) if rec else 'N/A'}"
     )
     pwin_pred = _fmt_pct_cell(pred_p)
-    is_money_loss = r == "LOSS"
-    is_refund = r == "VOID_LOSS" or bool(oc.get("is_refund"))
-    if is_money_loss:
-        pwin_act = "❌"
-        ev_act = "-$10.00 on $10"
-        entry_line = "Lost $10.00"
-    elif is_refund:
-        pwin_act = "○"
-        ev_act = "$0.00 on $10 (refund)"
-        entry_line = "Refunded $10.00"
-    else:
-        pwin_act = "✅"
-        ev_act = f"+${gross:.2f} on $10"
-        entry_line = f"Won ${gross:.2f}"
+    is_money_loss = r in ("LOSS", "VOID_LOSS")
+    pwin_act = "❌" if is_money_loss else "✅"
+    ev_act = "-$10.00 on $10" if is_money_loss else f"+${gross:.2f} on $10"
+    entry_line = "Lost $10.00" if is_money_loss else f"Won ${gross:.2f}"
     detail = esc(str(oc.get("result_detail") or r))
     return (
         '<div class="ticket-grade-payout">'
@@ -3900,7 +3900,7 @@ def _build_html(
         if all(x == "VOID" for x in gs):
             continue
         pays_money = _ticket_pays_money(gname, gs)
-        # Voids that leave <2 playable legs refund — exclude from W/L.
+        # Void-only reductions that leave <2 playable legs refund — not a ticket loss.
         if (
             not pays_money
             and isinstance(oc, dict)
@@ -3952,15 +3952,13 @@ def _build_html(
             continue
         pay_summary_rows.append(oc)
 
-    # Refunds (voids left <2 playable — no 1-leg tickets) are not scored W/L.
+    n_pay = len(pay_summary_rows)
+    wins_ct = sum(1 for oc in pay_summary_rows if oc.get("result") in ("WIN", "SWEEP"))
+    guar_ct = sum(1 for oc in pay_summary_rows if oc.get("result") == "MIN GUARANTEE")
+    loss_ct = sum(1 for oc in pay_summary_rows if oc.get("result") in ("LOSS", "VOID_LOSS"))
     void_loss_ct: int = sum(1 for oc in pay_summary_rows if oc.get("result") == "VOID_LOSS")
-    scored_rows = [oc for oc in pay_summary_rows if oc.get("result") != "VOID_LOSS"]
-    n_pay = len(scored_rows)
-    wins_ct = sum(1 for oc in scored_rows if oc.get("result") in ("WIN", "SWEEP"))
-    guar_ct = sum(1 for oc in scored_rows if oc.get("result") == "MIN GUARANTEE")
-    loss_ct = sum(1 for oc in scored_rows if oc.get("result") == "LOSS")
-    total_net_10 = sum(float(oc.get("net_10") or 0.0) for oc in scored_rows)
-    evs = [float(oc["predicted_ev"]) for oc in scored_rows if oc.get("predicted_ev") is not None]
+    total_net_10 = sum(float(oc.get("net_10") or 0.0) for oc in pay_summary_rows)
+    evs = [float(oc["predicted_ev"]) for oc in pay_summary_rows if oc.get("predicted_ev") is not None]
     avg_ev = sum(evs) / len(evs) if evs else None
 
     def _rec_bucket(rec: str) -> str:
@@ -3981,10 +3979,10 @@ def _build_html(
         "MARGINAL": {"count": 0, "wins": 0},
         "SKIP": {"count": 0, "wins": 0},
     }
-    for oc in scored_rows:
+    for oc in pay_summary_rows:
         bk = _rec_bucket(str(oc.get("recommendation_at_entry") or ""))
         buck[bk]["count"] += 1
-        if oc.get("result") != "LOSS":
+        if oc.get("result") not in ("LOSS", "VOID_LOSS"):
             buck[bk]["wins"] += 1
 
     win_rate_pay = (wins_ct + guar_ct) / n_pay if n_pay else 0.0
@@ -4049,8 +4047,8 @@ def _build_html(
         net_abs = abs(total_net_10)
         net_word = "profit" if total_net_10 >= 0 else "loss"
         net_sign = "+" if total_net_10 >= 0 else "−"
-        refund_note_html = (
-            f' <span class="ges-pill ges-guar">Refunds {void_loss_ct}</span>'
+        loss_subnote_html = (
+            f' <span class="grade-eval-subnote">(incl. {void_loss_ct} void-loss)</span>'
             if void_loss_ct > 0
             else ""
         )
@@ -4060,8 +4058,7 @@ def _build_html(
             '<div class="grade-eval-summary-line2">'
             f'<span class="ges-pill ges-win">Wins {wins_ct}</span>'
             f'<span class="ges-pill ges-guar">Guarantees {guar_ct}</span>'
-            f'<span class="ges-pill ges-loss">Losses {loss_ct}</span>'
-            f"{refund_note_html}"
+            f'<span class="ges-pill ges-loss">Losses {loss_ct}{loss_subnote_html}</span>'
             f'<span class="ges-pill ges-rate">{win_rate_pct:.0f}% win rate</span>'
             f'<span class="ges-pill ges-ev">Avg EV {avg_ev_s}</span>'
             "</div>"
@@ -4089,6 +4086,9 @@ def _build_html(
 .sport-cfb{background:rgba(200,120,60,.12);color:#e8a86a;border:1px solid rgba(200,120,60,.34);}
 .sport-nfl{background:rgba(120,180,255,.12);color:#9ec5ff;border:1px solid rgba(120,180,255,.34);}
 .sport-tennis{background:rgba(243,156,18,.12);color:#f5b041;border:1px solid rgba(243,156,18,.34);}
+.sport-golf{background:rgba(80,180,110,.12);color:#7dcc8f;border:1px solid rgba(80,180,110,.34);}
+.sport-wnba1q{background:rgba(255,138,198,.10);color:#ffc4e6;border:1px solid rgba(255,138,198,.28);}
+.sport-wnba1h{background:rgba(255,138,198,.10);color:#ffc4e6;border:1px solid rgba(255,138,198,.28);}
 .sport-default{background:rgba(255,255,255,.04);color:#888;border:1px solid rgba(255,255,255,.1);}
 """
 
@@ -4416,9 +4416,8 @@ def _build_html(
                     elif rtxt == "VOID_LOSS":
                         res_cls = "tg grade-ticket-result void-loss"
                         parts.append(
-                            f'<span class="{res_cls}">RESULT: {esc(rem)} REFUND'
-                            f' <span class="grade-ticket-result-label">'
-                            f"(&lt;2 legs after void — stake returned)</span></span>"
+                            f'<span class="{res_cls}">RESULT: {esc(rem)} VOID / NO ACTION'
+                            f' <span class="grade-ticket-result-label">(no cash)</span></span>'
                         )
                     else:
                         won = rtxt != "LOSS"

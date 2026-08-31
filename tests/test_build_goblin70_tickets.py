@@ -16,6 +16,8 @@ from utils.ticket_70_pool import (  # noqa: E402
     goblin_70_eligible,
     nflp_std_over_eligible,
     nflp_ticket_eligible,
+    standard_ticket_eligible,
+    ticket_gate_passes,
 )
 
 
@@ -28,6 +30,7 @@ def _gob(**kwargs) -> dict:
         "line": 5.5,
         "pick_type": "Goblin",
         "l5_over": 5,
+        "l10_over": 8,
         "cover": 2.4,
         "def": "Weak",
         "prop_tier": "A",
@@ -38,7 +41,47 @@ def _gob(**kwargs) -> dict:
 
 def test_cover_floor_blocks_wnba_under_2():
     assert not goblin_70_eligible(_gob(cover=1.1))
-    assert goblin_70_eligible(_gob(prop="Points", cover=4.3, l5_over=4))
+    # Cover floor still applies. D is now required except tennis/golf.
+    assert goblin_70_eligible(_gob(prop="Points", cover=4.3, l5_over=5, l10_over=8))
+    # Per-prop units: 3s +0.8 is a real cover; PRA +2.5 is not.
+    assert goblin_70_eligible(_gob(prop="3-PT Made", cover=0.8, l5_over=5, l10_over=8))
+    assert goblin_70_eligible(_gob(prop="FG Attempted", cover=1.2, l5_over=5, l10_over=8))
+    assert not goblin_70_eligible(_gob(prop="Pts+Rebs+Asts", cover=2.5, l5_over=5, l10_over=8))
+    assert not goblin_70_eligible(_gob(cover=4.3, l5_over=5, l10_over=8, **{"def": "Avg"}))
+    # MLB counting Goblins can ticket when L5=5+L10>=8+D+cover hold.
+    assert goblin_70_eligible(
+        _gob(sport="MLB", prop="Hits", cover=1.5, l5_over=5, l10_over=8, **{"def": "Weak"})
+    )
+    hitter_k = _gob(
+        sport="MLB",
+        prop="Hitter Strikeouts",
+        cover=1.2,
+        l5_over=5,
+        l10_over=8,
+        checks={"D": True},
+    )
+    hitter_k["def"] = "Elite"
+    assert not goblin_70_eligible(hitter_k)
+    hrrbi_ok = _gob(
+        sport="MLB",
+        prop="Hits+Runs+RBIs",
+        cover=1.2,
+        l5_over=5,
+        l10_over=8,
+        checks={"D": True},
+    )
+    hrrbi_ok["def"] = "Weak"
+    assert goblin_70_eligible(hrrbi_ok)
+    hrrbi_no_d = _gob(
+        sport="MLB",
+        prop="Hits+Runs+RBIs",
+        cover=1.2,
+        l5_over=5,
+        l10_over=8,
+        checks={"D": False},
+    )
+    hrrbi_no_d["def"] = "Avg"
+    assert not goblin_70_eligible(hrrbi_no_d)
 
 
 def test_nflp_ticket_gate():
@@ -75,7 +118,94 @@ def test_nflp_ticket_gate():
     assert not nflp_std_over_eligible(dict(std_backup, checks={"D": False}))
 
 
-def test_shadow_and_demon_off_tickets():
+def test_tennis_is_l5_only_golf_skips_d():
+    tennis = _gob(
+        sport="TENNIS",
+        prop="Total Games Won",
+        cover=4.0,
+        l5_over=5,
+        l10_over=4,
+        **{"def": "Elite"},
+    )
+    assert ticket_gate_passes(tennis)
+    assert goblin_70_eligible(tennis)
+    golf = _gob(
+        sport="GOLF",
+        prop="Strokes",
+        cover=2.0,
+        l5_over=5,
+        l10_over=8,
+        **{"def": "N/A"},
+    )
+    assert ticket_gate_passes(golf)
+    assert goblin_70_eligible(golf)
+    assert not ticket_gate_passes(dict(golf, l10_over=7))
+    cfb = _gob(
+        sport="CFB",
+        prop="Pass Yards",
+        cover=15.0,
+        l5_over=5,
+        l10_over=8,
+        **{"def": "Weak"},
+    )
+    assert goblin_70_eligible(cfb)
+    assert not goblin_70_eligible({**cfb, "def": "Avg"})
+    nfl = _gob(
+        sport="NFL",
+        prop="Receiving Yards",
+        cover=12.0,
+        l5_over=5,
+        l10_over=8,
+        **{"def": "Below Avg"},
+        league="NFL",
+    )
+    assert goblin_70_eligible(nfl)
+    cbb = _gob(
+        sport="CBB",
+        prop="Points",
+        cover=4.0,
+        l5_over=5,
+        l10_over=8,
+        **{"def": "Weak"},
+    )
+    assert goblin_70_eligible(cbb)
+
+
+def test_standard_over_under_use_same_gate():
+    std_u = {
+        "sport": "WNBA",
+        "player": "Jackie Young",
+        "prop": "Steals",
+        "side": "UNDER",
+        "line": 1.5,
+        "pick_type": "Standard",
+        "l5_under": 5,
+        "l10_under": 8,
+        "cover": -2.0,
+        "def": "Elite",
+    }
+    assert standard_ticket_eligible(std_u)
+    assert not standard_ticket_eligible({**std_u, "def": "Weak"})
+    assert not standard_ticket_eligible(dict(std_u, l10_under=7))
+    std_o = _gob(
+        pick_type="Standard",
+        prop="Rebounds",
+        cover=2.4,
+        l5_over=5,
+        l10_over=8,
+        **{"def": "Weak"},
+    )
+    assert standard_ticket_eligible(std_o)
+    tennis_std = _gob(
+        sport="TENNIS",
+        pick_type="Standard",
+        prop="Total Games",
+        cover=5.0,
+        l5_over=5,
+        l10_over=3,
+        **{"def": "Avg"},
+    )
+    assert standard_ticket_eligible(tennis_std)
     assert not goblin_70_eligible(
         _gob(sport="TENNIS", prop="Aces", cover=3.0, l5_over=5)
     )
@@ -91,13 +221,16 @@ def test_shadow_and_demon_off_tickets():
 
 def test_l5_and_mlb_floor():
     assert not goblin_70_eligible(_gob(l5_over=3, cover=4.0))
+    assert not goblin_70_eligible(_gob(l5_over=4, l10_over=8, cover=4.0))
+    assert not goblin_70_eligible(_gob(l5_over=5, l10_over=7, cover=4.0))
     assert goblin_70_eligible(
         _gob(
             sport="MLB",
             player="MacKenzie Gore",
             prop="Pitcher Strikeouts",
             cover=1.0,
-            l5_over=4,
+            l5_over=5,
+            l10_over=8,
         )
     )
     assert not goblin_70_eligible(
@@ -107,11 +240,12 @@ def test_l5_and_mlb_floor():
             prop="Pitcher Strikeouts",
             cover=0.9,
             l5_over=5,
+            l10_over=8,
         )
     )
 
 
-def test_web_payload_drops_standard_and_uses_n_correct():
+def test_web_payload_keeps_standard_gate_and_uses_n_correct():
     payload = {
         "date": "2026-08-26",
         "payout_note": "N-correct / To Win only.",
@@ -197,13 +331,15 @@ def test_web_payload_drops_standard_and_uses_n_correct():
             },
         ],
     }
-    assert len(playable_tickets(payload)) == 1
+    assert len(playable_tickets(payload)) == 2
     web = to_web_payload(payload)
-    assert web["allow_standard"] is False
+    assert web["allow_standard"] is True
     assert web["ticket_track"] == "goblin70"
     slips = [t for g in web["groups"] for t in g["tickets"]]
-    assert len(slips) == 1
-    slip = slips[0]
+    assert len(slips) == 2
+    slip = next(
+        t for t in slips if all(leg.get("pick_type") == "Goblin" for leg in t["legs"])
+    )
     legs = slip["legs"]
     assert all(leg["pick_type"] == "Goblin" for leg in legs)
     assert all(leg["direction"] == "OVER" for leg in legs)
@@ -346,7 +482,7 @@ def test_goblin70_web_leg_splits_hr_and_ml():
 
 
 def test_merge_keeps_goblin70_and_graded_main():
-    from build_goblin70_tickets import is_g70_group, merge_web_payload
+    from build_goblin70_tickets import merge_web_payload, is_g70_group
 
     g70 = {
         "date": "2026-08-27",

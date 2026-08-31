@@ -226,46 +226,75 @@ def search_espn_tennis_athlete(name: str) -> dict[str, Any] | None:
     if not query:
         return None
     last, initial = _pp_abbrev_tokens(query)
-    search_q = query.replace("/", " ").strip()
-    if last and len(last) >= 3 and last != norm_key(query):
-        search_q = last.title()
-    url = f"{URL_ESPN_SEARCH}?query={urllib.parse.quote(search_q)}&limit=8&type=player&sport=tennis"
-    try:
-        data = fetch_json(url)
-    except Exception:
-        return None
-    items = data.get("items") or []
-    if not items:
-        return None
+    qlist = [query.replace("/", " ").strip()]
+    parts = qlist[0].split()
+    if len(parts) >= 2:
+        flipped = parts[-1] + " " + " ".join(parts[:-1])
+        if norm_key(flipped) != norm_key(qlist[0]):
+            qlist.append(flipped)
     best: dict[str, Any] | None = None
     best_score = -1
-    for item in items:
-        if str(item.get("sport") or "").lower() != "tennis":
+    q_cands = set(norm_key_candidates(query))
+    q_pk = norm_key(query)
+    q_parts = q_pk.split()
+    q_lasts = {c.split()[-1] for c in q_cands if c.split()}
+    q_firsts = {c.split()[0] for c in q_cands if c.split()}
+    is_abbrev = bool(initial) and bool(last) and last != q_pk
+    seen_urls: set[str] = set()
+    for search_q in qlist:
+        url_q = search_q
+        sq_last, _sq_init = _pp_abbrev_tokens(search_q)
+        if sq_last and len(sq_last) >= 3 and sq_last != norm_key(search_q):
+            url_q = sq_last.title()
+        url = f"{URL_ESPN_SEARCH}?query={urllib.parse.quote(url_q)}&limit=8&type=player&sport=tennis"
+        if url in seen_urls:
             continue
-        display = str(item.get("displayName") or "").strip()
-        if not display:
+        seen_urls.add(url)
+        try:
+            data = fetch_json(url)
+        except Exception:
             continue
-        pk = norm_key(display)
-        score = 0
-        if norm_key(query) == pk:
-            score += 10
-        if last and last in pk.split():
-            score += 4
-        elif last and last in pk:
-            score += 2
-        if initial and pk.split() and pk.split()[0][:1] == initial:
-            score += 2
-        if score > best_score:
-            best_score = score
-            tour = str(item.get("league") or item.get("defaultLeagueSlug") or "ATP").upper()
-            if tour not in ("ATP", "WTA"):
-                tour = "ATP"
-            best = {
-                "espn_athlete_id": str(item.get("id") or ""),
-                "player": display,
-                "tour": tour,
-                "player_key": pk,
-            }
+        for item in data.get("items") or []:
+            if str(item.get("sport") or "").lower() != "tennis":
+                continue
+            display = str(item.get("displayName") or "").strip()
+            if not display:
+                continue
+            pk = norm_key(display)
+            d_parts = pk.split()
+            d_last_tok = d_parts[-1] if d_parts else ""
+            score = 0
+            if pk in q_cands:
+                score += 10
+            elif is_abbrev:
+                if last != d_last_tok and last not in d_parts:
+                    continue
+                score += 4
+                if initial and d_parts and d_parts[0][:1] == initial:
+                    score += 2
+            elif len(q_parts) >= 2:
+                if d_last_tok not in q_lasts:
+                    continue
+                score += 4
+                if d_parts and d_parts[0] in q_firsts:
+                    score += 3
+                elif d_parts and d_parts[0][:1] in {f[:1] for f in q_firsts if f}:
+                    score += 1
+            elif last and last in d_parts:
+                score += 4
+            if score > best_score:
+                best_score = score
+                tour = str(item.get("league") or item.get("defaultLeagueSlug") or "ATP").upper()
+                if tour not in ("ATP", "WTA"):
+                    tour = "ATP"
+                best = {
+                    "espn_athlete_id": str(item.get("id") or ""),
+                    "player": display,
+                    "tour": tour,
+                    "player_key": pk,
+                }
+        if best_score >= 10:
+            break
     return best if best_score >= 2 else None
 
 
@@ -321,23 +350,31 @@ def hydrate_rankings_for_names(
             continue
         cached = cache.get(pk) or cache.get(name)
         if isinstance(cached, dict) and cached.get("espn_athlete_id"):
-            rank = cached.get("rank")
-            try:
-                rank_f = float(rank) if rank is not None else UNRANKED_OUTSIDE_TOP150
-            except (TypeError, ValueError):
-                rank_f = UNRANKED_OUTSIDE_TOP150
-            _append_entry(
-                {
-                    "espn_athlete_id": str(cached.get("espn_athlete_id")),
-                    "player": str(cached.get("player") or name),
-                    "tour": str(cached.get("tour") or "ATP").upper(),
-                    "rank": rank_f,
-                    "points": 0.0,
-                    "player_key": str(cached.get("player_key") or pk),
-                    "rank_source": str(cached.get("rank_source") or "cache"),
-                }
-            )
-            continue
+            cached_aid = str(cached.get("espn_athlete_id") or "").strip()
+            cands = set(norm_key_candidates(name)) | {pk}
+            existing = by_id.get(cached_aid)
+            exist_pk = str((existing or {}).get("player_key") or "")
+            # Old substring maps stored Ann Li's id under Hazelitt / Mandlik / Alice.
+            if existing and exist_pk and exist_pk not in cands:
+                cached = None
+            else:
+                rank = cached.get("rank")
+                try:
+                    rank_f = float(rank) if rank is not None else UNRANKED_OUTSIDE_TOP150
+                except (TypeError, ValueError):
+                    rank_f = UNRANKED_OUTSIDE_TOP150
+                _append_entry(
+                    {
+                        "espn_athlete_id": cached_aid,
+                        "player": str(cached.get("player") or name),
+                        "tour": str(cached.get("tour") or "ATP").upper(),
+                        "rank": rank_f,
+                        "points": 0.0,
+                        "player_key": str(cached.get("player_key") or pk),
+                        "rank_source": str(cached.get("rank_source") or "cache"),
+                    }
+                )
+                continue
 
         searched += 1
         hit = search_espn_tennis_athlete(name)
@@ -353,7 +390,7 @@ def hydrate_rankings_for_names(
             "tour": str(hit.get("tour") or "ATP").upper(),
             "rank": rank_f,
             "points": 0.0,
-            "player_key": str(hit.get("player_key") or pk),
+            "player_key": pk,
             "rank_source": source,
         }
         _append_entry(entry)
@@ -590,6 +627,97 @@ def _comp_status_final(comp: dict[str, Any]) -> bool:
     return str(st.get("name") or "").upper() == "STATUS_FINAL"
 
 
+_QUAL_ROUND_ABBR = {
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q1ST",
+    "Q2ND",
+    "Q3RD",
+    "QUAL",
+}
+_QUAL_ROUND_IDS = {"11", "12", "13", "14"}
+
+
+def normalize_espn_athlete_id(v: object) -> str:
+    """CSV float ids ('3562.0') must match cache keys ('3562')."""
+    s = str(v or "").strip()
+    if not s or s.lower() in {"nan", "none"}:
+        return ""
+    try:
+        f = float(s)
+        if f == int(f) and f > 0:
+            return str(int(f))
+    except (TypeError, ValueError):
+        pass
+    return s
+
+
+def match_is_incomplete(rec: dict[str, Any] | None) -> bool:
+    """PrizePicks last-5 skips retirements and walkovers."""
+    if not isinstance(rec, dict):
+        return False
+    score = str(rec.get("score") or "").upper()
+    if any(tok in score for tok in ("RET", "W/O", "WALKOVER", " DEF", "DEFAULT")):
+        return True
+    if score.strip() in {"WO", "DEF"}:
+        return True
+    return False
+
+
+_LOW_LEVEL_TOURN = re.compile(
+    r"(?:\bITF\b|\bW(?:15|25|35|50|75|100)\b)",
+    re.I,
+)
+
+
+def match_is_low_level(rec: dict[str, Any] | None) -> bool:
+    """ITF / WTA 15–100 only. ATP Challenger is on PrizePicks last-5.
+
+    Skipping CH made Jacob Fearnley Total Games look 5/5; PP is 3/5 after
+    Quebec City 17-17-22.
+    """
+    if not isinstance(rec, dict):
+        return False
+    level = str(rec.get("level") or "").strip().upper()
+    if level in {"S", "ITF", "F"}:
+        return True
+    blob = " ".join(
+        str(rec.get(k) or "")
+        for k in ("tourn", "tournament", "event", "event_name", "name")
+    )
+    return bool(_LOW_LEVEL_TOURN.search(blob))
+
+
+def match_is_qualifying(rec: dict[str, Any] | None) -> bool:
+    """PrizePicks tennis last-5 skips qualifying; keep main-draw matches only."""
+    if not isinstance(rec, dict):
+        return False
+    if rec.get("is_qualifying"):
+        return True
+    for key in ("round", "round_name", "round_abbr", "grouping", "match_type", "type"):
+        s = str(rec.get(key) or "").strip()
+        if not s:
+            continue
+        if s.upper() in _QUAL_ROUND_ABBR or "qualif" in s.lower():
+            return True
+    rid = str(rec.get("round_id") or "").strip()
+    if rid in _QUAL_ROUND_IDS:
+        return True
+    return False
+
+
+def match_is_doubles_event(rec: dict[str, Any] | None) -> bool:
+    if not isinstance(rec, dict):
+        return False
+    if rec.get("is_doubles_match"):
+        return True
+    blob = " ".join(
+        str(rec.get(k) or "") for k in ("match_type", "grouping", "type", "round")
+    ).lower()
+    return "double" in blob
+
+
 def iter_scoreboard_matches(tour: str, date_ymd: str | None = None) -> Iterator[dict[str, Any]]:
     url = URL_ATP_BOARD if tour.upper() == "ATP" else URL_WTA_BOARD
     ymd = str(date_ymd or "").strip().replace("-", "")
@@ -611,9 +739,15 @@ def iter_scoreboard_matches(tour: str, date_ymd: str | None = None) -> Iterator[
                 match_total = sum(_games_from_linescores(c) for c in comps)
                 for i, c in enumerate(comps):
                     ath = c.get("athlete") or {}
-                    aid = str(ath.get("id") or c.get("id") or "").strip()
                     nm = str(ath.get("displayName") or "").strip()
-                    if not aid or not nm:
+                    if not nm:
+                        continue
+                    aid = str(ath.get("id") or "").strip()
+                    if not aid:
+                        cid = str(c.get("id") or "").strip()
+                        if cid.isdigit():
+                            aid = cid
+                    if not aid:
                         continue
                     other_c = comps[1 - i] if len(comps) == 2 else None
                     gw = _games_from_linescores(c)
@@ -637,12 +771,20 @@ def iter_scoreboard_matches(tour: str, date_ymd: str | None = None) -> Iterator[
                     if other_c is not None:
                         a2 = other_c.get("athlete") or {}
                         opp = str(a2.get("displayName") or "").strip()
+                    rnd = comp.get("round") if isinstance(comp.get("round"), dict) else {}
+                    round_name = str(rnd.get("displayName") or rnd.get("abbreviation") or "").strip()
+                    round_id = str(rnd.get("id") or "").strip()
+                    grouping_slug = str((grp.get("grouping") or {}).get("slug") or "").lower()
+                    type_slug = str(
+                        ((comp.get("type") or {}) if isinstance(comp.get("type"), dict) else {}).get("slug") or ""
+                    ).lower()
                     yield {
                         "espn_athlete_id": aid,
                         "player": nm,
                         "player_key": norm_key(nm),
                         "tour": tour.upper(),
                         "match_date_utc": dt,
+                        "competition_id": str(comp.get("id") or "").strip(),
                         "games_won": gw,
                         "match_total_games": float(match_total),
                         "opponent": opp,
@@ -652,6 +794,20 @@ def iter_scoreboard_matches(tour: str, date_ymd: str | None = None) -> Iterator[
                         "total_sets": float(total_sets),
                         "total_tie_breaks": float(tb),
                         "break_points_won": float(bp) if bp is not None else None,
+                        "round": round_name,
+                        "round_id": round_id,
+                        "is_qualifying": match_is_qualifying(
+                            {
+                                "round": round_name,
+                                "round_id": round_id,
+                                "grouping": grouping_slug,
+                                "match_type": type_slug,
+                            }
+                        ),
+                        "match_type": type_slug or grouping_slug,
+                        "is_doubles_match": match_is_doubles_event(
+                            {"match_type": type_slug or grouping_slug}
+                        ),
                     }
 
 
@@ -684,22 +840,43 @@ def build_player_stats_index(
             prev = by_player.get(pk)
             if prev and str(prev.get("match_date_utc") or "")[:10] >= dt:
                 continue
+            def _sf(key: str) -> float | None:
+                v = m.get(key)
+                if v is None or v == "":
+                    return None
+                try:
+                    f = float(v)
+                except (TypeError, ValueError):
+                    return None
+                if f != f:
+                    return None
+                return f
+
             by_player[pk] = {
                 "player": str(m.get("player") or pk),
                 "match_date_utc": dt,
-                "games_won": float(m.get("games_won") or 0),
-                "match_total_games": float(m.get("match_total_games") or 0),
-                "aces": float(m.get("aces") or 0),
-                "double_faults": float(m.get("double_faults") or 0),
-                "sets_won": float(m.get("sets_won") or 0),
-                "total_sets": float(m.get("total_sets") or 0),
-                "total_tie_breaks": float(m.get("total_tie_breaks") or 0),
-                "break_points_won": (
-                    float(m["break_points_won"])
-                    if m.get("break_points_won") is not None
-                    else None
-                ),
+                "games_won": _sf("games_won") or 0.0,
+                "match_total_games": _sf("match_total_games") or 0.0,
+                "aces": _sf("aces"),
+                "double_faults": _sf("double_faults"),
+                "sets_won": _sf("sets_won") or 0.0,
+                "total_sets": _sf("total_sets") or 0.0,
+                "total_tie_breaks": _sf("total_tie_breaks") or 0.0,
+                "break_points_won": _sf("break_points_won"),
             }
+    if by_player:
+        grouped: dict[str, dict[str, dict[str, Any]]] = {}
+        for pk, st in by_player.items():
+            grouped.setdefault(str(st.get("match_date_utc") or "")[:10], {})[pk] = st
+        sidx: dict[str, list[dict[str, Any]]] | None = None
+        for ds, subset in grouped.items():
+            try:
+                d = date.fromisoformat(ds)
+            except ValueError:
+                continue
+            if sidx is None:
+                sidx = build_sackmann_player_index(ensure_sackmann_matches())
+            fill_missing_serve_from_sackmann(subset, d, player_index=sidx)
     return by_player
 
 
@@ -713,11 +890,8 @@ def refresh_match_games_cache(
 
     Walks dated ESPN scoreboards so L5 is not limited to today's board.
     """
-    by_id: dict[str, list[dict[str, Any]]] = load_match_games_cache(cache_path)
+    by_id: dict[str, list[dict[str, Any]]] = {}
     seen: set[tuple[str, str]] = set()
-    for aid, rows in by_id.items():
-        for m in rows:
-            seen.add((str(aid), str(m.get("match_date_utc") or "")))
     today = date.today()
     n_days = max(1, int(days_back))
     for offset in range(n_days + 1):
@@ -729,11 +903,15 @@ def refresh_match_games_cache(
                 continue
             for m in matches:
                 aid = str(m.get("espn_athlete_id") or "")
-                key = (aid, str(m.get("match_date_utc") or ""))
+                cid = str(m.get("competition_id") or "").strip()
+                key = (aid, cid or f"{m.get('match_date_utc')}|{m.get('opponent')}")
                 if not aid or key in seen:
                     continue
                 seen.add(key)
                 by_id.setdefault(aid, []).append(m)
+                pk = str(m.get("player_key") or "").strip()
+                if pk:
+                    by_id.setdefault(f"pk:{pk}", []).append(m)
         if offset and offset % 15 == 0:
             print(f"  [ESPN tennis] scoreboard walk {offset}/{n_days} days")
     for aid in by_id:
@@ -758,24 +936,14 @@ def resolve_athlete_id(player_name: str, rankings: list[dict[str, Any]]) -> tupl
     pk = norm_key(player_name)
     if not pk:
         return "", ""
-    best = ""
-    best_tour = ""
-    best_len = -1
-    for r in rankings:
-        rk = r.get("player_key") or ""
-        if not rk:
-            continue
-        if pk == rk:
-            return str(r["espn_athlete_id"]), str(r.get("tour") or "")
-        if pk in rk or rk in pk:
-            ln = len(rk)
-            if ln > best_len:
-                best_len = ln
-                best = str(r["espn_athlete_id"])
-                best_tour = str(r.get("tour") or "")
-    if best:
-        return best, best_tour
-    return _resolve_pp_abbrev_athlete_id(player_name, rankings)
+    for cand in norm_key_candidates(player_name):
+        for r in rankings:
+            if (r.get("player_key") or "") == cand:
+                return str(r["espn_athlete_id"]), str(r.get("tour") or "")
+    eid, tour = _resolve_pp_abbrev_athlete_id(player_name, rankings)
+    if eid:
+        return eid, tour
+    return "", ""
 
 
 def resolve_or_search_athlete_id(
@@ -801,7 +969,15 @@ def _pp_abbrev_tokens(name: str) -> tuple[str, str]:
 
 
 def _resolve_pp_abbrev_athlete_id(player_name: str, rankings: list[dict[str, Any]]) -> tuple[str, str]:
-    """Match PP abbreviated labels ('Ram R') to ESPN full names ('Rajeev Ram')."""
+    """Match PP abbreviated labels ('Ram R') to ESPN full names ('Rajeev Ram').
+
+    Full names are not handled here. Substring last-name matching used to map
+    Jordyn Hazelitt / Alice Tubello / Elizabeth Mandlik onto Ann Li because
+    the letters ``li`` appear inside those names.
+    """
+    parts = [p for p in re.split(r"\s+", str(player_name or "").strip()) if p]
+    if not (len(parts) >= 2 and len(parts[-1]) <= 2):
+        return "", ""
     last, initial = _pp_abbrev_tokens(player_name)
     if not last:
         return "", ""
@@ -819,13 +995,9 @@ def _resolve_pp_abbrev_athlete_id(player_name: str, rankings: list[dict[str, Any
                 continue
             rk_last = words[-1]
             rk_init = words[0][0] if words[0] else ""
-            score = 0
-            if last == rk_last:
-                score += 3
-            elif last in key or rk_last in last:
-                score += 1
-            else:
+            if last != rk_last:
                 continue
+            score = 3
             if initial and initial == rk_init:
                 score += 2
             elif initial:
@@ -848,17 +1020,6 @@ def resolve_opp_rank(opp_name: str, rankings: list[dict[str, Any]]) -> float | N
                 return float(r.get("rank"))
             except (TypeError, ValueError):
                 return None
-    best: float | None = None
-    for r in rankings:
-        rk = r.get("player_key") or ""
-        if pk and rk and (pk in rk or rk in pk):
-            try:
-                v = float(r.get("rank"))
-            except (TypeError, ValueError):
-                continue
-            best = v if best is None else min(best, v)
-    if best is not None:
-        return best
     _eid, _t = _resolve_pp_abbrev_athlete_id(opp_name, rankings)
     if _eid:
         for r in rankings:
@@ -1342,22 +1503,92 @@ def history_value_fits_posted_line(
     *,
     value: object = None,
 ) -> bool:
-    """Drop BO5 / slam results when the live line is best-of-3."""
-    if not line_expects_best_of_three(prop_norm, line):
-        return True
-    if match_is_best_of_five(rec):
-        return False
+    """Keep history that matches the posted format (BO3 line vs BO5 line)."""
+    key = str(prop_norm or "").strip()
     fv = _to_float(value)
+    if line_expects_best_of_three(prop_norm, line):
+        if match_is_best_of_five(rec):
+            return False
+        if fv is None:
+            return True
+        if key == "match_total_games" and fv >= 40:
+            return False
+        if key == "games_won" and fv >= 24:
+            return False
+        if key in ("total_sets", "sets_won") and fv >= 4:
+            return False
+        return True
+    if key not in _BO3_LINE_MAX:
+        return True
+    # Posted line is BO5. Drop 2-set / 3-set tape (Tiafoe 40.5 vs Cincy 19–30).
+    if isinstance(rec, dict) and not match_is_best_of_five(rec):
+        ts = _to_float(rec.get("total_sets"))
+        if ts is not None and ts <= 3:
+            return False
+        mtg = _to_float(rec.get("match_total_games"))
+        if key == "match_total_games" and mtg is not None and mtg < 32:
+            return False
+        gw = _to_float(rec.get("games_won"))
+        if key == "games_won" and gw is not None and gw < 16:
+            return False
     if fv is None:
         return True
-    key = str(prop_norm or "").strip()
-    if key == "match_total_games" and fv >= 40:
+    if key == "match_total_games" and fv < 32:
         return False
-    if key == "games_won" and fv >= 24:
+    if key == "games_won" and fv < 16:
         return False
-    if key in ("total_sets", "sets_won") and fv >= 4:
+    if key == "total_sets" and fv <= 2:
         return False
     return True
+
+
+def tennis_bo5_graded_on_bo3_tape(row: object) -> bool:
+    """True when a BO5 games/sets line is being graded on BO3 last-5 tape.
+
+    List-side veto so PrizePicks last-5 (Cincy BO3 19–30) cannot Gold a
+    US Open Total Games under at 40.5. Fail closed when the line is BO5
+    and no last-5 game is slam-sized.
+    """
+    if row is None:
+        return False
+    get = row.get if hasattr(row, "get") else None
+    if get is None:
+        return False
+    prop = str(get("prop_norm") or "").strip()
+    if not prop:
+        prop = norm_tennis_prop(str(get("prop_type") or get("prop") or get("Prop") or ""))
+    if prop not in _BO3_LINE_MAX:
+        return False
+    line = get("line")
+    if line is None or line == "":
+        line = get("Line")
+    if line_expects_best_of_three(prop, line):
+        return False
+    vals: list[float] = []
+    for i in range(1, 6):
+        fv = _to_float(get(f"stat_g{i}"))
+        if fv is not None:
+            vals.append(fv)
+    avg = _to_float(get("stat_last5_avg"))
+    if avg is None and vals:
+        avg = sum(vals) / len(vals)
+    if prop == "match_total_games":
+        if any(v >= 32 for v in vals):
+            return False
+        if avg is not None and avg >= 32:
+            return False
+        return True
+    if prop == "games_won":
+        if any(v >= 16 for v in vals):
+            return False
+        if avg is not None and avg >= 16:
+            return False
+        return True
+    if prop in ("total_sets", "sets_won"):
+        if any(v >= 4 for v in vals):
+            return False
+        return True
+    return False
 
 
 def collect_history_values(
@@ -1366,14 +1597,28 @@ def collect_history_values(
     last_n: int = 10,
     *,
     line: object = None,
+    skip_qualifying: bool = True,
+    skip_doubles: bool = True,
 ) -> list[float]:
-    """Newest-first history for prop_norm, skipping format-mismatched matches."""
+    """Newest-first history for prop_norm, skipping format-mismatched matches.
+
+    PrizePicks tennis last-5 is main-draw singles. Qualifying and doubles
+    matches are dropped so L5 matches the site (Stoiana O20.0 is 4/1, not 5/0).
+    """
     vals: list[float] = []
     want = max(1, int(last_n))
     for rec in records:
         if len(vals) >= want:
             break
         if not isinstance(rec, dict):
+            continue
+        if skip_qualifying and match_is_qualifying(rec):
+            continue
+        if skip_doubles and match_is_doubles_event(rec):
+            continue
+        if match_is_incomplete(rec):
+            continue
+        if match_is_low_level(rec):
             continue
         raw = rec.get(prop_norm)
         fv = _to_float(raw)
@@ -1387,22 +1632,24 @@ def collect_history_values(
 
 def apply_format_matched_stat_g(df: pd.DataFrame, n: int = 10) -> int:
     """
-    Drop flattened stat_g values that look like best-of-5 when the posted line is BO3.
+    Drop flattened stat_g values that do not match the posted format
+    (BO5 tape on a BO3 line, or BO3 tape on a BO5 line).
     Rebuilds stat_last5_avg / stat_last10_avg. Returns how many rows changed.
     """
     gcols = [f"stat_g{i}" for i in range(1, n + 1) if f"stat_g{i}" in df.columns]
     if not gcols:
         return 0
     line_col = "line" if "line" in df.columns else ("line_score" if "line_score" in df.columns else "")
-    prop_col = "prop_norm" if "prop_norm" in df.columns else ""
+    prop_col = "prop_norm" if "prop_norm" in df.columns else ("prop_type" if "prop_type" in df.columns else "")
     if not line_col or not prop_col:
         return 0
     changed = 0
     nan = float("nan")
     for idx in df.index:
-        prop_norm = str(df.at[idx, prop_col] or "")
+        raw_prop = str(df.at[idx, prop_col] or "")
+        prop_norm = raw_prop if prop_col == "prop_norm" else norm_tennis_prop(raw_prop)
         line = df.at[idx, line_col]
-        if not line_expects_best_of_three(prop_norm, line):
+        if str(prop_norm or "").strip() not in _BO3_LINE_MAX:
             continue
         kept: list[float] = []
         old: list[float | None] = []
@@ -1514,6 +1761,53 @@ def _parse_score_both_sides(score: str) -> dict[str, Any] | None:
     }
 
 
+def ta_player_side_from_score(score: str, wl: object) -> dict[str, Any] | None:
+    """Pick THIS player's games/sets from a Tennis Abstract score + W/L.
+
+    TA mixes player-first strings (``4-6 6-3 3-6`` with ``L``) and winner-first
+    strings (``6-2 6-3`` with ``L``). Always taking the first number in each set
+    inflates games-won on every winner-first loss. Use set counts vs W/L:
+
+    - Win: the side with more sets (first numbers when they won the match).
+    - Loss: the side with fewer sets (second numbers when the score is winner-first).
+
+    RET / W/O / default scores keep match totals when parseable but leave
+    games_won / sets_won empty — do not guess from a partial score.
+    """
+    parsed = _parse_score_both_sides(score)
+    if not parsed:
+        return None
+    out: dict[str, Any] = {
+        "match_total_games": parsed["match_total_games"],
+        "total_sets": parsed["total_sets"],
+        "total_tie_breaks": parsed["total_tie_breaks"],
+        "games_won": None,
+        "sets_won": None,
+    }
+    score_u = str(score or "").upper()
+    if any(tok in score_u for tok in ("RET", "W/O", "WALKOVER", " DEF", "DEFAULT")):
+        return out
+    first = parsed["winner"]
+    second = parsed["loser"]
+    fs = float(first.get("sets_won") or 0)
+    ss = float(second.get("sets_won") or 0)
+    flag = str(wl or "").strip().upper()
+    if flag == "W":
+        side = first if fs >= ss else second
+    elif flag == "L":
+        if fs < ss:
+            side = first
+        elif fs > ss:
+            side = second
+        else:
+            return out
+    else:
+        side = first
+    out["games_won"] = side.get("games_won")
+    out["sets_won"] = side.get("sets_won")
+    return out
+
+
 def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[str, Any]]]:
     """
     Pre-index Sackmann matches by norm_key(player), newest tourney_date first.
@@ -1558,6 +1852,7 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
         l_ace = _f(rd, "l_ace")
         w_df = _f(rd, "w_df")
         l_df = _f(rd, "l_df")
+        match_minutes = _f(rd, "minutes")
 
         # Breaks converted = opponent break points faced - saved.
         w_bp = l_bp = float("nan")
@@ -1578,6 +1873,7 @@ def build_sackmann_player_index(matches: pd.DataFrame) -> dict[str, list[dict[st
             "match_total_games": mtg,
             "total_sets": total_sets,
             "total_tie_breaks": total_tb,
+            "minutes": match_minutes if match_minutes == match_minutes else None,
         }
         _append(
             norm_key(w_name),
@@ -1635,6 +1931,169 @@ def build_sackmann_player_log(
         player_index = build_sackmann_player_index(matches)
     rows = player_index.get(pk) or []
     return collect_history_values(rows, prop_norm, last_n, line=line)
+
+
+def _sackmann_finite(v: object) -> float | None:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if f != f:
+        return None
+    return f
+
+
+def lookup_sackmann_match(
+    player_index: dict[str, list[dict[str, Any]]],
+    player: str,
+    slate: date,
+    *,
+    games_won_hint: float | None = None,
+    window_before: int = 18,
+    window_after: int = 2,
+) -> dict[str, Any] | None:
+    """Best Sackmann row for a player on/near a slate date.
+
+    ``tourney_date`` is the event start, so the window is wide. Prefer a row
+    whose games_won matches a sibling ESPN games-won actual when provided.
+    Serve stats may be a true 0; missing Sackmann values stay None (never
+    coerced to 0.0).
+    """
+    if not player_index or not player:
+        return None
+    lo = slate - timedelta(days=int(window_before))
+    hi = slate + timedelta(days=int(window_after))
+    cands: list[dict[str, Any]] = []
+    seen: set[tuple[object, ...]] = set()
+    for pk in norm_key_candidates(player):
+        for rec in player_index.get(pk) or []:
+            dt = parse_sackmann_tourney_date(rec.get("date"))
+            if dt is None or dt < lo or dt > hi:
+                continue
+            key = (
+                str(rec.get("date") or ""),
+                rec.get("match_num"),
+                rec.get("round"),
+                rec.get("games_won"),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            cands.append(rec)
+    if not cands:
+        return None
+    hint = _sackmann_finite(games_won_hint)
+    if hint is not None and hint > 0:
+        close = []
+        for rec in cands:
+            gw = _sackmann_finite(rec.get("games_won"))
+            if gw is not None and abs(gw - hint) <= 1.5:
+                close.append(rec)
+        if close:
+            cands = close
+    with_serve = [
+        r
+        for r in cands
+        if _sackmann_finite(r.get("aces")) is not None
+        or _sackmann_finite(r.get("double_faults")) is not None
+    ]
+    pool = with_serve or cands
+
+    def _sort_key(r: dict[str, Any]) -> tuple[int, int]:
+        dt = parse_sackmann_tourney_date(r.get("date")) or date.min
+        return (abs((dt - slate).days), -int(r.get("match_num") or 0))
+
+    best = min(pool, key=_sort_key)
+    out = dict(best)
+    for k in ("aces", "double_faults", "games_won", "sets_won", "match_total_games"):
+        out[k] = _sackmann_finite(out.get(k))
+    return out
+
+
+def lookup_serve_actual(
+    player: str,
+    slate: date,
+    *,
+    games_won_hint: float | None = None,
+    ta_index: dict[str, list[dict[str, Any]]] | None = None,
+    sack_index: dict[str, list[dict[str, Any]]] | None = None,
+) -> tuple[dict[str, Any] | None, str]:
+    """Tennis Abstract (match date) first, then Sackmann (event start)."""
+    if ta_index:
+        rec = lookup_sackmann_match(
+            ta_index,
+            player,
+            slate,
+            games_won_hint=games_won_hint,
+            window_before=3,
+            window_after=1,
+        )
+        if rec and (
+            rec.get("aces") is not None or rec.get("double_faults") is not None
+        ):
+            return rec, "tennis_abstract"
+    if sack_index:
+        rec = lookup_sackmann_match(
+            sack_index,
+            player,
+            slate,
+            games_won_hint=games_won_hint,
+            window_before=18,
+            window_after=2,
+        )
+        if rec and (
+            rec.get("aces") is not None or rec.get("double_faults") is not None
+        ):
+            return rec, "sackmann"
+    return None, ""
+
+
+def fill_missing_serve_from_sackmann(
+    by_player: dict[str, dict[str, Any]],
+    slate: date,
+    *,
+    player_index: dict[str, list[dict[str, Any]]] | None = None,
+    ta_index: dict[str, list[dict[str, Any]]] | None = None,
+) -> int:
+    """Fill None aces/DF from Tennis Abstract, then Sackmann. Returns rows touched."""
+    missing = [
+        pk
+        for pk, st in by_player.items()
+        if st.get("aces") is None or st.get("double_faults") is None
+    ]
+    if not missing:
+        return 0
+    if player_index is None:
+        player_index = build_sackmann_player_index(ensure_sackmann_matches())
+    if ta_index is None:
+        try:
+            from tennis_ta_matchlog import load_cached_ta_player_index
+
+            ta_index = load_cached_ta_player_index()
+        except Exception:
+            ta_index = {}
+    filled = 0
+    for pk in missing:
+        st = by_player[pk]
+        rec, _src = lookup_serve_actual(
+            str(st.get("player") or pk),
+            slate,
+            games_won_hint=_sackmann_finite(st.get("games_won")),
+            ta_index=ta_index,
+            sack_index=player_index,
+        )
+        if not rec:
+            continue
+        changed = False
+        if st.get("aces") is None and rec.get("aces") is not None:
+            st["aces"] = rec["aces"]
+            changed = True
+        if st.get("double_faults") is None and rec.get("double_faults") is not None:
+            st["double_faults"] = rec["double_faults"]
+            changed = True
+        if changed:
+            filled += 1
+    return filled
 
 
 def parse_sackmann_tourney_date(val: object) -> date | None:

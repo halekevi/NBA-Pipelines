@@ -449,12 +449,17 @@ def _derive_soccer_pick_type(
     ml_prob_s: str,
     hit_rate_s: str,
     blended_s: str,
+    direction: str = "",
 ) -> str:
     """
     When Soccer step8 omits pick_type, infer Goblin / Standard / Demon from tier + scores
     (same spirit as scripts.nhl_soccer_grader.load_slate).
+
+    Goblin/Demon are OVER-only products — UNDER rows with blank pick_type stay Standard.
     """
     tier_u = str(tier or "").strip().upper()
+    dir_u = str(direction or "").strip().upper()
+    over_only_ok = dir_u in ("", "OVER", "O", "MORE")
 
     def _to_float(v) -> float | None:
         if v is None:
@@ -476,14 +481,15 @@ def _derive_soccer_pick_type(
     if p_candidates:
         p = max(0.01, min(0.99, float(p_candidates[0])))
         if p >= 0.70:
-            return "Goblin"
+            return "Goblin" if over_only_ok else "Standard"
         if p >= 0.55:
             return "Standard"
-    if tier_u == "A" and edge is not None and edge >= 0.48:
+    if over_only_ok and tier_u == "A" and edge is not None and edge >= 0.48:
         return "Goblin"
     if tier_u in ("A", "B"):
         return "Standard"
-    return "Demon"
+    # Tier C/D default was Demon — only valid on OVER.
+    return "Demon" if over_only_ok else "Standard"
 
 
 def _norm_result_display(row: dict) -> str:
@@ -590,10 +596,10 @@ def prop_row_for_api(
     team_bottom3_rank = _pick("Bottom3 Rank", "team_bottom3_rank", "bottom3_rank")
     top3_weak_over = _pick("Top3 Weak Over", "top3_weak_overperformer")
     top3_elite_fade = _pick("Top3 Elite Fade", "top3_elite_fader")
-    l5_over = _pick("L5 Over", "l5_over", "last5_over", "over_L5_raw")
-    l5_under = _pick("L5 Under", "l5_under", "last5_under", "under_L5_raw")
-    l10_over = _pick("L10 Over", "l10_over", "line_hits_over_10", "over_L10", "over_L10_raw")
-    l10_under = _pick("L10 Under", "l10_under", "line_hits_under_10", "under_L10", "under_L10_raw")
+    l5_over = _pick_scalar("L5 Over", "l5_over", "last5_over", "over_L5_raw")
+    l5_under = _pick_scalar("L5 Under", "l5_under", "last5_under", "under_L5_raw")
+    l10_over = _pick_scalar("L10 Over", "l10_over", "line_hits_over_10", "over_L10", "over_L10_raw")
+    l10_under = _pick_scalar("L10 Under", "l10_under", "line_hits_under_10", "under_L10", "under_L10_raw")
     l10_games_played = _pick("l10_games_played", "line_games_played_10", "Games (10g)", "sample_L10")
     l10_streak = _pick("l10_streak", "L10 Streak")
     strat_hit_rate = _pick("strat_hit_rate")
@@ -693,10 +699,20 @@ def prop_row_for_api(
         pick_type = "—"
         if sport_up == "SOCCER" and tier:
             inferred = _derive_soccer_pick_type(
-                tier, edge, ml_prob, hit_rate_for_pick, blended_for_pick
+                tier,
+                edge,
+                ml_prob,
+                hit_rate_for_pick,
+                blended_for_pick,
+                direction=direction,
             )
             if inferred:
                 pick_type = inferred
+
+    # Product rule: Goblin/Demon are OVER-only. UNDER + Goblin/Demon is a mislabel —
+    # keep the UNDER side and demote pick_type to Standard (do not flip direction).
+    if pick_type in ("Goblin", "Demon") and direction == "UNDER":
+        pick_type = "Standard"
 
     on_live = False
     on_shadow = False
@@ -1663,7 +1679,7 @@ def player_table(rows: list[dict], top: bool, min_decided: int = 5, limit: int =
           <td class="right mono neg">{fmt_num(c['misses'])}</td>
           <td>{rate_bar_html(c['hit_rate'], hits=c['hits'], misses=c['misses'])}</td>
         </tr>"""
-    return f"""<div class="table-wrap"><table>
+    return f"""<div class="table-wrap player-record-table"><table>
       <thead><tr><th>PLAYER</th><th>TEAM</th><th>PROPS</th><th class="right">DEC</th><th class="right">H</th><th class="right">M</th><th>RATE</th></tr></thead>
       <tbody>{rows_html}</tbody>
     </table></div>"""
@@ -1881,6 +1897,10 @@ def build_takeaways(
     mlb_rows: list[dict] | None = None,
     wnba_rows: list[dict] | None = None,
     tennis_rows: list[dict] | None = None,
+    golf_rows: list[dict] | None = None,
+    nfl_rows: list[dict] | None = None,
+    cfb_rows: list[dict] | None = None,
+    wcbb_rows: list[dict] | None = None,
 ) -> str:
     """
     Insight cards at the bottom of slate_eval. Uses **all loaded sports** so Railway /grades
@@ -1891,6 +1911,10 @@ def build_takeaways(
     mlb_rows = mlb_rows or []
     wnba_rows = wnba_rows or []
     tennis_rows = tennis_rows or []
+    golf_rows = golf_rows or []
+    nfl_rows = nfl_rows or []
+    cfb_rows = cfb_rows or []
+    wcbb_rows = wcbb_rows or []
 
     all_rows: list[dict] = (
         list(nba_rows)
@@ -1900,6 +1924,10 @@ def build_takeaways(
         + list(mlb_rows)
         + list(wnba_rows)
         + list(tennis_rows)
+        + list(golf_rows)
+        + list(nfl_rows)
+        + list(cfb_rows)
+        + list(wcbb_rows)
     )
 
     insights: list[str] = []
@@ -1936,6 +1964,10 @@ def build_takeaways(
         ("MLB", mlb_rows),
         ("WNBA", wnba_rows),
         ("Tennis", tennis_rows),
+        ("Golf", golf_rows),
+        ("NFL", nfl_rows),
+        ("CFB", cfb_rows),
+        ("WCBB", wcbb_rows),
     ]
     sport_line = _takeaway_sport_snippets(bundles)
 
@@ -2023,6 +2055,14 @@ def sport_label(s: str) -> str:
         "SOCCER": "⚽ Soccer",
         "WNBA": "🏀 WNBA",
         "TENNIS": "🎾 Tennis",
+        "GOLF": "⛳ Golf",
+        "NFL": "🏈 NFL",
+        "CFB": "🏈 CFB",
+        "WCBB": "🎓 WCBB",
+        "NBA1Q": "🏀 NBA1Q",
+        "NBA1H": "🏀 NBA1H",
+        "WNBA1Q": "🏀 WNBA1Q",
+        "WNBA1H": "🏀 WNBA1H",
     }.get(s.upper(), s)
 
 
@@ -2188,14 +2228,43 @@ def load_merged_nba_graded_rows(date_str: str) -> list[dict]:
     return rows
 
 
+# (find_graded_file key, sport label written into graded_props JSON)
+GRADED_JSON_SPORTS: tuple[tuple[str, str], ...] = (
+    ("nba", "NBA"),
+    ("nba1q", "NBA1Q"),
+    ("nba1h", "NBA1H"),
+    ("cbb", "CBB"),
+    ("wcbb", "WCBB"),
+    ("nhl", "NHL"),
+    ("soccer", "Soccer"),
+    ("mlb", "MLB"),
+    ("wnba", "WNBA"),
+    ("wnba1q", "WNBA1Q"),
+    ("wnba1h", "WNBA1H"),
+    ("tennis", "Tennis"),
+    ("golf", "Golf"),
+    ("nfl", "NFL"),
+    ("cfb", "CFB"),
+)
+
+
+def graded_json_bundles(date_str: str) -> list[tuple[str, list[dict]]]:
+    """Every graded workbook that should land in graded_props JSON, including NFL/CFB."""
+    bundles: list[tuple[str, list[dict]]] = []
+    for key, label in GRADED_JSON_SPORTS:
+        if key == "tennis":
+            p = find_tennis_graded_file(date_str)
+        else:
+            p = find_graded_file(key, date_str)
+        if p:
+            bundles.append((label, load_graded(p, key)))
+    return bundles
+
+
 def nba_family_bundles_for_json(date_str: str) -> list[tuple[str, list[dict]]]:
     """Separate bundles so graded_props JSON carries NBA vs NBA1Q vs NBA1H sport labels."""
-    bundles: list[tuple[str, list[dict]]] = []
-    for key, label in (("nba", "NBA"), ("nba1q", "NBA1Q"), ("nba1h", "NBA1H")):
-        p = find_graded_file(key, date_str)
-        if p:
-            bundles.append((label, load_graded(p)))
-    return bundles
+    keep = {"NBA", "NBA1Q", "NBA1H"}
+    return [(label, rows) for label, rows in graded_json_bundles(date_str) if label in keep]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2238,6 +2307,7 @@ header{background:transparent;border:none;border-radius:0;padding:12px 20px 0;di
 .date-badge{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted2);background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spacing:1.5px}
 .main{max-width:none;width:100%;margin:0;padding:24px 20px;box-sizing:border-box}
+@media(max-width:768px){.main{padding:8px 12px 16px}}
 .sport-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap;min-width:0}
 .sport-label{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;line-height:1;color:var(--gold);text-shadow:0 0 28px rgba(240,165,0,.18)}
 .sport-header-line{flex:1;min-width:80px;height:1px;background:rgba(255,255,255,0.08)}
@@ -2256,14 +2326,14 @@ border:1px solid var(--glass-bd);border-radius:999px;padding:8px 14px;letter-spa
 .sport-collapsible>summary .sport-label::before{content:'▸ ';color:var(--gold)}
 .sport-collapsible[open]>summary .sport-label::before{content:'▾ '}
 .sport-collapsible .sport-section-body{padding-top:14px}
-.slate-sport-jump{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0 12px;margin:0 0 10px;background:rgba(10,10,20,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
+.slate-sport-jump{position:sticky;top:0;z-index:40;display:flex;flex-wrap:nowrap;gap:4px;align-items:center;padding:4px 0 6px;margin:0 0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgba(10,10,20,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06)}
 .slate-sport-jump-label{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.6px;color:rgba(255,255,255,0.45);margin-right:4px}
-.slate-sport-jump-btn{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.72);border-radius:999px;padding:6px 11px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:6px}
+.slate-sport-jump-btn{appearance:none;border:1px solid rgba(255,255,255,0.10);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.72);border-radius:999px;padding:5px 9px;min-height:36px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;line-height:1.2;display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;white-space:nowrap}
 .slate-sport-jump-btn:hover{border-color:rgba(255,255,255,0.2);color:#fff;background:rgba(255,255,255,0.07)}
 .slate-sport-jump-btn.active{color:var(--gold);border-color:rgba(240,165,0,0.55);background:rgba(240,165,0,0.12);box-shadow:0 0 14px rgba(240,165,0,0.12)}
 .slate-sport-jump-btn .sj-meta{opacity:0.7;font-size:11px}
-.sport-view-tabs{display:inline-flex;flex-wrap:wrap;gap:0;margin:0 0 14px;padding:3px;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:52px;z-index:30}
-.sport-view-tab{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 14px;min-height:34px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1.4px;font-size:13px}
+.sport-view-tabs{display:flex;flex-wrap:nowrap;gap:0;margin:0 0 10px;padding:3px;width:100%;max-width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,0.10);border-radius:12px;background:rgba(0,0,0,0.22);position:sticky;top:0;z-index:30}
+.sport-view-tab{appearance:none;border:none;background:transparent;color:rgba(255,255,255,0.55);border-radius:9px;padding:8px 10px;min-height:34px;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:13px;flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sport-view-tab:hover{color:rgba(255,255,255,0.9)}
 .sport-view-tab.active{color:#0a0a14;background:var(--gold);box-shadow:0 4px 14px rgba(240,165,0,0.25)}
 .sport-view-panel{display:none}
@@ -2426,6 +2496,9 @@ td{padding:8px 8px}
 .sport-label{font-size:28px}
 .logo-title{font-size:24px}
 .two-col.pick-tier-split{grid-template-columns:1fr!important;gap:18px!important}
+.slate-sport-jump-label{display:none}
+.sport-view-tabs{top:0;width:100%;max-width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0}
+.sport-view-tab{padding:6px 8px;font-size:11px;letter-spacing:0.7px;flex:0 0 auto;min-width:0;min-height:36px;text-align:center}
 }
 /* Touch / hub iframe: BY PICK TYPE + BY TIER stack when viewport math is wrong (wide iframe on a phone). */
 @media(pointer:coarse){
@@ -2445,6 +2518,62 @@ td{padding:8px 8px}
 .two-col.pick-tier-split td:first-child,.two-col.pick-tier-split th:first-child{min-width:0}
 .two-col.pick-tier-split .table-wrap td{vertical-align:top}
 .two-col.pick-tier-split .table-wrap th{white-space:normal;word-break:normal;line-height:1.2}
+/* Top/Cold players: card rows instead of a 7-col squeeze. */
+.player-record-table,.two-col>.table-wrap,section .two-col .table-wrap{
+  overflow:visible!important;
+}
+.player-record-table table thead,
+.two-col > div > .table-wrap table thead{
+  display:none!important;
+}
+.player-record-table table,
+.player-record-table table tbody,
+.two-col > div > .table-wrap table,
+.two-col > div > .table-wrap table tbody{
+  display:block!important;width:100%!important;
+}
+.player-record-table table tr,
+.two-col > div > .table-wrap table tbody tr{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto auto auto minmax(64px,28%);
+  grid-template-areas:
+    "name name name name rate"
+    "team props dec hits misses";
+  gap:4px 8px;
+  align-items:center;
+  width:100%!important;
+  box-sizing:border-box;
+  margin:0 0 8px;
+  padding:10px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border-left:3px solid rgba(212,160,23,.35);
+}
+.player-record-table table td,
+.two-col > div > .table-wrap table td{
+  border:none!important;padding:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;
+}
+.player-record-table table td:nth-child(1),
+.two-col > div > .table-wrap table td:nth-child(1){grid-area:name;white-space:normal;font-size:14px;line-height:1.25}
+.player-record-table table td:nth-child(2),
+.two-col > div > .table-wrap table td:nth-child(2){grid-area:team;opacity:.72;font-size:11px}
+.player-record-table table td:nth-child(3),
+.two-col > div > .table-wrap table td:nth-child(3){grid-area:props;opacity:.72;font-size:11px}
+.player-record-table table td:nth-child(4),
+.two-col > div > .table-wrap table td:nth-child(4){grid-area:dec;font-variant-numeric:tabular-nums}
+.player-record-table table td:nth-child(5),
+.two-col > div > .table-wrap table td:nth-child(5){grid-area:hits;font-variant-numeric:tabular-nums}
+.player-record-table table td:nth-child(6),
+.two-col > div > .table-wrap table td:nth-child(6){grid-area:misses;font-variant-numeric:tabular-nums}
+.player-record-table table td:nth-child(7),
+.two-col > div > .table-wrap table td:nth-child(7){grid-area:rate;min-width:0}
+.player-record-table .rate-cell,
+.two-col > div > .table-wrap .rate-cell{gap:6px;width:100%}
+.player-record-table .rate-num,
+.two-col > div > .table-wrap .rate-num{display:none}
+.player-record-table .rate-bar-bg,
+.two-col > div > .table-wrap .rate-bar-bg{min-width:56px;height:8px}
 }
 th[data-sort-key]{cursor:pointer;user-select:none;position:relative;padding-right:1.35em}
 th[data-sort-key]:hover{color:var(--text)}
@@ -2815,6 +2944,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
                mlb_rows: list[dict] | None = None,
                wnba_rows: list[dict] | None = None,
                tennis_rows: list[dict] | None = None,
+               golf_rows: list[dict] | None = None,
+               nfl_rows: list[dict] | None = None,
+               cfb_rows: list[dict] | None = None,
+               wcbb_rows: list[dict] | None = None,
                nhl_path: Path | None = None,
                soccer_path: Path | None = None,
                mlb_path: Path | None = None) -> str:
@@ -2829,6 +2962,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
     mlb_rows    = mlb_rows    or []
     wnba_rows   = wnba_rows   or []
     tennis_rows = tennis_rows or []
+    golf_rows = golf_rows or []
+    nfl_rows = nfl_rows or []
+    cfb_rows = cfb_rows or []
+    wcbb_rows = wcbb_rows or []
     all_rows = (
         list(nba_rows)
         + list(cbb_rows)
@@ -2837,6 +2974,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         + list(mlb_rows)
         + list(wnba_rows)
         + list(tennis_rows)
+        + list(golf_rows)
+        + list(nfl_rows)
+        + list(cfb_rows)
+        + list(wcbb_rows)
     )
     all_section = build_sport_section(all_rows, "ALL SPORTS", "🌐") if all_rows else ""
     nba_section    = build_sport_section(nba_rows,    "NBA",    "🏀") if nba_rows    else ""
@@ -2846,6 +2987,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
     mlb_section    = build_sport_section(mlb_rows,    "MLB",    "⚾") if mlb_rows    else ""
     wnba_section   = build_sport_section(wnba_rows,   "WNBA",   "🏀") if wnba_rows   else ""
     tennis_section = build_sport_section(tennis_rows, "Tennis", "🎾") if tennis_rows else ""
+    golf_section = build_sport_section(golf_rows, "Golf", "⛳") if golf_rows else ""
+    nfl_section = build_sport_section(nfl_rows, "NFL", "🏈") if nfl_rows else ""
+    cfb_section = build_sport_section(cfb_rows, "CFB", "🏈") if cfb_rows else ""
+    wcbb_section = build_sport_section(wcbb_rows, "WCBB", "🎓") if wcbb_rows else ""
     takeaways = build_takeaways(
         nba_rows,
         cbb_rows,
@@ -2854,6 +2999,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         mlb_rows=mlb_rows,
         wnba_rows=wnba_rows,
         tennis_rows=tennis_rows,
+        golf_rows=golf_rows,
+        nfl_rows=nfl_rows,
+        cfb_rows=cfb_rows,
+        wcbb_rows=wcbb_rows,
     )
 
     if not (
@@ -2864,6 +3013,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         or mlb_section
         or wnba_section
         or tennis_section
+        or golf_section
+        or nfl_section
+        or cfb_section
+        or wcbb_section
     ):
         body_content = """<div style="text-align:center;padding:60px 20px;font-family:'Inter',sans-serif">
           <div style="font-size:32px;margin-bottom:16px">📭</div>
@@ -2882,6 +3035,10 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
             + mlb_section
             + wnba_section
             + tennis_section
+            + golf_section
+            + nfl_section
+            + cfb_section
+            + wcbb_section
             + takeaways
         )
 
@@ -2948,6 +3105,14 @@ def main() -> None:
                         help="Path to graded_wnba_*.xlsx or wnba_graded_*.xlsx")
     parser.add_argument("--tennis", type=str, default="",
                         help="Path to graded_tennis_*.xlsx")
+    parser.add_argument("--golf", type=str, default="",
+                        help="Path to graded_golf_*.xlsx")
+    parser.add_argument("--nfl", type=str, default="",
+                        help="Path to graded_nfl_*.xlsx")
+    parser.add_argument("--cfb", type=str, default="",
+                        help="Path to graded_cfb_*.xlsx")
+    parser.add_argument("--wcbb", type=str, default="",
+                        help="Path to graded_wcbb_*.xlsx")
     parser.add_argument("--out",  type=str, default="",
                         help="Output path or directory (default: next to this script)")
     parser.add_argument(
@@ -3045,6 +3210,13 @@ def main() -> None:
         if wnba_path:
             print(f"  Auto-detected WNBA: {wnba_path}")
 
+    wnba1q_path: Path | None = find_graded_file("wnba1q", date_str)
+    if wnba1q_path:
+        print(f"  Auto-detected WNBA1Q: {wnba1q_path}")
+    wnba1h_path: Path | None = find_graded_file("wnba1h", date_str)
+    if wnba1h_path:
+        print(f"  Auto-detected WNBA1H: {wnba1h_path}")
+
     tennis_path: Path | None = None
     if args.tennis:
         tennis_path = Path(args.tennis).resolve()
@@ -3056,6 +3228,50 @@ def main() -> None:
         if tennis_path:
             print(f"  Auto-detected Tennis: {tennis_path}")
 
+    golf_path: Path | None = None
+    if args.golf:
+        golf_path = Path(args.golf).resolve()
+        if not golf_path.exists():
+            print(f"  WARNING: Golf file not found: {golf_path}")
+            golf_path = None
+    else:
+        golf_path = find_graded_file("golf", date_str)
+        if golf_path:
+            print(f"  Auto-detected Golf: {golf_path}")
+
+    nfl_path: Path | None = None
+    if args.nfl:
+        nfl_path = Path(args.nfl).resolve()
+        if not nfl_path.exists():
+            print(f"  WARNING: NFL file not found: {nfl_path}")
+            nfl_path = None
+    else:
+        nfl_path = find_graded_file("nfl", date_str)
+        if nfl_path:
+            print(f"  Auto-detected NFL: {nfl_path}")
+
+    cfb_path: Path | None = None
+    if args.cfb:
+        cfb_path = Path(args.cfb).resolve()
+        if not cfb_path.exists():
+            print(f"  WARNING: CFB file not found: {cfb_path}")
+            cfb_path = None
+    else:
+        cfb_path = find_graded_file("cfb", date_str)
+        if cfb_path:
+            print(f"  Auto-detected CFB: {cfb_path}")
+
+    wcbb_path: Path | None = None
+    if args.wcbb:
+        wcbb_path = Path(args.wcbb).resolve()
+        if not wcbb_path.exists():
+            print(f"  WARNING: WCBB file not found: {wcbb_path}")
+            wcbb_path = None
+    else:
+        wcbb_path = find_graded_file("wcbb", date_str)
+        if wcbb_path:
+            print(f"  Auto-detected WCBB: {wcbb_path}")
+
     if not (
         nba_path
         or nba1q_path
@@ -3065,13 +3281,20 @@ def main() -> None:
         or soccer_path
         or mlb_path
         or wnba_path
+        or wnba1q_path
+        or wnba1h_path
         or tennis_path
+        or golf_path
+        or nfl_path
+        or cfb_path
+        or wcbb_path
     ):
         if args.allow_empty:
             print("  NOTE: No graded files; emitting empty slate eval (--allow-empty).")
         else:
             print(
-                "  ERROR: No graded files found. Specify --nba/--cbb/--nhl/--soccer/--mlb/--wnba/--tennis."
+                "  ERROR: No graded files found. Specify --nba/--cbb/--nhl/--soccer/"
+                "--mlb/--wnba/--tennis/--golf/--nfl/--cfb/--wcbb."
             )
             sys.exit(1)
 
@@ -3128,12 +3351,47 @@ def main() -> None:
         print(f"  Loading WNBA: {wnba_path.name} ...", end="", flush=True)
         wnba_rows = load_graded(wnba_path, "wnba")
         print(f" {len(wnba_rows):,} rows")
+    wnba1q_rows: list[dict] = []
+    if wnba1q_path:
+        print(f"  Loading WNBA1Q: {wnba1q_path.name} ...", end="", flush=True)
+        wnba1q_rows = load_graded(wnba1q_path, "wnba1q")
+        print(f" {len(wnba1q_rows):,} rows")
+    wnba1h_rows: list[dict] = []
+    if wnba1h_path:
+        print(f"  Loading WNBA1H: {wnba1h_path.name} ...", end="", flush=True)
+        wnba1h_rows = load_graded(wnba1h_path, "wnba1h")
+        print(f" {len(wnba1h_rows):,} rows")
+    wnba_rows_merged = [*wnba_rows, *wnba1q_rows, *wnba1h_rows]
 
     tennis_rows: list[dict] = []
     if tennis_path:
         print(f"  Loading Tennis: {tennis_path.name} ...", end="", flush=True)
         tennis_rows = load_graded(tennis_path, "tennis")
         print(f" {len(tennis_rows):,} rows")
+
+    golf_rows: list[dict] = []
+    if golf_path:
+        print(f"  Loading Golf: {golf_path.name} ...", end="", flush=True)
+        golf_rows = load_graded(golf_path, "golf")
+        print(f" {len(golf_rows):,} rows")
+
+    nfl_rows: list[dict] = []
+    if nfl_path:
+        print(f"  Loading NFL: {nfl_path.name} ...", end="", flush=True)
+        nfl_rows = load_graded(nfl_path, "nfl")
+        print(f" {len(nfl_rows):,} rows")
+
+    cfb_rows: list[dict] = []
+    if cfb_path:
+        print(f"  Loading CFB: {cfb_path.name} ...", end="", flush=True)
+        cfb_rows = load_graded(cfb_path, "cfb")
+        print(f" {len(cfb_rows):,} rows")
+
+    wcbb_rows: list[dict] = []
+    if wcbb_path:
+        print(f"  Loading WCBB: {wcbb_path.name} ...", end="", flush=True)
+        wcbb_rows = load_graded(wcbb_path, "wcbb")
+        print(f" {len(wcbb_rows):,} rows")
 
     # Build HTML (use merged NBA so 1Q/1H rows appear in Slate Evaluation, not only in JSON)
     print("  Building HTML ...", end="", flush=True)
@@ -3146,8 +3404,12 @@ def main() -> None:
         nhl_rows=nhl_rows,
         soccer_rows=soccer_rows,
         mlb_rows=mlb_rows,
-        wnba_rows=wnba_rows,
+        wnba_rows=wnba_rows_merged,
         tennis_rows=tennis_rows,
+        golf_rows=golf_rows,
+        nfl_rows=nfl_rows,
+        cfb_rows=cfb_rows,
+        wcbb_rows=wcbb_rows,
         nhl_path=nhl_path,
         soccer_path=soccer_path,
         mlb_path=mlb_path,
@@ -3186,8 +3448,20 @@ def main() -> None:
         json_bundles.append(("MLB", mlb_rows))
     if wnba_rows:
         json_bundles.append(("WNBA", wnba_rows))
+    if wnba1q_rows:
+        json_bundles.append(("WNBA1Q", wnba1q_rows))
+    if wnba1h_rows:
+        json_bundles.append(("WNBA1H", wnba1h_rows))
     if tennis_rows:
         json_bundles.append(("Tennis", tennis_rows))
+    if golf_rows:
+        json_bundles.append(("Golf", golf_rows))
+    if nfl_rows:
+        json_bundles.append(("NFL", nfl_rows))
+    if cfb_rows:
+        json_bundles.append(("CFB", cfb_rows))
+    if wcbb_rows:
+        json_bundles.append(("WCBB", wcbb_rows))
     json_p = export_graded_props_json(date_str, out_p.parent, json_bundles)
     print(f"  Saved  -> {json_p}")
     all_rows = [
@@ -3196,8 +3470,12 @@ def main() -> None:
         *nhl_rows,
         *soccer_rows,
         *mlb_rows,
-        *wnba_rows,
+        *wnba_rows_merged,
         *tennis_rows,
+        *golf_rows,
+        *nfl_rows,
+        *cfb_rows,
+        *wcbb_rows,
     ]
     tabs_p = export_analysis_tabs_xlsx(date_str, out_p.parent, all_rows)
     print(f"  Saved  -> {tabs_p}")

@@ -21,6 +21,32 @@ _MIN_TIER_STR_MAP = {
 }
 
 
+def _cell_text(v) -> str:
+    if v is None:
+        return ""
+    try:
+        if pd.isna(v):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    s = str(v).strip()
+    if s.lower() in {"nan", "<na>", "none", "nat"}:
+        return ""
+    return s
+
+
+def _row_first(row: pd.Series | dict, *names: str) -> str:
+    for name in names:
+        try:
+            val = row.get(name) if hasattr(row, "get") else row[name]
+        except Exception:
+            continue
+        text = _cell_text(val)
+        if text:
+            return text
+    return ""
+
+
 def fill_min_tier_labels(df: pd.DataFrame) -> pd.DataFrame:
     """Restore HIGH/MEDIUM/LOW(/ELITE) from labels or 0–3 codes into min_tier."""
     out = df.copy()
@@ -98,14 +124,45 @@ def _norm_pick_type_label(x: object) -> str:
     return "Standard"
 
 
+def is_hitter_strikeout_prop(prop: object, player_type: object = "") -> bool:
+    """True for MLB hitter/batter K markets (never pitcher strikeouts)."""
+    p = _norm_txt(prop)
+    if not p:
+        return False
+    compact = "".join(ch for ch in p if ch.isalnum())
+    # Explicit pitcher labels never count as hitter Ks.
+    if "pitcher" in p or "pitching" in p or compact in {"pitcherstrikeouts", "pitchingstrikeouts"}:
+        return False
+    if compact in {"hitterstrikeouts", "batterstrikeouts", "hitterks", "batterks"}:
+        return True
+    if p.replace(" ", "_") == "hitter_strikeouts":
+        return True
+    if ("hitter" in p or "batter" in p) and (
+        "strikeout" in p or "strike" in p or compact.endswith("ks") or compact.endswith("so")
+    ):
+        return True
+    # Bare "Strikeouts" / "Ks" only when player_type is hitter/batter.
+    pt = _norm_txt(player_type)
+    if "pitch" in pt or pt in {"p", "sp", "rp", "cp", "lhp", "rhp"}:
+        return False
+    if ("hitter" in pt or "batter" in pt) and (
+        "strikeout" in p or compact in {"ks", "so", "k", "strikeouts"}
+    ):
+        return True
+    return False
+
+
+def is_hitter_strikeout_row(row: pd.Series | dict) -> bool:
+    """True when the market is hitter/batter Ks (not pitcher Ks)."""
+    prop = _row_first(row, "prop_norm", "prop_type", "prop")
+    ptype = _row_first(row, "player_type", "player_type_norm", "pos")
+    return is_hitter_strikeout_prop(prop, ptype)
+
+
 def is_pitcher_strikeout_row(row: pd.Series | dict) -> bool:
     """True when the market is pitcher Ks (not hitter/batter Ks)."""
-    if isinstance(row, dict):
-        prop = row.get("prop_type") or row.get("prop") or row.get("prop_norm") or ""
-        ptype = row.get("player_type") or row.get("player_type_norm") or row.get("pos") or ""
-    else:
-        prop = row.get("prop_type") or row.get("prop") or row.get("prop_norm") or ""
-        ptype = row.get("player_type") or row.get("player_type_norm") or row.get("pos") or ""
+    prop = _row_first(row, "prop_type", "prop", "prop_norm")
+    ptype = _row_first(row, "player_type", "player_type_norm", "pos")
     p = _norm_txt(prop)
     compact = "".join(ch for ch in p if ch.isalnum())
     if "hitter" in p or "batter" in p:

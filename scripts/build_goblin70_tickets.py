@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 """Build Goblin-70 tickets and publish the playable card to /tickets.
 
-Main card (app): all-Goblin OVER, L5 >= 4, sport cover floor, no shadow,
-no Demons, no Standard legs. Power OK. D is a badge, not a filter.
+Main card (app): Goblin OVER with L5=5 + L10>=8 + directional D (tennis L5=5
+only; golf L5=5+L10>=8, no opponent D). Cover floor, no Demons, no shadow,
+no hitter Ks. Standard Over/Under that clear the same gate ticket as Flex
+groups — not mixed onto Goblin Power.
 
-Standard allowlist stays in the report JSON only (tracker / Flex fill).
-N-correct / To Win only. Never 1st-place multipliers.
-
-  py -3.14 scripts/build_goblin70_tickets.py
-  py -3.14 scripts/build_goblin70_tickets.py --date 2026-08-26
-  py -3.14 scripts/build_goblin70_tickets.py --date 2026-08-26 --no-write-web
+NFLP stays on its own playing-time track. N-correct / To Win only.
 """
 from __future__ import annotations
 
@@ -33,6 +30,7 @@ if str(_REPO) not in sys.path:
 
 import rank_best_props_today as R  # noqa: E402
 from utils.n_correct_payout import PAY_FALLBACK as PAY, resolve_n_correct  # noqa: E402
+from utils.ui_live_json import write_paths as live_json_write_paths  # noqa: E402
 from utils.ticket_70_pool import (  # noqa: E402
     directional_l5,
     goblin_70_eligible,
@@ -42,8 +40,8 @@ from utils.ticket_70_pool import (  # noqa: E402
     nflp_std_over_eligible,
     nflp_ticket_eligible,
     nflp_ticket_p,
-    standard_flex_kind,
     standard_sort_key,
+    standard_ticket_eligible,
     standard_ticket_p,
 )
 
@@ -91,7 +89,18 @@ def load_today_board(date: str) -> list[dict]:
         if df.empty:
             continue
         rows.extend(R.recs(df))
-    for loader_name in ("load_nfl", "load_cfb"):
+    for loader_name in (
+        "load_nfl",
+        "load_cfb",
+        "load_golf",
+        "load_cbb",
+        "load_wcbb",
+        "load_nba",
+        "load_nba1q",
+        "load_nba1h",
+        "load_wnba1q",
+        "load_wnba1h",
+    ):
         loader = getattr(R, loader_name, None)
         if not callable(loader):
             continue
@@ -110,7 +119,29 @@ SPORT_PURE = (
     ("MLB", 3, "Power", 3),
     ("Tennis", 3, "Power", 2),
     ("Soccer", 3, "Power", 2),
+    ("NBA", 3, "Power", 2),
+    ("NHL", 3, "Power", 2),
+    ("CFB", 3, "Power", 2),
+    ("NFL", 3, "Power", 2),
+    ("CBB", 3, "Power", 2),
+    ("GOLF", 3, "Power", 2),
+    ("WNBA1Q", 3, "Power", 2),
+    ("WNBA1H", 3, "Power", 2),
+    ("NBA1Q", 3, "Power", 2),
+    ("NBA1H", 3, "Power", 2),
+    ("WCBB", 3, "Power", 2),
 )
+# Period sports cannot share WNBA[:3]/NBA[:3] ticket ids.
+SPORT_TID_PREFIX = {
+    "WNBA1Q": "W1Q",
+    "WNBA1H": "W1H",
+    "NBA1Q": "N1Q",
+    "NBA1H": "N1H",
+    "WCBB": "WCB",
+    "GOLF": "GLF",
+    "TENNIS": "TEN",
+    "SOCCER": "SOC",
+}
 
 MAIN_CARD = (
     ("P3-1", 3, "Power", "goblin"),
@@ -131,13 +162,24 @@ WEB_SPORT = {
     "MLB": "MLB",
     "NFL": "NFL",
     "CFB": "CFB",
+    "CBB": "CBB",
+    "GOLF": "Golf",
+    "PGA": "Golf",
+    "NBA": "NBA",
+    "NHL": "NHL",
+    "NFL": "NFL",
+    "CFB": "CFB",
+    "CBB": "CBB",
+    "WCBB": "WCBB",
+    "WNBA1Q": "WNBA1Q",
+    "WNBA1H": "WNBA1H",
+    "NBA1Q": "NBA1Q",
+    "NBA1H": "NBA1H",
 }
 
-WEB_JSON_PATHS = (
-    _REPO / "ui_runner" / "templates" / "tickets_latest.json",
-    _REPO / "ui_runner" / "data" / "tickets_latest.json",
-    _REPO / "ui_runner" / "docs" / "tickets_latest.json",
-    _REPO / "mobile" / "www" / "tickets_latest.json",
+# runtime (disk) + templates (GitHub raw) + data snapshot. Not docs/ or mobile/www.
+WEB_JSON_PATHS = tuple(
+    live_json_write_paths("tickets_latest.json", _REPO, include_data_snapshot=True)
 )
 
 
@@ -252,11 +294,16 @@ def ticket_math(legs: list[dict], product: str, family: str, *, date: str = "") 
         "n_correct": table,
         "payout_note": pay["note"],
         "payout_source": pay.get("payout_source") or "n_correct_median",
+        "captured_at": pay.get("captured_at"),
     }
 
 
 def compact(r: dict, *, std: bool = False) -> dict:
-    l5 = r.get("l5_over") if str(r.get("side")) == "OVER" else r.get("l5_under")
+    over = str(r.get("side")) == "OVER"
+    l5 = r.get("l5_over") if over else r.get("l5_under")
+    l10 = r.get("l10_over") if over else r.get("l10_under")
+    if l10 is None:
+        l10 = r.get("l10")
     out = {
         "sport": r.get("sport"),
         "player": r.get("player"),
@@ -265,6 +312,7 @@ def compact(r: dict, *, std: bool = False) -> dict:
         "line": r.get("line"),
         "pick_type": r.get("pick_type"),
         "l5": l5,
+        "l10": l10,
         "cover": r.get("cover"),
         "d": r.get("def"),
         "badge": r.get("promo") or r.get("badge"),
@@ -277,6 +325,7 @@ def compact(r: dict, *, std: bool = False) -> dict:
         "standard_line": r.get("standard_line"),
         "line_underdog": r.get("line_underdog"),
         "line_draftkings": r.get("line_draftkings"),
+        "line_vegas": r.get("line_vegas"),
         "best_cross_book": r.get("best_cross_book"),
         "best_cross_line": r.get("best_cross_line"),
         "cross_edge_vs_pp": r.get("cross_edge_vs_pp"),
@@ -287,11 +336,11 @@ def compact(r: dict, *, std: bool = False) -> dict:
 
 
 def playable_tickets(payload: dict) -> list[dict]:
-    """App card: Goblin-70 plus NFLP week-3 groups. Standard fill stays off."""
+    """App card: Goblin-70, Standard O/U that cleared the gate, NFLP groups."""
     return [
         t
         for t in (payload.get("tickets") or [])
-        if t.get("family") in {"goblin", "nflp", "nflp_std"}
+        if t.get("family") in {"goblin", "standard", "mix", "nflp", "nflp_std"}
     ]
 
 
@@ -374,6 +423,10 @@ def _leg_to_web(leg: dict, *, ticket_id: str, date: str) -> dict:
         dk_line = float(leg.get("line_draftkings")) if leg.get("line_draftkings") is not None else None
     except (TypeError, ValueError):
         dk_line = None
+    try:
+        lv_line = float(leg.get("line_vegas")) if leg.get("line_vegas") is not None else None
+    except (TypeError, ValueError):
+        lv_line = None
     best_book = str(leg.get("best_cross_book") or "").strip()
     try:
         best_line = float(leg.get("best_cross_line")) if leg.get("best_cross_line") is not None else None
@@ -408,7 +461,7 @@ def _leg_to_web(leg: dict, *, ticket_id: str, date: str) -> dict:
         "team": team,
         "opp": opp,
         "prop_type": prop,
-        "pick_type": "Goblin",
+        "pick_type": str(leg.get("pick_type") or "Goblin"),
         "direction": side,
         "line": line_f,
         "edge": cover_f,
@@ -419,6 +472,7 @@ def _leg_to_web(leg: dict, *, ticket_id: str, date: str) -> dict:
         "standard_line": std_line,
         "line_underdog": ud_line,
         "line_draftkings": dk_line,
+        "line_vegas": lv_line,
         "best_cross_book": best_book,
         "best_cross_line": best_line,
         "cross_edge_vs_pp": cross_edge,
@@ -476,7 +530,7 @@ def _ticket_to_web(ticket: dict, *, date: str, ticket_no: int, group_name: str) 
         "display_min_x": sweep,
         "core_build": True,
         "core_recipe": "goblin70",
-        "core_label": "Goblin-70 (L5>=4 + cover floor)",
+        "core_label": "Goblin-70 (L5=5 + L10>=8 + S/A or FGA + cover)",
         "pool_policy": "goblin70",
         "strong_builder": False,
         "legs": legs,
@@ -501,6 +555,7 @@ def _ticket_to_web(ticket: dict, *, date: str, ticket_no: int, group_name: str) 
             "payout_note": ticket.get("payout_note") or "",
             "n_correct": n_correct,
             "ev_formula": "E[N-correct] - 1",
+            "captured_at": ticket.get("captured_at"),
         },
     }
 
@@ -541,18 +596,20 @@ def to_web_payload(payload: dict) -> dict:
         "ticket_track": "goblin70",
         "mode": "goblin70",
         "pool_mode": "goblin70",
-        "allow_standard": False,
+        "allow_standard": True,
         "filters": {
-            "pick_types": "Goblin",
-            "allow_standard": False,
-            "goblin_only": True,
+            "pick_types": "Goblin OVER + Standard O/U",
+            "allow_standard": True,
+            "goblin_only": False,
             "pool_mode": "goblin70",
-            "min_l5": 4,
-            "cover_floor": "WNBA/Tennis>=2, MLB/Soccer>=1",
+            "min_l5": 5,
+            "min_l10": 8,
+            "cover_floor": "per-prop unit (PRA 3.7, pass yds 15, else sport floor)",
             "note": (
-                "Goblin OVER + directional L5>=4 + sport cover floor. "
-                "No Demons, no shadow, no Standard legs. D is a badge. "
-                "N-correct / To Win only."
+                "L5=5 + L10>=8 + directional D. Tennis L5=5 only. Golf L5=5+L10>=8 "
+                "(no opponent D). Goblin OVER on Power; Standard O/U Flex. "
+                "No Demons, no shadow, no hitter Ks. Cover floor still applies. "
+                "NFLP is a separate playing-time track. N-correct / To Win only."
             ),
         },
         "payout_note": payload.get("payout_note"),
@@ -644,10 +701,7 @@ def load_graded_main(date: str) -> tuple[dict | None, list[dict]]:
     sibling = _REPO.parent / "PropORACLE_main_cp"
     if sibling.is_dir() and sibling.resolve() != _REPO.resolve():
         live.extend(
-            [
-                sibling / "ui_runner" / "templates" / "tickets_latest.json",
-                sibling / "ui_runner" / "data" / "tickets_latest.json",
-            ]
+            live_json_write_paths("tickets_latest.json", sibling, include_data_snapshot=True)
         )
     pool = _first_mixer_payload(date, grade_pool_paths(date))
     live_payload = _first_mixer_payload(date, live)
@@ -878,11 +932,7 @@ def write_web(payload: dict, board: list[dict] | None = None) -> list[Path]:
     main_cp = _REPO.parent / "PropORACLE_main_cp"
     if main_cp.is_dir():
         paths.extend(
-            [
-                main_cp / "ui_runner" / "templates" / "tickets_latest.json",
-                main_cp / "ui_runner" / "data" / "tickets_latest.json",
-                main_cp / "mobile" / "www" / "tickets_latest.json",
-            ]
+            live_json_write_paths("tickets_latest.json", main_cp, include_data_snapshot=True)
         )
     for path in paths:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -956,12 +1006,13 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
         gob_raw = [r for r in gob_raw if int(directional_l5(r) or 0) == 5]
     std_raw = []
     for r in board:
-        kind = standard_flex_kind(r)
-        if not kind:
+        if not standard_ticket_eligible(r):
+            continue
+        if fold_name(r.get("player")) in SKIP_PLAYERS:
             continue
         rec = dict(r)
-        rec["std_kind"] = kind
-        rec["p"] = standard_ticket_p(kind)
+        rec["std_kind"] = "gate"
+        rec["p"] = standard_ticket_p("gate")
         std_raw.append(rec)
     for r in gob_raw:
         r["p"] = goblin_ticket_p(r)
@@ -981,7 +1032,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
         note = (
             "L5=5 Goblin juice cut + sport cover floor. Power OK."
             if l5_eq_5
-            else "All-Goblin 70% pool (L5>=4 + sport cover floor). Power OK."
+            else "All-Goblin (L5=5 + L10>=8 + D; tennis L5=5; golf L5=5+L10)."
         )
         if len(combo) != n and l5_eq_5:
             combo = pack(gob, n, taken, mix_sports=True, wnba_cap=2)
@@ -1004,7 +1055,11 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
     # Named sport groups so /tickets WNBA and NFL pills are not empty.
     # Mixed X-Sport slips tag as CROSS; these groups use the sport in the title.
     for sport, n, product, n_tickets in SPORT_PURE:
-        pool = [r for r in gob if str(r.get("sport")) == sport]
+        pool = [
+            r
+            for r in gob
+            if str(R.norm_sport(r.get("sport") or "")) == str(R.norm_sport(sport))
+        ]
         local_taken: set[str] = set()
         cap = 2 if sport == "WNBA" else 1
         for i in range(1, n_tickets + 1):
@@ -1020,11 +1075,11 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
                 local_taken.add(fold_name(r.get("player")))
             tickets.append(
                 _ticket(
-                    f"{sport[:3].upper()}{n_use}-{i}",
+                    f"{SPORT_TID_PREFIX.get(str(sport).upper(), str(sport)[:3].upper())}{n_use}-{i}",
                     [compact(x) for x in combo],
                     prod,
                     "goblin",
-                    f"{sport} Goblin-70 (L5>=4 + sport cover floor). Power OK.",
+                    f"{sport} Goblin-70 (L5=5 + L10>=8 + D; tennis L5=5).",
                     web_group=f"{sport} Goblin-70 {prod} {n_use}",
                 )
             )
@@ -1079,7 +1134,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
                     [compact(x, std=x.get("pick_type") == "Standard") for x in mix],
                     "Flex",
                     "mix",
-                    "Flex only. One Standard allowlist leg + three Goblin-70 leftovers.",
+                    "Flex only. One Standard gate leg (L5=5+L10>=8+D) + three Goblin leftovers.",
                 )
             )
             std_left = [r for r in std_left if fold_name(r.get("player")) not in taken]
@@ -1095,7 +1150,7 @@ def build(date: str, *, l5_eq_5: bool = False) -> dict:
                     [compact(x, std=True) for x in s3],
                     "Flex",
                     "standard",
-                    "Flex only. Standard allowlist (steals / WNBA combo / assists U / HRRBI U L5=5).",
+                    "Flex only. Standard O/U that cleared L5=5 + L10>=8 + D (tennis L5=5).",
                 )
             )
 
@@ -1130,7 +1185,7 @@ def print_card(payload: dict) -> None:
     pool = payload["pool"]
     print(
         f"Goblin-70 unique {pool['goblin_70']} (raw {pool['goblin_70_raw']})  "
-        f"Standard allowlist unique {pool['standard_allowlist']} "
+        f"Standard gate unique {pool['standard_allowlist']} "
         f"(raw {pool['standard_allowlist_raw']})  "
         f"NFLP Goblin unique {pool.get('nflp_goblin', 0)} "
         f"(raw {pool.get('nflp_goblin_raw', 0)})"
@@ -1193,6 +1248,10 @@ def main() -> int:
     if not args.l5_eq_5:
         latest = OUT_DIR / "goblin70_tickets_latest.json"
         latest.write_text(out.read_text(encoding="utf-8"), encoding="utf-8")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
     print_card(payload)
     print("\nwrote", out)
     if args.write_web and not args.l5_eq_5:

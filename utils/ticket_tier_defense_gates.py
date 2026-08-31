@@ -97,7 +97,11 @@ def tennis_prop_rank_family(prop: object) -> str:
         return "serve"
     if "games won" in p or compact in {"gameswon", "totalgameswon"}:
         return "games_won"
-    if "total games" in p or "games played" in p or compact in {"totalgames", "gamesplayed"}:
+    if (
+        "total games" in p
+        or "games played" in p
+        or compact in {"totalgames", "gamesplayed", "matchtotalgames"}
+    ):
         return "total_games"
     return "other"
 
@@ -133,6 +137,42 @@ def tennis_over_blocked_by_opp_rank(
         hi = float(TENNIS_TOTAL_GAMES_STD_FADE_HI if "standard" in pt else TENNIS_TOTAL_GAMES_TIGHT_HI)
         return lo <= r <= hi
     return False
+
+
+def tennis_tight_match_note(
+    prop: object,
+    opp_rank: object,
+    *,
+    direction: object = "",
+    opp_name: object = "",
+) -> str | None:
+    """Visible caution when Total Games faces an ATP/WTA #11–25 opponent.
+
+    OVER is the graded fade band. UNDER on mid lines is the same tight-match
+    script (3-set risk) — shown as a note, not a hard ticket drop.
+    """
+    if tennis_prop_rank_family(prop) != "total_games":
+        return None
+    rank = pd.to_numeric(pd.Series([opp_rank]), errors="coerce").iloc[0]
+    if pd.isna(rank) or float(rank) <= 0:
+        return None
+    r = float(rank)
+    if not (float(TENNIS_TOTAL_GAMES_TIGHT_LO) <= r <= float(TENNIS_TOTAL_GAMES_TIGHT_HI)):
+        return None
+    rank_lbl = f"#{int(r)}"
+    who = str(opp_name or "").strip()
+    who_bit = f" {who}" if who else ""
+    lo = int(TENNIS_TOTAL_GAMES_TIGHT_LO)
+    hi = int(TENNIS_TOTAL_GAMES_TIGHT_HI)
+    dir_u = str(direction or "").strip().upper()
+    if dir_u in ("UNDER", "LOWER"):
+        return (
+            f"Tight-match opponent{who_bit} ({rank_lbl}) — Total Games OVER fades "
+            f"({lo}–{hi}); UNDER also fades on mid lines (3-set risk)."
+        )
+    return (
+        f"Tight-match opponent{who_bit} ({rank_lbl}) — Total Games OVER fades ({lo}–{hi})."
+    )
 
 
 def tennis_games_won_sweet_spot(prop: object, opp_rank: object) -> bool:

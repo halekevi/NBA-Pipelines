@@ -15,6 +15,12 @@ SPORT_FROM_DATES: dict[str, str] = {
     "MLB": "2026-03-30",  # 2026 regular-season opener (first graded_props MLB day)
     "SOCCER": "2026-01-01",  # year-round; opener unclear → Jan 1
     "TENNIS": "2026-01-01",  # year-round; opener unclear → Jan 1
+    "NBA": "2025-10-21",
+    "NHL": "2025-10-07",
+    "CBB": "2025-11-04",
+    "NFL": "2026-09-10",
+    "CFB": "2026-08-23",
+    "GOLF": "2026-01-01",
 }
 
 SPORT_FROM_NOTES: dict[str, str] = {
@@ -22,10 +28,27 @@ SPORT_FROM_NOTES: dict[str, str] = {
     "MLB": "Regular-season opener; ASG break 2026-07-13..15 excluded.",
     "SOCCER": "Jan 1 fallback (year-round calendar); first graded file may be later.",
     "TENNIS": "Jan 1 fallback (year-round calendar); first graded file may be later.",
+    "NBA": "2025-26 regular-season opener (graded archive).",
+    "NHL": "2025-26 regular-season opener (graded archive).",
+    "CBB": "2025-26 season opener (graded archive; live L5 from step8).",
+    "NFL": "2026 regular-season Week 1 (grades land after build_grades_html export).",
+    "CFB": "2026 Week 1 (grades land after build_grades_html export).",
+    "GOLF": "Year-round PGA; first graded file may be later.",
 }
 
 # Canonical sport keys used in graded_props JSON.
-ACTIVE_SPORTS: tuple[str, ...] = ("WNBA", "MLB", "SOCCER", "TENNIS")
+ACTIVE_SPORTS: tuple[str, ...] = (
+    "WNBA",
+    "MLB",
+    "SOCCER",
+    "TENNIS",
+    "NBA",
+    "NHL",
+    "CBB",
+    "NFL",
+    "CFB",
+    "GOLF",
+)
 
 MLB_ASG_HARD: frozenset[str] = frozenset({"2026-07-13", "2026-07-14", "2026-07-15"})
 

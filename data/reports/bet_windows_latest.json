@@ -1,6 +1,6 @@
 {
   "date": "2026-08-31",
-  "generated_at": "2026-08-31T10:47:42-04:00",
+  "generated_at": "2026-08-31T11:33:55-04:00",
   "line_pulls": [
     {
       "fetched_at": "2026-08-30T13:07:41-04:00",
@@ -238,6 +238,15 @@
     }
   ],
   "payout_scrapes": [
+    {
+      "window": "10:30",
+      "n_scrapes": 3,
+      "median_power_x": 1.5,
+      "min_power_x": 1.4,
+      "max_power_x": 1.5,
+      "first_captured_at": "2026-08-31T11:02:58",
+      "last_captured_at": "2026-08-31T11:04:56"
+    },
     {
       "window": "5AM",
       "n_scrapes": 3,

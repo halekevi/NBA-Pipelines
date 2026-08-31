@@ -1,6 +1,6 @@
 {
   "date": "2026-08-31",
-  "generated_at": "2026-08-31T13:08:25-04:00",
+  "generated_at": "2026-08-31T13:58:09-04:00",
   "line_pulls": [
     {
       "fetched_at": "2026-08-30T13:07:41-04:00",
@@ -252,6 +252,15 @@
       "max_power_x": 1.5,
       "first_captured_at": "2026-08-31T11:02:58",
       "last_captured_at": "2026-08-31T11:04:56"
+    },
+    {
+      "window": "1PM",
+      "n_scrapes": 3,
+      "median_power_x": 1.5,
+      "min_power_x": 1.4,
+      "max_power_x": 1.6,
+      "first_captured_at": "2026-08-31T13:30:03",
+      "last_captured_at": "2026-08-31T13:31:59"
     },
     {
       "window": "5AM",

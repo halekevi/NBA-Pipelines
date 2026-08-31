@@ -54,11 +54,16 @@ if str(_PROPORACLE_ROOT) not in sys.path:
 
 from utils.fantasy_prop_filter import drop_fantasy_props
 from utils.allstar_filter import drop_allstar_props
-from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from utils.step1_slate_date_filter import (
+    apply_game_date_filter,
+    eastern_today_ymd,
+    no_props_log_line,
+)
 
 # PrizePicks sits behind Cloudflare; stdlib TLS (requests) is often JA3-flagged.
 # curl_cffi impersonates a real browser TLS + HTTP/2 fingerprint (see _make_session).
-_CURL_IMPERSONATE = (os.environ.get("PROPORACLE_CURL_IMPERSONATE") or "chrome120").strip()
+_CURL_IMPERSONATE = (os.environ.get("PROPORACLE_CURL_IMPERSONATE") or "chrome131").strip()
 try:
     from curl_cffi.requests import Session as _CurlCffiSession
 
@@ -104,6 +109,7 @@ def _ensure_utf8_stdio() -> None:
 # ── constants ─────────────────────────────────────────────────────────────────
 
 BASE_URL = "https://api.prizepicks.com/projections"
+PARTNER_URL = "https://partner-api.prizepicks.com/projections"
 DEFAULT_TZ = "America/New_York"
 
 PICKTYPE_MAP = {
@@ -335,6 +341,11 @@ def _hard_reset_session(
     time.sleep(random.uniform(*jitter))
 
 
+def _http_fail_fast(*, fail_fast: bool, forbid_max_cooldown_windows: int) -> bool:
+    """True when callers asked for a short HTTP path (no 60–120s 429/403 stacks)."""
+    return bool(fail_fast) or int(forbid_max_cooldown_windows) <= 0
+
+
 def _api_get(
     session: Any,
     url: str,
@@ -342,6 +353,7 @@ def _api_get(
     retries: int = 5,
     timeout: Tuple[float, float] = (10.0, 30.0),
     *,
+    fail_fast: bool = False,
     forbid_cooldown_threshold: int = 3,
     forbid_cooldown_seconds: float = 90.0,
     forbid_cooldown_jitter: Tuple[float, float] = (12.0, 40.0),
@@ -352,7 +364,7 @@ def _api_get(
     for the first page to avoid rare encoding-related 403s.
 
     Retry logic:
-      - 429 → long backoff (60-120s) then retry
+      - 429 → long backoff (60-120s) then retry, unless fail-fast (raise immediately)
       - 403 → clear cookies; first 403 keeps UA/client hints (matches TLS impersonation), later 403s rotate within TLS-matched pool + backoff
       - 5xx → exponential backoff
     Raises RuntimeError after all retries exhausted.
@@ -368,6 +380,9 @@ def _api_get(
     last_exc = None
     consecutive_403 = 0
     cooldown_windows = 0
+    short_http = _http_fail_fast(
+        fail_fast=fail_fast, forbid_max_cooldown_windows=forbid_max_cooldown_windows
+    )
     for attempt in range(1, retries + 1):
         try:
             if attempt > 1:
@@ -378,6 +393,12 @@ def _api_get(
 
             if r.status_code == 429:
                 consecutive_403 = 0
+                if short_http:
+                    print(
+                        f"  [429] Rate limited — fail-fast, not waiting "
+                        f"(attempt {attempt}/{retries})"
+                    )
+                    raise RuntimeError(f"HTTP_429_FAIL_FAST: {url}")
                 wait = random.uniform(60.0, 120.0)
                 print(f"  [429] Rate limited — waiting {wait:.0f}s (attempt {attempt}/{retries})")
                 time.sleep(wait)
@@ -385,6 +406,12 @@ def _api_get(
 
             if r.status_code == 403:
                 consecutive_403 += 1
+                if short_http:
+                    print(
+                        f"  [403] Forbidden — fail-fast, not stacking cooldowns "
+                        f"(attempt {attempt}/{retries})"
+                    )
+                    raise RuntimeError(f"HTTP_403_FAIL_FAST: {url}")
                 try:
                     session.cookies.clear()
                 except Exception:
@@ -434,6 +461,12 @@ def _api_get(
 
             if r.status_code >= 500:
                 consecutive_403 = 0
+                if short_http:
+                    print(
+                        f"  [{r.status_code}] Server error — fail-fast, not waiting "
+                        f"(attempt {attempt}/{retries})"
+                    )
+                    raise RuntimeError(f"HTTP_{r.status_code}_FAIL_FAST: {url}")
                 wait = min(60.0, (2 ** (attempt - 1)) * 3.0) + random.uniform(1.0, 4.0)
                 print(f"  [{r.status_code}] Server error — waiting {wait:.1f}s (attempt {attempt}/{retries})")
                 time.sleep(wait)
@@ -443,6 +476,8 @@ def _api_get(
             r.raise_for_status()
             return r.json()
 
+        except RuntimeError:
+            raise
         except requests.exceptions.ConnectionError as e:
             wait = min(30.0, (2 ** (attempt - 1)) * 2.0) + random.uniform(1.0, 3.0)
             print(f"  [CONN] Connection error attempt {attempt}/{retries}: {e} — waiting {wait:.1f}s")
@@ -478,6 +513,9 @@ def fetch_projections(
     forbid_cooldown_seconds: float = 90.0,
     forbid_cooldown_jitter: Tuple[float, float] = (12.0, 40.0),
     forbid_max_cooldown_windows: int = 3,
+    fail_fast: bool = False,
+    prefer_partner: bool = True,
+    base_url: str | None = None,
 ) -> Tuple[List[dict], List[dict]]:
     """
     Fetch all projections + included sideloads from PrizePicks API.
@@ -490,6 +528,33 @@ def fetch_projections(
         wait, open a fresh session, and retry (helps PrizePicks MLB fetches).
     wave_gap_seconds: Random pause between session waves (min, max); wider = less aggressive.
     """
+    fail_fast_http = _http_fail_fast(
+        fail_fast=fail_fast, forbid_max_cooldown_windows=forbid_max_cooldown_windows
+    )
+    api_url = (base_url or BASE_URL).rstrip("/")
+    if prefer_partner and base_url is None:
+        try:
+            print("  Trying partner-api.prizepicks.com ...")
+            return fetch_projections(
+                league_id,
+                per_page=per_page,
+                max_pages=max_pages,
+                retries=max(1, min(retries, 2 if fail_fast_http else 3)),
+                inter_page_delay=inter_page_delay,
+                session_jitter=session_jitter,
+                first_page_waves=1,
+                wave_gap_seconds=wave_gap_seconds,
+                forbid_cooldown_threshold=forbid_cooldown_threshold,
+                forbid_cooldown_seconds=forbid_cooldown_seconds,
+                forbid_cooldown_jitter=forbid_cooldown_jitter,
+                forbid_max_cooldown_windows=0 if fail_fast_http else forbid_max_cooldown_windows,
+                fail_fast=fail_fast_http,
+                prefer_partner=False,
+                base_url=PARTNER_URL,
+            )
+        except Exception as e:
+            print(f"  [WARN] partner-api failed ({e}); falling back to api.prizepicks.com")
+
     all_data: List[dict] = []
     all_included: List[dict] = []
     seen_ids: set = set()
@@ -500,6 +565,7 @@ def fetch_projections(
         "single_stat": "true",
         "in_game":     "false",
     }
+    print("  Fetching in_game=false (pregame FG/FT/2PT/3PA) then in_game=true")
 
     waves = max(1, int(first_page_waves))
     session: Any | None = None
@@ -530,9 +596,10 @@ def fetch_projections(
         try:
             payload = _api_get(
                 session,
-                BASE_URL,
+                api_url,
                 params,
                 retries=retries,
+                fail_fast=fail_fast_http,
                 forbid_cooldown_threshold=forbid_cooldown_threshold,
                 forbid_cooldown_seconds=forbid_cooldown_seconds,
                 forbid_cooldown_jitter=forbid_cooldown_jitter,
@@ -573,6 +640,7 @@ def fetch_projections(
                 next_url,
                 {},
                 retries=retries,
+                fail_fast=fail_fast_http,
                 forbid_cooldown_threshold=forbid_cooldown_threshold,
                 forbid_cooldown_seconds=forbid_cooldown_seconds,
                 forbid_cooldown_jitter=forbid_cooldown_jitter,
@@ -607,10 +675,13 @@ def fetch_projections(
                         next_url,
                         {},
                         retries=max(2, retries - 1),
+                        fail_fast=fail_fast_http,
                         forbid_cooldown_threshold=forbid_cooldown_threshold,
                         forbid_cooldown_seconds=forbid_cooldown_seconds,
                         forbid_cooldown_jitter=forbid_cooldown_jitter,
-                        forbid_max_cooldown_windows=max(1, forbid_max_cooldown_windows - 1),
+                        forbid_max_cooldown_windows=(
+                            0 if fail_fast_http else max(1, forbid_max_cooldown_windows - 1)
+                        ),
                     )
                     new_data = payload.get("data") or []
                     new_inc = payload.get("included") or []
@@ -637,6 +708,71 @@ def fetch_projections(
             print(f"  [WARN] Page {page} failed: {e} — stopping pagination")
             break
         page += 1
+
+    # Pregame (in_game=false) holds FG/FT/2PT. Always merge live markets after.
+    print("  Supplementing in_game=true (live markets)...")
+    try:
+        live_params = dict(params)
+        live_params["in_game"] = "true"
+        live_payload = _api_get(
+            session,
+            api_url,
+            live_params,
+            retries=max(2, retries - 1),
+            fail_fast=fail_fast_http,
+            forbid_cooldown_threshold=forbid_cooldown_threshold,
+            forbid_cooldown_seconds=min(forbid_cooldown_seconds, 45.0),
+            forbid_cooldown_jitter=forbid_cooldown_jitter,
+            forbid_max_cooldown_windows=(
+                0 if fail_fast_http else max(1, forbid_max_cooldown_windows - 1)
+            ),
+        )
+        live_data = live_payload.get("data") or []
+        live_inc = live_payload.get("included") or []
+        added = 0
+        for obj in live_data:
+            oid = str(obj.get("id", ""))
+            if oid and oid not in seen_ids:
+                all_data.append(obj)
+                seen_ids.add(oid)
+                added += 1
+        all_included.extend(live_inc)
+        print(f"    in_game=true page 1 → {len(live_data)} projections ({added} new)")
+        live_links = live_payload.get("links") or {}
+        live_page = 2
+        while live_links.get("next") and live_page <= max_pages:
+            next_url = live_links["next"]
+            time.sleep(random.uniform(ip_lo, ip_hi))
+            live_payload = _api_get(
+                session,
+                next_url,
+                {},
+                retries=max(2, retries - 1),
+                fail_fast=fail_fast_http,
+                forbid_cooldown_threshold=forbid_cooldown_threshold,
+                forbid_cooldown_seconds=min(forbid_cooldown_seconds, 45.0),
+                forbid_cooldown_jitter=forbid_cooldown_jitter,
+                forbid_max_cooldown_windows=(
+                    0 if fail_fast_http else max(1, forbid_max_cooldown_windows - 1)
+                ),
+            )
+            live_data = live_payload.get("data") or []
+            live_inc = live_payload.get("included") or []
+            added = 0
+            for obj in live_data:
+                oid = str(obj.get("id", ""))
+                if oid and oid not in seen_ids:
+                    all_data.append(obj)
+                    seen_ids.add(oid)
+                    added += 1
+            all_included.extend(live_inc)
+            print(f"    in_game=true page {live_page} → {len(live_data)} projections ({added} new)")
+            live_links = live_payload.get("links") or {}
+            if not live_data:
+                break
+            live_page += 1
+    except Exception as e:
+        print(f"  [WARN] in_game=true supplement skipped: {e}")
 
     session.close()
     return all_data, all_included
@@ -735,6 +871,7 @@ def build_rows(data: List[dict], included: List[dict]) -> List[dict]:
             "pp_home_team":     home,
             "pp_away_team":     away,
             "image_url":        image_url,
+            "pp_updated_at":    extract_pp_updated_at(attrs),
         })
 
     return rows
@@ -747,7 +884,7 @@ def main() -> None:
     ap.add_argument("--output",     default="step1_pp_props_today.csv")
     ap.add_argument("--league_id",  default="7")
     ap.add_argument("--per_page",   type=int, default=250)
-    ap.add_argument("--max_pages",  type=int, default=10)
+    ap.add_argument("--max_pages",  type=int, default=20)
     ap.add_argument("--retries",    type=int, default=5)
     ap.add_argument("--min_rows",   type=int, default=50,  help="Minimum props required to consider fetch valid")
     ap.add_argument("--min_teams",  type=int, default=2,   help="Minimum teams required to consider fetch valid (supports playoff/light slates)")
@@ -759,6 +896,16 @@ def main() -> None:
         "--allow-nearest-future",
         action="store_true",
         help="Skip same-day date filter (keep full API board; explicit opt-in only).",
+    )
+    ap.add_argument(
+        "--include-tomorrow",
+        action="store_true",
+        help="Also keep Eastern tomorrow's games (day-ahead Standard unders).",
+    )
+    ap.add_argument(
+        "--board-date",
+        default="",
+        help="Fetch calendar YYYY-MM-DD for board_date/line_asof (default: Eastern today).",
     )
     ap.add_argument(
         "--merge-existing",
@@ -783,6 +930,10 @@ def main() -> None:
     ap.add_argument("--cooldown_seconds", type=float, default=90.0)
     ap.add_argument("--max_cooldowns",    type=int,   default=3)
     ap.add_argument("--jitter_seconds",   type=float, default=10.0)
+    ap.add_argument("--fail-fast", "--fail-fast-403", action="store_true", dest="fail_fast",
+                    help="Short HTTP path for pipeline cascade (1 wave, no long 403 stacks).")
+    ap.add_argument("--cdp", default="", help="Attach to Chrome DevTools and fetch in-page.")
+    ap.add_argument("--playwright", action="store_true", help="Launch Chromium and fetch in-page.")
     args = ap.parse_args()
     _ensure_utf8_stdio()
     if args.append and args.replace:
@@ -792,22 +943,39 @@ def main() -> None:
         "projection_id", "pp_projection_id", "player_id", "pp_game_id",
         "start_time", "player", "pos", "team", "opp_team", "prop_type",
         "line", "standard_line", "pick_type", "pp_home_team", "pp_away_team", "image_url",
+        "fetched_at", "pp_updated_at",
     ]
 
     print(f"📡 PrizePicks fetch | league_id={args.league_id} | direct API (no browser)")
 
     out_path = Path(args.output)
+    cdp_url = str(args.cdp or "").strip()
+    use_browser = bool(cdp_url) or bool(args.playwright)
     try:
-        data, included = fetch_projections(
-            league_id=str(args.league_id),
-            per_page=args.per_page,
-            max_pages=args.max_pages,
-            retries=args.retries,
-            forbid_cooldown_threshold=max(1, int(args.max_cooldowns)),
-            forbid_cooldown_seconds=max(15.0, float(args.cooldown_seconds)),
-            forbid_cooldown_jitter=(max(1.0, float(args.jitter_seconds) * 0.8), max(2.0, float(args.jitter_seconds) * 2.2)),
-            forbid_max_cooldown_windows=max(1, int(args.max_cooldowns)),
-        )
+        if use_browser:
+            from utils.prizepicks_cdp import session_fetch_projections
+
+            data, included, _st = session_fetch_projections(
+                str(args.league_id),
+                cdp_url=cdp_url,
+                playwright=bool(args.playwright) and not cdp_url,
+                per_page=int(args.per_page),
+                max_pages=int(args.max_pages),
+            )
+        else:
+            ff = bool(args.fail_fast)
+            data, included = fetch_projections(
+                league_id=str(args.league_id),
+                per_page=args.per_page,
+                max_pages=min(args.max_pages, 4) if ff else args.max_pages,
+                retries=min(2, args.retries) if ff else args.retries,
+                forbid_cooldown_threshold=99 if ff else max(1, int(args.max_cooldowns)),
+                forbid_cooldown_seconds=12.0 if ff else max(15.0, float(args.cooldown_seconds)),
+                forbid_cooldown_jitter=(2.0, 6.0) if ff else (max(1.0, float(args.jitter_seconds) * 0.8), max(2.0, float(args.jitter_seconds) * 2.2)),
+                forbid_max_cooldown_windows=0 if ff else max(1, int(args.max_cooldowns)),
+                first_page_waves=1 if ff else 3,
+                fail_fast=ff,
+            )
     except Exception as e:
         print(f"❌ Fetch failed: {e}")
         if not (args.append and out_path.is_file()):
@@ -846,7 +1014,11 @@ def main() -> None:
     if before != len(df):
         print(f"  Deduped: {before} → {len(df)} rows")
 
-    # Enforce column order
+    pull_ts = now_et_iso()
+    df = stamp_fetched_at(df, when=pull_ts, overwrite=True)
+    for c in EMPTY_COLS:
+        if c not in df.columns:
+            df[c] = ""
     df = df[EMPTY_COLS].copy()
 
     # ── Validation ────────────────────────────────────────────────────────────
@@ -946,6 +1118,8 @@ def main() -> None:
         target_date=str(args.date).strip(),
         tz_name=str(args.tz).strip() or DEFAULT_TZ,
         allow_nearest_future=bool(args.allow_nearest_future),
+        include_tomorrow=bool(getattr(args, "include_tomorrow", False)),
+        board_date=str(getattr(args, "board_date", None) or "").strip()[:10] or eastern_today_ymd(),
     )
     board_dates = sorted(
         {d for d in filtered_df.get("game_date", pd.Series([], dtype=object)).astype(str).tolist() if d and d != "nan"}
@@ -977,14 +1151,22 @@ def main() -> None:
         sys.exit(0)
 
     # ── Write output ──────────────────────────────────────────────────────────
+    try:
+        from utils.pp_basketball_markets import hoops_sport_for_league, log_shooting_coverage
+
+        sport = hoops_sport_for_league(args.league_id, fallback="NBA")
+        pts = int(df["prop_type"].astype(str).str.lower().str.contains("points").sum())
+        log_shooting_coverage(df["prop_type"], sport=sport, n_points=pts)
+    except Exception as _sc_exc:
+        print(f"  [WARN] shooting coverage log skipped: {_sc_exc}")
     df.to_csv(args.output, index=False, encoding="utf-8-sig")
     try:
         _root = Path(__file__).resolve().parents[3]
         if str(_root) not in sys.path:
             sys.path.insert(0, str(_root))
-        from scripts.line_history_archive import archive_lines
+        from scripts.line_history_archive import try_archive_lines
 
-        archive_lines(df, sport="NBA")
+        try_archive_lines(df, sport="NBA", only_fetched_at=pull_ts)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
     print(f"\n✅ Saved → {args.output}")

@@ -98,6 +98,7 @@ def fetch_pp_projections(
     inter_page_delay: Tuple[float, float] | None = (2.0, 6.0),
     session_jitter: Tuple[float, float] | None = (5.0, 12.0),
     wave_gap_seconds: Tuple[float, float] | None = (22.0, 48.0),
+    fail_fast: bool = False,
 ) -> Tuple[List[dict], List[dict]]:
     """Fetch projections via Sports/NBA/scripts/step1_fetch_prizepicks_api.py."""
     ensure_chrome131()
@@ -116,4 +117,5 @@ def fetch_pp_projections(
         forbid_cooldown_seconds=forbid_cooldown_seconds,
         forbid_cooldown_jitter=forbid_cooldown_jitter,
         forbid_max_cooldown_windows=forbid_max_cooldown_windows,
+        fail_fast=fail_fast,
     )

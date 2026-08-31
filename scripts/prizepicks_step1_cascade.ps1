@@ -33,9 +33,10 @@ function Test-Step1NoSlate {
     param(
         [string]$CsvPath,
         [string]$TargetDate = "",
-        [switch]$SkipDateMatch
+        [switch]$SkipDateMatch,
+        [int]$DateWindowDays = 1
     )
-    $h = Get-PrizePicksStep1Health -CsvPath $CsvPath -TargetDate $TargetDate -SkipDateMatch:$SkipDateMatch
+    $h = Get-PrizePicksStep1Health -CsvPath $CsvPath -TargetDate $TargetDate -SkipDateMatch:$SkipDateMatch -DateWindowDays $DateWindowDays
     return ($h.reason -in @("missing_file", "empty_file", "read_error", "date_mismatch"))
 }
 
@@ -138,7 +139,8 @@ function Get-PrizePicksStep1Health {
     param(
         [string]$CsvPath,
         [string]$TargetDate,
-        [switch]$SkipDateMatch
+        [switch]$SkipDateMatch,
+        [int]$DateWindowDays = 1
     )
     if (-not (Test-Path -LiteralPath $CsvPath)) { return @{ ok = $false; rows = 0; reason = "missing_file" } }
     try {
@@ -152,28 +154,29 @@ function Get-PrizePicksStep1Health {
     }
     $names = @($rows[0].PSObject.Properties.Name)
     $match = @()
-    $nextDate = ""
+    $windowStart = $TargetDate
+    $windowEnd = $TargetDate
     try {
-        $nextDate = ([datetime]::ParseExact($TargetDate, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)).AddDays(1).ToString('yyyy-MM-dd')
-    } catch { $nextDate = "" }
+        $td = [datetime]::ParseExact($TargetDate, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
+        $span = [Math]::Max(1, $DateWindowDays)
+        $windowEnd = $td.AddDays($span).ToString('yyyy-MM-dd')
+    } catch { }
+    function Test-YmdInWindow([string]$Ymd) {
+        if (-not $Ymd -or $Ymd.Length -lt 10) { return $false }
+        $d = $Ymd.Substring(0, 10)
+        return ($d -ge $windowStart -and $d -le $windowEnd)
+    }
     if ($rows[0].PSObject.Properties.Name -contains "game_date") {
-        $match = $rows | Where-Object {
-            $gd = ("$($_.game_date)").Trim()
-            $gd -eq $TargetDate -or ($nextDate -and $gd -eq $nextDate)
-        }
+        $match = $rows | Where-Object { Test-YmdInWindow ("$($_.game_date)").Trim() }
     } elseif ($rows[0].PSObject.Properties.Name -contains "start_time") {
         $match = $rows | Where-Object {
-            $st = "$($_.start_time)"
-            $okDate = ($st.Length -ge 10 -and ($st.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $st.Substring(0, 10) -eq $nextDate)))
+            $okDate = Test-YmdInWindow "$($_.start_time)"
             $lg = if ($names -contains "league") { ("$($_.league)").Trim().ToUpper() } else { "" }
             $lid = if ($names -contains "league_id") { ("$($_.league_id)").Trim() } else { "" }
             $okDate -or ($lg -in @("NFLSZN", "SOCCERSZN")) -or ($lid -eq "163")
         }
     } elseif ($rows[0].PSObject.Properties.Name -contains "game_start") {
-        $match = $rows | Where-Object {
-            $gs = "$($_.game_start)"
-            $gs.Length -ge 10 -and ($gs.Substring(0, 10) -eq $TargetDate -or ($nextDate -and $gs.Substring(0, 10) -eq $nextDate))
-        }
+        $match = $rows | Where-Object { Test-YmdInWindow "$($_.game_start)" }
     } else {
         return @{ ok = $true; rows = $rows.Count; reason = "ok_no_date_col" }
     }

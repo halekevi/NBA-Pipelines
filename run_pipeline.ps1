@@ -2997,7 +2997,7 @@ $CFBJob = Start-Job -ScriptBlock {
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date -DateWindowDays 7)
     }
     $ok = $true
     $cfbStep1 = Join-Path $CFBRunOutDir "step1_cfb.csv"
@@ -3771,7 +3771,7 @@ if ($wnbaParallel) {
                 Date = $PipelineDate
             }
             # WNBA ESPN cache is independent of NBA -RefreshCache (do not wipe 6297-row backfill on full runs).
-            if ($SkipFetchFlag) { $wnbaInvoke["SkipFetch"] = $true }
+            if ($SkipFetchFlag -eq $true) { $wnbaInvoke["SkipFetch"] = $true }
             if ($WnbaCdp) { $wnbaInvoke["Cdp"] = $WnbaCdp }
             & $wnbaPs1 @wnbaInvoke
             if ($LASTEXITCODE -ne 0) {
@@ -3802,7 +3802,7 @@ $NFLJob = Start-Job -ScriptBlock {
     Push-Location $RepoRoot
     try {
         $nflInvoke = @{ Date = $PipelineDate }
-        if ($SkipFetchFlag) { $nflInvoke["SkipFetch"] = $true }
+        if ($SkipFetchFlag -eq $true) { $nflInvoke["SkipFetch"] = $true }
         & $nflPs1 @nflInvoke
         if ($LASTEXITCODE -ne 0) {
             Write-Output "[NFL] WARN runner exit $LASTEXITCODE"
@@ -3885,7 +3885,7 @@ if ($CBB_PARALLEL_ACTIVE -and -not $WCBBSuccess -and (Test-Step1NoSlate -CsvPath
 }
 $CFBSuccess    = if (-not $CFB_PARALLEL_ACTIVE) { $true } else { (Test-Path (Join-Path $CFBRunOutDir "step8_cfb_direction_clean.xlsx")) -or (Test-Path (Join-Path $CFBRunOutDir "step6_ranked_cfb.xlsx")) }
 $cfbNoSlate = $false
-if ($CFB_PARALLEL_ACTIVE -and -not $CFBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CFBRunOutDir "step1_cfb.csv") -TargetDate $Date)) {
+if ($CFB_PARALLEL_ACTIVE -and -not $CFBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CFBRunOutDir "step1_cfb.csv") -TargetDate $Date -DateWindowDays 7)) {
     Write-Host "  [CFB] no slate for $Date — not a failure." -ForegroundColor DarkGray
     $CFBSuccess = $true
     $cfbNoSlate = $true
@@ -3928,7 +3928,7 @@ $TennisSuccess = Test-Path (Join-Path $TennisRunOutDir "step8_tennis_direction_c
 $NFLSuccess    = if (-not $NFL_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $NFLRunOutDir "step8_nfl_direction_clean.xlsx") }
 $nflNoSlate = $false
 $nflStep1Path = Join-Path $NFLRunOutDir "step1_pp_props_today.csv"
-if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and ((Test-Step1NoSlate -CsvPath $nflStep1Path -TargetDate $Date) -or (Test-Step1NflSeasonOnly -CsvPath $nflStep1Path))) {
+if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and ((Test-Step1NoSlate -CsvPath $nflStep1Path -TargetDate $Date -DateWindowDays 7) -or (Test-Step1NflSeasonOnly -CsvPath $nflStep1Path))) {
     Write-Host "  [NFL] no daily slate for $Date (NFLSZN-only or empty) — not a failure." -ForegroundColor DarkGray
     $NFLSuccess = $true
     $nflNoSlate = $true

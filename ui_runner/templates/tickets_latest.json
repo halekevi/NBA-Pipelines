@@ -34,7 +34,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -154,23 +153,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Power 3",
@@ -185,7 +185,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -305,23 +304,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Power 3",
@@ -336,7 +336,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -456,23 +455,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Power 3",
@@ -487,7 +487,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -607,23 +606,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Power 3",
@@ -638,7 +638,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -758,23 +757,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         }
       ]
     },
@@ -797,7 +797,6 @@
           "flex_payout": 1.9,
           "base_power_payout": null,
           "ev_power": -0.146,
-          "display_min_x": 1.9,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -952,24 +951,25 @@
             "payout": 1.9,
             "min_guarantee": 1.9,
             "min_payout_x": 1.9,
-            "display_min_x": 1.9,
             "p_all_win": 0.339,
             "p_miss_1": 0.421,
             "ev": -0.146,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 19.0,
             "entry_20_to_win_guarantee": 38.0,
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+4G Flex fallback 1.9x / 0.5x",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 1.9
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Flex 4",
@@ -984,7 +984,6 @@
           "flex_payout": 1.9,
           "base_power_payout": null,
           "ev_power": -0.146,
-          "display_min_x": 1.9,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -1139,24 +1138,25 @@
             "payout": 1.9,
             "min_guarantee": 1.9,
             "min_payout_x": 1.9,
-            "display_min_x": 1.9,
             "p_all_win": 0.339,
             "p_miss_1": 0.421,
             "ev": -0.146,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 19.0,
             "entry_20_to_win_guarantee": 38.0,
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+4G Flex fallback 1.9x / 0.5x",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 1.9
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Flex 4",
@@ -1171,7 +1171,6 @@
           "flex_payout": 1.9,
           "base_power_payout": null,
           "ev_power": -0.146,
-          "display_min_x": 1.9,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -1326,24 +1325,25 @@
             "payout": 1.9,
             "min_guarantee": 1.9,
             "min_payout_x": 1.9,
-            "display_min_x": 1.9,
             "p_all_win": 0.339,
             "p_miss_1": 0.421,
             "ev": -0.146,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 19.0,
             "entry_20_to_win_guarantee": 38.0,
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+4G Flex fallback 1.9x / 0.5x",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 1.9
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "X-Sport Goblin-70 Flex 4",
@@ -1358,7 +1358,6 @@
           "flex_payout": 1.9,
           "base_power_payout": null,
           "ev_power": -0.146,
-          "display_min_x": 1.9,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -1513,24 +1512,25 @@
             "payout": 1.9,
             "min_guarantee": 1.9,
             "min_payout_x": 1.9,
-            "display_min_x": 1.9,
             "p_all_win": 0.339,
             "p_miss_1": 0.421,
             "ev": -0.146,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 19.0,
             "entry_20_to_win_guarantee": 38.0,
             "sweep_payout": 1.9,
             "sweep_payout_x": 1.9,
             "audit_all_hit_x": 1.9,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+4G Flex fallback 1.9x / 0.5x",
             "n_correct": {
               "4": 1.9,
               "3": 0.5
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 1.9
+          },
+          "empirical_recommendation": "SKIP"
         }
       ]
     },
@@ -1553,7 +1553,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -1673,23 +1672,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "MLB Goblin-70 Power 3",
@@ -1704,7 +1704,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -1824,23 +1823,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         },
         {
           "web_group_name": "MLB Goblin-70 Power 3",
@@ -1855,7 +1855,6 @@
           "flex_payout": null,
           "base_power_payout": 2.0,
           "ev_power": -0.112,
-          "display_min_x": 2.0,
           "core_build": true,
           "core_recipe": "goblin70",
           "core_label": "Goblin-70 (L5>=4 + cover floor)",
@@ -1975,23 +1974,24 @@
             "payout": 2.0,
             "min_guarantee": 2.0,
             "min_payout_x": 2.0,
-            "display_min_x": 2.0,
             "p_all_win": 0.444,
             "p_miss_1": 0.0,
             "ev": -0.112,
-            "recommendation": "OK",
+            "recommendation": "SKIP",
             "entry_10_to_win_guarantee": 20.0,
             "entry_20_to_win_guarantee": 40.0,
             "sweep_payout": 2.0,
             "sweep_payout_x": 2.0,
             "audit_all_hit_x": 2.0,
-            "payout_source": "n_correct_median",
+            "payout_source": "pending_live",
             "payout_note": "0S+3G Power fallback 2x",
             "n_correct": {
               "3": 2.0
             },
-            "ev_formula": "E[N-correct] - 1"
-          }
+            "ev_formula": "E[N-correct] - 1",
+            "model_min_payout_x": 2.0
+          },
+          "empirical_recommendation": "SKIP"
         }
       ]
     },
@@ -3693,23 +3693,23 @@
   "hot_legs": 31,
   "cold_legs": 0,
   "tier_ev_thresholds": {
-    "strong": -0.05294500000000126,
+    "strong": -0.112,
     "ok": -0.112,
     "marginal": -0.146
   },
   "tier_ev_thresholds_by_legs": {
     "2": {
-      "strong": -0.05294500000000126,
+      "strong": -0.112,
       "ok": -0.112,
       "marginal": -0.146
     },
     "3": {
-      "strong": -0.05294500000000126,
+      "strong": -0.112,
       "ok": -0.112,
-      "marginal": -0.146
+      "marginal": -0.112
     },
     "4": {
-      "strong": -0.05294500000000126,
+      "strong": -0.112,
       "ok": -0.112,
       "marginal": -0.146
     }

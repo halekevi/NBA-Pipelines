@@ -312,6 +312,9 @@ body::after{content:'';position:fixed;inset:0;
   gap:8px;
   grid-template-columns:repeat(4,minmax(0,1fr));
 }
+@media(min-width:1601px){
+  #top-edges-board .edge-grid{grid-template-columns:repeat(5,minmax(0,1fr));}
+}
 @media(max-width:1200px){
   #top-edges-board .edge-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
 }

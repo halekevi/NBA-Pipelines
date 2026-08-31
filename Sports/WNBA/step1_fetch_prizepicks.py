@@ -42,7 +42,12 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from utils.step1_slate_date_filter import apply_game_date_filter, no_props_log_line
+from utils.pp_fetch_stamp import extract_pp_updated_at, now_et_iso, stamp_fetched_at
+from utils.step1_slate_date_filter import (
+    apply_game_date_filter,
+    eastern_today_ymd,
+    no_props_log_line,
+)
 from utils.allstar_filter import drop_allstar_props
 
 API_URL   = "https://api.prizepicks.com/projections"
@@ -361,7 +366,7 @@ def _pick_cdp_warmed_page(context: Any, league_id: str) -> Any | None:
 def _cdp_board_ready(page: Any, league_id: str) -> bool:
     try:
         url = (page.url or "").lower()
-        return "prizepicks.com" in url and f"league_id={league_id}" in url
+        return "app.prizepicks.com" in url
     except Exception:
         return False
 
@@ -389,26 +394,42 @@ def _included_index(included: List[dict]) -> Dict[Tuple[str, str], dict]:
     return idx
 
 
+def _in_game_flags() -> List[str]:
+    """Which PrizePicks in_game boards to fetch.
+
+    FG Made/Attempted, Two Pointers, and Free Throws live on the pregame
+    board (in_game=false). Evening live props need in_game=true. Always
+    fetch pregame first. PROPORACLE_WNBA_IN_GAME=true still includes false.
+    """
+    raw = os.environ.get("PROPORACLE_WNBA_IN_GAME", "both").strip().lower()
+    if raw in ("0", "false"):
+        return ["false"]
+    if raw in ("1", "true"):
+        print(
+            "  [WARN] PROPORACLE_WNBA_IN_GAME=true would drop FG/FT/2PT; "
+            "fetching in_game=false then true"
+        )
+    from utils.pp_basketball_markets import BASKETBALL_IN_GAME_FLAGS
+
+    return list(BASKETBALL_IN_GAME_FLAGS)
+
+
 def _page_params(
     league_id: str,
     game_mode: str,
     per_page: int,
     page: int,
+    in_game: str = "false",
 ) -> Dict[str, Any]:
-    # Prefer in_game=true first — evening boards often have live-only projections.
-    in_game = os.environ.get("PROPORACLE_WNBA_IN_GAME", "true").strip().lower()
-    if in_game not in ("true", "false", "0", "1"):
-        in_game = "true"
-    if in_game in ("0", "false"):
-        in_game = "false"
-    else:
-        in_game = "true"
+    flag = str(in_game).strip().lower()
+    if flag not in ("true", "false"):
+        flag = "false"
     return {
         "league_id": str(league_id),
         "game_mode": str(game_mode),
         "per_page": int(per_page),
         "single_stat": "true",
-        "in_game": in_game,
+        "in_game": flag,
         "page": int(page),
         "page[number]": int(page),
         "page[size]": int(per_page),
@@ -508,7 +529,7 @@ def _fetch_one_page(
     return False, False, cooldowns_used, forbidden_retries, [], []
 
 
-def fetch_pages(
+def _fetch_pages_for_in_game(
     league_id: str,
     game_mode: str,
     per_page: int,
@@ -517,6 +538,8 @@ def fetch_pages(
     cooldown_seconds: float,
     max_cooldowns: int,
     jitter_seconds: float,
+    in_game: str,
+    seen_ids: Set[str],
     max_403_retries: int = 5,
     forbidden_backoff_base: float = 15.0,
     first_page_waves: int = 3,
@@ -527,9 +550,7 @@ def fetch_pages(
     cooldowns_used = 0
     forbidden_retries = 0
     stop_paging = False
-    seen_ids: Set[str] = set()
 
-    _log_http_backend_once()
     session: Any | None = None
     waves = max(1, int(first_page_waves))
     if fail_fast_403:
@@ -555,7 +576,7 @@ def fetch_pages(
         cooldowns_used = 0
         forbidden_retries = 0
 
-        params = _page_params(league_id, game_mode, per_page, 1)
+        params = _page_params(league_id, game_mode, per_page, 1, in_game=in_game)
         ok, stop, cooldowns_used, forbidden_retries, page_new, inc = _fetch_one_page(
             session,
             page=1,
@@ -577,7 +598,7 @@ def fetch_pages(
             all_data.extend(page_new)
             all_included.extend(inc)
             page1_ok = True
-            print(f"  Page 1: total={len(all_data)}")
+            print(f"  [in_game={in_game}] Page 1: total={len(all_data)}")
             time.sleep(sleep + random.uniform(0, 0.5))
             break
         if ok and not page_new:
@@ -593,7 +614,7 @@ def fetch_pages(
     for page in range(2, max_pages + 1):
         if stop_paging:
             break
-        params = _page_params(league_id, game_mode, per_page, page)
+        params = _page_params(league_id, game_mode, per_page, page, in_game=in_game)
         ok, stop, cooldowns_used, forbidden_retries, page_new, inc = _fetch_one_page(
             session,
             page=page,
@@ -615,17 +636,61 @@ def fetch_pages(
                 all_included.extend(inc)
             break
         if not ok:
-            print(f"  Page {page}: failed after retries — stopping pagination")
+            print(f"  [in_game={in_game}] Page {page}: failed after retries — stopping pagination")
             break
         if not page_new:
             stop_paging = True
             break
         all_data.extend(page_new)
         all_included.extend(inc)
-        print(f"  Page {page}: total={len(all_data)}")
+        print(f"  [in_game={in_game}] Page {page}: total={len(all_data)}")
         time.sleep(sleep + random.uniform(0, 0.5))
 
     session.close()
+    return all_data, all_included
+
+
+def fetch_pages(
+    league_id: str,
+    game_mode: str,
+    per_page: int,
+    max_pages: int,
+    sleep: float,
+    cooldown_seconds: float,
+    max_cooldowns: int,
+    jitter_seconds: float,
+    max_403_retries: int = 5,
+    forbidden_backoff_base: float = 15.0,
+    first_page_waves: int = 3,
+    fail_fast_403: bool = False,
+) -> Tuple[List[dict], List[dict]]:
+    all_data: List[dict] = []
+    all_included: List[dict] = []
+    seen_ids: Set[str] = set()
+    flags = _in_game_flags()
+    _log_http_backend_once()
+    print(f"  [in_game] fetching flags={flags}")
+    for i, flag in enumerate(flags):
+        before = len(all_data)
+        data, inc = _fetch_pages_for_in_game(
+            league_id,
+            game_mode,
+            per_page,
+            max_pages,
+            sleep,
+            cooldown_seconds,
+            max_cooldowns,
+            jitter_seconds,
+            in_game=flag,
+            seen_ids=seen_ids,
+            max_403_retries=max_403_retries,
+            forbidden_backoff_base=forbidden_backoff_base,
+            first_page_waves=first_page_waves if i == 0 else 1,
+            fail_fast_403=bool(fail_fast_403) or i > 0,
+        )
+        all_data.extend(data)
+        all_included.extend(inc)
+        print(f"  [in_game={flag}] +{len(all_data) - before} new  merged_total={len(all_data)}")
     return all_data, all_included
 
 
@@ -777,34 +842,46 @@ def fetch_via_playwright_session(league_id: str, timeout_s: int, cdp_url: str = 
                     "referer": window.location.href,
                     "x-requested-with": "XMLHttpRequest",
                 });
-                const urls = [
-                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true&in_game=true`,
-                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true&in_game=false`,
-                    `https://api.prizepicks.com/projections?league_id=${leagueId}&per_page=250&single_stat=true`,
-                ];
-                let best = { data: [], included: [], status: 0, url: '' };
-                for (const url of urls) {
-                    const ctrl = new AbortController();
-                    const timer = setTimeout(() => ctrl.abort(), 25000);
-                    try {
-                        const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal });
-                        clearTimeout(timer);
-                        if (!r.ok) {
-                            if (!best.status) best = { data: [], included: [], status: r.status, url };
-                            continue;
+                const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                const seen = new Set();
+                const allData = [];
+                const allIncluded = [];
+                let lastStatus = 0;
+                let lastUrl = '';
+                for (const inGame of ["false", "true"]) {
+                    for (let pageNum = 1; pageNum <= 20; pageNum++) {
+                        const url = `https://api.prizepicks.com/projections?league_id=${leagueId}`
+                            + `&per_page=250&single_stat=true&in_game=${inGame}`
+                            + `&game_mode=pickem&page=${pageNum}&page[number]=${pageNum}&page[size]=250`;
+                        const ctrl = new AbortController();
+                        const timer = setTimeout(() => ctrl.abort(), 25000);
+                        try {
+                            const r = await fetch(url, { credentials: "include", headers: hdrs(), mode: "cors", signal: ctrl.signal });
+                            clearTimeout(timer);
+                            lastStatus = r.status || lastStatus;
+                            lastUrl = url;
+                            if (!r.ok) break;
+                            const j = await r.json();
+                            const data = Array.isArray(j?.data) ? j.data : [];
+                            const included = Array.isArray(j?.included) ? j.included : [];
+                            let added = 0;
+                            for (const row of data) {
+                                const id = row && row.id != null ? String(row.id) : '';
+                                if (!id || seen.has(id)) continue;
+                                seen.add(id);
+                                allData.push(row);
+                                added += 1;
+                            }
+                            for (const obj of included) allIncluded.push(obj);
+                            if (data.length === 0 || added === 0 || data.length < 250) break;
+                            await sleep(350);
+                        } catch (e) {
+                            clearTimeout(timer);
+                            break;
                         }
-                        const j = await r.json();
-                        const data = Array.isArray(j?.data) ? j.data : [];
-                        const included = Array.isArray(j?.included) ? j.included : [];
-                        const cand = { data, included, status: r.status, url };
-                        if (data.length > (best.data || []).length) best = cand;
-                        if (data.length > 0) return cand;
-                    } catch (e) {
-                        clearTimeout(timer);
-                        if (!best.status) best = { data: [], included: [], status: 0, url, error: String(e) };
                     }
                 }
-                return best;
+                return { data: allData, included: allIncluded, status: lastStatus || (allData.length ? 200 : 0), url: lastUrl };
             }""",
                 {"leagueId": str(league_id)},
             )
@@ -840,34 +917,43 @@ def _wnba_start_time_to_et_date_str(ser: pd.Series) -> pd.Series:
 
 
 def _stamp_fetched_at(df: pd.DataFrame) -> pd.DataFrame:
-    """ET fetch timestamp for data-freshness passthrough (step5→step8)."""
-    out = df.copy()
-    out["fetched_at"] = datetime.now(_ET).isoformat()
-    return out
+    """ET fetch timestamp on every row for line-history and step8 freshness."""
+    return stamp_fetched_at(df, when=now_et_iso(), overwrite=True)
 
 
 def _apply_wnba_slate_date(df: pd.DataFrame, args: Any) -> pd.DataFrame:
-    """Filter to --date (ET) unless --allow-nearest-future or --no-slate-filter."""
+    """Filter to --date (ET) unless --allow-nearest-future or --no-slate-filter.
+
+    --include-tomorrow keeps tonight plus Eastern tomorrow (day-ahead Standard unders).
+    board_date / line_asof stamp the fetch calendar so gameday line cuts are comparable.
+    """
     if df is None or df.empty:
         return df
     slate = str(args.date).strip()[:10]
     skip_filter = bool(getattr(args, "allow_nearest_future", False)) or bool(
         getattr(args, "no_slate_filter", False)
     )
+    include_tomorrow = bool(getattr(args, "include_tomorrow", True))
+    board_date = str(getattr(args, "board_date", None) or "").strip()[:10] or eastern_today_ymd()
     n0 = len(df)
     filtered, _ = apply_game_date_filter(
         df,
         target_date=slate,
         tz_name="America/New_York",
         allow_nearest_future=skip_filter,
+        include_tomorrow=include_tomorrow,
+        board_date=board_date,
     )
     if not skip_filter and n0 != len(filtered):
+        window = f"{slate}+tomorrow" if include_tomorrow else slate
         print(
-            f"  [slate-date] kept {len(filtered)}/{n0} rows for slate {slate} "
-            f"(start_time ET calendar must match --date)"
+            f"  [slate-date] kept {len(filtered)}/{n0} rows for slate {window} "
+            f"(start_time ET calendar; board_date={board_date})"
         )
     if skip_filter:
         print("  [slate-date] date filter skipped (--allow-nearest-future or --no-slate-filter)")
+    if include_tomorrow and not skip_filter:
+        print("  [slate-date] include-tomorrow: keeping --date and Eastern next day")
     if "game_date" not in filtered.columns:
         cal = _wnba_start_time_to_et_date_str(filtered.get("start_time", pd.Series([], dtype=object)))
         filtered = filtered.copy()
@@ -922,6 +1008,17 @@ def main():
     ap.add_argument("--min_rows",         type=int,   default=30)
     ap.add_argument("--min_teams",        type=int,   default=2)
     ap.add_argument("--date",             default=time.strftime("%Y-%m-%d"))
+    ap.add_argument(
+        "--include-tomorrow",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Keep Eastern tomorrow as well as --date (default on). Use --no-include-tomorrow for same-day only.",
+    )
+    ap.add_argument(
+        "--board-date",
+        default="",
+        help="Fetch calendar YYYY-MM-DD for board_date/line_asof (default: Eastern today).",
+    )
     ap.add_argument(
         "--no-slate-filter",
         action="store_true",
@@ -1106,6 +1203,7 @@ def main():
             "line":             line,
             "pick_type":        pick_type,
             "standard_line":    std_hint if std_hint is not None else "",
+            "pp_updated_at":    extract_pp_updated_at(attrs),
         })
 
     df = pd.DataFrame(rows).fillna("")
@@ -1129,7 +1227,7 @@ def main():
         empty_cols = [
             "projection_id", "pp_projection_id", "player_id", "pp_game_id", "start_time",
             "player", "pos", "team", "opp_team", "prop_type", "line", "pick_type", "game_date",
-            "fetched_at", "sport",
+            "board_date", "line_asof", "fetched_at", "pp_updated_at", "sport",
         ]
         pd.DataFrame(columns=empty_cols).to_csv(out_path, index=False, encoding="utf-8-sig")
         sys.exit(0)
@@ -1146,13 +1244,22 @@ def main():
 
     df = _stamp_fetched_at(df)
     df["sport"] = sport_tag
+    if sport_tag == "WNBA":
+        try:
+            from utils.pp_basketball_markets import log_shooting_coverage
+
+            pts = int(df["prop_type"].astype(str).str.lower().str.contains("points").sum())
+            log_shooting_coverage(df["prop_type"], sport=sport_tag, n_points=pts)
+        except Exception as _sc_exc:
+            print(f"  [WARN] shooting coverage log skipped: {_sc_exc}")
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
     try:
         _root = Path(__file__).resolve().parents[2]
         if str(_root) not in sys.path:
             sys.path.insert(0, str(_root))
-        from scripts.line_history_archive import archive_lines
-        archive_lines(df, sport=sport_tag)
+        from scripts.line_history_archive import try_archive_lines
+        pull_ts = str(df["fetched_at"].iloc[0]) if len(df) else ""
+        try_archive_lines(df, sport=sport_tag, only_fetched_at=pull_ts)
     except Exception as _arch_exc:
         print(f"  [WARN] line_history archive skipped: {_arch_exc}")
     # Snapshots are full-game WNBA only (period boards skip dated snapshot clutter).

@@ -939,6 +939,16 @@ def write_web(payload: dict, board: list[dict] | None = None) -> list[Path]:
         path.write_text(text, encoding="utf-8")
         written.append(path)
         print("web", path)
+    try:
+        from utils.ui_live_json import refresh_pipeline_status_from_slate, sync_live_json_pairs
+
+        sync_live_json_pairs(_REPO)
+        refresh_pipeline_status_from_slate(_REPO)
+        if main_cp.is_dir() and main_cp.resolve() != _REPO.resolve():
+            sync_live_json_pairs(main_cp)
+            refresh_pipeline_status_from_slate(main_cp)
+    except Exception as sync_exc:
+        print(f"WARN: live JSON sync skipped ({sync_exc})")
     return written
 
 

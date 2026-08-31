@@ -38,6 +38,16 @@ if (-not $MainRoot) {
 
 Write-Host "[PUBLISH] Live site JSON -> origin/main ($MainRoot)" -ForegroundColor Cyan
 
+$assertPy = Join-Path $Root "scripts\assert_live_publish.py"
+if (Test-Path -LiteralPath $assertPy) {
+    Write-Host "[PUBLISH] assert dual-card + runtime/templates sync" -ForegroundColor DarkGray
+    & py -3.14 $assertPy --root $Root --fix
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[PUBLISH] FAILED: live JSON guard (Goblin-70+mixer, matching dates)" -ForegroundColor Red
+        exit 1
+    }
+}
+
 # templates/ = GitHub raw contract (Railway). runtime/ = canonical disk copy.
 # mobile/www is not live (Android loads Railway remotely).
 $liveRel = @(
@@ -52,7 +62,10 @@ $liveRel = @(
     "ui_runner/runtime/tickets_winrate_latest.json",
     "ui_runner/templates/tickets_winrate_latest.json",
     "ui_runner/runtime/sport_breakdown.json",
-    "ui_runner/templates/sport_breakdown.json"
+    "ui_runner/templates/sport_breakdown.json",
+    "ui_runner/runtime/last_fetch_window.json",
+    "ui_runner/templates/last_fetch_window.json",
+    "data/reports/bet_windows_latest.json"
 )
 Get-ChildItem -LiteralPath (Join-Path $Root "ui_runner\runtime") -Filter "slate_sport_*.json" -ErrorAction SilentlyContinue |
     ForEach-Object { $liveRel += ("ui_runner/runtime/" + $_.Name) }

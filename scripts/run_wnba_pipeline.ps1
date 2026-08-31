@@ -13,7 +13,11 @@
 #  DataDome: launch Chrome first: pwsh -File scripts\launch_prizepicks_chrome_cdp.ps1 -OpenBoard -LeagueId 3
 #    .\run_wnba_pipeline.ps1 -StatsFrom2025End           # Force step4 rolling stats through 2025-10-20 (overrides prior-season merge)
 #    .\run_wnba_pipeline.ps1 -NoStatsFrom2025End         # Step4: current season only (no 2025 merge in cache)
-#  Default step1: browser/CDP when port 9222 is listening (avoids DataDome HTTP 403 stacks);
+#    .\run_wnba_pipeline.ps1 -DayAhead -Step1Only        # Today+tomorrow ET boards + Standard UNDER watchlist
+#    .\run_wnba_pipeline.ps1 -SameDayOnly                # Do not keep Eastern tomorrow (debug)
+#    .\run_wnba_pipeline.ps1 -SkipPeriod                 # Full-game only (skip WNBA1H/WNBA1Q PrizePicks tabs)
+#  Default step1 keeps Eastern tomorrow (--include-tomorrow) so Monday Standard unders
+#  are on Sunday's board before PrizePicks cuts the number.
 #  otherwise Sports\WNBA\step1_fetch_prizepicks.py HTTP (warmup + chrome131 + session waves),
 #  then NBA API script fallback (chrome120). Pass -HttpOnly to force HTTP even if CDP is up.
 #  Env (optional): PROPORACLE_PP_CDP or PRIZEPICKS_CDP - same as -Cdp when -Cdp omitted.
@@ -36,6 +40,9 @@ param(
     [switch]$StatsFrom2025End,
     [switch]$NoStatsFrom2025End,
     [switch]$Step1Only,
+    [switch]$DayAhead,
+    [switch]$SameDayOnly,
+    [switch]$SkipPeriod,
     [int]$Max403Retries = 0,
     [switch]$Quiet403
 )
@@ -54,6 +61,7 @@ if ((Split-Path -Leaf $ScriptDir) -eq "scripts") {
 $WNBADir = Join-Path $Root "Sports\WNBA"
 $NbaApiStep1 = Join-Path $Root "Sports\NBA\scripts\step1_fetch_prizepicks_api.py"
 $OutRoot = Join-Path $Root "outputs"
+. (Join-Path $Root "scripts\prizepicks_step1_cascade.ps1")
 
 if (-not $Date) { $Date = Get-Date -Format "yyyy-MM-dd" }
 $Cdp = $Cdp.Trim()
@@ -71,6 +79,36 @@ if ($PreferBrowser -or $CdpWhenListening) {
 }
 if ($HttpOnly) {
     Write-Host "  [WNBA step1] HttpOnly: no CDP fallback even if port 9222 is up" -ForegroundColor DarkYellow
+}
+
+# Day-ahead Standard unders: keep Eastern tomorrow unless -SameDayOnly.
+# -DayAhead is the documented name; include-tomorrow is on by default.
+$script:WnbaIncludeTomorrow = -not $SameDayOnly.IsPresent
+if ($DayAhead) { $script:WnbaIncludeTomorrow = $true }
+if ($script:WnbaIncludeTomorrow) {
+    Write-Host "  [WNBA step1] include-tomorrow: keeping --date and Eastern next day (Standard under watchlist)" -ForegroundColor DarkCyan
+} else {
+    Write-Host "  [WNBA step1] SameDayOnly: filtering strictly to $Date" -ForegroundColor DarkYellow
+}
+
+function Add-WnbaDayAheadArgs {
+    param([object]$Args)
+    if ($script:WnbaIncludeTomorrow) {
+        if ($Args -is [string]) {
+            if ($Args -notmatch "--include-tomorrow") { return "$Args --include-tomorrow" }
+            return $Args
+        }
+        $list = @($Args)
+        if ($list -notcontains "--include-tomorrow") { $list += "--include-tomorrow" }
+        return $list
+    }
+    if ($Args -is [string]) {
+        if ($Args -notmatch "--no-include-tomorrow") { return "$Args --no-include-tomorrow" }
+        return $Args
+    }
+    $list = @($Args)
+    if ($list -notcontains "--no-include-tomorrow") { $list += "--no-include-tomorrow" }
+    return $list
 }
 
 function Get-CsvDataRowCount([string]$CsvPath) {
@@ -113,6 +151,7 @@ function Get-WnbaStep1BrowserArgs {
         "--output", $OutCsv,
         "--date", $SlateDate
     )
+    $a = Add-WnbaDayAheadArgs $a
     if ($CdpUrl) {
         $a += @("--cdp", $CdpUrl)
     }
@@ -148,6 +187,7 @@ function Get-WnbaStep1HttpArgs {
         "--output", $OutCsv,
         "--date", $SlateDate
     )
+    $argsList = Add-WnbaDayAheadArgs $argsList
     if ($FailFast403) { $argsList += "--fail-fast-403" }
     if ($Quiet403) { $argsList += "--quiet-403" }
     return ($argsList -join " ")
@@ -188,6 +228,7 @@ function Invoke-WnbaStep1HttpNbaFallback {
     $env:PROPORACLE_CURL_IMPERSONATE = "chrome120"
     try {
         $step1Args = "--league_id 3 --game_mode pickem --per_page 250 --max_pages 5 --sleep 2.0 --cooldown_seconds 90 --max_cooldowns 3 --jitter_seconds 10.0 --replace --output `"$outCsv`" --date $Date"
+        $step1Args = Add-WnbaDayAheadArgs $step1Args
         return (Run-Step "WNBA Step 1 - Fetch PrizePicks (NBA API fallback, chrome120)" $WNBADir $NbaApiStep1 $step1Args)
     } finally {
         if ($savedImp) { $env:PROPORACLE_CURL_IMPERSONATE = $savedImp }
@@ -321,14 +362,34 @@ if ($SkipFetch -and (Get-CsvDataRowCount -CsvPath $step1Csv) -eq 0) {
 if (-not $SkipFetch) {
     $cdpDefault = if ($Cdp) { $Cdp } else { "http://127.0.0.1:9222" }
     $cdpReachable = Test-CdpEndpoint -BaseUrl $cdpDefault
-    # When CDP Chrome is already listening (5AM C0a / launch_prizepicks_chrome_cdp), go browser-first.
-    # Avoids DataDome HTTP 403 backoff stacks (often 10–20+ min) while still keeping full HTTP
-    # retry/cooldown when CDP is down. -HttpOnly forces the HTTP path even if CDP is up.
-    $autoBrowserFirst = $cdpReachable -and -not $HttpOnly
-    $browserFirst = $UsePlaywright -or $Cdp -or $PreferBrowser -or $CdpWhenListening -or $autoBrowserFirst
+    # Default: MLB-style HTTP → CDP → Playwright (see prizepicks_step1_cascade.ps1).
+    # Opt into old browser-first with -PreferBrowser / -CdpWhenListening / -UsePlaywright.
+    $autoBrowserFirst = $false
+    $browserFirst = $UsePlaywright -or $PreferBrowser -or $CdpWhenListening
     $useBrowserFirst = $browserFirst -and ($Cdp -or $UsePlaywright -or $cdpReachable)
 
-    if ($useBrowserFirst) {
+    if (-not $HttpOnly -and -not $useBrowserFirst) {
+        if ($Cdp) { $env:PROPORACLE_PP_CDP = $Cdp }
+        $httpList = @(
+            "--league_id", "3", "--game_mode", "pickem", "--per_page", "250", "--max_pages", "10",
+            "--output", $step1Csv, "--date", $Date
+        )
+        $httpList = Add-WnbaDayAheadArgs $httpList
+        if ($ok) {
+            # Hashtable splat keeps --output/--date on [string[]]$HttpArgs (bare
+            # `-HttpArgs $httpList` binds only the first token).
+            $cascade = @{
+                SportLabel   = "WNBA"
+                WorkDir      = $WNBADir
+                ScriptRel    = ".\step1_fetch_prizepicks.py"
+                OutputPath   = $step1Csv
+                PipelineDate = $Date
+                HttpArgs     = $httpList
+                FailFastFlag = "--fail-fast-403"
+            }
+            $ok = Invoke-PrizePicksStep1Cascade @cascade
+        }
+    } elseif ($useBrowserFirst) {
         if ($autoBrowserFirst -and -not $PreferBrowser -and -not $CdpWhenListening -and -not $Cdp -and -not $UsePlaywright) {
             Write-Host "  [WNBA step1] CDP listening at $cdpDefault — browser-first (skip HTTP 403 stacks)" -ForegroundColor DarkCyan
         }
@@ -377,6 +438,20 @@ if (-not $SkipFetch) {
 } else {
     Write-Host "  --> [SkipFetch] Using existing $WnbaRunOutDir\step1_wnba_props.csv" -ForegroundColor DarkGray
     Write-Host "  [WNBA] If combined dropped WNBA rows, re-run step1 once (no SkipFetch) after board/game_date policy changes." -ForegroundColor DarkYellow
+}
+
+if ($ok) {
+    $watchScript = Join-Path $Root "scripts\day_ahead_standard_under_watchlist.py"
+    $watchRows = Get-CsvDataRowCount -CsvPath $step1Csv
+    if ((Test-Path -LiteralPath $watchScript) -and $watchRows -gt 0) {
+        Write-Host "  --> Day-ahead Standard UNDER watchlist" -ForegroundColor Cyan
+        Push-Location $Root
+        try {
+            & py -3.14 $watchScript --date $Date --sports WNBA
+        } finally {
+            Pop-Location
+        }
+    }
 }
 
 if ($Step1Only) {
@@ -551,6 +626,56 @@ if ($ok) {
                 Write-Host "      matchup-edge WARN (exit $LASTEXITCODE) - continuing" -ForegroundColor Yellow
             } else {
                 Write-Host "      OK" -ForegroundColor Green
+            }
+        } finally {
+            Pop-Location
+        }
+    }
+}
+
+# PrizePicks 1H / 1Q are separate league tabs (193 / 308), not pills on the full WNBA board.
+# Empty period boards skip; a period failure does not fail the full-game run.
+$step8CleanExists = Test-Path -LiteralPath (Join-Path $WnbaRunOutDir "step8_wnba_direction_clean.xlsx")
+if ($SkipPeriod) {
+    Write-Host "  [WNBA period] skipped (-SkipPeriod)" -ForegroundColor DarkGray
+} elseif (-not $step8CleanExists) {
+    Write-Host "  [WNBA period] skipped (no full-game step8)" -ForegroundColor DarkGray
+} else {
+    $periodPs1 = Join-Path $Root "scripts\_run_wnba_period_refresh.ps1"
+    if (-not (Test-Path -LiteralPath $periodPs1)) {
+        Write-Host "  [WNBA period] WARN missing $periodPs1" -ForegroundColor Yellow
+    } else {
+        Write-Host ""
+        Write-Host "  --> WNBA 1H / 1Q PrizePicks boards (league_id 193 / 308)" -ForegroundColor Magenta
+        $periodInvoke = @{
+            Date     = $Date
+            SoftFail = $true
+        }
+        $p1h = Join-Path $Root "outputs\$Date\wnba1h\step1_wnba1h_props.csv"
+        $p1q = Join-Path $Root "outputs\$Date\wnba1q\step1_wnba1q_props.csv"
+        if ($SkipFetch -and (Test-Path -LiteralPath $p1h) -and (Test-Path -LiteralPath $p1q)) {
+            $periodInvoke["SkipFetch"] = $true
+        }
+        if ($Cdp) { $periodInvoke["Cdp"] = $Cdp }
+        if ($PreferBrowser -or $CdpWhenListening) { $periodInvoke["PreferBrowser"] = $true }
+        if ($script:WnbaIncludeTomorrow) { $periodInvoke["IncludeTomorrow"] = $true }
+        Push-Location $Root
+        try {
+            & $periodPs1 @periodInvoke
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "      WNBA period WARN (exit $LASTEXITCODE) - full-game run still OK" -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "      WNBA period WARN: $_ - full-game run still OK" -ForegroundColor Yellow
+        } finally {
+            Pop-Location
+        }
+        Write-Host "  --> WNBA - Re-publish slate to UI JSON (incl. 1H/1Q if present)" -ForegroundColor Yellow
+        Push-Location $Root
+        try {
+            & py -3.14 (Join-Path $Root "scripts\publish_wnba_slate_to_ui.py") --date $Date
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "      WARN: publish after period boards exit $LASTEXITCODE" -ForegroundColor Yellow
             }
         } finally {
             Pop-Location

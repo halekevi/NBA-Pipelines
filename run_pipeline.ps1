@@ -37,8 +37,9 @@
 #    .\run_pipeline.ps1 -RefreshCache          # Wipe + rebuild ESPN cache before NBA
 #    .\run_pipeline.ps1 -CacheAgeDays 7        # Auto-wipe cache if older than N days
 #    .\run_pipeline.ps1 -SkipDailyGrader       # Skip run_grader + grade HTML git push after combined
-#    .\run_pipeline.ps1 -UseAltBooks           # Optional: include Underdog + DraftKings cross-book inputs
-#    .\run_pipeline.ps1 -SkipAltBooks          # Legacy flag (no-op unless -UseAltBooks is set)
+#    .\run_pipeline.ps1                        # All sports + Combined (fetches Underdog + DraftKings + Vegas)
+#    .\run_pipeline.ps1 -SkipAltBooks          # PrizePicks-only combined (skip UD/DK/Vegas fetches)
+#    .\run_pipeline.ps1 -UseAltBooks           # Kept for compatibility; alt books are on by default
 #
 #  Combined always auto-includes every sport whose step8 output exists on disk.
 #  No -Include flags needed -- just run any sport, combined picks it up.
@@ -369,6 +370,9 @@ Write-Host ""
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host "  PROP PIPELINE  -- $Date -- $(Get-Date -Format 'HH:mm:ss')" -ForegroundColor Cyan
 Write-Host "======================================================" -ForegroundColor Cyan
+if ($ForceAll) { Write-Host "  [flags] ForceAll — off-season sports will run" -ForegroundColor DarkGray }
+if ($SkipCombined) { Write-Host "  [flags] SkipCombined — sport pipelines only (STEP D / CombinedOnly builds tickets)" -ForegroundColor DarkGray }
+if ($SkipFetch) { Write-Host "  [flags] SkipFetch — reuse existing step1 files" -ForegroundColor DarkGray }
 Write-Host ""
 
 # -- Helper: auto-wipe ESPN cache if stale ------------------------------------
@@ -428,22 +432,27 @@ function Run-Step {
         # Child Python inherits these; avoids UnicodeEncodeError on emoji logs (e.g. MLB step1) if the shell was cold-started without UTF-8.
         $env:PYTHONUTF8       = "1"
         $env:PYTHONIOENCODING = "utf-8"
-        $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-        Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
+        $argArray = @(ConvertTo-PyArgArray $Arguments)
+        $cmdDisplay = if ($argArray.Count -gt 0) { "py -3.14 $Script $($argArray -join ' ')" } else { "py -3.14 $Script" }
+        Write-Host "        CMD: $cmdDisplay" -ForegroundColor DarkGray
         if ($TimeoutSeconds -gt 0) {
             Write-Host "        Timeout: ${TimeoutSeconds}s" -ForegroundColor DarkGray
             $job = Start-Job -ScriptBlock {
-                param($Command, $WorkingDir)
-                Set-Location $WorkingDir
+                param($Payload)
+                Set-Location $Payload.Dir
                 $env:PYTHONUTF8       = "1"
                 $env:PYTHONIOENCODING = "utf-8"
-                $output = Invoke-Expression $Command 2>&1
-                $exit   = $LASTEXITCODE
+                $pyArgs = @($Payload.Args)
+                if ($pyArgs.Count -gt 0) {
+                    $output = & py -3.14 $Payload.Script @pyArgs 2>&1
+                } else {
+                    $output = & py -3.14 $Payload.Script 2>&1
+                }
                 [pscustomobject]@{
                     Output = $output
-                    Exit   = $exit
+                    Exit   = $LASTEXITCODE
                 }
-            } -ArgumentList $cmd, (Get-Location).Path
+            } -ArgumentList @{ Script = $Script; Args = $argArray; Dir = (Get-Location).Path }
             $completed = Wait-Job -Job $job -Timeout $TimeoutSeconds
             if (-not $completed) {
                 Stop-Job -Job $job -ErrorAction SilentlyContinue
@@ -456,7 +465,11 @@ function Run-Step {
             $output = @($result.Output)
             $exit   = [int]$result.Exit
         } else {
-            $output = Invoke-Expression $cmd 2>&1
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
             $exit   = $LASTEXITCODE
         }
         foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
@@ -537,7 +550,8 @@ function Get-MlbStep1HttpArgList {
             "--date", $PipelineDate,
             "--output", $OutputPath,
             "--per-page", "250",
-            "--max-pages", "10",
+            "--max-pages", "40",
+            "--fail-fast",
             "--api-retries", "2",
             "--api-session-waves", "1",
             "--api-403-cooldown-after", "1",
@@ -550,7 +564,7 @@ function Get-MlbStep1HttpArgList {
             "--date", $PipelineDate,
             "--output", $OutputPath,
             "--per-page", "250",
-            "--max-pages", "10",
+            "--max-pages", "40",
             "--api-retries", "5",
             "--api-session-waves", "3",
             "--api-403-cooldown-after", "5",
@@ -713,16 +727,7 @@ function Get-MLBStep1DateHealth {
     return (Get-Step1DateHealth -CsvPath $CsvPath -TargetDate $TargetDate)
 }
 
-function Test-Step1NoSlate {
-    param([string]$CsvPath)
-    if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-    try {
-        $rows = Import-Csv -LiteralPath $CsvPath
-    } catch {
-        return $true
-    }
-    return (-not $rows -or $rows.Count -eq 0)
-}
+# Test-Step1NoSlate lives in scripts\prizepicks_step1_cascade.ps1 (empty + date mismatch).
 
 function Invoke-WcbbPipeline {
     param([string]$OutDir, [switch]$SkipFetch)
@@ -736,7 +741,7 @@ function Invoke-WcbbPipeline {
         Write-Host "  [WCBB] Skipping step1 fetch -- using existing $step1" -ForegroundColor DarkGray
     }
     if (-not $ok) { return $false }
-    if (Test-Step1NoSlate -CsvPath $step1) {
+    if (Test-Step1NoSlate -CsvPath $step1 -TargetDate $Date) {
         Write-Host "  [WCBB] no slate — skipping steps 2-6." -ForegroundColor DarkGray
         return $true
     }
@@ -757,7 +762,7 @@ function Invoke-WcbbPipeline {
 
 function Test-Step1NflSeasonOnly {
     param([string]$CsvPath)
-    if (Test-Step1NoSlate -CsvPath $CsvPath) { return $true }
+    if (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date) { return $true }
     try {
         $rows = Import-Csv -LiteralPath $CsvPath
     } catch {
@@ -922,9 +927,15 @@ function Run-NBAPeriodPipeline {
         Write-Host "  --> ${tagLower} Step 1 - Fetch PrizePicks" -ForegroundColor Yellow
         Push-Location $NBADir
         try {
-            $cmd = "py -3.14 `".\scripts\step1_fetch_prizepicks_api.py`" --league_id $LeagueId --game_mode pickem --per_page 250 --max_pages 5 --sleep 2.0 --cooldown_seconds 90 --max_cooldowns 3 --jitter_seconds 10.0 --replace --output `"$step1`" --date $Date"
-            Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
-            $out = Invoke-Expression $cmd 2>&1
+            $argList = @(
+                ".\scripts\step1_fetch_prizepicks_api.py",
+                "--league_id", "$LeagueId", "--game_mode", "pickem",
+                "--per_page", "250", "--max_pages", "5",
+                "--sleep", "2.0", "--cooldown_seconds", "90", "--max_cooldowns", "3",
+                "--jitter_seconds", "10.0", "--replace", "--output", $step1, "--date", $Date
+            )
+            Write-Host "        CMD: py -3.14 $($argList -join ' ')" -ForegroundColor DarkGray
+            $out = & py -3.14 @argList 2>&1
             $exit = $LASTEXITCODE
             foreach ($line in $out) { Write-Host "        $line" -ForegroundColor DarkGray }
             if ($exit -ne 0) {
@@ -1201,9 +1212,9 @@ function Invoke-NHLDpairsRefresh {
     Push-Location $RepoRoot
     try {
         Write-Host "  --> NHL Step 4b-pre - NST D-pairs (slate teams)" -ForegroundColor Yellow
-        $cmd = "py -3.14 `"$refresh`" --season $SeasonId --refresh-nst --pairs-only --skip-pp --slate-input `"$Step4Path`""
-        Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
-        $output = Invoke-Expression $cmd 2>&1
+        $argList = @("--season", $SeasonId, "--refresh-nst", "--pairs-only", "--skip-pp", "--slate-input", $Step4Path)
+        Write-Host "        CMD: py -3.14 $refresh $($argList -join ' ')" -ForegroundColor DarkGray
+        $output = & py -3.14 $refresh @argList 2>&1
         $exit = $LASTEXITCODE
         foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
         if ($exit -ne 0) {
@@ -1230,10 +1241,10 @@ function Invoke-NHLStep4b {
             Write-Host "[NHL] step4b NST: WARN (missing step4b_attach_nst_context_nhl.py)" -ForegroundColor Yellow
             return
         }
-        $cmd = "py -3.14 `"$sp`" --input `"$Step4Path`" --output `"$Step4Path`" --season 20252026"
+        $argList = @("--input", $Step4Path, "--output", $Step4Path, "--season", "20252026")
         Write-Host "  --> NHL Step 4b - NST Context" -ForegroundColor Yellow
-        Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
-        $output = Invoke-Expression $cmd 2>&1
+        Write-Host "        CMD: py -3.14 $sp $($argList -join ' ')" -ForegroundColor DarkGray
+        $output = & py -3.14 $sp @argList 2>&1
         $exit   = $LASTEXITCODE
         foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
         if ($exit -ne 0) {
@@ -1262,12 +1273,12 @@ function Invoke-PropOracleStep7b {
             Write-Host "  [$SportLabel] step7b: WARN (missing scripts\step7b_edge_score.py)" -ForegroundColor Yellow
             return
         }
-        $cmd = "py -3.14 `"$sp`" --sport `"$SportLabel`" --repo-root `"$Root`""
-        if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-        if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
+        $argList = @("--sport", $SportLabel, "--repo-root", $Root)
+        if ($Step7Xlsx -ne "") { $argList += @("--step7-xlsx", $Step7Xlsx) }
+        if ($PipelineDate -ne "") { $argList += @("--pipeline-date", $PipelineDate) }
         Write-Host "  --> step7b ($SportLabel)" -ForegroundColor Yellow
-        Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
-        $output = Invoke-Expression $cmd 2>&1
+        Write-Host "        CMD: py -3.14 $sp $($argList -join ' ')" -ForegroundColor DarkGray
+        $output = & py -3.14 $sp @argList 2>&1
         $exit   = $LASTEXITCODE
         foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
         if ($exit -ne 0) {
@@ -1517,9 +1528,13 @@ function Invoke-AltBookPy {
     Write-Host "  --> $Label" -ForegroundColor Yellow
     Push-Location $Root
     try {
-        $cmd = "py -3.14 `"$RelScript`" $Arguments"
-        Write-Host "        CMD: $cmd" -ForegroundColor DarkGray
-        $output = Invoke-Expression $cmd 2>&1
+        $argArray = @(ConvertTo-PyArgArray $Arguments)
+        Write-Host "        CMD: py -3.14 $RelScript $($argArray -join ' ')" -ForegroundColor DarkGray
+        if ($argArray.Count -gt 0) {
+            $output = & py -3.14 $RelScript @argArray 2>&1
+        } else {
+            $output = & py -3.14 $RelScript 2>&1
+        }
         $exit   = $LASTEXITCODE
         foreach ($line in $output) { Write-Host "        $line" -ForegroundColor DarkGray }
         if ($exit -ne 0) {
@@ -1535,20 +1550,18 @@ function Invoke-AltBookPy {
 }
 
 function Invoke-AltBookFetches {
-    if (-not $UseAltBooks) {
-        Write-Host "  [alt-books] Skipped (PrizePicks-only mode; pass -UseAltBooks to enable)" -ForegroundColor DarkGray
-        return
-    }
-    if ($SkipAltBooks) {
-        Write-Host "  [alt-books] Skipped (-SkipAltBooks with -UseAltBooks)" -ForegroundColor DarkGray
+    $skipEnv = "$($env:PROPORACLE_SKIP_ALT_BOOKS)".Trim().ToLowerInvariant()
+    if ($SkipAltBooks -or $skipEnv -in @("1", "true", "yes")) {
+        Write-Host "  [alt-books] Skipped (-SkipAltBooks or PROPORACLE_SKIP_ALT_BOOKS)" -ForegroundColor DarkGray
         return
     }
     $UdScript    = Join-Path $Root "scripts\fetch_underdog_pickem.py"
     $DkScript    = Join-Path $Root "scripts\fetch_draftkings_player_props.py"
+    $LvScript    = Join-Path $Root "scripts\fetch_vegas_player_props.py"
     $MergeScript = Join-Path $Root "scripts\merge_draftkings_pickem_csvs.py"
     if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Force -Path $OutDir | Out-Null }
 
-    Write-Host "  [alt-books] Fetching Underdog + DraftKings for cross-book columns..." -ForegroundColor Cyan
+    Write-Host "  [alt-books] Fetching Underdog + DraftKings + Vegas for cross-book columns..." -ForegroundColor Cyan
     $UdOut = Join-Path $OutDir "underdog_props.csv"
     if (Test-Path $UdScript) {
         Invoke-AltBookPy "Underdog pick'em (ALL sports)" ".\scripts\fetch_underdog_pickem.py" "--sport ALL --output `"$UdOut`" --min-rows 0"
@@ -1559,10 +1572,15 @@ function Invoke-AltBookFetches {
     $dkFiles = [System.Collections.Generic.List[string]]::new()
     if (Test-Path $DkScript) {
         foreach ($row in @(
+            @{ league = "mlb"; name = "dk_props_mlb.csv" },
+            @{ league = "wnba"; name = "dk_props_wnba.csv" },
+            @{ league = "soccer"; name = "dk_props_soccer.csv" },
+            @{ league = "tennis"; name = "dk_props_tennis.csv" },
             @{ league = "nba"; name = "dk_props_nba.csv" },
             @{ league = "nhl"; name = "dk_props_nhl.csv" },
-            @{ league = "mlb"; name = "dk_props_mlb.csv" },
-            @{ league = "cbb"; name = "dk_props_cbb.csv" }
+            @{ league = "cbb"; name = "dk_props_cbb.csv" },
+            @{ league = "nfl"; name = "dk_props_nfl.csv" },
+            @{ league = "cfb"; name = "dk_props_cfb.csv" }
         )) {
             $part = Join-Path $OutDir $row.name
             Invoke-AltBookPy "DraftKings $($row.league.ToUpper())" ".\scripts\fetch_draftkings_player_props.py" "--league $($row.league) -o `"$part`""
@@ -1579,6 +1597,13 @@ function Invoke-AltBookFetches {
     } else {
         Write-Host "  [alt-books] WARN missing scripts\fetch_draftkings_player_props.py" -ForegroundColor Yellow
     }
+
+    $LvOut = Join-Path $OutDir "vegas_props.csv"
+    if (Test-Path $LvScript) {
+        Invoke-AltBookPy "Vegas / Odds API player props" ".\scripts\fetch_vegas_player_props.py" "--sports ALL --date $Date -o `"$LvOut`""
+    } else {
+        Write-Host "  [alt-books] WARN missing scripts\fetch_vegas_player_props.py" -ForegroundColor Yellow
+    }
 }
 
 # -- Helper: run combined, auto-detect all sports on disk ---------------------
@@ -1593,6 +1618,7 @@ function Run-Combined {
         return $true
     }
     $script:CombinedRanThisSession = $true
+    $env:PYTHONUNBUFFERED = "1"
     Write-Host ""
     $label = if ($Reason) { "[ COMBINED SLATE -- $Reason ]" } else { "[ COMBINED SLATE ]" }
     Write-Host $label -ForegroundColor Magenta
@@ -1608,10 +1634,11 @@ function Run-Combined {
     $CombinedOut  = Join-Path $Root "combined_slate_tickets_$Date.xlsx"
     $CombinedArgs = ""
 
-    if ($UseAltBooks -and -not $SkipAltBooks) {
+    if (-not $SkipAltBooks) {
         $UdCsv = Join-Path $OutDir "underdog_props.csv"
         $DkAll = Join-Path $OutDir "draftkings_props_all.csv"
         $DkNba = Join-Path $OutDir "draftkings_props_nba.csv"
+        $LvCsv = Join-Path $OutDir "vegas_props.csv"
         if (Test-Path $UdCsv) {
             $CombinedArgs += " --underdog-csv `"$UdCsv`""
             Write-Host "  [alt-books] Passing Underdog CSV" -ForegroundColor DarkGray
@@ -1622,6 +1649,10 @@ function Run-Combined {
         } elseif (Test-Path $DkNba) {
             $CombinedArgs += " --draftkings-csv `"$DkNba`""
             Write-Host "  [alt-books] Passing DraftKings NBA CSV" -ForegroundColor DarkGray
+        }
+        if (Test-Path $LvCsv) {
+            $CombinedArgs += " --vegas-csv `"$LvCsv`""
+            Write-Host "  [alt-books] Passing Vegas CSV" -ForegroundColor DarkGray
         }
     }
 
@@ -1636,9 +1667,10 @@ function Run-Combined {
     }
     Write-Host "  [combined] ticket-gen-starts=$ticketStarts" -ForegroundColor DarkGray
     $CombinedArgs += " --date $Date --tennis-date $TennisDate --soccer-date $Date --wnba-date $EasternTomorrow --mlb-date $EasternTomorrow --allow-cross-date-fallback --output `"$CombinedOut`" --tiers A,B --min-hit-rate 0.65 --min-edge -0.25 --max-tickets 15 --max-ticket-legs 4 --ticket-gen-starts $ticketStarts --nba-structured-variants 8 --ticket-candidate-sort rule --prioritize-ticket-hit --write-web --merge-web-latest --web-outdir `"$WebOutDir`" --max-legs 4 --min-leg-prob 0.62"
-    $skipWinRate = "$($env:SKIP_TICKET_SIDECARS)".Trim() -in @("1", "true", "yes")
+    $middayRebuild = ($TicketGenStarts -gt 0 -and $TicketGenStarts -le 32)
+    $skipWinRate = $middayRebuild -or ("$($env:SKIP_TICKET_SIDECARS)".Trim() -in @("1", "true", "yes"))
     if ($skipWinRate) {
-        Write-Host "  [combined] skipping --also-win-rate (SKIP_TICKET_SIDECARS)" -ForegroundColor DarkGray
+        Write-Host "  [combined] skipping --also-win-rate (mid-day TicketGenStarts or SKIP_TICKET_SIDECARS)" -ForegroundColor DarkGray
     } else {
         $CombinedArgs += " --also-win-rate --win-rate-output `"$(Join-Path $OutDir "winrate_tickets_$Date.xlsx")`""
     }
@@ -1676,6 +1708,10 @@ function Run-Combined {
         if ($env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC -match '^\d+$' -and [int]$env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC -gt 0) {
             $matchupEdgeTimeoutSec = [int]$env:PROPORACLE_MATCHUP_EDGE_TIMEOUT_SEC
         }
+        $skipMatchupEdge = $SkipFetch.IsPresent -or $middayRebuild -or ("$($env:SKIP_MATCHUP_EDGE)".Trim() -in @("1", "true", "yes"))
+        if ($skipMatchupEdge) {
+            Write-Host "  [matchup-edge] skipped (SkipFetch / mid-day TicketGenStarts; 1AM still rebuilds)" -ForegroundColor DarkGray
+        } else {
         $okMatchupEdge = Run-Step "Build Matchup Edge JSON (all sports)" $Root ".\scripts\build_matchup_edge_json.py" "--sport all" -TimeoutSeconds $matchupEdgeTimeoutSec
         if (-not $okMatchupEdge) {
             Write-Host "  [matchup-edge] WARN: full build failed/timed out — retrying active summer sports individually..." -ForegroundColor Yellow
@@ -1689,6 +1725,7 @@ function Run-Combined {
                     Write-Host "  [matchup-edge] WARN: $meSport still failed; panel may be stale." -ForegroundColor Yellow
                 }
             }
+        }
         }
         $datedCombinedPath = Join-Path $OutDir "combined_slate_tickets_$Date.xlsx"
         # REMOVED: HHmmss snapshot caused resolver ambiguity in build_ticket_eval.py.
@@ -1930,7 +1967,7 @@ if ($NHLOnly) {
     Write-Host ""
     $ok = $true
     if (-not $SkipFetch) { if ($ok) { $ok = Invoke-PrizePicksStep1Cascade -SportLabel "NHL" -WorkDir $NHLDir -ScriptRel ".\scripts\step1_fetch_prizepicks_nhl.py" -OutputPath "$NHLRunOutDir\step1_nhl_props.csv" -PipelineDate $Date -HttpArgs @("--output", "$NHLRunOutDir\step1_nhl_props.csv", "--date", $Date) } } else { Write-Host "  [NHL] Skipping step1 fetch -- using existing $NHLRunOutDir\step1_nhl_props.csv" -ForegroundColor DarkGray }
-    if ($ok -and (Test-Step1NoSlate -CsvPath "$NHLRunOutDir\step1_nhl_props.csv")) {
+    if ($ok -and (Test-Step1NoSlate -CsvPath "$NHLRunOutDir\step1_nhl_props.csv" -TargetDate $Date)) {
         Write-Host "  [NHL] No slate today — skipping steps 2-8." -ForegroundColor DarkGray
         Clear-NHLGeneratedOutputs -BaseDir $NHLRunOutDir
         Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ nhl = "no_slate" }
@@ -2033,7 +2070,7 @@ if ($MLBOnly) {
         Write-Host "  [MLB] Skipping step1 fetch -- using existing $MLBRunOutDir\step1_mlb_props.csv" -ForegroundColor DarkGray
     }
     $mlbStep1Solo = Join-Path $MLBRunOutDir "step1_mlb_props.csv"
-    if (Test-Step1NoSlate -CsvPath $mlbStep1Solo) {
+    if (Test-Step1NoSlate -CsvPath $mlbStep1Solo -TargetDate $Date) {
         Write-Host "  [MLB] step1 empty (0 props) — skipping steps 2-8" -ForegroundColor DarkGray
         Clear-MLBGeneratedOutputs -BaseDir $MLBRunOutDir
         Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ mlb = "no_slate" }
@@ -2179,7 +2216,7 @@ if ($SoccerOnly) {
     } else {
         Write-Host "  [Soccer] Skipping step1 fetch -- using existing $SoccerRunOutDir\step1_soccer_props.csv" -ForegroundColor DarkGray
     }
-    if ($ok -and (Test-Step1NoSlate -CsvPath "$SoccerRunOutDir\step1_soccer_props.csv")) {
+    if ($ok -and (Test-Step1NoSlate -CsvPath "$SoccerRunOutDir\step1_soccer_props.csv" -TargetDate $Date)) {
         Write-Host "  [Soccer] No slate today — skipping steps 2-8." -ForegroundColor DarkGray
         Clear-SoccerGeneratedOutputs -BaseDir $SoccerRunOutDir
         Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ soccer = "no_slate" }
@@ -2245,7 +2282,7 @@ if ($GolfOnly) {
         Write-Host "  [Golf] Skipping step1 fetch -- using existing $GolfRunOutDir\step1_golf_props.csv" -ForegroundColor DarkGray
     }
     $golfStep1 = Join-Path $GolfRunOutDir "step1_golf_props.csv"
-    if ($ok -and (Test-Step1NoSlate -CsvPath $golfStep1)) {
+    if ($ok -and (Test-Step1NoSlate -CsvPath $golfStep1 -SkipDateMatch)) {
         Write-Host "  [Golf] step1 empty (0 props) — skipping steps 2-8" -ForegroundColor DarkGray
         Clear-GolfGeneratedOutputs -BaseDir $GolfRunOutDir
         Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ golf = "no_slate" }
@@ -2484,7 +2521,7 @@ if ($NBAOnly) {
             }
         }
     }
-    if ($ok -and (Test-Step1NoSlate -CsvPath $nbaStep1Solo)) {
+    if ($ok -and (Test-Step1NoSlate -CsvPath $nbaStep1Solo -TargetDate $Date)) {
         Write-Host "  [NBA] No slate today — skipping steps 2-8." -ForegroundColor DarkGray
         Clear-NBAGeneratedOutputs -BaseDir $NBARunOutDir
         Write-PipelineSlateStatusJson -RunDate $Date -Sports @{ nba = "no_slate"; nba1h = "no_slate"; nba1q = "no_slate" }
@@ -2603,6 +2640,9 @@ if ($RefreshCache -and -not $NBAOffSeason) {
 }
 
 # -- Backfill boxscore DB for last 3 days (active summer sports only) ----------
+if ($SkipFetch) {
+    Write-Host "[ DB BACKFILL ] skipped (-SkipFetch / mid-day refresh)" -ForegroundColor DarkGray
+} else {
 Write-Host "[ DB BACKFILL ]" -ForegroundColor Cyan
 Write-Host "  Syncing proporacle_ref.db for last 3 days (active: soccer)..." -ForegroundColor DarkGray
 $backfillScript = Join-Path $NBADir "scripts\build_boxscore_ref.py"
@@ -2610,14 +2650,15 @@ if (Test-Path $backfillScript) {
     # Do not backfill nba/nhl/cbb while those sports are off-season scaffolding.
     # MLB/Tennis/WNBA use sport-local caches; soccer is the live proporacle_ref sport.
     $bfSports = @("soccer")
-    $bfSportsArg = ($bfSports -join " ")
-    $backfillOut = Invoke-Expression "py -3.14 `"$backfillScript`" --backfill --days 3 --sports $bfSportsArg" 2>&1
+    $bfArgList = @("--backfill", "--days", "3", "--sports") + $bfSports
+    $backfillOut = & py -3.14 $backfillScript @bfArgList 2>&1
     foreach ($line in $backfillOut) { Write-Host "  $line" -ForegroundColor DarkGray }
-    Write-Host "  DB backfill complete ($bfSportsArg)." -ForegroundColor Green
+    Write-Host "  DB backfill complete ($($bfSports -join ' '))." -ForegroundColor Green
 } else {
     Write-Host "  WARNING: build_boxscore_ref.py not found -- skipping backfill" -ForegroundColor Yellow
 }
 Write-Host ""
+}
 
 if (Test-Path (Join-Path $NBADir "RUN_COMPLETE.flag")) { Remove-Item (Join-Path $NBADir "RUN_COMPLETE.flag") -Force }
 $wnbaParallel = ($ForceWNBA.IsPresent -or (($Date -ge $WNBA_SEASON_START) -and -not $WNBAOffSeason))
@@ -2687,9 +2728,14 @@ $NBAJob = Start-Job -ScriptBlock {
         Write-Output "[NBA] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[NBA] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[NBA] OK: $Label"; return $true
@@ -2729,9 +2775,7 @@ $NBAJob = Start-Job -ScriptBlock {
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
     }
     function Clear-NBAGeneratedOutputs-Job {
         param([string]$BaseDir)
@@ -2771,23 +2815,7 @@ $NBAJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
-            if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
-            Write-Output "  --> step7b ($SportLabel)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R -Step7Xlsx $Step7Xlsx -PipelineDate $PipelineDate
     }
     $ok = $true
     $nbaStep1 = Join-Path $NBARunOutDir "step1_pp_props_today.csv"
@@ -2878,14 +2906,20 @@ Wait-FetchStagger
 $CBBJob = Start-Job -ScriptBlock {
     param($CBBDir, $Date, $SkipFetch, $RepoRoot, $CBBRunOutDir, $WCBBRunOutDir)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[CBB] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[CBB] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[CBB] OK: $Label"; return $true
@@ -2894,29 +2928,11 @@ $CBBJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
-            if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
-            Write-Output "  --> step7b ($SportLabel)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R -Step7Xlsx $Step7Xlsx -PipelineDate $PipelineDate
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
     }
     $ok = $true
     if (-not $SkipFetch) { if ($ok) { $ok = Run-Step-Job "CBB Step 1 - Fetch PrizePicks (NCAABB Mens)"      $CBBDir ".\scripts\pipeline\step1_pp_cbb_scraper.py"      "--board cbb --out `"$CBBRunOutDir\step1_cbb.csv`"" } } else { Write-Output "[CBB] Skipping step1 fetch" }
@@ -2961,9 +2977,14 @@ $CFBJob = Start-Job -ScriptBlock {
         Write-Output "[CFB] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[CFB] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[CFB] OK: $Label"; return $true
@@ -2972,26 +2993,11 @@ $CFBJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R)
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`""
-            Write-Output "  --> step7b ($SportLabel)"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
     }
     $ok = $true
     $cfbStep1 = Join-Path $CFBRunOutDir "step1_cfb.csv"
@@ -3044,9 +3050,14 @@ $NHLJob = Start-Job -ScriptBlock {
         Write-Output "[NHL] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[NHL] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[NHL] OK: $Label"; return $true
@@ -3055,23 +3066,7 @@ $NHLJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
-            if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
-            Write-Output "  --> step7b ($SportLabel)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R -Step7Xlsx $Step7Xlsx -PipelineDate $PipelineDate
     }
     function Invoke-NHLDpairsRefresh-Job {
         param([string]$Step4Path)
@@ -3090,10 +3085,11 @@ $NHLJob = Start-Job -ScriptBlock {
         }
         Push-Location $RepoRoot
         try {
-            $cmd = "py -3.14 `"$refresh`" --season 20252026 --refresh-nst --pairs-only --skip-pp --slate-input `"$Step4Path`""
+            $argList = @("--season", "20252026", "--refresh-nst", "--pairs-only", "--skip-pp", "--slate-input", $Step4Path)
             Write-Output "[NHL] --> NHL Step 4b-pre - NST D-pairs (slate teams)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            Write-Output "        CMD: py -3.14 $refresh $($argList -join ' ')"
+            $output = & py -3.14 $refresh @argList 2>&1
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[NHL] step4b-pre D-pairs: WARN (exit $exit)" } else { Write-Output "[NHL] step4b-pre D-pairs: OK" }
         } catch { Write-Output "[NHL] step4b-pre D-pairs: WARN ($($_.Exception.Message))" }
@@ -3108,10 +3104,11 @@ $NHLJob = Start-Job -ScriptBlock {
                 Write-Output "[NHL] step4b NST: WARN (missing step4b_attach_nst_context_nhl.py)"
                 return
             }
-            $cmd = "py -3.14 `"$sp`" --input `"$Step4Path`" --output `"$Step4Path`" --season 20252026"
+            $argList = @("--input", $Step4Path, "--output", $Step4Path, "--season", "20252026")
             Write-Output "[NHL] --> NHL Step 4b - NST Context"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            Write-Output "        CMD: py -3.14 $sp $($argList -join ' ')"
+            $output = & py -3.14 $sp @argList 2>&1
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[NHL] step4b NST: WARN (exit $exit)" } else { Write-Output "[NHL] step4b NST: OK" }
         } catch { Write-Output "[NHL] step4b NST: WARN (exit 1)" }
@@ -3119,9 +3116,7 @@ $NHLJob = Start-Job -ScriptBlock {
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
     }
     function Clear-NHLGeneratedOutputs-Job {
         param([string]$BaseDir)
@@ -3211,9 +3206,14 @@ $SoccerJob = Start-Job -ScriptBlock {
         Write-Output "[SOCCER] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[SOCCER] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[SOCCER] OK: $Label"; return $true
@@ -3222,29 +3222,11 @@ $SoccerJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
-            if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
-            Write-Output "  --> step7b ($SportLabel)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R -Step7Xlsx $Step7Xlsx -PipelineDate $PipelineDate
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
     }
     function Clear-SoccerGeneratedOutputs-Job {
         param([string]$BaseDir)
@@ -3336,23 +3318,7 @@ $TennisJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
-            if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
-            Write-Output "  --> step7b ($SportLabel)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R -Step7Xlsx $Step7Xlsx -PipelineDate $PipelineDate
     }
     Write-Output "[TENNIS] Step8 filters to ET date $TennisDate; step1 loads full PrizePicks tennis board (may include several calendar days)"
     $ok = $true
@@ -3413,9 +3379,14 @@ $GolfJob = Start-Job -ScriptBlock {
         Write-Output "[GOLF] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[GOLF] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[GOLF] OK: $Label"; return $true
@@ -3425,9 +3396,7 @@ $GolfJob = Start-Job -ScriptBlock {
     $ok = $true
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -SkipDateMatch)
     }
     function Clear-GolfGeneratedOutputs-Job {
         param([string]$BaseDir)
@@ -3491,14 +3460,20 @@ Wait-FetchStagger
 $MLBJob = Start-Job -ScriptBlock {
     param($MLBDir, $Date, $SkipFetch, $RepoRoot, $MLBRunOutDir, $MlbSeasonYear)
     $env:PYTHONUTF8 = "1"; $env:PYTHONIOENCODING = "utf-8"
+    . (Join-Path $RepoRoot "scripts\prizepicks_step1_cascade.ps1")
     function Run-Step-Job {
         param([string]$Label,[string]$Dir,[string]$Script,[string]$Arguments="")
         Write-Output "[MLB] --> $Label"
         Push-Location $Dir
         try {
-            $cmd = if ($Arguments) { "py -3.14 `"$Script`" $Arguments" } else { "py -3.14 `"$Script`"" }
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
+            $argArray = @(ConvertTo-PyArgArray $Arguments)
+            Write-Output "        CMD: py -3.14 $Script $($argArray -join ' ')"
+            if ($argArray.Count -gt 0) {
+                $output = & py -3.14 $Script @argArray 2>&1
+            } else {
+                $output = & py -3.14 $Script 2>&1
+            }
+            $exit = $LASTEXITCODE
             foreach ($line in $output) { Write-Output "        $line" }
             if ($exit -ne 0) { Write-Output "[MLB] FAILED: $Label (exit $exit)"; return $false }
             Write-Output "[MLB] OK: $Label"; return $true
@@ -3544,7 +3519,8 @@ $MLBJob = Start-Job -ScriptBlock {
                 "--date", $PipelineDate,
                 "--output", $OutputPath,
                 "--per-page", "250",
-                "--max-pages", "10",
+                "--max-pages", "40",
+                "--fail-fast",
                 "--api-retries", "2",
                 "--api-session-waves", "1",
                 "--api-403-cooldown-after", "1",
@@ -3557,7 +3533,7 @@ $MLBJob = Start-Job -ScriptBlock {
                 "--date", $PipelineDate,
                 "--output", $OutputPath,
                 "--per-page", "250",
-                "--max-pages", "10",
+                "--max-pages", "40",
                 "--api-retries", "5",
                 "--api-session-waves", "3",
                 "--api-403-cooldown-after", "5",
@@ -3654,23 +3630,7 @@ $MLBJob = Start-Job -ScriptBlock {
     }
     function Invoke-Step7b-Job {
         param([string]$SportLabel, [string]$R, [string]$Step7Xlsx = "", [string]$PipelineDate = "")
-        Push-Location $R
-        try {
-            $p = Join-Path $R "scripts\step7b_edge_score.py"
-            if (-not (Test-Path $p)) {
-                Write-Output "  [$SportLabel] step7b: WARN (missing step7b_edge_score.py)"
-                return
-            }
-            $cmd = "py -3.14 `"$p`" --sport `"$SportLabel`" --repo-root `"$R`""
-            if ($Step7Xlsx -ne "") { $cmd += " --step7-xlsx `"$Step7Xlsx`"" }
-            if ($PipelineDate -ne "") { $cmd += " --pipeline-date $PipelineDate" }
-            Write-Output "  --> step7b ($SportLabel)"
-            Write-Output "        CMD: $cmd"
-            $output = Invoke-Expression $cmd 2>&1; $exit = $LASTEXITCODE
-            foreach ($line in $output) { Write-Output "        $line" }
-            if ($exit -ne 0) { Write-Output "  [$SportLabel] step7b: WARN (exit $exit)" } else { Write-Output "  [$SportLabel] step7b: OK" }
-        } catch { Write-Output "  [$SportLabel] step7b: WARN (exit 1)" }
-        finally { Pop-Location }
+        Invoke-PyStep7b -SportLabel $SportLabel -RepoRoot $R -Step7Xlsx $Step7Xlsx -PipelineDate $PipelineDate
     }
     function Clear-MLBGeneratedOutputs-Job {
         param([string]$BaseDir)
@@ -3690,9 +3650,7 @@ $MLBJob = Start-Job -ScriptBlock {
     }
     function Test-Step1NoSlate-Job {
         param([string]$CsvPath)
-        if (-not (Test-Path -LiteralPath $CsvPath)) { return $true }
-        try { $rows = Import-Csv -LiteralPath $CsvPath } catch { return $true }
-        return (-not $rows -or $rows.Count -eq 0)
+        return (Test-Step1NoSlate -CsvPath $CsvPath -TargetDate $Date)
     }
     $ok = $true
     if (-not $SkipFetch) {
@@ -3913,46 +3871,46 @@ foreach ($job in $failedJobs) {
 $NBASuccess    = if ($NBAOffSeason) { $true } else { Test-Path (Join-Path $NBARunOutDir "step8_all_direction_clean.xlsx") }
 $CBBSuccess    = if (-not $CBB_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $CBBRunOutDir "step6_ranked_cbb.xlsx") }
 $cbbNoSlate = $false
-if ($CBB_PARALLEL_ACTIVE -and -not $CBBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CBBRunOutDir "step1_cbb.csv"))) {
+if ($CBB_PARALLEL_ACTIVE -and -not $CBBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CBBRunOutDir "step1_cbb.csv") -TargetDate $Date)) {
     Write-Host "  [CBB] no slate for $Date — not a failure." -ForegroundColor DarkGray
     $CBBSuccess = $true
     $cbbNoSlate = $true
 }
 $WCBBSuccess = if (-not $CBB_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $WCBBRunOutDir "step6_ranked_wcbb.xlsx") }
 $wcbbNoSlate = $false
-if ($CBB_PARALLEL_ACTIVE -and -not $WCBBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $WCBBRunOutDir "step1_wcbb.csv"))) {
+if ($CBB_PARALLEL_ACTIVE -and -not $WCBBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $WCBBRunOutDir "step1_wcbb.csv") -TargetDate $Date)) {
     Write-Host "  [WCBB] no slate for $Date — not a failure." -ForegroundColor DarkGray
     $WCBBSuccess = $true
     $wcbbNoSlate = $true
 }
 $CFBSuccess    = if (-not $CFB_PARALLEL_ACTIVE) { $true } else { (Test-Path (Join-Path $CFBRunOutDir "step8_cfb_direction_clean.xlsx")) -or (Test-Path (Join-Path $CFBRunOutDir "step6_ranked_cfb.xlsx")) }
 $cfbNoSlate = $false
-if ($CFB_PARALLEL_ACTIVE -and -not $CFBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CFBRunOutDir "step1_cfb.csv"))) {
+if ($CFB_PARALLEL_ACTIVE -and -not $CFBSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $CFBRunOutDir "step1_cfb.csv") -TargetDate $Date)) {
     Write-Host "  [CFB] no slate for $Date — not a failure." -ForegroundColor DarkGray
     $CFBSuccess = $true
     $cfbNoSlate = $true
 }
 $NHLSuccess    = if ($NHLOffSeason) { $true } else { Test-Path (Join-Path $NHLRunOutDir "step8_nhl_direction_clean.xlsx") }
 $SoccerSuccess = Test-Path (Join-Path $SoccerRunOutDir "step8_soccer_direction_clean.xlsx")
-if (-not $NHLSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $NHLRunOutDir "step1_nhl_props.csv"))) {
+if (-not $NHLSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $NHLRunOutDir "step1_nhl_props.csv") -TargetDate $Date)) {
     Write-Host "  [NHL] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-NHLGeneratedOutputs -BaseDir $NHLRunOutDir
     $NHLSuccess = $true
 }
-if (-not $SoccerSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv"))) {
+if (-not $SoccerSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv") -TargetDate $Date)) {
     Write-Host "  [Soccer] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-SoccerGeneratedOutputs -BaseDir $SoccerRunOutDir
     $SoccerSuccess = $true
 }
 $GolfSuccess   = if (-not $GOLF_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $GolfRunOutDir "step8_golf_direction_clean.xlsx") }
-if (-not $GolfSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $GolfRunOutDir "step1_golf_props.csv"))) {
+if (-not $GolfSuccess -and (Test-Step1NoSlate -CsvPath (Join-Path $GolfRunOutDir "step1_golf_props.csv") -SkipDateMatch)) {
     Write-Host "  [Golf] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-GolfGeneratedOutputs -BaseDir $GolfRunOutDir
     $GolfSuccess = $true
 }
 $MLBSuccess    = Test-Path (Join-Path $MLBRunOutDir "step8_mlb_direction_clean.xlsx")
 $mlbStep1Path = Join-Path $MLBRunOutDir "step1_mlb_props.csv"
-if (-not $MLBSuccess -and (Test-Step1NoSlate -CsvPath $mlbStep1Path)) {
+if (-not $MLBSuccess -and (Test-Step1NoSlate -CsvPath $mlbStep1Path -TargetDate $Date)) {
     Write-Host "  [MLB] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-MLBGeneratedOutputs -BaseDir $MLBRunOutDir
     $MLBSuccess = $true
@@ -3970,7 +3928,7 @@ $TennisSuccess = Test-Path (Join-Path $TennisRunOutDir "step8_tennis_direction_c
 $NFLSuccess    = if (-not $NFL_PARALLEL_ACTIVE) { $true } else { Test-Path (Join-Path $NFLRunOutDir "step8_nfl_direction_clean.xlsx") }
 $nflNoSlate = $false
 $nflStep1Path = Join-Path $NFLRunOutDir "step1_pp_props_today.csv"
-if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and ((Test-Step1NoSlate -CsvPath $nflStep1Path) -or (Test-Step1NflSeasonOnly -CsvPath $nflStep1Path))) {
+if ($NFL_PARALLEL_ACTIVE -and -not $NFLSuccess -and ((Test-Step1NoSlate -CsvPath $nflStep1Path -TargetDate $Date) -or (Test-Step1NflSeasonOnly -CsvPath $nflStep1Path))) {
     Write-Host "  [NFL] no daily slate for $Date (NFLSZN-only or empty) — not a failure." -ForegroundColor DarkGray
     $NFLSuccess = $true
     $nflNoSlate = $true
@@ -3981,7 +3939,7 @@ if ($wnbaParallel) {
     $wnbaStep8Legacy = Join-Path $WNBADir "step8_wnba_direction_clean.xlsx"
     $WNBASuccess = (Test-Path -LiteralPath $wnbaStep8Clean) -or (Test-Path -LiteralPath $wnbaStep8Legacy)
 }
-if ($MLBSuccess -and -not (Test-Step1NoSlate -CsvPath $mlbStep1Path)) { Publish-MlbStep8Artifacts -Reason "parallel" }
+if ($MLBSuccess -and -not (Test-Step1NoSlate -CsvPath $mlbStep1Path -TargetDate $Date)) { Publish-MlbStep8Artifacts -Reason "parallel" }
 
 $nbaStep1Path = Join-Path $NBARunOutDir "step1_pp_props_today.csv"
 $nbaNoSlate = $false
@@ -3993,7 +3951,7 @@ if ($NBAOffSeason) {
     $NBASuccess = $true
     $NBA1HSuccess = $true
     $NBA1QSuccess = $true
-} elseif (Test-Step1NoSlate -CsvPath $nbaStep1Path) {
+} elseif (Test-Step1NoSlate -CsvPath $nbaStep1Path -TargetDate $Date) {
     $nbaNoSlate = $true
     Write-Host "  [NBA] no slate for $Date — not a failure." -ForegroundColor DarkGray
     Clear-NBAGeneratedOutputs -BaseDir $NBARunOutDir
@@ -4026,10 +3984,10 @@ if ($NBAOffSeason) {
     $nba1qNoSlate = $NBA1QSuccess -and -not (Test-Path (Join-Path $OutDir "nba1q\step8_nba1q_direction_clean.xlsx"))
 }
 
-if ($TennisSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv"))) {
+if ($TennisSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv") -SkipDateMatch)) {
     Publish-TennisStep8Artifacts -Reason "parallel"
 }
-if ($SoccerSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv"))) {
+if ($SoccerSuccess -and -not (Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv") -TargetDate $Date)) {
     Publish-SoccerStep8Artifacts -Reason "parallel"
 }
 if ($GolfSuccess) {
@@ -4050,14 +4008,15 @@ Remove-Job $allJobs -Force -ErrorAction SilentlyContinue
 if ($NBASuccess) { New-Item -ItemType File -Force -Path (Join-Path $NBADir "RUN_COMPLETE.flag") | Out-Null }
 
 Write-Host ""
-$nhlNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $NHLRunOutDir "step1_nhl_props.csv")
-$soccerNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv")
-$mlbNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $MLBRunOutDir "step1_mlb_props.csv")
-$tennisNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv")
-$golfNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $GolfRunOutDir "step1_golf_props.csv")
+$nhlNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $NHLRunOutDir "step1_nhl_props.csv") -TargetDate $Date
+$soccerNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $SoccerRunOutDir "step1_soccer_props.csv") -TargetDate $Date
+$mlbNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $MLBRunOutDir "step1_mlb_props.csv") -TargetDate $Date
+$tennisNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $TennisRunOutDir "step1_tennis_props.csv") -SkipDateMatch
+$golfNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $GolfRunOutDir "step1_golf_props.csv") -SkipDateMatch
 $wnbaNoSlate = $false
 if ($wnbaParallel) {
-    $wnbaNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $OutDir "wnba\step1_wnba_props.csv")
+    $wnbaNoSlate = Test-Step1NoSlate -CsvPath (Join-Path $OutDir "wnba\step1_wnba_props.csv") -TargetDate $Date
+    if ($wnbaNoSlate) { $WNBASuccess = $true }
 }
 $slateStatusSports = @{
     nba    = if ($NBAOffSeason) { "off_season" } elseif ($nbaNoSlate) { "no_slate" } elseif ($NBASuccess) { "complete" } else { "failed" }
@@ -4111,7 +4070,8 @@ Write-PipelineSlateStatusJson -RunDate $Date -Sports $slateStatusSports
 if ($WNBAOffSeason -and -not $ForceWNBA.IsPresent) {
     Write-Host "  WNBA skipped (All-Star pause until $WNBA_SEASON_RESUME)." -ForegroundColor DarkGray
 } elseif ($wnbaParallel) {
-    if ($WNBASuccess) { Write-Host "  WNBA complete." -ForegroundColor Green }
+    if ($wnbaNoSlate) { Write-Host "  WNBA no slate today (skipped)." -ForegroundColor DarkGray }
+    elseif ($WNBASuccess) { Write-Host "  WNBA complete." -ForegroundColor Green }
     else { Write-Host "  WNBA FAILED." -ForegroundColor Red }
 }
 
@@ -4119,7 +4079,7 @@ Run-Combined "full parallel run"
 Print-Done
 
 $sportsFailed = @($NBASuccess, $MLBSuccess, $NHLSuccess, $SoccerSuccess) | Where-Object { $_ -eq $false }
-if ($wnbaParallel -and -not $WNBASuccess) {
+if ($wnbaParallel -and -not $WNBASuccess -and -not $wnbaNoSlate) {
     $sportsFailed = @($sportsFailed) + @($false)
 }
 if ($sportsFailed.Count -gt 0) {

@@ -200,6 +200,18 @@ WNBA_SLATE = _first_existing_file(
         BASE_DIR / "WNBA" / "step8_wnba_direction.xlsx",
     ]
 )
+WNBA1H_SLATE = _first_existing_file(
+    [
+        WNBA_DIR / "step8_wnba1h_direction_clean.xlsx",
+        BASE_DIR / "Sports" / "WNBA" / "step8_wnba1h_direction_clean.xlsx",
+    ]
+)
+WNBA1Q_SLATE = _first_existing_file(
+    [
+        WNBA_DIR / "step8_wnba1q_direction_clean.xlsx",
+        BASE_DIR / "Sports" / "WNBA" / "step8_wnba1q_direction_clean.xlsx",
+    ]
+)
 NFL_DIR       = BASE_DIR / "NFL"
 # NFL step8 target: same convention as NHL — sport folder + outputs/ (not repo-root outputs/).
 # Pipeline should write: NFL/outputs/step8_nfl_direction_clean.xlsx
@@ -1230,6 +1242,7 @@ _SLATE_SPORT_UI_KEYS = frozenset(
         "pick_platform",
         "line_underdog",
         "line_draftkings",
+        "line_vegas",
         "cross_edge_vs_pp",
         "best_cross_book",
         "actual_series",
@@ -1558,7 +1571,7 @@ def _sport_slate_status(
     # Empty boards (All-Star break, off-day soccer) previously fell through to
     # leftover step8 files and looked "STALE" even when correctly empty today.
     if cnt <= 0:
-        return {"exists": False, "modified": None, "size_kb": None}
+        return {"exists": False, "modified": None, "size_kb": None, "no_slate": True}
 
     direct = _file_info(path)
     if cnt > 0 and json_disp:
@@ -4044,6 +4057,24 @@ def api_pipeline_status():
         WNBA_DIR / "step8_wnba_direction_clean.xlsx",
         WNBA_DIR / "step8_wnba_direction.xlsx",
     )
+    wnba1h_slate_p = _resolve_outputs_artifact(
+        days,
+        [
+            "wnba1h/step8_wnba1h_direction_clean.xlsx",
+            "step8_wnba1h_direction_clean_{d}.xlsx",
+        ],
+        WNBA1H_SLATE,
+        WNBA_DIR / "step8_wnba1h_direction_clean.xlsx",
+    )
+    wnba1q_slate_p = _resolve_outputs_artifact(
+        days,
+        [
+            "wnba1q/step8_wnba1q_direction_clean.xlsx",
+            "step8_wnba1q_direction_clean_{d}.xlsx",
+        ],
+        WNBA1Q_SLATE,
+        WNBA_DIR / "step8_wnba1q_direction_clean.xlsx",
+    )
     nfl_slate_p = _resolve_outputs_artifact(
         days,
         "step8_nfl_direction_clean_{d}.xlsx",
@@ -4086,7 +4117,7 @@ def api_pipeline_status():
         soccer_override_date = None
     soccer_match_day = soccer_override_date or et_today
     # Strict game-day sports (matches index.html SLATE_STRICT_GAME_DAY_SPORTS + tennis).
-    _game_day_sports = ("nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba", "tennis")
+    _game_day_sports = ("nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba", "wnba1h", "wnba1q", "tennis")
     game_day: dict[str, bool | None] = {}
     for sid in _game_day_sports:
         if sid == "tennis":
@@ -4140,6 +4171,12 @@ def api_pipeline_status():
         },
         "wnba": {
             "slate": _sport_slate_status(wnba_slate_p, "wnba", slate_counts, slate_disk_info, status_js_ts, card_disp),
+        },
+        "wnba1h": {
+            "slate": _sport_slate_status(wnba1h_slate_p, "wnba1h", slate_counts, slate_disk_info, status_js_ts, card_disp),
+        },
+        "wnba1q": {
+            "slate": _sport_slate_status(wnba1q_slate_p, "wnba1q", slate_counts, slate_disk_info, status_js_ts, card_disp),
         },
         "nfl": {
             "slate": _sport_slate_status(nfl_slate_p, "nfl", slate_counts, slate_disk_info, status_js_ts, card_disp),
@@ -6233,6 +6270,8 @@ def api_slate_excel():
             "Soccer Slate":"soccer",
             "Tennis Slate": "tennis",
             "WNBA Slate":  "wnba",
+            "WNBA1H Slate": "wnba1h",
+            "WNBA1Q Slate": "wnba1q",
             "WCBB Slate":  "wcbb",
             "MLB Slate":   "mlb",
             "NFL Slate":   "nfl",

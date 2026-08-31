@@ -39,7 +39,6 @@ from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-from datetime import date
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -47,16 +46,18 @@ except Exception:
     pass
 
 
-def _copy_dated_step8_soccer(output_xlsx_path: str) -> None:
+def _copy_dated_step8_soccer(output_xlsx_path: str, slate_date: str) -> None:
     src = Path(output_xlsx_path)
     if not src.is_file():
         return
-    today = date.today().isoformat()
+    tag = str(slate_date or "").strip()[:10]
+    if len(tag) != 10:
+        return
     repo_root = Path(__file__).resolve().parents[3]
-    dated_dir = repo_root / "outputs" / today
+    dated_dir = repo_root / "outputs" / tag
     try:
         dated_dir.mkdir(parents=True, exist_ok=True)
-        dated_path = dated_dir / f"step8_soccer_direction_clean_{today}.xlsx"
+        dated_path = dated_dir / f"step8_soccer_direction_clean_{tag}.xlsx"
         shutil.copy2(src, dated_path)
         copy_parquet_sidecar(src, dated_path)
         print(f"[Soccer step8] Dated copy -> {dated_path}")
@@ -609,7 +610,7 @@ def main() -> None:
             print(f"ERROR Fallback xlsx also failed: {e2}")
 
     write_parquet_sidecars(out, args.output, xlsx_path)
-    _copy_dated_step8_soccer(xlsx_path)
+    _copy_dated_step8_soccer(xlsx_path, target_str)
 
 
 if __name__ == "__main__":

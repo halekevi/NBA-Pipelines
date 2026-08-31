@@ -190,10 +190,12 @@ body::after{content:'';position:fixed;inset:0;
 .home-jump{display:inline-block;font-size:11px;margin-top:6px;}
 .home-jump a{color:var(--accent);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.35);}
 .home-jump a:hover{border-bottom-color:var(--accent);}
-@media(min-width:1400px){
-  .edge-grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));}
-}
 .edge-grid{display:grid;gap:clamp(8px,1.5vw,14px);grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));margin-bottom:14px;}
+@media(min-width:1601px){
+  .edge-grid{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .edge-card-top{padding:8px 10px;gap:6px;}
+  .edge-num{font-size:20px;}
+}
 .edge-grid--under{margin-bottom:0;}
 .streak-grid{display:grid;gap:clamp(8px,1.5vw,12px);grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));margin-bottom:18px;}
 .edge-source-note{font-size:11px;color:var(--muted2);line-height:1.45;max-width:70ch;margin:-6px 0 16px;letter-spacing:.02em;}
@@ -252,6 +254,8 @@ body::after{content:'';position:fixed;inset:0;
 .scard-icon.nfl{background:rgba(0,122,92,.12);border:1px solid rgba(0,200,150,.22);}
 .scard-icon.tennis{background:rgba(173,216,255,.1);border:1px solid rgba(173,216,255,.28);}
 .scard-icon.wnba{background:rgba(255,105,180,.1);border:1px solid rgba(255,105,180,.28);}
+.scard-icon.wnba1h{background:rgba(255,105,180,.08);border:1px solid rgba(232,90,160,.26);}
+.scard-icon.wnba1q{background:rgba(255,160,200,.1);border:1px solid rgba(255,140,190,.28);}
 .scard-icon.combined{background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.2);}
 .scard-body{flex:1;}
 .scard-title{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;color:var(--muted);letter-spacing:2.5px;margin-bottom:6px;text-transform:uppercase;}
@@ -337,6 +341,8 @@ body::after{content:'';position:fixed;inset:0;
 .sp-nfl{background:rgba(0,122,92,.14);color:#5ee0c0;border:1px solid rgba(0,200,150,.28);}
 .sp-tennis{background:rgba(173,216,255,.14);color:#b8e0ff;border:1px solid rgba(173,216,255,.32);}
 .sp-wnba{background:rgba(255,105,180,.14);color:#ffc2e0;border:1px solid rgba(255,105,180,.32);}
+.sp-wnba1h{background:rgba(232,90,160,.14);color:#f5a8d0;border:1px solid rgba(232,90,160,.32);}
+.sp-wnba1q{background:rgba(255,160,200,.14);color:#ffc2e0;border:1px solid rgba(255,140,190,.32);}
 .edge-pick{font-size:9px;font-family:"Inter",sans-serif;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:.5px;display:inline-block;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
 .pick-goblin{background:rgba(183,168,255,.12);color:var(--purple);border:1px solid rgba(183,168,255,.25);}
 .pick-standard{background:rgba(127,199,217,.12);color:var(--cyan);border:1px solid rgba(127,199,217,.25);}
@@ -1091,7 +1097,7 @@ body > nav.snav.glass-card {
 
 </style>
 <link rel="stylesheet" href="/static/nav-mobile-shared.css?v=20260430schemapage"/>
-<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260716slatecards3"/>
+<link rel="stylesheet" href="/static/mobile-content-width.css?v=20260831fivecol"/>
 <link rel="stylesheet" href="/static/matchup-edge.css?v=20260821tight1"/>
 <link rel="stylesheet" href="/static/site-nav-datetime.css?v=20260720halfnav1"/>
 <link rel="stylesheet" href="/static/player-consistency.css?v=20260525hotprop"/>
@@ -1703,6 +1709,36 @@ body > nav.snav.glass-card {
         <div class="scard-val" id="sc-wnba-val">Checking...</div>
       </div>
 
+      <div class="scard loading" id="sc-wnba1h" data-offseason-resume="2026-07-28" onclick="toggleSlatePanel('wnba1h')">
+        <div class="scard-head">
+          <div class="scard-icon wnba1h">
+            <svg class="db-icon" viewBox="0 0 24 24" fill="none" stroke="#e85aa0" stroke-width="1.5">
+              <ellipse cx="12" cy="6" rx="9" ry="3"/><path d="M3 6v4c0 1.66 4.03 3 9 3s9-1.34 9-3V6"/><path d="M3 10v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"/>
+              <path d="M3 14v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"/>
+            </svg>
+          </div>
+          <div class="scard-title">WNBA 1H SLATE</div>
+          <span class="sbadge loading" id="sc-wnba1h-badge">—</span>
+          <span class="scard-toggle">▾</span>
+        </div>
+        <div class="scard-val" id="sc-wnba1h-val">Checking...</div>
+      </div>
+
+      <div class="scard loading" id="sc-wnba1q" data-offseason-resume="2026-07-28" onclick="toggleSlatePanel('wnba1q')">
+        <div class="scard-head">
+          <div class="scard-icon wnba1q">
+            <svg class="db-icon" viewBox="0 0 24 24" fill="none" stroke="#ff8cbe" stroke-width="1.5">
+              <ellipse cx="12" cy="6" rx="9" ry="3"/><path d="M3 6v4c0 1.66 4.03 3 9 3s9-1.34 9-3V6"/><path d="M3 10v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"/>
+              <path d="M3 14v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"/>
+            </svg>
+          </div>
+          <div class="scard-title">WNBA 1Q SLATE</div>
+          <span class="sbadge loading" id="sc-wnba1q-badge">—</span>
+          <span class="scard-toggle">▾</span>
+        </div>
+        <div class="scard-val" id="sc-wnba1q-val">Checking...</div>
+      </div>
+
       <div class="scard loading" id="sc-combined" onclick="toggleSlatePanel('combined')" style="cursor:pointer">
         <div class="scard-head">
           <div class="scard-icon combined">
@@ -2188,6 +2224,84 @@ body > nav.snav.glass-card {
           <th onclick="sortSlate('wnba','game_time')">TIME</th>
         </tr></thead>
         <tbody id="stb-wnba"></tbody>
+      </table></div>
+    </div>
+
+    <div class="slate-expand" id="sp-wnba1h">
+      <div class="slate-toolbar">
+        <input class="slate-filter-input" type="text" placeholder="Filter player / prop…" oninput="filterSlate('wnba1h',this.value)" id="sf-wnba1h"/>
+        <button class="slate-filter-btn" id="sfb-wnba1h-over" onclick="toggleDirFilter('wnba1h','OVER',this)">▲ OVER</button>
+        <button class="slate-filter-btn" id="sfb-wnba1h-under" onclick="toggleDirFilter('wnba1h','UNDER',this)">▼ UNDER</button>
+        <button class="slate-filter-btn" id="sfb-wnba1h-goblin" onclick="togglePickFilter('wnba1h','Goblin',this)">Goblin</button>
+        <button class="slate-filter-btn" id="sfb-wnba1h-standard" onclick="togglePickFilter('wnba1h','Standard',this)">Standard</button>
+        <button class="slate-filter-btn" id="sfb-wnba1h-pp" type="button" title="PrizePicks lines only" onclick="togglePlatformFilter('wnba1h','prizepicks',this)">PrizePicks</button>
+        <button class="slate-filter-btn" id="sfb-wnba1h-ud" type="button" title="Underdog-only picks or props with a matched Underdog line" onclick="togglePlatformFilter('wnba1h','underdog',this)">Underdog</button>
+        <span class="slate-tier-group" role="group" aria-label="Tier filter">
+          <button type="button" class="slate-filter-btn slate-tier-btn on" data-tier="" onclick="setSlateTierFilter('wnba1h','',this)">All</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="A" onclick="setSlateTierFilter('wnba1h','A',this)">A</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="B" onclick="setSlateTierFilter('wnba1h','B',this)">B</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="C" onclick="setSlateTierFilter('wnba1h','C',this)">C</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="D" onclick="setSlateTierFilter('wnba1h','D',this)">D</button>
+        </span>
+        <span class="slate-row-count" id="src-wnba1h"></span>
+      </div>
+      <div class="slate-table-wrap"><table class="slate-table" id="st-wnba1h">
+        <thead><tr>
+          <th onclick="sortSlate('wnba1h','tier')">TIER</th>
+          <th onclick="sortSlate('wnba1h','rank_score')">RANK</th>
+          <th onclick="sortSlate('wnba1h','player')">PLAYER</th>
+          <th onclick="sortSlate('wnba1h','team')">TEAM</th>
+          <th onclick="sortSlate('wnba1h','opp')">OPP</th>
+          <th onclick="sortSlate('wnba1h','prop')">PROP</th>
+          <th onclick="sortSlate('wnba1h','pick_type')">TYPE</th>
+          <th onclick="sortSlate('wnba1h','line')">LINE</th>
+          <th onclick="sortSlate('wnba1h','dir')">DIR</th>
+          <th onclick="sortSlate('wnba1h','edge')">EDGE</th>
+          <th onclick="sortSlate('wnba1h','hit_rate')">HIT%</th>
+          <th onclick="sortSlate('wnba1h','l5_over')">L5 O</th>
+          <th onclick="sortSlate('wnba1h','l5_under')">L5 U</th>
+          <th onclick="sortSlate('wnba1h','game_time')">TIME</th>
+        </tr></thead>
+        <tbody id="stb-wnba1h"></tbody>
+      </table></div>
+    </div>
+
+    <div class="slate-expand" id="sp-wnba1q">
+      <div class="slate-toolbar">
+        <input class="slate-filter-input" type="text" placeholder="Filter player / prop…" oninput="filterSlate('wnba1q',this.value)" id="sf-wnba1q"/>
+        <button class="slate-filter-btn" id="sfb-wnba1q-over" onclick="toggleDirFilter('wnba1q','OVER',this)">▲ OVER</button>
+        <button class="slate-filter-btn" id="sfb-wnba1q-under" onclick="toggleDirFilter('wnba1q','UNDER',this)">▼ UNDER</button>
+        <button class="slate-filter-btn" id="sfb-wnba1q-goblin" onclick="togglePickFilter('wnba1q','Goblin',this)">Goblin</button>
+        <button class="slate-filter-btn" id="sfb-wnba1q-standard" onclick="togglePickFilter('wnba1q','Standard',this)">Standard</button>
+        <button class="slate-filter-btn" id="sfb-wnba1q-pp" type="button" title="PrizePicks lines only" onclick="togglePlatformFilter('wnba1q','prizepicks',this)">PrizePicks</button>
+        <button class="slate-filter-btn" id="sfb-wnba1q-ud" type="button" title="Underdog-only picks or props with a matched Underdog line" onclick="togglePlatformFilter('wnba1q','underdog',this)">Underdog</button>
+        <span class="slate-tier-group" role="group" aria-label="Tier filter">
+          <button type="button" class="slate-filter-btn slate-tier-btn on" data-tier="" onclick="setSlateTierFilter('wnba1q','',this)">All</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="A" onclick="setSlateTierFilter('wnba1q','A',this)">A</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="B" onclick="setSlateTierFilter('wnba1q','B',this)">B</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="C" onclick="setSlateTierFilter('wnba1q','C',this)">C</button>
+          <button type="button" class="slate-filter-btn slate-tier-btn" data-tier="D" onclick="setSlateTierFilter('wnba1q','D',this)">D</button>
+        </span>
+        <span class="slate-row-count" id="src-wnba1q"></span>
+      </div>
+      <div class="slate-table-wrap"><table class="slate-table" id="st-wnba1q">
+        <thead><tr>
+          <th onclick="sortSlate('wnba1q','tier')">TIER</th>
+          <th onclick="sortSlate('wnba1q','rank_score')">RANK</th>
+          <th onclick="sortSlate('wnba1q','player')">PLAYER</th>
+          <th onclick="sortSlate('wnba1q','team')">TEAM</th>
+          <th onclick="sortSlate('wnba1q','opp')">OPP</th>
+          <th onclick="sortSlate('wnba1q','prop')">PROP</th>
+          <th onclick="sortSlate('wnba1q','pick_type')">TYPE</th>
+          <th onclick="sortSlate('wnba1q','line')">LINE</th>
+          <th onclick="sortSlate('wnba1q','dir')">DIR</th>
+          <th onclick="sortSlate('wnba1q','edge')">EDGE</th>
+          <th onclick="sortSlate('wnba1q','hit_rate')">HIT%</th>
+          <th onclick="sortSlate('wnba1q','l5_over')">L5 O</th>
+          <th onclick="sortSlate('wnba1q','l5_under')">L5 U</th>
+          <th onclick="sortSlate('wnba1q','game_time')">TIME</th>
+        </tr></thead>
+        <tbody id="stb-wnba1q"></tbody>
       </table></div>
     </div>
 
@@ -3783,6 +3897,7 @@ function syncHeroLiveChips() {
   const labels = {
     nba: "NBA", nba1h: "NBA 1H", nba1q: "NBA 1Q", cbb: "CBB", cfb: "CFB",
     nhl: "NHL", soccer: "Soccer", mlb: "MLB", nfl: "NFL", tennis: "Tennis", wnba: "WNBA",
+    wnba1h: "WNBA 1H", wnba1q: "WNBA 1Q",
   };
   const cards = [...document.querySelectorAll("#slate-panel-header-row .scard")].filter((c) => {
     const id = String(c.id || "").replace(/^sc-/, "");
@@ -3848,7 +3963,7 @@ function parsePipelineModifiedAsUtc(s) {
 }
 
 /** Sports where FRESH requires at least one prop on today's ET calendar day (not tomorrow's board). */
-const SLATE_STRICT_GAME_DAY_SPORTS = new Set(["nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba"]);
+const SLATE_STRICT_GAME_DAY_SPORTS = new Set(["nhl", "nfl", "mlb", "nba1h", "nba1q", "soccer", "wnba", "wnba1h", "wnba1q"]);
 
 function slateRowsFromPayload(data) {
   if (!data) return [];
@@ -3900,6 +4015,12 @@ function applyStatusCard(id, info, _label, opts) {
   card.classList.remove("fresh","stale","missing","loading");
   badge.classList.remove("fresh","stale","missing","loading");
   // Missing endpoint field or no artifact yet → neutral pending (not "stale").
+  if (info && info.no_slate) {
+    card.classList.add("loading"); badge.classList.add("loading");
+    val.textContent = "Empty board";
+    badge.textContent = "NO SLATE";
+    return;
+  }
   if (!info || !info.exists) {
     card.classList.add("loading"); badge.classList.add("loading");
     val.textContent = "Not Yet Run";
@@ -3932,6 +4053,8 @@ function sportDisplayLabel(rawSport) {
     NFL: 'NFL',
     TENNIS: 'Tennis',
     WNBA: 'WNBA',
+    WNBA1H: 'WNBA (1H)',
+    WNBA1Q: 'WNBA (1Q)',
   };
   return labels[key] || rawSport || '';
 }
@@ -3949,7 +4072,7 @@ async function refreshStatus() {
       if (r2.ok) d = await r2.json();
     } catch (e2) {}
   }
-  const statusIds = ["nba", "nba1h", "nba1q", "cbb", "cfb", "nhl", "soccer", "mlb", "nfl", "tennis", "wnba", "combined"];
+  const statusIds = ["nba", "nba1h", "nba1q", "cbb", "cfb", "nhl", "soccer", "mlb", "nfl", "tennis", "wnba", "wnba1h", "wnba1q", "combined"];
   if (!d) {
     for (const id of statusIds) applyStatusCard(id, { exists: false, modified: "" }, "");
     applyOffseasonSportCards();
@@ -3983,6 +4106,8 @@ async function refreshStatus() {
   const tennisMd = d.tennis_match_day || tennisMatchDayEt();
   if (tennisVal && tennisMd) tennisVal.textContent = tennisMd;
   applyStatusCard("wnba",     d.wnba?.slate,     "WNBA Slate", statusOpts("wnba"));
+  applyStatusCard("wnba1h",   d.wnba1h?.slate,   "WNBA 1H Slate", statusOpts("wnba1h"));
+  applyStatusCard("wnba1q",   d.wnba1q?.slate,   "WNBA 1Q Slate", statusOpts("wnba1q"));
   applyStatusCard("combined", d.combined?.slate, "Combined Tickets");
   applyOffseasonSportCards();
   if (typeof window.applyHomeSkewBanner === "function") {
@@ -4973,7 +5098,7 @@ const RENDER_TOKEN = {};
 const MOBILE_TABLE_QUERY = window.matchMedia('(max-width: 900px)');
 const L5_FILTER_MIN_HITS = 4;
 
-const SPORTS = ['nba','nba1h','nba1q','cbb','cfb','nhl','soccer','mlb','nfl','tennis','wnba'];
+const SPORTS = ['nba','nba1h','nba1q','cbb','cfb','nhl','soccer','mlb','nfl','tennis','wnba','wnba1h','wnba1q'];
 SPORTS.forEach(s => {
   SLATE_STATE[s] = { sortKey: 'abs_edge', sortDir: -1, search: '', dir: null, pick: null, tier: null, l5: null, platform: null };
 });
@@ -6207,7 +6332,7 @@ function sortSlateDynamic(sport, key) {
 
 <script>
 (function initHomeDeepLink() {
-  const VALID = new Set(["nba","nba1h","nba1q","cbb","cfb","nhl","soccer","mlb","nfl","tennis","wnba","combined"]);
+  const VALID = new Set(["nba","nba1h","nba1q","cbb","cfb","nhl","soccer","mlb","nfl","tennis","wnba","wnba1h","wnba1q","combined"]);
   function run() {
     const params = new URLSearchParams(window.location.search);
     const sport = String(params.get("sport") || "").trim().toLowerCase();

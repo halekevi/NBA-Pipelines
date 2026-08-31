@@ -6160,6 +6160,7 @@ def serve_data_json(filename: str):
                     if n.endswith("_matchup_edge.json"):
                         sport_key = n[: -len("_matchup_edge.json")].strip().lower()
                         payload = _enrich_matchup_edge_opponents(payload, sport_key)
+                        payload = _enrich_matchup_edge_team_share(payload, sport_key)
                     return payload
 
                 sport_key = (
@@ -6188,7 +6189,7 @@ def api_matchup_edge(sport: str):
 
     try:
         return _gz_json_response(
-            f"matchup-edge-v4:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
+            f"matchup-edge-v5:{sport_key}:{_template_json_disk_mtime(json_name) or 0}:{_matchup_edge_slate_mtime(sport_key)}",
             _build,
             ttl=120.0,
         )

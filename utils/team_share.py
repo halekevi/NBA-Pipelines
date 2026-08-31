@@ -143,7 +143,12 @@ def share_artifact_path(sport: str, repo: Path | None = None) -> Path:
 def load_share_payload(sport: str, repo: Path | None = None) -> dict[str, Any] | None:
     path = share_artifact_path(sport, repo)
     if not path.exists():
-        return None
+        try:
+            write_sport_share(sport, repo)
+        except Exception:
+            return None
+        if not path.exists():
+            return None
     try:
         mtime = path.stat().st_mtime
     except Exception:

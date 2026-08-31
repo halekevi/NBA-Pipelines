@@ -447,6 +447,16 @@
   .wnba-me-table tbody td:nth-child(5) {
     display: block;
     margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--muted, rgba(255, 255, 255, 0.75));
+  }
+  .me-table tbody td:nth-child(5)::before,
+  .wnba-me-table tbody td:nth-child(5)::before {
+    content: "Team ";
+  }
+  .me-table tbody td:nth-child(5).me-empty-cell,
+  .wnba-me-table tbody td:nth-child(5).me-empty-cell {
+    display: none;
   }
   .me-table tbody td:nth-child(6),
   .wnba-me-table tbody td:nth-child(6) {

@@ -1,6 +1,6 @@
 {
   "date": "2026-08-31",
-  "generated_at": "2026-08-31T01:51:44-04:00",
+  "generated_at": "2026-08-31T08:08:12-04:00",
   "line_pulls": [
     {
       "fetched_at": "2026-08-30T13:07:41-04:00",
@@ -73,8 +73,90 @@
       "window": "01:51",
       "n_props": 13478,
       "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-31T05:04:13-04:00",
+      "window": "05:04",
+      "n_props": 3230,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-31T05:09:57-04:00",
+      "window": "05:09",
+      "n_props": 5873,
+      "n_moved": 91
+    },
+    {
+      "fetched_at": "2026-08-31T05:53:15-04:00",
+      "window": "05:53",
+      "n_props": 3233,
+      "n_moved": 1
+    },
+    {
+      "fetched_at": "2026-08-31T05:53:24-04:00",
+      "window": "05:53",
+      "n_props": 3190,
+      "n_moved": 17
+    },
+    {
+      "fetched_at": "2026-08-31T05:53:37-04:00",
+      "window": "05:53",
+      "n_props": 4432,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-31T05:55:59-04:00",
+      "window": "05:55",
+      "n_props": 6088,
+      "n_moved": 25
+    },
+    {
+      "fetched_at": "2026-08-31T05:56:09-04:00",
+      "window": "05:56",
+      "n_props": 13838,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-31T08:04:30-04:00",
+      "window": "8AM",
+      "n_props": 2276,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-31T08:04:46-04:00",
+      "window": "8AM",
+      "n_props": 3228,
+      "n_moved": 31
+    },
+    {
+      "fetched_at": "2026-08-31T08:05:07-04:00",
+      "window": "8AM",
+      "n_props": 4441,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-31T08:07:52-04:00",
+      "window": "8AM",
+      "n_props": 6206,
+      "n_moved": 34
+    },
+    {
+      "fetched_at": "2026-08-31T08:08:08-04:00",
+      "window": "8AM",
+      "n_props": 14054,
+      "n_moved": 0
     }
   ],
-  "payout_scrapes": [],
+  "payout_scrapes": [
+    {
+      "window": "5AM",
+      "n_scrapes": 3,
+      "median_power_x": 1.4,
+      "min_power_x": 1.4,
+      "max_power_x": 1.5,
+      "first_captured_at": "2026-08-31T05:24:05",
+      "last_captured_at": "2026-08-31T05:25:54"
+    }
+  ],
   "note": "N-correct / To Win only. Line pulls from line_history.db; payouts from CDP jsonl."
 }

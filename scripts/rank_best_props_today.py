@@ -429,8 +429,18 @@ def _l5(r, over: bool):
 
 def _l10(r, over: bool):
     if over:
-        return _first_count(r.get("l10_over"), r.get("L10 Over"))
-    return _first_count(r.get("l10_under"), r.get("L10 Under"))
+        return _first_count(
+            r.get("l10_over"),
+            r.get("L10 Over"),
+            r.get("last10_over"),
+            r.get("line_hits_over_10"),
+        )
+    return _first_count(
+        r.get("l10_under"),
+        r.get("L10 Under"),
+        r.get("last10_under"),
+        r.get("line_hits_under_10"),
+    )
 
 
 def _season_hr(r) -> float | None:
@@ -769,6 +779,49 @@ def load_wcbb(root: Path, date: str) -> pd.DataFrame:
     return _load_cbb_family(root, date, "WCBB", "wcbb")
 
 
+def _load_folder_step8(
+    root: Path,
+    date: str,
+    sport: str,
+    folder: str,
+    sports_rel: tuple[str, ...],
+) -> pd.DataFrame:
+    """Period / NBA step8: outputs/<date>/<folder>/ then Sports/<rel>/ static copy."""
+    stem = f"step8_{folder}_direction_clean"
+    candidates = [
+        root / "outputs" / date / folder / f"{stem}.xlsx",
+        root / "outputs" / date / folder / f"{stem}_{date}.xlsx",
+        root / "outputs" / date / f"{stem}_{date}.xlsx",
+        root.joinpath(*sports_rel) / f"{stem}.xlsx",
+    ]
+    path = next((p for p in candidates if table_exists(p)), None)
+    if path is None:
+        return pd.DataFrame()
+    df = read_table(path, sheet_order=("ALL",))
+    df["sport"] = sport
+    return df
+
+
+def load_nba(root: Path, date: str) -> pd.DataFrame:
+    return _load_folder_step8(root, date, "NBA", "nba", ("Sports", "NBA"))
+
+
+def load_nba1q(root: Path, date: str) -> pd.DataFrame:
+    return _load_folder_step8(root, date, "NBA1Q", "nba1q", ("Sports", "NBA"))
+
+
+def load_nba1h(root: Path, date: str) -> pd.DataFrame:
+    return _load_folder_step8(root, date, "NBA1H", "nba1h", ("Sports", "NBA"))
+
+
+def load_wnba1q(root: Path, date: str) -> pd.DataFrame:
+    return _load_folder_step8(root, date, "WNBA1Q", "wnba1q", ("Sports", "WNBA"))
+
+
+def load_wnba1h(root: Path, date: str) -> pd.DataFrame:
+    return _load_folder_step8(root, date, "WNBA1H", "wnba1h", ("Sports", "WNBA"))
+
+
 def recs(df: pd.DataFrame) -> list[dict]:
     out = []
     n_teams = _n_teams(df)
@@ -853,6 +906,7 @@ def recs(df: pd.DataFrame) -> list[dict]:
         rec["standard_line"] = _flt(r.get("standard_line") or r.get("Standard Line"))
         rec["line_underdog"] = _flt(r.get("line_underdog"))
         rec["line_draftkings"] = _flt(r.get("line_draftkings"))
+        rec["line_vegas"] = _flt(r.get("line_vegas"))
         rec["best_cross_book"] = str(r.get("best_cross_book") or "").strip()
         rec["best_cross_line"] = _flt(r.get("best_cross_line"))
         rec["cross_edge_vs_pp"] = _flt(r.get("cross_edge_vs_pp"))
@@ -1224,10 +1278,18 @@ def main() -> int:
         so, su, gob = bucket(all_rows, "GOLF")
         print_sport("GOLF", so, su, gob)
         by_sport["GOLF"] = sport_rows_for_xlsx("GOLF", so, su, gob)
-    for sport, loader in (("CBB", load_cbb), ("WCBB", load_wcbb)):
+    for sport, loader in (
+        ("CBB", load_cbb),
+        ("WCBB", load_wcbb),
+        ("NBA", load_nba),
+        ("NBA1Q", load_nba1q),
+        ("NBA1H", load_nba1h),
+        ("WNBA1Q", load_wnba1q),
+        ("WNBA1H", load_wnba1h),
+    ):
         df_x = loader(root, date)
         if df_x.empty:
-            if _cbb_season_active(date):
+            if sport in {"CBB", "WCBB"} and _cbb_season_active(date):
                 print(f"\n===== {sport} =====\n  (no step8 file)")
                 by_sport[sport] = []
             continue

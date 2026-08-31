@@ -59,6 +59,9 @@ def normalize_def_tier_label(raw: object) -> str:
         .strip()
     )
     key = s.lower()
+    # collapse punctuation so HARD_MID / HARD-MID / "hard mid" all match
+    key_norm = key.replace("-", " ").replace("_", " ")
+    key_compact = key_norm.replace(" ", "")
     legacy = {
         "elite": "Elite",
         "above avg": "Above Avg",
@@ -72,9 +75,21 @@ def normalize_def_tier_label(raw: object) -> str:
         "very weak": "Weak",
         "n/a": "N/A",
         "na": "N/A",
+        # WNBA/basketball legacy 5-bucket (HARD=stingy, EASY=generous)
+        "hard": "Elite",
+        "hard mid": "Above Avg",
+        "hardmid": "Above Avg",
+        "mid": "Avg",
+        "easy mid": "Below Avg",
+        "easymid": "Below Avg",
+        "easy": "Weak",
     }
     if key in legacy:
         return legacy[key]
+    if key_norm in legacy:
+        return legacy[key_norm]
+    if key_compact in legacy:
+        return legacy[key_compact]
     for canon in DEF_TIER_LABELS:
         if s.lower() == canon.lower():
             return canon
@@ -141,3 +156,29 @@ def tier_sort_key(label: str) -> int:
         "very weak": 5,
     }
     return order.get(s, 99)
+
+
+def d_aligned(sport: str, side: str, def_tier: object, prop: str = "") -> bool:
+    """True when opponent D matches the play side.
+
+    OVER: Weak | Below Avg. UNDER: Elite | Above Avg. Avg and unknown never pass.
+    MLB hitter strikeouts invert (OVER Elite|Above; UNDER Weak|Below).
+    Pitcher strikeouts keep the production bands.
+    """
+    tier = normalize_def_tier_label(def_tier)
+    if not tier or tier in ("N/A", "Avg"):
+        return False
+    sport_u = str(sport or "").strip().upper()
+    if sport_u in ("SOC",):
+        sport_u = "SOCCER"
+    over = str(side or "").upper() in ("O", "OVER", "HIGHER")
+    hitter_k = False
+    if sport_u == "MLB" and prop:
+        from utils.prop_norm import canon_prop
+
+        hitter_k = canon_prop("MLB", prop) == "hitter_ks"
+    if over:
+        want = ("Elite", "Above Avg") if hitter_k else ("Weak", "Below Avg")
+    else:
+        want = ("Weak", "Below Avg") if hitter_k else ("Elite", "Above Avg")
+    return tier in want

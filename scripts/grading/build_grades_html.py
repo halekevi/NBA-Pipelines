@@ -596,10 +596,10 @@ def prop_row_for_api(
     team_bottom3_rank = _pick("Bottom3 Rank", "team_bottom3_rank", "bottom3_rank")
     top3_weak_over = _pick("Top3 Weak Over", "top3_weak_overperformer")
     top3_elite_fade = _pick("Top3 Elite Fade", "top3_elite_fader")
-    l5_over = _pick("L5 Over", "l5_over", "last5_over", "over_L5_raw")
-    l5_under = _pick("L5 Under", "l5_under", "last5_under", "under_L5_raw")
-    l10_over = _pick("L10 Over", "l10_over", "line_hits_over_10", "over_L10", "over_L10_raw")
-    l10_under = _pick("L10 Under", "l10_under", "line_hits_under_10", "under_L10", "under_L10_raw")
+    l5_over = _pick_scalar("L5 Over", "l5_over", "last5_over", "over_L5_raw")
+    l5_under = _pick_scalar("L5 Under", "l5_under", "last5_under", "under_L5_raw")
+    l10_over = _pick_scalar("L10 Over", "l10_over", "line_hits_over_10", "over_L10", "over_L10_raw")
+    l10_under = _pick_scalar("L10 Under", "l10_under", "line_hits_under_10", "under_L10", "under_L10_raw")
     l10_games_played = _pick("l10_games_played", "line_games_played_10", "Games (10g)", "sample_L10")
     l10_streak = _pick("l10_streak", "L10 Streak")
     strat_hit_rate = _pick("strat_hit_rate")
@@ -1898,6 +1898,9 @@ def build_takeaways(
     wnba_rows: list[dict] | None = None,
     tennis_rows: list[dict] | None = None,
     golf_rows: list[dict] | None = None,
+    nfl_rows: list[dict] | None = None,
+    cfb_rows: list[dict] | None = None,
+    wcbb_rows: list[dict] | None = None,
 ) -> str:
     """
     Insight cards at the bottom of slate_eval. Uses **all loaded sports** so Railway /grades
@@ -1909,6 +1912,9 @@ def build_takeaways(
     wnba_rows = wnba_rows or []
     tennis_rows = tennis_rows or []
     golf_rows = golf_rows or []
+    nfl_rows = nfl_rows or []
+    cfb_rows = cfb_rows or []
+    wcbb_rows = wcbb_rows or []
 
     all_rows: list[dict] = (
         list(nba_rows)
@@ -1919,6 +1925,9 @@ def build_takeaways(
         + list(wnba_rows)
         + list(tennis_rows)
         + list(golf_rows)
+        + list(nfl_rows)
+        + list(cfb_rows)
+        + list(wcbb_rows)
     )
 
     insights: list[str] = []
@@ -1956,6 +1965,9 @@ def build_takeaways(
         ("WNBA", wnba_rows),
         ("Tennis", tennis_rows),
         ("Golf", golf_rows),
+        ("NFL", nfl_rows),
+        ("CFB", cfb_rows),
+        ("WCBB", wcbb_rows),
     ]
     sport_line = _takeaway_sport_snippets(bundles)
 
@@ -2043,6 +2055,14 @@ def sport_label(s: str) -> str:
         "SOCCER": "⚽ Soccer",
         "WNBA": "🏀 WNBA",
         "TENNIS": "🎾 Tennis",
+        "GOLF": "⛳ Golf",
+        "NFL": "🏈 NFL",
+        "CFB": "🏈 CFB",
+        "WCBB": "🎓 WCBB",
+        "NBA1Q": "🏀 NBA1Q",
+        "NBA1H": "🏀 NBA1H",
+        "WNBA1Q": "🏀 WNBA1Q",
+        "WNBA1H": "🏀 WNBA1H",
     }.get(s.upper(), s)
 
 
@@ -2208,14 +2228,43 @@ def load_merged_nba_graded_rows(date_str: str) -> list[dict]:
     return rows
 
 
+# (find_graded_file key, sport label written into graded_props JSON)
+GRADED_JSON_SPORTS: tuple[tuple[str, str], ...] = (
+    ("nba", "NBA"),
+    ("nba1q", "NBA1Q"),
+    ("nba1h", "NBA1H"),
+    ("cbb", "CBB"),
+    ("wcbb", "WCBB"),
+    ("nhl", "NHL"),
+    ("soccer", "Soccer"),
+    ("mlb", "MLB"),
+    ("wnba", "WNBA"),
+    ("wnba1q", "WNBA1Q"),
+    ("wnba1h", "WNBA1H"),
+    ("tennis", "Tennis"),
+    ("golf", "Golf"),
+    ("nfl", "NFL"),
+    ("cfb", "CFB"),
+)
+
+
+def graded_json_bundles(date_str: str) -> list[tuple[str, list[dict]]]:
+    """Every graded workbook that should land in graded_props JSON, including NFL/CFB."""
+    bundles: list[tuple[str, list[dict]]] = []
+    for key, label in GRADED_JSON_SPORTS:
+        if key == "tennis":
+            p = find_tennis_graded_file(date_str)
+        else:
+            p = find_graded_file(key, date_str)
+        if p:
+            bundles.append((label, load_graded(p, key)))
+    return bundles
+
+
 def nba_family_bundles_for_json(date_str: str) -> list[tuple[str, list[dict]]]:
     """Separate bundles so graded_props JSON carries NBA vs NBA1Q vs NBA1H sport labels."""
-    bundles: list[tuple[str, list[dict]]] = []
-    for key, label in (("nba", "NBA"), ("nba1q", "NBA1Q"), ("nba1h", "NBA1H")):
-        p = find_graded_file(key, date_str)
-        if p:
-            bundles.append((label, load_graded(p)))
-    return bundles
+    keep = {"NBA", "NBA1Q", "NBA1H"}
+    return [(label, rows) for label, rows in graded_json_bundles(date_str) if label in keep]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2896,6 +2945,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
                wnba_rows: list[dict] | None = None,
                tennis_rows: list[dict] | None = None,
                golf_rows: list[dict] | None = None,
+               nfl_rows: list[dict] | None = None,
+               cfb_rows: list[dict] | None = None,
+               wcbb_rows: list[dict] | None = None,
                nhl_path: Path | None = None,
                soccer_path: Path | None = None,
                mlb_path: Path | None = None) -> str:
@@ -2911,6 +2963,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
     wnba_rows   = wnba_rows   or []
     tennis_rows = tennis_rows or []
     golf_rows = golf_rows or []
+    nfl_rows = nfl_rows or []
+    cfb_rows = cfb_rows or []
+    wcbb_rows = wcbb_rows or []
     all_rows = (
         list(nba_rows)
         + list(cbb_rows)
@@ -2920,6 +2975,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         + list(wnba_rows)
         + list(tennis_rows)
         + list(golf_rows)
+        + list(nfl_rows)
+        + list(cfb_rows)
+        + list(wcbb_rows)
     )
     all_section = build_sport_section(all_rows, "ALL SPORTS", "🌐") if all_rows else ""
     nba_section    = build_sport_section(nba_rows,    "NBA",    "🏀") if nba_rows    else ""
@@ -2930,6 +2988,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
     wnba_section   = build_sport_section(wnba_rows,   "WNBA",   "🏀") if wnba_rows   else ""
     tennis_section = build_sport_section(tennis_rows, "Tennis", "🎾") if tennis_rows else ""
     golf_section = build_sport_section(golf_rows, "Golf", "⛳") if golf_rows else ""
+    nfl_section = build_sport_section(nfl_rows, "NFL", "🏈") if nfl_rows else ""
+    cfb_section = build_sport_section(cfb_rows, "CFB", "🏈") if cfb_rows else ""
+    wcbb_section = build_sport_section(wcbb_rows, "WCBB", "🎓") if wcbb_rows else ""
     takeaways = build_takeaways(
         nba_rows,
         cbb_rows,
@@ -2939,6 +3000,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         wnba_rows=wnba_rows,
         tennis_rows=tennis_rows,
         golf_rows=golf_rows,
+        nfl_rows=nfl_rows,
+        cfb_rows=cfb_rows,
+        wcbb_rows=wcbb_rows,
     )
 
     if not (
@@ -2950,6 +3014,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
         or wnba_section
         or tennis_section
         or golf_section
+        or nfl_section
+        or cfb_section
+        or wcbb_section
     ):
         body_content = """<div style="text-align:center;padding:60px 20px;font-family:'Inter',sans-serif">
           <div style="font-size:32px;margin-bottom:16px">📭</div>
@@ -2969,6 +3036,9 @@ def build_html(date_str: str, nba_rows: list[dict], cbb_rows: list[dict],
             + wnba_section
             + tennis_section
             + golf_section
+            + nfl_section
+            + cfb_section
+            + wcbb_section
             + takeaways
         )
 
@@ -3037,6 +3107,12 @@ def main() -> None:
                         help="Path to graded_tennis_*.xlsx")
     parser.add_argument("--golf", type=str, default="",
                         help="Path to graded_golf_*.xlsx")
+    parser.add_argument("--nfl", type=str, default="",
+                        help="Path to graded_nfl_*.xlsx")
+    parser.add_argument("--cfb", type=str, default="",
+                        help="Path to graded_cfb_*.xlsx")
+    parser.add_argument("--wcbb", type=str, default="",
+                        help="Path to graded_wcbb_*.xlsx")
     parser.add_argument("--out",  type=str, default="",
                         help="Output path or directory (default: next to this script)")
     parser.add_argument(
@@ -3163,6 +3239,39 @@ def main() -> None:
         if golf_path:
             print(f"  Auto-detected Golf: {golf_path}")
 
+    nfl_path: Path | None = None
+    if args.nfl:
+        nfl_path = Path(args.nfl).resolve()
+        if not nfl_path.exists():
+            print(f"  WARNING: NFL file not found: {nfl_path}")
+            nfl_path = None
+    else:
+        nfl_path = find_graded_file("nfl", date_str)
+        if nfl_path:
+            print(f"  Auto-detected NFL: {nfl_path}")
+
+    cfb_path: Path | None = None
+    if args.cfb:
+        cfb_path = Path(args.cfb).resolve()
+        if not cfb_path.exists():
+            print(f"  WARNING: CFB file not found: {cfb_path}")
+            cfb_path = None
+    else:
+        cfb_path = find_graded_file("cfb", date_str)
+        if cfb_path:
+            print(f"  Auto-detected CFB: {cfb_path}")
+
+    wcbb_path: Path | None = None
+    if args.wcbb:
+        wcbb_path = Path(args.wcbb).resolve()
+        if not wcbb_path.exists():
+            print(f"  WARNING: WCBB file not found: {wcbb_path}")
+            wcbb_path = None
+    else:
+        wcbb_path = find_graded_file("wcbb", date_str)
+        if wcbb_path:
+            print(f"  Auto-detected WCBB: {wcbb_path}")
+
     if not (
         nba_path
         or nba1q_path
@@ -3176,12 +3285,16 @@ def main() -> None:
         or wnba1h_path
         or tennis_path
         or golf_path
+        or nfl_path
+        or cfb_path
+        or wcbb_path
     ):
         if args.allow_empty:
             print("  NOTE: No graded files; emitting empty slate eval (--allow-empty).")
         else:
             print(
-                "  ERROR: No graded files found. Specify --nba/--cbb/--nhl/--soccer/--mlb/--wnba/--tennis/--golf."
+                "  ERROR: No graded files found. Specify --nba/--cbb/--nhl/--soccer/"
+                "--mlb/--wnba/--tennis/--golf/--nfl/--cfb/--wcbb."
             )
             sys.exit(1)
 
@@ -3262,6 +3375,24 @@ def main() -> None:
         golf_rows = load_graded(golf_path, "golf")
         print(f" {len(golf_rows):,} rows")
 
+    nfl_rows: list[dict] = []
+    if nfl_path:
+        print(f"  Loading NFL: {nfl_path.name} ...", end="", flush=True)
+        nfl_rows = load_graded(nfl_path, "nfl")
+        print(f" {len(nfl_rows):,} rows")
+
+    cfb_rows: list[dict] = []
+    if cfb_path:
+        print(f"  Loading CFB: {cfb_path.name} ...", end="", flush=True)
+        cfb_rows = load_graded(cfb_path, "cfb")
+        print(f" {len(cfb_rows):,} rows")
+
+    wcbb_rows: list[dict] = []
+    if wcbb_path:
+        print(f"  Loading WCBB: {wcbb_path.name} ...", end="", flush=True)
+        wcbb_rows = load_graded(wcbb_path, "wcbb")
+        print(f" {len(wcbb_rows):,} rows")
+
     # Build HTML (use merged NBA so 1Q/1H rows appear in Slate Evaluation, not only in JSON)
     print("  Building HTML ...", end="", flush=True)
     html = build_html(
@@ -3276,6 +3407,9 @@ def main() -> None:
         wnba_rows=wnba_rows_merged,
         tennis_rows=tennis_rows,
         golf_rows=golf_rows,
+        nfl_rows=nfl_rows,
+        cfb_rows=cfb_rows,
+        wcbb_rows=wcbb_rows,
         nhl_path=nhl_path,
         soccer_path=soccer_path,
         mlb_path=mlb_path,
@@ -3322,6 +3456,12 @@ def main() -> None:
         json_bundles.append(("Tennis", tennis_rows))
     if golf_rows:
         json_bundles.append(("Golf", golf_rows))
+    if nfl_rows:
+        json_bundles.append(("NFL", nfl_rows))
+    if cfb_rows:
+        json_bundles.append(("CFB", cfb_rows))
+    if wcbb_rows:
+        json_bundles.append(("WCBB", wcbb_rows))
     json_p = export_graded_props_json(date_str, out_p.parent, json_bundles)
     print(f"  Saved  -> {json_p}")
     all_rows = [
@@ -3333,6 +3473,9 @@ def main() -> None:
         *wnba_rows_merged,
         *tennis_rows,
         *golf_rows,
+        *nfl_rows,
+        *cfb_rows,
+        *wcbb_rows,
     ]
     tabs_p = export_analysis_tabs_xlsx(date_str, out_p.parent, all_rows)
     print(f"  Saved  -> {tabs_p}")

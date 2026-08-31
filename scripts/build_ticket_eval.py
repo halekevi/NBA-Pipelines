@@ -65,6 +65,8 @@ ALLOWED_TICKET_SPORTS = {
     "NBA1H",
     "NBA1Q",
     "WNBA",
+    "WNBA1H",
+    "WNBA1Q",
     "CBB",
     "WCBB",
     "CFB",
@@ -73,6 +75,8 @@ ALLOWED_TICKET_SPORTS = {
     "SOCCER",
     "MLB",
     "TENNIS",
+    "GOLF",
+    "PGA",
 }
 
 # Stats-bar sport win-rate columns (align with Grades Prop Evaluation pills + ACTIVE_SPORTS).
@@ -85,10 +89,13 @@ TICKET_EVAL_SPORT_ORDER: tuple[str, ...] = (
     "CFB",
     "NFL",
     "WNBA",
+    "WNBA1Q",
+    "WNBA1H",
     "MLB",
     "NHL",
     "SOCCER",
     "TENNIS",
+    "GOLF",
 )
 
 _XLSX_HDR_TO_LEG_FIELD: dict[str, str] = {
@@ -1592,6 +1599,8 @@ def _sport_key(sport: str) -> str:
         return "CFB"
     if s in ("NCAAB",):
         return "CBB"
+    if s in ("PGA",):
+        return "GOLF"
     return s
 
 
@@ -1686,6 +1695,9 @@ def _ticket_bucket_skin_class(bucket: str) -> str:
         "SOCCER": "sb-soccer",
         "MLB": "sb-mlb",
         "TENNIS": "sb-tennis",
+        "GOLF": "sb-golf",
+        "WNBA1Q": "sb-wnba1q",
+        "WNBA1H": "sb-wnba1h",
     }.get(sk, "sb-default")
 
 
@@ -1718,10 +1730,16 @@ def _leg_match_buckets(sport: str) -> list[str]:
         return ["WCBB", "CBB"]
     if s in ("SOC", "MLS", "EPL"):
         return ["SOCCER"]
+    if s in ("WNBA1H", "WNBA_1H"):
+        return ["WNBA1H", "WNBA"]
+    if s in ("WNBA1Q", "WNBA_1Q"):
+        return ["WNBA1Q", "WNBA"]
     if s == "WNBA":
         return ["WNBA"]
     if s == "NBA":
         return ["NBA"]
+    if s in ("GOLF", "PGA"):
+        return ["GOLF"]
     if s == "CBB":
         return ["CBB"]
     if s == "NHL":
@@ -1833,6 +1851,10 @@ def _merge_strict_graded_date_workbooks(
         "nba1q": "NBA1Q",
         "tennis": "TENNIS",
         "golf": "GOLF",
+        "nfl": "NFL",
+        "cfb": "CFB",
+        "wnba1h": "WNBA1H",
+        "wnba1q": "WNBA1Q",
     }
     for graded_file in sorted(graded_dir.glob(f"graded_*_{arg_date}.xlsx")):
         m = re.match(r"^graded_(.+)_(\d{4}-\d{2}-\d{2})$", graded_file.stem)
@@ -4064,6 +4086,9 @@ def _build_html(
 .sport-cfb{background:rgba(200,120,60,.12);color:#e8a86a;border:1px solid rgba(200,120,60,.34);}
 .sport-nfl{background:rgba(120,180,255,.12);color:#9ec5ff;border:1px solid rgba(120,180,255,.34);}
 .sport-tennis{background:rgba(243,156,18,.12);color:#f5b041;border:1px solid rgba(243,156,18,.34);}
+.sport-golf{background:rgba(80,180,110,.12);color:#7dcc8f;border:1px solid rgba(80,180,110,.34);}
+.sport-wnba1q{background:rgba(255,138,198,.10);color:#ffc4e6;border:1px solid rgba(255,138,198,.28);}
+.sport-wnba1h{background:rgba(255,138,198,.10);color:#ffc4e6;border:1px solid rgba(255,138,198,.28);}
 .sport-default{background:rgba(255,255,255,.04);color:#888;border:1px solid rgba(255,255,255,.1);}
 """
 

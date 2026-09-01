@@ -1074,18 +1074,16 @@ function Publish-MlbStep8Artifacts {
         Write-Host "  [MLB publish] skip — corrupt step8 xlsx (partial write / timeout)" -ForegroundColor Yellow
         return
     }
-    $sportRoot = Join-Path $MLBDir "step8_mlb_direction_clean.xlsx"
     $sportOutDir = Join-Path $MLBDir "outputs"
     $sportOut = Join-Path $sportOutDir "step8_mlb_direction_clean.xlsx"
     try {
         if (-not (Test-Path -LiteralPath $sportOutDir)) {
             New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
         }
-        Copy-ItemForceRetry -Source $step8Clean -Destination $sportRoot
         Copy-ItemForceRetry -Source $step8Clean -Destination $sportOut
-        Write-Host "  [MLB publish] Railway sport root + outputs -> $sportRoot" -ForegroundColor DarkGray
+        Write-Host "  [MLB publish] sport outputs (canonical dated copy next) -> $sportOut" -ForegroundColor DarkGray
     } catch {
-        Write-Host "  [MLB publish] WARN: could not copy to sport root/outputs: $_" -ForegroundColor Yellow
+        Write-Host "  [MLB publish] WARN: could not copy to sport outputs: $_" -ForegroundColor Yellow
     }
     Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName "step8_mlb_direction_clean_$Date.xlsx" -Label "MLB"
     $pubScript = Join-Path $Root "scripts\_publish_mlb_slate_only.py"
@@ -1104,7 +1102,7 @@ function Publish-MlbStep8Artifacts {
     }
 }
 
-# -- Soccer/Tennis: mirror step8 to sport root + outputs + dated outputs/<date>/ --
+# -- Soccer/Tennis: mirror step8 to Sports/*/outputs + dated outputs/<date>/ (not sport root) --
 function Publish-SoccerStep8Artifacts {
     param([string]$Reason = "")
     $step8Clean = Join-Path $SoccerRunOutDir "step8_soccer_direction_clean.xlsx"
@@ -1118,19 +1116,15 @@ function Publish-SoccerStep8Artifacts {
     }
     $sportOutDir = Join-Path $SoccerDir "outputs"
     $sportOut = Join-Path $sportOutDir "step8_soccer_direction_clean.xlsx"
-    $sportRoot = Join-Path $SoccerDir "step8_soccer_direction_clean.xlsx"
     try {
         if (-not (Test-Path -LiteralPath $sportOutDir)) {
             New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
         }
-        $publishErrs = @()
-        try { Copy-ItemForceRetry -Source $step8Clean -Destination $sportOut } catch { $publishErrs += "outputs: $_" }
-        try { Copy-ItemForceRetry -Source $step8Clean -Destination $sportRoot } catch { $publishErrs += "root: $_" }
-        if ($publishErrs.Count) { throw ($publishErrs -join '; ') }
+        Copy-ItemForceRetry -Source $step8Clean -Destination $sportOut
         $tag = if ($Reason) { " ($Reason)" } else { "" }
-        Write-Host "  [Soccer publish] sport outputs + root$tag" -ForegroundColor DarkGray
+        Write-Host "  [Soccer publish] sport outputs$tag" -ForegroundColor DarkGray
     } catch {
-        Write-Host "  [Soccer publish] WARN: could not mirror to Sports/Soccer: $_" -ForegroundColor Yellow
+        Write-Host "  [Soccer publish] WARN: could not mirror to Sports/Soccer/outputs: $_" -ForegroundColor Yellow
     }
     Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName "step8_soccer_direction_clean_$Date.xlsx" -Label "Soccer"
 }
@@ -1148,7 +1142,6 @@ function Publish-TennisStep8Artifacts {
     }
     $sportOutDir = Join-Path $TennisDir "outputs"
     $sportOut = Join-Path $sportOutDir "step8_tennis_direction_clean.xlsx"
-    $sportRoot = Join-Path $TennisDir "step8_tennis_direction_clean.xlsx"
     $tennisDatedName = "step8_tennis_direction_clean_$TennisDate.xlsx"
     $step8Csv = Join-Path $TennisRunOutDir "step8_tennis_direction.csv"
     try {
@@ -1156,18 +1149,16 @@ function Publish-TennisStep8Artifacts {
             New-Item -ItemType Directory -Force -Path $sportOutDir | Out-Null
         }
         Copy-ItemForceRetry -Source $step8Clean -Destination $sportOut
-        Copy-ItemForceRetry -Source $step8Clean -Destination $sportRoot
         $runDated = Join-Path $TennisRunOutDir $tennisDatedName
         Copy-Item -LiteralPath $step8Clean -Destination $runDated -Force -ErrorAction SilentlyContinue
         if (Test-Path -LiteralPath $step8Csv) {
             Copy-Item -LiteralPath $step8Csv -Destination (Join-Path $sportOutDir "step8_tennis_direction.csv") -Force -ErrorAction SilentlyContinue
-            Copy-Item -LiteralPath $step8Csv -Destination (Join-Path $TennisDir "step8_tennis_direction.csv") -Force -ErrorAction SilentlyContinue
             Copy-Item -LiteralPath $step8Csv -Destination (Join-Path $OutDir "step8_tennis_direction.csv") -Force -ErrorAction SilentlyContinue
         }
         $tag = if ($Reason) { " ($Reason)" } else { "" }
-        Write-Host "  [Tennis publish] sport outputs + root$tag" -ForegroundColor DarkGray
+        Write-Host "  [Tennis publish] sport outputs$tag" -ForegroundColor DarkGray
     } catch {
-        Write-Host "  [Tennis publish] WARN: could not mirror to Sports/Tennis: $_" -ForegroundColor Yellow
+        Write-Host "  [Tennis publish] WARN: could not mirror to Sports/Tennis/outputs: $_" -ForegroundColor Yellow
     }
     Copy-DatedSlateOutput -SourcePath $step8Clean -DatedFileName $tennisDatedName -Label "Tennis"
     $pubScript = Join-Path $Root "scripts\_publish_tennis_slate_only.py"

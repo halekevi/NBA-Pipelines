@@ -1810,13 +1810,12 @@ def page_tickets():
     """
     Today's built ticket slips from tickets_latest.json (Goblin-70 groups first,
     graded-main mixer under). Writer: build_goblin70_tickets.py --write-web after
-    combined_slate_tickets.py. Live site reads origin/main, not this checkout.
+    combined_slate_tickets.py. Render: utils.tickets_render (not the mixer).
+    Live site reads origin/main, not this checkout.
 
     Graded legs, actuals, and hit/miss summaries live under Grades (/grades hub, or
     /grades/YYYY-MM-DD for ticket_eval_*.html from build_ticket_eval.py), not on this route.
     """
-    import importlib.util
-
     json_path = TEMPLATES_DIR / "tickets_latest.json"
     has_json = _template_json_available("tickets_latest.json")
 
@@ -1824,49 +1823,33 @@ def page_tickets():
         if not has_json:
             return None
         payload = read_json_cached(json_path)
-        cst_path = BASE_DIR / "scripts" / "combined_slate_tickets.py"
-        if not cst_path.exists():
-            raise FileNotFoundError("scripts/combined_slate_tickets.py not in repo")
-        scripts_dir = str(BASE_DIR / "scripts")
-        path_inserted = False
-        if scripts_dir not in sys.path:
-            sys.path.insert(0, scripts_dir)
-            path_inserted = True
-        try:
-            spec = importlib.util.spec_from_file_location("combined_slate_tickets", cst_path)
-            if spec is None or spec.loader is None:
-                raise RuntimeError("could not load combined_slate_tickets spec")
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-            # tickets_latest.json is authoritative (EV gate applied only when combined is built with strict web mode).
-            winrate_payload = None
-            if _template_json_available("tickets_winrate_latest.json"):
-                try:
-                    winrate_payload = read_json_cached(
-                        TEMPLATES_DIR / "tickets_winrate_latest.json"
-                    )
-                except Exception as wr_exc:
-                    current_app.logger.warning(
-                        "/tickets: tickets_winrate_latest.json load failed: %s",
-                        wr_exc,
-                    )
-            body, page_title = mod.render_tickets_body_html(
-                payload,
-                _non_ev_slips_removed=0,
-                winrate_payload=winrate_payload,
-            )
-            return render_template(
-                "tickets_built.html",
-                tickets_body=Markup(body),
-                page_title=page_title,
-                ui_build_id=_UI_BUILD_ID,
-                deploy_git_sha=(
-                    os.environ.get("RAILWAY_GIT_COMMIT_SHA") or os.environ.get("GIT_COMMIT") or ""
-                )[:40],
-            )
-        finally:
-            if path_inserted and sys.path and sys.path[0] == scripts_dir:
-                sys.path.pop(0)
+        from utils.tickets_render import render_tickets_body_html
+
+        winrate_payload = None
+        if _template_json_available("tickets_winrate_latest.json"):
+            try:
+                winrate_payload = read_json_cached(
+                    TEMPLATES_DIR / "tickets_winrate_latest.json"
+                )
+            except Exception as wr_exc:
+                current_app.logger.warning(
+                    "/tickets: tickets_winrate_latest.json load failed: %s",
+                    wr_exc,
+                )
+        body, page_title = render_tickets_body_html(
+            payload,
+            _non_ev_slips_removed=0,
+            winrate_payload=winrate_payload,
+        )
+        return render_template(
+            "tickets_built.html",
+            tickets_body=Markup(body),
+            page_title=page_title,
+            ui_build_id=_UI_BUILD_ID,
+            deploy_git_sha=(
+                os.environ.get("RAILWAY_GIT_COMMIT_SHA") or os.environ.get("GIT_COMMIT") or ""
+            )[:40],
+        )
 
     try:
         html = _render_slips_from_json()
@@ -1889,7 +1872,7 @@ def page_tickets():
         return _no_store_headers(_tickets_built_slips_missing_html())
     return _no_store_headers(
         make_response(
-            "Could not render /tickets from tickets_latest.json. Check combined_slate_tickets.render_tickets_body_html "
+            "Could not render /tickets from tickets_latest.json. Check utils.tickets_render.render_tickets_body_html "
             "and JSON shape.",
             500,
         )

@@ -9,14 +9,16 @@ Outputs:
   - tickets_latest.json (web; /tickets renders from this). Graded HTML: build_ticket_eval.py → ticket_eval_<date>.html
 
 Cross-book lines (optional):
-  Place CSVs next to the combined output, then pass --underdog-csv / --draftkings-csv (or use run_pipeline
-  when files exist under outputs/<date>/):
+  Place CSVs next to the combined output, then pass --underdog-csv / --draftkings-csv / --vegas-csv
+  (or use run_pipeline when files exist under outputs/<date>/):
     outputs/<date>/underdog_props.csv   ← fetch_underdog_pickem.py --output ...
-    outputs/<date>/draftkings_props_all.csv ← merge_draftkings_pickem_csvs.py (NBA+NHL+MLB+CBB), or
+    outputs/<date>/draftkings_props_all.csv ← merge_draftkings_pickem_csvs.py, or
     outputs/<date>/draftkings_props_nba.csv ← fetch_draftkings_player_props.py --league nba -o ...
-  Join is on sport + team + normalized player + normalized prop label, and the numeric line must match
-  PrizePicks ``line`` within ~0.05. Matched rows populate ``line_underdog`` / ``line_draftkings``; ladder rows
-  that do not match any PP line are appended as extra slate rows with ``pick_platform`` underdog/draftkings.
+    outputs/<date>/vegas_props.csv ← fetch_vegas_player_props.py (Odds API Pinnacle/Circa/DK)
+  Join is on sport + team + normalized player + prop. The nearest book line for that player/prop
+  fills ``line_underdog`` / ``line_draftkings`` / ``line_vegas`` (no same-number requirement).
+  UD/DK ladder rows with no matching PP player/prop are appended as extra slate rows
+  (``pick_platform`` underdog/draftkings). Vegas sportsbook alts are not appended.
   After merge, each row gets cross-book comparison: best_cross_line / best_cross_book / cross_edge_vs_pp
   (OVER favors lowest line; UNDER favors highest; edge_vs_pp is points vs PrizePicks).
 
@@ -245,6 +247,7 @@ from utils.slate_context_fill import (
     summarize_board_context_fill,
     tennis_total_games_over_blocked_by_l5,
 )
+from utils.prop_norm import canon_prop
 from utils.l5_recency_policy import (
     L5_GE4_MIN as _L5_GE4_MIN,
     L5_PERFECT as _STANDARD_PROP_GATE_L5_PERFECT,
@@ -3612,6 +3615,10 @@ def _join_sport_key(sport: object) -> str:
         return "SOCCER"
     if s.startswith("NFL"):
         return "NFL"
+    if s in ("NCAAF", "NCAAFB", "COLLEGE FOOTBALL"):
+        return "CFB"
+    if s in ("PGA", "GOLF"):
+        return "GOLF"
     return s
 
 
@@ -3668,18 +3675,51 @@ def _ud_join_sport(ud_sid: object) -> str:
         "NFL2H": "NFL",
         "NFL1Q": "NFL",
         "NFL4Q": "NFL",
+        "PGA": "GOLF",
+        "GOLF": "GOLF",
     }
     return m.get(u, u)
 
 
-# Join UD/DK ladder rows to PrizePicks only when this numeric line matches PP ``line``.
+_PIPELINE_JOIN_SPORTS = frozenset({
+    "NBA", "NHL", "MLB", "WNBA", "SOCCER", "TENNIS", "GOLF",
+    "NFL", "CFB", "CBB", "WCBB",
+})
+
+
+def _canon_join_prop(join_sport: object, prop: object) -> str:
+    hit = canon_prop(join_sport, prop)
+    if hit:
+        return str(hit).strip()
+    return _norm_prop_label(prop)
+
+
+# Legacy same-rung epsilon (kept for tests / callers). Join now uses nearest line per player/prop.
 _ALT_LINE_MATCH_ATOL = 0.051
+
+_JOIN_SPORT_TO_ODDS_KEY: dict[str, str] = {
+    "NBA": "basketball_nba",
+    "NBA1H": "basketball_nba",
+    "NBA1Q": "basketball_nba",
+    "NHL": "icehockey_nhl",
+    "MLB": "baseball_mlb",
+    "WNBA": "basketball_wnba",
+    "WNBA1H": "basketball_wnba",
+    "WNBA1Q": "basketball_wnba",
+    "SOCCER": "soccer_epl",
+    "NFL": "americanfootball_nfl",
+    "CFB": "americanfootball_ncaaf",
+}
 
 
 def _sport_display_from_join_key(js: object) -> str:
     j = str(js or "").strip().upper()
     if j == "SOCCER":
         return "Soccer"
+    if j == "GOLF":
+        return "Golf"
+    if j == "TENNIS":
+        return "Tennis"
     return j
 
 
@@ -3692,7 +3732,7 @@ def _load_underdog_alt_lines_detail(path: str) -> pd.DataFrame:
     df["_js"] = df["ud_sport_id"].map(_ud_join_sport)
     df["_jt"] = df["team"].map(lambda x: str(x).strip().upper())
     df["_jp"] = df["player"].map(_norm_player_join)
-    df["_jpr"] = df["prop_type"].map(_norm_prop_label)
+    df["_jpr"] = [_canon_join_prop(js, pt) for js, pt in zip(df["_js"], df["prop_type"])]
     df = df[(df["_jp"] != "") & (df["_jpr"] != "")].copy()
     return df
 
@@ -3707,8 +3747,13 @@ def _load_draftkings_alt_lines_detail(path: str) -> pd.DataFrame:
         df["_js"] = df["board_sport"].map(lambda x: _join_sport_key(str(x).strip()))
     else:
         df["_js"] = ""
-    lbl = df["dk_market_label"] if "dk_market_label" in df.columns else df.get("prop_type", "")
-    df["_jpr"] = lbl.map(_norm_prop_label)
+    if "prop_type" in df.columns:
+        lbl = df["prop_type"]
+    elif "dk_market_label" in df.columns:
+        lbl = df["dk_market_label"]
+    else:
+        lbl = pd.Series("", index=df.index)
+    df["_jpr"] = [_canon_join_prop(js, pt) for js, pt in zip(df["_js"], lbl)]
     df["_jt"] = df["team"].map(lambda x: str(x).strip().upper())
     df["_jp"] = df["player"].map(_norm_player_join)
     df = df[(df["_js"] != "") & (df["_jp"] != "") & (df["_jpr"] != "")].copy()
@@ -3732,6 +3777,9 @@ def _append_alt_book_orphan_rows(
     if miss.empty:
         return out
     miss = miss.drop_duplicates(subset=["_js", "_jt", "_jp", "_jpr", "line"], keep="first")
+    miss = miss[miss["_js"].astype(str).str.upper().isin(_PIPELINE_JOIN_SPORTS)]
+    if miss.empty:
+        return out
     before = len(out)
     new_rows: list[dict] = []
     cols = out.columns
@@ -3760,6 +3808,7 @@ def _append_alt_book_orphan_rows(
                 "pick_platform": book,
                 "line_underdog": ln if book == "underdog" else np.nan,
                 "line_draftkings": ln if book == "draftkings" else np.nan,
+                "line_vegas": np.nan,
             }
         )
         new_rows.append(base)
@@ -3772,23 +3821,117 @@ def _append_alt_book_orphan_rows(
     return out
 
 
+def _load_vegas_alt_lines_detail(path: str) -> pd.DataFrame:
+    df = pd.read_csv(path, dtype=str, encoding="utf-8-sig").fillna("")
+    if df.empty:
+        return pd.DataFrame()
+    df["line"] = pd.to_numeric(df.get("line", np.nan), errors="coerce")
+    df = df[df["line"].notna()].copy()
+    if "board_sport" in df.columns:
+        df["_js"] = df["board_sport"].map(lambda x: _join_sport_key(str(x).strip()))
+    else:
+        df["_js"] = ""
+    df["_jp"] = df["player"].map(_norm_player_join)
+    mkt = df["odds_market"] if "odds_market" in df.columns else pd.Series("", index=df.index)
+    df["_jodds"] = mkt.map(lambda x: str(x or "").strip().lower())
+    df = df[(df["_js"] != "") & (df["_jp"] != "") & (df["_jodds"] != "")].copy()
+    return df
+
+
+def _odds_key_for_join_sport(js: object) -> str:
+    u = str(js or "").strip().upper()
+    if u == "SOCCER":
+        return _JOIN_SPORT_TO_ODDS_KEY.get("SOCCER", "")
+    return _JOIN_SPORT_TO_ODDS_KEY.get(u, "")
+
+
+def _pp_odds_market(prop_type: object, join_sport: object) -> str:
+    sk = _odds_key_for_join_sport(join_sport)
+    if not sk:
+        return ""
+    m = str(_odds_market_for_prop_cached(str(prop_type or ""), sk) or "").strip().lower()
+    if m.startswith("player_") or m.startswith("batter_") or m.startswith("pitcher_"):
+        return m
+    return ""
+
+
+def _odds_market_for_prop_cached(prop_type: str, sport_key: str) -> str:
+    fn = getattr(_odds_market_for_prop_cached, "_fn", None)
+    if fn is None:
+        try:
+            from utils.line_movement import odds_market_for_prop as fn
+        except Exception:
+            fn = lambda *_a, **_k: ""  # noqa: E731
+        _odds_market_for_prop_cached._fn = fn  # type: ignore[attr-defined]
+    return str(fn(prop_type, sport_key) or "")
+
+
+def _fill_nearest_alt_line(
+    out: pd.DataFrame,
+    detail: pd.DataFrame,
+    *,
+    dest_col: str,
+    key_cols: tuple[str, ...],
+) -> None:
+    """For each PrizePicks row, copy the nearest book line sharing the join keys."""
+    if detail is None or detail.empty:
+        return
+    for i in out.index:
+        if str(out.at[i, "pick_platform"] or "prizepicks").lower() != "prizepicks":
+            continue
+        pp_line = pd.to_numeric(out.at[i, "line"], errors="coerce")
+        if pd.isna(pp_line):
+            continue
+        mask = pd.Series(True, index=detail.index)
+        skip = False
+        for col in key_cols:
+            val = str(out.at[i, col] or "")
+            if col == "_jt":
+                dteams = detail[col].astype(str)
+                if not val:
+                    mask = mask & (dteams.str.strip() == "")
+                else:
+                    mask = mask & ((dteams == val) | (dteams.str.strip() == ""))
+                continue
+            if not val:
+                skip = True
+                break
+            mask = mask & (detail[col].astype(str) == val)
+        if skip:
+            continue
+        sub = detail.loc[mask]
+        if sub.empty:
+            continue
+        j = (sub["line"].astype(float) - float(pp_line)).abs().idxmin()
+        out.at[i, dest_col] = float(sub.loc[j, "line"])
+        if "_matched" in detail.columns:
+            # Mark the whole player/prop group so leftover rungs stay (UD/DK orphans).
+            detail.loc[mask, "_matched"] = True
+
+
 def attach_alt_book_lines(
     combined: pd.DataFrame,
     *,
     underdog_csv: str = "",
     draftkings_csv: str = "",
+    vegas_csv: str = "",
 ) -> pd.DataFrame:
     """
-    When UD/DK numeric lines match a PrizePicks row (same player/prop/team ± line), fill
-    ``line_underdog`` / ``line_draftkings``. Unmatched alt ladder entries become extra combined rows
-    tagged with ``pick_platform`` = ``underdog`` / ``draftkings``.
+    Fill ``line_underdog`` / ``line_draftkings`` / ``line_vegas`` from alt-book CSVs.
+
+    Join is nearest line for the same player/prop (and team for UD/DK). Unmatched
+    UD/DK player/prop groups become extra combined rows tagged with ``pick_platform``.
+    Vegas sportsbook alts are column-only (not appended).
     """
     out = combined.copy()
     out["_js"] = out["sport"].map(_join_sport_key)
     out["_jt"] = [_norm_team_join(t, s) for t, s in zip(out["team"], out["sport"])]
     out["_jp"] = out["player"].map(_norm_player_join)
-    out["_jpr"] = out["prop_type"].map(_norm_prop_label)
-    join_on = ["_js", "_jt", "_jp", "_jpr"]
+    out["_jpr"] = [_canon_join_prop(js, pt) for js, pt in zip(out["_js"], out["prop_type"])]
+    out["_jodds"] = [
+        _pp_odds_market(pt, js) for pt, js in zip(out["prop_type"], out["_js"])
+    ]
+    join_on = ["_js", "_jt", "_jp", "_jpr", "_jodds"]
 
     if "pick_platform" not in out.columns:
         out["pick_platform"] = "prizepicks"
@@ -3800,8 +3943,7 @@ def attach_alt_book_lines(
 
     out["line_underdog"] = np.nan
     out["line_draftkings"] = np.nan
-
-    atol = _ALT_LINE_MATCH_ATOL
+    out["line_vegas"] = np.nan
 
     u_path = (underdog_csv or "").strip()
     if u_path and os.path.isfile(u_path):
@@ -3810,33 +3952,11 @@ def attach_alt_book_lines(
             if not ud_detail.empty:
                 ud_detail = ud_detail.copy()
                 ud_detail["_matched"] = False
-                for i in out.index:
-                    if str(out.at[i, "pick_platform"] or "prizepicks").lower() != "prizepicks":
-                        continue
-                    pp_line = pd.to_numeric(out.at[i, "line"], errors="coerce")
-                    if pd.isna(pp_line):
-                        continue
-                    key = (
-                        str(out.at[i, "_js"]),
-                        str(out.at[i, "_jt"]),
-                        str(out.at[i, "_jp"]),
-                        str(out.at[i, "_jpr"]),
-                    )
-                    sub = ud_detail[
-                        (ud_detail["_js"].astype(str) == key[0])
-                        & (ud_detail["_jt"].astype(str) == key[1])
-                        & (ud_detail["_jp"].astype(str) == key[2])
-                        & (ud_detail["_jpr"].astype(str) == key[3])
-                        & np.isclose(ud_detail["line"].astype(float), float(pp_line), rtol=0.0, atol=atol)
-                    ]
-                    if sub.empty:
-                        continue
-                    j = (sub["line"].astype(float) - float(pp_line)).abs().idxmin()
-                    ud_ln = float(sub.loc[j, "line"])
-                    out.at[i, "line_underdog"] = ud_ln
-                    ud_detail.loc[j, "_matched"] = True
+                _fill_nearest_alt_line(
+                    out, ud_detail, dest_col="line_underdog", key_cols=("_js", "_jt", "_jp", "_jpr")
+                )
                 u_n = int(pd.to_numeric(out["line_underdog"], errors="coerce").notna().sum())
-                print(f"  [alt-books] Underdog lines joined (line-matched): {u_n} / {len(out)} rows ({u_path})")
+                print(f"  [alt-books] Underdog lines joined (nearest): {u_n} / {len(out)} rows ({u_path})")
                 out = _append_alt_book_orphan_rows(out, ud_detail, book="underdog")
         except Exception as e:
             print(f"  [alt-books] WARN Underdog merge skipped: {e}")
@@ -3848,41 +3968,34 @@ def attach_alt_book_lines(
             if not dk_detail.empty:
                 dk_detail = dk_detail.copy()
                 dk_detail["_matched"] = False
-                for i in out.index:
-                    if str(out.at[i, "pick_platform"] or "prizepicks").lower() != "prizepicks":
-                        continue
-                    pp_line = pd.to_numeric(out.at[i, "line"], errors="coerce")
-                    if pd.isna(pp_line):
-                        continue
-                    key = (
-                        str(out.at[i, "_js"]),
-                        str(out.at[i, "_jt"]),
-                        str(out.at[i, "_jp"]),
-                        str(out.at[i, "_jpr"]),
-                    )
-                    sub = dk_detail[
-                        (dk_detail["_js"].astype(str) == key[0])
-                        & (dk_detail["_jt"].astype(str) == key[1])
-                        & (dk_detail["_jp"].astype(str) == key[2])
-                        & (dk_detail["_jpr"].astype(str) == key[3])
-                        & np.isclose(dk_detail["line"].astype(float), float(pp_line), rtol=0.0, atol=atol)
-                    ]
-                    if sub.empty:
-                        continue
-                    j = (sub["line"].astype(float) - float(pp_line)).abs().idxmin()
-                    dk_ln = float(sub.loc[j, "line"])
-                    out.at[i, "line_draftkings"] = dk_ln
-                    dk_detail.loc[j, "_matched"] = True
+                _fill_nearest_alt_line(
+                    out, dk_detail, dest_col="line_draftkings", key_cols=("_js", "_jt", "_jp", "_jpr")
+                )
                 d_n = int(pd.to_numeric(out["line_draftkings"], errors="coerce").notna().sum())
-                print(f"  [alt-books] DraftKings lines joined (line-matched): {d_n} / {len(out)} rows ({d_path})")
+                print(f"  [alt-books] DraftKings lines joined (nearest): {d_n} / {len(out)} rows ({d_path})")
                 out = _append_alt_book_orphan_rows(out, dk_detail, book="draftkings")
         except Exception as e:
             print(f"  [alt-books] WARN DraftKings merge skipped: {e}")
+
+    v_path = (vegas_csv or "").strip()
+    if v_path and os.path.isfile(v_path):
+        try:
+            vg_detail = _load_vegas_alt_lines_detail(v_path)
+            if not vg_detail.empty:
+                _fill_nearest_alt_line(
+                    out, vg_detail, dest_col="line_vegas", key_cols=("_js", "_jp", "_jodds")
+                )
+                v_n = int(pd.to_numeric(out["line_vegas"], errors="coerce").notna().sum())
+                print(f"  [alt-books] Vegas lines joined (nearest): {v_n} / {len(out)} rows ({v_path})")
+        except Exception as e:
+            print(f"  [alt-books] WARN Vegas merge skipped: {e}")
 
     if "line_underdog" not in out.columns:
         out["line_underdog"] = np.nan
     if "line_draftkings" not in out.columns:
         out["line_draftkings"] = np.nan
+    if "line_vegas" not in out.columns:
+        out["line_vegas"] = np.nan
 
     out = out.drop(columns=join_on, errors="ignore")
     return out
@@ -3899,12 +4012,12 @@ CROSS_LINE_COLS: tuple[str, ...] = (
 
 def add_cross_platform_best_lines(df: pd.DataFrame) -> pd.DataFrame:
     """
-    For each prop, compare PrizePicks ``line`` with ``line_underdog`` and ``line_draftkings``.
-    For OVER, the best line is the lowest; for UNDER, the highest (among books with data).
+    For each prop, compare PrizePicks ``line`` with ``line_underdog``, ``line_draftkings``,
+    and ``line_vegas``. For OVER, the best line is the lowest; for UNDER, the highest.
 
     Adds:
       best_cross_line — optimal line for the row's direction
-      best_cross_book — PP / UD / DK, or ties like PP+UD (short codes)
+      best_cross_book — PP / UD / DK / LV, or ties like PP+UD (short codes)
       cross_edge_vs_pp — points of line value vs PrizePicks (0 when PP is best among available;
                          NaN when PP line is missing)
       cross_n_books — count of books with a finite line
@@ -3916,11 +4029,14 @@ def add_cross_platform_best_lines(df: pd.DataFrame) -> pd.DataFrame:
         out["line_underdog"] = np.nan
     if "line_draftkings" not in out.columns:
         out["line_draftkings"] = np.nan
+    if "line_vegas" not in out.columns:
+        out["line_vegas"] = np.nan
 
     pp = pd.to_numeric(out["line"], errors="coerce")
     ud = pd.to_numeric(out["line_underdog"], errors="coerce")
     dk = pd.to_numeric(out["line_draftkings"], errors="coerce")
-    mat = pd.DataFrame({"PrizePicks": pp, "Underdog": ud, "DraftKings": dk})
+    vg = pd.to_numeric(out["line_vegas"], errors="coerce")
+    mat = pd.DataFrame({"PrizePicks": pp, "Underdog": ud, "DraftKings": dk, "Vegas": vg})
 
     dir_u = (
         out["direction"].astype(str).str.upper().str.strip()
@@ -3928,8 +4044,8 @@ def add_cross_platform_best_lines(df: pd.DataFrame) -> pd.DataFrame:
         else pd.Series("", index=out.index)
     )
     is_under = dir_u == "UNDER"
-    order = ("PrizePicks", "Underdog", "DraftKings")
-    short = {"PrizePicks": "PP", "Underdog": "UD", "DraftKings": "DK"}
+    order = ("PrizePicks", "Underdog", "DraftKings", "Vegas")
+    short = {"PrizePicks": "PP", "Underdog": "UD", "DraftKings": "DK", "Vegas": "LV"}
 
     pick_plat = (
         out["pick_platform"].astype(str).str.lower().str.strip()
@@ -3959,6 +4075,10 @@ def add_cross_platform_best_lines(df: pd.DataFrame) -> pd.DataFrame:
             v = dk.iloc[i] if i < len(dk) else float("nan")
             if pd.notna(v) and np.isfinite(float(v)):
                 vals["DraftKings"] = float(v)
+        elif plat == "vegas":
+            v = vg.iloc[i] if i < len(vg) else float("nan")
+            if pd.notna(v) and np.isfinite(float(v)):
+                vals["Vegas"] = float(v)
         else:
             for j, name in enumerate(order):
                 v = mat.iat[i, j]
@@ -4003,7 +4123,7 @@ def propagate_alt_book_lines_to_sport_frame(
     sport_labels: tuple[str, ...],
 ) -> pd.DataFrame | None:
     """
-    Copy line_underdog / line_draftkings / cross-book best-line columns from combined onto each sport slate.
+    Copy line_underdog / line_draftkings / line_vegas / cross-book best-line columns from combined onto each sport slate.
     Join keys match attach_alt_book_lines (team + player + prop norms).
     """
     if sport_df is None or len(sport_df) == 0:
@@ -4012,6 +4132,7 @@ def propagate_alt_book_lines_to_sport_frame(
     if "line_underdog" not in combined.columns:
         out["line_underdog"] = np.nan
         out["line_draftkings"] = np.nan
+        out["line_vegas"] = np.nan
         for c in CROSS_LINE_COLS:
             if c == "best_cross_book":
                 out[c] = ""
@@ -4025,6 +4146,7 @@ def propagate_alt_book_lines_to_sport_frame(
     if sub.empty:
         out["line_underdog"] = np.nan
         out["line_draftkings"] = np.nan
+        out["line_vegas"] = np.nan
         for c in CROSS_LINE_COLS:
             if c == "best_cross_book":
                 out[c] = ""
@@ -4039,6 +4161,8 @@ def propagate_alt_book_lines_to_sport_frame(
     sub["_jpr"] = sub["prop_type"].map(_norm_prop_label)
     sub["_jln"] = pd.to_numeric(sub["line"], errors="coerce").round(4)
     agg_map: dict = {"line_underdog": "first", "line_draftkings": "first"}
+    if "line_vegas" in sub.columns:
+        agg_map["line_vegas"] = "first"
     for c in CROSS_LINE_COLS:
         if c in sub.columns:
             agg_map[c] = "first"
@@ -4942,9 +5066,8 @@ def _apply_tier_defense_pool_gate(df: pd.DataFrame, sport: str) -> pd.DataFrame:
     return out
 
 # Pipelines that emit step8 boards into combined slate (reference for docs / tooling).
-ACTIVE_SPORTS = ("NBA", "NHL", "SOCCER", "TENNIS", "WNBA", "WNBA1H", "WNBA1Q", "MLB", "NBA1H", "NBA1Q", "WCBB", "NFL", "CFB")
-# NFL — Phase 1 scaffold only; keep off slate until step8 + historical hit rates exist (Sept 2026).
-# Reference: {"NFL": False}  # activate September 2026 — do not add "NFL" to ACTIVE_SPORTS yet.
+ACTIVE_SPORTS = ("NBA", "NHL", "SOCCER", "TENNIS", "WNBA", "WNBA1H", "WNBA1Q", "MLB", "NBA1H", "NBA1Q", "WCBB", "NFL", "CFB", "GOLF")
+# NFL regular season + CFB ticket from step8. Grades land in graded_props via GRADED_JSON_SPORTS.
 # NFL — scaffold gate stays on until season resume (MAIN calendar also excludes until Kickoff).
 # Regular-season NFL stays gated until MAIN resume. NFLP preseason is live
 # whenever outputs/<date>/nfl has league=NFLP rows.
@@ -10965,6 +11088,7 @@ def ticket_groups_to_payload(
                     "delta_pct": round(float(_dpv), 4) if _dpv is not None else None,
                     "line_underdog": _safe_float(gv("line_underdog")),
                     "line_draftkings": _safe_float(gv("line_draftkings")),
+                    "line_vegas": _safe_float(gv("line_vegas")),
                     "pick_platform": str(gv("pick_platform") or "prizepicks"),
                     "best_cross_line": _safe_float(gv("best_cross_line")),
                     "best_cross_book": best_book_s,
@@ -11171,6 +11295,8 @@ def dataframe_to_slate_sport_rows(df: Optional[pd.DataFrame]) -> List[dict]:
             row["line_underdog"] = g("line_underdog")
         if "line_draftkings" in df.columns and g("line_draftkings") is not None:
             row["line_draftkings"] = g("line_draftkings")
+        if "line_vegas" in df.columns and g("line_vegas") is not None:
+            row["line_vegas"] = g("line_vegas")
         sport_val = str(g("sport") or "").strip().upper()
         if sport_val:
             row["sport"] = sport_val
@@ -19127,6 +19253,7 @@ SLATE_COLS = [
     "line",
     "line_underdog",
     "line_draftkings",
+    "line_vegas",
     "best_cross_line",
     "best_cross_book",
     "cross_edge_vs_pp",
@@ -19158,7 +19285,7 @@ SLATE_COLS = [
     "game_time",
     "league",
 ]
-SLATE_WIDTHS = [6, 5, 10, 20, 6, 6, 7, 10, 8, 7, 10, 8, 10, 18, 9, 10, 6, 11, 11, 9, 10, 9, 6, 8, 7, 10, 10, 8, 10, 7, 7, 9, 10, 8, 8, 8, 10, 9, 10, 10, 8, 9, 8, 10, 7, 8, 10, 16, 10]
+SLATE_WIDTHS = [6, 5, 10, 20, 6, 6, 7, 10, 8, 7, 10, 8, 10, 18, 9, 10, 6, 11, 11, 11, 9, 10, 9, 6, 8, 7, 10, 10, 8, 10, 7, 7, 9, 10, 8, 8, 8, 10, 9, 10, 10, 8, 9, 8, 10, 7, 8, 10, 16, 10]
 SLATE_HDRS = [
     "Sport",
     "Tier",
@@ -19179,6 +19306,7 @@ SLATE_HDRS = [
     "Line",
     "Line UD",
     "Line DK",
+    "Line LV",
     "Best Line",
     "Best Book",
     "Edge vs PP",
@@ -19236,6 +19364,7 @@ FULL_SLATE_EXTRA_HDRS = {
     "line_underdog": "Line (UD)",
     "pick_platform": "Platform",
     "line_draftkings": "Line (DK)",
+    "line_vegas": "Line (LV)",
     "best_cross_line": "Best Line",
     "best_cross_book": "Best Book",
     "cross_edge_vs_pp": "Edge vs PP",
@@ -19260,6 +19389,7 @@ FULL_SLATE_EXTRA_WIDTHS = {
     "line_underdog": 11,
     "pick_platform": 10,
     "line_draftkings": 11,
+    "line_vegas": 11,
     "best_cross_line": 9,
     "best_cross_book": 10,
     "cross_edge_vs_pp": 9,
@@ -19333,6 +19463,7 @@ FULL_SLATE_COLS = [
     "standard_line",
     "line_underdog",
     "line_draftkings",
+    "line_vegas",
     "best_cross_line",
     "best_cross_book",
     "cross_edge_vs_pp",
@@ -20420,6 +20551,12 @@ def main():
         help="Optional DraftKings sportsbook CSV with board_sport column. "
         "If omitted, uses outputs/<date>/draftkings_props_all.csv if present, else draftkings_props_nba.csv.",
     )
+    ap.add_argument(
+        "--vegas-csv",
+        default="",
+        help="Optional Vegas / Odds API player-prop CSV. "
+        "If omitted and outputs/<date>/vegas_props.csv exists, it is used.",
+    )
 
     # Web outputs
     ap.add_argument(
@@ -20676,6 +20813,7 @@ def main():
     _auto_ud = os.path.join(_repo_root, "outputs", args.date, "underdog_props.csv")
     _auto_dk_all = os.path.join(_repo_root, "outputs", args.date, "draftkings_props_all.csv")
     _auto_dk_nba = os.path.join(_repo_root, "outputs", args.date, "draftkings_props_nba.csv")
+    _auto_lv = os.path.join(_repo_root, "outputs", args.date, "vegas_props.csv")
     if not str(args.underdog_csv).strip() and os.path.isfile(_auto_ud):
         args.underdog_csv = _auto_ud
         print(f"  [alt-books] Using Underdog CSV: {_auto_ud}")
@@ -20686,6 +20824,9 @@ def main():
         elif os.path.isfile(_auto_dk_nba):
             args.draftkings_csv = _auto_dk_nba
             print(f"  [alt-books] Using DraftKings CSV: {_auto_dk_nba}")
+    if not str(getattr(args, "vegas_csv", "") or "").strip() and os.path.isfile(_auto_lv):
+        args.vegas_csv = _auto_lv
+        print(f"  [alt-books] Using Vegas CSV: {_auto_lv}")
 
     print_combined_slate_input_paths(args)
 
@@ -21243,6 +21384,7 @@ def main():
         combined,
         underdog_csv=str(args.underdog_csv or ""),
         draftkings_csv=str(args.draftkings_csv or ""),
+        vegas_csv=str(getattr(args, "vegas_csv", "") or ""),
     )
     combined = add_cross_platform_best_lines(combined)
 
@@ -21266,13 +21408,17 @@ def main():
 
     _n_ud = int(combined["line_underdog"].notna().sum()) if "line_underdog" in combined.columns else 0
     _n_dk = int(combined["line_draftkings"].notna().sum()) if "line_draftkings" in combined.columns else 0
-    if _n_ud == 0 and _n_dk == 0:
+    _n_lv = int(combined["line_vegas"].notna().sum()) if "line_vegas" in combined.columns else 0
+    if _n_ud == 0 and _n_dk == 0 and _n_lv == 0:
         print(
-            "  [alt-books] No Underdog/DraftKings lines merged (all blank). "
+            "  [alt-books] No Underdog/DraftKings/Vegas lines merged (all blank). "
             f"Run run_pipeline.ps1 (alt-book fetch before combined) or write "
-            f"outputs/{args.date}/underdog_props.csv and "
-            f"outputs/{args.date}/draftkings_props_all.csv (or draftkings_props_nba.csv)."
+            f"outputs/{args.date}/underdog_props.csv, "
+            f"outputs/{args.date}/draftkings_props_all.csv, and "
+            f"outputs/{args.date}/vegas_props.csv."
         )
+    else:
+        print(f"  [alt-books] filled UD={_n_ud} DK={_n_dk} LV={_n_lv} / {len(combined)} rows")
 
     print(f"  {len(combined)} total props")
     for s in ("NBA", "CBB", "NHL", "Soccer", "Tennis", "MLB", "NBA1H", "NBA1Q", "WCBB", "WNBA", "WNBA1H", "WNBA1Q", "Golf", "NFL"):
@@ -23450,2130 +23596,17 @@ def main():
     print("[TICKETS] ----------------------------------------------------")
 
 
-# ── Web render helper ─────────────────────────────────────────────────────────
 
-_SPORT_ACCENT: dict[str, str] = {
-    "NBA":    "#36A2FF",
-    "WNBA":   "#FF8AC6",
-    "CBB":    "#2ECC71",
-    "NHL":    "#9B59FF",
-    "SOCCER": "#7DFF6B",
-    "TENNIS": "#F39C12",
-    "MLB":    "#FF5A5F",
-    "WCBB":   "#FF66CC",
-    "NBA1Q":  "#00E5FF",
-    "NBA1H":  "#1ABC9C",
-    "CROSS":  "#C77DFF",
-    "MIX":    "#C77DFF",
-    # STRONG builder boards (not a sport) — gold, distinct from WNBA pink.
-    "STRONG": "#D4AF37",
-}
+# ── Web render helper (lives in utils/tickets_render.py for GET /tickets) ──
+from utils.tickets_render import (  # noqa: E402
+    _TICKETS_BUILT_PAYOUT_CSS,
+    _cap_ticket_groups_for_ui,
+    _group_is_goblin70,
+    _h,
+    _ticket_fingerprint,
+    render_tickets_body_html,
+)
 
-_PICK_COLOR: dict[str, str] = {
-    "goblin":   "#39ff6e",
-    "demon":    "#ff4d4d",
-    "standard": "#00e5ff",
-}
-
-_TICKETS_BUILT_PAYOUT_CSS = """<style>
-.tickets-built .ticket-hdr-bracket {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: clamp(14px, 1.5vw, 17px);
-  letter-spacing: 0.06em;
-  color: var(--text);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 6px;
-  padding: 2px 8px;
-  background: rgba(0,0,0,0.2);
-}
-.tickets-built .ticket-hdr-actions {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.tickets-built .ticket-data-warn {
-  font-size: 10px;
-  color: var(--amber);
-}
-.tickets-built .ticket-copy-btn {
-  font-family: Inter, sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 5px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(200,255,0,0.35);
-  background: rgba(200,255,0,0.08);
-  color: var(--accent, #c8ff00);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.tickets-built .ticket-copy-btn:hover {
-  background: rgba(200,255,0,0.16);
-}
-.tickets-built .ticket-copy-btn.is-copied {
-  border-color: rgba(57,255,110,0.45);
-  color: #39ff6e;
-  background: rgba(57,255,110,0.1);
-}
-.tickets-built .ticket-copy-btn--group {
-  margin-left: auto;
-}
-.tickets-built .ticket-placed {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted, rgba(255,255,255,.75));
-  cursor: pointer;
-  user-select: none;
-}
-.tickets-built .ticket-placed input {
-  accent-color: #c8ff00;
-}
-.tickets-built .ticket.is-placed {
-  outline: 1px solid rgba(57,255,110,.28);
-}
-.tickets-built .payout-rec-badge {
-  font-family: "Inter", sans-serif;
-  font-size: clamp(11px, 1.1vw, 13px);
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 6px;
-  padding: 3px 10px;
-  background: rgba(0,0,0,0.22);
-}
-.tickets-built .payout-x-badge {
-  font-family: "Inter", sans-serif;
-  font-size: clamp(11px, 1.1vw, 13px);
-  color: var(--cyan);
-  border: 1px solid rgba(0,229,255,0.28);
-  border-radius: 6px;
-  padding: 3px 10px;
-  background: rgba(0,229,255,0.06);
-}
-.tickets-built .ev-strong { color: #00ff88; font-weight: bold; }
-.tickets-built .ev-ok { color: #88ccff; }
-.tickets-built .ev-marginal { color: #ffaa00; }
-.tickets-built .ev-low { color: #ff8844; }
-.tickets-built .ev-skip { color: #ff4444; }
-.tickets-built .ticket-filter-pill[data-filter="top-payout"].active {
-  border-color: rgba(255, 215, 0, 0.42);
-  color: #ffd54f;
-}
-.tickets-built .payout-source-badge {
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  margin-left: 6px;
-  white-space: nowrap;
-}
-.tickets-built .payout-source-exact { color: #4caf50; }
-.tickets-built .payout-source-calibrated { color: #ffc107; }
-.tickets-built .payout-source-fallback { color: #9e9e9e; }
-.tickets-built .leg-game-log-wrap { flex: 1; min-width: 280px; max-width: 560px; }
-.tickets-built table.leg-game-log { width: 100%; font-size: 13px; border-collapse: collapse; }
-.tickets-built table.leg-game-log th {
-  text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.14);
-  color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
-  font-family: "Bebas Neue", sans-serif;
-}
-.tickets-built table.leg-game-log td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); font-family: "Inter", sans-serif; }
-.tickets-built table.leg-game-log tr:last-child td { border-bottom: none; }
-.tickets-built .leg-game-log-empty { margin: 0; font-size: 12px; color: var(--muted); }
-.tickets-built .leg-game-hit { color: #00ff88; font-weight: 600; }
-.tickets-built .leg-game-miss { color: #c96a74; font-weight: 600; }
-.tickets-built .ticket-filter-sort-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-right: 6px;
-}
-.tickets-built .ticket-filter-sort-label {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-.tickets-built .ticket-filter-sort {
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(12,16,26,0.9);
-  color: var(--text);
-  font-size: 12px;
-  padding: 5px 12px;
-}
-.tickets-built .ticket-filter-bar-action.active {
-  border-color: rgba(255, 86, 86, 0.45);
-  color: #ff8a8a;
-}
-.tickets-built .ticket-group-section.group-rec-strong .ticket-group-header { border-left: 4px solid #00ff88; }
-.tickets-built .ticket-group-section.group-rec-ok .ticket-group-header { border-left: 4px solid #f0a500; }
-.tickets-built .ticket-group-section.group-rec-marginal .ticket-group-header { border-left: 4px solid #ff9f43; }
-.tickets-built .ticket-group-section.group-rec-skip .ticket-group-header { border-left: 4px solid #ff5c5c; opacity: 0.78; }
-.tickets-built .best-ticket-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  font-size: 13px;
-}
-.tickets-built .best-ticket-row:last-child { border-bottom: 0; }
-.tickets-built .best-ticket-name { color: var(--text); font-weight: 600; }
-.tickets-built .best-ticket-meta { font-size: 12px; }
-.tickets-built .winrate-best-panel {
-  margin: 0 0 20px 0;
-  padding: 16px 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  background: linear-gradient(145deg, rgba(18, 22, 32, 0.98), rgba(8, 12, 20, 0.98));
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-}
-.tickets-built .winrate-best-panel .winrate-best-title {
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #ffd54f;
-  margin-bottom: 4px;
-}
-.tickets-built .winrate-best-panel .winrate-best-sub {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 12px;
-}
-.tickets-built .winrate-best-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  cursor: pointer;
-}
-.tickets-built .winrate-best-row:last-child { border-bottom: 0; }
-.tickets-built .winrate-best-row:hover { background: rgba(255, 215, 0, 0.04); }
-.tickets-built .winrate-best-rank { color: #ffd54f; font-weight: 700; min-width: 28px; }
-.tickets-built .winrate-best-name { color: var(--text); font-weight: 600; flex: 1; }
-.tickets-built .winrate-best-legs { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.tickets-built .winrate-best-leg { line-height: 1.35; }
-.tickets-built .winrate-best-leg + .winrate-best-leg { margin-top: 2px; }
-.tickets-built .winrate-best-stats { text-align: right; font-size: 12px; white-space: nowrap; }
-.tickets-built .winrate-best-pwin { color: #00ff88; font-weight: 700; font-size: 14px; }
-.tickets-built .winrate-best-pwin-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
-.tickets-built .winrate-best-warn { font-size: 10px; color: #f0a500; margin-top: 4px; }
-.tickets-built .ticket-pwin-ev-badge {
-  font-size: 12px;
-  color: #00ff88;
-  margin-left: 8px;
-  font-weight: 600;
-}
-.tickets-built .l10-streak-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 6px;
-  margin-left: 6px;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-.tickets-built .l10-streak-badge.l10-hot {
-  background: rgba(125,255,203,.12);
-  color: #00ff88;
-  border: 1px solid rgba(125,255,203,.35);
-}
-.tickets-built .l10-streak-badge.l10-cold {
-  background: rgba(100,180,255,.12);
-  color: #7eb8ff;
-  border: 1px solid rgba(100,180,255,.35);
-}
-.tickets-built .cons-line-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 6px;
-  margin-left: 6px;
-  vertical-align: middle;
-  white-space: nowrap;
-  background: rgba(212,175,55,.12);
-  color: #d4af37;
-  border: 1px solid rgba(212,175,55,.4);
-}
-.tickets-built .kpi-val.l10-hot-count { color: #00ff88; }
-.tickets-built .kpi-val.l10-cold-count { color: #7eb8ff; }
-</style>"""
-
-
-def _payout_ev_class(rec: str) -> str:
-    u = (rec or "").strip().upper()
-    if u == "STRONG":
-        return "ev-strong"
-    if u == "OK":
-        return "ev-ok"
-    if u == "MARGINAL":
-        return "ev-marginal"
-    if u == "LOW":
-        return "ev-low"
-    if u == "SKIP":
-        return "ev-skip"
-    return "ev-skip"
-
-
-def _payout_rec_prefix(rec: str) -> str:
-    u = (rec or "").strip().upper()
-    if u == "STRONG":
-        return "⚡"
-    if u == "OK":
-        return "✅"
-    if u == "MARGINAL":
-        return "⚠"
-    if u == "LOW":
-        return "▼"
-    if u == "SKIP":
-        return "⏭"
-    return "•"
-
-
-def _normalize_payout_source(source: str | None) -> str:
-    src = str(source or "").strip().lower()
-    if src == "live_cdp":
-        return "live_cdp"
-    if src == "sg_delta_live":
-        return "sg_delta_live"
-    if src == "sg_delta_verified":
-        return "sg_delta_verified"
-    if src == "pending_live":
-        return "pending_live"
-    if src == "rate_card":
-        return "rate_card"
-    if src == "mix_grid_average":
-        return "mix_grid_average"
-    if src in ("fallback_estimate", "fallback"):
-        return "fallback_estimate"
-    if src == "exact":
-        return "exact"
-    if src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
-        return src
-    return src or "calibrated"
-
-
-def _resolve_ticket_display_min_x(payout: dict | None, ticket: dict | None = None) -> float | None:
-    """Board-facing payout multiplier (PP pay), not the internal EV-model min_payout_x.
-
-    When verified lines are required, only exact live_cdp floors are shown —
-    no peer SG-Δ, model, or cold-extrapolated fallback.
-    """
-    pay = payout if isinstance(payout, dict) else {}
-    ticket = ticket if isinstance(ticket, dict) else {}
-    src = str(pay.get("payout_source") or ticket.get("payout_source") or "").strip().lower()
-    if src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
-        for raw in (
-            pay.get("display_min_x"),
-            ticket.get("display_min_x"),
-            ticket.get("power_payout"),
-            ticket.get("flex_payout"),
-        ):
-            v = _safe_positive_float(raw)
-            if v is not None:
-                return v
-        return None
-    if require_live_payout_display():
-        if src == "pending_live":
-            return None
-        if src and not is_verified_payout_source(src):
-            return None
-        for raw in (
-            pay.get("display_min_x") if is_verified_payout_source(src) or not src else None,
-            ticket.get("display_min_x") if is_verified_payout_source(src) or not src else None,
-            pay.get("power_min_x") if src in ("", "live_cdp", "sg_delta_live") else None,
-        ):
-            v = _safe_positive_float(raw)
-            if v is not None:
-                return v
-        return None
-    for raw in (
-        pay.get("display_min_x"),
-        ticket.get("display_min_x"),
-        pay.get("power_min_x"),
-        ticket.get("power_payout"),
-        ticket.get("base_power_payout"),
-    ):
-        v = _safe_positive_float(raw)
-        if v is not None:
-            return v
-    return None
-
-
-def _fmt_payout_scrape_clock(raw: object) -> str:
-    """Human clock for payout.captured_at (ET). Empty if missing/unparseable."""
-    text = str(raw or "").strip()
-    if not text:
-        return ""
-    try:
-        from datetime import datetime
-        from zoneinfo import ZoneInfo
-
-        t = text[:-1] + "+00:00" if text.endswith("Z") else text
-        dt = datetime.fromisoformat(t)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=ZoneInfo("America/New_York"))
-        dt = dt.astimezone(ZoneInfo("America/New_York"))
-        hour = dt.hour % 12 or 12
-        ampm = "AM" if dt.hour < 12 else "PM"
-        return f"{hour}:{dt.minute:02d} {ampm} ET"
-    except Exception:
-        return text[:22]
-
-
-def _board_payout_label(
-    display_x: float | None,
-    source: str | None,
-    captured_at: object = None,
-) -> tuple[str, str, str]:
-    """
-    Option A board payout copy: (mult_text, source_badge, title).
-    live_cdp → "2.2x" + "✓ live"; sg_delta_verified → "2.2x" + "✓ lines";
-    pending_live → "—"; estimates use a leading ~.
-    """
-    src = _normalize_payout_source(source)
-    if src == "pending_live":
-        mult_text, badge, title = (
-            "—",
-            "pending",
-            "Waiting for verified lines (live CDP or same-line SG-Δ evidence)",
-        )
-    elif display_x is None:
-        mult_text, badge, title = (
-            "—",
-            "pending" if require_live_payout_display() else "est",
-            "Board payout unavailable",
-        )
-    else:
-        mult = f"{display_x:.1f}".rstrip("0").rstrip(".") if display_x >= 10 else f"{display_x:.1f}"
-        if src == "live_cdp":
-            mult_text, badge, title = f"{mult}x", "✓ live", f"Live PrizePicks payout {mult}x"
-        elif src == "sg_delta_live":
-            mult_text, badge, title = f"{mult}x", "✓ live", f"SG-Δ live recipe floor {mult}x"
-        elif src == "sg_delta_verified":
-            mult_text, badge, title = (
-                f"{mult}x",
-                "✓ lines",
-                f"SG-Δ extrapolated floor {mult}x (same lines live-verified)",
-            )
-        elif src == "rate_card":
-            mult_text, badge, title = f"~{mult}x", "est", f"Rate-card estimate ~{mult}x"
-        elif src == "mix_grid_average":
-            mult_text, badge, title = f"~{mult}x", "board avg", f"Mix-grid board average ~{mult}x"
-        elif src == "fallback_estimate":
-            mult_text, badge, title = f"~{mult}x", "model est", f"Model estimate ~{mult}x"
-        elif src == "exact":
-            mult_text, badge, title = f"{mult}x", "exact", f"Exact payout {mult}x"
-        elif src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
-            mult_text, badge, title = (
-                f"{mult}x",
-                "N-correct",
-                f"PrizePicks N-correct / To Win {mult}x (not 1st place)",
-            )
-        else:
-            mult_text, badge, title = f"~{mult}x", "est", f"Estimated board payout ~{mult}x"
-    clock = _fmt_payout_scrape_clock(captured_at)
-    if clock:
-        title = f"{title} · scraped {clock}"
-    return mult_text, badge, title
-
-
-def _payout_source_badge_html(source: str, *, badge_label: str | None = None) -> str:
-    src = _normalize_payout_source(source)
-    if badge_label is None:
-        if src == "live_cdp":
-            badge_label = "✓ live"
-        elif src == "sg_delta_live":
-            badge_label = "✓ live"
-        elif src == "sg_delta_verified":
-            badge_label = "✓ lines"
-        elif src == "pending_live":
-            badge_label = "pending"
-        elif src == "rate_card":
-            badge_label = "est"
-        elif src == "mix_grid_average":
-            badge_label = "board avg"
-        elif src == "fallback_estimate":
-            badge_label = "model est"
-        elif src == "exact":
-            badge_label = "exact"
-        elif src in ("n_correct_median", "n_correct_live", "n_correct_delta"):
-            badge_label = "N-correct"
-        else:
-            badge_label = "est"
-    return (
-        f'<span class="payout-source-badge payout-source-{_h(src)}" title="Payout source: {_h(src)}">'
-        f"{_h(badge_label)}</span>"
-    )
-
-
-def _board_payout_badge_html(
-    display_x: float | None,
-    source: str | None,
-    captured_at: object = None,
-) -> str:
-    """Single header/footer payout chip: ~2.2x + board-avg/live badge."""
-    mult_text, badge_label, title = _board_payout_label(
-        display_x, source, captured_at=captured_at
-    )
-    src = _normalize_payout_source(source)
-    return (
-        f'<span class="payout-x-badge" title="{_h(title)}">[{_h(mult_text)}]</span>'
-        f"{_payout_source_badge_html(src, badge_label=badge_label)}"
-    )
-
-
-def _h(v) -> str:
-    """HTML-escape a value."""
-    import html as _html
-    return _html.escape(str(v)) if v is not None else ""
-
-
-def _pct(v, decimals: int = 0) -> str:
-    try:
-        return f"{float(v) * 100:.{decimals}f}%"
-    except (TypeError, ValueError):
-        return "—"
-
-
-def _fmt(v, decimals: int = 2, suffix: str = "") -> str:
-    try:
-        return f"{float(v):.{decimals}f}{suffix}"
-    except (TypeError, ValueError):
-        return "—"
-
-
-def _sport_accent(sport: str) -> str:
-    key = (sport or "").upper().split()[0]
-    return _SPORT_ACCENT.get(key, "#6C3483")
-
-
-def _group_sport(group_name: str, tickets: list | None = None) -> str:
-    """Infer sport from group name for accent colouring; fall back to dominant leg sport."""
-    name = (group_name or "").upper().replace("\u00a0", " ")
-    # STRONG builder buckets first (else WNBA/SOCCER leg sport paints them pink/green).
-    if name.startswith("STRONG") or " STRONG " in f" {name} ":
-        return "STRONG"
-    if "NBA/CBB" in name or "NBA+CBB" in name or "NBA-CBB" in name:
-        return "CROSS"
-    if name.startswith("CROSS") or name.startswith("MIX"):
-        return "CROSS"
-    if name.startswith("X-SPORT") or "X-SPORT" in name:
-        return "CROSS"
-    for sp in (
-        "NBA1Q",
-        "NBA1H",
-        "WNBA",
-        "WCBB",
-        "TENNIS",
-        "SOCCER",
-        "NHL",
-        "MLB",
-        "CBB",
-        "NFLP",
-        "NFL",
-        "CFB",
-        "NBA",
-    ):
-        if sp in name:
-            return sp
-    dom = _dominant_leg_sport(tickets)
-    if dom:
-        return dom
-    return "MIX"
-
-
-# Align with Slate Explorer sport order; cross-sport / mix buckets sort last.
-_TICKET_GROUP_SPORT_SORT_ORDER: dict[str, int] = {
-    "NBA": 0,
-    "NBA1Q": 1,
-    "NBA1H": 2,
-    "CBB": 3,
-    "WCBB": 4,
-    "CFB": 5,
-    "NFL": 6,
-    "WNBA": 7,
-    "MLB": 8,
-    "NHL": 9,
-    "SOCCER": 10,
-    "TENNIS": 11,
-    "STRONG": 12,
-    "CROSS": 10_000,
-    "MIX": 10_000,
-}
-
-
-def _group_is_goblin70(group: dict | None, group_name: str = "") -> bool:
-    """True for the 70% Goblin card (plus NFL Power fill from that builder)."""
-    name = str(group_name or (group or {}).get("group_name") or "")
-    if "Goblin-70" in name or "GOBLIN-70" in name.upper():
-        return True
-    if name.upper().startswith("NFL POWER"):
-        return True
-    for t in (group or {}).get("tickets") or []:
-        if isinstance(t, dict) and str(t.get("ticket_track") or "").lower() == "goblin70":
-            return True
-    return False
-
-
-def _ticket_group_sort_rank(group_name: str) -> int:
-    name = (group_name or "").upper()
-    if "GOBLIN-70" in name:
-        return -300
-    if name.startswith("NFL POWER"):
-        return -250
-    if " CORE " in f" {name} " or name.startswith("CORE ") or " CORE" in name:
-        return -200
-    if "PROBABILITY LADDER" in name:
-        return -100
-    sk = _group_sport(group_name)
-    return _TICKET_GROUP_SPORT_SORT_ORDER.get(sk, 999)
-
-
-def _ticket_group_picktype_rank(group_name: str) -> int:
-    """Order within a sport: Core, Standard, Goblin, Mixed, then everything else."""
-    name = (group_name or "").upper().replace("\u00a0", " ")
-    if " CORE " in f" {name} " or "CORE POWER" in name or "CORE FLEX" in name or "CORE STANDARD" in name:
-        return -1
-    if " STANDARD" in name:
-        return 0
-    if " GOBLIN" in name:
-        return 1
-    if " MIXED" in name:
-        return 2
-    return 9
-
-
-def _ticket_group_leg_count(group_name: str) -> int:
-    """Extract N from labels like '... 4-Leg #12' for stable ordering."""
-    m = re.search(r"(\d+)\s*-\s*LEG", str(group_name or ""), flags=re.IGNORECASE)
-    if not m:
-        return 99
-    try:
-        return int(m.group(1))
-    except (TypeError, ValueError):
-        return 99
-
-
-def _ticket_group_serial(group_name: str) -> int:
-    """Extract trailing #number if present."""
-    m = re.search(r"#\s*(\d+)\s*$", str(group_name or ""))
-    if not m:
-        return 999_999
-    try:
-        return int(m.group(1))
-    except (TypeError, ValueError):
-        return 999_999
-
-
-_EV_REC_RANK = {"LOW": 0, "SKIP": 0, "MARGINAL": 1, "OK": 2, "STRONG": 3}
-
-
-def _group_payout_confidence_score(tickets: list) -> float:
-    """Max payout_confidence_score (sweep × p_all_win) across slips in a group."""
-    best = 0.0
-    for t in tickets:
-        if not isinstance(t, dict):
-            continue
-        p = t.get("payout")
-        if not isinstance(p, dict):
-            continue
-        raw = p.get("payout_confidence_score")
-        if raw is None:
-            continue
-        try:
-            v = float(raw)
-            if math.isfinite(v) and v > best:
-                best = v
-        except (TypeError, ValueError):
-            continue
-    return best
-
-
-def _slip_display_payout_multiplier(
-    payout: dict | None, ticket: dict, group: dict
-) -> float | None:
-    """
-    Headline multiplier for slip UI — always the scraped / min-guarantee lock.
-
-    Never prefer Fantasy ``sweep_payout`` jackpots (poisoned Goblin 6×/20×/40×).
-    """
-    if isinstance(payout, dict):
-        for k in (
-            "power_min_x",
-            "display_min_x",
-            "payout",
-            "min_guarantee",
-            "min_payout_x",
-        ):
-            v = payout.get(k)
-            if v is not None:
-                try:
-                    vf = float(v)
-                    if math.isfinite(vf) and vf > 0:
-                        return vf
-                except (TypeError, ValueError):
-                    pass
-    for k in ("display_min_x", "power_min_x", "min_payout_x", "power_payout", "flex_payout"):
-        v = ticket.get(k)
-        if v is None:
-            v = group.get(k)
-        if v is not None:
-            try:
-                vf = float(v)
-                if math.isfinite(vf) and vf > 0:
-                    return vf
-            except (TypeError, ValueError):
-                pass
-    return None
-
-
-def _ticket_group_filter_slugs(
-    group_name: str,
-    tickets: list | None = None,
-) -> tuple[str, str, str]:
-    """(data_sport, data_type, data_pick) lowercase slugs for /tickets filter pills."""
-    name_u = (group_name or "").upper().replace("\u00a0", " ")
-    sport_key = _group_sport(group_name, tickets)
-    sports: list[str] = []
-    seen: set[str] = set()
-    for token in (sport_key or "").replace("/", " ").split():
-        sl = token.strip().lower()
-        if sl and sl not in seen:
-            seen.add(sl)
-            sports.append(sl)
-    for t in tickets or []:
-        if not isinstance(t, dict):
-            continue
-        for leg in t.get("legs") or []:
-            if not isinstance(leg, dict):
-                continue
-            sl = str(leg.get("sport") or "").strip().lower()
-            if sl and sl not in seen:
-                seen.add(sl)
-                sports.append(sl)
-    sport_sl = " ".join(sports) if sports else sport_key.lower()
-
-    if " FLEX" in name_u or name_u.startswith("FLEX ") or " FLEX " in name_u:
-        type_sl = "flex"
-    elif "POWER" in name_u:
-        type_sl = "power"
-    else:
-        type_sl = "power"
-
-    if "GOBLIN" in name_u:
-        pick_sl = "goblin"
-    elif "DEMON" in name_u:
-        pick_sl = "demon"
-    else:
-        pick_sl = "standard"
-
-    return sport_sl, type_sl, pick_sl
-
-
-def _group_ev_data_attr(tickets: list) -> str:
-    """Strongest empirical payout recommendation across tickets in the group."""
-    best_r = -1
-    best_sl = ""
-    for t in tickets:
-        p = t.get("payout")
-        if not isinstance(p, dict):
-            continue
-        rec = str(p.get("recommendation") or "").strip().upper()
-        r = _EV_REC_RANK.get(rec, -1)
-        if r > best_r:
-            best_r = r
-            best_sl = rec.lower() if rec in _EV_REC_RANK else ""
-    return best_sl
-
-
-def _group_ev_badge_summary_html(tickets: list) -> str:
-    """Header line: best empirical EV among tickets with payout JSON."""
-    best: tuple[float, str, str] | None = None
-    for t in tickets:
-        p = t.get("payout")
-        if not isinstance(p, dict) or p.get("ev") is None:
-            continue
-        try:
-            evf = float(p["ev"])
-        except (TypeError, ValueError):
-            continue
-        if not math.isfinite(evf):
-            continue
-        rec = str(p.get("recommendation") or "")
-        ev_cls = _payout_ev_class(rec)
-        if best is None or evf > best[0]:
-            best = (evf, rec, ev_cls)
-    if best is None:
-        return '<span class="group-ev-badge group-ev-badge--na">—</span>'
-    evf, rec, ev_cls = best
-    return f'<span class="group-ev-badge {ev_cls}">EV {_fmt(evf, 2)} — {_h(rec)}</span>'
-
-
-def _group_hit_rate_score(tickets: list) -> float:
-    vals: list[float] = []
-    for t in tickets:
-        if not isinstance(t, dict):
-            continue
-        v = t.get("avg_hit_rate")
-        if v is None:
-            continue
-        try:
-            vf = float(v)
-        except (TypeError, ValueError):
-            continue
-        if math.isfinite(vf):
-            vals.append(vf)
-    if not vals:
-        return 0.0
-    return float(sum(vals) / len(vals))
-
-
-def _tickets_filter_pills_html(attr_rows: list[dict], *, slate_date: str = "") -> str:
-    """Dynamic filter bar from group-derived slugs (sport / power / flex / goblin / demon / strong)."""
-    sports_seen: list[str] = []
-    seen_sp: set[str] = set()
-    has_power = has_flex = has_goblin = has_demon = has_strong = False
-    for row in attr_rows:
-        sp = str(row.get("sport") or "").strip().lower()
-        for token in sp.split():
-            tok = token.strip().lower()
-            if tok in ("mix", "cross", "strong"):
-                continue
-            if tok and tok not in seen_sp:
-                seen_sp.add(tok)
-                sports_seen.append(tok)
-        if row.get("type") == "power":
-            has_power = True
-        if row.get("type") == "flex":
-            has_flex = True
-        if row.get("pick") == "goblin":
-            has_goblin = True
-        if row.get("pick") == "demon":
-            has_demon = True
-        if row.get("ev") == "strong":
-            has_strong = True
-
-    sport_order = (
-        "nba",
-        "nba1q",
-        "nba1h",
-        "wnba",
-        "cbb",
-        "wcbb",
-        "nfl",
-        "cfb",
-        "nhl",
-        "mlb",
-        "soccer",
-        "tennis",
-        "cross",
-        "mix",
-    )
-    sports_sorted = sorted(
-        sports_seen,
-        key=lambda s: (sport_order.index(s) if s in sport_order else 99, s),
-    )
-
-    def _pill(
-        data_filter: str,
-        label: str,
-        *,
-        active: bool = False,
-        title_attr: str = "",
-    ) -> str:
-        cls = "ticket-filter-pill active" if active else "ticket-filter-pill"
-        return (
-            f'<button type="button" class="{cls}" data-filter="{_h(data_filter)}"'
-            f"{title_attr}>{label}</button>"
-        )
-
-    chunks: list[str] = [
-        '<div class="ticket-filter-bar" role="toolbar" aria-label="Filter ticket groups">',
-        _pill("all", "ALL", active=True),
-    ]
-    for sp in sports_sorted:
-        chunks.append(_pill(sp, sp.upper()))
-    chunks.append(_pill("pp", "PP", title_attr=' title="Any leg priced from PrizePicks row"'))
-    chunks.append(_pill("ud", "UD", title_attr=' title="Any leg from Underdog-only ladder row"'))
-    chunks.append(_pill("dk", "DK", title_attr=' title="Any leg from DraftKings-only ladder row"'))
-    if has_power:
-        chunks.append(_pill("power", "POWER"))
-    if has_flex:
-        chunks.append(_pill("flex", "FLEX"))
-    if has_goblin:
-        chunks.append(_pill("goblin", "GOBLIN"))
-    if has_demon:
-        chunks.append(_pill("demon", "DEMON"))
-    if has_strong:
-        chunks.append(_pill("strong", "⚡ STRONG"))
-    chunks.append(
-        _pill(
-            "top-payout",
-            "🏆 TOP PAYOUT",
-            title_attr=' title="Highest payout × win probability (top 3 groups)"',
-        )
-    )
-    chunks.append(
-        '<label class="ticket-filter-sort-wrap" for="ticket-sort-select">'
-        '<span class="ticket-filter-sort-label">Sort</span>'
-        '<select id="ticket-sort-select" class="ticket-filter-sort">'
-        '<option value="ev_desc" selected>EV ↓</option>'
-        '<option value="ev_asc">EV ↑</option>'
-        '<option value="pwin_desc">P(WIN) ↓</option>'
-        '<option value="pwin_asc">P(WIN) ↑</option>'
-        '<option value="legs_desc">Legs ↓</option>'
-        '<option value="group">Group #</option>'
-        '<option value="hit_rate">Hit Rate</option>'
-        '</select>'
-        '</label>'
-    )
-    chunks.append(
-        '<button type="button" class="ticket-filter-bar-action active" id="toggle-skip" '
-        'style="border-radius:999px;" aria-pressed="true">SHOW SKIP</button>'
-    )
-    chunks.append('<button type="button" class="ticket-filter-bar-action" id="expand-all" style="border-radius:999px;">EXPAND ALL</button>')
-    chunks.append('<button type="button" class="ticket-filter-bar-action" id="collapse-all" style="border-radius:999px;">COLLAPSE ALL</button>')
-    chunks.append("</div>")
-    return "".join(chunks)
-
-
-def _tickets_fmt_line_plain(x) -> str:
-    try:
-        if x is None:
-            return "—"
-        xf = float(x)
-        if abs(xf - round(xf)) < 1e-9:
-            return str(int(round(xf)))
-        return f"{xf:.2f}".rstrip("0").rstrip(".")
-    except (TypeError, ValueError):
-        return str(x) if x is not None else "—"
-
-
-def _ticket_fingerprint(legs) -> str:
-    """Stable id for Placed checkboxes: sorted player|prop|line|dir."""
-    parts: list[str] = []
-    for leg in legs or []:
-        if not isinstance(leg, dict):
-            continue
-        player = str(leg.get("player") or "").strip().lower()
-        if not player:
-            continue
-        prop = str(leg.get("prop_type") or "").strip().lower()
-        line = _tickets_fmt_line_plain(leg.get("line"))
-        direction = str(leg.get("direction") or "").strip().upper()
-        if direction == "LOWER":
-            direction = "UNDER"
-        parts.append(f"{player}|{prop}|{line}|{direction}")
-    parts.sort()
-    return ";".join(parts)
-
-
-def _tickets_leg_parse_float(val: Any) -> float | None:
-    if val is None:
-        return None
-    if isinstance(val, str) and not val.strip():
-        return None
-    try:
-        xf = float(val)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(xf):
-        return None
-    return xf
-
-
-def _tickets_leg_game_log_table_html(leg: dict) -> str:
-    """
-    Per-game posted line (line_g*) + actual (stat_g* / g*) — replaces hit/miss bar chart.
-    """
-    dir_u = str(leg.get("direction") or "").strip().upper()
-    rows_html: list[str] = []
-    for gi in range(1, 11):
-        raw_stat = leg.get(f"stat_g{gi}")
-        if raw_stat is None:
-            raw_stat = leg.get(f"g{gi}")
-        act = _tickets_leg_parse_float(raw_stat)
-        ln_raw = leg.get(f"line_g{gi}")
-        if ln_raw is None:
-            ln_raw = leg.get(f"prop_line_g{gi}")
-        line_at_game = _tickets_leg_parse_float(ln_raw)
-        if act is None and line_at_game is None:
-            continue
-        act_disp = _tickets_fmt_line_plain(act) if act is not None else "—"
-        line_disp = _tickets_fmt_line_plain(line_at_game) if line_at_game is not None else "—"
-        res_disp = "—"
-        res_cls = ""
-        if act is not None and line_at_game is not None:
-            if dir_u == "UNDER":
-                ok = act <= line_at_game
-            elif dir_u == "OVER":
-                ok = act >= line_at_game
-            else:
-                ok = act >= line_at_game
-            res_disp = "Hit" if ok else "Miss"
-            res_cls = "leg-game-hit" if ok else "leg-game-miss"
-        rows_html.append(
-            f"<tr><td>{_h('G' + str(gi))}</td><td>{_h(line_disp)}</td><td>{_h(act_disp)}</td>"
-            f'<td class="{res_cls}">{_h(res_disp)}</td></tr>'
-        )
-    if not rows_html:
-        return (
-            '<p class="leg-game-log-empty">No per-game line / actual series saved for this leg '
-            "(stat_g1.. / line_g1..).</p>"
-        )
-    return (
-        '<table class="leg-game-log" role="grid" aria-label="Recent games vs posted line">'
-        "<thead><tr>"
-        "<th>Game</th><th>Posted line</th><th>Actual</th><th>vs pick</th>"
-        "</tr></thead><tbody>"
-        + "".join(rows_html)
-        + "</tbody></table>"
-    )
-
-
-def _tickets_leg_graph_row_html(leg: dict, row_id: str, table_cols: int) -> str:
-    """Expandable row: stat pills + per-game line/actual table (tickets_built.html)."""
-    l5_avg = leg.get("l5_avg")
-    season_avg = leg.get("season_avg")
-    l5_over = leg.get("l5_over")
-    l5_under = leg.get("l5_under")
-    l10_over = leg.get("l10_over")
-    l10_under = leg.get("l10_under")
-    line_val = leg.get("line")
-    dir_txt = str(leg.get("direction") or "").upper()
-    hr_val = leg.get("hit_rate")
-
-    def _pill(label: str, val, fmt=None) -> str:
-        if val is None:
-            return ""
-        if fmt:
-            try:
-                v = fmt(val)
-            except Exception:
-                v = str(val)
-        else:
-            v = str(val)
-        return f'<div class="gstat"><div class="gstat-label">{_h(label)}</div><div class="gstat-val">{_h(v)}</div></div>'
-
-    pills = "".join(
-        [
-            _pill("L5 Avg", l5_avg, lambda x: f"{float(x):.1f}"),
-            _pill("Season Avg", season_avg, lambda x: f"{float(x):.1f}"),
-            _pill("L5 Over", l5_over, lambda x: format_hit_window_fraction(5, x)),
-            _pill("L5 Under", l5_under, lambda x: format_hit_window_fraction(5, x)),
-            _pill("L10 Over", l10_over, lambda x: format_hit_window_fraction(10, x)),
-            _pill("L10 Under", l10_under, lambda x: format_hit_window_fraction(10, x)),
-            _pill("L10 Streak", leg.get("l10_streak")),
-            _pill("Hit Rate", hr_val, lambda x: f"{float(x) * 100:.0f}%"),
-        ]
-    )
-
-    game_log_html = _tickets_leg_game_log_table_html(leg)
-    sub = f"{leg.get('player', '')} · {leg.get('prop_type', '')} · Line {_tickets_fmt_line_plain(line_val)}"
-    return f"""
-<tr class="leg-graph-row" id="{_h(row_id)}">
-  <td class="leg-graph-cell" colspan="{table_cols}">
-    <div class="graph-wrap">
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">{_h(sub)}</div>
-        <div class="graph-stats">{pills}</div>
-      </div>
-      <div class="leg-game-log-wrap">
-        {game_log_html}
-      </div>
-    </div>
-  </td>
-</tr>"""
-
-def _winrate_best_leg_label(leg: dict) -> str:
-    """One-line leg summary for Today's Best panel: player, prop, direction, line."""
-    player = str(leg.get("player") or "").strip()
-    prop = str(leg.get("prop_type") or leg.get("prop") or "").strip()
-    direction = str(leg.get("direction") or "").strip().upper()
-    if direction == "LOWER":
-        direction = "UNDER"
-    line_s = _tickets_fmt_line_plain(leg.get("line"))
-
-    detail: list[str] = []
-    if prop:
-        detail.append(prop)
-    if direction and line_s != "—":
-        dir_short = "O" if direction in ("OVER", "O") else ("U" if direction in ("UNDER", "U") else direction)
-        detail.append(f"{dir_short} {line_s}")
-    elif line_s != "—":
-        detail.append(line_s)
-    elif direction:
-        detail.append(direction)
-
-    if player and detail:
-        return f"{player} — {' · '.join(detail)}"
-    if player:
-        return player
-    if detail:
-        return " · ".join(detail)
-    return "—"
-
-
-def _winrate_best_panel_html(winrate_payload: dict | None = None) -> str:
-    """Pinned panel: top 5 win-rate tickets (sorted by est_win_prob, bench legs filtered)."""
-    _placeholder = (
-        '<motionless class="winrate-best-panel" id="winrate-best-panel" aria-live="polite">'
-        '<motionless class="winrate-best-title">⚡ HIGH LEG HR</motionless>'
-        '<motionless class="winrate-best-sub">High-leg-HR tickets generating…</motionless>'
-        "</motionless>"
-    ).replace("motionless", "div")
-    data = winrate_payload
-    if data is None:
-        path = Path(REPO_ROOT) / "ui_runner" / "templates" / "tickets_winrate_latest.json"
-        if not path.is_file():
-            return _placeholder
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            return _placeholder
-    generated_at = str((data or {}).get("generated_at") or "")
-    flat: list[tuple[float, dict, str]] = []
-    for g in (data or {}).get("groups") or []:
-        gn = str(g.get("group_name") or "Ticket")
-        for t in g.get("tickets") or []:
-            if not isinstance(t, dict):
-                continue
-            if _winrate_ticket_construction_reject(t):
-                continue
-            if any(_winrate_leg_bench_risk(leg) for leg in (t.get("legs") or []) if isinstance(leg, dict)):
-                continue
-            flat.append((_winrate_ticket_rank_score(t), t, gn))
-    flat.sort(key=lambda x: -x[0])
-    top = flat[:5]
-    if not top:
-        return (
-            '<div class="winrate-best-panel" id="winrate-best-panel">'
-            '<div class="winrate-best-title">⚡ HIGH LEG HR</div>'
-            '<div class="winrate-best-sub">No qualifying high-leg-HR tickets for this slate '
-            '(deep-bench SUPPORT legs and same-game bench stacks are excluded). '
-            'These legs can still appear on graded main. Rebuild after the next ticket run.</div>'
-            "</div>"
-        )
-    rows: list[str] = []
-    for i, (rank_score, t, gn) in enumerate(top, start=1):
-        legs = t.get("legs") or []
-        leg_lines: list[str] = []
-        for leg in legs:
-            if isinstance(leg, dict):
-                lbl = _winrate_best_leg_label(leg)
-                if lbl and lbl != "—":
-                    leg_lines.append(f'<div class="winrate-best-leg">{_h(lbl)}</div>')
-        legs_html = "".join(leg_lines) if leg_lines else '<div class="winrate-best-leg">—</div>'
-        n_legs = len(legs) or t.get("n_legs") or 0
-        ev_v = t.get("ev_power")
-        if ev_v is None and isinstance(t.get("payout"), dict):
-            ev_v = (t.get("payout") or {}).get("ev")
-        try:
-            ev_f = float(ev_v) if ev_v is not None else 0.0
-        except (TypeError, ValueError):
-            ev_f = 0.0
-        pay = t.get("payout_multiplier") or t.get("power_payout")
-        try:
-            pay_f = float(pay) if pay is not None else 0.0
-        except (TypeError, ValueError):
-            pay_f = 0.0
-        pwin = _winrate_ticket_win_prob(t)
-        pcash_opt = _winrate_ticket_panel_pcash_optional(t)
-        pwin_sub = ""
-        if pcash_opt is not None:
-            pwin_sub = (
-                f'<div class="winrate-best-pwin-sub">P(cash) {_fmt(pcash_opt * 100, 0)}%</div>'
-            )
-        rows.append(
-            f'<div class="winrate-best-row" data-winrate-rank="{i}" role="button" tabindex="0">'
-            f'<span class="winrate-best-rank">#{i}</span>'
-            f'<span class="winrate-best-name">{_h(gn)}'
-            f'<div class="winrate-best-legs">{legs_html}</div>'
-            f'</span>'
-            f'<span class="winrate-best-stats">'
-            f'<div class="winrate-best-pwin">P(win) {_fmt(pwin * 100, 0)}%</div>'
-            f'{pwin_sub}'
-            f'<div>EV {_fmt(ev_f, 1)} · Payout {_fmt(pay_f, 1)}x · {int(n_legs)}-leg</div>'
-            f"</span></div>"
-        )
-    sub_parts = ["High-leg HR spotlight · also eligible on graded main · sorted by modeled win probability"]
-    if generated_at:
-        sub_parts.append(f"Updated: {generated_at}")
-    sub = _h(" · ".join(sub_parts))
-    body = "".join(rows)
-    return (
-        '<div class="winrate-best-panel" id="winrate-best-panel">'
-        '<div class="winrate-best-title">⚡ HIGH LEG HR</div>'
-        f'<div class="winrate-best-sub">{sub}</div>'
-        f"{body}"
-        "</div>"
-    )
-
-
-def _group_max_ev_for_ui_cap(group: dict) -> float:
-    best = float("-inf")
-    for t in group.get("tickets") or []:
-        if not isinstance(t, dict):
-            continue
-        for key in ("ev_power", "est_ev"):
-            v = t.get(key)
-            if v is None:
-                continue
-            try:
-                vf = float(v)
-                if math.isfinite(vf):
-                    best = max(best, vf)
-            except (TypeError, ValueError):
-                pass
-        p = t.get("payout")
-        if isinstance(p, dict) and p.get("ev") is not None:
-            try:
-                vf = float(p["ev"])
-                if math.isfinite(vf):
-                    best = max(best, vf)
-            except (TypeError, ValueError):
-                pass
-    return float(best) if math.isfinite(best) else 0.0
-
-
-def _parse_ui_group_bucket(group_name: str) -> tuple[str, str, int] | None:
-    """Return (sport_key, Standard|Goblin|Mixed, n_legs) for exhaustive group names."""
-    gn = (group_name or "").strip()
-    m = re.match(r"^(.+?)\s+(Standard|Goblin|Mixed)\s+(\d+)-Leg", gn, flags=re.I)
-    if not m:
-        return None
-    sport_raw = m.group(1).strip()
-    pool = str(m.group(2) or "").strip().title()
-    n = int(m.group(3))
-    su = sport_raw.upper()
-    sport_key = "X-Sport" if su.startswith("X-SPORT") else sport_raw.upper()
-    return (sport_key, pool, n)
-
-
-def _cap_ticket_groups_for_ui(groups: list, max_per_bucket: int) -> tuple[list, int, int]:
-    """
-    Keep the top ``max_per_bucket`` groups per (sport, pick-type bucket, n_legs) by max slip EV.
-    Groups that do not match the name pattern are kept. Full JSON is unchanged; this is HTML-only.
-    """
-    if max_per_bucket <= 0 or not groups:
-        return list(groups), len(groups), len(groups)
-    buckets: dict[tuple[str, str, int], list[tuple[float, int, dict]]] = defaultdict(list)
-    unbucketed: list[dict] = []
-    for i, g in enumerate(groups):
-        if not isinstance(g, dict):
-            continue
-        gn = str(g.get("group_name") or "")
-        b = _parse_ui_group_bucket(gn)
-        ev = _group_max_ev_for_ui_cap(g)
-        if b is None:
-            unbucketed.append(g)
-            continue
-        buckets[b].append((ev, i, g))
-    out: list[dict] = []
-    for _b, items in buckets.items():
-        items.sort(key=lambda x: (-x[0], x[1]))
-        out.extend([t[2] for t in items[:max_per_bucket]])
-    out.extend(unbucketed)
-
-    def _orig_order(g: dict) -> int:
-        try:
-            return groups.index(g)
-        except ValueError:
-            return 0
-
-    out.sort(
-        key=lambda g: (
-            _ticket_group_sort_rank(str(g.get("group_name") or "")),
-            _orig_order(g),
-        )
-    )
-    return out, len(groups), len(out)
-
-
-def _ticket_group_platforms_attr(group: dict) -> str:
-    """Space-separated slugs for filter bar: pp, ud, dk."""
-    slugs: set[str] = set()
-    for t in group.get("tickets") or []:
-        for leg in t.get("legs") or []:
-            plat = str(leg.get("pick_platform") or "prizepicks").lower().strip()
-            if plat == "underdog":
-                slugs.add("ud")
-            elif plat == "draftkings":
-                slugs.add("dk")
-            else:
-                slugs.add("pp")
-    return " ".join(sorted(slugs))
-
-
-def render_tickets_body_html(
-    payload: dict,
-    *,
-    _non_ev_slips_removed: int = 0,
-    winrate_payload: dict | None = None,
-) -> tuple[str, str]:
-    """
-    Render ticket slips from tickets_latest.json payload.
-    Returns (body_html, page_title) for injection into tickets_built.html.
-    """
-    import copy
-
-    payload = copy.deepcopy(payload)
-    _finalize_payload_l10_streaks(payload)
-
-    def safe_str(val, default: str = "") -> str:
-        if val is None:
-            return default
-        s = str(val).strip()
-        if s.lower() in ("nan", "none", "nat", "null"):
-            return default
-        return s
-
-    date_declared_raw = (payload.get("date") or "").strip()
-    date_declared = date_declared_raw[:10] if len(date_declared_raw) >= 10 else date_declared_raw
-    generated_at = payload.get("generated_at") or ""
-    groups_all = list(payload.get("groups") or [])
-    _ui_cap_raw = os.getenv("PROPORACLE_TICKETS_UI_MAX_GROUPS_PER_BUCKET", "10").strip()
-    try:
-        _ui_cap = int(_ui_cap_raw) if _ui_cap_raw else 0
-    except ValueError:
-        _ui_cap = 10
-    _ui_cap_note = ""
-    if _ui_cap > 0:
-        groups, _n_g_full, _n_g_show = _cap_ticket_groups_for_ui(groups_all, _ui_cap)
-        if _n_g_show < _n_g_full:
-            _ui_cap_note = (
-                f' &nbsp;·&nbsp; <span style="opacity:.85;font-size:12px;">'
-                f"Showing {_n_g_show} of {_n_g_full} groups</span>"
-            )
-    else:
-        groups = groups_all
-    n_slips = sum(len(g.get("tickets") or []) for g in groups)
-    n_groups = len(groups)
-
-    def _calendar_date_from_game_time(gs: str) -> str | None:
-        """Calendar YYYY-MM-DD from mixed game_time strings."""
-        s = (gs or "").strip()
-        if not s:
-            return None
-        candidates = [s]
-        if " " in s and "T" not in s.split(" ", 1)[0]:
-            candidates.append(s.replace(" ", "T", 1))
-        for cand in candidates:
-            try:
-                c2 = cand.replace("Z", "+00:00") if cand.endswith("Z") else cand
-                dt = datetime.fromisoformat(c2)
-                return dt.date().isoformat()
-            except ValueError:
-                continue
-        mmdd = re.match(r"^\s*(\d{1,2})/(\d{1,2})\b", s)
-        if mmdd and len(date_declared) >= 4 and date_declared[:4].isdigit():
-            y = int(date_declared[:4])
-            m = int(mmdd.group(1))
-            d = int(mmdd.group(2))
-            if 1 <= m <= 12 and 1 <= d <= 31:
-                return f"{y:04d}-{m:02d}-{d:02d}"
-        if len(s) >= 10 and s[4] == "-" and s[7] == "-":
-            head = s[:10]
-            if head[0:4].isdigit() and head[5:7].isdigit() and head[8:10].isdigit():
-                return head
-        return None
-
-    def _modal_slate_date_from_legs(p: dict) -> str | None:
-        counts: dict[str, int] = {}
-        for g in p.get("groups") or []:
-            for t in g.get("tickets") or []:
-                for leg in t.get("legs") or []:
-                    cd = _calendar_date_from_game_time(str(leg.get("game_time") or ""))
-                    if cd:
-                        counts[cd] = counts.get(cd, 0) + 1
-        if not counts:
-            return None
-        return max(counts.items(), key=lambda kv: (kv[1], kv[0]))[0]
-
-    date_from_legs = _modal_slate_date_from_legs({**payload, "groups": groups_all})
-    # Header date should reflect the pipeline target date (file date),
-    # not the surviving leg subset date after sport-specific fallbacks.
-    date_str = date_declared or date_from_legs or "Today"
-    date_note_html = ""
-    if date_from_legs and date_declared and date_from_legs != date_declared:
-        date_note_html = (
-            f' <span style="opacity:.7;font-size:12px;">(file date {_h(date_declared)})</span>'
-        )
-
-    page_title = f"PropOracle Tickets — {date_str}"
-
-    parts: list[str] = []
-    parts.append(f'<div class="tickets-built shell" data-slate-date="{_h(date_declared or date_str)}">')
-    parts.append(_TICKETS_BUILT_PAYOUT_CSS)
-
-    # ── Hero ──────────────────────────────────────────────────────────────────
-    built_html = (
-        f'<span class="hero-meta-built">{_h(generated_at)}</span>' if generated_at else ""
-    )
-    if _non_ev_slips_removed > 0:
-        counts_line = (
-            f"{n_groups} groups &nbsp;·&nbsp; {n_slips} +EV slips "
-            f"&nbsp;·&nbsp; <span style=\"color:var(--muted);\">{_non_ev_slips_removed} non-EV filtered</span>"
-        )
-    else:
-        counts_line = f"{n_groups} groups &nbsp;·&nbsp; {n_slips} slips"
-    counts_line += _ui_cap_note
-    _track = str(payload.get("ticket_track") or payload.get("mode") or "").lower()
-    _hero_eyebrow = "Today&rsquo;s Picks"
-    if "goblin70" in _track and "graded_main" in _track:
-        _hero_eyebrow = "Goblin-70 + Graded Main"
-    elif _track in ("graded_main", "main"):
-        _hero_eyebrow = "Graded Main Slate"
-    elif "goblin70" in _track:
-        _hero_eyebrow = "Goblin-70 + Graded Main" if payload.get("tracks") else "Goblin-70"
-    parts.append(f'''
-<div class="hero tickets-hero" style="margin-bottom:24px;">
-  <div class="hero-copy">
-    <div class="hero-eyebrow" style="font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">{_hero_eyebrow}</div>
-    <h1 class="hero-title" style="font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,5vw,56px);letter-spacing:0.06em;line-height:1.05;color:var(--text);margin:0;">
-      PROP<span class="hero-oracle-em">ORACLE</span>&nbsp;TICKETS
-    </h1>
-  </div>
-  <div class="hero-meta-row" role="group" aria-label="Slate summary">
-    <span class="hero-meta-date">{_h(date_str)}{date_note_html}</span>
-    <span class="hero-meta-counts">{counts_line}</span>
-    {built_html}
-  </div>
-</div>''')
-
-    if not groups:
-        exclude = [
-            str(s).strip().upper()
-            for s in (payload.get("main_exclude_sports") or [])
-            if str(s).strip()
-        ]
-        legs_checked = 0
-        try:
-            legs_checked = int((payload.get("strong_gate_stats") or {}).get("legs_checked") or 0)
-        except (TypeError, ValueError):
-            legs_checked = 0
-        excl_note = ""
-        if exclude:
-            short = ", ".join(exclude[:6])
-            if len(exclude) > 6:
-                short += "…"
-            excl_note = f" Main track excludes {short}."
-        if legs_checked == 0:
-            reason = (
-                f"No tickets generated for {_h(date_str)} — no eligible main-slate legs "
-                f"(WNBA/NBA empty or board only had excluded sports).{excl_note}"
-            )
-        else:
-            reason = (
-                f"No tickets generated for {_h(date_str)} "
-                f"({legs_checked} legs checked; none formed slips).{excl_note}"
-            )
-        parts.append(
-            '<div class="tickets-empty-board" role="status" '
-            'style="margin:8px 0 24px;padding:22px 20px;border-radius:14px;'
-            "border:1px solid rgba(212,175,55,0.22);background:rgba(20,20,20,0.55);"
-            'text-align:center;max-width:640px;">'
-            f'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;letter-spacing:0.06em;'
-            f'color:var(--text);margin-bottom:8px;">No tickets for {_h(date_str)}</div>'
-            f'<p style="font-family:Inter,sans-serif;font-size:13px;line-height:1.45;'
-            f'color:var(--muted);margin:0 0 14px;">{reason}</p>'
-            '<a href="/" style="display:inline-flex;align-items:center;gap:6px;'
-            "padding:9px 14px;border-radius:10px;font-size:12px;font-weight:600;"
-            "letter-spacing:0.04em;text-decoration:none;color:var(--accent);"
-            'border:1px solid rgba(212,175,55,0.4);background:rgba(212,175,55,0.1);">'
-            "← Back to home</a>"
-            "</div>"
-        )
-        parts.append("</div>")
-        return "".join(parts), page_title
-
-    parts.append(_winrate_best_panel_html(winrate_payload))
-
-    # ── Groups ────────────────────────────────────────────────────────────────
-    leg_graph_uid = 0
-    table_cols = 13
-
-    prepared: list[dict] = []
-    for original_index, group in enumerate(groups):
-        tickets = group.get("tickets") or []
-        if not tickets:
-            continue
-        gn = group.get("group_name") or "Tickets"
-        ds, dt, dpk = _ticket_group_filter_slugs(gn, tickets)
-        ev_a = _group_ev_data_attr(tickets)
-        pc_max = _group_payout_confidence_score(tickets)
-        prepared.append(
-            {
-                "group": group,
-                "sport": ds,
-                "type": dt,
-                "pick": dpk,
-                "ev": ev_a,
-                "ev_score": _group_max_ev_for_ui_cap(group),
-                "hit_score": _group_hit_rate_score(tickets),
-                "p_win_score": _group_max_p_win(group),
-                "original_index": original_index,
-                "payout_confidence": pc_max,
-            }
-        )
-
-    prepared.sort(
-        key=lambda ent: (
-            _ticket_group_sort_rank(str(ent["group"].get("group_name") or "")),
-            -float(ent.get("ev_score") or 0.0),
-            -float(ent.get("payout_confidence") or 0.0),
-            -float(ent.get("hit_score") or 0.0),
-            int(ent.get("original_index", 0)),
-        )
-    )
-    # Build filter pills from the full payload (not just UI-capped groups) so
-    # sports like NBA1H/WNBA remain selectable even when not in today's top-N.
-    prepared_all: list[dict] = []
-    for original_index, group in enumerate(groups_all):
-        tickets = group.get("tickets") or []
-        if not tickets:
-            continue
-        gn = group.get("group_name") or "Tickets"
-        ds, dt, dpk = _ticket_group_filter_slugs(gn, tickets)
-        ev_a = _group_ev_data_attr(tickets)
-        prepared_all.append(
-            {
-                "sport": ds,
-                "type": dt,
-                "pick": dpk,
-                "ev": ev_a,
-                "ev_score": _group_max_ev_for_ui_cap(group),
-                "original_index": original_index,
-            }
-        )
-    filter_attr_rows = [
-        {"sport": x["sport"], "type": x["type"], "pick": x["pick"], "ev": x["ev"]}
-        for x in (prepared_all or prepared)
-    ]
-    parts.append(_tickets_filter_pills_html(filter_attr_rows, slate_date=date_declared or date_str))
-
-    for ent in prepared:
-        group = ent["group"]
-        group_name = group.get("group_name") or "Tickets"
-        n_legs = group.get("n_legs") or 0
-        power_pay = group.get("power_payout")
-        flex_pay = group.get("flex_payout")
-        tickets = group.get("tickets") or []
-
-        sport_key = _group_sport(group_name, tickets)
-        accent = _sport_accent(sport_key)
-
-        pay_label = ""
-        if power_pay and flex_pay and abs(float(power_pay) - float(flex_pay)) > 0.01:
-            pay_label = f"Power {_fmt(power_pay, 1)}× &nbsp;·&nbsp; Flex {_fmt(flex_pay, 1)}×"
-        elif power_pay:
-            pay_label = f"{_fmt(power_pay, 1)}×"
-
-        group_meta_html = f'{n_legs}-leg{(" &nbsp;·&nbsp; " + pay_label) if pay_label else ""}'
-        ev_badge_html = _group_ev_badge_summary_html(tickets)
-        d_sport = ent["sport"]
-        d_type = ent["type"]
-        d_pick = ent["pick"]
-        d_ev = ent["ev"]
-        d_ev_score = float(ent.get("ev_score") or 0.0)
-        d_hit_score = float(ent.get("hit_score") or 0.0)
-        d_p_win_score = float(ent.get("p_win_score") or 0.0)
-        d_pc = float(ent.get("payout_confidence") or 0.0)
-        d_oi = int(ent.get("original_index", 0))
-        rec_cls = d_ev if d_ev in ("strong", "ok", "marginal", "low", "skip") else "skip"
-        d_plat = _ticket_group_platforms_attr(group)
-        d_n_legs = int(n_legs) if n_legs else _ticket_group_leg_count(group_name)
-        d_track = "goblin70" if _group_is_goblin70(group, group_name) else ""
-
-        parts.append(f'''
-<div class="ticket-group-section collapsed group-rec-{_h(rec_cls)}" data-sport="{_h(d_sport)}" data-type="{_h(d_type)}" data-pick="{_h(d_pick)}" data-ev="{_h(d_ev)}" data-ev-score="{_fmt(d_ev_score, 4)}" data-p-win="{_fmt(d_p_win_score, 6)}" data-hit-score="{_fmt(d_hit_score, 4)}" data-payout-confidence="{_fmt(d_pc, 2)}" data-n-legs="{d_n_legs}" data-original-index="{d_oi}" data-platforms="{_h(d_plat)}" data-group-name="{_h(group_name)}" data-track="{_h(d_track)}">
-  <div class="ticket-group-header collapsible-header" role="button" tabindex="0" aria-expanded="false">
-    <span class="group-title" style="color:{accent};">{_h(group_name)}</span>
-    <span class="group-meta">{group_meta_html}</span>
-    {ev_badge_html}
-    <button type="button" class="ticket-copy-btn ticket-copy-btn--group" data-copy="group" title="Copy every slip in this group to paste while building on PrizePicks">Copy group</button>
-    <button type="button" class="ticket-copy-btn ticket-placed-all" data-placed="group" title="Mark every slip in this group as placed on PrizePicks">Mark placed</button>
-    <span class="collapse-icon" aria-hidden="true">▼</span>
-  </div>
-  <div class="ticket-group-body">
-''')
-
-        for ticket in tickets:
-            ticket_no = ticket.get("ticket_no") or ""
-            win_prob = ticket.get("est_win_prob")
-            try:
-                p_win_val = float(ticket.get("p_win")) if ticket.get("p_win") is not None else None
-            except (TypeError, ValueError):
-                p_win_val = None
-            if p_win_val is None:
-                try:
-                    p_win_val = float(win_prob) if win_prob is not None else None
-                except (TypeError, ValueError):
-                    p_win_val = None
-            avg_hr = ticket.get("avg_hit_rate")
-            ev = ticket.get("ev_power")
-            t_power_pay = ticket.get("power_payout") or ticket.get("base_power_payout")
-            has_warn = ticket.get("has_data_warning", False)
-            legs = ticket.get("legs") or []
-
-            ev_f = None
-            if ev is not None:
-                try:
-                    ev_f = float(ev)
-                except (TypeError, ValueError):
-                    ev_f = None
-
-            payout = ticket.get("payout")
-            hdr_brackets = ""
-            payout_ok = False
-            ev_emp_f = None
-            if isinstance(payout, dict) and payout.get("ev") is not None:
-                try:
-                    ev_emp_f = float(payout["ev"])
-                    payout_ok = bool(math.isfinite(ev_emp_f))
-                except (TypeError, ValueError):
-                    ev_emp_f = None
-                    payout_ok = False
-            ev_for_badge = ev_emp_f if payout_ok else ev_f
-            if ev_for_badge is not None and math.isfinite(ev_for_badge):
-                if ev_for_badge >= 1.50:
-                    sig_cls, sig_lbl = "sig-strong", "STRONG"
-                elif ev_for_badge >= 1.15:
-                    sig_cls, sig_lbl = "sig-lean", "OK"
-                elif ev_for_badge >= 0.80:
-                    sig_cls, sig_lbl = "sig-risk", "MARGINAL"
-                else:
-                    sig_cls, sig_lbl = "sig-risk", "LOW"
-            else:
-                sig_cls, sig_lbl = "sig-lean", "—"
-            display_ev = ev_emp_f if payout_ok else ev_f
-            if display_ev is None:
-                display_ev = 0.0
-            board_pay_x = _resolve_ticket_display_min_x(
-                payout if isinstance(payout, dict) else None, ticket
-            )
-            board_pay_src = "calibrated"
-            board_captured_at = None
-            if isinstance(payout, dict):
-                board_pay_src = str(payout.get("payout_source") or "calibrated")
-                board_captured_at = payout.get("captured_at")
-            board_mult_text, board_badge_label, board_title = _board_payout_label(
-                board_pay_x, board_pay_src, captured_at=board_captured_at
-            )
-            if payout_ok:
-                rec_s = str(payout.get("recommendation") or "")
-                ev_cls = _payout_ev_class(rec_s)
-                pre = _payout_rec_prefix(rec_s)
-                hdr_brackets = f'''
-        <span class="ticket-hdr-bracket">[{_h(group_name)}]</span>
-        <span class="payout-rec-badge {ev_cls}">[{_h(pre)} {_h(rec_s)} — EV {_fmt(ev_emp_f, 2)}]</span>
-        {_board_payout_badge_html(board_pay_x, board_pay_src, captured_at=board_captured_at)}
-        <span class="{sig_cls}" title="Empirical EV tier (fallback to modeled EV when payout block is missing)">{sig_lbl}</span>'''
-            if not hdr_brackets:
-                hdr_brackets = (
-                    f'<span class="ticket-hdr-bracket">[{_h(group_name)}]</span>'
-                    f'<span class="{sig_cls}">{sig_lbl}</span>'
-                )
-
-            kpi_payout = board_pay_x
-            kpi_source = board_pay_src
-            # Do not substitute model power_payout when waiting on live_cdp.
-            if (
-                kpi_payout is None
-                and not require_live_payout_display()
-                and str(kpi_source or "").strip().lower() != "pending_live"
-            ):
-                kpi_payout = t_power_pay
-                board_mult_text, board_badge_label, board_title = _board_payout_label(
-                    _safe_positive_float(kpi_payout), kpi_source, captured_at=board_captured_at
-                )
-            elif kpi_payout is None:
-                board_mult_text, board_badge_label, board_title = _board_payout_label(
-                    None, kpi_source, captured_at=board_captured_at
-                )
-
-            warn_html = ('<span class="ticket-data-warn">⚠ data warning</span>'
-                         if has_warn else "")
-
-            l10_kpi_html = _ticket_l10_kpi_html(ticket, legs)
-            fp = _ticket_fingerprint(legs)
-
-            parts.append(f'''
-<div class="ticket" style="border-left:4px solid {accent};" data-group-name="{_h(group_name)}" data-ticket-no="{_h(ticket_no)}" data-fp="{_h(fp)}">
-  <div class="ticket-body">
-      <div class="ticket-hdr">
-        <span class="ticket-no">#{_h(ticket_no)}</span>
-        {hdr_brackets}
-        <span class="ticket-hdr-actions">
-          {warn_html}
-          <label class="ticket-placed">
-            <input type="checkbox" class="ticket-placed-cb" data-fp="{_h(fp)}" />
-            <span>Placed</span>
-          </label>
-          <button type="button" class="ticket-copy-btn" data-copy="ticket" title="Copy legs to paste while building this slip on PrizePicks">Copy slip</button>
-        </span>
-      </div>
-      <div class="kpi-row">
-        <div class="kpi">
-          <div class="kpi-label">Avg Leg HR</div>
-          <div class="kpi-val" style="color:var(--green);">{_pct(avg_hr)}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Model Win Prob</div>
-          <div class="kpi-val" style="color:var(--cyan);">{_pct(win_prob)}</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">EV</div>
-          <div class="kpi-val" style="color:var(--accent);" title="{_h(str((payout or {}).get('ev_formula') or 'EV = P(all)*sweep + P(miss-1)*min - 1.0'))}">{_fmt(display_ev, 2)}×</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">PAYOUT</div>
-          <div class="kpi-val" title="{_h(board_title)}">{_h(board_mult_text)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">{_payout_source_badge_html(kpi_source, badge_label=board_badge_label)}</div>
-        </div>{l10_kpi_html}
-      </div>
-      <div class="ticket-legs-table-wrapper">
-      <table class="ticket-legs-table">
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Sport</th>
-            <th>Prop</th>
-            <th>Line</th>
-            <th>Dir</th>
-            <th>Pick</th>
-            <th>HR</th>
-            <th>ML</th>
-            <th>Edge</th>
-            <th>Vs Def</th>
-            <th>Best Book</th>
-            <th>Best Line</th>
-            <th>Edge vs PP</th>
-          </tr>
-        </thead>
-        <tbody>''')
-
-            for leg in legs:
-                player = leg.get("player") or ""
-                sport = leg.get("sport") or ""
-                prop_type = leg.get("prop_type") or ""
-                line = leg.get("line")
-                std_line = leg.get("standard_line")
-                direction = (leg.get("direction") or "").upper()
-                if direction == "LOWER":
-                    direction = "UNDER"
-                pick_type = (leg.get("pick_type") or "").strip()
-                hit_rate = leg.get("hit_rate")
-                ml_prob = leg.get("ml_prob")
-                edge = leg.get("edge")
-                def_tier = safe_str(leg.get("def_tier"), "")
-                best_book = str(leg.get("best_cross_book") or "").strip()
-                best_line = leg.get("best_cross_line")
-                cross_edge_vs_pp = leg.get("cross_edge_vs_pp")
-                line_underdog = leg.get("line_underdog")
-                line_draftkings = leg.get("line_draftkings")
-                team = leg.get("team") or ""
-                opp = leg.get("opp") or ""
-                initials = leg.get("initials") or player[:2].upper()
-
-                # Direction badge
-                dir_cls = "dir-over" if direction == "OVER" else "dir-under"
-                dir_axis_cls = "direction-over" if direction == "OVER" else "direction-under"
-                dir_html = f'<span class="{dir_cls}">{_h(direction)}</span>'
-
-                # Pick type badge
-                pk_lower = pick_type.lower()
-                pk_color = _PICK_COLOR.get(pk_lower, "#aaa")
-                pick_html = f'<span style="font-size:13px;font-weight:700;color:{pk_color};">{_h(pick_type)}</span>'
-
-                # Line display (show goblin discount if applicable)
-                if std_line and line and abs(float(std_line) - float(line)) >= 0.1:
-                    line_html = f'{_fmt(line, 1)} <span style="font-size:11px;color:var(--muted);text-decoration:line-through;">{_fmt(std_line, 1)}</span>'
-                else:
-                    line_html = _fmt(line, 1)
-
-                # Cross-book comparison summary (PP vs UD vs DK)
-                books_avail = []
-                if line is not None:
-                    books_avail.append(f'PP {_fmt(line, 1)}')
-                if line_underdog is not None:
-                    books_avail.append(f'UD {_fmt(line_underdog, 1)}')
-                if line_draftkings is not None:
-                    books_avail.append(f'DK {_fmt(line_draftkings, 1)}')
-                line_tip = " / ".join(books_avail) if books_avail else "No cross-book lines"
-                best_book_html = _h(best_book) if best_book else "—"
-                best_line_html = _fmt(best_line, 1) if best_line is not None else "—"
-                cross_edge_html = _fmt(cross_edge_vs_pp, 2) if cross_edge_vs_pp is not None else "—"
-                cross_edge_style = "color:var(--muted);"
-                try:
-                    if cross_edge_vs_pp is not None and float(cross_edge_vs_pp) > 0.01:
-                        cross_edge_style = "color:var(--green);font-weight:700;"
-                except (TypeError, ValueError):
-                    pass
-
-                plat_raw = str(leg.get("pick_platform") or "prizepicks").lower().strip()
-                if plat_raw == "underdog":
-                    leg_plat_slug = "ud"
-                elif plat_raw == "draftkings":
-                    leg_plat_slug = "dk"
-                else:
-                    leg_plat_slug = "pp"
-
-                # Sport accent chip
-                s_accent = _sport_accent(sport)
-                sport_html = f'<span style="font-size:12px;font-weight:700;color:{s_accent};background:{s_accent}22;padding:3px 8px;border-radius:4px;border:1px solid {s_accent}44;">{_h(sport)}</span>'
-
-                # Avatar
-                av_html = f'<div class="avatar">{_h(initials)}</div>'
-
-                # Matchup sub-label
-                matchup = f"{team} vs {opp}" if team and opp else (team or opp)
-
-                hr_disp = (
-                    f"Hit rate {_pct(hit_rate)} · ML {_pct(ml_prob)} · Edge {_fmt(edge, 2)}"
-                    + (f" · Def {def_tier}" if def_tier else "")
-                )
-
-                parts.append(f'''
-          <tr class="leg-row" data-hr-display="{_h(hr_disp)}" data-platform="{_h(leg_plat_slug)}" data-player="{_h(player)}" data-sport="{_h(sport)}" data-prop="{_h(prop_type)}" data-line="{_h(_tickets_fmt_line_plain(line))}" data-dir="{_h(direction)}" data-pick="{_h(pick_type)}">
-            <td class="leg-col leg-col-player">
-              <div class="pwrap">
-                {av_html}
-                <div>
-                  <div style="font-weight:600;font-size:14px;">{_h(player)}{_l10_streak_badge_html(leg)}{_cons_line_badge_html(leg)}</div>
-                  <div style="font-size:12px;color:var(--muted);">{_h(matchup)}</div>
-                </div>
-              </div>
-            </td>
-            <td class="leg-col leg-col-sport hide-mobile">{sport_html}</td>
-            <td class="leg-col leg-col-prop" style="color:var(--text);font-weight:500;">{_h(prop_type)}</td>
-            <td class="leg-col leg-col-line" style="font-family:'Inter',sans-serif;">{line_html}</td>
-            <td class="leg-col leg-col-dir direction-cell {dir_axis_cls}">{dir_html}</td>
-            <td class="leg-col leg-col-pick">{pick_html}</td>
-            <td class="leg-col leg-col-hr hide-mobile" style="font-family:'Inter',sans-serif;color:var(--green);">{_pct(hit_rate)}</td>
-            <td class="leg-col leg-col-ml hide-mobile" style="font-family:'Inter',sans-serif;color:var(--cyan);">{_pct(ml_prob)}</td>
-            <td class="leg-col leg-col-edge hide-mobile" style="font-family:'Inter',sans-serif;color:var(--accent);">{_fmt(edge, 2)}</td>
-            <td class="leg-col leg-col-def hide-mobile" style="font-size:13px;color:var(--muted);">{_h(def_tier)}</td>
-            <td class="leg-col leg-col-book hide-mobile" style="font-family:'Inter',sans-serif;color:var(--cyan);" title="{_h(line_tip)}">{best_book_html}</td>
-            <td class="leg-col leg-col-bl hide-mobile" style="font-family:'Inter',sans-serif;" title="{_h(line_tip)}">{best_line_html}</td>
-            <td class="leg-col leg-col-ce hide-mobile" style="font-family:'Inter',sans-serif;{cross_edge_style}" title="Positive means better line than PP for this direction">{cross_edge_html}</td>
-          </tr>''')
-                leg_graph_uid += 1
-                parts.append(_tickets_leg_graph_row_html(leg, f"lgr-{leg_graph_uid}", table_cols))
-
-            payout_section = ""
-            if payout_ok and isinstance(payout, dict):
-                try:
-                    p_all = float(payout["p_all_win"])
-                except (TypeError, ValueError, KeyError):
-                    p_all = 0.0
-                rec_s2 = str(payout.get("recommendation") or "")
-                ev_cls_row = _payout_ev_class(rec_s2)
-                try:
-                    ev_disp = float(payout["ev"])
-                except (TypeError, ValueError):
-                    ev_disp = 0.0
-                psrc2 = str(payout.get("payout_source") or board_pay_src or "calibrated")
-                board_x = _resolve_ticket_display_min_x(payout, ticket)
-                if board_x is None:
-                    board_x = _safe_positive_float(kpi_payout)
-                mult_text, badge_label, title = _board_payout_label(
-                    board_x, psrc2, captured_at=payout.get("captured_at") or board_captured_at
-                )
-                try:
-                    e10 = round(10.0 * float(board_x), 2) if board_x is not None else None
-                except (TypeError, ValueError):
-                    e10 = None
-                pre_ev = _payout_rec_prefix(rec_s2)
-                dollar_html = (
-                    f"$10 &rarr; ${_fmt(e10, 2)}"
-                    if e10 is not None
-                    else "$10 &rarr; —"
-                )
-                payout_section = f'''
-      <div class="ticket-payout">
-        <div class="payout-row">
-          <span class="payout-label" title="{_h(title)}">Payout</span>
-          <span class="payout-value" title="{_h(title)}">{_h(mult_text)}</span>
-          {_payout_source_badge_html(psrc2, badge_label=badge_label)}
-        </div>
-        <div class="payout-row">
-          <span class="payout-label">P(Win)</span>
-          <span class="payout-value">{_fmt(p_all * 100, 1)}%</span>
-        </div>
-        <div class="payout-row">
-          <span class="payout-label">EV</span>
-          <span class="payout-value {ev_cls_row}">{_fmt(ev_disp, 2)} &mdash; {_h(pre_ev)} {_h(rec_s2)}</span>
-        </div>
-        <div class="payout-entry-guide">
-          <span title="{_h(title)}">{dollar_html}</span>
-        </div>
-      </div>'''
-
-            parts.append(f'''
-        </tbody>
-      </table>
-      </div>
-{payout_section}
-  </div>
-</div>''')
-
-        parts.append("</div></div>")  # ticket-group-body, ticket-group-section
-
-    parts.append('</div>')  # end .tickets-built.shell
-
-    # Inline JS: leg graphs, filter pills, collapsible groups
-    parts.append('''
-<script>
-(function(){
-  document.querySelectorAll('.tickets-built .leg-row').forEach(function(row){
-    row.addEventListener('click', function(){
-      var next = row.nextElementSibling;
-      if(next && next.classList.contains('leg-graph-row')){
-        next.classList.toggle('open');
-      }
-    });
-  });
-
-  var activeFilter = 'all';
-  var sortMode = 'ev_desc';
-  var hideSkip = true;
-
-  function isGoblin70(group){
-    var track = (group.getAttribute('data-track') || '').toLowerCase();
-    if(track === 'goblin70') return true;
-    var name = (group.getAttribute('data-group-name') || '').toLowerCase();
-    return name.indexOf('goblin-70') >= 0 || name.indexOf('nfl power') === 0;
-  }
-
-  function parseNum(el, attr){
-    var raw = (el.getAttribute(attr) || '').trim();
-    var n = parseFloat(raw);
-    return Number.isFinite(n) ? n : 0;
-  }
-
-  function sortGroups(groups){
-    var g70 = [];
-    var rest = [];
-    groups.forEach(function(g){
-      if(isGoblin70(g)) g70.push(g);
-      else rest.push(g);
-    });
-    g70.sort(function(a,b){
-      return parseNum(a, 'data-original-index') - parseNum(b, 'data-original-index');
-    });
-    function sortRest(mode){
-      if(mode === 'group'){
-        rest.sort(function(a,b){
-          return parseNum(a, 'data-original-index') - parseNum(b, 'data-original-index');
-        });
-        return;
-      }
-      if(mode === 'ev_asc'){
-        rest.sort(function(a,b){ return parseNum(a, 'data-ev-score') - parseNum(b, 'data-ev-score'); });
-        return;
-      }
-      if(mode === 'hit_rate'){
-        rest.sort(function(a,b){ return parseNum(b, 'data-hit-score') - parseNum(a, 'data-hit-score'); });
-        return;
-      }
-      if(mode === 'pwin_desc'){
-        rest.sort(function(a,b){ return parseNum(b, 'data-p-win') - parseNum(a, 'data-p-win'); });
-        return;
-      }
-      if(mode === 'pwin_asc'){
-        rest.sort(function(a,b){ return parseNum(a, 'data-p-win') - parseNum(b, 'data-p-win'); });
-        return;
-      }
-      if(mode === 'legs_desc'){
-        rest.sort(function(a,b){
-          var dl = parseNum(b, 'data-n-legs') - parseNum(a, 'data-n-legs');
-          if(dl !== 0) return dl;
-          return parseNum(b, 'data-ev-score') - parseNum(a, 'data-ev-score');
-        });
-        return;
-      }
-      rest.sort(function(a,b){ return parseNum(b, 'data-ev-score') - parseNum(a, 'data-ev-score'); });
-    }
-    sortRest(sortMode);
-    groups.length = 0;
-    g70.concat(rest).forEach(function(g){ groups.push(g); });
-  }
-
-  function matchesFilter(group, filter){
-    if(filter === 'all') return true;
-    if(filter === 'top-payout') return true;
-    if(filter === 'mine'){
-      if(isGoblin70(group)) return true;
-      var prefs = (window.__ACCOUNT_PREFERRED_GROUPS || []);
-      if(!prefs.length) return true;
-      var name = (group.getAttribute('data-group-name') || '').toLowerCase();
-      for(var i=0;i<prefs.length;i++){
-        var tok = String(prefs[i] || '').toLowerCase();
-        if(tok && name.indexOf(tok) >= 0) return true;
-      }
-      return false;
-    }
-    if(filter === 'pp' || filter === 'ud' || filter === 'dk'){
-      var raw = (group.getAttribute('data-platforms') || '').toLowerCase().trim();
-      if(!raw) return filter === 'pp';
-      var parts = raw.split(/\\s+/).filter(Boolean);
-      return parts.indexOf(filter) >= 0;
-    }
-    var ds = (group.getAttribute('data-sport') || '').toLowerCase();
-    var dt = (group.getAttribute('data-type') || '').toLowerCase();
-    var dp = (group.getAttribute('data-pick') || '').toLowerCase();
-    var de = (group.getAttribute('data-ev') || '').toLowerCase();
-    var dsParts = ds.split(/\\s+/).filter(Boolean);
-    return dsParts.indexOf(filter) >= 0 || dt === filter || dp === filter || de === filter;
-  }
-
-  function applyGroupView(){
-    var shell = document.querySelector('.tickets-built.shell');
-    if(!shell) return;
-    var bar = shell.querySelector('.ticket-filter-bar');
-    var allGroups = Array.from(shell.querySelectorAll('.ticket-group-section'));
-    var visible = allGroups.filter(function(g){
-      if(!matchesFilter(g, activeFilter)) return false;
-      if(hideSkip && !isGoblin70(g)){
-        var rec = (g.getAttribute('data-ev') || '').toLowerCase();
-        if(rec === 'skip' || rec === 'low') return false;
-      }
-      return true;
-    });
-
-    if(activeFilter === 'top-payout'){
-      visible.sort(function(a,b){
-        return parseNum(b, 'data-payout-confidence') - parseNum(a, 'data-payout-confidence');
-      });
-      visible = visible.slice(0, 3);
-    } else {
-      sortGroups(visible);
-    }
-
-    allGroups.forEach(function(g){ g.style.display = 'none'; });
-    var frag = document.createDocumentFragment();
-    visible.forEach(function(g){ g.style.display = ''; frag.appendChild(g); });
-    if(bar){
-      var insertBefore = bar.nextElementSibling;
-      if(insertBefore){
-        shell.insertBefore(frag, insertBefore);
-      } else {
-        shell.appendChild(frag);
-      }
-    } else {
-      shell.appendChild(frag);
-    }
-  }
-
-  var filterBar = document.querySelector('.ticket-filter-bar');
-  if(filterBar){
-    filterBar.addEventListener('click', function(ev){
-      var pill = ev.target.closest('.ticket-filter-pill');
-      if(!pill || !filterBar.contains(pill)) return;
-      filterBar.querySelectorAll('.ticket-filter-pill').forEach(function(p){ p.classList.remove('active'); });
-      pill.classList.add('active');
-      activeFilter = (pill.getAttribute('data-filter') || '').toLowerCase();
-      applyGroupView();
-    });
-  }
-
-  var sortSel = document.getElementById('ticket-sort-select');
-  if(sortSel){
-    sortSel.addEventListener('change', function(){
-      sortMode = (sortSel.value || 'ev_desc').toLowerCase();
-      applyGroupView();
-    });
-  }
-
-  var tSkip = document.getElementById('toggle-skip');
-  if(tSkip){
-    tSkip.addEventListener('click', function(){
-      hideSkip = !hideSkip;
-      tSkip.classList.toggle('active', hideSkip);
-      tSkip.setAttribute('aria-pressed', hideSkip ? 'true' : 'false');
-      tSkip.textContent = hideSkip ? 'SHOW SKIP' : 'HIDE SKIP';
-      applyGroupView();
-    });
-  }
-
-  function toggleSectionCollapsed(section){
-    if(!section) return;
-    section.classList.toggle('collapsed');
-    var hdr = section.querySelector('.collapsible-header');
-    if(hdr) hdr.setAttribute('aria-expanded', section.classList.contains('collapsed') ? 'false' : 'true');
-  }
-
-  document.querySelectorAll('.tickets-built .collapsible-header').forEach(function(header){
-    header.addEventListener('click', function(ev){
-      if(ev.target.closest('button, a, input, select, textarea, label')) return;
-      ev.preventDefault();
-      toggleSectionCollapsed(header.closest('.ticket-group-section'));
-    });
-    header.addEventListener('keydown', function(ev){
-      if(ev.target.closest('button, a, input, select, textarea, label')) return;
-      if(ev.key === 'Enter' || ev.key === ' '){
-        ev.preventDefault();
-        toggleSectionCollapsed(header.closest('.ticket-group-section'));
-      }
-    });
-  });
-
-  var ex = document.getElementById('expand-all');
-  if(ex) ex.addEventListener('click', function(ev){
-    ev.preventDefault();
-    document.querySelectorAll('.ticket-group-section').forEach(function(s){
-      s.classList.remove('collapsed');
-      var h = s.querySelector('.collapsible-header');
-      if(h) h.setAttribute('aria-expanded', 'true');
-    });
-  });
-  var col = document.getElementById('collapse-all');
-  if(col) col.addEventListener('click', function(ev){
-    ev.preventDefault();
-    document.querySelectorAll('.ticket-group-section').forEach(function(s){
-      s.classList.add('collapsed');
-      var h = s.querySelector('.collapsible-header');
-      if(h) h.setAttribute('aria-expanded', 'false');
-    });
-  });
-
-  (function(){
-    // Always start collapsed so /tickets opens compact on both mobile and desktop.
-    function collapseAllGroups(){
-      document.querySelectorAll('.ticket-group-section').forEach(function(s){
-        s.classList.add('collapsed');
-        var h = s.querySelector('.collapsible-header');
-        if(h) h.setAttribute('aria-expanded', 'false');
-      });
-    }
-    collapseAllGroups();
-    applyGroupView();
-  })();
-  window.__ticketsApplyGroupView = applyGroupView;
-  window.__ticketsSetFilter = function(filter){
-    activeFilter = String(filter || 'all').toLowerCase();
-    var bar = document.querySelector('.ticket-filter-bar');
-    if(bar){
-      bar.querySelectorAll('.ticket-filter-pill').forEach(function(p){
-        p.classList.toggle('active', (p.getAttribute('data-filter') || '').toLowerCase() === activeFilter);
-      });
-    }
-    applyGroupView();
-  };
-})();
-</script>''')
-
-    return "".join(parts), page_title
 
 
 if __name__ == "__main__":

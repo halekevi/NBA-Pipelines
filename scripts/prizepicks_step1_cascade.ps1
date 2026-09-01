@@ -111,28 +111,100 @@ function Get-PrizePicksCdpUrl {
     return "http://127.0.0.1:9222"
 }
 
-function Test-PrizePicksCdpReachable {
+function Test-PrizePicksCdpHttp {
     param([string]$CdpUrl = "")
     if (-not $CdpUrl) { $CdpUrl = Get-PrizePicksCdpUrl }
     try {
         $probe = Invoke-RestMethod -Uri "$($CdpUrl.TrimEnd('/'))/json/version" -TimeoutSec 2 -ErrorAction Stop
-        if (-not $probe) { return $false }
+        return [bool]$probe
     } catch {
         return $false
     }
+}
+
+function Test-PrizePicksCdpAttach {
+    param([string]$CdpUrl = "", [int]$TimeoutMs = 8000)
+    if (-not $CdpUrl) { $CdpUrl = Get-PrizePicksCdpUrl }
     $repo = Split-Path $script:PrizePicksCascadeDir -Parent
     if (-not (Test-Path -LiteralPath (Join-Path $repo "utils\prizepicks_cdp.py"))) {
-        return $true
+        return (Test-PrizePicksCdpHttp -CdpUrl $CdpUrl)
     }
     try {
         Push-Location $repo
-        & py -3.14 -c "import sys; from utils.prizepicks_cdp import probe_cdp_attach; sys.exit(0 if probe_cdp_attach(sys.argv[1], timeout_ms=8000) else 1)" $CdpUrl 2>$null | Out-Null
+        & py -3.14 -c "import sys; from utils.prizepicks_cdp import probe_cdp_attach; sys.exit(0 if probe_cdp_attach(sys.argv[1], timeout_ms=int(sys.argv[2])) else 1)" $CdpUrl $TimeoutMs 2>$null | Out-Null
         return ($LASTEXITCODE -eq 0)
     } catch {
         return $false
     } finally {
         Pop-Location
     }
+}
+
+function Repair-WedgedPrizePicksCdp {
+    param([string]$CdpUrl = "")
+    if (-not $CdpUrl) { $CdpUrl = Get-PrizePicksCdpUrl }
+    $repo = Split-Path $script:PrizePicksCascadeDir -Parent
+    $launch = Join-Path $repo "scripts\launch_prizepicks_chrome_cdp.ps1"
+    if (-not (Test-Path -LiteralPath $launch)) { return $false }
+    $mutex = $null
+    try {
+        $mutex = [System.Threading.Mutex]::new($false, "Global\PropOracleCdpRepair")
+        $null = $mutex.WaitOne(120000)
+    } catch { }
+    try {
+        $stamp = Join-Path $repo "logs\cdp_repair.stamp"
+        if (Test-Path -LiteralPath $stamp) {
+            $age = (Get-Date) - (Get-Item -LiteralPath $stamp).LastWriteTime
+            if ($age.TotalMinutes -lt 5 -and (Test-PrizePicksCdpAttach -CdpUrl $CdpUrl -TimeoutMs 8000)) {
+                return $true
+            }
+        }
+        Write-PP-Safe "CDP HTTP is up but Playwright cannot attach — restarting PrizePicks debug Chrome"
+        Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.CommandLine -match 'remote-debugging-port=9222|\.pp_browser_profile|chrome_debug' } |
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+        Start-Sleep -Seconds 2
+        & pwsh -NoProfile -File $launch -OpenBoard -LeagueId 2 | Out-Null
+        Start-Sleep -Seconds 6
+        $logDir = Join-Path $repo "logs"
+        if (-not (Test-Path -LiteralPath $logDir)) { New-Item -ItemType Directory -Force -Path $logDir | Out-Null }
+        Get-Date -Format o | Set-Content -LiteralPath $stamp -Encoding ascii
+        return (Test-PrizePicksCdpAttach -CdpUrl $CdpUrl -TimeoutMs 20000)
+    } catch {
+        return $false
+    } finally {
+        if ($mutex) { try { $mutex.ReleaseMutex() } catch { }; try { $mutex.Dispose() } catch { } }
+    }
+}
+
+function Write-PP-Safe {
+    param([string]$Msg)
+    if (Get-Command Write-Host -ErrorAction SilentlyContinue) {
+        Write-Host "      [CDP] $Msg" -ForegroundColor Yellow
+    } else {
+        Write-Output "      [CDP] $Msg"
+    }
+}
+
+function Test-PrizePicksCdpReachable {
+    param([string]$CdpUrl = "")
+    if (-not $CdpUrl) { $CdpUrl = Get-PrizePicksCdpUrl }
+    if (-not (Test-PrizePicksCdpHttp -CdpUrl $CdpUrl)) {
+        $script:PrizePicksCdpWedged = $false
+        return $false
+    }
+    if (Test-PrizePicksCdpAttach -CdpUrl $CdpUrl) {
+        $script:PrizePicksCdpWedged = $false
+        return $true
+    }
+    $repaired = Repair-WedgedPrizePicksCdp -CdpUrl $CdpUrl
+    if ($repaired) {
+        $script:PrizePicksCdpWedged = $false
+        return $true
+    }
+    $script:PrizePicksCdpWedged = $true
+    Write-PP-Safe "still wedged after Chrome restart — HTTP only (skip Playwright)"
+    return $false
 }
 
 function Get-PrizePicksStep1Health {
@@ -282,6 +354,11 @@ function Invoke-PrizePicksStep1Cascade {
                 return $false
             }
             Write-PP "      [$SportLabel] CDP failed (exit $exit) — skipping Playwright (protect DataDome)" "Yellow"
+            return $false
+        }
+
+        if ($script:PrizePicksCdpWedged) {
+            Write-PP "      [$SportLabel] CDP wedged — not launching Playwright (protect DataDome)" "Yellow"
             return $false
         }
 

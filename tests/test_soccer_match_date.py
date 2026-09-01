@@ -21,3 +21,20 @@ def test_soccer_step8_dated_copy_uses_pipeline_date():
     assert "def _copy_dated_step8_soccer(output_xlsx_path: str, slate_date: str)" in text
     assert "_copy_dated_step8_soccer(xlsx_path, target_str)" in text
 
+
+def test_step8_dated_copies_do_not_use_clock_today():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    paths = [
+        root / "Sports" / "NBA" / "scripts" / "step8_add_direction_context.py",
+        root / "Sports" / "MLB" / "scripts" / "step8_add_direction_context_mlb.py",
+        root / "Sports" / "NHL" / "scripts" / "step8_add_direction_context_nhl.py",
+        root / "Sports" / "NFL" / "scripts" / "step8_add_direction_context_nfl.py",
+        root / "Sports" / "Tennis" / "scripts" / "step8_add_direction_context_tennis.py",
+    ]
+    for p in paths:
+        text = p.read_text(encoding="utf-8")
+        assert "date.today()" not in text, p.name
+        assert "dated_copy_ymd" in text or "parse_pipeline_ymd" in text, p.name
+

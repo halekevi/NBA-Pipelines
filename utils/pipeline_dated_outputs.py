@@ -62,12 +62,15 @@ def copy_pipeline_output_to_dated_dirs(
     df: pd.DataFrame,
     sport_dir_name: str,
     repo_root: Path,
+    pipeline_date: str | None = None,
 ) -> None:
     """After writing ``output_path``, copy the file into {repo_root}/outputs/{date}/{basename}."""
+    from utils.slate_id import parse_pipeline_ymd
+
     src = Path(output_path).resolve()
     if not src.is_file():
         return
-    slate_date = earliest_slate_date_iso(df)
+    slate_date = parse_pipeline_ymd(pipeline_date) or earliest_slate_date_iso(df)
     if not slate_date:
         return
     name = src.name

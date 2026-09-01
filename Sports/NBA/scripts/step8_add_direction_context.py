@@ -25,7 +25,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 import os
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -80,9 +80,11 @@ def _copy_dated_step8_nba(output_xlsx_path: str, slate_date: str) -> None:
     src = Path(output_xlsx_path)
     if not src.is_file():
         return
-    d = (slate_date or "").strip()
+    from utils.slate_id import dated_copy_ymd
+
+    d = dated_copy_ymd(slate_date, context="NBA step8")
     if not d:
-        d = date.today().isoformat()
+        return
     repo_root = Path(__file__).resolve().parents[3]
     dated_dir = repo_root / "outputs" / d
     src_name = src.name.lower()
@@ -613,29 +615,34 @@ def main() -> None:
     # Keep only rows for target slate date when start_time is available.
     # This prevents stale historical slates from leaking into today's output.
     if "start_time" in out.columns:
-        target_date = (args.date or datetime.now(_ET).strftime("%Y-%m-%d")).strip()
-        start_dt_et = pd.to_datetime(out["start_time"], utc=True, errors="coerce").dt.tz_convert(_ET)
-        start_dates = start_dt_et.dt.strftime("%Y-%m-%d")
-        keep_mask = start_dates.eq(target_date)
-        kept = int(keep_mask.sum())
-        total = len(out)
-        if kept == 0:
-            # Fallback to latest available slate date so pipeline does not emit empty NBA outputs
-            available_dates = start_dates[start_dates.notna() & (start_dates != "NaT")]
-            if len(available_dates):
-                fallback_date = available_dates.max()
-                keep_mask = start_dates.eq(fallback_date)
-                kept = int(keep_mask.sum())
-                print(
-                    f"[DateFilter] No rows for {target_date}; "
-                    f"falling back to latest available date {fallback_date} ({kept} rows)"
-                )
-            else:
-                print(f"[DateFilter] No parseable start_time values; keeping all {total} rows")
-                keep_mask = pd.Series(True, index=out.index)
+        from utils.slate_id import parse_pipeline_ymd
+
+        target_date = parse_pipeline_ymd(args.date)
+        if not target_date:
+            print("[DateFilter] WARN: no pipeline --date — keeping all NBA rows (not clock today)")
         else:
-            print(f"[DateFilter] Kept {kept}/{total} rows for {target_date} (dropped {total - kept} rows)")
-        out = out.loc[keep_mask].copy()
+            start_dt_et = pd.to_datetime(out["start_time"], utc=True, errors="coerce").dt.tz_convert(_ET)
+            start_dates = start_dt_et.dt.strftime("%Y-%m-%d")
+            keep_mask = start_dates.eq(target_date)
+            kept = int(keep_mask.sum())
+            total = len(out)
+            if kept == 0:
+                # Fallback to latest available slate date so pipeline does not emit empty NBA outputs
+                available_dates = start_dates[start_dates.notna() & (start_dates != "NaT")]
+                if len(available_dates):
+                    fallback_date = available_dates.max()
+                    keep_mask = start_dates.eq(fallback_date)
+                    kept = int(keep_mask.sum())
+                    print(
+                        f"[DateFilter] No rows for {target_date}; "
+                        f"falling back to latest available date {fallback_date} ({kept} rows)"
+                    )
+                else:
+                    print(f"[DateFilter] No parseable start_time values; keeping all {total} rows")
+                    keep_mask = pd.Series(True, index=out.index)
+            else:
+                print(f"[DateFilter] Kept {kept}/{total} rows for {target_date} (dropped {total - kept} rows)")
+            out = out.loc[keep_mask].copy()
 
     if "start_time" in out.columns:
         et = _start_times_et(out["start_time"])

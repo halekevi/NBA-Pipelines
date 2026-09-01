@@ -17,13 +17,16 @@
 param(
     [switch]$NoOverwrite,
     [string]$RunLabel = "",
-    [switch]$SkipPayout
+    [switch]$SkipPayout,
+    [string]$Date = ""
 )
 
 $ErrorActionPreference = "Continue"
 $Root = Split-Path $PSScriptRoot -Parent
 $SportsRoot = Join-Path $Root "Sports"
 Set-Location $Root
+$cascade = Join-Path $PSScriptRoot "prizepicks_step1_cascade.ps1"
+if (Test-Path -LiteralPath $cascade) { . $cascade }
 $script:FetchStarted = (Get-Date).ToUniversalTime().ToString("o")
 
 $env:PYTHONUTF8 = "1"
@@ -69,7 +72,7 @@ function Copy-Step1Mirror {
 
 Write-Host "[LATE_FETCH] Starting full slate re-fetch $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
-$PipeDate = Resolve-PipelineSlateDate
+$PipeDate = if ($Date -and $Date.Trim()) { $Date.Trim() } else { Resolve-PipelineSlateDate }
 Write-Host "[LATE_FETCH] Pipeline slate date: $PipeDate" -ForegroundColor Cyan
 
 # Keep in sync with run_pipeline.ps1 summer off-season gates. Fetching off-season
@@ -269,20 +272,28 @@ function Copy-SiblingDatedStep1 {
 $MaxRetries = Resolve-LateFetchMaxRetries -Label $RunLabel
 $Quiet403 = ($MaxRetries -le 2)
 $CdpUrl = if ($env:PROPORACLE_MLB_CDP_URL) { "$($env:PROPORACLE_MLB_CDP_URL)".Trim() } else { "http://127.0.0.1:9222" }
-$CdpReachable = Test-LateFetchCdp -BaseUrl $CdpUrl
-if (-not $CdpReachable) {
+$httpUp = if (Get-Command Test-PrizePicksCdpHttp -ErrorAction SilentlyContinue) {
+    Test-PrizePicksCdpHttp -CdpUrl $CdpUrl
+} else {
+    Test-LateFetchCdp -BaseUrl $CdpUrl
+}
+if (-not $httpUp) {
     $ppChromePs1 = Join-Path $Root "scripts\launch_prizepicks_chrome_cdp.ps1"
     if (Test-Path -LiteralPath $ppChromePs1) {
         Write-Host "[LATE_FETCH] CDP down ($CdpUrl) — launching PP Chrome (same as daily STEP C0a)" -ForegroundColor Yellow
         & pwsh -NoProfile -File $ppChromePs1 -OpenBoard -LeagueId 2
         Start-Sleep -Seconds 8
-        $CdpReachable = Test-LateFetchCdp -BaseUrl $CdpUrl
-        if ($CdpReachable) {
-            Write-Host "[LATE_FETCH] CDP ready after launch" -ForegroundColor Green
-        } else {
-            Write-Host "[LATE_FETCH] CDP still down after launch — HTTP/fail-fast (empty boards likely)" -ForegroundColor Yellow
-        }
     }
+}
+$CdpReachable = if (Get-Command Test-PrizePicksCdpReachable -ErrorAction SilentlyContinue) {
+    Test-PrizePicksCdpReachable -CdpUrl $CdpUrl
+} else {
+    Test-LateFetchCdp -BaseUrl $CdpUrl
+}
+if ($CdpReachable) {
+    Write-Host "[LATE_FETCH] CDP attach OK at $CdpUrl" -ForegroundColor Green
+} else {
+    Write-Host "[LATE_FETCH] CDP attach failed — HTTP/fail-fast (empty boards likely)" -ForegroundColor Yellow
 }
 if ($RunLabel) {
     Write-Host "[LATE_FETCH] RunLabel=$RunLabel max_retries=$MaxRetries quiet_403=$Quiet403 cdp=$CdpReachable" -ForegroundColor DarkGray

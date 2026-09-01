@@ -255,13 +255,12 @@ $WNBAOffSeason = ($Date -ge $WNBA_ALLSTAR_PAUSE_START) -and ($Date -lt $WNBA_SEA
 
 # NBA off-season: pause NBA / NBA1H / NBA1Q until this date (summer ops).
 $NBA_SEASON_RESUME = "2026-10-01"
-$NBASeasonResume = [datetime]::ParseExact($NBA_SEASON_RESUME, "yyyy-MM-dd", $null)
-$NBAOffSeason = (Get-Date) -lt $NBASeasonResume
+# Use pipeline -Date (not wall clock) so a night-ahead run still fetches on resume day.
+$NBAOffSeason = (-not $ForceAll.IsPresent) -and ($Date -lt $NBA_SEASON_RESUME)
 
 # NHL off-season: pause until September (next season prep).
 $NHL_SEASON_RESUME = "2026-09-01"
-$NHLSeasonResume = [datetime]::ParseExact($NHL_SEASON_RESUME, "yyyy-MM-dd", $null)
-$NHLOffSeason = (Get-Date) -lt $NHLSeasonResume
+$NHLOffSeason = (-not $ForceAll.IsPresent) -and ($Date -lt $NHL_SEASON_RESUME)
 
 # NFL: skip until preseason week 1 (not the calendar month of August).
 # Override: $env:PROPORACLE_NFL_RESUME / -ForceNFL / -ForceAll

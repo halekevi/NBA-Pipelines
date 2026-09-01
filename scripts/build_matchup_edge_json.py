@@ -23,7 +23,12 @@ _REPO = Path(__file__).resolve().parents[1]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
-from utils.matchup_edge.builder import build_matchup_payload, publish_payload  # noqa: E402
+from utils.matchup_edge.builder import (  # noqa: E402
+    build_matchup_payload,
+    existing_matchup_source_hash,
+    matchup_source_hash,
+    publish_payload,
+)
 from utils.matchup_edge.sports_config import ENABLED_SPORTS  # noqa: E402
 
 
@@ -31,6 +36,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sport", default="all", help=f"Sport key or 'all'. Enabled: {', '.join(ENABLED_SPORTS)}")
     ap.add_argument("--slate", default="", help="Optional slate CSV/JSON path")
+    ap.add_argument("--force", action="store_true", help="Rebuild even when source_hash is unchanged")
     args = ap.parse_args()
 
     sports = list(ENABLED_SPORTS) if args.sport.lower() == "all" else [args.sport.lower().strip()]
@@ -40,7 +46,15 @@ def main() -> int:
     failed: list[str] = []
     for sport in sports:
         try:
+            src_hash = matchup_source_hash(sport, slate)
+            if not args.force:
+                prev = existing_matchup_source_hash(sport, _REPO)
+                if prev and prev == src_hash:
+                    print(f"[{sport}] skip (source_hash={src_hash} unchanged)")
+                    ok += 1
+                    continue
             payload = build_matchup_payload(sport, slate_path=slate)
+            payload["source_hash"] = src_hash
             paths = publish_payload(payload, sport, _REPO)
             n_blocks = len(payload.get("players_by_team_cat") or {})
             err = payload.get("error")

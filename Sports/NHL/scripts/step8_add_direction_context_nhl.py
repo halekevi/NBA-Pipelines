@@ -37,7 +37,7 @@ import shutil
 import sys
 import openpyxl
 import pandas as pd
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -59,11 +59,11 @@ def _copy_dated_step8_nhl(output_xlsx_path: str, slate_date: str | None = None) 
     src = Path(output_xlsx_path)
     if not src.is_file():
         return
-    ds = str(slate_date or "").strip()[:10]
-    try:
-        dated_key = datetime.strptime(ds, "%Y-%m-%d").date().isoformat() if ds else date.today().isoformat()
-    except Exception:
-        dated_key = date.today().isoformat()
+    from utils.slate_id import dated_copy_ymd
+
+    dated_key = dated_copy_ymd(slate_date, context="NHL step8")
+    if not dated_key:
+        return
     repo_root = Path(__file__).resolve().parents[3]
     dated_dir = repo_root / "outputs" / dated_key
     try:
@@ -681,11 +681,16 @@ def main():
     display_rows = [build_display_row(r, available_cols) for r in _tqdm(raw_rows, desc="  Building display rows", unit="prop")]
 
     # ── Date filter: keep only target slate date games (ET calendar via Game Date) ─
-    ds = str(args.date).strip()[:10] if args.date and str(args.date).strip() else ""
-    target_local = (
-        datetime.strptime(ds, "%Y-%m-%d").date() if ds else date.today()
-    )
-    target_str = target_local.isoformat()
+    from utils.slate_id import parse_pipeline_ymd
+
+    ds = parse_pipeline_ymd(args.date)
+    if not ds:
+        print("[NHL step8] WARN: no pipeline --date — keeping all game dates (not clock today)")
+        target_str = ""
+        target_local = None
+    else:
+        target_local = datetime.strptime(ds, "%Y-%m-%d").date()
+        target_str = target_local.isoformat()
     before_filter = len(display_rows)
     unfiltered = list(display_rows)
 
@@ -739,7 +744,8 @@ def main():
             return gd == target_str
         return _is_target_date(r.get("game_start", ""))
 
-    display_rows = [r for r in display_rows if _row_matches_target(r)]
+    if target_str:
+        display_rows = [r for r in display_rows if _row_matches_target(r)]
     dropped = before_filter - len(display_rows)
     if len(display_rows) == 0 and len(unfiltered) > 0:
         dates_seen: list[str] = []

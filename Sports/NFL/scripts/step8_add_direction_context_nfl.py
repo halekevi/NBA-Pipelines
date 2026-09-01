@@ -15,7 +15,6 @@ from __future__ import annotations
 import argparse
 import shutil
 import sys
-from datetime import date
 from pathlib import Path
 
 import numpy as np
@@ -35,7 +34,11 @@ from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecar
 def _copy_dated(out_xlsx: Path, slate_date: str) -> None:
     if not out_xlsx.is_file():
         return
-    d = (slate_date or "").strip() or date.today().isoformat()
+    from utils.slate_id import dated_copy_ymd
+
+    d = dated_copy_ymd(slate_date, context="NFL step8")
+    if not d:
+        return
     repo_root = Path(__file__).resolve().parents[3]
     for dated_dir in (
         repo_root / "outputs" / d / "nfl",
@@ -184,7 +187,22 @@ def main() -> None:
             "Snap L3": pd.to_numeric(col("snap_pct_L3", "snap_pct_season"), errors="coerce"),
             "Starter Policy": col("starter_policy"),
             "Expected Snaps": col("expected_snaps"),
+            "Depth Slot": col("depth_slot"),
             "Minutes Tier": col("minutes_tier"),
+            "Injury": col("injury_status"),
+            "Injury Type": col("injury_type"),
+            "Weather": col("weather_flag"),
+            "Wind MPH": pd.to_numeric(col("wind_mph"), errors="coerce"),
+            "Indoor": col("indoor"),
+            "Spread": pd.to_numeric(col("spread"), errors="coerce"),
+            "Game Total": pd.to_numeric(col("game_total"), errors="coerce"),
+            "Implied Total": pd.to_numeric(col("implied_team_total"), errors="coerce"),
+            "Game Ctx": pd.to_numeric(col("game_context_score", "ctx_adj"), errors="coerce"),
+            "Team Rank": pd.to_numeric(col("team_stat_rank"), errors="coerce"),
+            "League Rank": pd.to_numeric(col("league_stat_rank"), errors="coerce"),
+            "Leader Slice": col("leader_slice"),
+            "Top3 Rank": pd.to_numeric(col("team_top3_rank"), errors="coerce"),
+            "Bottom3 Rank": pd.to_numeric(col("team_bottom3_rank"), errors="coerce"),
         }
     )
 

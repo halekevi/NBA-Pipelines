@@ -112,6 +112,21 @@ def _derive_football_stat(df: pd.DataFrame, cat: str) -> pd.Series:
         return rush_yds
     if cat == "rec_yds":
         return rec_yds
+    rec = pd.to_numeric(df.get("REC", df.get("receptions")), errors="coerce")
+    pass_td = pd.to_numeric(df.get("PASS_TD", df.get("pass_td")), errors="coerce")
+    rush_td = pd.to_numeric(df.get("RUSH_TD", df.get("rush_td")), errors="coerce")
+    rec_td = pd.to_numeric(df.get("REC_TD", df.get("rec_td")), errors="coerce")
+    kick = pd.to_numeric(df.get("KICK_PTS", df.get("kick_pts")), errors="coerce")
+    if cat == "receptions":
+        return rec
+    if cat in ("pass_td", "pass_tds"):
+        return pass_td
+    if cat in ("rush_td", "rush_tds"):
+        return rush_td
+    if cat in ("rec_td", "rec_tds"):
+        return rec_td
+    if cat in ("kick_pts", "kicking_points"):
+        return kick
     return pd.Series([np.nan] * len(df), index=df.index)
 
 
@@ -235,6 +250,12 @@ def _load_cache_leaders(cfg: SportMatchupConfig) -> dict[str, list[dict]] | None
             "game_date",
             player_norm_col="player_norm",
         )
+
+    if sport == "nfl":
+        from utils.nfl_stat_leaders import write_nfl_leader_artifacts
+
+        tables = write_nfl_leader_artifacts(_REPO_ROOT)
+        return tables.get("team_blocks") or {}
 
     if sport == "cfb":
         df = pd.read_csv(path, encoding="utf-8-sig", low_memory=False)
@@ -704,6 +725,66 @@ def _build_mlb_hitter_matchup_payload(slate_path: Path | None) -> dict[str, Any]
     )
 
 
+def _fingerprint_path(path: Path | None) -> str:
+    if not path:
+        return "missing"
+    p = Path(path)
+    if not p.is_file():
+        return "missing"
+    st = p.stat()
+    return f"{p.name}:{st.st_size}:{int(st.st_mtime_ns)}"
+
+
+def _resolve_matchup_slate(sport: str, slate_path: Path | None) -> Path | None:
+    sport = (sport or "").lower().strip()
+    cfg = SPORT_CONFIGS.get(sport)
+    try:
+        if sport == "wnba":
+            p = _resolve_wnba_slate(slate_path)
+        elif sport == "nba":
+            p = _resolve_nba_slate(slate_path)
+        elif sport == "nhl":
+            p = _resolve_nhl_slate(slate_path)
+        elif sport == "mlb":
+            p = _resolve_mlb_slate(slate_path)
+        elif cfg:
+            p = _resolve_slate_path(cfg, slate_path)
+        else:
+            p = slate_path
+    except Exception:
+        return None
+    if p and Path(p).is_file():
+        return Path(p)
+    return None
+
+
+def matchup_source_hash(sport: str, slate_path: Path | None = None) -> str:
+    """Stable fingerprint of slate + defense inputs. Skip rebuild when unchanged."""
+    import hashlib
+
+    sport = (sport or "").lower().strip()
+    cfg = SPORT_CONFIGS.get(sport)
+    parts = [sport, _fingerprint_path(_resolve_matchup_slate(sport, slate_path))]
+    if cfg:
+        parts.append(_fingerprint_path(cfg.defense_path))
+        parts.append(_fingerprint_path(getattr(cfg, "cache_path", None)))
+        parts.append(_fingerprint_path(getattr(cfg, "top3_path", None)))
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:20]
+
+
+def existing_matchup_source_hash(sport: str, repo_root: Path | None = None) -> str | None:
+    root = repo_root or _REPO_ROOT
+    path = root / "ui_runner" / "templates" / f"{sport}_matchup_edge.json"
+    if not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    h = payload.get("source_hash")
+    return str(h) if h else None
+
+
 def build_matchup_payload(
     sport: str,
     *,
@@ -921,7 +1002,7 @@ def build_matchup_payload(
     if not slate_rows and not players_by_key:
         slate_note = "No slate rows — run sport pipeline or publish slate_sport JSON."
 
-    return {
+    payload = {
         "sport": cfg.sport,
         "display_name": cfg.display_name,
         "matchup_mode": cfg.matchup_mode,
@@ -944,6 +1025,22 @@ def build_matchup_payload(
             "AVOID": "Negative PP edge without elite matchup — skip OVER.",
         },
     }
+    if cfg.sport == "nfl":
+        boards_path = _REPO_ROOT / "Sports/NFL/data/nfl_stat_leaders_boards.json"
+        if boards_path.is_file():
+            try:
+                boards = json.loads(boards_path.read_text(encoding="utf-8"))
+                payload["season"] = boards.get("season")
+                payload["league_boards"] = boards.get("league_boards") or {}
+                payload["rank_note"] = boards.get("note")
+            except Exception:
+                pass
+        if not slate_rows and players_by_key:
+            payload["slate_note"] = (
+                f"No live NFL board - {payload.get('season', '2025')} boxscore "
+                "ranks (team top/bottom 5 + league boards)."
+            )
+    return payload
 
 
 def write_payload(payload: dict[str, Any], sport: str, out_dir: Path) -> Path:
@@ -968,6 +1065,8 @@ def publish_payload(payload: dict[str, Any], sport: str, repo_root: Path | None 
         targets.append(root / "Sports/NHL/data/nhl_matchup_edge.json")
     if sport == "mlb":
         targets.append(root / "Sports/MLB/data/mlb_matchup_edge.json")
+    if sport == "nfl":
+        targets.append(root / "Sports/NFL/data/nfl_matchup_edge.json")
     if sport in ("nba1h", "nba1q"):
         targets.append(root / "Sports/NBA/data" / f"{sport}_matchup_edge.json")
     if sport in ("wnba1h", "wnba1q"):

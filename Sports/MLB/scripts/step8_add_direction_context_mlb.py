@@ -43,7 +43,6 @@ from utils.slate_context_fill import fill_cv_pct_if_missing
 from utils.step8_edge_direction import reconcile_signed_edge_abs_dataframe
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-from datetime import date
 
 
 def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
@@ -51,9 +50,11 @@ def _copy_dated_step8_mlb(output_xlsx_path: str, slate_date: str) -> None:
     src = Path(output_xlsx_path)
     if not src.is_file():
         return
-    d = (slate_date or "").strip()
+    from utils.slate_id import dated_copy_ymd
+
+    d = dated_copy_ymd(slate_date, context="MLB step8")
     if not d:
-        d = date.today().isoformat()
+        return
     repo_root = Path(__file__).resolve().parents[3]
     dated_name = f"step8_mlb_direction_clean_{d}.xlsx"
     dated_dir = repo_root / "outputs" / d
@@ -510,7 +511,7 @@ def main() -> None:
     ap.add_argument(
         "--date",
         default="",
-        help="YYYY-MM-DD pipeline slate date for outputs/<date>/ archive (default: today).",
+        help="YYYY-MM-DD pipeline slate date for outputs/<date>/ archive. No clock fallback.",
     )
     args = ap.parse_args()
 

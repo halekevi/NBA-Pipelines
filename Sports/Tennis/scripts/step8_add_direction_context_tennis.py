@@ -35,7 +35,42 @@ for _ in range(10):
 else:
     raise RuntimeError("Could not locate repo root with utils/step8_edge_direction.py")
 
-from proporacle.data.table_io import copy_parquet_sidecar, write_parquet_sidecars, read_table_str, table_exists, write_excel_sheets
+try:
+    from proporacle.data.table_io import (
+        copy_parquet_sidecar,
+        read_table_str,
+        table_exists,
+        write_excel_sheets,
+        write_parquet_sidecars,
+    )
+except ImportError:
+    def table_exists(path):
+        return Path(path).is_file()
+
+    def read_table_str(path, sheet="ALL", sheet_order=None):
+        sheets = [sheet]
+        if sheet_order:
+            sheets = list(sheet_order) + [sheet]
+        last_err = None
+        for sh in sheets:
+            try:
+                return pd.read_excel(path, sheet_name=sh, dtype=str).fillna("")
+            except Exception as exc:
+                last_err = exc
+        raise last_err or FileNotFoundError(path)
+
+    def write_excel_sheets(path, sheets):
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        with pd.ExcelWriter(path, engine="openpyxl") as writer:
+            for name, df in sheets.items():
+                df.to_excel(writer, sheet_name=str(name)[:31], index=False)
+
+    def write_parquet_sidecars(*_a, **_k):
+        return None
+
+    def copy_parquet_sidecar(*_a, **_k):
+        return None
+
 from scripts.l10_streak_utils import finalize_l10_ui_columns
 from utils.hit_tracking_columns import HIT_TRACKING_RENAME, attach_hit_tracking_columns, fill_l5_from_stat_games
 from utils.slate_context_fill import fill_cv_pct_if_missing
@@ -139,9 +174,13 @@ def _parse_g_vals(row, prefix: str = "stat_g", n: int = 10) -> list[float]:
 
 def _attach_distribution_std(df: pd.DataFrame) -> pd.DataFrame:
     """Population sample std (ddof=1) of stat_g1..10 for pipeline_read distribution_std."""
-    if df is None or len(df) == 0:
+    if df is None:
         return df
     out = df.copy()
+    if len(out) == 0:
+        out["distribution_n"] = pd.Series(dtype=int)
+        out["distribution_std"] = None
+        return out
     g_cols = [f"stat_g{i}" for i in range(1, 11) if f"stat_g{i}" in out.columns]
     if not g_cols:
         out["distribution_n"] = 0
@@ -254,6 +293,12 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     df2["stat_season_avg"] = pd.to_numeric(df2.get("stat_season_avg", np.nan), errors="coerce").fillna(df2["stat_last5_avg"])
     df2["stat_last10_avg"] = pd.to_numeric(df2.get("stat_last10_avg", np.nan), errors="coerce").fillna(df2["stat_last5_avg"])
 
+    from tennis_shared import apply_format_matched_stat_g, tennis_bo5_graded_on_bo3_tape
+
+    n_fmt = apply_format_matched_stat_g(df2, n=10)
+    if n_fmt:
+        print(f"[Tennis step8] Format filter dropped mismatched BO3/BO5 history on {n_fmt} rows")
+
     l5_over = pd.to_numeric(df2.get("last5_over", np.nan), errors="coerce")
     l5_under = pd.to_numeric(df2.get("last5_under", np.nan), errors="coerce")
     l5_over = l5_over.combine_first(pd.to_numeric(df2.get("line_hits_over_5", np.nan), errors="coerce"))
@@ -261,9 +306,15 @@ def build_clean_xlsx(df: pd.DataFrame, xlsx_path: str) -> None:
     l5_over = l5_over.combine_first(pd.to_numeric(df2.get("l5_over", np.nan), errors="coerce"))
     l5_under = l5_under.combine_first(pd.to_numeric(df2.get("l5_under", np.nan), errors="coerce"))
     df2 = fill_l5_from_stat_games(df2, line_col="line", min_games=1)
-    from_g = pd.to_numeric(df2.get("l5_over"), errors="coerce")
-    l5_over = from_g.combine_first(l5_over)
-    l5_under = pd.to_numeric(df2.get("l5_under"), errors="coerce").combine_first(l5_under)
+    from_g_over = pd.to_numeric(df2.get("l5_over"), errors="coerce")
+    from_g_under = pd.to_numeric(df2.get("l5_under"), errors="coerce")
+    l5_over = from_g_over.combine_first(l5_over)
+    l5_under = from_g_under.combine_first(l5_under)
+    mismatch = df2.apply(tennis_bo5_graded_on_bo3_tape, axis=1)
+    if mismatch.any():
+        # PrizePicks last-5 is BO3 tape; do not restore 5/0 unders vs a BO5 line.
+        l5_over = l5_over.where(~mismatch, from_g_over)
+        l5_under = l5_under.where(~mismatch, from_g_under)
     gcols = [c for c in (f"stat_g{i}" for i in range(1, 6)) if c in df2.columns]
     has_g = (
         df2[gcols].apply(pd.to_numeric, errors="coerce").notna().any(axis=1)
@@ -493,38 +544,53 @@ def main() -> None:
         sys.exit(1)
 
     # ── Date filter: keep only target date's games (America/New_York) ─────────
+    from utils.slate_id import parse_pipeline_ymd
+
     eastern = zoneinfo.ZoneInfo("America/New_York")
-    target_str = (args.date.strip()[:10] if args.date
-                  else _dt.datetime.now(tz=eastern).date().isoformat())
-    if "start_time" in df.columns:
+    target_str = parse_pipeline_ymd(args.date)
+    if not target_str:
+        print("[Tennis step8] WARN: no pipeline --date — keeping full board (not clock today)")
+    elif "start_time" in df.columns:
         before_filter = len(df)
         et_dates = pd.to_datetime(df["start_time"], utc=True, errors="coerce").dt.tz_convert(eastern)
         df["_et_date"] = et_dates.dt.date.apply(
             lambda d: d.isoformat() if isinstance(d, _dt.date) else ""
         )
-        mask = df["_et_date"] == target_str
-        if not mask.any():
+        keep_dates = {target_str}
+        try:
+            d0 = _dt.date.fromisoformat(target_str)
+            keep_dates.add((d0 + _dt.timedelta(days=1)).isoformat())
+            keep_dates.add((d0 + _dt.timedelta(days=2)).isoformat())
+        except ValueError:
+            pass
+        mask = df["_et_date"].isin(keep_dates)
+        if mask.any():
+            print(
+                f"[DateFilter] Keeping ET days {sorted(keep_dates)} "
+                f"(today + 2 for slam first rounds; {int(mask.sum())} rows)"
+            )
+        else:
             valid = df["_et_date"].astype(str).str.match(r"^\d{4}-\d{2}-\d{2}$")
             avail = sorted(df.loc[valid, "_et_date"].unique().tolist())
-            if args.allow_date_fallback:
-                # Opt-in only: nearest ET date <= target (folder date), not future
-                past_or_equal = [d for d in avail if d <= target_str]
-                if past_or_equal:
-                    fallback_date = past_or_equal[-1]
-                    print(f"[DateFilter] No exact ET match for {target_str} — falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                    mask = df["_et_date"] == fallback_date
-                elif avail:
-                    fallback_date = avail[0]
-                    print(f"[DateFilter] No past ET match — using earliest available {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)")
-                    mask = df["_et_date"] == fallback_date
-                else:
-                    print(f"[DateFilter] No valid ET dates found — keeping 0 rows for {target_str}")
-                    mask = pd.Series(False, index=df.index)
+            future = [d for d in avail if d >= target_str]
+            if future:
+                fallback_date = future[0]
+                print(
+                    f"[DateFilter] No rows on {sorted(keep_dates)} — "
+                    f"using nearest upcoming {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)"
+                )
+                mask = df["_et_date"] == fallback_date
+            elif args.allow_date_fallback and avail:
+                fallback_date = avail[-1]
+                print(
+                    f"[DateFilter] No upcoming ET match for {target_str} — "
+                    f"falling back to {fallback_date} ({(df['_et_date']==fallback_date).sum()} rows)"
+                )
+                mask = df["_et_date"] == fallback_date
             else:
                 print(
                     f"[DateFilter] No exact ET match for {target_str} "
-                    f"(available={avail[:8]}{'...' if len(avail) > 8 else ''}) — "
-                    f"keeping 0 rows (pass --allow-date-fallback to use nearest past day)"
+                    f"(available={avail[:8]}{'...' if len(avail) > 8 else ''}) — keeping 0 rows"
                 )
                 mask = pd.Series(False, index=df.index)
         df = df.loc[mask].drop(columns="_et_date")
@@ -648,7 +714,7 @@ def main() -> None:
     out["blended_score"] = (0.3 * mpb + 0.7 * comp_hr).round(4)
 
     out = _attach_distribution_std(out)
-    filled_std = int(pd.to_numeric(out["distribution_std"], errors="coerce").notna().sum())
+    filled_std = int(pd.to_numeric(out.get("distribution_std"), errors="coerce").notna().sum()) if "distribution_std" in out.columns else 0
     print(f"[Tennis step8] distribution_std filled {filled_std}/{len(out)} rows")
 
     out.to_csv(args.output, index=False, encoding="utf-8-sig")
@@ -678,12 +744,11 @@ def main() -> None:
 
     write_parquet_sidecars(out, args.output, xlsx_path)
     try:
-        eastern = zoneinfo.ZoneInfo("America/New_York")
-        slate_date = (
-            str(args.date).strip()[:10]
-            if args.date
-            else _dt.datetime.now(tz=eastern).date().isoformat()
-        )
+        from utils.slate_id import dated_copy_ymd
+
+        slate_date = dated_copy_ymd(args.date, context="Tennis step8")
+        if not slate_date:
+            return
         # Sports/Tennis/scripts -> monorepo root (see tennis_grader.py).
         repo_root = Path(__file__).resolve().parents[3]
         dated_dir = repo_root / "outputs" / slate_date

@@ -222,6 +222,9 @@ details.ticket-bucket{margin:0 0 10px;}
 .sport-cfb{background:rgba(200,120,60,.12);color:#e8a86a;border:1px solid rgba(200,120,60,.34);}
 .sport-nfl{background:rgba(120,180,255,.12);color:#9ec5ff;border:1px solid rgba(120,180,255,.34);}
 .sport-tennis{background:rgba(243,156,18,.12);color:#f5b041;border:1px solid rgba(243,156,18,.34);}
+.sport-golf{background:rgba(80,180,110,.12);color:#7dcc8f;border:1px solid rgba(80,180,110,.34);}
+.sport-wnba1q{background:rgba(255,138,198,.10);color:#ffc4e6;border:1px solid rgba(255,138,198,.28);}
+.sport-wnba1h{background:rgba(255,138,198,.10);color:#ffc4e6;border:1px solid rgba(255,138,198,.28);}
 .sport-default{background:rgba(255,255,255,.04);color:#888;border:1px solid rgba(255,255,255,.1);}
 
 .tier{font-family:'Bebas Neue',sans-serif;width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:clamp(13px,1.4vw,15px);letter-spacing:0;background:rgba(255,255,255,0.05);color:var(--gold);border:1px solid var(--glass-bd);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}
@@ -324,22 +327,23 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
   <a href="/payout" class="">💰 Payouts</a>
   <a href="/account" class="">👤 Account</a>
 </div>
-<div class="grade-eval-summary grade-eval-summary-empty"><div>Date: 2026-08-31 · Graded Main Slate (high-prob Std+Gob) · No fully graded tickets for payout summary (ungraded, all-void, or none).</div></div>
+<div class="grade-eval-summary"><div class="grade-eval-summary-line1">Graded Main Slate (high-prob Std+Gob) · 2026-08-31 · 15 tickets</div><div class="grade-eval-summary-line2"><span class="ges-pill ges-win">Wins 1</span><span class="ges-pill ges-guar">Guarantees 0</span><span class="ges-pill ges-loss">Losses 14 <span class="grade-eval-subnote">(incl. 3 void-loss)</span></span><span class="ges-pill ges-rate">7% win rate</span><span class="ges-pill ges-ev">Avg EV 0.31</span></div><div class="grade-eval-summary-line4">−$140.73 net on $150 ($10 flat) — loss</div></div>
 <div class="stats-bar">
 <div class="sum-row sum-row-results">
 <div class="sum-row-label">Results</div>
-<div class="sum-item"><div class="sum-val">0.0%</div><div class="sum-lab">Hit rate</div></div>
-<div class="sum-item"><div class="sum-val green">0</div><div class="sum-lab">Paid</div></div>
-<div class="sum-item"><div class="sum-val red">0</div><div class="sum-lab">No payout</div></div>
+<div class="sum-item"><div class="sum-val">8.3%</div><div class="sum-lab">Hit rate</div></div>
+<div class="sum-item sum-item-sport"><div class="sum-val">8.3%</div><div class="sum-lab">TENNIS</div></div>
+<div class="sum-item"><div class="sum-val green">1</div><div class="sum-lab">Paid</div></div>
+<div class="sum-item"><div class="sum-val red">11</div><div class="sum-lab">No payout</div></div>
 <div class="sum-item"><div class="sum-val">0</div><div class="sum-lab">Perfect</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">Net @ $10</div></div>
-<div class="sum-item"><div class="sum-val sum-val-sm pend">—</div><div class="sum-lab">ROI</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">-140.73</div><div class="sum-lab">Net @ $10</div></div>
+<div class="sum-item"><div class="sum-val sum-val-sm">-93.8%</div><div class="sum-lab">ROI</div></div>
 </div>
 <div class="sum-row sum-row-legs">
 <div class="sum-row-label">Legs</div>
-<div class="sum-item"><div class="sum-val green">0</div><div class="sum-lab">Hits</div></div>
-<div class="sum-item"><div class="sum-val red">0</div><div class="sum-lab">Misses</div></div>
-<div class="sum-item"><div class="sum-val void">81</div><div class="sum-lab">Void / push</div></div>
+<div class="sum-item"><div class="sum-val green">13</div><div class="sum-lab">Hits</div></div>
+<div class="sum-item"><div class="sum-val red">15</div><div class="sum-lab">Misses</div></div>
+<div class="sum-item"><div class="sum-val void">53</div><div class="sum-lab">Void / push</div></div>
 <div class="sum-item"><div class="sum-val pend">0</div><div class="sum-lab">Ungraded</div></div>
 <div class="sum-item"><div class="sum-val sum-val-sm">81</div><div class="sum-lab">Total legs</div></div>
 </div></div>
@@ -349,71 +353,71 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <p class="meta-muted">Each leg: <strong>Line</strong> + side · <strong>Actual</strong> (box-score stat; — if none exists yet, e.g. rainout/postponed) · <strong>Edge</strong> (model edge, not the result). Graded exports: <code>outputs/2026-08-31/graded_*.xlsx</code>. <strong>Hit rate</strong> = paid ÷ (paid + no payout) among fully graded tickets (all-void slips excluded). Sheets with <strong>Flex</strong> in the title (3+ legs) use flex cash rules: at least n−1 hits and at most one miss.</p></details>
 <div class="ticket-sections-wrap">
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 2-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 2-Leg #1</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Aleksandar Kovacevic</div>
+<div class="pl-hit">Aleksandar Kovacevic</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ALEKSANDAR KOVACEVIC vs VALENTIN VACHEROT</div></div>
 <div class="leg-extra">20.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">10</div>
 <div class="leg-extra">-8.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sorana Cirstea</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
-<div class="leg-extra">18.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">5.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Sorana Cirstea</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
+<div class="leg-extra miss-leg-cell">18.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">15</div>
+<div class="leg-extra miss-leg-cell">5.7</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 2 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (1 hit, 1 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>58.5%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.76 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 2-Leg #2</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 2-Leg #2</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Stefanos Tsitsipas</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
-<div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">-5.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Stefanos Tsitsipas</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
+<div class="leg-extra miss-leg-cell">16.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">23</div>
+<div class="leg-extra miss-leg-cell">-5.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Arthur Fery</div>
+<div class="pl-void">Arthur Fery<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ARTHUR FERY vs LORENZO MUSETTI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-5.1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 2 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>0.5%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.98 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 2-Leg #3</h2>
@@ -421,20 +425,20 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 2-Leg #3</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">1✓ 0✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="tg grade-ticket-result void-loss">RESULT: ○ VOID / NO ACTION <span class="grade-ticket-result-label">(no cash)</span></span>
 <span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sebastian Baez</div>
+<div class="pl-hit">Sebastian Baez</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">SEBASTIAN BAEZ vs BRANDON NAKASHIMA</div></div>
 <div class="leg-extra">14.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-2.5</div>
 </div>
 <div class="legrow leg-void">
@@ -447,18 +451,18 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 2 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ REFUND / NO CONTEST</div><div class="grade-result-sub">Refund / no contest — 1 void left 1 playable leg(s) (need ≥2); voids drop off the slip and are not misses</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 2-Leg #4</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 2-Leg #4</span>
-<span class="tg">0✓ 0✗ / 2</span>
+<span class="tg">0✓ 1✗ / 2</span>
 <span class="payout">PWR 3× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
 <div class="legrow leg-void">
@@ -471,17 +475,17 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Tamara Zidansek</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
-<div class="leg-extra">11.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">3.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tamara Zidansek</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
+<div class="leg-extra miss-leg-cell">11.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">8</div>
+<div class="leg-extra miss-leg-cell">3.7</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 2 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>3.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>58.5%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>0.76 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 2-Leg #5</h2>
@@ -610,7 +614,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Darja Vidmanova</div>
+<div class="pl-void">Darja Vidmanova<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">DARJA VIDMANOVA vs JESSICA BOUZAS MANEIRO</div></div>
 <div class="leg-extra">21.5 <span class="dir-over">OVER</span></div>
@@ -621,47 +625,47 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 3-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 3-Leg #1</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 2✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Aleksandar Kovacevic</div>
+<div class="pl-hit">Aleksandar Kovacevic</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ALEKSANDAR KOVACEVIC vs VALENTIN VACHEROT</div></div>
 <div class="leg-extra">20.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">10</div>
 <div class="leg-extra">-8.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sorana Cirstea</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
-<div class="leg-extra">18.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">5.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Sorana Cirstea</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
+<div class="leg-extra miss-leg-cell">18.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">15</div>
+<div class="leg-extra miss-leg-cell">5.7</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Stefanos Tsitsipas</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
-<div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">-5.5</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Stefanos Tsitsipas</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
+<div class="leg-extra miss-leg-cell">16.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">23</div>
+<div class="leg-extra miss-leg-cell">-5.5</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (1 hit, 2 miss)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>6.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>2.9%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.82 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 3-Leg #2</h2>
@@ -669,30 +673,30 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 3-Leg #2</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 0✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="tg grade-ticket-result void-loss">RESULT: ○ VOID / NO ACTION <span class="grade-ticket-result-label">(no cash)</span></span>
 <span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Arthur Fery</div>
+<div class="pl-void">Arthur Fery<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ARTHUR FERY vs LORENZO MUSETTI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-5.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sebastian Baez</div>
+<div class="pl-hit">Sebastian Baez</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">SEBASTIAN BAEZ vs BRANDON NAKASHIMA</div></div>
 <div class="leg-extra">14.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-2.5</div>
 </div>
 <div class="legrow leg-void">
@@ -705,18 +709,18 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ REFUND / NO CONTEST</div><div class="grade-result-sub">Refund / no contest — 2 void left 1 playable leg(s) (need ≥2); voids drop off the slip and are not misses</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 3-Leg #3</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 3-Leg #3</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">0✓ 1✗ / 3</span>
 <span class="payout">PWR 6× · FLEX 3×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
 <div class="legrow leg-void">
@@ -729,15 +733,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Tamara Zidansek</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
-<div class="leg-extra">11.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">3.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tamara Zidansek</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
+<div class="leg-extra miss-leg-cell">11.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">8</div>
+<div class="leg-extra miss-leg-cell">3.7</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
@@ -749,7 +753,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.5</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 2 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>6.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>38.0%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>1.28 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 3-Leg #4</h2>
@@ -841,78 +845,78 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 4-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 4-Leg #1</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">1✓ 2✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Aleksandar Kovacevic</div>
+<div class="pl-hit">Aleksandar Kovacevic</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ALEKSANDAR KOVACEVIC vs VALENTIN VACHEROT</div></div>
 <div class="leg-extra">20.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">10</div>
 <div class="leg-extra">-8.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sorana Cirstea</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
-<div class="leg-extra">18.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">5.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Sorana Cirstea</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
+<div class="leg-extra miss-leg-cell">18.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">15</div>
+<div class="leg-extra miss-leg-cell">5.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-default">TENNIS</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Stefanos Tsitsipas</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
+<div class="leg-extra miss-leg-cell">16.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">23</div>
+<div class="leg-extra miss-leg-cell">-5.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Stefanos Tsitsipas</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
-<div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">-5.5</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Arthur Fery</div>
+<div class="pl-void">Arthur Fery<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ARTHUR FERY vs LORENZO MUSETTI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-5.1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (1 hit, 2 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>10.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>0.3%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.97 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 4-Leg #2</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 4-Leg #2</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">1✓ 1✗ / 4</span>
 <span class="payout">PWR 10× · FLEX 6×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sebastian Baez</div>
+<div class="pl-hit">Sebastian Baez</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">SEBASTIAN BAEZ vs BRANDON NAKASHIMA</div></div>
 <div class="leg-extra">14.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-2.5</div>
 </div>
 <div class="legrow leg-void">
@@ -935,17 +939,17 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Tamara Zidansek</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
-<div class="leg-extra">11.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">3.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tamara Zidansek</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
+<div class="leg-extra miss-leg-cell">11.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">8</div>
+<div class="leg-extra miss-leg-cell">3.7</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (1 hit, 1 miss, 2 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>10.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>3.8%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.62 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 4-Leg #3</h2>
@@ -1046,7 +1050,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Darja Vidmanova</div>
+<div class="pl-void">Darja Vidmanova<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">DARJA VIDMANOVA vs JESSICA BOUZAS MANEIRO</div></div>
 <div class="leg-extra">21.5 <span class="dir-over">OVER</span></div>
@@ -1057,78 +1061,78 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 5-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 5-Leg #1</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">2✓ 2✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Aleksandar Kovacevic</div>
+<div class="pl-hit">Aleksandar Kovacevic</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ALEKSANDAR KOVACEVIC vs VALENTIN VACHEROT</div></div>
 <div class="leg-extra">20.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">10</div>
 <div class="leg-extra">-8.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sorana Cirstea</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
-<div class="leg-extra">18.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">5.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Sorana Cirstea</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
+<div class="leg-extra miss-leg-cell">18.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">15</div>
+<div class="leg-extra miss-leg-cell">5.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-default">TENNIS</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Stefanos Tsitsipas</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
+<div class="leg-extra miss-leg-cell">16.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">23</div>
+<div class="leg-extra miss-leg-cell">-5.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Stefanos Tsitsipas</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
-<div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">-5.5</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Arthur Fery</div>
+<div class="pl-void">Arthur Fery<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ARTHUR FERY vs LORENZO MUSETTI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-5.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sebastian Baez</div>
+<div class="pl-hit">Sebastian Baez</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">SEBASTIAN BAEZ vs BRANDON NAKASHIMA</div></div>
 <div class="leg-extra">14.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-2.5</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 2 miss, 1 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>20.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>0.0%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.99 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 5-Leg #2</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 5-Leg #2</span>
-<span class="tg">0✓ 0✗ / 5</span>
+<span class="tg">0✓ 1✗ / 5</span>
 <span class="payout">PWR 20× · FLEX 10×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
 <div class="legrow leg-void">
@@ -1151,15 +1155,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Tamara Zidansek</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
-<div class="leg-extra">11.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">3.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tamara Zidansek</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
+<div class="leg-extra miss-leg-cell">11.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">8</div>
+<div class="leg-extra miss-leg-cell">3.7</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
@@ -1181,7 +1185,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.5</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 5 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 4 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>20.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>16.1%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>2.21 — MARGINAL</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 5-Leg #3</h2>
@@ -1249,64 +1253,64 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 6-Leg #1</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 6-Leg #1</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">2✓ 2✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 2</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Aleksandar Kovacevic</div>
+<div class="pl-hit">Aleksandar Kovacevic</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ALEKSANDAR KOVACEVIC vs VALENTIN VACHEROT</div></div>
 <div class="leg-extra">20.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">10</div>
 <div class="leg-extra">-8.5</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sorana Cirstea</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
-<div class="leg-extra">18.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">5.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Sorana Cirstea</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games</div><div class="meta-muted">SORANA CIRSTEA vs JULIA GRABHER</div></div>
+<div class="leg-extra miss-leg-cell">18.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">15</div>
+<div class="leg-extra miss-leg-cell">5.7</div>
+</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
+<div><span class="pill sport-default">TENNIS</span></div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Stefanos Tsitsipas</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
+<div class="leg-extra miss-leg-cell">16.5 <span class="dir-under">UNDER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">23</div>
+<div class="leg-extra miss-leg-cell">-5.5</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Stefanos Tsitsipas</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">STEFANOS TSITSIPAS vs ARTHUR FILS</div></div>
-<div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">-5.5</div>
-</div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
-<div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Arthur Fery</div>
+<div class="pl-void">Arthur Fery<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">ARTHUR FERY vs LORENZO MUSETTI</div></div>
 <div class="leg-extra">16.5 <span class="dir-under">UNDER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-5.1</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Sebastian Baez</div>
+<div class="pl-hit">Sebastian Baez</div>
 <div class="tier">S</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">SEBASTIAN BAEZ vs BRANDON NAKASHIMA</div></div>
 <div class="leg-extra">14.5 <span class="dir-under">UNDER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">3</div>
 <div class="leg-extra">-2.5</div>
 </div>
 <div class="legrow leg-void">
@@ -1319,18 +1323,18 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 6 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (2 hit, 2 miss, 2 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>40.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>0.0%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>-0.99 — SKIP</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Standard 6-Leg #2</h2>
-<article class="ticket-card">
+<article class="ticket-card card-missed">
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Standard 6-Leg #2</span>
-<span class="tg">0✓ 0✗ / 6</span>
+<span class="tg">0✓ 1✗ / 6</span>
 <span class="payout">PWR 40× · FLEX 25×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
-<span class="banner void">VOID/PUSH</span>
+<span class="tg grade-ticket-result lost">RESULT: ❌ ❌ LOSS <span class="grade-ticket-result-label">(LOSS)</span></span>
+<span class="banner miss">MISSED 1</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
 <div class="legrow leg-void">
@@ -1343,15 +1347,15 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-2.3</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-miss">
+<div class="badge miss">✗</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Tamara Zidansek</div>
-<div class="tier">S</div>
-<div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
-<div class="leg-extra">11.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
-<div class="leg-extra">3.7</div>
+<div class="pl-miss pl-line miss-leg-cell"><span class="pl-name">Tamara Zidansek</span><span class="miss-tag" aria-label="Missed leg">MISSED</span></div>
+<div class="tier miss-leg-cell">S</div>
+<div class="leg-prop-col miss-leg-cell"><div>Total Games Won</div><div class="meta-muted">TAMARA ZIDANSEK vs MARIA TIMOFEEVA</div></div>
+<div class="leg-extra miss-leg-cell">11.5 <span class="dir-over">OVER</span></div>
+<div class="leg-extra val-miss miss-leg-cell">8</div>
+<div class="leg-extra miss-leg-cell">3.7</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
@@ -1393,7 +1397,7 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">-1.9</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 6 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-loss">❌ LOSS</div><div class="grade-result-sub">LOSS (0 hit, 1 miss, 5 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>40.00x</td><td>0.00x</td></tr><tr><td>P(Win)</td><td>10.4%</td><td>❌</td></tr><tr><td>EV at Entry</td><td>3.18 — OK</td><td>-$10.00 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Lost $10.00</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Goblin 3-Leg #1</h2>
@@ -1401,26 +1405,26 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Goblin 3-Leg #1</span>
-<span class="tg">0✓ 0✗ / 3</span>
+<span class="tg">1✓ 0✗ / 3</span>
 <span class="payout">PWR 1.79× · FLEX 0.9×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="tg grade-ticket-result void-loss">RESULT: ○ VOID / NO ACTION <span class="grade-ticket-result-label">(no cash)</span></span>
 <span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Diane Parry</div>
+<div class="pl-hit">Diane Parry</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">DIANE PARRY vs VIKTORIJA GOLUBIC</div></div>
 <div class="leg-extra">20.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">22</div>
 <div class="leg-extra">3.9</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Coco Gauff</div>
+<div class="pl-void">Coco Gauff<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">COCO GAUFF vs ZEYNEP SONMEZ</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -1430,14 +1434,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Francesca Jones</div>
+<div class="pl-void">Francesca Jones<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">FRANCESCA JONES vs MAGDA LINETTE</div></div>
 <div class="leg-extra">9.5 <span class="dir-over">OVER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">3.1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 3 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ REFUND / NO CONTEST</div><div class="grade-result-sub">Refund / no contest — 2 void left 1 playable leg(s) (need ≥2); voids drop off the slip and are not misses</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
 </article>
 </section>
 <section class="sec"><h2 class="sec-head bebas">TENNIS Goblin 4-Leg #1</h2>
@@ -1445,36 +1449,36 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="thdr">
 <span class="tn bebas">#1</span>
 <span class="tg">TENNIS Goblin 4-Leg #1</span>
-<span class="tg">0✓ 0✗ / 4</span>
+<span class="tg">2✓ 0✗ / 4</span>
 <span class="payout">PWR 2.18× · FLEX 1.31×</span>
-<span class="tg grade-ticket-result void-slip">RESULT: ○ NO CONTEST <span class="grade-ticket-result-label">(NO CONTEST)</span></span>
+<span class="tg grade-ticket-result won">RESULT: ✅ ✅ WON <span class="grade-ticket-result-label">(WIN)</span></span>
 <span class="banner void">VOID/PUSH</span>
 </div>
 <div class="leg-head" aria-hidden="true"><div></div><div></div><div class="leg-head-lab">PLAYER</div><div class="leg-head-lab">T</div><div class="leg-head-lab">PROP</div><div class="leg-head-lab">LINE</div><div class="leg-head-lab">ACTUAL</div><div class="leg-head-lab">EDGE</div></div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Panna Udvardy</div>
+<div class="pl-hit">Panna Udvardy</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">PANNA UDVARDY vs MANANCHAYA SAWANGKAEW</div></div>
 <div class="leg-extra">6.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">7</div>
 <div class="leg-extra">5.9</div>
 </div>
-<div class="legrow leg-void">
-<div class="badge void">○</div>
+<div class="legrow leg-hit">
+<div class="badge hit">✓</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Diane Parry</div>
+<div class="pl-hit">Diane Parry</div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">DIANE PARRY vs VIKTORIJA GOLUBIC</div></div>
 <div class="leg-extra">20.5 <span class="dir-over">OVER</span></div>
-<div class="leg-extra pl-void">—</div>
+<div class="leg-extra pl-hit">22</div>
 <div class="leg-extra">3.9</div>
 </div>
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Coco Gauff</div>
+<div class="pl-void">Coco Gauff<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games</div><div class="meta-muted">COCO GAUFF vs ZEYNEP SONMEZ</div></div>
 <div class="leg-extra">15.5 <span class="dir-over">OVER</span></div>
@@ -1484,14 +1488,14 @@ html.ticket-eval-embed-grades,html.ticket-eval-embed-grades body{min-height:100%
 <div class="legrow leg-void">
 <div class="badge void">○</div>
 <div><span class="pill sport-default">TENNIS</span></div>
-<div class="pl-void">Francesca Jones</div>
+<div class="pl-void">Francesca Jones<span class="warning-chip" title="NO_DATA">NO_DATA</span></div>
 <div class="tier">G</div>
 <div class="leg-prop-col"><div>Total Games Won</div><div class="meta-muted">FRANCESCA JONES vs MAGDA LINETTE</div></div>
 <div class="leg-extra">9.5 <span class="dir-over">OVER</span></div>
 <div class="leg-extra pl-void">—</div>
 <div class="leg-extra">3.1</div>
 </div>
-<div class="ticket-grade-payout"><div class="grade-result grade-result-void">○ NO CONTEST</div><div class="grade-result-sub">All 4 legs void — no graded contest against the board.</div><div class="grade-entry-line">No payout table — slip did not resolve against the board.</div></div>
+<div class="ticket-grade-payout"><div class="grade-result grade-result-win">✅ WIN</div><div class="grade-result-sub">WIN — paid as 2-leg power (4-leg → 2-leg, 2 void)</div><table class="grade-payout-table"><tr><th></th><th>Predicted</th><th>Actual</th></tr><tr><td>Payout</td><td>4.93x</td><td>0.93x</td></tr><tr><td>P(Win)</td><td>83.8%</td><td>✅</td></tr><tr><td>EV at Entry</td><td>3.13 — OK</td><td>+$9.27 on $10</td></tr></table><div class="grade-entry-line">$10 entry → Won $9.27</div></div>
 </article>
 </section>
 </div>

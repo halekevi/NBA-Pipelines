@@ -44,14 +44,14 @@
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
   },
@@ -65,43 +65,47 @@
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-02 05:26:55",
       "no_slate": false
     }
   },
   "golf": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
   },
   "wnba": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
   },
   "wnba1h": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
   },
   "wnba1q": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
   },
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-01 13:20:01",
+      "modified": "2026-09-01 21:06:46",
       "no_slate": false
     }
+  },
+  "tennis_match_day": "2026-09-02",
+  "game_day": {
+    "tennis": true
   }
 }

@@ -44,14 +44,14 @@
   "soccer": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-03 06:08:20",
+      "modified": "2026-09-03 21:54:51",
       "no_slate": false
     }
   },
   "mlb": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-03 06:08:20",
+      "modified": "2026-09-03 21:54:51",
       "no_slate": false
     }
   },
@@ -65,7 +65,7 @@
   "tennis": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-03 09:42:21",
+      "modified": "2026-09-04 05:42:54",
       "no_slate": false
     }
   },
@@ -100,11 +100,11 @@
   "combined": {
     "slate": {
       "exists": true,
-      "modified": "2026-09-03 06:08:20",
+      "modified": "2026-09-03 21:54:51",
       "no_slate": false
     }
   },
-  "tennis_match_day": "2026-09-03",
+  "tennis_match_day": "2026-09-04",
   "game_day": {
     "tennis": true
   }

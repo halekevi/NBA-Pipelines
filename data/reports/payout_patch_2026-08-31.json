@@ -1,0 +1,109 @@
+{
+  "date": "2026-08-31",
+  "generated_at": "2026-08-31T17:58:09.393963Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-08-31|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:30:03"
+    },
+    "2026-08-31|MLB Core Power 2 #2|1": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:30:59"
+    },
+    "2026-08-31|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:31:59"
+    },
+    "2026-08-31|TENNIS 2-Leg Goblin OVER|1": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:37:31"
+    },
+    "2026-08-31|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 2.3,
+      "power_first_x": 6.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:38:57"
+    }
+  },
+  "by_leg_sig": {
+    "dominic canzone|hits+runs+rbis|over|0.500||payton tolle|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:30:03"
+    },
+    "dominic canzone|hitter strikeouts|over|0.500||payton tolle|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:30:59"
+    },
+    "dominic canzone|hits+runs+rbis|over|0.500||julio rodríguez|hitter strikeouts|over|0.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:31:59"
+    },
+    "elena rybakina|total games|over|16.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 3.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:37:31"
+    },
+    "elena rybakina|total games|over|16.500||francesca jones|total games won|over|9.500||paula badosa|total games won|over|8.500": {
+      "power_min_x": 2.3,
+      "power_first_x": 6.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-31T13:38:57"
+    }
+  }
+}

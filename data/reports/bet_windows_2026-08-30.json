@@ -1,0 +1,363 @@
+{
+  "date": "2026-08-30",
+  "generated_at": "2026-08-30T22:15:42-04:00",
+  "line_pulls": [
+    {
+      "fetched_at": "2026-08-29T01:44:01-04:00",
+      "window": "1AM",
+      "n_props": 586,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T02:43:02-04:00",
+      "window": "02:43",
+      "n_props": 586,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T06:33:00-04:00",
+      "window": "06:33",
+      "n_props": 588,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T08:01:33-04:00",
+      "window": "8AM",
+      "n_props": 588,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T09:18:41-04:00",
+      "window": "9AM",
+      "n_props": 588,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T11:45:24-04:00",
+      "window": "11:45",
+      "n_props": 589,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T13:18:07-04:00",
+      "window": "1PM",
+      "n_props": 590,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-29T16:34:47-04:00",
+      "window": "4:30",
+      "n_props": 3052,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T01:04:02-04:00",
+      "window": "1AM",
+      "n_props": 3035,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T01:05:32-04:00",
+      "window": "1AM",
+      "n_props": 4418,
+      "n_moved": 54
+    },
+    {
+      "fetched_at": "2026-08-30T01:07:10-04:00",
+      "window": "1AM",
+      "n_props": 5860,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T01:07:31-04:00",
+      "window": "1AM",
+      "n_props": 1413,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T01:26:52-04:00",
+      "window": "1AM",
+      "n_props": 1407,
+      "n_moved": 12
+    },
+    {
+      "fetched_at": "2026-08-30T01:27:01-04:00",
+      "window": "1AM",
+      "n_props": 3037,
+      "n_moved": 9
+    },
+    {
+      "fetched_at": "2026-08-30T01:27:11-04:00",
+      "window": "1AM",
+      "n_props": 4418,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T01:27:26-04:00",
+      "window": "1AM",
+      "n_props": 3769,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T01:29:56-04:00",
+      "window": "1AM",
+      "n_props": 6356,
+      "n_moved": 19
+    },
+    {
+      "fetched_at": "2026-08-30T01:30:11-04:00",
+      "window": "1AM",
+      "n_props": 16550,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T02:13:48-04:00",
+      "window": "02:13",
+      "n_props": 16550,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T05:05:08-04:00",
+      "window": "05:05",
+      "n_props": 2998,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T05:09:03-04:00",
+      "window": "05:09",
+      "n_props": 6867,
+      "n_moved": 165
+    },
+    {
+      "fetched_at": "2026-08-30T07:18:41-04:00",
+      "window": "8AM",
+      "n_props": 1466,
+      "n_moved": 68
+    },
+    {
+      "fetched_at": "2026-08-30T07:19:00-04:00",
+      "window": "8AM",
+      "n_props": 2479,
+      "n_moved": 40
+    },
+    {
+      "fetched_at": "2026-08-30T07:21:53-04:00",
+      "window": "8AM",
+      "n_props": 7127,
+      "n_moved": 35
+    },
+    {
+      "fetched_at": "2026-08-30T07:22:09-04:00",
+      "window": "8AM",
+      "n_props": 16009,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T08:00:35-04:00",
+      "window": "8AM",
+      "n_props": 1542,
+      "n_moved": 9
+    },
+    {
+      "fetched_at": "2026-08-30T08:00:45-04:00",
+      "window": "8AM",
+      "n_props": 2989,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T08:00:57-04:00",
+      "window": "8AM",
+      "n_props": 4447,
+      "n_moved": 55
+    },
+    {
+      "fetched_at": "2026-08-30T08:01:17-04:00",
+      "window": "8AM",
+      "n_props": 3799,
+      "n_moved": 40
+    },
+    {
+      "fetched_at": "2026-08-30T08:05:12-04:00",
+      "window": "8AM",
+      "n_props": 7232,
+      "n_moved": 26
+    },
+    {
+      "fetched_at": "2026-08-30T08:05:37-04:00",
+      "window": "8AM",
+      "n_props": 17566,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T10:04:20-04:00",
+      "window": "9:45",
+      "n_props": 1681,
+      "n_moved": 48
+    },
+    {
+      "fetched_at": "2026-08-30T10:04:36-04:00",
+      "window": "9:45",
+      "n_props": 2710,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T10:04:54-04:00",
+      "window": "9:45",
+      "n_props": 4454,
+      "n_moved": 15
+    },
+    {
+      "fetched_at": "2026-08-30T10:05:16-04:00",
+      "window": "9:45",
+      "n_props": 3800,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T10:10:52-04:00",
+      "window": "10:30",
+      "n_props": 7694,
+      "n_moved": 35
+    },
+    {
+      "fetched_at": "2026-08-30T10:11:19-04:00",
+      "window": "10:30",
+      "n_props": 18192,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T13:00:22-04:00",
+      "window": "1PM",
+      "n_props": 1767,
+      "n_moved": 94
+    },
+    {
+      "fetched_at": "2026-08-30T13:00:47-04:00",
+      "window": "1PM",
+      "n_props": 5328,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T13:01:05-04:00",
+      "window": "1PM",
+      "n_props": 3851,
+      "n_moved": 183
+    },
+    {
+      "fetched_at": "2026-08-30T13:01:24-04:00",
+      "window": "1PM",
+      "n_props": 3847,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T13:07:03-04:00",
+      "window": "1PM",
+      "n_props": 8196,
+      "n_moved": 55
+    },
+    {
+      "fetched_at": "2026-08-30T13:07:41-04:00",
+      "window": "1PM",
+      "n_props": 21801,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T16:30:21-04:00",
+      "window": "4:30",
+      "n_props": 1320,
+      "n_moved": 167
+    },
+    {
+      "fetched_at": "2026-08-30T16:30:40-04:00",
+      "window": "4:30",
+      "n_props": 4060,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T16:31:00-04:00",
+      "window": "4:30",
+      "n_props": 3445,
+      "n_moved": 72
+    },
+    {
+      "fetched_at": "2026-08-30T16:31:25-04:00",
+      "window": "4:30",
+      "n_props": 4278,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T16:31:52-04:00",
+      "window": "4:30",
+      "n_props": 8223,
+      "n_moved": 2
+    },
+    {
+      "fetched_at": "2026-08-30T16:32:03-04:00",
+      "window": "4:30",
+      "n_props": 21020,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T17:28:15-04:00",
+      "window": "17:28",
+      "n_props": 4070,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T17:29:49-04:00",
+      "window": "17:29",
+      "n_props": 3391,
+      "n_moved": 24
+    },
+    {
+      "fetched_at": "2026-08-30T17:30:21-04:00",
+      "window": "17:30",
+      "n_props": 346,
+      "n_moved": 0
+    },
+    {
+      "fetched_at": "2026-08-30T20:15:25-04:00",
+      "window": "20:15",
+      "n_props": 4074,
+      "n_moved": 15
+    },
+    {
+      "fetched_at": "2026-08-30T20:17:38-04:00",
+      "window": "20:17",
+      "n_props": 1956,
+      "n_moved": 21
+    },
+    {
+      "fetched_at": "2026-08-30T20:25:55-04:00",
+      "window": "20:25",
+      "n_props": 3162,
+      "n_moved": 24
+    },
+    {
+      "fetched_at": "2026-08-30T22:15:42-04:00",
+      "window": "22:15",
+      "n_props": 4416,
+      "n_moved": 0
+    }
+  ],
+  "payout_scrapes": [
+    {
+      "window": "9:45",
+      "n_scrapes": 8,
+      "median_power_x": 1.4,
+      "min_power_x": 1.3,
+      "max_power_x": 1.6,
+      "first_captured_at": "2026-08-30T12:51:58",
+      "last_captured_at": "2026-08-30T13:37:53"
+    },
+    {
+      "window": "5AM",
+      "n_scrapes": 1,
+      "median_power_x": 1.2,
+      "min_power_x": 1.2,
+      "max_power_x": 1.2,
+      "first_captured_at": "2026-08-30T06:11:44",
+      "last_captured_at": "2026-08-30T06:11:44"
+    }
+  ],
+  "note": "N-correct / To Win only. Line pulls from line_history.db; payouts from CDP jsonl."
+}

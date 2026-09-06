@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-03",
+  "generated_at": "2026-09-03T14:59:17.859793Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-08-31|TENNIS 2-Leg Goblin OVER|1": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "captured_at": "2026-09-01T10:14:42"
+    },
+    "2026-08-31|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 2.4,
+      "power_first_x": 6.0,
+      "display_min_x": 2.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "captured_at": "2026-09-01T10:15:59"
+    }
+  },
+  "by_leg_sig": {
+    "elena rybakina|total games|over|16.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "captured_at": "2026-09-01T10:14:42"
+    },
+    "elena rybakina|total games|over|16.500||francesca jones|total games won|over|9.500||paula badosa|total games won|over|8.500": {
+      "power_min_x": 2.4,
+      "power_first_x": 6.0,
+      "display_min_x": 2.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-31|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "captured_at": "2026-09-01T10:15:59"
+    }
+  }
+}

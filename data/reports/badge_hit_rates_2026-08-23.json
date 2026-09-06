@@ -1,0 +1,1417 @@
+{
+  "slate_date": "2026-08-23",
+  "generated_at": "2026-08-24T18:05:18.181504+00:00",
+  "sources": {
+    "graded_json": "H:\\PropORACLE_main_cp\\mobile\\www\\graded_props_2026-08-23.json",
+    "graded_tennis_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_tennis_2026-08-23.xlsx",
+    "graded_soccer_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_soccer_2026-08-23.xlsx",
+    "graded_nfl_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_nfl_2026-08-23.xlsx",
+    "step8_root": "H:\\PropORACLE\\outputs\\2026-08-23",
+    "step8_soccer": "H:\\PropORACLE\\outputs\\2026-08-23\\soccer\\step8_soccer_direction_clean.xlsx",
+    "step8_tennis": "H:\\PropORACLE_main_cp\\Sports\\Tennis\\step8_tennis_direction.csv",
+    "step8_nfl": "H:\\PropORACLE\\outputs\\2026-08-23\\nfl\\step8_nfl_direction_clean_2026-08-23.xlsx",
+    "notes": [
+      "MLB: HIT/MISS from mobile graded_props JSON; badges from dated step8.",
+      "WNBA: grader Box Raw empty; HIT/MISS from step8 vs actuals (pushes excluded).",
+      "Soccer FIX: prior report used step8_soccer_direction_clean_2026-08-23.xlsx which had 08/24 Game Times (near-zero player overlap). Now uses outputs/2026-08-23/soccer/step8_soccer_direction_clean.xlsx (08/23 times) + actuals + goalie/goalkeeper alias.",
+      "Tennis FIX: graded_tennis xlsx (150 decided) joined to main_cp Sports/Tennis step8 CSV (100% player coverage). Dated open step8 only overlapped 2 players. L5 mostly on Total Games Won; Aces/DF have no L5 in step8. Def Tier blank on tennis board for this slate (D/gold-like unavailable). L10 often from graded xlsx.",
+      "NFL/NFLP FIX: fetch_football_actuals now uses ESPN site.web.api + Referer (site.api 403); empty actuals stubs re-fetch in run_grader; SEA@TEN 2026-08-23 graded (18 decided). League=NFLP is PrizePicks preseason board label.",
+      "Graded JSON L5/def_tier blank for this slate; step8 join required for most badge rates."
+    ]
+  },
+  "thresholds": {
+    "l5": "directional L5 Over/Under (also last5_over/last5_under); gates >=4 and =5",
+    "l10": "directional L10 Over/Under; primary >= 7/10 (also >=8)",
+    "d_gate": "OVER Weak|Below Avg; UNDER Elite|Above Avg; Avg fails; MLB hitter-K inverted",
+    "cover": "season_avg - line (else last5_avg); OVER >0; UNDER <0",
+    "delta": "abs(cover) >= max(0.5, |line|*0.15) in play direction",
+    "gold_like": "L5>=4 + Cover + Delta + D (Dir/Rank not required here)"
+  },
+  "join_stats": {
+    "skip_void_or_other": 1203,
+    "no_join_MLB": 3181,
+    "joined_MLB": 1095,
+    "skip_tennis_json_use_xlsx": 243,
+    "joined_Tennis": 243,
+    "no_join_Tennis": 0,
+    "joined_NFL": 18,
+    "no_join_NFL": 0
+  },
+  "soccer_grade_stats": {
+    "actuals_rows": 11677,
+    "step8_rows": 3487,
+    "decided": 1988,
+    "no_actual": 1494,
+    "push": 5
+  },
+  "wnba_grade_stats": {
+    "actuals_rows": 2262,
+    "step8_rows": 867,
+    "decided": 827,
+    "no_actual": 39,
+    "push": 1
+  },
+  "tennis_diag": {
+    "graded_xlsx_rows": 1112,
+    "graded_xlsx_result": {
+      "VOID": 869,
+      "MISS": 188,
+      "HIT": 55
+    },
+    "decided": 243,
+    "joined_step8": 243,
+    "no_join": 0
+  },
+  "nfl_diag": {
+    "step8_rows": 20,
+    "league_on_board": "NFLP",
+    "note": "PrizePicks NFL preseason board labels League=NFLP; treat NFLP as the NFL PP board for this slate.",
+    "graded_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_nfl_2026-08-23.xlsx",
+    "actuals_rows": 476,
+    "decided": 18,
+    "joined_step8": 18,
+    "no_join": 0,
+    "graded_xlsx_rows": 20,
+    "graded_xlsx_result": {
+      "MISS": 16,
+      "HIT": 2,
+      "VOID": 2
+    }
+  },
+  "nfl_badge_inventory_no_outcomes": {
+    "n_board": 20,
+    "with_l5": 11,
+    "l5_ge4_directional_over": 7,
+    "with_def_tier": 20,
+    "pick_types": {
+      "Standard": 20
+    }
+  },
+  "row_counts": {
+    "mlb_from_graded_json": 4276,
+    "tennis_from_graded_xlsx": 243,
+    "wnba_from_actuals": 827,
+    "soccer_from_actuals": 1988,
+    "nfl_decided": 18,
+    "total": 7352,
+    "standard_goblin": 1645,
+    "with_directional_l5": 3500
+  },
+  "overall_all_picks": {
+    "all_decided": {
+      "n": 7352,
+      "hits": 1820,
+      "hr": 0.2476
+    },
+    "l5_ge4": {
+      "n": 332,
+      "hits": 192,
+      "hr": 0.5783
+    },
+    "l5_eq5": {
+      "n": 74,
+      "hits": 47,
+      "hr": 0.6351
+    },
+    "l5_ge4_d": {
+      "n": 85,
+      "hits": 61,
+      "hr": 0.7176
+    },
+    "l5_eq5_d": {
+      "n": 10,
+      "hits": 6,
+      "hr": 0.6
+    },
+    "l10_ge7": {
+      "n": 603,
+      "hits": 439,
+      "hr": 0.728
+    },
+    "l10_ge8": {
+      "n": 306,
+      "hits": 235,
+      "hr": 0.768
+    },
+    "cover_pass": {
+      "n": 756,
+      "hits": 462,
+      "hr": 0.6111
+    },
+    "delta_pass": {
+      "n": 405,
+      "hits": 282,
+      "hr": 0.6963
+    },
+    "d_pass": {
+      "n": 1200,
+      "hits": 309,
+      "hr": 0.2575
+    },
+    "l5_ge4_l10_ge7": {
+      "n": 221,
+      "hits": 142,
+      "hr": 0.6425
+    },
+    "l5_ge4_d_delta": {
+      "n": 52,
+      "hits": 42,
+      "hr": 0.8077
+    },
+    "gold_like_l5_cover_delta_d": {
+      "n": 52,
+      "hits": 42,
+      "hr": 0.8077
+    },
+    "standard_all": {
+      "n": 392,
+      "hits": 229,
+      "hr": 0.5842
+    },
+    "standard_l5_ge4": {
+      "n": 82,
+      "hits": 41,
+      "hr": 0.5
+    },
+    "standard_l5_ge4_d": {
+      "n": 19,
+      "hits": 9,
+      "hr": 0.4737
+    },
+    "standard_gold_like": {
+      "n": 3,
+      "hits": 2,
+      "hr": 0.6667
+    },
+    "goblin_all": {
+      "n": 1253,
+      "hits": 716,
+      "hr": 0.5714
+    },
+    "goblin_l5_ge4": {
+      "n": 221,
+      "hits": 143,
+      "hr": 0.6471
+    },
+    "goblin_l5_ge4_d": {
+      "n": 61,
+      "hits": 48,
+      "hr": 0.7869
+    },
+    "goblin_gold_like": {
+      "n": 49,
+      "hits": 40,
+      "hr": 0.8163
+    }
+  },
+  "standard_goblin_only": {
+    "all_decided": {
+      "n": 1645,
+      "hits": 945,
+      "hr": 0.5745
+    },
+    "l5_ge4": {
+      "n": 303,
+      "hits": 184,
+      "hr": 0.6073
+    },
+    "l5_eq5": {
+      "n": 74,
+      "hits": 47,
+      "hr": 0.6351
+    },
+    "l5_ge4_d": {
+      "n": 80,
+      "hits": 57,
+      "hr": 0.7125
+    },
+    "l5_eq5_d": {
+      "n": 10,
+      "hits": 6,
+      "hr": 0.6
+    },
+    "l10_ge7": {
+      "n": 566,
+      "hits": 417,
+      "hr": 0.7367
+    },
+    "l10_ge8": {
+      "n": 296,
+      "hits": 228,
+      "hr": 0.7703
+    },
+    "cover_pass": {
+      "n": 627,
+      "hits": 402,
+      "hr": 0.6411
+    },
+    "delta_pass": {
+      "n": 376,
+      "hits": 269,
+      "hr": 0.7154
+    },
+    "d_pass": {
+      "n": 275,
+      "hits": 168,
+      "hr": 0.6109
+    },
+    "l5_ge4_l10_ge7": {
+      "n": 218,
+      "hits": 142,
+      "hr": 0.6514
+    },
+    "l5_ge4_d_delta": {
+      "n": 52,
+      "hits": 42,
+      "hr": 0.8077
+    },
+    "gold_like_l5_cover_delta_d": {
+      "n": 52,
+      "hits": 42,
+      "hr": 0.8077
+    },
+    "standard_all": {
+      "n": 392,
+      "hits": 229,
+      "hr": 0.5842
+    },
+    "standard_l5_ge4": {
+      "n": 82,
+      "hits": 41,
+      "hr": 0.5
+    },
+    "standard_l5_ge4_d": {
+      "n": 19,
+      "hits": 9,
+      "hr": 0.4737
+    },
+    "standard_gold_like": {
+      "n": 3,
+      "hits": 2,
+      "hr": 0.6667
+    },
+    "goblin_all": {
+      "n": 1253,
+      "hits": 716,
+      "hr": 0.5714
+    },
+    "goblin_l5_ge4": {
+      "n": 221,
+      "hits": 143,
+      "hr": 0.6471
+    },
+    "goblin_l5_ge4_d": {
+      "n": 61,
+      "hits": 48,
+      "hr": 0.7869
+    },
+    "goblin_gold_like": {
+      "n": 49,
+      "hits": 40,
+      "hr": 0.8163
+    },
+    "n_rows": 1645
+  },
+  "by_sport_all_picks": {
+    "WNBA": {
+      "all_decided": {
+        "n": 827,
+        "hits": 327,
+        "hr": 0.3954
+      },
+      "l5_ge4": {
+        "n": 188,
+        "hits": 114,
+        "hr": 0.6064
+      },
+      "l5_eq5": {
+        "n": 35,
+        "hits": 21,
+        "hr": 0.6
+      },
+      "l5_ge4_d": {
+        "n": 43,
+        "hits": 38,
+        "hr": 0.8837
+      },
+      "l5_eq5_d": {
+        "n": 4,
+        "hits": 3,
+        "hr": 0.75
+      },
+      "l10_ge7": {
+        "n": 188,
+        "hits": 130,
+        "hr": 0.6915
+      },
+      "l10_ge8": {
+        "n": 106,
+        "hits": 73,
+        "hr": 0.6887
+      },
+      "cover_pass": {
+        "n": 357,
+        "hits": 228,
+        "hr": 0.6387
+      },
+      "delta_pass": {
+        "n": 196,
+        "hits": 140,
+        "hr": 0.7143
+      },
+      "d_pass": {
+        "n": 169,
+        "hits": 81,
+        "hr": 0.4793
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 140,
+        "hits": 92,
+        "hr": 0.6571
+      },
+      "l5_ge4_d_delta": {
+        "n": 28,
+        "hits": 26,
+        "hr": 0.9286
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 28,
+        "hits": 26,
+        "hr": 0.9286
+      },
+      "standard_all": {
+        "n": 98,
+        "hits": 53,
+        "hr": 0.5408
+      },
+      "standard_l5_ge4": {
+        "n": 32,
+        "hits": 15,
+        "hr": 0.4688
+      },
+      "standard_l5_ge4_d": {
+        "n": 8,
+        "hits": 5,
+        "hr": 0.625
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 257,
+        "hits": 175,
+        "hr": 0.6809
+      },
+      "goblin_l5_ge4": {
+        "n": 151,
+        "hits": 97,
+        "hr": 0.6424
+      },
+      "goblin_l5_ge4_d": {
+        "n": 34,
+        "hits": 32,
+        "hr": 0.9412
+      },
+      "goblin_gold_like": {
+        "n": 28,
+        "hits": 26,
+        "hr": 0.9286
+      },
+      "n_rows": 827
+    },
+    "MLB": {
+      "all_decided": {
+        "n": 4276,
+        "hits": 1157,
+        "hr": 0.2706
+      },
+      "l5_ge4": {
+        "n": 69,
+        "hits": 37,
+        "hr": 0.5362
+      },
+      "l5_eq5": {
+        "n": 13,
+        "hits": 6,
+        "hr": 0.4615
+      },
+      "l5_ge4_d": {
+        "n": 27,
+        "hits": 16,
+        "hr": 0.5926
+      },
+      "l5_eq5_d": {
+        "n": 4,
+        "hits": 2,
+        "hr": 0.5
+      },
+      "l10_ge7": {
+        "n": 359,
+        "hits": 276,
+        "hr": 0.7688
+      },
+      "l10_ge8": {
+        "n": 168,
+        "hits": 140,
+        "hr": 0.8333
+      },
+      "cover_pass": {
+        "n": 239,
+        "hits": 150,
+        "hr": 0.6276
+      },
+      "delta_pass": {
+        "n": 125,
+        "hits": 90,
+        "hr": 0.72
+      },
+      "d_pass": {
+        "n": 472,
+        "hits": 148,
+        "hr": 0.3136
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 37,
+        "hits": 24,
+        "hr": 0.6486
+      },
+      "l5_ge4_d_delta": {
+        "n": 18,
+        "hits": 13,
+        "hr": 0.7222
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 18,
+        "hits": 13,
+        "hr": 0.7222
+      },
+      "standard_all": {
+        "n": 185,
+        "hits": 118,
+        "hr": 0.6378
+      },
+      "standard_l5_ge4": {
+        "n": 6,
+        "hits": 1,
+        "hr": 0.1667
+      },
+      "standard_l5_ge4_d": {
+        "n": 2,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 662,
+        "hits": 414,
+        "hr": 0.6254
+      },
+      "goblin_l5_ge4": {
+        "n": 46,
+        "hits": 31,
+        "hr": 0.6739
+      },
+      "goblin_l5_ge4_d": {
+        "n": 21,
+        "hits": 13,
+        "hr": 0.619
+      },
+      "goblin_gold_like": {
+        "n": 18,
+        "hits": 13,
+        "hr": 0.7222
+      },
+      "n_rows": 4276
+    },
+    "Soccer": {
+      "all_decided": {
+        "n": 1988,
+        "hits": 279,
+        "hr": 0.1403
+      },
+      "l5_ge4": {
+        "n": 48,
+        "hits": 28,
+        "hr": 0.5833
+      },
+      "l5_eq5": {
+        "n": 16,
+        "hits": 12,
+        "hr": 0.75
+      },
+      "l5_ge4_d": {
+        "n": 14,
+        "hits": 7,
+        "hr": 0.5
+      },
+      "l5_eq5_d": {
+        "n": 2,
+        "hits": 1,
+        "hr": 0.5
+      },
+      "l10_ge7": {
+        "n": 31,
+        "hits": 21,
+        "hr": 0.6774
+      },
+      "l10_ge8": {
+        "n": 19,
+        "hits": 15,
+        "hr": 0.7895
+      },
+      "cover_pass": {
+        "n": 106,
+        "hits": 61,
+        "hr": 0.5755
+      },
+      "delta_pass": {
+        "n": 53,
+        "hits": 35,
+        "hr": 0.6604
+      },
+      "d_pass": {
+        "n": 554,
+        "hits": 78,
+        "hr": 0.1408
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 26,
+        "hits": 19,
+        "hr": 0.7308
+      },
+      "l5_ge4_d_delta": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "standard_all": {
+        "n": 62,
+        "hits": 38,
+        "hr": 0.6129
+      },
+      "standard_l5_ge4": {
+        "n": 27,
+        "hits": 19,
+        "hr": 0.7037
+      },
+      "standard_l5_ge4_d": {
+        "n": 8,
+        "hits": 4,
+        "hr": 0.5
+      },
+      "standard_gold_like": {
+        "n": 3,
+        "hits": 2,
+        "hr": 0.6667
+      },
+      "goblin_all": {
+        "n": 254,
+        "hits": 102,
+        "hr": 0.4016
+      },
+      "goblin_l5_ge4": {
+        "n": 16,
+        "hits": 9,
+        "hr": 0.5625
+      },
+      "goblin_l5_ge4_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "goblin_gold_like": {
+        "n": 3,
+        "hits": 1,
+        "hr": 0.3333
+      },
+      "n_rows": 1988
+    },
+    "Tennis": {
+      "all_decided": {
+        "n": 243,
+        "hits": 55,
+        "hr": 0.2263
+      },
+      "l5_ge4": {
+        "n": 19,
+        "hits": 13,
+        "hr": 0.6842
+      },
+      "l5_eq5": {
+        "n": 9,
+        "hits": 8,
+        "hr": 0.8889
+      },
+      "l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 15,
+        "hits": 12,
+        "hr": 0.8
+      },
+      "l10_ge8": {
+        "n": 8,
+        "hits": 7,
+        "hr": 0.875
+      },
+      "cover_pass": {
+        "n": 43,
+        "hits": 23,
+        "hr": 0.5349
+      },
+      "delta_pass": {
+        "n": 22,
+        "hits": 17,
+        "hr": 0.7727
+      },
+      "d_pass": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 10,
+        "hits": 7,
+        "hr": 0.7
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 29,
+        "hits": 18,
+        "hr": 0.6207
+      },
+      "standard_l5_ge4": {
+        "n": 9,
+        "hits": 6,
+        "hr": 0.6667
+      },
+      "standard_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 80,
+        "hits": 25,
+        "hr": 0.3125
+      },
+      "goblin_l5_ge4": {
+        "n": 8,
+        "hits": 6,
+        "hr": 0.75
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 243
+    },
+    "NFL": {
+      "all_decided": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 10,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l10_ge8": {
+        "n": 5,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "cover_pass": {
+        "n": 11,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "delta_pass": {
+        "n": 9,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "d_pass": {
+        "n": 5,
+        "hits": 2,
+        "hr": 0.4
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "standard_l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 18
+    }
+  },
+  "by_sport_standard_goblin": {
+    "WNBA": {
+      "all_decided": {
+        "n": 355,
+        "hits": 228,
+        "hr": 0.6423
+      },
+      "l5_ge4": {
+        "n": 183,
+        "hits": 112,
+        "hr": 0.612
+      },
+      "l5_eq5": {
+        "n": 35,
+        "hits": 21,
+        "hr": 0.6
+      },
+      "l5_ge4_d": {
+        "n": 42,
+        "hits": 37,
+        "hr": 0.881
+      },
+      "l5_eq5_d": {
+        "n": 4,
+        "hits": 3,
+        "hr": 0.75
+      },
+      "l10_ge7": {
+        "n": 186,
+        "hits": 129,
+        "hr": 0.6935
+      },
+      "l10_ge8": {
+        "n": 105,
+        "hits": 73,
+        "hr": 0.6952
+      },
+      "cover_pass": {
+        "n": 330,
+        "hits": 214,
+        "hr": 0.6485
+      },
+      "delta_pass": {
+        "n": 195,
+        "hits": 140,
+        "hr": 0.7179
+      },
+      "d_pass": {
+        "n": 84,
+        "hits": 62,
+        "hr": 0.7381
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 139,
+        "hits": 92,
+        "hr": 0.6619
+      },
+      "l5_ge4_d_delta": {
+        "n": 28,
+        "hits": 26,
+        "hr": 0.9286
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 28,
+        "hits": 26,
+        "hr": 0.9286
+      },
+      "standard_all": {
+        "n": 98,
+        "hits": 53,
+        "hr": 0.5408
+      },
+      "standard_l5_ge4": {
+        "n": 32,
+        "hits": 15,
+        "hr": 0.4688
+      },
+      "standard_l5_ge4_d": {
+        "n": 8,
+        "hits": 5,
+        "hr": 0.625
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 257,
+        "hits": 175,
+        "hr": 0.6809
+      },
+      "goblin_l5_ge4": {
+        "n": 151,
+        "hits": 97,
+        "hr": 0.6424
+      },
+      "goblin_l5_ge4_d": {
+        "n": 34,
+        "hits": 32,
+        "hr": 0.9412
+      },
+      "goblin_gold_like": {
+        "n": 28,
+        "hits": 26,
+        "hr": 0.9286
+      },
+      "n_rows": 355,
+      "source": "step8+actuals"
+    },
+    "MLB": {
+      "all_decided": {
+        "n": 847,
+        "hits": 532,
+        "hr": 0.6281
+      },
+      "l5_ge4": {
+        "n": 52,
+        "hits": 32,
+        "hr": 0.6154
+      },
+      "l5_eq5": {
+        "n": 13,
+        "hits": 6,
+        "hr": 0.4615
+      },
+      "l5_ge4_d": {
+        "n": 23,
+        "hits": 13,
+        "hr": 0.5652
+      },
+      "l5_eq5_d": {
+        "n": 4,
+        "hits": 2,
+        "hr": 0.5
+      },
+      "l10_ge7": {
+        "n": 325,
+        "hits": 256,
+        "hr": 0.7877
+      },
+      "l10_ge8": {
+        "n": 159,
+        "hits": 133,
+        "hr": 0.8365
+      },
+      "cover_pass": {
+        "n": 160,
+        "hits": 110,
+        "hr": 0.6875
+      },
+      "delta_pass": {
+        "n": 105,
+        "hits": 79,
+        "hr": 0.7524
+      },
+      "d_pass": {
+        "n": 82,
+        "hits": 63,
+        "hr": 0.7683
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 35,
+        "hits": 24,
+        "hr": 0.6857
+      },
+      "l5_ge4_d_delta": {
+        "n": 18,
+        "hits": 13,
+        "hr": 0.7222
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 18,
+        "hits": 13,
+        "hr": 0.7222
+      },
+      "standard_all": {
+        "n": 185,
+        "hits": 118,
+        "hr": 0.6378
+      },
+      "standard_l5_ge4": {
+        "n": 6,
+        "hits": 1,
+        "hr": 0.1667
+      },
+      "standard_l5_ge4_d": {
+        "n": 2,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 662,
+        "hits": 414,
+        "hr": 0.6254
+      },
+      "goblin_l5_ge4": {
+        "n": 46,
+        "hits": 31,
+        "hr": 0.6739
+      },
+      "goblin_l5_ge4_d": {
+        "n": 21,
+        "hits": 13,
+        "hr": 0.619
+      },
+      "goblin_gold_like": {
+        "n": 18,
+        "hits": 13,
+        "hr": 0.7222
+      },
+      "n_rows": 847,
+      "source": "graded_json+step8"
+    },
+    "Soccer": {
+      "all_decided": {
+        "n": 316,
+        "hits": 140,
+        "hr": 0.443
+      },
+      "l5_ge4": {
+        "n": 43,
+        "hits": 28,
+        "hr": 0.6512
+      },
+      "l5_eq5": {
+        "n": 16,
+        "hits": 12,
+        "hr": 0.75
+      },
+      "l5_ge4_d": {
+        "n": 14,
+        "hits": 7,
+        "hr": 0.5
+      },
+      "l5_eq5_d": {
+        "n": 2,
+        "hits": 1,
+        "hr": 0.5
+      },
+      "l10_ge7": {
+        "n": 31,
+        "hits": 21,
+        "hr": 0.6774
+      },
+      "l10_ge8": {
+        "n": 19,
+        "hits": 15,
+        "hr": 0.7895
+      },
+      "cover_pass": {
+        "n": 94,
+        "hits": 59,
+        "hr": 0.6277
+      },
+      "delta_pass": {
+        "n": 50,
+        "hits": 35,
+        "hr": 0.7
+      },
+      "d_pass": {
+        "n": 104,
+        "hits": 41,
+        "hr": 0.3942
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 26,
+        "hits": 19,
+        "hr": 0.7308
+      },
+      "l5_ge4_d_delta": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "standard_all": {
+        "n": 62,
+        "hits": 38,
+        "hr": 0.6129
+      },
+      "standard_l5_ge4": {
+        "n": 27,
+        "hits": 19,
+        "hr": 0.7037
+      },
+      "standard_l5_ge4_d": {
+        "n": 8,
+        "hits": 4,
+        "hr": 0.5
+      },
+      "standard_gold_like": {
+        "n": 3,
+        "hits": 2,
+        "hr": 0.6667
+      },
+      "goblin_all": {
+        "n": 254,
+        "hits": 102,
+        "hr": 0.4016
+      },
+      "goblin_l5_ge4": {
+        "n": 16,
+        "hits": 9,
+        "hr": 0.5625
+      },
+      "goblin_l5_ge4_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "goblin_gold_like": {
+        "n": 3,
+        "hits": 1,
+        "hr": 0.3333
+      },
+      "n_rows": 316,
+      "source": "step8_subdir_0823+actuals"
+    },
+    "Tennis": {
+      "all_decided": {
+        "n": 109,
+        "hits": 43,
+        "hr": 0.3945
+      },
+      "l5_ge4": {
+        "n": 17,
+        "hits": 12,
+        "hr": 0.7059
+      },
+      "l5_eq5": {
+        "n": 9,
+        "hits": 8,
+        "hr": 0.8889
+      },
+      "l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 14,
+        "hits": 11,
+        "hr": 0.7857
+      },
+      "l10_ge8": {
+        "n": 8,
+        "hits": 7,
+        "hr": 0.875
+      },
+      "cover_pass": {
+        "n": 32,
+        "hits": 19,
+        "hr": 0.5938
+      },
+      "delta_pass": {
+        "n": 17,
+        "hits": 15,
+        "hr": 0.8824
+      },
+      "d_pass": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 10,
+        "hits": 7,
+        "hr": 0.7
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 29,
+        "hits": 18,
+        "hr": 0.6207
+      },
+      "standard_l5_ge4": {
+        "n": 9,
+        "hits": 6,
+        "hr": 0.6667
+      },
+      "standard_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 80,
+        "hits": 25,
+        "hr": 0.3125
+      },
+      "goblin_l5_ge4": {
+        "n": 8,
+        "hits": 6,
+        "hr": 0.75
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 109,
+      "source": "graded_xlsx+main_cp_step8"
+    },
+    "NFL": {
+      "all_decided": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 10,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l10_ge8": {
+        "n": 5,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "cover_pass": {
+        "n": 11,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "delta_pass": {
+        "n": 9,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "d_pass": {
+        "n": 5,
+        "hits": 2,
+        "hr": 0.4
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "standard_l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 18,
+      "source": "graded_xlsx+step8"
+    }
+  },
+  "data_quality": {
+    "MLB": "Official graded HIT/MISS; Std+Gob join to dated step8 for badges. Demons mostly missing from step8 join.",
+    "WNBA": "Grader Box Raw empty. HIT/MISS from step8 vs actuals. Provisional but usable.",
+    "Soccer": "Usable after board fix. Prefer Std+Gob (Demons drag overall HR ~14%). L5/D/cover from correct 08/23 step8. graded_soccer xlsx empty.",
+    "Tennis": "Official grades n=150. Step8 join 100% on player via main_cp board. L5 only sparse (mostly Total Games Won; Aces/DF have no L5). Def Tier empty \u2014 D and gold-like not computable. L10 largely from graded xlsx. Small-n caution on L5 pools.",
+    "NFL": "Official grades n=18 decided (2 VOID DNP). SEA@TEN preseason (League=NFLP). L5/D from step8; cover uses Projection when Season Avg blank. Small-n caution."
+  },
+  "recommended_view": "Primary: standard_goblin_only + by_sport_standard_goblin for WNBA/MLB/Soccer. Tennis: use all_decided and L10 pools; treat L5/D/gold as thin/unavailable. NFL: Std+Gob pools available (n=18); treat L5/gold as small-n.",
+  "reliability": {
+    "Soccer_std_gob": "moderate (n~300 decided with badges)",
+    "Tennis_all": "moderate on raw HR; low on L5/D badge pools (sparse features)",
+    "NFL": "low-n (18 decided SEA@TEN preseason) but outcomes are real"
+  }
+}

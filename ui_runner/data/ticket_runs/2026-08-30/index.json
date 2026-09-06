@@ -1,0 +1,61 @@
+{
+  "date": "2026-08-30",
+  "runs": [
+    {
+      "run_id": "20260830_054751_376647",
+      "generated_at": "2026-08-30 05:47:51 UTC",
+      "archived_at": "2026-08-30T05:50:26.642820+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 21,
+      "n_strong": 3,
+      "path": "ui_runner/data/ticket_runs/2026-08-30/20260830_054751_376647/tickets.json"
+    },
+    {
+      "run_id": "20260830_092956_198398",
+      "generated_at": "2026-08-30 09:29:55 UTC",
+      "archived_at": "2026-08-30T10:08:15.759247+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 37,
+      "n_strong": 16,
+      "path": "ui_runner/data/ticket_runs/2026-08-30/20260830_092956_198398/tickets.json"
+    },
+    {
+      "run_id": "20260830_123616_454533",
+      "generated_at": "2026-08-30 12:36:16 UTC",
+      "archived_at": "2026-08-30T13:30:30.965501+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 32,
+      "n_strong": 12,
+      "path": "ui_runner/data/ticket_runs/2026-08-30/20260830_123616_454533/tickets.json"
+    },
+    {
+      "run_id": "20260830_144215_581970",
+      "generated_at": "2026-08-30 14:42:15 UTC",
+      "archived_at": "2026-08-30T15:55:42.764021+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 17,
+      "n_strong": 1,
+      "path": "ui_runner/data/ticket_runs/2026-08-30/20260830_144215_581970/tickets.json"
+    },
+    {
+      "run_id": "20260830_180200_761603",
+      "generated_at": "2026-08-30 18:02:00 UTC",
+      "archived_at": "2026-08-30T19:28:42.000688+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 16,
+      "n_strong": 1,
+      "path": "ui_runner/data/ticket_runs/2026-08-30/20260830_180200_761603/tickets.json"
+    },
+    {
+      "run_id": "20260830_205740_637625",
+      "generated_at": "2026-08-30 20:57:40 UTC",
+      "archived_at": "2026-08-30T21:45:05.450512+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 16,
+      "n_strong": 0,
+      "path": "ui_runner/data/ticket_runs/2026-08-30/20260830_205740_637625/tickets.json"
+    }
+  ],
+  "latest_run_id": "20260830_205740_637625",
+  "updated_at": "2026-08-30T21:45:05.464589+00:00"
+}

@@ -1,0 +1,25 @@
+{
+  "date": "2026-08-27",
+  "runs": [
+    {
+      "run_id": "20260827_171619_859411",
+      "generated_at": "2026-08-27 17:16:19 UTC",
+      "archived_at": "2026-08-27T17:19:51.849691+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 15,
+      "n_strong": 4,
+      "path": "ui_runner/data/ticket_runs/2026-08-27/20260827_171619_859411/tickets.json"
+    },
+    {
+      "run_id": "20260827_204407_379044",
+      "generated_at": "2026-08-27 20:44:07 UTC",
+      "archived_at": "2026-08-27T20:47:09.779079+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 14,
+      "n_strong": 4,
+      "path": "ui_runner/data/ticket_runs/2026-08-27/20260827_204407_379044/tickets.json"
+    }
+  ],
+  "latest_run_id": "20260827_204407_379044",
+  "updated_at": "2026-08-27T20:47:09.790559+00:00"
+}

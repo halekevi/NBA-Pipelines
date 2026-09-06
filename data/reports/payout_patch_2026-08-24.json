@@ -1,0 +1,173 @@
+{
+  "date": "2026-08-24",
+  "generated_at": "2026-08-24T20:58:48Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\data\\combined_slate_tickets_2026-08-24.json",
+  "by_ticket_id": {
+    "2026-08-24|TENNIS 2-Leg Goblin OVER|1": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-24|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-24|Probability Ladder · TENNIS · Stack70|2": {
+      "power_min_x": 2.1,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|Probability Ladder · TENNIS · Stack70|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    }
+  },
+  "by_leg_sig": {
+    "clara tauson|total games|over|17.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "clara tauson|total games|over|17.500||petra marcinko|total games|over|17.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "clara tauson|total games|over|16.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "kamil majchrzak|total games|over|18.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 3.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "clara tauson|total games|over|17.500||kamil majchrzak|total games|over|18.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "clara tauson|total games|over|17.500||kamil majchrzak|total games|over|18.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "adam walton|total games|over|18.500||clara tauson|total games|over|17.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clara tauson|total games|over|17.500||janice tjen|total games|over|17.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clara tauson|total games|over|17.500||donna vekic|total games|over|17.500||petra marcinko|total games|over|18.500": {
+      "power_min_x": 2.1,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|Probability Ladder · TENNIS · Stack70|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clara tauson|total games|over|17.500||kamil majchrzak|total games|over|18.500||petra marcinko|total games|over|17.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "clara tauson|total games|over|16.500||petra marcinko|total games|over|18.500||quinn vandecasteele|total games won|over|7.500": {
+      "power_min_x": 2.1,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|Probability Ladder · TENNIS · Stack70|2",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "kylie collins|total games|over|18.500||quinn vandecasteele|total games won|over|8.500": {
+      "power_min_x": 1.5,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "kylie collins|total games|over|18.500||lin zhu|total games|over|16.500||quinn vandecasteele|total games won|over|8.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "kylie collins|total games|over|18.500||lin zhu|total games|over|16.500||quinn vandecasteele|total games won|over|7.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "kylie collins|total games|over|18.500||lin zhu|total games|over|15.500||quinn vandecasteele|total games won|over|8.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "kylie collins|total games|over|18.500||linda klimovicova|total games|over|18.500||quinn vandecasteele|total games won|over|8.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "kylie collins|total games|over|18.500||petra marcinko|total games|over|18.500||quinn vandecasteele|total games won|over|8.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-24|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    }
+  }
+}

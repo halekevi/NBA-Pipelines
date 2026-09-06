@@ -1,0 +1,743 @@
+{
+  "slate_date": "2026-08-23",
+  "generated_at": "2026-08-24T18:05:18.181504+00:00",
+  "focus": [
+    "Tennis",
+    "Soccer",
+    "NFL"
+  ],
+  "sources": {
+    "graded_json": "H:\\PropORACLE_main_cp\\mobile\\www\\graded_props_2026-08-23.json",
+    "graded_tennis_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_tennis_2026-08-23.xlsx",
+    "graded_soccer_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_soccer_2026-08-23.xlsx",
+    "graded_nfl_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_nfl_2026-08-23.xlsx",
+    "step8_root": "H:\\PropORACLE\\outputs\\2026-08-23",
+    "step8_soccer": "H:\\PropORACLE\\outputs\\2026-08-23\\soccer\\step8_soccer_direction_clean.xlsx",
+    "step8_tennis": "H:\\PropORACLE_main_cp\\Sports\\Tennis\\step8_tennis_direction.csv",
+    "step8_nfl": "H:\\PropORACLE\\outputs\\2026-08-23\\nfl\\step8_nfl_direction_clean_2026-08-23.xlsx",
+    "notes": [
+      "MLB: HIT/MISS from mobile graded_props JSON; badges from dated step8.",
+      "WNBA: grader Box Raw empty; HIT/MISS from step8 vs actuals (pushes excluded).",
+      "Soccer FIX: prior report used step8_soccer_direction_clean_2026-08-23.xlsx which had 08/24 Game Times (near-zero player overlap). Now uses outputs/2026-08-23/soccer/step8_soccer_direction_clean.xlsx (08/23 times) + actuals + goalie/goalkeeper alias.",
+      "Tennis FIX: graded_tennis xlsx (150 decided) joined to main_cp Sports/Tennis step8 CSV (100% player coverage). Dated open step8 only overlapped 2 players. L5 mostly on Total Games Won; Aces/DF have no L5 in step8. Def Tier blank on tennis board for this slate (D/gold-like unavailable). L10 often from graded xlsx.",
+      "NFL/NFLP FIX: fetch_football_actuals now uses ESPN site.web.api + Referer (site.api 403); empty actuals stubs re-fetch in run_grader; SEA@TEN 2026-08-23 graded (18 decided). League=NFLP is PrizePicks preseason board label.",
+      "Graded JSON L5/def_tier blank for this slate; step8 join required for most badge rates."
+    ]
+  },
+  "thresholds": {
+    "l5": "directional L5 Over/Under (also last5_over/last5_under); gates >=4 and =5",
+    "l10": "directional L10 Over/Under; primary >= 7/10 (also >=8)",
+    "d_gate": "OVER Weak|Below Avg; UNDER Elite|Above Avg; Avg fails; MLB hitter-K inverted",
+    "cover": "season_avg - line (else last5_avg); OVER >0; UNDER <0",
+    "delta": "abs(cover) >= max(0.5, |line|*0.15) in play direction",
+    "gold_like": "L5>=4 + Cover + Delta + D (Dir/Rank not required here)"
+  },
+  "tennis_diag": {
+    "graded_xlsx_rows": 1112,
+    "graded_xlsx_result": {
+      "VOID": 869,
+      "MISS": 188,
+      "HIT": 55
+    },
+    "decided": 243,
+    "joined_step8": 243,
+    "no_join": 0
+  },
+  "soccer_grade_stats": {
+    "actuals_rows": 11677,
+    "step8_rows": 3487,
+    "decided": 1988,
+    "no_actual": 1494,
+    "push": 5
+  },
+  "nfl_diag": {
+    "step8_rows": 20,
+    "league_on_board": "NFLP",
+    "note": "PrizePicks NFL preseason board labels League=NFLP; treat NFLP as the NFL PP board for this slate.",
+    "graded_xlsx": "H:\\PropORACLE_main_cp\\outputs\\2026-08-23\\graded_nfl_2026-08-23.xlsx",
+    "actuals_rows": 476,
+    "decided": 18,
+    "joined_step8": 18,
+    "no_join": 0,
+    "graded_xlsx_rows": 20,
+    "graded_xlsx_result": {
+      "MISS": 16,
+      "HIT": 2,
+      "VOID": 2
+    }
+  },
+  "nfl_badge_inventory_no_outcomes": {
+    "n_board": 20,
+    "with_l5": 11,
+    "l5_ge4_directional_over": 7,
+    "with_def_tier": 20,
+    "pick_types": {
+      "Standard": 20
+    }
+  },
+  "by_sport_all_picks": {
+    "Tennis": {
+      "all_decided": {
+        "n": 243,
+        "hits": 55,
+        "hr": 0.2263
+      },
+      "l5_ge4": {
+        "n": 19,
+        "hits": 13,
+        "hr": 0.6842
+      },
+      "l5_eq5": {
+        "n": 9,
+        "hits": 8,
+        "hr": 0.8889
+      },
+      "l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 15,
+        "hits": 12,
+        "hr": 0.8
+      },
+      "l10_ge8": {
+        "n": 8,
+        "hits": 7,
+        "hr": 0.875
+      },
+      "cover_pass": {
+        "n": 43,
+        "hits": 23,
+        "hr": 0.5349
+      },
+      "delta_pass": {
+        "n": 22,
+        "hits": 17,
+        "hr": 0.7727
+      },
+      "d_pass": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 10,
+        "hits": 7,
+        "hr": 0.7
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 29,
+        "hits": 18,
+        "hr": 0.6207
+      },
+      "standard_l5_ge4": {
+        "n": 9,
+        "hits": 6,
+        "hr": 0.6667
+      },
+      "standard_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 80,
+        "hits": 25,
+        "hr": 0.3125
+      },
+      "goblin_l5_ge4": {
+        "n": 8,
+        "hits": 6,
+        "hr": 0.75
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 243
+    },
+    "Soccer": {
+      "all_decided": {
+        "n": 1988,
+        "hits": 279,
+        "hr": 0.1403
+      },
+      "l5_ge4": {
+        "n": 48,
+        "hits": 28,
+        "hr": 0.5833
+      },
+      "l5_eq5": {
+        "n": 16,
+        "hits": 12,
+        "hr": 0.75
+      },
+      "l5_ge4_d": {
+        "n": 14,
+        "hits": 7,
+        "hr": 0.5
+      },
+      "l5_eq5_d": {
+        "n": 2,
+        "hits": 1,
+        "hr": 0.5
+      },
+      "l10_ge7": {
+        "n": 31,
+        "hits": 21,
+        "hr": 0.6774
+      },
+      "l10_ge8": {
+        "n": 19,
+        "hits": 15,
+        "hr": 0.7895
+      },
+      "cover_pass": {
+        "n": 106,
+        "hits": 61,
+        "hr": 0.5755
+      },
+      "delta_pass": {
+        "n": 53,
+        "hits": 35,
+        "hr": 0.6604
+      },
+      "d_pass": {
+        "n": 554,
+        "hits": 78,
+        "hr": 0.1408
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 26,
+        "hits": 19,
+        "hr": 0.7308
+      },
+      "l5_ge4_d_delta": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "standard_all": {
+        "n": 62,
+        "hits": 38,
+        "hr": 0.6129
+      },
+      "standard_l5_ge4": {
+        "n": 27,
+        "hits": 19,
+        "hr": 0.7037
+      },
+      "standard_l5_ge4_d": {
+        "n": 8,
+        "hits": 4,
+        "hr": 0.5
+      },
+      "standard_gold_like": {
+        "n": 3,
+        "hits": 2,
+        "hr": 0.6667
+      },
+      "goblin_all": {
+        "n": 254,
+        "hits": 102,
+        "hr": 0.4016
+      },
+      "goblin_l5_ge4": {
+        "n": 16,
+        "hits": 9,
+        "hr": 0.5625
+      },
+      "goblin_l5_ge4_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "goblin_gold_like": {
+        "n": 3,
+        "hits": 1,
+        "hr": 0.3333
+      },
+      "n_rows": 1988
+    },
+    "NFL": {
+      "all_decided": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 10,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l10_ge8": {
+        "n": 5,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "cover_pass": {
+        "n": 11,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "delta_pass": {
+        "n": 9,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "d_pass": {
+        "n": 5,
+        "hits": 2,
+        "hr": 0.4
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "standard_l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 18
+    }
+  },
+  "by_sport_standard_goblin": {
+    "Tennis": {
+      "all_decided": {
+        "n": 109,
+        "hits": 43,
+        "hr": 0.3945
+      },
+      "l5_ge4": {
+        "n": 17,
+        "hits": 12,
+        "hr": 0.7059
+      },
+      "l5_eq5": {
+        "n": 9,
+        "hits": 8,
+        "hr": 0.8889
+      },
+      "l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 14,
+        "hits": 11,
+        "hr": 0.7857
+      },
+      "l10_ge8": {
+        "n": 8,
+        "hits": 7,
+        "hr": 0.875
+      },
+      "cover_pass": {
+        "n": 32,
+        "hits": 19,
+        "hr": 0.5938
+      },
+      "delta_pass": {
+        "n": 17,
+        "hits": 15,
+        "hr": 0.8824
+      },
+      "d_pass": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 10,
+        "hits": 7,
+        "hr": 0.7
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 29,
+        "hits": 18,
+        "hr": 0.6207
+      },
+      "standard_l5_ge4": {
+        "n": 9,
+        "hits": 6,
+        "hr": 0.6667
+      },
+      "standard_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 80,
+        "hits": 25,
+        "hr": 0.3125
+      },
+      "goblin_l5_ge4": {
+        "n": 8,
+        "hits": 6,
+        "hr": 0.75
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 109,
+      "source": "graded_xlsx+main_cp_step8"
+    },
+    "Soccer": {
+      "all_decided": {
+        "n": 316,
+        "hits": 140,
+        "hr": 0.443
+      },
+      "l5_ge4": {
+        "n": 43,
+        "hits": 28,
+        "hr": 0.6512
+      },
+      "l5_eq5": {
+        "n": 16,
+        "hits": 12,
+        "hr": 0.75
+      },
+      "l5_ge4_d": {
+        "n": 14,
+        "hits": 7,
+        "hr": 0.5
+      },
+      "l5_eq5_d": {
+        "n": 2,
+        "hits": 1,
+        "hr": 0.5
+      },
+      "l10_ge7": {
+        "n": 31,
+        "hits": 21,
+        "hr": 0.6774
+      },
+      "l10_ge8": {
+        "n": 19,
+        "hits": 15,
+        "hr": 0.7895
+      },
+      "cover_pass": {
+        "n": 94,
+        "hits": 59,
+        "hr": 0.6277
+      },
+      "delta_pass": {
+        "n": 50,
+        "hits": 35,
+        "hr": 0.7
+      },
+      "d_pass": {
+        "n": 104,
+        "hits": 41,
+        "hr": 0.3942
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 26,
+        "hits": 19,
+        "hr": 0.7308
+      },
+      "l5_ge4_d_delta": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "standard_all": {
+        "n": 62,
+        "hits": 38,
+        "hr": 0.6129
+      },
+      "standard_l5_ge4": {
+        "n": 27,
+        "hits": 19,
+        "hr": 0.7037
+      },
+      "standard_l5_ge4_d": {
+        "n": 8,
+        "hits": 4,
+        "hr": 0.5
+      },
+      "standard_gold_like": {
+        "n": 3,
+        "hits": 2,
+        "hr": 0.6667
+      },
+      "goblin_all": {
+        "n": 254,
+        "hits": 102,
+        "hr": 0.4016
+      },
+      "goblin_l5_ge4": {
+        "n": 16,
+        "hits": 9,
+        "hr": 0.5625
+      },
+      "goblin_l5_ge4_d": {
+        "n": 6,
+        "hits": 3,
+        "hr": 0.5
+      },
+      "goblin_gold_like": {
+        "n": 3,
+        "hits": 1,
+        "hr": 0.3333
+      },
+      "n_rows": 316,
+      "source": "step8_subdir_0823+actuals"
+    },
+    "NFL": {
+      "all_decided": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_eq5_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "l10_ge7": {
+        "n": 10,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l10_ge8": {
+        "n": 5,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "cover_pass": {
+        "n": 11,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "delta_pass": {
+        "n": 9,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "d_pass": {
+        "n": 5,
+        "hits": 2,
+        "hr": 0.4
+      },
+      "l5_ge4_l10_ge7": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "l5_ge4_d_delta": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "gold_like_l5_cover_delta_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "standard_all": {
+        "n": 18,
+        "hits": 2,
+        "hr": 0.1111
+      },
+      "standard_l5_ge4": {
+        "n": 8,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_l5_ge4_d": {
+        "n": 1,
+        "hits": 0,
+        "hr": 0.0
+      },
+      "standard_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_all": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_l5_ge4_d": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "goblin_gold_like": {
+        "n": 0,
+        "hits": 0,
+        "hr": null
+      },
+      "n_rows": 18,
+      "source": "graded_xlsx+step8"
+    }
+  },
+  "data_quality": {
+    "Tennis": "Official grades n=150. Step8 join 100% on player via main_cp board. L5 only sparse (mostly Total Games Won; Aces/DF have no L5). Def Tier empty \u2014 D and gold-like not computable. L10 largely from graded xlsx. Small-n caution on L5 pools.",
+    "Soccer": "Usable after board fix. Prefer Std+Gob (Demons drag overall HR ~14%). L5/D/cover from correct 08/23 step8. graded_soccer xlsx empty.",
+    "NFL": "Official grades n=18 decided (2 VOID DNP). SEA@TEN preseason (League=NFLP). L5/D from step8; cover uses Projection when Season Avg blank. Small-n caution."
+  },
+  "reliability": {
+    "Soccer_std_gob": "moderate (n~300 decided with badges)",
+    "Tennis_all": "moderate on raw HR; low on L5/D badge pools (sparse features)",
+    "NFL": "low-n (18 decided SEA@TEN preseason) but outcomes are real"
+  }
+}

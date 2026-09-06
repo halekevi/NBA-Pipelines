@@ -1,0 +1,412 @@
+{
+  "date": "2026-08-26",
+  "generated_at": "2026-08-26T22:05:23.200770Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\data\\combined_slate_tickets_2026-08-26.json",
+  "by_ticket_id": {
+    "2026-08-26|STRONG 2-Leg|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-26|MLB 2-Leg Goblin OVER|1": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-26|MLB 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-26|TENNIS 2-Leg Goblin OVER|1": {
+      "power_min_x": 2.1,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-26|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-26|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-26|STRONG 2-Leg|2": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "2026-08-26|STRONG 3-Leg|1": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-26|TENNIS Goblin 3-Leg #1|1": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "2026-08-26|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    }
+  },
+  "by_leg_sig": {
+    "bryan woo|hits allowed|over|2.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "cody bellinger|hits+runs+rbis|over|0.500||connor prielipp|walks allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "cody bellinger|hits+runs+rbis|over|0.500||connor prielipp|walks allowed|over|0.500||michael mcgreevy|walks allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "jack pinnington jones|total games won|over|10.500||jordan lee|total games won|over|9.500": {
+      "power_min_x": 2.1,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "henrique rocha|total games|over|21.500||jack pinnington jones|total games won|over|10.500||jordan lee|total games won|over|9.500": {
+      "power_min_x": 3.0,
+      "power_first_x": 6.0,
+      "display_min_x": 3.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "arthur fery|total games won|over|10.500||jack pinnington jones|total games won|over|10.500||jordan lee|total games won|over|9.500": {
+      "power_min_x": 2.5,
+      "power_first_x": 6.0,
+      "display_min_x": 2.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "arthur fery|total games won|over|10.500||henrique rocha|total games|over|21.500||jack pinnington jones|total games won|over|10.500": {
+      "power_min_x": 2.4,
+      "power_first_x": 6.0,
+      "display_min_x": 2.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "arthur fery|total games won|over|10.500||henrique rocha|total games|over|21.500||jordan lee|total games won|over|9.500": {
+      "power_min_x": 2.5,
+      "power_first_x": 6.0,
+      "display_min_x": 2.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "jack pinnington jones|total games won|over|10.500||jordan lee|total games won|over|9.500||stefanos tsitsipas|total games|over|19.500": {
+      "power_min_x": 2.8,
+      "power_first_x": 6.0,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "slip_type": "main"
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||connor prielipp|walks allowed|over|0.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||landen roupp|walks allowed|over|1.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500||connor prielipp|walks allowed|over|0.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500||connor norby|total bases|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500||willi castro|total bases|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500||connor norby|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "bryan woo|hits allowed|over|2.500||connor prielipp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "cody bellinger|hits+runs+rbis|over|0.500||landen roupp|walks allowed|over|1.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500||connor norby|hits|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||cody bellinger|hits+runs+rbis|over|0.500||willi castro|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games|over|18.500||jack pinnington jones|total games won|over|10.500||jordan lee|total games won|over|9.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games won|over|10.500||jack pinnington jones|total games won|over|10.500||stefanos tsitsipas|total games|over|19.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games won|over|10.500||jordan lee|total games won|over|9.500||stefanos tsitsipas|total games|over|19.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "bryan woo|walks allowed|over|0.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 3.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong"
+    },
+    "bryan woo|hits allowed|over|2.500||connor prielipp|earned runs allowed|over|0.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "bryan woo|pitching outs|over|14.500||connor prielipp|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "jack pinnington jones|total games won|over|10.500||jordan lee|total games won|over|9.500||mary stoiana|total games|over|18.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games won|over|10.500||arthur gea|total games|over|19.500||henrique rocha|total games|over|21.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "connor prielipp|pitching outs|over|14.500||landen roupp|earned runs allowed|over|0.500": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||willi castro|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "cody bellinger|hits+runs+rbis|over|0.500||willi castro|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "cody bellinger|hits+runs+rbis|over|0.500||michael mcgreevy|walks allowed|over|0.500||willi castro|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games won|over|10.500||henrique rocha|total games|over|21.500": {
+      "power_min_x": 2.1,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0
+    },
+    "arthur fery|total games won|over|10.500||henrique rocha|total games|over|21.500||mary stoiana|total games|over|18.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games won|over|10.500||henrique rocha|total games|over|21.500||stefanos tsitsipas|total games|over|19.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games|over|18.500||henrique rocha|total games|over|21.500||mary stoiana|total games|over|18.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "arthur fery|total games|over|18.500||henrique rocha|total games|over|21.500||stefanos tsitsipas|total games|over|19.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "henrique rocha|total games|over|21.500||mary stoiana|total games|over|18.500||stefanos tsitsipas|total games|over|19.500": {
+      "power_min_x": 2.8,
+      "display_min_x": 2.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0
+    },
+    "alec burleson|hits+runs+rbis|over|0.500||connor norby|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 3.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-26|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main"
+    }
+  }
+}

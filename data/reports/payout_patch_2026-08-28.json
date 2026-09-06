@@ -1,0 +1,248 @@
+{
+  "date": "2026-08-28",
+  "generated_at": "2026-08-28T21:14:15Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-08-28|Probability Ladder · TENNIS · Stack70|1": {
+      "power_min_x": 3.5,
+      "display_min_x": 3.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|Probability Ladder · TENNIS · Stack70|1",
+      "n_legs": 2,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-28T08:53:31"
+    },
+    "2026-08-28|Probability Ladder · TENNIS · Stack70|3": {
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|Probability Ladder · TENNIS · Stack70|3",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T08:56:33"
+    },
+    "2026-08-28|TENNIS Core Power 2 #1|1": {
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T08:57:47"
+    },
+    "2026-08-28|TENNIS Goblin 3-Leg #1|1": {
+      "power_min_x": 3.5,
+      "power_first_x": 6.0,
+      "display_min_x": 3.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T09:00:00"
+    },
+    "2026-08-28|TENNIS Mixed 3-Leg #1|1": {
+      "power_min_x": 4.0,
+      "power_first_x": 6.0,
+      "display_min_x": 4.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS Mixed 3-Leg #1|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T09:05:30"
+    },
+    "2026-08-28|STRONG 3-Leg|1": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-28T13:56:47"
+    },
+    "2026-08-28|WNBA Goblin-70 Power 3|2": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T11:34:42"
+    },
+    "2026-08-28|TENNIS 2-Leg Goblin OVER|1": {
+      "power_min_x": 3.5,
+      "display_min_x": 3.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-28T08:53:31"
+    },
+    "2026-08-28|STRONG 2-Leg|2": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-28T13:55:42"
+    },
+    "2026-08-28|WNBA Core Power 2 #1|1": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-28T14:47:40"
+    },
+    "2026-08-28|WNBA Goblin-70 Power 3|1": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T14:49:15"
+    },
+    "2026-08-28|WNBA Goblin-70 Power 3|3": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T14:50:47"
+    }
+  },
+  "by_leg_sig": {
+    "colton smith|total games won|over|11.500||darja semenistaja|total games won|over|9.500||federico cina|total games won|over|11.500": {
+      "power_min_x": 3.5,
+      "power_first_x": 6.0,
+      "display_min_x": 3.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS Goblin 3-Leg #1|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T09:00:00"
+    },
+    "darja semenistaja|total games won|over|10.500||elvina kalieva|total games won|over|11.500": {
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|Probability Ladder · TENNIS · Stack70|3",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T08:56:33"
+    },
+    "colton smith|total games won|over|11.500||federico cina|total games won|over|11.500": {
+      "power_min_x": 2.3,
+      "power_first_x": 3.0,
+      "display_min_x": 2.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T08:57:47"
+    },
+    "colton smith|total games won|over|11.500||federico cina|total games won|over|11.500||tristan schoolkate|total games won|over|12.500": {
+      "power_min_x": 4.0,
+      "power_first_x": 6.0,
+      "display_min_x": 4.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS Mixed 3-Leg #1|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T09:05:30"
+    },
+    "brandon young|earned runs allowed|over|0.500||christian scott|earned runs allowed|over|0.500||eury pérez|pitches thrown|over|89.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-28T13:56:47"
+    },
+    "jordin canada|pts+rebs|over|9.500||naz hillmon|pts+rebs|over|9.500||saniya rivers|points|over|4.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T11:34:42"
+    },
+    "jacob fearnley|total games|over|19.500||qinwen zheng|total games|over|18.500": {
+      "power_min_x": 3.5,
+      "display_min_x": 3.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-28T08:53:31"
+    },
+    "jacob fearnley|total games|over|20.500||qinwen zheng|total games|over|18.500": {
+      "power_min_x": 3.5,
+      "display_min_x": 3.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-28T08:53:31"
+    },
+    "brandon young|earned runs allowed|over|0.500||eury pérez|pitches thrown|over|89.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-28T13:55:42"
+    },
+    "brandon young|earned runs allowed|over|0.500||christian scott|earned runs allowed|over|0.500||eury pã©rez|pitches thrown|over|89.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "captured_at": "2026-08-28T13:56:47"
+    },
+    "kiki iriafen|rebounds|over|7.500||sonia citron|assists|over|3.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-28T14:47:40"
+    },
+    "angel reese|pts+rebs|over|24.500||kiki iriafen|pts+rebs|over|19.500||rhyne howard|pts+rebs|over|14.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T14:49:15"
+    },
+    "allisha gray|assists|over|1.500||georgia amoore|points|over|4.500||sonia citron|assists|over|3.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-28|WNBA Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-28T14:50:47"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "date": "2026-08-28",
+  "runs": [
+    {
+      "run_id": "20260828_123332_308767",
+      "generated_at": "2026-08-28 12:33:35 UTC",
+      "archived_at": "2026-08-28T12:34:43.173406+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 24,
+      "n_strong": 0,
+      "path": "ui_runner/data/ticket_runs/2026-08-28/20260828_123332_308767/tickets.json"
+    },
+    {
+      "run_id": "20260828_142144_723324",
+      "generated_at": "2026-08-28 14:21:44 UTC",
+      "archived_at": "2026-08-28T14:27:06.810394+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 16,
+      "n_strong": 2,
+      "path": "ui_runner/data/ticket_runs/2026-08-28/20260828_142144_723324/tickets.json"
+    },
+    {
+      "run_id": "20260828_173224_452205",
+      "generated_at": "2026-08-28 17:32:24 UTC",
+      "archived_at": "2026-08-28T17:36:48.238633+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 12,
+      "n_strong": 1,
+      "path": "ui_runner/data/ticket_runs/2026-08-28/20260828_173224_452205/tickets.json"
+    },
+    {
+      "run_id": "20260828_211031_893687",
+      "generated_at": "2026-08-28 21:10:31 UTC",
+      "archived_at": "2026-08-28T21:16:25.740819+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 12,
+      "n_strong": 1,
+      "path": "ui_runner/data/ticket_runs/2026-08-28/20260828_211031_893687/tickets.json"
+    }
+  ],
+  "latest_run_id": "20260828_211031_893687",
+  "updated_at": "2026-08-28T21:16:25.754452+00:00"
+}

@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-05",
+  "generated_at": "2026-09-05T23:09:16.968703Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-09-05|Tennis Goblin-70 Power 3|1": {
+      "power_min_x": 2.1,
+      "power_first_x": 6.0,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|Tennis Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-05T09:30:16"
+    },
+    "2026-09-05|Tennis Goblin-70 Power 3|2": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|Tennis Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-05T09:31:20"
+    },
+    "2026-09-05|MLB Goblin-70 Power 3|3": {
+      "power_min_x": 2.2,
+      "power_first_x": 6.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|MLB Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-05T10:10:39"
+    }
+  },
+  "by_leg_sig": {
+    "alexander zverev|total games|over|32.500||cristina bucsa|total games won|over|3.500||madison keys|total games won|over|9.500": {
+      "power_min_x": 2.1,
+      "power_first_x": 6.0,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|Tennis Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-05T09:30:16"
+    },
+    "marie bouzkova|total games won|over|4.500||nikola bartunkova|total games won|over|5.500||taylor townsend|total games won|over|5.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|Tennis Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-05T09:31:20"
+    },
+    "drake baldwin|hits+runs+rbis|over|0.500||kaelen culpepper|hits+runs+rbis|over|0.500||konnor griffin|hits+runs+rbis|over|0.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 6.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|MLB Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-05T10:10:39"
+    },
+    "alexander zverev|total games|over|32.500||elise mertens|total games won|over|5.500||taylor townsend|total games won|over|5.500": {
+      "power_min_x": 2.1,
+      "power_first_x": 6.0,
+      "display_min_x": 2.1,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-05|Tennis Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "captured_at": "2026-09-05T09:30:16"
+    }
+  }
+}

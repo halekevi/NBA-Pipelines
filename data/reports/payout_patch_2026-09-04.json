@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-04",
+  "generated_at": "2026-09-05T00:36:33.363167Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-09-04|Tennis Goblin-70 Power 3|1": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-04T10:11:51"
+    },
+    "2026-09-04|Tennis Goblin-70 Power 3|2": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-04T10:13:06"
+    },
+    "2026-09-04|Tennis Goblin-70 Power 2|1": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-09-04T20:36:30"
+    }
+  },
+  "by_leg_sig": {
+    "ekaterina alexandrova|total games won|over|5.500||kamilla rakhimova|total games won|over|3.500||marie bouzkova|total games won|over|4.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-04T10:11:51"
+    },
+    "ann li|total games won|over|6.500||arthur rinderknech|total games won|over|12.500||elise mertens|total games won|over|5.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-09-04T10:13:06"
+    },
+    "cristina bucsa|total games won|over|3.500||madison keys|total games won|over|9.500||nikola bartunkova|total games won|over|5.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "captured_at": "2026-09-04T10:11:51"
+    },
+    "elise mertens|total games won|over|8.500||qinwen zheng|total games won|over|7.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-09-04|Tennis Goblin-70 Power 2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-09-04T20:36:30"
+    }
+  }
+}

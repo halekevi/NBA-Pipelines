@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-09-05T07:39:55.0209466-04:00",
+  "label": "5AM",
+  "repo_root": "H:\\PropORACLE_main_cp",
+  "expect_date": "2026-09-05",
+  "slate_display_date": "2026-08-30",
+  "slate_date_ok": false,
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "tickets_bytes": 114626,
+  "tickets_mtime": "2026-09-05 07:39:41",
+  "mobile_tickets_missing": true,
+  "sports": {
+    "tennis": "complete",
+    "mlb": "complete",
+    "nba1q": "off_season",
+    "wnba": "no_slate",
+    "cbb": "off_season",
+    "cfb": "complete",
+    "golf": "off_season",
+    "nhl": "no_slate",
+    "wcbb": "off_season",
+    "nba": "off_season",
+    "nfl": "no_slate",
+    "soccer": "complete",
+    "nba1h": "off_season"
+  },
+  "complete_sports": [
+    "tennis",
+    "mlb",
+    "cfb",
+    "soccer"
+  ],
+  "failed_sports": [],
+  "healthy": false,
+  "message": "BAD: expect 2026-09-05 got slate_display='2026-08-30'; tickets_bytes=114626; mobile_tickets_missing=True"
+}

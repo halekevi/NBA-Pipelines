@@ -1,0 +1,935 @@
+{
+  "date": "2026-08-30",
+  "generated_at": "2026-08-30T21:42:49Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-08-30|STRONG 2-Leg|16": {
+      "power_min_x": 1.2,
+      "display_min_x": 1.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|16",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:11:44"
+    },
+    "2026-08-30|SOCCER Core Power 2 #1|1": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T16:31:57"
+    },
+    "2026-08-30|SOCCER Core Power 2 #2|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:32:13"
+    },
+    "2026-08-30|STRONG 2-Leg|1": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:33:54"
+    },
+    "2026-08-30|STRONG 2-Leg|10": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong",
+      "captured_at": "2026-08-30T10:29:34"
+    },
+    "2026-08-30|STRONG 2-Leg|4": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:36:43"
+    },
+    "2026-08-30|STRONG 2-Leg|5": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:38:29"
+    },
+    "2026-08-30|STRONG 2-Leg|6": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:40:15"
+    },
+    "2026-08-30|STRONG 3-Leg|1": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:42:30"
+    },
+    "2026-08-30|STRONG 3-Leg|2": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:46:46"
+    },
+    "2026-08-30|STRONG 3-Leg|3": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:48:40"
+    },
+    "2026-08-30|STRONG 3-Leg|4": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:50:53"
+    },
+    "2026-08-30|STRONG 3-Leg|5": {
+      "power_min_x": 2.5,
+      "display_min_x": 2.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|5",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:52:44"
+    },
+    "2026-08-30|STRONG 3-Leg|6": {
+      "power_min_x": 2.6,
+      "display_min_x": 2.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|6",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:54:37"
+    },
+    "2026-08-30|STRONG 3-Leg|7": {
+      "power_min_x": 3.0,
+      "display_min_x": 3.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|7",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:56:45"
+    },
+    "2026-08-30|STRONG 3-Leg|8": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|8",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:58:31"
+    },
+    "2026-08-30|STRONG 3-Leg|9": {
+      "power_min_x": 3.0,
+      "display_min_x": 3.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|9",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:00:31"
+    },
+    "2026-08-30|TENNIS 2-Leg Goblin OVER|1": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "2026-08-30|TENNIS 3-Leg Goblin OVER|1": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "2026-08-30|TENNIS Core Power 2 #1|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:16:02"
+    },
+    "2026-08-30|TENNIS Core Power 3 #1|1": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS Core Power 3 #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:18:15"
+    },
+    "2026-08-30|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:51:58"
+    },
+    "2026-08-30|MLB Core Power 2 #2|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "2026-08-30|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:53:06"
+    },
+    "2026-08-30|STRONG 2-Leg|11": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong",
+      "captured_at": "2026-08-30T13:29:45"
+    },
+    "2026-08-30|STRONG 2-Leg|2": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong",
+      "captured_at": "2026-08-30T13:30:48"
+    },
+    "2026-08-30|WNBA Core Flex 3 #1|1": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|WNBA Core Flex 3 #1|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T13:34:44"
+    },
+    "2026-08-30|WNBA Core Flex 3 #2|1": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|WNBA Core Flex 3 #2|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T13:36:21"
+    },
+    "2026-08-30|WNBA Core Flex 3 #3|1": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|WNBA Core Flex 3 #3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T13:37:53"
+    },
+    "2026-08-30|MLB 2-Leg Goblin OVER|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    }
+  },
+  "by_leg_sig": {
+    "chris bassitt|earned runs allowed|over|0.500||shota imanaga|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:33:54"
+    },
+    "finn dahmen|goalie saves|over|1.500||kevin müller|goalie saves|over|1.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T06:31:32"
+    },
+    "finn dahmen|goalie saves|over|1.500||loris karius|goalie saves|over|1.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T06:32:13"
+    },
+    "aryna sabalenka|total games|over|15.500||francesca jones|total games won|over|7.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:33:54"
+    },
+    "grigor dimitrov|total games|over|36.500||sorana cirstea|total games|over|16.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "slip_type": "strong",
+      "captured_at": "2026-08-30T10:29:34"
+    },
+    "donna vekic|total games|over|18.500||marie bouzkova|total games|over|16.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|4",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:36:43"
+    },
+    "hanne vandewinkel|total games|over|17.500||katie boulter|total games|over|17.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:38:29"
+    },
+    "karen khachanov|total games|over|34.500||taylah preston|total games won|over|8.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|6",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:40:15"
+    },
+    "aryna sabalenka|total games|over|15.500||francesca jones|total games won|over|7.500||marie bouzkova|total games|over|16.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:42:30"
+    },
+    "donna vekic|total games|over|18.500||jessica pegula|total games|over|16.500||leolia jeanjean|total games|over|17.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:46:46"
+    },
+    "ekaterina alexandrova|total games|over|17.500||kamil majchrzak|total games|over|32.500||sofia kenin|total games|over|16.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:48:40"
+    },
+    "barbora krejcikova|total games|over|16.500||denis shapovalov|total games|over|32.500||taylah preston|total games won|over|8.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|4",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:50:53"
+    },
+    "darja vidmanova|total games|over|19.500||hanne vandewinkel|total games|over|17.500||luciano darderi|total games|over|34.500": {
+      "power_min_x": 2.5,
+      "display_min_x": 2.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|5",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:52:44"
+    },
+    "alex michelsen|total games|over|32.500||elena rybakina|total games|over|15.500||tomas martin etcheverry|total games|over|32.500": {
+      "power_min_x": 2.6,
+      "display_min_x": 2.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|6",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:54:37"
+    },
+    "grigor dimitrov|total games|over|36.500||jan-lennard struff|total games|over|36.500||sorana cirstea|total games|over|16.500": {
+      "power_min_x": 3.0,
+      "display_min_x": 3.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|7",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:56:45"
+    },
+    "giovanni mpetshi perricard|total games|over|32.500||karolina muchova|total games|over|16.500||matteo berrettini|total games|over|34.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|8",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:58:31"
+    },
+    "arthur rinderknech|total games|over|32.500||jaime faria|total games|over|32.500||karen khachanov|total games|over|34.500": {
+      "power_min_x": 3.0,
+      "display_min_x": 3.0,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|9",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:00:31"
+    },
+    "darja vidmanova|total games|over|20.500||jessica pegula|total games|over|17.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "darja vidmanova|total games|over|20.500||karen khachanov|total games|over|34.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "jessica pegula|total games|over|17.500||karen khachanov|total games|over|34.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "coco gauff|total games|over|14.500||francesca jones|total games won|over|8.500||taylah preston|total games won|over|8.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "coco gauff|total games|over|14.500||francesca jones|total games won|over|8.500||taylah preston|total games won|over|9.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "francesca jones|total games won|over|8.500||sofia kenin|total games|over|16.500||taylah preston|total games won|over|8.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "francesca jones|total games won|over|8.500||sofia kenin|total games|over|16.500||taylah preston|total games won|over|9.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "coco gauff|total games|over|14.500||francesca jones|total games won|over|8.500||sofia kenin|total games|over|16.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "aryna sabalenka|total games|over|15.500||ekaterina alexandrova|total games|over|17.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:16:02"
+    },
+    "aryna sabalenka|total games|over|15.500||ekaterina alexandrova|total games|over|17.500||francesca jones|total games won|over|7.500": {
+      "power_min_x": 1.6,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS Core Power 3 #1|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:18:15"
+    },
+    "aldo de nigris|shots|over|2.500||uros djurdjevic|shots|over|3.500": {
+      "power_min_x": 1.9,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T16:31:57"
+    },
+    "cristian reyes|shots|over|1.500||uros djurdjevic|shots|over|3.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:32:13"
+    },
+    "chris bassitt|earned runs allowed|over|0.500||jeffrey springs|earned runs allowed|over|1.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T06:33:54"
+    },
+    "darja vidmanova|total games|over|20.500||francesca jones|total games won|over|8.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "chris bassitt|earned runs allowed|over|0.500||jeffrey springs|earned runs allowed|over|1.500||shota imanaga|earned runs allowed|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T06:42:30"
+    },
+    "diane parry|total games won|over|11.500||ekaterina alexandrova|total games|over|20.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "carol young suh lee|total games won|over|9.500||marie bouzkova|total games|over|16.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "carol young suh lee|total games won|over|9.500||diane parry|total games won|over|10.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "carol young suh lee|total games won|over|9.500||liudmila samsonova|total games|over|18.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "carol young suh lee|total games won|over|9.500||diane parry|total games|over|20.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "carol young suh lee|total games won|over|9.500||sorana cirstea|total games|over|16.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "seth lugo|earned runs allowed|over|0.500||zack wheeler|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T12:51:58"
+    },
+    "seth lugo|earned runs allowed|over|0.500||shota imanaga|earned runs allowed|over|0.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "jeffrey springs|earned runs allowed|over|1.500||seth lugo|earned runs allowed|over|0.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T12:53:06"
+    },
+    "angel reese|pts+rebs+asts|over|24.500||emily engstler|pts+rebs+asts|over|14.500||nneka ogwumike|pts+rebs+asts|over|19.500": {
+      "power_min_x": 1.8,
+      "power_first_x": 6.0,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|1",
+      "n_legs": 3,
+      "captured_at": "2026-08-30T06:42:30"
+    },
+    "jade melbourne|pts+rebs|over|9.500||rae burrell|pts+rebs+asts|over|14.500||rhyne howard|pts+rebs+asts|over|19.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|2",
+      "n_legs": 3,
+      "captured_at": "2026-08-30T06:46:46"
+    },
+    "dewanna bonner|points|over|4.500||megan dileo|points|over|9.500||natasha howard|points|over|7.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 6.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 3-Leg|3",
+      "n_legs": 3,
+      "captured_at": "2026-08-30T06:48:40"
+    },
+    "aaliyah edwards|rebounds|over|3.500||kayla mcbride|points|over|11.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|5",
+      "n_legs": 2,
+      "captured_at": "2026-08-30T06:38:29"
+    },
+    "megan dileo|pts+rebs|over|14.500||naz hillmon|pts+rebs|over|9.500": {
+      "power_min_x": 1.9,
+      "power_first_x": 3.0,
+      "display_min_x": 1.9,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|10",
+      "n_legs": 2,
+      "captured_at": "2026-08-30T10:29:34"
+    },
+    "liudmila samsonova|total games|over|18.500||storm hunter|total games won|over|4.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "emily engstler|points|over|7.500||kiah stokes|rebounds|over|3.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|11",
+      "n_legs": 2,
+      "slip_type": "strong",
+      "captured_at": "2026-08-30T13:29:45"
+    },
+    "dewanna bonner|points|over|4.500||rae burrell|points|over|9.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 3.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|STRONG 2-Leg|2",
+      "n_legs": 2,
+      "slip_type": "strong",
+      "captured_at": "2026-08-30T13:30:48"
+    },
+    "kiah stokes|rebounds|over|4.500||rae burrell|points|over|9.500||rhyne howard|points|over|11.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|WNBA Core Flex 3 #1|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T13:34:44"
+    },
+    "dewanna bonner|rebounds|over|2.500||rae burrell|points|over|9.500||rhyne howard|points|over|11.500": {
+      "power_min_x": 1.6,
+      "power_first_x": 6.0,
+      "display_min_x": 1.6,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|WNBA Core Flex 3 #2|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T13:36:21"
+    },
+    "angel reese|assists|over|1.500||rae burrell|points|over|9.500||rhyne howard|points|over|11.500": {
+      "power_min_x": 1.4,
+      "power_first_x": 6.0,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|WNBA Core Flex 3 #3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-30T13:37:53"
+    },
+    "heriberto hernández|total bases|over|0.500||lawrence butler|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "heriberto hernández|hits+runs+rbis|over|0.500||lawrence butler|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "dylan beavers|hits+runs+rbis|over|0.500||heriberto hernández|total bases|over|0.500": {
+      "power_min_x": 1.4,
+      "display_min_x": 1.4,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:53:06"
+    },
+    "ekaterina alexandrova|total games|over|20.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "carol young suh lee|total games won|over|9.500||ekaterina alexandrova|total games|over|20.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "ekaterina alexandrova|total games|over|20.500||sorana cirstea|total games|over|17.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "carol young suh lee|total games won|over|8.500||ekaterina alexandrova|total games|over|20.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "ekaterina alexandrova|total games|over|20.500||marie bouzkova|total games|over|16.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "ekaterina alexandrova|total games|over|20.500||liudmila samsonova|total games|over|18.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "dylan beavers|hits+runs+rbis|over|0.500||lawrence butler|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "lawrence butler|hits+runs+rbis|over|0.500||otto lopez|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "lawrence butler|hits+runs+rbis|over|0.500||zac thornton|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "dylan beavers|hits+runs+rbis|over|0.500||zac thornton|pitching outs|over|14.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T12:52:28"
+    },
+    "panna udvardy|total games won|over|6.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 2.2,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-30T07:02:31"
+    },
+    "panna udvardy|total games won|over|6.500||sorana cirstea|total games|over|17.500||venus williams|total games won|over|5.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "marie bouzkova|total games|over|16.500||panna udvardy|total games won|over|6.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "liudmila samsonova|total games|over|18.500||panna udvardy|total games won|over|6.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "diane parry|total games|over|20.500||panna udvardy|total games won|over|6.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    },
+    "karolina muchova|total games|over|16.500||panna udvardy|total games won|over|6.500||sorana cirstea|total games|over|17.500": {
+      "power_min_x": 1.7,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-30|TENNIS 3-Leg Goblin OVER|1",
+      "n_legs": 3,
+      "power_first_x": 6.0,
+      "captured_at": "2026-08-30T07:14:40"
+    }
+  }
+}

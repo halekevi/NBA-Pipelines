@@ -1,0 +1,16 @@
+{
+  "date": "2026-08-31",
+  "runs": [
+    {
+      "run_id": "20260830_224619_370996",
+      "generated_at": "2026-08-30 22:46:18 UTC",
+      "archived_at": "2026-08-30T23:43:18.583076+00:00",
+      "source": "pipeline_live_snapshot",
+      "n_slips": 13,
+      "n_strong": 0,
+      "path": "ui_runner/data/ticket_runs/2026-08-31/20260830_224619_370996/tickets.json"
+    }
+  ],
+  "latest_run_id": "20260830_224619_370996",
+  "updated_at": "2026-08-30T23:43:18.594768+00:00"
+}

@@ -1,0 +1,6 @@
+PropOracle 5AM health — 2026-09-05 07:39:55
+BAD: expect 2026-09-05 got slate_display='2026-08-30'; tickets_bytes=114626; mobile_tickets_missing=True
+repo: H:\PropORACLE_main_cp
+complete: tennis, mlb, cfb, soccer
+failed: 
+tickets: H:\PropORACLE_main_cp\ui_runner\templates\tickets_latest.json (114626 bytes)

@@ -1,0 +1,380 @@
+{
+  "date": "2026-08-29",
+  "generated_at": "2026-08-29T23:08:26.527733Z",
+  "tickets_path": "H:\\PropORACLE_main_cp\\ui_runner\\templates\\tickets_latest.json",
+  "by_ticket_id": {
+    "2026-08-29|MLB Core Power 2 #3|1": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "2026-08-29|MLB Goblin-70 Power 3|3": {
+      "power_min_x": 2.2,
+      "power_first_x": 6.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T02:56:23"
+    },
+    "2026-08-29|SOCCER Core Power 2 #1|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:24:54"
+    },
+    "2026-08-29|SOCCER Core Power 2 #2|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:25:45"
+    },
+    "2026-08-29|WNBA Goblin-70 Power 3|1": {
+      "power_min_x": 1.3,
+      "power_first_x": 6.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:26:52"
+    },
+    "2026-08-29|WNBA Goblin-70 Power 3|2": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:27:57"
+    },
+    "2026-08-29|WNBA Goblin-70 Power 3|3": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:29:03"
+    },
+    "2026-08-29|MLB Core Power 2 #2|1": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "2026-08-29|MLB 2-Leg Goblin OVER|1": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "2026-08-29|MLB Core Power 2 #1|1": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "2026-08-29|Probability Ladder · SOCCER · Stack70|1": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|Probability Ladder · SOCCER · Stack70|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:25:45"
+    },
+    "2026-08-29|WNBA Goblin-70 Power 2|1": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T19:07:15"
+    }
+  },
+  "by_leg_sig": {
+    "francisco alvarez|hitter strikeouts|over|0.500||heriberto hernández|total bases|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "kaelen culpepper|hits+runs+rbis|over|0.500||miguel vargas|hits+runs+rbis|over|0.500||otto lopez|hits+runs+rbis|over|0.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 6.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T02:56:23"
+    },
+    "diego conde|goalie saves|over|1.500||frederik rønnow|goalie saves|over|1.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:24:54"
+    },
+    "daniel heuer fernandes|goalie saves|over|2.500||frederik rønnow|goalie saves|over|1.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:25:45"
+    },
+    "alyssa thomas|rebounds|over|5.500||courtney vandersloot|pts+asts|over|9.500||kahleah copper|points|over|14.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 6.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:26:52"
+    },
+    "jonquel jones|points|over|9.500||natasha cloud|pts+asts|over|14.500||natasha mack|points|over|5.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:27:57"
+    },
+    "kamilla cardoso|pts+asts|over|14.500||laura juškaitė|points|over|7.500||sabrina ionescu|pts+rebs|over|14.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T03:29:03"
+    },
+    "frederik rønnow|goalie saves|over|1.500||régis gurtner|goalie saves|over|1.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:25:45"
+    },
+    "lawrence butler|hits+runs+rbis|over|0.500||zach neto|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "alyssa thomas|rebounds|over|5.500||courtney vandersloot|assists|over|3.500||kahleah copper|points|over|14.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 6.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:26:52"
+    },
+    "laura juškaitė|pts+rebs+asts|over|14.500||natasha cloud|pts+asts|over|14.500||natasha mack|points|over|5.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:27:57"
+    },
+    "isabelle harrison|rebs+asts|over|7.500||jonquel jones|points|over|9.500||kiki rice|pts+asts|over|14.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:29:03"
+    },
+    "brooks lee|total bases|over|0.500||bryce harper|hits+runs+rbis|over|0.500||miguel vargas|hits+runs+rbis|over|0.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 6.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T02:56:23"
+    },
+    "diego conde|goalie saves|over|1.500||kike salas|shots|over|0.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:24:54"
+    },
+    "daniel heuer fernandes|goalie saves|over|2.500||diego conde|goalie saves|over|1.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #2|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:25:45"
+    },
+    "heriberto hernández|total bases|over|0.500||lawrence butler|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Core Power 2 #3|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "lawrence butler|hits+runs+rbis|over|0.500||otto lopez|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "otto lopez|hits+runs+rbis|over|0.500||zach neto|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "lawrence butler|hits+runs+rbis|over|0.500||xavier edwards|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "otto lopez|hits+runs+rbis|over|0.500||tommy white|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "laura juškaitė|pts+rebs+asts|over|14.500||natasha mack|points|over|5.500||sabrina ionescu|fg attempted|over|10.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:27:57"
+    },
+    "isabelle harrison|rebs+asts|over|7.500||jonquel jones|points|over|9.500||natasha cloud|pts+asts|over|14.500": {
+      "power_min_x": 1.5,
+      "power_first_x": 6.0,
+      "display_min_x": 1.5,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:29:03"
+    },
+    "bryce harper|hits+runs+rbis|over|0.500||kevin gausman|pitcher strikeouts|over|3.500||lawrence butler|hits+runs+rbis|over|0.500": {
+      "power_min_x": 2.2,
+      "power_first_x": 6.0,
+      "display_min_x": 2.2,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB Goblin-70 Power 3|3",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T02:56:23"
+    },
+    "heriberto hernández|hits+runs+rbis|over|0.500||lawrence butler|hits+runs+rbis|over|0.500": {
+      "power_min_x": 1.8,
+      "display_min_x": 1.8,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|MLB 2-Leg Goblin OVER|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T02:51:42"
+    },
+    "alyssa thomas|rebounds|over|5.500||courtney vandersloot|pts+asts|over|9.500||kahleah copper|pts+rebs|over|19.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 6.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|1",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:26:52"
+    },
+    "isabelle harrison|rebs+asts|over|7.500||laura juškaitė|pts+rebs+asts|over|14.500||marine johannes|3-pt made|over|0.500": {
+      "power_min_x": 1.7,
+      "power_first_x": 6.0,
+      "display_min_x": 1.7,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 3|2",
+      "n_legs": 3,
+      "captured_at": "2026-08-29T03:27:57"
+    },
+    "diego conde|goalie saves|over|1.500||héctor holguín|goalie saves|over|2.500": {
+      "power_min_x": 1.3,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|SOCCER Core Power 2 #1|1",
+      "n_legs": 2,
+      "power_first_x": 3.0,
+      "captured_at": "2026-08-29T03:24:54"
+    },
+    "alyssa thomas|rebounds|over|5.500||kahleah copper|pts+rebs|over|19.500": {
+      "power_min_x": 1.3,
+      "power_first_x": 3.0,
+      "display_min_x": 1.3,
+      "payout_source": "live_cdp",
+      "ticket_id": "2026-08-29|WNBA Goblin-70 Power 2|1",
+      "n_legs": 2,
+      "slip_type": "main",
+      "captured_at": "2026-08-29T19:07:15"
+    }
+  }
+}
